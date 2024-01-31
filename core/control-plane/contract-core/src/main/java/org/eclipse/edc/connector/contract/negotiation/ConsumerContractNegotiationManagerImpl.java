@@ -118,7 +118,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .type(ContractRequestMessage.Type.INITIAL);
 
         return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
-                .onSuccess((n, result) -> transitionToRequested(n, result.getContent()))
+                .onSuccessResult(this::transitionToRequested)
                 .onFailure((n, throwable) -> transitionToRequesting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send request to provider: %s", throwable.getMessage())))

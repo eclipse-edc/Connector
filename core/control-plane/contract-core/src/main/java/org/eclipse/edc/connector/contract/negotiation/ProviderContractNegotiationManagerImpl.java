@@ -77,7 +77,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var messageBuilder = ContractOfferMessage.Builder.newInstance().contractOffer(negotiation.getLastContractOffer());
 
         return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
-                .onSuccess((n, result) -> transitionToOffered(n, result.getContent()))
+                .onSuccessResult(this::transitionToOffered)
                 .onFailure((n, throwable) -> transitionToOffering(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send offer to consumer: %s", throwable.getMessage())))

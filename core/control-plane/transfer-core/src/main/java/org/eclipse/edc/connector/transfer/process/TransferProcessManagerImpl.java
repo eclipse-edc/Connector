@@ -290,7 +290,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .contractId(process.getContractId());
 
         return dispatch(messageBuilder, process, policyArchive.findPolicyForContract(process.getContractId()), TransferProcessAck.class)
-                .onSuccess((t, result) -> transitionToRequested(t, result.getContent()))
+                .onSuccessResult(this::transitionToRequested)
                 .onRetryExhausted(this::transitionToTerminated)
                 .onFailure((t, throwable) -> transitionToRequesting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
