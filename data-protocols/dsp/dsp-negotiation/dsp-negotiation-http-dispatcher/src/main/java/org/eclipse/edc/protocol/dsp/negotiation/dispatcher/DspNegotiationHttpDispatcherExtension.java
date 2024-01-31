@@ -20,8 +20,10 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiatio
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.dispatcher.PostDspHttpRequestFactory;
+import org.eclipse.edc.protocol.dsp.serialization.JsonLdResponseBodyDeserializer;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -69,6 +71,8 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var contractNegotiationAckDeserializer = new JsonLdResponseBodyDeserializer<>(
+                ContractNegotiationAck.class, typeManager.getMapper(JSON_LD), jsonLd, transformerRegistry);
 
         messageDispatcher.registerMessage(
                 ContractAgreementMessage.class,
@@ -99,12 +103,12 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
                         return BASE_PATH + m.getProcessId() + CONTRACT_REQUEST;
                     }
                 }),
-                new ContractNegotiationBodyExtractor(typeManager.getMapper(JSON_LD), jsonLd, transformerRegistry)
+                contractNegotiationAckDeserializer
         );
         messageDispatcher.registerMessage(
                 ContractOfferMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + CONTRACT_OFFER),
-                NOOP
+                contractNegotiationAckDeserializer
         );
     }
 }

@@ -163,7 +163,8 @@ class ConsumerContractNegotiationManagerImplTest {
     void requesting_shouldSendOfferAndTransitionRequested() {
         var negotiation = contractNegotiationBuilder().correlationId("correlationId").state(REQUESTING.code()).contractOffer(contractOffer()).build();
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
 

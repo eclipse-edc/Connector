@@ -146,8 +146,9 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
         update(negotiation);
     }
 
-    protected void transitionToOffered(ContractNegotiation negotiation) {
+    protected void transitionToOffered(ContractNegotiation negotiation, ContractNegotiationAck ack) {
         negotiation.transitionOffered();
+        negotiation.setCorrelationId(ack.getConsumerPid());
         update(negotiation);
         observable.invokeForEach(l -> l.offered(negotiation));
     }

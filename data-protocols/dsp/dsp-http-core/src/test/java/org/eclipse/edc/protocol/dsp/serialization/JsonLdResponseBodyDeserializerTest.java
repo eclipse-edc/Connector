@@ -12,13 +12,12 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.negotiation.dispatcher;
+package org.eclipse.edc.protocol.dsp.serialization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
-import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
@@ -42,27 +41,27 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 
-class ContractNegotiationBodyExtractorTest {
+class JsonLdResponseBodyDeserializerTest {
 
     private final ObjectMapper objectMapper = mock();
     private final JsonLd jsonLd = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
-    private final ContractNegotiationBodyExtractor bodyExtractor =
-            new ContractNegotiationBodyExtractor(objectMapper, jsonLd, transformerRegistry);
+    private final JsonLdResponseBodyDeserializer<Object> bodyExtractor =
+            new JsonLdResponseBodyDeserializer<>(Object.class, objectMapper, jsonLd, transformerRegistry);
 
     @Test
     void shouldTransformBody() throws IOException {
         var compacted = Json.createObjectBuilder().build();
         when(objectMapper.readValue(isA(InputStream.class), isA(Class.class))).thenReturn(compacted);
-        var ack = ContractNegotiationAck.Builder.newInstance().build();
+        var object = new Object();
         var expanded = Json.createObjectBuilder().build();
         when(jsonLd.expand(any())).thenReturn(Result.success(expanded));
-        when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(ack));
+        when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(object));
 
-        var contractNegotiationAck = bodyExtractor.extractBody(createResponseBody());
+        var result = bodyExtractor.extractBody(createResponseBody());
 
-        assertThat(contractNegotiationAck).isSameAs(ack);
-        verify(transformerRegistry).transform(same(expanded), eq(ContractNegotiationAck.class));
+        assertThat(result).isSameAs(object);
+        verify(transformerRegistry).transform(same(expanded), eq(Object.class));
     }
 
     @Test

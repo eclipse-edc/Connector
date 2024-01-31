@@ -12,12 +12,11 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.negotiation.dispatcher;
+package org.eclipse.edc.protocol.dsp.serialization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import okhttp3.ResponseBody;
-import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.spi.EdcException;
@@ -29,25 +28,27 @@ import java.io.IOException;
 import java.util.function.Function;
 
 /**
- * Extract {@link ContractNegotiationAck} from {@link ResponseBody}
+ * Extract a Json-LD represented body from {@link ResponseBody}
  */
-public class ContractNegotiationBodyExtractor implements DspHttpResponseBodyExtractor<ContractNegotiationAck> {
+public class JsonLdResponseBodyDeserializer<T> implements DspHttpResponseBodyExtractor<T> {
+    private final Class<T> type;
     private final ObjectMapper objectMapper;
     private final JsonLd jsonLd;
     private final TypeTransformerRegistry transformerRegistry;
 
-    public ContractNegotiationBodyExtractor(ObjectMapper objectMapper, JsonLd jsonLd, TypeTransformerRegistry transformerRegistry) {
+    public JsonLdResponseBodyDeserializer(Class<T> type, ObjectMapper objectMapper, JsonLd jsonLd, TypeTransformerRegistry transformerRegistry) {
+        this.type = type;
         this.objectMapper = objectMapper;
         this.jsonLd = jsonLd;
         this.transformerRegistry = transformerRegistry;
     }
 
     @Override
-    public ContractNegotiationAck extractBody(ResponseBody responseBody) {
+    public T extractBody(ResponseBody responseBody) {
         try {
             var jsonObject = objectMapper.readValue(responseBody.byteStream(), JsonObject.class);
             var expanded = jsonLd.expand(jsonObject).orElseThrow(exception("Cannot expand json-ld"));
-            return transformerRegistry.transform(expanded, ContractNegotiationAck.class)
+            return transformerRegistry.transform(expanded, type)
                     .orElseThrow(exception("Cannot transform json to ContractNegotiationAck"));
 
         } catch (IOException e) {
