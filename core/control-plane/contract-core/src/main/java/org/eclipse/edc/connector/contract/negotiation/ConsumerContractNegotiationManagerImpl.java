@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiatio
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
@@ -116,8 +117,8 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .callbackAddress(protocolWebhook.url())
                 .type(ContractRequestMessage.Type.INITIAL);
 
-        return dispatch(messageBuilder, negotiation)
-                .onSuccess((n, result) -> transitionToRequested(n))
+        return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
+                .onSuccess((n, result) -> transitionToRequested(n, result.getContent()))
                 .onFailure((n, throwable) -> transitionToRequesting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send request to provider: %s", throwable.getMessage())))
@@ -136,7 +137,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private boolean processAccepting(ContractNegotiation negotiation) {
         var messageBuilder = ContractNegotiationEventMessage.Builder.newInstance().type(ACCEPTED);
 
-        return dispatch(messageBuilder, negotiation)
+        return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess((n, result) -> transitionToAccepted(n))
                 .onFailure((n, throwable) -> transitionToAccepting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -167,7 +168,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var messageBuilder = ContractAgreementVerificationMessage.Builder.newInstance()
                 .policy(negotiation.getContractAgreement().getPolicy());
 
-        return dispatch(messageBuilder, negotiation)
+        return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess((n, result) -> transitionToVerified(n))
                 .onFailure((n, throwable) -> transitionToVerifying(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))

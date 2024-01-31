@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.core.entity.AbstractStateEntityManager;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -79,7 +80,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
                 .rejectionReason(negotiation.getErrorDetail())
                 .policy(negotiation.getLastContractOffer().getPolicy());
 
-        return dispatch(messageBuilder, negotiation)
+        return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess((n, result) -> transitionToTerminated(n))
                 .onFailure((n, throwable) -> transitionToTerminating(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -87,8 +88,8 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
                 .execute("[%s] send termination".formatted(type().name()));
     }
 
-    protected AsyncStatusResultRetryProcess<ContractNegotiation, Object, ?> dispatch(ProcessRemoteMessage.Builder<?, ?> messageBuilder,
-                                                                                     ContractNegotiation negotiation) {
+    protected <T> AsyncStatusResultRetryProcess<ContractNegotiation, T, ?> dispatch(ProcessRemoteMessage.Builder<?, ?> messageBuilder,
+                                                                                     ContractNegotiation negotiation, Class<T> responseType) {
         messageBuilder.counterPartyAddress(negotiation.getCounterPartyAddress())
                 .counterPartyId(negotiation.getCounterPartyId())
                 .protocol(negotiation.getProtocol())
@@ -108,7 +109,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
 
         negotiation.lastSentProtocolMessage(message.getId());
 
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, message));
+        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(responseType, message));
     }
 
     protected void transitionToInitial(ContractNegotiation negotiation) {
@@ -122,8 +123,9 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
         update(negotiation);
     }
 
-    protected void transitionToRequested(ContractNegotiation negotiation) {
+    protected void transitionToRequested(ContractNegotiation negotiation, ContractNegotiationAck ack) {
         negotiation.transitionRequested();
+        negotiation.setCorrelationId(ack.getProviderPid());
         update(negotiation);
         observable.invokeForEach(l -> l.requested(negotiation));
     }

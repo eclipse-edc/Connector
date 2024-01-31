@@ -75,7 +75,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     private boolean processOffering(ContractNegotiation negotiation) {
         var messageBuilder = ContractOfferMessage.Builder.newInstance().contractOffer(negotiation.getLastContractOffer());
 
-        return dispatch(messageBuilder, negotiation)
+        return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess((n, result) -> transitionToOffered(n))
                 .onFailure((n, throwable) -> transitionToOffering(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -129,7 +129,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
         var messageBuilder = ContractAgreementMessage.Builder.newInstance().contractAgreement(agreement);
 
-        return dispatch(messageBuilder, negotiation)
+        return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess((n, result) -> transitionToAgreed(n, agreement))
                 .onFailure((n, throwable) -> transitionToAgreeing(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -161,7 +161,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .policy(negotiation.getContractAgreement().getPolicy());
 
-        return dispatch(messageBuilder, negotiation)
+        return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess((n, result) -> transitionToFinalized(n))
                 .onFailure((n, throwable) -> transitionToFinalizing(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
