@@ -40,6 +40,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
@@ -439,7 +440,9 @@ class TransferProcessManagerImplTest {
     @Test
     void requesting_shouldSendMessageAndTransitionToRequested() {
         var process = createTransferProcess(REQUESTING);
-        when(dispatcherRegistry.dispatch(eq(Object.class), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        process.setCorrelationId(null);
+        var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
         when(vault.resolveSecret(any())).thenReturn(null);
@@ -447,14 +450,18 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
-            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
+            var storeCaptor = ArgumentCaptor.forClass(TransferProcess.class);
+            verify(transferProcessStore, times(1)).save(storeCaptor.capture());
+            var storedTransferProcess = storeCaptor.getValue();
+            assertThat(storedTransferProcess.getState()).isEqualTo(REQUESTED.code());
+            assertThat(storedTransferProcess.getCorrelationId()).isEqualTo("providerPid");
             verify(listener).requested(process);
+            var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
+            verify(dispatcherRegistry).dispatch(eq(TransferProcessAck.class), captor.capture());
             var message = captor.getValue();
-            assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
+            assertThat(message.getProcessId()).isEqualTo(null);
             assertThat(message.getConsumerPid()).isEqualTo(process.getId());
-            assertThat(message.getProviderPid()).isEqualTo(process.getCorrelationId());
+            assertThat(message.getProviderPid()).isEqualTo(null);
             assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
             assertThat(message.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isNull();
         });
@@ -464,7 +471,8 @@ class TransferProcessManagerImplTest {
     void requesting_shouldAddSecretToDataAddress_whenItExists() {
         var destination = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
         var process = createTransferProcessBuilder(REQUESTING).dataRequest(createDataRequestBuilder().dataDestination(destination).build()).build();
-        when(dispatcherRegistry.dispatch(eq(Object.class), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
         when(vault.resolveSecret(any())).thenReturn("secret");
@@ -473,7 +481,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
-            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+            verify(dispatcherRegistry).dispatch(eq(TransferProcessAck.class), captor.capture());
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
             verify(listener).requested(process);
             verify(vault).resolveSecret("keyName");

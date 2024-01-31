@@ -207,7 +207,6 @@ class ContractNegotiationProtocolServiceImplTest {
         var updatedNegotiation = result.getContent();
         assertThat(updatedNegotiation.getContractOffers()).hasSize(2);
         assertThat(updatedNegotiation.getLastContractOffer()).isEqualTo(contractOffer);
-        assertThat(updatedNegotiation.getCorrelationId()).isEqualTo("providerPid");
         verify(store).findByIdAndLease("processId");
         verify(listener).offered(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
@@ -267,7 +266,6 @@ class ContractNegotiationProtocolServiceImplTest {
         verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == AGREED.code() &&
-                negotiation.getCorrelationId().equals("providerPid") &&
                 negotiation.getContractAgreement() == contractAgreement
         ));
         verify(store).findByIdAndLease("processId");

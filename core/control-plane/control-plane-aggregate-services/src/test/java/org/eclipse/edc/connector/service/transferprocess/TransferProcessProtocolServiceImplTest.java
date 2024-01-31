@@ -273,7 +273,6 @@ class TransferProcessProtocolServiceImplTest {
         verify(listener).started(any(), startedDataCaptor.capture());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
         var transferProcess = transferProcessCaptor.getValue();
-        assertThat(transferProcess.getCorrelationId()).isEqualTo(message.getProviderPid());
         assertThat(startedDataCaptor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());
     }
 
