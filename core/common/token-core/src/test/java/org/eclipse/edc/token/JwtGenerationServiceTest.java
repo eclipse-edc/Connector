@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.jwt;
+package org.eclipse.edc.token;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
@@ -23,7 +23,6 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,13 +41,6 @@ class JwtGenerationServiceTest {
 
     private RSAKey keys;
     private JwtGenerationService tokenGenerationService;
-
-    private static RSAKey testKey() throws JOSEException {
-        return new RSAKeyGenerator(2048)
-                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
-                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
-                .generate();
-    }
 
     @BeforeEach
     void setUp() throws JOSEException {
@@ -88,8 +80,24 @@ class JwtGenerationServiceTest {
         });
     }
 
+    @Test
+    void shouldFail_whenPrivateKeyCannotBeResolved() {
+        var decorator = testDecorator();
+
+        var result = tokenGenerationService.generate(() -> null, decorator);
+
+        assertThat(result.failed()).isTrue();
+    }
+
     private JWSVerifier createVerifier(JWSHeader header, Key publicKey) throws JOSEException {
         return new DefaultJWSVerifierFactory().createJWSVerifier(header, publicKey);
+    }
+
+    private RSAKey testKey() throws JOSEException {
+        return new RSAKeyGenerator(2048)
+                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
+                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
+                .generate();
     }
 
     private TokenDecorator testDecorator() {

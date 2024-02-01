@@ -43,10 +43,12 @@ public class JwtGenerationService implements TokenGenerationService {
     public Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, @NotNull TokenDecorator... decorators) {
 
         var privateKey = privateKeySupplier.get();
+        if (privateKey == null) {
+            return Result.failure("PrivateKey cannot be resolved.");
+        }
 
         var tokenSigner = CryptoConverter.createSignerFor(privateKey);
         var jwsAlgorithm = CryptoConverter.getRecommendedAlgorithm(tokenSigner);
-
 
         var bldr = TokenParameters.Builder.newInstance();
         var allDecorators = new ArrayList<>(Arrays.asList(decorators));
