@@ -51,10 +51,10 @@ class TransferDataPlaneCoreExtensionTest {
     private final Vault vault = mock();
     private final WebService webService = mock();
     private final DataFlowManager dataFlowManager = mock();
+    private final Monitor monitor = mock();
 
     @BeforeEach
     public void setUp(ServiceExtensionContext context) {
-        var monitor = mock(Monitor.class);
         var controlApiConfigurationMock = mock(ControlApiConfiguration.class);
         when(controlApiConfigurationMock.getContextAlias()).thenReturn(CONTROL_PLANE_API_CONTEXT);
 
@@ -94,6 +94,7 @@ class TransferDataPlaneCoreExtensionTest {
 
         verify(dataFlowManager, never()).register(isA(ConsumerPullTransferDataFlowController.class));
         verifyNoInteractions(webService);
+        verify(monitor).info(any(String.class));
     }
 
     private String publicKeyPem() throws IOException {
