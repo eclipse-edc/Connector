@@ -139,7 +139,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .contractId(transferRequest.getContractId())
                 .destinationType(transferRequest.getDataDestination().getType())
                 .protocol(transferRequest.getProtocol())
-                .dataDestination(transferRequest.getDataDestination())
                 .build();
 
         var process = TransferProcess.Builder.newInstance()
