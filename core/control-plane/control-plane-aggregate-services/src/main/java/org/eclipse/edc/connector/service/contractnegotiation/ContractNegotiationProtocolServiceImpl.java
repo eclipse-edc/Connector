@@ -105,7 +105,6 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
                     }
                     negotiation.protocolMessageReceived(message.getId());
                     negotiation.addContractOffer(message.getContractOffer());
-                    negotiation.setCorrelationId(message.getProviderPid());
                     negotiation.transitionOffered();
                     update(negotiation);
                     observable.invokeForEach(l -> l.offered(negotiation));
@@ -146,7 +145,6 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
                     }
                     negotiation.protocolMessageReceived(message.getId());
                     negotiation.setContractAgreement(message.getContractAgreement());
-                    negotiation.setCorrelationId(message.getProviderPid());
                     negotiation.transitionAgreed();
                     update(negotiation);
                     observable.invokeForEach(l -> l.agreed(negotiation));

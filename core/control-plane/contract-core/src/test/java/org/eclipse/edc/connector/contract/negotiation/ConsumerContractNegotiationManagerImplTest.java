@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
@@ -162,7 +163,8 @@ class ConsumerContractNegotiationManagerImplTest {
     void requesting_shouldSendOfferAndTransitionRequested() {
         var negotiation = contractNegotiationBuilder().correlationId("correlationId").state(REQUESTING.code()).contractOffer(contractOffer()).build();
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
 
@@ -183,17 +185,22 @@ class ConsumerContractNegotiationManagerImplTest {
     void requesting_shouldSendMessageWithId_whenCorrelationIdIsNull_toSupportOldProtocolVersion() {
         var negotiation = contractNegotiationBuilder().correlationId(null).state(REQUESTING.code()).contractOffer(contractOffer()).build();
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == REQUESTED.code()));
-            var captor = ArgumentCaptor.<ContractRequestMessage>captor();
-            verify(dispatcherRegistry, only()).dispatch(any(), captor.capture());
-            var message = captor.getValue();
+            var entityCaptor = ArgumentCaptor.<ContractNegotiation>captor();
+            verify(store).save(entityCaptor.capture());
+            var storedNegotiation = entityCaptor.getValue();
+            assertThat(storedNegotiation.getState()).isEqualTo(REQUESTED.code());
+            assertThat(storedNegotiation.getCorrelationId()).isEqualTo("providerPid");
+            var messageCaptor = ArgumentCaptor.<ContractRequestMessage>captor();
+            verify(dispatcherRegistry, only()).dispatch(any(), messageCaptor.capture());
+            var message = messageCaptor.getValue();
             assertThat(message.getProcessId()).isEqualTo(negotiation.getId());
             assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
             verify(listener).requested(any());

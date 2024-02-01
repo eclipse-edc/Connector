@@ -22,6 +22,7 @@ import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonOb
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferStartMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferTerminationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferCompletionMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferProcessAckTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferStartMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferTerminationMessageTransformer;
@@ -51,10 +52,8 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
         var builderFactory = Json.createBuilderFactory(Map.of());
 
-        //from
         registry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
         registry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory));
         registry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory));
@@ -62,10 +61,10 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory));
         registry.register(new JsonObjectFromDataAddressTransformer(builderFactory));
 
-        //to
         registry.register(new JsonObjectToTransferRequestMessageTransformer());
         registry.register(new JsonObjectToTransferCompletionMessageTransformer());
         registry.register(new JsonObjectToTransferStartMessageTransformer());
         registry.register(new JsonObjectToTransferTerminationMessageTransformer());
+        registry.register(new JsonObjectToTransferProcessAckTransformer());
     }
 }

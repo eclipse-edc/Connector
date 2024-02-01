@@ -174,7 +174,6 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
             observable.invokeForEach(l -> l.preStarted(transferProcess));
             transferProcess.protocolMessageReceived(message.getId());
             transferProcess.transitionStarted();
-            transferProcess.setCorrelationId(message.getProviderPid());
             update(transferProcess);
             var transferStartedData = TransferProcessStartedData.Builder.newInstance()
                     .dataAddress(message.getDataAddress())
