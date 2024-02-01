@@ -71,9 +71,7 @@ import static org.mockito.Mockito.when;
 
 class IdentityAndTrustServiceTest {
     public static final String EXPECTED_OWN_DID = "did:web:test";
-
-    public static final String EXPECTED_PARTICIPANT_ID = "participantId";
-
+    
     public static final String CONSUMER_DID = "did:web:consumer";
     private final SecureTokenService mockedSts = mock();
     private final PresentationVerifier mockedVerifier = mock();
@@ -81,7 +79,7 @@ class IdentityAndTrustServiceTest {
     private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
     private final CredentialServiceUrlResolver credentialServiceUrlResolverMock = mock();
     private final TokenValidationAction actionMock = mock();
-    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, EXPECTED_PARTICIPANT_ID, mockedVerifier, mockedClient,
+    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, mockedVerifier, mockedClient,
             actionMock, trustedIssuerRegistryMock, Clock.systemUTC(), credentialServiceUrlResolverMock);
 
     @BeforeEach

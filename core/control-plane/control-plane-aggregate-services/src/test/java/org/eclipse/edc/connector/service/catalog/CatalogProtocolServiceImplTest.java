@@ -60,7 +60,7 @@ class CatalogProtocolServiceImplTest {
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
 
     private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver,
-            participantAgentService, dataServiceRegistry, identityService, mock(), "participantId",
+            participantAgentService, dataServiceRegistry, identityService, mock(), mock(), "participantId",
             transactionContext);
 
     @Test

@@ -148,8 +148,8 @@ class ContractNegotiationIntegrationTest {
                 .build();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
-        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, identityService, new ContractNegotiationObservableImpl(), monitor, mock());
-        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, identityService, new ContractNegotiationObservableImpl(), monitor, mock());
+        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, identityService, mock(), new ContractNegotiationObservableImpl(), monitor, mock());
+        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, identityService, mock(), new ContractNegotiationObservableImpl(), monitor, mock());
     }
 
     @AfterEach
@@ -292,7 +292,7 @@ class ContractNegotiationIntegrationTest {
         @ParameterizedTest
         @ArgumentsSource(EgressMessages.class)
         void shouldSendMessageWithTheSameId_whenFirstDispatchFailed(ContractNegotiation.Type type, ContractNegotiationStates state,
-                                                                  Class<? extends ContractRemoteMessage> messageType) {
+                                                                    Class<? extends ContractRemoteMessage> messageType) {
             var dispatcherRegistry = type == CONSUMER ? consumerDispatcherRegistry : providerDispatcherRegistry;
             var store = type == CONSUMER ? consumerStore : providerStore;
             var manager = type == CONSUMER ? consumerManager : providerManager;

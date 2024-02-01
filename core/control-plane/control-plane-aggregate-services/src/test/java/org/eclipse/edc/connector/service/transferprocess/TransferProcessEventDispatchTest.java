@@ -140,6 +140,7 @@ public class TransferProcessEventDispatchTest {
         var providerId = "ProviderId";
 
         when(agreement.getProviderId()).thenReturn(providerId);
+        when(agreement.getPolicy()).thenReturn(Policy.Builder.newInstance().build());
         when(agent.getIdentity()).thenReturn(providerId);
 
         dispatcherRegistry.register(getTestDispatcher());

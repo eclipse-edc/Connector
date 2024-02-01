@@ -51,6 +51,7 @@ import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -140,6 +141,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private IdentityService identityService;
 
+    @Inject
+    private PolicyEngine policyEngine;
+
     @Override
     public String name() {
         return NAME;
@@ -160,7 +164,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public CatalogProtocolService catalogProtocolService(ServiceExtensionContext context) {
         return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry,
-                identityService, monitor, context.getParticipantId(), transactionContext);
+                identityService, policyEngine, monitor, context.getParticipantId(), transactionContext);
     }
 
     @Provider
@@ -183,7 +187,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public ContractNegotiationProtocolService contractNegotiationProtocolService() {
         return new ContractNegotiationProtocolServiceImpl(contractNegotiationStore,
-                transactionContext, contractValidationService, identityService, contractNegotiationObservable,
+                transactionContext, contractValidationService, identityService, policyEngine, contractNegotiationObservable,
                 monitor, telemetry);
     }
 
@@ -203,6 +207,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public TransferProcessProtocolService transferProcessProtocolService() {
         return new TransferProcessProtocolServiceImpl(transferProcessStore, transactionContext, contractNegotiationStore,
-                contractValidationService, identityService, dataAddressValidator, transferProcessObservable, clock, monitor, telemetry);
+                contractValidationService, identityService, policyEngine, dataAddressValidator, transferProcessObservable, clock, monitor, telemetry);
     }
 }
