@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
-import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSink;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -33,10 +32,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.UUID.randomUUID;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,24 +46,22 @@ import static org.mockito.Mockito.mock;
 public class PipelineServiceIntegrationTest {
 
     private final Monitor monitor = mock();
+    private final PipelineServiceImpl pipelineService = new PipelineServiceImpl(monitor);
 
     @Test
     void transferData() {
-        var pipelineService = new PipelineServiceImpl(monitor);
-        var endpoint = new FixedEndpoint(monitor);
-        pipelineService.registerFactory(endpoint);
+        pipelineService.registerFactory(new FixedEndpoint());
         pipelineService.registerFactory(new InputStreamDataFactory());
 
         var future = pipelineService.transfer(createRequest().build());
 
         assertThat(future).succeedsWithin(5, TimeUnit.SECONDS).satisfies(result -> {
-            assertThat(result).isSucceeded().isEqualTo("bytes");
+            assertThat(result).isSucceeded().isEqualTo("bytes".getBytes());
         });
     }
 
     @Test
     void transferData_withCustomSink() {
-        var pipelineService = new PipelineServiceImpl(monitor);
         var text = "test-data-input-transferred-to-a-memory-stream";
         pipelineService.registerFactory(new InputStreamDataFactory(text));
 
@@ -88,10 +83,10 @@ public class PipelineServiceIntegrationTest {
     }
 
     private static class FixedEndpoint implements DataSinkFactory {
-        private final OutputStreamDataSink sink;
+        private final DataSink sink;
 
-        FixedEndpoint(Monitor monitor) {
-            sink = new OutputStreamDataSink(randomUUID().toString(), Executors.newFixedThreadPool(1), monitor);
+        FixedEndpoint() {
+            sink = new MemorySink();
         }
 
         @Override

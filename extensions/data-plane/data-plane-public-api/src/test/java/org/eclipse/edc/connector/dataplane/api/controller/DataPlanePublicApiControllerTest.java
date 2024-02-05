@@ -17,10 +17,10 @@ package org.eclipse.edc.connector.dataplane.api.controller;
 
 import io.restassured.specification.RequestSpecification;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.connector.dataplane.api.pipeline.ProxyStreamDataSinkFactory;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
-import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSinkFactory;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -29,6 +29,7 @@ import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.io.ByteArrayInputStream;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
@@ -44,7 +45,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-class DataPlanePublicApiControllerIntegrationTest extends RestControllerTestBase {
+class DataPlanePublicApiControllerTest extends RestControllerTestBase {
 
     private final PipelineService pipelineService = mock();
     private final DataAddressResolver dataAddressResolver = mock();
@@ -134,33 +135,50 @@ class DataPlanePublicApiControllerIntegrationTest extends RestControllerTestBase
     }
 
     @Test
-    void should_returnDataFromSource_if_transferSuccessful() {
-        var token = UUID.randomUUID().toString();
-        var address = testDestAddress();
-        var requestCaptor = ArgumentCaptor.forClass(DataFlowRequest.class);
-
+    void shouldReturnDataFromSource_whenContentIsInputStream() {
         when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
         when(pipelineService.validate(any())).thenReturn(Result.success(true));
         when(pipelineService.transfer(any()))
-                .thenReturn(completedFuture(StreamResult.success()));
+                .thenReturn(completedFuture(StreamResult.success(new ByteArrayInputStream("data".getBytes()))));
 
-        baseRequest()
-                .header(AUTHORIZATION, token)
+        var responseBody = baseRequest()
+                .header(AUTHORIZATION, UUID.randomUUID().toString())
                 .when()
                 .post("/any?foo=bar")
                 .then()
-                .statusCode(Response.Status.OK.getStatusCode());
+                .statusCode(Response.Status.OK.getStatusCode())
+                .extract().body().asString();
 
+        assertThat(responseBody).isEqualTo("data");
+        var requestCaptor = ArgumentCaptor.forClass(DataFlowRequest.class);
         verify(pipelineService).validate(requestCaptor.capture());
         verify(pipelineService).transfer(requestCaptor.capture());
         var capturedRequests = requestCaptor.getAllValues();
         assertThat(capturedRequests)
                 .hasSize(2)
                 .allSatisfy(request -> {
-                    assertThat(request.getDestinationDataAddress().getType()).isEqualTo(OutputStreamDataSinkFactory.TYPE);
-                    assertThat(request.getSourceDataAddress().getType()).isEqualTo(address.getType());
+                    assertThat(request.getDestinationDataAddress().getType()).isEqualTo(ProxyStreamDataSinkFactory.TYPE);
+                    assertThat(request.getSourceDataAddress().getType()).isEqualTo("test");
                     assertThat(request.getProperties()).containsEntry("method", "POST").containsEntry("pathSegments", "any").containsEntry("queryParams", "foo=bar");
                 });
+    }
+
+    @Test
+    void shouldReturnDataFromSource_whenContentIsObject() {
+        when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
+        when(pipelineService.validate(any())).thenReturn(Result.success(true));
+        when(pipelineService.transfer(any()))
+                .thenReturn(completedFuture(StreamResult.success("data")));
+
+        var responseBody = baseRequest()
+                .header(AUTHORIZATION, UUID.randomUUID().toString())
+                .when()
+                .post("/any?foo=bar")
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .extract().body().asString();
+
+        assertThat(responseBody).isEqualTo("data");
     }
 
     private RequestSpecification baseRequest() {

@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Amadeus - Initial implementation
+ *       Amadeus - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.dataplane.util.sink;
+package org.eclipse.edc.connector.dataplane.api.pipeline;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
@@ -21,21 +21,17 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.ExecutorService;
-
 /**
- * A sink factory whose sole purpose is to validate {@link DataFlowRequest} whose destination address type is OutputStream.
- * This is required for synchronous data transfers in which an {@link OutputStreamDataSink} is used to convey the data to the call response.
+ * A sink factory whose sole purpose is to validate {@link DataFlowRequest} whose destination address type is ProxyStream.
+ * This is required for synchronous data transfers in which an {@link ProxyStreamDataSink} is used to convey the data to the call response.
  */
-public class OutputStreamDataSinkFactory implements DataSinkFactory {
+public class ProxyStreamDataSinkFactory implements DataSinkFactory {
 
-    public static final String TYPE = "OutputStream";
+    public static final String TYPE = "ProxyStream";
     private final Monitor monitor;
-    private final ExecutorService executorService;
 
-    public OutputStreamDataSinkFactory(Monitor monitor, ExecutorService executorService) {
+    public ProxyStreamDataSinkFactory(Monitor monitor) {
         this.monitor = monitor;
-        this.executorService = executorService;
     }
 
     @Override
@@ -56,6 +52,6 @@ public class OutputStreamDataSinkFactory implements DataSinkFactory {
 
     @Override
     public DataSink createSink(DataFlowRequest request) {
-        return new OutputStreamDataSink(request.getId(), executorService, monitor);
+        return new ProxyStreamDataSink(request.getId(), monitor);
     }
 }

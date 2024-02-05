@@ -28,22 +28,25 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.StreamingOutput;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 
+import java.io.InputStream;
 import java.util.List;
 
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.WILDCARD;
 import static jakarta.ws.rs.core.Response.status;
 import static java.lang.String.format;
 import static java.lang.String.join;
 
 @Path("{any:.*}")
-@Produces(MediaType.APPLICATION_JSON)
+@Produces({WILDCARD, APPLICATION_JSON})
 public class DataPlanePublicApiController implements DataPlanePublicApi {
 
     private final PipelineService pipelineService;
@@ -111,6 +114,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
         handle(requestContext, response);
     }
 
+    @SuppressWarnings("checkstyle:Indentation")
     private void handle(ContainerRequestContext context, AsyncResponse response) {
         var contextApi = new ContainerRequestContextApiImpl(context);
         var token = contextApi.headers().get(HttpHeaders.AUTHORIZATION);
@@ -134,11 +138,14 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
         pipelineService.transfer(dataFlowRequest)
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
-                        if (result.succeeded()) {
-                            response.resume(Response.ok(result.getContent()).build());
-                        } else {
-                            response.resume(internalServerError(result.getFailureMessages()));
-                        }
+                        var responseObject = result
+                                .map(content -> result.getContent() instanceof InputStream stream
+                                        ? (StreamingOutput) stream::transferTo
+                                        : result.getContent())
+                                .map(body -> Response.ok(body).build())
+                                .orElse(failure -> internalServerError(failure.getFailureDetail()));
+
+                        response.resume(responseObject);
                     } else {
                         response.resume(internalServerError("Unhandled exception occurred during data transfer: " + throwable.getMessage()));
                     }

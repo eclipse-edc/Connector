@@ -14,13 +14,16 @@
 
 package org.eclipse.edc.connector.dataplane.framework;
 
+import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryDataPlaneStore;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.time.Clock;
 
@@ -45,5 +48,10 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public DataPlaneStore dataPlaneStore() {
         return new InMemoryDataPlaneStore(clock);
+    }
+
+    @Provider(isDefault = true)
+    public PipelineService pipelineService(ServiceExtensionContext context) {
+        return new PipelineServiceImpl(context.getMonitor());
     }
 }

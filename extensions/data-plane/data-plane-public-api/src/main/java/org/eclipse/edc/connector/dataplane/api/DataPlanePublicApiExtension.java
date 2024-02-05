@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.dataplane.api;
 
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApiController;
+import org.eclipse.edc.connector.dataplane.api.pipeline.ProxyStreamDataSinkFactory;
 import org.eclipse.edc.connector.dataplane.api.validation.ConsumerPullTransferDataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -78,6 +79,8 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        pipelineService.registerFactory(new ProxyStreamDataSinkFactory(context.getMonitor()));
+
         var validationEndpoint = context.getConfig().getString(CONTROL_PLANE_VALIDATION_ENDPOINT);
         var dataAddressResolver = new ConsumerPullTransferDataAddressResolver(httpClient, validationEndpoint, typeManager.getMapper());
         var configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
