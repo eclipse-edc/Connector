@@ -17,11 +17,11 @@ package org.eclipse.edc.connector.dataplane.api.controller;
 
 import io.restassured.specification.RequestSpecification;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.dataplane.api.pipeline.ProxyStreamDataSinkFactory;
-import org.eclipse.edc.connector.dataplane.api.pipeline.ProxyStreamPayload;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
+import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -31,9 +31,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
@@ -78,25 +83,10 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
                 .post("/any")
                 .then()
                 .statusCode(Response.Status.FORBIDDEN.getStatusCode())
+                .contentType(JSON)
                 .body("errors.size()", is(1));
 
         verify(dataAddressResolver).resolve(token);
-    }
-
-    @Test
-    void should_returnBadRequest_if_requestValidationFails() {
-        var token = UUID.randomUUID().toString();
-        var errorMsg = UUID.randomUUID().toString();
-        when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
-        when(pipelineService.validate(any())).thenReturn(Result.failure(errorMsg));
-
-        baseRequest()
-                .header(AUTHORIZATION, token)
-                .when()
-                .post("/any")
-                .then()
-                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
-                .body("errors.size()", is(1));
     }
 
     @Test
@@ -104,8 +94,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
         var token = UUID.randomUUID().toString();
         var errorMsg = UUID.randomUUID().toString();
         when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
-        when(pipelineService.validate(any())).thenReturn(Result.success(true));
-        when(pipelineService.transfer(any()))
+        when(pipelineService.transfer(any(), any()))
                 .thenReturn(completedFuture(StreamResult.error(errorMsg)));
 
         baseRequest()
@@ -114,6 +103,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
                 .post("/any")
                 .then()
                 .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .contentType(JSON)
                 .body("errors[0]", is(errorMsg));
     }
 
@@ -122,8 +112,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
         var token = UUID.randomUUID().toString();
         var errorMsg = UUID.randomUUID().toString();
         when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
-        when(pipelineService.validate(any())).thenReturn(Result.success(true));
-        when(pipelineService.transfer(any(DataFlowRequest.class)))
+        when(pipelineService.transfer(any(DataFlowRequest.class), any()))
                 .thenReturn(failedFuture(new RuntimeException(errorMsg)));
 
         baseRequest()
@@ -132,16 +121,17 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
                 .post("/any")
                 .then()
                 .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .contentType(JSON)
                 .body("errors[0]", is("Unhandled exception occurred during data transfer: " + errorMsg));
     }
 
     @Test
-    void shouldReturnDataFromSource_whenContentIsProxyStreamPayload() {
+    void shouldStreamSourceToResponse() {
         when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
-        when(pipelineService.validate(any())).thenReturn(Result.success(true));
-        var payload = new ProxyStreamPayload(new ByteArrayInputStream("data".getBytes()), "application/something");
-        when(pipelineService.transfer(any()))
-                .thenReturn(completedFuture(StreamResult.success(payload)));
+        when(pipelineService.transfer(any(), any())).thenAnswer(i -> {
+            ((AsyncStreamingDataSink) i.getArgument(1)).transfer(new TestDataSource("application/something", "data"));
+            return CompletableFuture.completedFuture(StreamResult.success());
+        });
 
         var responseBody = baseRequest()
                 .header(AUTHORIZATION, UUID.randomUUID().toString())
@@ -155,34 +145,11 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
 
         assertThat(responseBody).isEqualTo("data");
         var requestCaptor = ArgumentCaptor.forClass(DataFlowRequest.class);
-        verify(pipelineService).validate(requestCaptor.capture());
-        verify(pipelineService).transfer(requestCaptor.capture());
-        var capturedRequests = requestCaptor.getAllValues();
-        assertThat(capturedRequests)
-                .hasSize(2)
-                .allSatisfy(request -> {
-                    assertThat(request.getDestinationDataAddress().getType()).isEqualTo(ProxyStreamDataSinkFactory.TYPE);
-                    assertThat(request.getSourceDataAddress().getType()).isEqualTo("test");
-                    assertThat(request.getProperties()).containsEntry("method", "POST").containsEntry("pathSegments", "any").containsEntry("queryParams", "foo=bar");
-                });
-    }
-
-    @Test
-    void shouldReturnDataFromSource_whenContentIsObject() {
-        when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
-        when(pipelineService.validate(any())).thenReturn(Result.success(true));
-        when(pipelineService.transfer(any()))
-                .thenReturn(completedFuture(StreamResult.success("data")));
-
-        var responseBody = baseRequest()
-                .header(AUTHORIZATION, UUID.randomUUID().toString())
-                .when()
-                .post("/any?foo=bar")
-                .then()
-                .statusCode(Response.Status.OK.getStatusCode())
-                .extract().body().asString();
-
-        assertThat(responseBody).isEqualTo("data");
+        verify(pipelineService).transfer(requestCaptor.capture(), any());
+        var request = requestCaptor.getValue();
+        assertThat(request.getDestinationDataAddress().getType()).isEqualTo(AsyncStreamingDataSink.TYPE);
+        assertThat(request.getSourceDataAddress().getType()).isEqualTo("test");
+        assertThat(request.getProperties()).containsEntry("method", "POST").containsEntry("pathSegments", "any").containsEntry("queryParams", "foo=bar");
     }
 
     private RequestSpecification baseRequest() {
@@ -197,7 +164,26 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DataPlanePublicApiController(pipelineService, dataAddressResolver);
+        return new DataPlanePublicApiController(pipelineService, dataAddressResolver, Executors.newSingleThreadExecutor());
+    }
+
+    private record TestDataSource(String mediaType, String data) implements DataSource, DataSource.Part {
+
+        @Override
+        public StreamResult<Stream<Part>> openPartStream() {
+            return StreamResult.success(Stream.of(this));
+        }
+
+        @Override
+        public String name() {
+            return "test";
+        }
+
+        @Override
+        public InputStream openStream() {
+            return new ByteArrayInputStream(data.getBytes());
+        }
+
     }
 
 }

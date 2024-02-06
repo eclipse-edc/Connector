@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static okhttp3.Protocol.HTTP_1_1;
@@ -75,12 +74,13 @@ class HttpDataSourceTest {
 
         when(requestFactory.toRequest(any())).thenReturn(request);
 
-        var parts = source.openPartStream().getContent().collect(Collectors.toList());
+        var parts = source.openPartStream().getContent().toList();
 
         var interceptedRequest = interceptor.getInterceptedRequest();
         assertThat(interceptedRequest).isEqualTo(request);
         assertThat(parts).hasSize(1);
         var part = parts.get(0);
+        assertThat(part.mediaType()).startsWith("application/json");
         try (var is = part.openStream()) {
             assertThat(new String(is.readAllBytes())).isEqualTo(json);
         }

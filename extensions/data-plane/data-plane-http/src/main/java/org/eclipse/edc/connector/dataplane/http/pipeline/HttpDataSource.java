@@ -58,7 +58,7 @@ public class HttpDataSource implements DataSource {
                 if (body == null) {
                     throw new EdcException(format("Received empty response body transferring HTTP data for request %s: %s", requestId, response.code()));
                 }
-                var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::type).orElse(OCTET_STREAM);
+                var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(OCTET_STREAM);
                 return success(Stream.of(new HttpPart(name, body.byteStream(), mediaType)));
             } else {
                 try {

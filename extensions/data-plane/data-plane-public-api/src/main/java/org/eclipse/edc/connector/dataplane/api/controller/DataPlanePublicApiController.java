@@ -30,14 +30,13 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
-import org.eclipse.edc.connector.dataplane.api.pipeline.ProxyStreamPayload;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 
-import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.WILDCARD;
@@ -45,8 +44,6 @@ import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.status;
-import static java.lang.String.format;
-import static java.lang.String.join;
 
 @Path("{any:.*}")
 @Produces(WILDCARD)
@@ -55,12 +52,14 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
     private final PipelineService pipelineService;
     private final DataAddressResolver dataAddressResolver;
     private final DataFlowRequestSupplier requestSupplier;
+    private final ExecutorService executorService;
 
-    public DataPlanePublicApiController(PipelineService pipelineService,
-                                        DataAddressResolver dataAddressResolver) {
+    public DataPlanePublicApiController(PipelineService pipelineService, DataAddressResolver dataAddressResolver,
+                                        ExecutorService executorService) {
         this.pipelineService = pipelineService;
         this.dataAddressResolver = dataAddressResolver;
         this.requestSupplier = new DataFlowRequestSupplier();
+        this.executorService = executorService;
     }
 
     @GET
@@ -134,43 +133,25 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
         var dataAddress = tokenValidation.getContent();
         var dataFlowRequest = requestSupplier.apply(contextApi, dataAddress);
 
-        var validationResult = pipelineService.validate(dataFlowRequest);
-        if (validationResult.failed()) {
-            var errorMsg = validationResult.getFailureMessages().isEmpty() ?
-                    format("Failed to validate request with id: %s", dataFlowRequest.getId()) :
-                    join(",", validationResult.getFailureMessages());
-            response.resume(error(BAD_REQUEST, errorMsg));
-            return;
-        }
+        AsyncStreamingDataSink.AsyncResponseContext asyncResponseContext = callback -> {
+            StreamingOutput output = t -> callback.outputStreamConsumer().accept(t);
+            var resp = Response.ok(output).type(callback.mediaType()).build();
+            return response.resume(resp);
+        };
 
-        pipelineService.transfer(dataFlowRequest)
+        var sink = new AsyncStreamingDataSink(asyncResponseContext, executorService);
+
+        pipelineService.transfer(dataFlowRequest, sink)
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
-                        var responseObject = result
-                                .map(content -> {
-                                    if (result.getContent() instanceof ProxyStreamPayload payload) {
-                                        return Response.ok(streamToOutput(payload.inputStream())).type(payload.contentType()).build();
-                                    } else {
-                                        return Response.ok(result.getContent()).build();
-                                    }
-                                })
-                                .orElse(failure -> error(INTERNAL_SERVER_ERROR, failure.getFailureDetail()));
-
-                        response.resume(responseObject);
+                        if (result.failed()) {
+                            response.resume(error(INTERNAL_SERVER_ERROR, result.getFailureDetail()));
+                        }
                     } else {
                         var error = "Unhandled exception occurred during data transfer: " + throwable.getMessage();
                         response.resume(error(INTERNAL_SERVER_ERROR, error));
                     }
                 });
-    }
-
-    @NotNull
-    private static StreamingOutput streamToOutput(InputStream input) {
-        return output -> {
-            try (input) {
-                input.transferTo(output);
-            }
-        };
     }
 
     private static Response error(Response.Status status, String error) {

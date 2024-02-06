@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.api.controller;
 
-import org.eclipse.edc.connector.dataplane.api.pipeline.ProxyStreamDataSinkFactory;
+import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
@@ -46,7 +46,7 @@ public class DataFlowRequestSupplier implements BiFunction<ContainerRequestConte
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(dataAddress)
                 .destinationDataAddress(DataAddress.Builder.newInstance()
-                        .type(ProxyStreamDataSinkFactory.TYPE)
+                        .type(AsyncStreamingDataSink.TYPE)
                         .build())
                 .trackable(false)
                 .id(UUID.randomUUID().toString())
