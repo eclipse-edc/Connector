@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.dataplane.api.controller;
 import io.restassured.specification.RequestSpecification;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.api.pipeline.ProxyStreamDataSinkFactory;
+import org.eclipse.edc.connector.dataplane.api.pipeline.ProxyStreamPayload;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
@@ -56,7 +57,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
                 .post("/any")
                 .then()
                 .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
-                .body("errors[0]", is("Missing bearer token"));
+                .body("errors[0]", is("Missing token"));
     }
 
     @Test
@@ -135,18 +136,21 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void shouldReturnDataFromSource_whenContentIsInputStream() {
+    void shouldReturnDataFromSource_whenContentIsProxyStreamPayload() {
         when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
         when(pipelineService.validate(any())).thenReturn(Result.success(true));
+        var payload = new ProxyStreamPayload(new ByteArrayInputStream("data".getBytes()), "application/something");
         when(pipelineService.transfer(any()))
-                .thenReturn(completedFuture(StreamResult.success(new ByteArrayInputStream("data".getBytes()))));
+                .thenReturn(completedFuture(StreamResult.success(payload)));
 
         var responseBody = baseRequest()
                 .header(AUTHORIZATION, UUID.randomUUID().toString())
                 .when()
                 .post("/any?foo=bar")
                 .then()
+                .log().ifError()
                 .statusCode(Response.Status.OK.getStatusCode())
+                .contentType("application/something")
                 .extract().body().asString();
 
         assertThat(responseBody).isEqualTo("data");

@@ -50,7 +50,9 @@ public class ProxyStreamDataSink implements DataSink {
         try (var partStream = streamResult.getContent()) {
 
             return partStream.findFirst()
-                    .map(part -> completedFuture(StreamResult.<Object>success(part.openStream())))
+                    .map(part -> new ProxyStreamPayload(part.openStream(), part.mediaType()))
+                    .map(StreamResult::<Object>success)
+                    .map(CompletableFuture::completedFuture)
                     .orElse(CompletableFuture.failedFuture(new EdcException("no parts")));
         } catch (Exception e) {
             var errorMessage = format("Error processing data transfer request - Request ID: %s", requestId);

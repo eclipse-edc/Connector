@@ -30,23 +30,26 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
+import org.eclipse.edc.connector.dataplane.api.pipeline.ProxyStreamPayload;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
 import java.util.List;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.WILDCARD;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.status;
 import static java.lang.String.format;
 import static java.lang.String.join;
 
 @Path("{any:.*}")
-@Produces({WILDCARD, APPLICATION_JSON})
+@Produces(WILDCARD)
 public class DataPlanePublicApiController implements DataPlanePublicApi {
 
     private final PipelineService pipelineService;
@@ -114,16 +117,21 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
         handle(requestContext, response);
     }
 
-    @SuppressWarnings("checkstyle:Indentation")
     private void handle(ContainerRequestContext context, AsyncResponse response) {
         var contextApi = new ContainerRequestContextApiImpl(context);
         var token = contextApi.headers().get(HttpHeaders.AUTHORIZATION);
         if (token == null) {
-            response.resume(badRequest(("Missing bearer token")));
+            response.resume(error(BAD_REQUEST, "Missing token"));
             return;
         }
 
-        var dataAddress = extractSourceDataAddress(token);
+        var tokenValidation = dataAddressResolver.resolve(token);
+        if (tokenValidation.failed()) {
+            response.resume(error(FORBIDDEN, tokenValidation.getFailureDetail()));
+            return;
+        }
+
+        var dataAddress = tokenValidation.getContent();
         var dataFlowRequest = requestSupplier.apply(contextApi, dataAddress);
 
         var validationResult = pipelineService.validate(dataFlowRequest);
@@ -131,7 +139,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
             var errorMsg = validationResult.getFailureMessages().isEmpty() ?
                     format("Failed to validate request with id: %s", dataFlowRequest.getId()) :
                     join(",", validationResult.getFailureMessages());
-            response.resume(badRequest(errorMsg));
+            response.resume(error(BAD_REQUEST, errorMsg));
             return;
         }
 
@@ -139,47 +147,34 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
                         var responseObject = result
-                                .map(content -> result.getContent() instanceof InputStream stream
-                                        ? (StreamingOutput) stream::transferTo
-                                        : result.getContent())
-                                .map(body -> Response.ok(body).build())
-                                .orElse(failure -> internalServerError(failure.getFailureDetail()));
+                                .map(content -> {
+                                    if (result.getContent() instanceof ProxyStreamPayload payload) {
+                                        return Response.ok(streamToOutput(payload.inputStream())).type(payload.contentType()).build();
+                                    } else {
+                                        return Response.ok(result.getContent()).build();
+                                    }
+                                })
+                                .orElse(failure -> error(INTERNAL_SERVER_ERROR, failure.getFailureDetail()));
 
                         response.resume(responseObject);
                     } else {
-                        response.resume(internalServerError("Unhandled exception occurred during data transfer: " + throwable.getMessage()));
+                        var error = "Unhandled exception occurred during data transfer: " + throwable.getMessage();
+                        response.resume(error(INTERNAL_SERVER_ERROR, error));
                     }
                 });
     }
 
-    /**
-     * Invoke the {@link DataAddressResolver} with the provided token to retrieve the source data address.
-     *
-     * @param token input token
-     * @return the source {@link DataAddress}.
-     * @throws NotAuthorizedException if {@link DataAddressResolver} invokation failed.
-     */
-    private DataAddress extractSourceDataAddress(String token) {
-        var result = dataAddressResolver.resolve(token);
-        if (result.failed()) {
-            throw new NotAuthorizedException(String.join(", ", result.getFailureMessages()));
-        }
-        return result.getContent();
+    @NotNull
+    private static StreamingOutput streamToOutput(InputStream input) {
+        return output -> {
+            try (input) {
+                input.transferTo(output);
+            }
+        };
     }
 
-    private Response badRequest(String error) {
-        return badRequest(List.of(error));
+    private static Response error(Response.Status status, String error) {
+        return status(status).type(APPLICATION_JSON).entity(new TransferErrorResponse(List.of(error))).build();
     }
 
-    private Response badRequest(List<String> errors) {
-        return status(Response.Status.BAD_REQUEST).entity(new TransferErrorResponse(errors)).build();
-    }
-
-    private Response internalServerError(String error) {
-        return internalServerError(List.of(error));
-    }
-
-    private Response internalServerError(List<String> errors) {
-        return status(Response.Status.INTERNAL_SERVER_ERROR).entity(new TransferErrorResponse(errors)).build();
-    }
 }

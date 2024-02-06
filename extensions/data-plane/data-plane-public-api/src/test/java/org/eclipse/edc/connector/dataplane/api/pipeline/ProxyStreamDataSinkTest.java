@@ -14,11 +14,15 @@
 
 package org.eclipse.edc.connector.dataplane.api.pipeline;
 
-import org.eclipse.edc.connector.dataplane.spi.pipeline.InputStreamDataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -34,17 +38,37 @@ class ProxyStreamDataSinkTest {
     @Test
     void shouldReturnTheInputStream() {
         var data = "bar".getBytes();
-        var dataSource = new InputStreamDataSource("foo", new ByteArrayInputStream(data));
+        var dataSource = new TestDataSource("application/something", new ByteArrayInputStream(data));
         var dataSink = new ProxyStreamDataSink(randomUUID().toString(), monitor);
 
         var future = dataSink.transfer(dataSource);
 
         assertThat(future).succeedsWithin(5, SECONDS).satisfies(result -> {
-            assertThat(result).isSucceeded().isInstanceOf(ByteArrayInputStream.class).asInstanceOf(type(ByteArrayInputStream.class))
-                    .matches(it -> it.available() > 0)
-                    .extracting(ByteArrayInputStream::readAllBytes)
-                    .satisfies(bytes -> assertThat(new String(bytes)).isEqualTo("bar"));
+            assertThat(result).isSucceeded().isInstanceOf(ProxyStreamPayload.class)
+                    .asInstanceOf(type(ProxyStreamPayload.class))
+                    .satisfies(payload -> {
+                        assertThat(payload.inputStream()).hasBinaryContent("bar".getBytes());
+                        assertThat(payload.contentType()).isEqualTo("application/something");
+                    });
         });
+    }
+
+    private record TestDataSource(String mediaType, InputStream inputStream) implements DataSource, DataSource.Part {
+
+        @Override
+        public StreamResult<Stream<Part>> openPartStream() {
+            return StreamResult.success(Stream.of(this));
+        }
+
+        @Override
+        public String name() {
+            return UUID.randomUUID().toString();
+        }
+
+        @Override
+        public InputStream openStream() {
+            return inputStream;
+        }
     }
 
 }
