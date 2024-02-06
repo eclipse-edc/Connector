@@ -18,6 +18,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -36,16 +40,12 @@ import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import static java.lang.String.format;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
 public class DefaultCredentialServiceClient implements CredentialServiceClient {
-    public static final String PRESENTATION_ENDPOINT = "/presentation/query";
+    public static final String PRESENTATION_ENDPOINT_TEMPLATE = "/participants/%s/presentation/query";
     private final EdcHttpClient httpClient;
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper objectMapper;
@@ -63,10 +63,10 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     }
 
     @Override
-    public Result<List<VerifiablePresentationContainer>> requestPresentation(String credentialServiceBaseUrl, String selfIssuedTokenJwt, List<String> scopes) {
+    public Result<List<VerifiablePresentationContainer>> requestPresentation(String credentialServiceBaseUrl, String participantId, String selfIssuedTokenJwt, List<String> scopes) {
         var query = createPresentationQuery(scopes);
 
-        var url = credentialServiceBaseUrl + PRESENTATION_ENDPOINT;
+        var url = credentialServiceBaseUrl + format(PRESENTATION_ENDPOINT_TEMPLATE, participantId);
 
         try {
             var requestJson = objectMapper.writeValueAsString(query);

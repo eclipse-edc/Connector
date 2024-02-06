@@ -19,6 +19,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
 import okhttp3.Response;
@@ -41,11 +46,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.invocation.InvocationOnMock;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
@@ -60,17 +61,17 @@ import static org.mockito.Mockito.when;
 
 class DefaultCredentialServiceClientTest {
 
+    private static final String PARTICIPANT_ID = "did:web:" + UUID.randomUUID();
     private static final String CS_URL = "http://test.com/cs";
     private final EdcHttpClient httpClientMock = mock();
     private DefaultCredentialServiceClient client;
 
-    private TypeTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
 
-    private ObjectMapper mapper = JacksonJsonLd.createObjectMapper().enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+    private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper().enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
     @BeforeEach
     void setup() {
-        transformerRegistry = mock(TypeTransformerRegistry.class);
         when(transformerRegistry.transform(any(), eq(VerifiablePresentation.class)))
                 .thenReturn(success(createPresentation()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(PresentationResponseMessage.class))).thenAnswer(this::presentationResponse);
@@ -84,14 +85,13 @@ class DefaultCredentialServiceClientTest {
     @Test
     @DisplayName("CS returns a single LDP-VP")
     void requestPresentation_singleLdpVp() throws IOException {
-
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("single_ldp-vp.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
+        var result = client.requestPresentation(CS_URL, PARTICIPANT_ID, "foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JSON_LD);
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(format("/participants/%s/presentation/query", PARTICIPANT_ID))));
     }
 
     @Test
@@ -100,10 +100,10 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("single_jwt-vp.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
+        var result = client.requestPresentation(CS_URL, PARTICIPANT_ID, "foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JWT);
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(format("/participants/%s/presentation/query", PARTICIPANT_ID))));
     }
 
     @Test
@@ -112,12 +112,12 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_mixed.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
+        var result = client.requestPresentation(CS_URL, PARTICIPANT_ID, "foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(2)
                 .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JSON_LD))
                 .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JWT));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(format("/participants/%s/presentation/query", PARTICIPANT_ID))));
     }
 
     @Test
@@ -126,11 +126,11 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_ldp.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
+        var result = client.requestPresentation(CS_URL, PARTICIPANT_ID, "foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(2)
                 .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JSON_LD));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(format("/participants/%s/presentation/query", PARTICIPANT_ID))));
     }
 
     @Test
@@ -139,23 +139,23 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_jwt.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
+        var result = client.requestPresentation(CS_URL, PARTICIPANT_ID, "foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(2)
                 .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JWT));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(format("/participants/%s/presentation/query", PARTICIPANT_ID))));
     }
 
     @ParameterizedTest(name = "CS returns HTTP error code {0}")
-    @ValueSource(ints = { 400, 401, 403, 503, 501 })
+    @ValueSource(ints = {400, 401, 403, 503, 501})
     void requestPresentation_csReturnsError(int httpCode) throws IOException {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(httpCode, "Test failure"));
 
-        var res = client.requestPresentation(CS_URL, "foo", List.of());
+        var res = client.requestPresentation(CS_URL, PARTICIPANT_ID, "foo", List.of());
         assertThat(res.failed()).isTrue();
         assertThat(res.getFailureDetail()).isEqualTo("Presentation Query failed: HTTP %s, message: Test failure".formatted(httpCode));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(format("/participants/%s/presentation/query", PARTICIPANT_ID))));
     }
 
     @DisplayName("CS returns an empty array, because no VC was found")
@@ -164,10 +164,10 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, "{\"presentation\":[],\"presentationSubmission\":null}"));
 
-        var res = client.requestPresentation(CS_URL, "foo", List.of());
+        var res = client.requestPresentation(CS_URL, PARTICIPANT_ID, "foo", List.of());
         assertThat(res.succeeded()).isTrue();
         assertThat(res.getContent()).isNotNull().doesNotContainNull().isEmpty();
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(format("/participants/%s/presentation/query", PARTICIPANT_ID))));
     }
 
     private VerifiablePresentation createPresentation() {
@@ -183,16 +183,6 @@ class DefaultCredentialServiceClientTest {
                                 .build())
                         .build())
                 .build();
-    }
-
-    private Result<PresentationResponseMessage> presentationResponseResult(String path) {
-        var content = getResourceFileContentAsString(path);
-        try {
-            var response = mapper.readValue(content, PresentationResponseMessage.class);
-            return Result.success(response);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private Result<PresentationResponseMessage> presentationResponse(InvocationOnMock args) {

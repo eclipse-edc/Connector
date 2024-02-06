@@ -15,6 +15,17 @@
 package org.eclipse.edc.iam.identitytrust;
 
 import com.nimbusds.jwt.SignedJWT;
+import java.text.ParseException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsNotExpired;
@@ -37,18 +48,6 @@ import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.text.ParseException;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
@@ -170,7 +169,7 @@ public class IdentityAndTrustService implements IdentityService {
 
         // get CS Url, execute VP request
         var vpResponse = credentialServiceUrlResolver.resolve(issuer)
-                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, scopes));
+                .compose(url -> credentialServiceClient.requestPresentation(url, issuer, siTokenString, scopes));
 
         if (vpResponse.failed()) {
             return vpResponse.mapTo();
