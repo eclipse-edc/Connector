@@ -25,11 +25,13 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.service.protocol.BaseProtocolService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -41,11 +43,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 
 public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService implements ContractNegotiationProtocolService {
 
+    @PolicyScope
+    private static final String CONTRACT_NEGOTIATION_REQUEST_SCOPE = "request.contract.negotiation";
     private final ContractNegotiationStore store;
     private final TransactionContext transactionContext;
     private final ContractValidationService validationService;
@@ -78,7 +83,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
                 .compose(validatedOffer -> {
                     var result = message.getProviderPid() == null
                             ? createNegotiation(message, validatedOffer)
-                            : getNegotiation(message.getProviderPid());
+                            : getAndLeaseNegotiation(message.getProviderPid());
 
                     return result.onSuccess(negotiation -> {
                         if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
@@ -97,39 +102,20 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyOffered(ContractOfferMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
-                .compose(claimToken -> getNegotiation(message.getProcessId())
-                        .compose(negotiation -> validateRequest(claimToken, negotiation))
-                )
-                .onSuccess(negotiation -> {
-                    if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
-                        return;
-                    }
-                    negotiation.protocolMessageReceived(message.getId());
-                    negotiation.addContractOffer(message.getContractOffer());
-                    negotiation.transitionOffered();
-                    update(negotiation);
-                    observable.invokeForEach(l -> l.offered(negotiation));
-                }));
+        return transactionContext.execute(() -> getNegotiation(message)
+                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation))
+                .compose(context -> validateRequest(context.claimToken(), context.negotiation()))
+                .compose(cn -> onMessageDo(message, contractNegotiation -> offeredAction(message, contractNegotiation))));
     }
 
     @Override
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyAccepted(ContractNegotiationEventMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
-                .compose(claimToken -> getNegotiation(message.getProcessId())
-                        .compose(negotiation -> validateRequest(claimToken, negotiation))
-                )
-                .onSuccess(negotiation -> {
-                    if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
-                        return;
-                    }
-                    negotiation.protocolMessageReceived(message.getId());
-                    negotiation.transitionAccepted();
-                    update(negotiation);
-                    observable.invokeForEach(l -> l.accepted(negotiation));
-                }));
+        return transactionContext.execute(() -> getNegotiation(message)
+                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation))
+                .compose(context -> validateRequest(context.claimToken(), context.negotiation()))
+                .compose(cn -> onMessageDo(message, contractNegotiation -> acceptedAction(message, contractNegotiation))));
 
     }
 
@@ -137,77 +123,40 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyAgreed(ContractAgreementMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
-                .compose(claimToken -> getNegotiation(message.getProcessId())
-                        .compose(negotiation -> validateAgreed(message, claimToken, negotiation))
-                )
-                .onSuccess(negotiation -> {
-                    if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
-                        return;
-                    }
-                    negotiation.protocolMessageReceived(message.getId());
-                    negotiation.setContractAgreement(message.getContractAgreement());
-                    negotiation.transitionAgreed();
-                    update(negotiation);
-                    observable.invokeForEach(l -> l.agreed(negotiation));
-                }));
+        return transactionContext.execute(() -> getNegotiation(message)
+                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation))
+                .compose(context -> validateAgreed(message, context.claimToken(), context.negotiation()))
+                .compose(cn -> onMessageDo(message, contractNegotiation -> agreedAction(message, contractNegotiation))));
     }
 
     @Override
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyVerified(ContractAgreementVerificationMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
-                .compose(claimToken -> getNegotiation(message.getProcessId())
-                        .compose(negotiation -> validateRequest(claimToken, negotiation))
-                )
-                .onSuccess(negotiation -> {
-                    if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
-                        return;
-                    }
-                    negotiation.protocolMessageReceived(message.getId());
-                    negotiation.transitionVerified();
-                    update(negotiation);
-                    observable.invokeForEach(l -> l.verified(negotiation));
-                }));
+        return transactionContext.execute(() -> getNegotiation(message)
+                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation))
+                .compose(context -> validateRequest(context.claimToken(), context.negotiation()))
+                .compose(cn -> onMessageDo(message, contractNegotiation -> verifiedAction(message, contractNegotiation))));
     }
 
     @Override
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyFinalized(ContractNegotiationEventMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
-                .compose(claimToken -> getNegotiation(message.getProcessId())
-                        .compose(negotiation -> validateRequest(claimToken, negotiation))
-                )
-                .onSuccess(negotiation -> {
-                    if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
-                        return;
-                    }
-                    negotiation.protocolMessageReceived(message.getId());
-                    negotiation.transitionFinalized();
-                    update(negotiation);
-                    observable.invokeForEach(l -> l.finalized(negotiation));
-                }));
+        return transactionContext.execute(() -> getNegotiation(message)
+                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation))
+                .compose(context -> validateRequest(context.claimToken(), context.negotiation()))
+                .compose(cn -> onMessageDo(message, contractNegotiation -> finalizedAction(message, contractNegotiation))));
     }
 
     @Override
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyTerminated(ContractNegotiationTerminationMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
-                .compose(claimToken -> getNegotiation(message.getProcessId())
-                        .compose(negotiation -> validateRequest(claimToken, negotiation))
-                )
-                .onSuccess(negotiation -> {
-                    if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
-                        return;
-                    }
-                    negotiation.protocolMessageReceived(message.getId());
-                    negotiation.transitionTerminated();
-                    update(negotiation);
-                    observable.invokeForEach(l -> l.terminated(negotiation));
-                }));
+        return transactionContext.execute(() -> getNegotiation(message)
+                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation))
+                .compose(context -> validateRequest(context.claimToken(), context.negotiation()))
+                .compose(cn -> onMessageDo(message, contractNegotiation -> terminatedAction(message, contractNegotiation))));
     }
 
     @Override
@@ -217,6 +166,18 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
         return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> Optional.ofNullable(store.findById(id))
                 .map(negotiation -> validateRequest(claimToken, negotiation))
                 .orElse(ServiceResult.notFound("No negotiation with id %s found".formatted(id)))));
+    }
+
+    @NotNull
+    private ServiceResult<ContractNegotiation> onMessageDo(ContractRemoteMessage message, Function<ContractNegotiation, ServiceResult<ContractNegotiation>> action) {
+        return getAndLeaseNegotiation(message.getProcessId())
+                .compose(contractNegotiation -> {
+                    if (contractNegotiation.shouldIgnoreIncomingMessage(message.getId())) {
+                        return ServiceResult.success(contractNegotiation);
+                    } else {
+                        return action.apply(contractNegotiation);
+                    }
+                });
     }
 
     @NotNull
@@ -270,11 +231,89 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
         }
     }
 
-    private ServiceResult<ContractNegotiation> getNegotiation(String negotiationId) {
+    @NotNull
+    private ServiceResult<ContractNegotiation> acceptedAction(ContractNegotiationEventMessage message, ContractNegotiation negotiation) {
+        negotiation.protocolMessageReceived(message.getId());
+        negotiation.transitionAccepted();
+        update(negotiation);
+        observable.invokeForEach(l -> l.accepted(negotiation));
+        return ServiceResult.success(negotiation);
+    }
+
+    @NotNull
+    private ServiceResult<ContractNegotiation> agreedAction(ContractAgreementMessage message, ContractNegotiation negotiation) {
+        negotiation.protocolMessageReceived(message.getId());
+        negotiation.setContractAgreement(message.getContractAgreement());
+        negotiation.transitionAgreed();
+        update(negotiation);
+        observable.invokeForEach(l -> l.agreed(negotiation));
+        return ServiceResult.success(negotiation);
+    }
+
+    @NotNull
+    private ServiceResult<ContractNegotiation> verifiedAction(ContractAgreementVerificationMessage message, ContractNegotiation negotiation) {
+        negotiation.protocolMessageReceived(message.getId());
+        negotiation.transitionVerified();
+        update(negotiation);
+        observable.invokeForEach(l -> l.verified(negotiation));
+        return ServiceResult.success(negotiation);
+    }
+
+    @NotNull
+    private ServiceResult<ContractNegotiation> finalizedAction(ContractNegotiationEventMessage message, ContractNegotiation negotiation) {
+        negotiation.protocolMessageReceived(message.getId());
+        negotiation.transitionFinalized();
+        update(negotiation);
+        observable.invokeForEach(l -> l.finalized(negotiation));
+        return ServiceResult.success(negotiation);
+    }
+
+    @NotNull
+    private ServiceResult<ContractNegotiation> offeredAction(ContractOfferMessage message, ContractNegotiation negotiation) {
+        negotiation.protocolMessageReceived(message.getId());
+        negotiation.addContractOffer(message.getContractOffer());
+        negotiation.transitionOffered();
+        update(negotiation);
+        observable.invokeForEach(l -> l.offered(negotiation));
+        return ServiceResult.success(negotiation);
+    }
+
+    @NotNull
+    private ServiceResult<ContractNegotiation> terminatedAction(ContractNegotiationTerminationMessage message, ContractNegotiation negotiation) {
+        negotiation.protocolMessageReceived(message.getId());
+        negotiation.transitionTerminated();
+        update(negotiation);
+        observable.invokeForEach(l -> l.terminated(negotiation));
+        return ServiceResult.success(negotiation);
+    }
+
+    private ServiceResult<ContractNegotiation> getAndLeaseNegotiation(String negotiationId) {
         return store.findByIdAndLease(negotiationId)
                 // recover needed to maintain backward compatibility when there was no distinction between providerPid and consumerPid
                 .recover(it -> store.findByCorrelationIdAndLease(negotiationId))
                 .flatMap(ServiceResult::from);
+    }
+
+    private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, ContractNegotiation contractNegotiation) {
+        var result = verifyToken(tokenRepresentation, CONTRACT_NEGOTIATION_REQUEST_SCOPE, contractNegotiation.getLastContractOffer().getPolicy());
+        if (result.failed()) {
+            monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
+            return ServiceResult.notFound("Not found");
+        } else {
+            return ServiceResult.success(new ClaimTokenContext(result.getContent(), contractNegotiation));
+        }
+    }
+
+    private ServiceResult<ContractNegotiation> getNegotiation(ContractRemoteMessage message) {
+        return getNegotiation(message.getProcessId());
+    }
+
+    private ServiceResult<ContractNegotiation> getNegotiation(String negotiationId) {
+        return Optional.ofNullable(store.findById(negotiationId))
+                // recover needed to maintain backward compatibility when there was no distinction between providerPid and consumerPid
+                .or(() -> Optional.ofNullable(store.findForCorrelationId(negotiationId)))
+                .map(ServiceResult::success)
+                .orElseGet(() -> ServiceResult.notFound("No negotiation with id %s found".formatted(negotiationId)));
     }
 
     private void update(ContractNegotiation negotiation) {
@@ -283,4 +322,6 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
                 .formatted(negotiation.getType(), negotiation.getId(), negotiation.stateAsString()));
     }
 
+    private record ClaimTokenContext(ClaimToken claimToken, ContractNegotiation negotiation) {
+    }
 }

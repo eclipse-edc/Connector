@@ -73,7 +73,6 @@ import static org.eclipse.edc.connector.service.contractnegotiation.ContractNego
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -158,6 +157,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .build();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(store.findById(any())).thenReturn(negotiation);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateInitialOffer(claimToken, contractOffer)).thenReturn(Result.success(validatedOffer));
 
@@ -198,6 +198,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var negotiation = createContractNegotiationRequested();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(store.findById(processId)).thenReturn(negotiation);
         when(store.findByIdAndLease(processId)).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(claimToken, negotiation)).thenReturn(Result.success());
 
@@ -207,6 +208,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var updatedNegotiation = result.getContent();
         assertThat(updatedNegotiation.getContractOffers()).hasSize(2);
         assertThat(updatedNegotiation.getLastContractOffer()).isEqualTo(contractOffer);
+        verify(store).findById("processId");
         verify(store).findByIdAndLease("processId");
         verify(listener).offered(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
@@ -227,12 +229,14 @@ class ContractNegotiationProtocolServiceImplTest {
                 .policy(Policy.Builder.newInstance().build())
                 .build();
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(store.findById(any())).thenReturn(contractNegotiation);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(contractNegotiation));
         when(validationService.validateRequest(eq(claimToken), any(ContractNegotiation.class))).thenReturn(Result.success());
 
         var result = service.notifyAccepted(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findById("processId");
         verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(negotiation -> negotiation.getState() == ACCEPTED.code()));
         verify(validationService).validateRequest(claimToken, contractNegotiation);
@@ -257,18 +261,19 @@ class ContractNegotiationProtocolServiceImplTest {
                 .build();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(store.findById(any())).thenReturn(negotiationConsumerRequested);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiationConsumerRequested));
         when(validationService.validateConfirmed(eq(claimToken), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
 
         var result = service.notifyAgreed(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findById("processId");
         verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == AGREED.code() &&
                         negotiation.getContractAgreement() == contractAgreement
         ));
-        verify(store).findByIdAndLease("processId");
         verify(validationService).validateConfirmed(eq(claimToken), eq(contractAgreement), any(ContractOffer.class));
         verify(listener).agreed(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
@@ -278,7 +283,8 @@ class ContractNegotiationProtocolServiceImplTest {
     void notifyVerified_shouldTransitionToVerified() {
         var claimToken = claimToken();
         var tokenRepresentation = tokenRepresentation();
-        var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code()).build();
+        var contractOffer = contractOffer();
+        var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code()).contractOffer(contractOffer).build();
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
@@ -290,12 +296,14 @@ class ContractNegotiationProtocolServiceImplTest {
                 .build();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(store.findById(any())).thenReturn(negotiation);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
 
         var result = service.notifyVerified(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findById("processId");
         verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(n -> n.getState() == VERIFIED.code()));
         verify(listener).verified(negotiation);
@@ -305,7 +313,9 @@ class ContractNegotiationProtocolServiceImplTest {
 
     @Test
     void notifyFinalized_shouldTransitionToFinalized() {
-        var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
+        var contractOffer = contractOffer();
+        var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).contractOffer(contractOffer).state(VERIFIED.code()).build();
+
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol("protocol")
@@ -318,12 +328,14 @@ class ContractNegotiationProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(store.findById(any())).thenReturn(negotiation);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
 
         var result = service.notifyFinalized(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findById("processId");
         verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(n -> n.getState() == FINALIZED.code()));
         verify(listener).finalized(negotiation);
@@ -333,7 +345,8 @@ class ContractNegotiationProtocolServiceImplTest {
 
     @Test
     void notifyTerminated_shouldTransitionToTerminated() {
-        var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
+        var contractOffer = contractOffer();
+        var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).contractOffer(contractOffer).build();
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .processId("processId")
@@ -346,12 +359,14 @@ class ContractNegotiationProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(store.findById(any())).thenReturn(negotiation);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
 
         var result = service.notifyTerminated(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findById("processId");
         verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(n -> n.getState() == TERMINATED.code()));
         verify(listener).terminated(negotiation);
@@ -439,6 +454,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(store.findById(any())).thenReturn(createContractNegotiationOffered());
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(createContractNegotiationOffered()));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
         when(validationService.validateInitialOffer(any(), any(ContractOffer.class))).thenReturn(Result.failure("error"));
@@ -453,85 +469,16 @@ class ContractNegotiationProtocolServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(NotifyArguments.class)
-    <M extends RemoteMessage> void notify_shouldReturnBadRequest_whenTokenValidationFails(MethodCall<M> methodCall, M message) {
+    <M extends RemoteMessage> void notify_shouldReturnNotFound_whenTokenValidationFails(MethodCall<M> methodCall, M message) {
         var tokenRepresentation = tokenRepresentation();
-
+        when(store.findById(any())).thenReturn(createContractNegotiationOffered());
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.failure("unauthorized"));
 
         var result = methodCall.call(service, message, tokenRepresentation);
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         verify(store, never()).save(any());
         verifyNoInteractions(listener);
-    }
-
-    @Nested
-    class IdempotencyProcessStateReplication {
-
-        @ParameterizedTest
-        @ArgumentsSource(NotifyArguments.class)
-        <M extends ProcessRemoteMessage> void notify_shouldStoreReceivedMessageId(MethodCall<M> methodCall, M message,
-                                                                                  ContractNegotiation.Type type,
-                                                                                  ContractNegotiationStates currentState) {
-            var negotiation = contractNegotiationBuilder().state(currentState.code()).type(type).build();
-            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
-                    .thenReturn(Result.success(claimToken()));
-            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
-            when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
-            when(validationService.validateInitialOffer(any(), any(ContractOffer.class)))
-                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", i.getArgument(1))));
-            when(validationService.validateConfirmed(any(), any(), any())).thenAnswer(i -> Result.success(negotiation));
-
-            var result = methodCall.call(service, message, tokenRepresentation());
-
-            assertThat(result).isSucceeded();
-            var captor = ArgumentCaptor.forClass(ContractNegotiation.class);
-            verify(store).save(captor.capture());
-            var storedNegotiation = captor.getValue();
-            assertThat(storedNegotiation.getProtocolMessages().isAlreadyReceived(message.getId())).isTrue();
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(NotifyArguments.class)
-        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenAlreadyReceived(MethodCall<M> methodCall, M message,
-                                                                                             ContractNegotiation.Type type,
-                                                                                             ContractNegotiationStates currentState) {
-            var negotiation = contractNegotiationBuilder().state(currentState.code()).type(type).build();
-            negotiation.protocolMessageReceived(message.getId());
-            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
-                    .thenReturn(Result.success(claimToken()));
-            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
-            when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
-            when(validationService.validateInitialOffer(any(), any(ContractOffer.class)))
-                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", i.getArgument(1))));
-            when(validationService.validateConfirmed(any(), any(), any())).thenAnswer(i -> Result.success(negotiation));
-
-            var result = methodCall.call(service, message, tokenRepresentation());
-
-            assertThat(result).isSucceeded();
-            verify(store, never()).save(any());
-            verifyNoInteractions(listener);
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(NotifyArguments.class)
-        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenFinalState(MethodCall<M> methodCall, M message,
-                                                                                        ContractNegotiation.Type type) {
-            var negotiation = contractNegotiationBuilder().state(FINALIZED.code()).type(type).build();
-            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
-                    .thenReturn(Result.success(claimToken()));
-            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
-            when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
-            when(validationService.validateInitialOffer(any(), any(ContractOffer.class)))
-                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", i.getArgument(1))));
-            when(validationService.validateConfirmed(any(), any(), any())).thenAnswer(i -> Result.success(negotiation));
-
-            var result = methodCall.call(service, message, tokenRepresentation());
-
-            assertThat(result).isSucceeded();
-            verify(store, never()).save(any());
-            verifyNoInteractions(listener);
-        }
     }
 
     private ClaimToken claimToken() {
@@ -578,6 +525,20 @@ class ContractNegotiationProtocolServiceImplTest {
     @FunctionalInterface
     private interface MethodCall<M extends RemoteMessage> {
         ServiceResult<?> call(ContractNegotiationProtocolService service, M message, TokenRepresentation token);
+    }
+
+    interface TestFunctions {
+        static ContractOffer contractOffer() {
+            return ContractOffer.Builder.newInstance()
+                    .id(ContractOfferId.create("1", "test-asset-id").toString())
+                    .policy(createPolicy())
+                    .assetId("assetId")
+                    .build();
+        }
+
+        private static Policy createPolicy() {
+            return Policy.Builder.newInstance().build();
+        }
     }
 
     private static class NotifyArguments implements ArgumentsProvider {
@@ -645,17 +606,78 @@ class ContractNegotiationProtocolServiceImplTest {
 
     }
 
-    interface TestFunctions {
-        static ContractOffer contractOffer() {
-            return ContractOffer.Builder.newInstance()
-                    .id(ContractOfferId.create("1", "test-asset-id").toString())
-                    .policy(createPolicy())
-                    .assetId("assetId")
-                    .build();
+    @Nested
+    class IdempotencyProcessStateReplication {
+
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldStoreReceivedMessageId(MethodCall<M> methodCall, M message,
+                                                                                  ContractNegotiation.Type type,
+                                                                                  ContractNegotiationStates currentState) {
+            var offer = contractOffer();
+            var negotiation = contractNegotiationBuilder().state(currentState.code()).type(type).contractOffer(offer).build();
+            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
+                    .thenReturn(Result.success(claimToken()));
+            when(store.findById(any())).thenReturn(negotiation);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(), any(ContractOffer.class)))
+                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", i.getArgument(1))));
+            when(validationService.validateConfirmed(any(), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, message, tokenRepresentation());
+
+            assertThat(result).isSucceeded();
+            var captor = ArgumentCaptor.forClass(ContractNegotiation.class);
+            verify(store).save(captor.capture());
+            var storedNegotiation = captor.getValue();
+            assertThat(storedNegotiation.getProtocolMessages().isAlreadyReceived(message.getId())).isTrue();
         }
 
-        private static Policy createPolicy() {
-            return Policy.Builder.newInstance().build();
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenAlreadyReceived(MethodCall<M> methodCall, M message,
+                                                                                             ContractNegotiation.Type type,
+                                                                                             ContractNegotiationStates currentState) {
+            var offer = contractOffer();
+            var negotiation = contractNegotiationBuilder().state(currentState.code()).type(type).contractOffer(offer).build();
+            negotiation.protocolMessageReceived(message.getId());
+            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
+                    .thenReturn(Result.success(claimToken()));
+            when(store.findById(any())).thenReturn(negotiation);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(), any(ContractOffer.class)))
+                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", i.getArgument(1))));
+            when(validationService.validateConfirmed(any(), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, message, tokenRepresentation());
+
+            assertThat(result).isSucceeded();
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenFinalState(MethodCall<M> methodCall, M message,
+                                                                                        ContractNegotiation.Type type) {
+            var offer = contractOffer();
+            var negotiation = contractNegotiationBuilder().state(FINALIZED.code()).type(type).contractOffer(offer).build();
+            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
+                    .thenReturn(Result.success(claimToken()));
+            when(store.findById(any())).thenReturn(negotiation);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(), any(ContractOffer.class)))
+                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", i.getArgument(1))));
+            when(validationService.validateConfirmed(any(), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, message, tokenRepresentation());
+
+            assertThat(result).isSucceeded();
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
         }
     }
 }
