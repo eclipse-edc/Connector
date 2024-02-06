@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.dataplane.api.controller;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema;
-import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSinkFactory;
+import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +53,7 @@ class DataFlowRequestSupplierTest {
 
         assertThat(request.isTrackable()).isFalse();
         assertThat(request.getId()).isNotBlank();
-        assertThat(request.getDestinationDataAddress().getType()).isEqualTo(OutputStreamDataSinkFactory.TYPE);
+        assertThat(request.getDestinationDataAddress().getType()).isEqualTo(AsyncStreamingDataSink.TYPE);
         assertThat(request.getSourceDataAddress().getType()).isEqualTo(address.getType());
         assertThat(request.getProperties()).containsExactlyInAnyOrderEntriesOf(Map.of(
                 DataFlowRequestSchema.PATH, path,
@@ -83,7 +83,7 @@ class DataFlowRequestSupplierTest {
 
         assertThat(request.isTrackable()).isFalse();
         assertThat(request.getId()).isNotBlank();
-        assertThat(request.getDestinationDataAddress().getType()).isEqualTo(OutputStreamDataSinkFactory.TYPE);
+        assertThat(request.getDestinationDataAddress().getType()).isEqualTo(AsyncStreamingDataSink.TYPE);
         assertThat(request.getSourceDataAddress().getType()).isEqualTo(address.getType());
         assertThat(request.getProperties()).containsExactlyInAnyOrderEntriesOf(Map.of(
                 DataFlowRequestSchema.PATH, path,

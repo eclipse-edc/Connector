@@ -22,6 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -29,6 +30,8 @@ import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+
+import java.util.concurrent.Executors;
 
 /**
  * This extension provides generic endpoints which are open to public participants of the Dataspace to execute
@@ -44,6 +47,8 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
 
     @Setting
     private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
+
+    private static final int DEFAULT_THREAD_POOL = 10;
 
     private static final WebServiceSettings PUBLIC_SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(PUBLIC_API_CONFIG)
@@ -71,6 +76,9 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private ExecutorInstrumentation executorInstrumentation;
+
     @Override
     public String name() {
         return NAME;
@@ -81,7 +89,11 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
         var validationEndpoint = context.getConfig().getString(CONTROL_PLANE_VALIDATION_ENDPOINT);
         var dataAddressResolver = new ConsumerPullTransferDataAddressResolver(httpClient, validationEndpoint, typeManager.getMapper());
         var configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
-        var publicApiController = new DataPlanePublicApiController(pipelineService, dataAddressResolver);
+        var executorService = executorInstrumentation.instrument(
+                Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
+                "Data plane proxy transfers"
+        );
+        var publicApiController = new DataPlanePublicApiController(pipelineService, dataAddressResolver, executorService);
         webService.registerResource(configuration.getContextAlias(), publicApiController);
     }
 }
