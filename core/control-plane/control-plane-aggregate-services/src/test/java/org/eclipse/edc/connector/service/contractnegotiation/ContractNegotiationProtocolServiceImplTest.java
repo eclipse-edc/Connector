@@ -101,7 +101,7 @@ class ContractNegotiationProtocolServiceImplTest {
     void setUp() {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
-        service = new ContractNegotiationProtocolServiceImpl(store, transactionContext, validationService, identityService,
+        service = new ContractNegotiationProtocolServiceImpl(store, transactionContext, validationService, identityService, mock(),
                 observable, mock(), mock());
     }
 
@@ -266,7 +266,7 @@ class ContractNegotiationProtocolServiceImplTest {
         verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == AGREED.code() &&
-                negotiation.getContractAgreement() == contractAgreement
+                        negotiation.getContractAgreement() == contractAgreement
         ));
         verify(store).findByIdAndLease("processId");
         verify(validationService).validateConfirmed(eq(claimToken), eq(contractAgreement), any(ContractOffer.class));

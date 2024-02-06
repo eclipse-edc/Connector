@@ -16,9 +16,12 @@ package org.eclipse.edc.spi.iam;
 
 import org.eclipse.edc.policy.model.Policy;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Provides additional context for {@link IdentityService} verifiers.
@@ -30,6 +33,7 @@ public class VerificationContext {
     private String audience;
     private Policy policy;
 
+    private Set<String> scopes = new HashSet<>();
     private final Map<Class<?>, Object> additional;
 
     private VerificationContext() {
@@ -51,12 +55,23 @@ public class VerificationContext {
     }
 
     /**
+     * Return the scopes associated with the verification context
+     *
+     * @return The scope
+     */
+    public Set<String> getScopes() {
+        return scopes;
+    }
+
+    /**
      * Gets additional data from the context by type.
      *
      * @param type the type class.
      * @param <T>  the type of data.
      * @return the object associated with the type, or null.
      */
+
+
     @SuppressWarnings("unchecked")
     public <T> T getContextData(Class<T> type) {
         return (T) additional.get(type);
@@ -88,7 +103,13 @@ public class VerificationContext {
             return this;
         }
 
+        public Builder scopes(Collection<String> scopes) {
+            context.scopes = new HashSet<>(scopes);
+            return this;
+        }
+
         public VerificationContext build() {
+
             Objects.requireNonNull(this.context.policy, "Policy cannot be null");
             return context;
         }

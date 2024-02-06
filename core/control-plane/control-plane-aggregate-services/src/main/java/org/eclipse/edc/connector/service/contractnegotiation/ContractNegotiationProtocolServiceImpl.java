@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.contract.spi.validation.ContractValidationServi
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.service.protocol.BaseProtocolService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -56,9 +57,10 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
                                                   TransactionContext transactionContext,
                                                   ContractValidationService validationService,
                                                   IdentityService identityService,
+                                                  PolicyEngine policyEngine,
                                                   ContractNegotiationObservable observable,
                                                   Monitor monitor, Telemetry telemetry) {
-        super(identityService, monitor);
+        super(identityService, policyEngine, monitor);
         this.store = store;
         this.transactionContext = transactionContext;
         this.validationService = validationService;
@@ -137,7 +139,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     public ServiceResult<ContractNegotiation> notifyAgreed(ContractAgreementMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> verifyToken(tokenRepresentation)
                 .compose(claimToken -> getNegotiation(message.getProcessId())
-                    .compose(negotiation -> validateAgreed(message, claimToken, negotiation))
+                        .compose(negotiation -> validateAgreed(message, claimToken, negotiation))
                 )
                 .onSuccess(negotiation -> {
                     if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {

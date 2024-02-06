@@ -140,7 +140,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
         var validationAction = tokenValidationAction();
 
-        return new IdentityAndTrustService(secureTokenService, getOwnDid(context), context.getParticipantId(), getPresentationVerifier(context),
+        return new IdentityAndTrustService(secureTokenService, getOwnDid(context), getPresentationVerifier(context),
                 getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver);
     }
 

@@ -21,6 +21,7 @@ import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.service.protocol.BaseProtocolService;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -42,14 +43,17 @@ public class CatalogProtocolServiceImpl extends BaseProtocolService implements C
     private final String participantId;
     private final TransactionContext transactionContext;
 
+    private PolicyEngine policyEngine;
+
     public CatalogProtocolServiceImpl(DatasetResolver datasetResolver,
                                       ParticipantAgentService participantAgentService,
                                       DataServiceRegistry dataServiceRegistry,
                                       IdentityService identityService,
+                                      PolicyEngine policyEngine,
                                       Monitor monitor,
                                       String participantId,
                                       TransactionContext transactionContext) {
-        super(identityService, monitor);
+        super(identityService, policyEngine, monitor);
         this.datasetResolver = datasetResolver;
         this.participantAgentService = participantAgentService;
         this.dataServiceRegistry = dataServiceRegistry;

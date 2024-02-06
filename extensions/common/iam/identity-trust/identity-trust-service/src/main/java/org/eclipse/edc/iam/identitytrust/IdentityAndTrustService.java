@@ -75,7 +75,6 @@ public class IdentityAndTrustService implements IdentityService {
     private static final String SCOPE_STRING_REGEX = "(.+):(.+):(read|write|\\*)";
     private final SecureTokenService secureTokenService;
     private final String myOwnDid;
-    private final String participantId;
     private final PresentationVerifier presentationVerifier;
     private final CredentialServiceClient credentialServiceClient;
     private final Function<TokenRepresentation, Result<ClaimToken>> tokenValidationAction;
@@ -89,13 +88,12 @@ public class IdentityAndTrustService implements IdentityService {
      * @param secureTokenService Instance of an STS, which can create SI tokens
      * @param myOwnDid           The DID which belongs to "this connector"
      */
-    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, String participantId,
+    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid,
                                    PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
                                    TokenValidationAction tokenValidationAction,
                                    TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
-        this.participantId = participantId;
         this.presentationVerifier = presentationVerifier;
         this.credentialServiceClient = credentialServiceClient;
         this.tokenValidationAction = tokenValidationAction;
@@ -147,6 +145,7 @@ public class IdentityAndTrustService implements IdentityService {
         var issuer = claimToken.getStringClaim(ISSUER);
 
         /* TODO: DEMO the scopes should be extracted elsewhere. replace this section!!############################*/
+        //TODO remove once this lands https://github.com/eclipse-edc/Connector/issues/3819
         var scopes = new ArrayList<String>();
         try {
             var scope = SignedJWT.parse(accessToken).getJWTClaimsSet().getStringClaim("scope");
@@ -154,7 +153,6 @@ public class IdentityAndTrustService implements IdentityService {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-        /* TODO: END DEMO ########################################################################################*/
 
         var siTokenClaims = Map.of(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken,
                 ISSUED_AT, Instant.now().toString(),

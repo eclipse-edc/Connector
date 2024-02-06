@@ -16,11 +16,10 @@ package org.eclipse.edc.iam.identitytrust.core.scope;
 
 import org.eclipse.edc.identitytrust.scope.ScopeExtractor;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
-import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.function.BiFunction;
@@ -43,14 +42,13 @@ public class IatpScopeExtractorFunction implements BiFunction<Policy, PolicyCont
 
     @Override
     public Boolean apply(Policy policy, PolicyContext context) {
-        var params = context.getContextData(TokenParameters.Builder.class);
+        var params = context.getContextData(RequestScope.Builder.class);
         if (params == null) {
-            throw new EdcException(format("%s not set in policy context", TokenParameters.Builder.class.getName()));
+            throw new EdcException(format("%s not set in policy context", RequestScope.Builder.class.getName()));
         }
-        var results = registry.extractScopes(policy, context).map(scopes -> String.join(" ", scopes));
+        var results = registry.extractScopes(policy, context).onSuccess(scopes -> scopes.forEach(params::scope));
 
         if (results.succeeded()) {
-            params.claims(JwtRegisteredClaimNames.SCOPE, results.getContent());
             return true;
         } else {
             monitor.warning("Failed to extract scopes from a policy");
