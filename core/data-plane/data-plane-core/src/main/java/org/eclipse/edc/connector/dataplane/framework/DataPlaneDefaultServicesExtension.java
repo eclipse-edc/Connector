@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 import java.time.Clock;
@@ -37,6 +38,9 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
+
     @Provider(isDefault = true)
     public TransferServiceSelectionStrategy transferServiceSelectionStrategy() {
         return TransferServiceSelectionStrategy.selectFirst();
@@ -44,6 +48,6 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DataPlaneStore dataPlaneStore() {
-        return new InMemoryDataPlaneStore(clock);
+        return new InMemoryDataPlaneStore(clock, criterionOperatorRegistry);
     }
 }

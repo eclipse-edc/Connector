@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.api.management.contractdefinition.validation.Co
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -59,6 +60,9 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -71,7 +75,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromContractDefinitionTransformer(jsonFactory, mapper));
         transformerRegistry.register(new JsonObjectToContractDefinitionTransformer());
 
-        validatorRegistry.register(CONTRACT_DEFINITION_TYPE, ContractDefinitionValidator.instance());
+        validatorRegistry.register(CONTRACT_DEFINITION_TYPE, ContractDefinitionValidator.instance(criterionOperatorRegistry));
 
         var monitor = context.getMonitor();
 

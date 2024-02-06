@@ -26,10 +26,11 @@ import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
+import static org.mockito.Mockito.mock;
 
 class CatalogRequestMessageValidatorTest {
 
-    private final Validator<JsonObject> validator = CatalogRequestMessageValidator.instance();
+    private final Validator<JsonObject> validator = CatalogRequestMessageValidator.instance(mock());
 
     @Test
     void shouldSucceed_whenObjectIsValid() {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,11 +12,9 @@
  *
  */
 
-package org.eclipse.edc.connector.asset;
+package org.eclipse.edc.connector.core.store;
 
-import org.eclipse.edc.connector.core.store.CriterionToPredicateConverterImpl;
-import org.eclipse.edc.spi.query.CriterionToAssetPredicateConverter;
-import org.eclipse.edc.spi.query.CriterionToPredicateConverter;
+import org.eclipse.edc.spi.query.PropertyLookup;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.util.Map;
@@ -26,12 +24,12 @@ import java.util.stream.Stream;
 
 import static java.util.Map.entry;
 
-/**
- * Extension class that supports converting criterion to predicate looking at the Asset properties.
- */
-public class CriterionToAssetPredicateConverterImpl extends CriterionToPredicateConverterImpl implements CriterionToAssetPredicateConverter, CriterionToPredicateConverter {
+public class AssetPropertyLookup implements PropertyLookup {
 
-    public Object property(String key, Object object) {
+    private final PropertyLookup fallbackPropertyLookup = new ReflectionPropertyLookup();
+
+    @Override
+    public Object getProperty(String key, Object object) {
         if (object instanceof Asset asset) {
             Stream<Map.Entry<String, Function<Asset, Map<String, Object>>>> mappings = Stream.of(
                     entry("%s", Asset::getProperties),
@@ -40,11 +38,12 @@ public class CriterionToAssetPredicateConverterImpl extends CriterionToPredicate
                     entry("'%s'", Asset::getPrivateProperties));
 
             return mappings
-                    .map(entry -> super.property(entry.getKey().formatted(key), entry.getValue().apply(asset)))
+                    .map(entry -> fallbackPropertyLookup.getProperty(entry.getKey().formatted(key), entry.getValue().apply(asset)))
                     .filter(Objects::nonNull)
                     .findFirst()
-                    .orElseGet(() -> super.property(key, asset));
+                    .orElseGet(() -> fallbackPropertyLookup.getProperty(key, asset));
         }
-        throw new IllegalArgumentException("Can only handle objects of type " + Asset.class.getSimpleName() + " but received an " + object.getClass().getSimpleName());
+
+        return null;
     }
 }

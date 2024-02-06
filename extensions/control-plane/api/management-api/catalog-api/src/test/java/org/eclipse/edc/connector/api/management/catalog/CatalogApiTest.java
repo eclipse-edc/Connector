@@ -28,7 +28,6 @@ import org.eclipse.edc.core.transform.transformer.to.JsonObjectToQuerySpecTransf
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +62,7 @@ class CatalogApiTest {
 
     @Test
     void catalogRequestExample() throws JsonProcessingException {
-        var validator = CatalogRequestValidator.instance(mock(Monitor.class));
+        var validator = CatalogRequestValidator.instance(mock(), mock());
 
         var jsonObject = objectMapper.readValue(CATALOG_REQUEST_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();

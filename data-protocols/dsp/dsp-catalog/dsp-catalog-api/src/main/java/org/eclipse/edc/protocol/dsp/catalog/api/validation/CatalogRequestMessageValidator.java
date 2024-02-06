@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.catalog.api.validation;
 
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.jsonobject.validators.model.QuerySpecValidator;
@@ -27,10 +28,10 @@ import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.D
  * Validator for {@link CatalogRequestMessageValidator} Json-LD representation
  */
 public class CatalogRequestMessageValidator {
-    public static Validator<JsonObject> instance() {
+    public static Validator<JsonObject> instance(CriterionOperatorRegistry criterionOperatorRegistry) {
         return JsonObjectValidator.newValidator()
                 .verify(path -> new TypeIs(path, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE))
-                .verifyObject(DSPACE_PROPERTY_FILTER, QuerySpecValidator::instance)
+                .verifyObject(DSPACE_PROPERTY_FILTER, path -> QuerySpecValidator.instance(path, criterionOperatorRegistry))
                 .build();
     }
 }

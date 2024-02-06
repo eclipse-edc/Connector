@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.core.store;
 
-import org.eclipse.edc.spi.query.CriterionToPredicateConverter;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -36,26 +36,17 @@ import static java.lang.String.format;
 public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
 
     private final Class<T> typeParameterClass;
-    private final CriterionToPredicateConverter predicateConverter;
+    private final CriterionOperatorRegistry criterionOperatorRegistry;
 
     /**
      * Constructor for ReflectionBasedQueryResolver
      *
-     * @param typeParameterClass class of the type parameter. Used in reflection operation to recursively fetch a property from an object.
+     * @param typeParameterClass        class of the type parameter. Used in reflection operation to recursively fetch a property from an object.
+     * @param criterionOperatorRegistry converts from a criterion to a predicate
      */
-    public ReflectionBasedQueryResolver(Class<T> typeParameterClass) {
-        this(typeParameterClass, new CriterionToPredicateConverterImpl());
-    }
-
-    /**
-     * Constructor for ReflectionBasedQueryResolver
-     *
-     * @param typeParameterClass            class of the type parameter. Used in reflection operation to recursively fetch a property from an object.
-     * @param criterionToPredicateConverter converts from a criterion to a predicate
-     */
-    public ReflectionBasedQueryResolver(Class<T> typeParameterClass, CriterionToPredicateConverter criterionToPredicateConverter) {
+    public ReflectionBasedQueryResolver(Class<T> typeParameterClass, CriterionOperatorRegistry criterionOperatorRegistry) {
         this.typeParameterClass = typeParameterClass;
-        this.predicateConverter = criterionToPredicateConverter;
+        this.criterionOperatorRegistry = criterionOperatorRegistry;
     }
 
 
@@ -73,7 +64,7 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
     @Override
     public Stream<T> query(Stream<T> stream, QuerySpec spec, BinaryOperator<Predicate<Object>> accumulator, Predicate<Object> fallback) {
         var andPredicate = spec.getFilterExpression().stream()
-                .map(predicateConverter::convert)
+                .map(criterionOperatorRegistry::toPredicate)
                 .reduce(fallback, accumulator);
 
         var filteredStream = stream.filter(andPredicate);

@@ -52,7 +52,7 @@ class ContractDefinitionApiTest {
 
     @Test
     void contractDefinitionInputExample() throws JsonProcessingException {
-        var validator = ContractDefinitionValidator.instance();
+        var validator = ContractDefinitionValidator.instance(mock());
 
         var jsonObject = objectMapper.readValue(CONTRACT_DEFINITION_INPUT_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();

@@ -18,7 +18,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.persistence.Lease;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.query.CriterionToPredicateConverter;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -53,12 +53,13 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     private final String lockId;
     private final Clock clock;
     private final Map<String, Lease> leases = new HashMap<>();
-    private final CriterionToPredicateConverter criterionConverter = new CriterionToPredicateConverterImpl();
+    protected final CriterionOperatorRegistry criterionOperatorRegistry;
 
-    public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock) {
-        queryResolver = new ReflectionBasedQueryResolver<>(clazz);
+    public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        queryResolver = new ReflectionBasedQueryResolver<>(clazz, criterionOperatorRegistry);
         this.lockId = lockId;
         this.clock = clock;
+        this.criterionOperatorRegistry = criterionOperatorRegistry;
     }
 
     @Override
@@ -73,7 +74,7 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     @Override
     public @NotNull List<T> nextNotLeased(int max, Criterion... criteria) {
         return lockManager.writeLock(() -> {
-            var filterPredicate = Arrays.stream(criteria).map(criterionConverter::convert).reduce(x -> true, Predicate::and);
+            var filterPredicate = Arrays.stream(criteria).map(criterionOperatorRegistry::toPredicate).reduce(x -> true, Predicate::and);
             var entities = entitiesById.values().stream()
                     .filter(filterPredicate)
                     .filter(e -> !isLeased(e.getId()))

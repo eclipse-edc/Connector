@@ -17,12 +17,13 @@ package org.eclipse.edc.connector.defaults.storage.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.ContractNegotiationStoreTestBase;
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 
 import java.time.Duration;
 
 class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestBase {
 
-    private final InMemoryContractNegotiationStore store = new InMemoryContractNegotiationStore(CONNECTOR_NAME, clock);
+    private final InMemoryContractNegotiationStore store = new InMemoryContractNegotiationStore(CONNECTOR_NAME, clock, CriterionOperatorRegistryImpl.ofDefaults());
 
     @Override
     protected ContractNegotiationStore getContractNegotiationStore() {

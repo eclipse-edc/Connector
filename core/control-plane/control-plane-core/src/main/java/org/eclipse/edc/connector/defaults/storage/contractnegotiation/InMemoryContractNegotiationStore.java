@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.core.store.InMemoryStatefulEntityStore;
 import org.eclipse.edc.connector.core.store.ReflectionBasedQueryResolver;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -38,15 +39,17 @@ import static java.lang.String.format;
  */
 public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStore<ContractNegotiation> implements ContractNegotiationStore {
 
-    private final QueryResolver<ContractNegotiation> negotiationQueryResolver = new ReflectionBasedQueryResolver<>(ContractNegotiation.class);
-    private final QueryResolver<ContractAgreement> agreementQueryResolver = new ReflectionBasedQueryResolver<>(ContractAgreement.class);
+    private final QueryResolver<ContractNegotiation> negotiationQueryResolver;
+    private final QueryResolver<ContractAgreement> agreementQueryResolver;
 
-    public InMemoryContractNegotiationStore(Clock clock) {
-        this(UUID.randomUUID().toString(), clock);
+    public InMemoryContractNegotiationStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        this(UUID.randomUUID().toString(), clock, criterionOperatorRegistry);
     }
 
-    public InMemoryContractNegotiationStore(String leaseHolder, Clock clock) {
-        super(ContractNegotiation.class, leaseHolder, clock);
+    public InMemoryContractNegotiationStore(String leaseHolder, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        super(ContractNegotiation.class, leaseHolder, clock, criterionOperatorRegistry);
+        agreementQueryResolver = new ReflectionBasedQueryResolver<>(ContractAgreement.class, criterionOperatorRegistry);
+        negotiationQueryResolver = new ReflectionBasedQueryResolver<>(ContractNegotiation.class, criterionOperatorRegistry);
     }
 
     @Override

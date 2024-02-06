@@ -23,6 +23,7 @@ import org.eclipse.edc.protocol.dsp.catalog.api.validation.CatalogRequestMessage
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -50,6 +51,8 @@ public class DspCatalogApiExtension implements ServiceExtension {
     private JsonObjectValidatorRegistry validatorRegistry;
     @Inject
     private DspRequestHandler dspRequestHandler;
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
 
     @Override
     public String name() {
@@ -58,7 +61,7 @@ public class DspCatalogApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        validatorRegistry.register(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE, CatalogRequestMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE, CatalogRequestMessageValidator.instance(criterionOperatorRegistry));
 
         var catalogController = new DspCatalogApiController(service, dspRequestHandler);
         webService.registerResource(apiConfiguration.getContextAlias(), catalogController);
