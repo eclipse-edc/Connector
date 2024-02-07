@@ -36,6 +36,7 @@ import com.nimbusds.jose.util.Base64URL;
 import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
 import org.eclipse.edc.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.security.AlgorithmParameters;
 import java.security.Key;
@@ -79,10 +80,6 @@ public class CryptoConverter {
     public static final String ALGORITHM_ED25519 = "Ed25519";
     public static final List<String> SUPPORTED_ALGORITHMS = List.of(ALGORITHM_EC, ALGORITHM_RSA, ALGORITHM_ECDSA, ALGORITHM_ED25519);
 
-    private static String notSupportedError(String algorithm) {
-        return "Could not convert PrivateKey to a JWSSigner, currently only the following types are supported: %s. The specified key was a %s"
-                .formatted(String.join(",", SUPPORTED_ALGORITHMS), algorithm);
-    }
 
     /**
      * Takes a Java {@link PrivateKey} object and creates a corresponding Nimbus {@link JWSSigner} for convenient use with JWTs.
@@ -147,11 +144,23 @@ public class CryptoConverter {
         }
     }
 
-    @NotNull
-    private static ECDSAVerifier getEcdsaVerifier(ECPublicKey publicKey) throws JOSEException {
-        var verifier = new ECDSAVerifier(publicKey);
-        verifier.getJCAContext().setProvider(BouncyCastleProviderSingleton.getInstance());
-        return verifier;
+    /**
+     * Converts a Java {@link KeyPair} into its JWK counterpart from Nimbus. Currently, only RSA, EC and EdDSA keys are supported, specifically:
+     * <ul>
+     *     <li>EC: supports all named curves. If both private and public keys are specified, the conversion is straight forward. If only the public key is specified, then the
+     *     resulting JWK will not contain a private component (usually "d"). If only the private key is specified, then the public key is restored using elliptic curve multiplication. This is a fairly
+     *     costly operation, so it is avoided if possible.</li>
+     *     <li>EdDSA: </li>
+     * </ul>
+     * <p>
+     * Note that the "kid" parameter will be null, and the "key-use" will be set to {@link KeyUse#SIGNATURE}. If needed, the "kid" parameter can be set by
+     * re-generating the resulting JWK using {@link JWK#toJSONObject()} and {@link JWK#parse(Map)}.
+     *
+     * @param keypair Must either contain the {@link PrivateKey}, the {@link PublicKey} or both. If neither is set, an {@link IllegalArgumentException} is thrown.
+     * @return A Nimbus JWK.
+     */
+    public static JWK createJwk(KeyPair keypair) {
+        return createJwk(keypair, null);
     }
 
     /**
@@ -167,17 +176,18 @@ public class CryptoConverter {
      * re-generating the resulting JWK using {@link JWK#toJSONObject()} and {@link JWK#parse(Map)}.
      *
      * @param keypair Must either contain the {@link PrivateKey}, the {@link PublicKey} or both. If neither is set, an {@link IllegalArgumentException} is thrown.
-     * @return A Nimbus JWK that.
+     * @param kid     The key-ID that will be included in the JWK as 'kid' property. Can be null.
+     * @return A Nimbus JWK.
      */
-    public static JWK createJwk(KeyPair keypair) {
+    public static JWK createJwk(KeyPair keypair, @Nullable String kid) {
         if (keypair.getPrivate() == null && keypair.getPublic() == null) {
             throw new IllegalArgumentException("Invalid KeyPair: public and private key were both null!");
         }
         var alg = ofNullable((Key) keypair.getPrivate()).orElse(keypair.getPublic()).getAlgorithm();
         return switch (alg) {
-            case ALGORITHM_EC -> convertEcKey(keypair);
-            case ALGORITHM_RSA -> convertRsaKey(keypair);
-            case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> convertEdDsaKey(keypair);
+            case ALGORITHM_EC -> convertEcKey(keypair, kid);
+            case ALGORITHM_RSA -> convertRsaKey(keypair, kid);
+            case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> convertEdDsaKey(keypair, kid);
             default -> throw new IllegalArgumentException(notSupportedError(keypair.getPublic().getAlgorithm()));
         };
     }
@@ -291,11 +301,14 @@ public class CryptoConverter {
         return Curve.parse(curveName);
     }
 
-    private static RSAKey convertRsaKey(KeyPair keypair) {
-        return new RSAKey.Builder((RSAPublicKey) keypair.getPublic()).privateKey(keypair.getPrivate()).keyUse(KeyUse.SIGNATURE).build();
+    private static RSAKey convertRsaKey(KeyPair keypair, @Nullable String kid) {
+        return new RSAKey.Builder((RSAPublicKey) keypair.getPublic())
+                .privateKey(keypair.getPrivate())
+                .keyID(kid)
+                .keyUse(KeyUse.SIGNATURE).build();
     }
 
-    private static ECKey convertEcKey(KeyPair keypair) {
+    private static ECKey convertEcKey(KeyPair keypair, @Nullable String kid) {
         var pub = (ECPublicKey) keypair.getPublic();
         var priv = (ECPrivateKey) keypair.getPrivate();
 
@@ -318,7 +331,7 @@ public class CryptoConverter {
 
             }
 
-            return new ECKey.Builder(Curve.forOID(curveName), pub).privateKey(priv).keyUse(KeyUse.SIGNATURE).build();
+            return new ECKey.Builder(Curve.forOID(curveName), pub).privateKey(priv).keyID(kid).keyUse(KeyUse.SIGNATURE).build();
 
         } catch (NoSuchAlgorithmException | InvalidParameterSpecException | InvalidKeySpecException e) {
             throw new IllegalArgumentException(e);
@@ -348,6 +361,13 @@ public class CryptoConverter {
                 .build();
         return new Ed25519Verifier(okp);
 
+    }
+
+    @NotNull
+    private static ECDSAVerifier getEcdsaVerifier(ECPublicKey publicKey) throws JOSEException {
+        var verifier = new ECDSAVerifier(publicKey);
+        verifier.getJCAContext().setProvider(BouncyCastleProviderSingleton.getInstance());
+        return verifier;
     }
 
     @NotNull
@@ -382,7 +402,7 @@ public class CryptoConverter {
      *  <li>If only the private key is provided, the public key is restored from it. </li>
      * </ul>
      */
-    private static OctetKeyPair convertEdDsaKey(KeyPair keypair) {
+    private static OctetKeyPair convertEdDsaKey(KeyPair keypair, @Nullable String kid) {
         var pub = (EdECPublicKey) keypair.getPublic();
         var priv = (EdECPrivateKey) keypair.getPrivate();
 
@@ -395,6 +415,7 @@ public class CryptoConverter {
 
         return new OctetKeyPair.Builder(Curve.parse(curveName), urlX)
                 .d(urlD)
+                .keyID(kid)
                 .build();
     }
 
@@ -421,5 +442,10 @@ public class CryptoConverter {
         }
 
         return Base64URL.encode(bytes);
+    }
+
+    private static String notSupportedError(String algorithm) {
+        return "Could not convert PrivateKey to a JWSSigner, currently only the following types are supported: %s. The specified key was a %s"
+                .formatted(String.join(",", SUPPORTED_ALGORITHMS), algorithm);
     }
 }
