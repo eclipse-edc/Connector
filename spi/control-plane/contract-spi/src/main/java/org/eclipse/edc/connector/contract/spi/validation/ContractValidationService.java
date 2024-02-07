@@ -36,29 +36,16 @@ public interface ContractValidationService {
     @PolicyScope
     String TRANSFER_SCOPE = "transfer.process";
 
-    /**
-     * Validates and sanitizes the contract offer for the consumer represented by the given claims.
-     * <p>
-     * The original offer must be validated and sanitized to avoid policy and asset injection attacks by malicious consumers.
-     *
-     * @param token The {@link ClaimToken} of the consumer
-     * @param offer The initial {@link ContractOffer} to validate
-     * @return The sanitized version {@link ContractOffer}. The input {@link ContractOffer} could contain some fields or value on policy or asset that differs from the original
-     *     policy and asset defined by the provider, which could cause injection attacks. The provider validation should return a new {@link ContractOffer} that contains the
-     *     original policy and asset defined by the provider.
-     */
-    @NotNull
-    Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, ContractOffer offer);
-
+    
     /**
      * Validates the contract offer for the consumer represented by the given claims.
      *
-     * @param token   The {@link ClaimToken} of the consumer
-     * @param offerId The initial {@link ContractOffer} id to validate
-     * @return The referenced {@link ContractOffer}.
+     * @param token         The {@link ClaimToken} of the consumer
+     * @param consumerOffer The initial {@link ValidatableConsumerOffer} id to validate
+     * @return The referenced {@link ValidatedConsumerOffer}.
      */
     @NotNull
-    Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, String offerId);
+    Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, ValidatableConsumerOffer consumerOffer);
 
     /**
      * Validates the contract agreement that the consumer referenced in its transfer request.

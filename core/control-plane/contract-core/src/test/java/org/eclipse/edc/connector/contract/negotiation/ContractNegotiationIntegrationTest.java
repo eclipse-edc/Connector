@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.contract.negotiation;
 
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.contract.spi.ContractOfferId;
+import org.eclipse.edc.connector.contract.spi.offer.ConsumerOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
@@ -29,6 +30,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
@@ -111,13 +113,14 @@ class ContractNegotiationIntegrationTest {
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
     private final InMemoryContractNegotiationStore providerStore = new InMemoryContractNegotiationStore(clock, criterionOperatorRegistry);
     private final InMemoryContractNegotiationStore consumerStore = new InMemoryContractNegotiationStore(clock, criterionOperatorRegistry);
-    private final ContractValidationService validationService = mock(ContractValidationService.class);
+    private final ContractValidationService validationService = mock();
+    private final ConsumerOfferResolver offerResolver = mock();
     private final RemoteMessageDispatcherRegistry providerDispatcherRegistry = mock();
     private final RemoteMessageDispatcherRegistry consumerDispatcherRegistry = mock();
     private final IdentityService identityService = mock();
+    private final ProtocolWebhook protocolWebhook = () -> "http://dummy";
     protected ClaimToken token = ClaimToken.Builder.newInstance().build();
     protected TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
-    private final ProtocolWebhook protocolWebhook = () -> "http://dummy";
     private String consumerNegotiationId;
 
     private ProviderContractNegotiationManagerImpl providerManager;
@@ -151,8 +154,8 @@ class ContractNegotiationIntegrationTest {
                 .build();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
-        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, identityService, mock(), new ContractNegotiationObservableImpl(), monitor, mock());
-        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, identityService, mock(), new ContractNegotiationObservableImpl(), monitor, mock());
+        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, offerResolver, identityService, mock(), new ContractNegotiationObservableImpl(), monitor, mock());
+        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, offerResolver, identityService, mock(), new ContractNegotiationObservableImpl(), monitor, mock());
     }
 
     @AfterEach
@@ -169,7 +172,11 @@ class ContractNegotiationIntegrationTest {
         when(providerDispatcherRegistry.dispatch(any(), isA(ContractNegotiationEventMessage.class))).then(onProviderSentNegotiationEventMessage());
         consumerNegotiationId = "consumerNegotiationId";
         var offer = getContractOffer();
-        when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
+        var validatableOffer = mock(ValidatableConsumerOffer.class);
+
+        when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
+        when(offerResolver.resolveOffer(isA(ContractOffer.class))).thenReturn(ServiceResult.success(validatableOffer));
+        when(validationService.validateInitialOffer(token, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
         when(validationService.validateRequest(eq(token), any(ContractNegotiation.class))).thenReturn(Result.success());
 
@@ -207,7 +214,7 @@ class ContractNegotiationIntegrationTest {
             assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
             assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
-            verify(validationService, atLeastOnce()).validateInitialOffer(token, offer);
+            verify(validationService, atLeastOnce()).validateInitialOffer(token, validatableOffer);
             verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
         });
     }
@@ -218,8 +225,11 @@ class ContractNegotiationIntegrationTest {
         when(consumerDispatcherRegistry.dispatch(any(), isA(ContractRequestMessage.class))).then(onConsumerSentRequest());
         consumerNegotiationId = null;
         var offer = getContractOffer();
+        var validatableOffer = mock(ValidatableConsumerOffer.class);
 
-        when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.failure("must be declined"));
+        when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
+        when(offerResolver.resolveOffer(isA(ContractOffer.class))).thenReturn(ServiceResult.success(validatableOffer));
+        when(validationService.validateInitialOffer(token, validatableOffer)).thenReturn(Result.failure("must be declined"));
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -235,7 +245,9 @@ class ContractNegotiationIntegrationTest {
 
         consumerManager.initiate(request);
 
-        await().atMost(DEFAULT_TEST_TIMEOUT).pollInterval(DEFAULT_POLL_INTERVAL).untilAsserted(() -> verify(validationService, atLeastOnce()).validateInitialOffer(token, offer));
+        await().atMost(DEFAULT_TEST_TIMEOUT)
+                .pollInterval(DEFAULT_POLL_INTERVAL)
+                .untilAsserted(() -> verify(validationService, atLeastOnce()).validateInitialOffer(token, validatableOffer));
     }
 
     @Test
@@ -245,8 +257,11 @@ class ContractNegotiationIntegrationTest {
         when(consumerDispatcherRegistry.dispatch(any(), isA(ContractNegotiationTerminationMessage.class))).then(onConsumerSentTermination());
         consumerNegotiationId = null;
         var offer = getContractOffer();
+        var validatableOffer = mock(ValidatableConsumerOffer.class);
 
-        when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
+        when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
+        when(offerResolver.resolveOffer(isA(ContractOffer.class))).thenReturn(ServiceResult.success(validatableOffer));
+        when(validationService.validateInitialOffer(token, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.failure("error"));
 
         // Start provider and consumer negotiation managers
@@ -284,92 +299,9 @@ class ContractNegotiationIntegrationTest {
             assertThat(consumerNegotiation.getContractAgreement()).isNull();
             assertThat(providerNegotiation.getContractAgreement()).isNull();
 
-            verify(validationService, atLeastOnce()).validateInitialOffer(token, offer);
+            verify(validationService, atLeastOnce()).validateInitialOffer(token, validatableOffer);
             verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
         });
-    }
-
-    @Nested
-    class IdempotencyProcessStateReplication {
-
-        @ParameterizedTest
-        @ArgumentsSource(EgressMessages.class)
-        void shouldSendMessageWithTheSameId_whenFirstDispatchFailed(ContractNegotiation.Type type, ContractNegotiationStates state,
-                                                                    Class<? extends ContractRemoteMessage> messageType) {
-            var dispatcherRegistry = type == CONSUMER ? consumerDispatcherRegistry : providerDispatcherRegistry;
-            var store = type == CONSUMER ? consumerStore : providerStore;
-            var manager = type == CONSUMER ? consumerManager : providerManager;
-
-            var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").consumerPid("consumerPid").build();
-            when(dispatcherRegistry.dispatch(any(), isA(messageType)))
-                    .thenReturn(completedFuture(StatusResult.failure(ERROR_RETRY)))
-                    .thenReturn(completedFuture(StatusResult.success(ack)));
-
-            var negotiation = contractNegotiationBuilder().type(type).state(state.code()).build();
-            store.save(negotiation);
-
-            manager.start();
-
-            var sentMessages = ArgumentCaptor.forClass(messageType);
-            await().atMost(DEFAULT_TEST_TIMEOUT).untilAsserted(() -> {
-                verify(dispatcherRegistry, times(2)).dispatch(any(), sentMessages.capture());
-                assertThat(sentMessages.getAllValues())
-                        .map(ContractRemoteMessage::getId)
-                        .matches(ids -> ids.stream().distinct().count() == 1);
-            });
-
-            await().atMost(DEFAULT_TEST_TIMEOUT).untilAsserted(() -> {
-                var actual = store.findById(negotiation.getId());
-                assertThat(actual).isNotNull();
-                assertThat(actual.getState()).isNotEqualTo(state.code());
-                assertThat(actual.lastSentProtocolMessage()).isNull();
-            });
-        }
-
-        private static class EgressMessages implements ArgumentsProvider {
-
-            @Override
-            public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-                return Stream.of(
-                        arguments(CONSUMER, REQUESTING, ContractRequestMessage.class),
-                        arguments(CONSUMER, ACCEPTING, ContractNegotiationEventMessage.class),
-                        arguments(CONSUMER, VERIFYING, ContractAgreementVerificationMessage.class),
-                        arguments(CONSUMER, TERMINATING, ContractNegotiationTerminationMessage.class),
-                        arguments(PROVIDER, OFFERING, ContractOfferMessage.class),
-                        arguments(PROVIDER, AGREEING, ContractAgreementMessage.class),
-                        arguments(PROVIDER, FINALIZING, ContractNegotiationEventMessage.class),
-                        arguments(PROVIDER, TERMINATING, ContractNegotiationTerminationMessage.class)
-                );
-            }
-        }
-
-        private ContractNegotiation.Builder contractNegotiationBuilder() {
-            return ContractNegotiation.Builder.newInstance()
-                    .correlationId("processId")
-                    .counterPartyId("connectorId")
-                    .counterPartyAddress("callbackAddress")
-                    .protocol("protocol")
-                    .stateTimestamp(Instant.now().toEpochMilli())
-                    .contractOffer(contractOffer())
-                    .contractAgreement(createContractAgreement());
-        }
-
-        private ContractOffer contractOffer() {
-            return ContractOffer.Builder.newInstance().id("id:assetId:random")
-                    .policy(Policy.Builder.newInstance().build())
-                    .assetId("assetId")
-                    .build();
-        }
-
-        private ContractAgreement createContractAgreement() {
-            return ContractAgreement.Builder.newInstance()
-                    .id("contractId")
-                    .consumerId("consumerId")
-                    .providerId("providerId")
-                    .assetId("assetId")
-                    .policy(Policy.Builder.newInstance().build())
-                    .build();
-        }
     }
 
     private Answer<Object> onConsumerSentRequest() {
@@ -453,6 +385,89 @@ class ContractNegotiationIntegrationTest {
                                 .build())
                         .build())
                 .build();
+    }
+
+    @Nested
+    class IdempotencyProcessStateReplication {
+
+        @ParameterizedTest
+        @ArgumentsSource(EgressMessages.class)
+        void shouldSendMessageWithTheSameId_whenFirstDispatchFailed(ContractNegotiation.Type type, ContractNegotiationStates state,
+                                                                    Class<? extends ContractRemoteMessage> messageType) {
+            var dispatcherRegistry = type == CONSUMER ? consumerDispatcherRegistry : providerDispatcherRegistry;
+            var store = type == CONSUMER ? consumerStore : providerStore;
+            var manager = type == CONSUMER ? consumerManager : providerManager;
+
+            var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").consumerPid("consumerPid").build();
+            when(dispatcherRegistry.dispatch(any(), isA(messageType)))
+                    .thenReturn(completedFuture(StatusResult.failure(ERROR_RETRY)))
+                    .thenReturn(completedFuture(StatusResult.success(ack)));
+
+            var negotiation = contractNegotiationBuilder().type(type).state(state.code()).build();
+            store.save(negotiation);
+
+            manager.start();
+
+            var sentMessages = ArgumentCaptor.forClass(messageType);
+            await().atMost(DEFAULT_TEST_TIMEOUT).untilAsserted(() -> {
+                verify(dispatcherRegistry, times(2)).dispatch(any(), sentMessages.capture());
+                assertThat(sentMessages.getAllValues())
+                        .map(ContractRemoteMessage::getId)
+                        .matches(ids -> ids.stream().distinct().count() == 1);
+            });
+
+            await().atMost(DEFAULT_TEST_TIMEOUT).untilAsserted(() -> {
+                var actual = store.findById(negotiation.getId());
+                assertThat(actual).isNotNull();
+                assertThat(actual.getState()).isNotEqualTo(state.code());
+                assertThat(actual.lastSentProtocolMessage()).isNull();
+            });
+        }
+
+        private ContractNegotiation.Builder contractNegotiationBuilder() {
+            return ContractNegotiation.Builder.newInstance()
+                    .correlationId("processId")
+                    .counterPartyId("connectorId")
+                    .counterPartyAddress("callbackAddress")
+                    .protocol("protocol")
+                    .stateTimestamp(Instant.now().toEpochMilli())
+                    .contractOffer(contractOffer())
+                    .contractAgreement(createContractAgreement());
+        }
+
+        private ContractOffer contractOffer() {
+            return ContractOffer.Builder.newInstance().id("id:assetId:random")
+                    .policy(Policy.Builder.newInstance().build())
+                    .assetId("assetId")
+                    .build();
+        }
+
+        private ContractAgreement createContractAgreement() {
+            return ContractAgreement.Builder.newInstance()
+                    .id("contractId")
+                    .consumerId("consumerId")
+                    .providerId("providerId")
+                    .assetId("assetId")
+                    .policy(Policy.Builder.newInstance().build())
+                    .build();
+        }
+
+        private static class EgressMessages implements ArgumentsProvider {
+
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+                return Stream.of(
+                        arguments(CONSUMER, REQUESTING, ContractRequestMessage.class),
+                        arguments(CONSUMER, ACCEPTING, ContractNegotiationEventMessage.class),
+                        arguments(CONSUMER, VERIFYING, ContractAgreementVerificationMessage.class),
+                        arguments(CONSUMER, TERMINATING, ContractNegotiationTerminationMessage.class),
+                        arguments(PROVIDER, OFFERING, ContractOfferMessage.class),
+                        arguments(PROVIDER, AGREEING, ContractAgreementMessage.class),
+                        arguments(PROVIDER, FINALIZING, ContractNegotiationEventMessage.class),
+                        arguments(PROVIDER, TERMINATING, ContractNegotiationTerminationMessage.class)
+                );
+            }
+        }
     }
 
 }

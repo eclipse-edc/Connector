@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.service.contractnegotiation;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.offer.ConsumerOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
@@ -27,11 +28,13 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMes
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.service.protocol.BaseProtocolService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -54,6 +57,8 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     private final ContractNegotiationStore store;
     private final TransactionContext transactionContext;
     private final ContractValidationService validationService;
+    private final ConsumerOfferResolver consumerOfferResolver;
+
     private final ContractNegotiationObservable observable;
     private final Monitor monitor;
     private final Telemetry telemetry;
@@ -61,6 +66,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     public ContractNegotiationProtocolServiceImpl(ContractNegotiationStore store,
                                                   TransactionContext transactionContext,
                                                   ContractValidationService validationService,
+                                                  ConsumerOfferResolver consumerOfferResolver,
                                                   IdentityService identityService,
                                                   PolicyEngine policyEngine,
                                                   ContractNegotiationObservable observable,
@@ -69,6 +75,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
         this.store = store;
         this.transactionContext = transactionContext;
         this.validationService = validationService;
+        this.consumerOfferResolver = consumerOfferResolver;
         this.observable = observable;
         this.monitor = monitor;
         this.telemetry = telemetry;
@@ -78,24 +85,26 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
-                .compose(claimToken -> validateOffer(message, claimToken))
-                .compose(validatedOffer -> {
-                    var result = message.getProviderPid() == null
-                            ? createNegotiation(message, validatedOffer)
-                            : getAndLeaseNegotiation(message.getProviderPid());
+        return transactionContext.execute(() -> fetchValidatableOffer(message)
+                .compose(validatableOffer -> verifyRequest(tokenRepresentation, validatableOffer.getContractPolicy())
+                        .compose(context -> validateOffer(context.claimToken(), validatableOffer))
+                        .compose(validatedOffer -> {
+                            var result = message.getProviderPid() == null
+                                    ? createNegotiation(message, validatedOffer)
+                                    : getAndLeaseNegotiation(message.getProviderPid());
 
-                    return result.onSuccess(negotiation -> {
-                        if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
-                            return;
-                        }
-                        negotiation.protocolMessageReceived(message.getId());
-                        negotiation.addContractOffer(validatedOffer.getOffer());
-                        negotiation.transitionRequested();
-                        update(negotiation);
-                        observable.invokeForEach(l -> l.requested(negotiation));
-                    });
-                }));
+                            return result.onSuccess(negotiation -> {
+                                if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
+                                    return;
+                                }
+                                negotiation.protocolMessageReceived(message.getId());
+                                negotiation.addContractOffer(validatedOffer.getOffer());
+                                negotiation.transitionRequested();
+                                update(negotiation);
+                                observable.invokeForEach(l -> l.requested(negotiation));
+                            });
+                        })
+                ));
     }
 
     @Override
@@ -196,15 +205,27 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     }
 
     @NotNull
-    private ServiceResult<ValidatedConsumerOffer> validateOffer(ContractRequestMessage message, ClaimToken claimToken) {
-        var result = message.getContractOffer() != null ?
-                validationService.validateInitialOffer(claimToken, message.getContractOffer()) :
-                validationService.validateInitialOffer(claimToken, message.getContractOfferId());
+    private ServiceResult<ValidatedConsumerOffer> validateOffer(ClaimToken claimToken, ValidatableConsumerOffer consumerOffer) {
+        var result = validationService.validateInitialOffer(claimToken, consumerOffer);
         if (result.failed()) {
             monitor.debug("[Provider] Contract offer rejected as invalid: " + result.getFailureDetail());
             return ServiceResult.badRequest("Contract offer is not valid: " + result.getFailureDetail());
         } else {
             return ServiceResult.success(result.getContent());
+        }
+    }
+
+    @NotNull
+    private ServiceResult<ValidatableConsumerOffer> fetchValidatableOffer(ContractRequestMessage message) {
+        var result = Optional.ofNullable(message.getContractOffer())
+                .map(consumerOfferResolver::resolveOffer)
+                .orElseGet(() -> consumerOfferResolver.resolveOffer(message.getContractOfferId()));
+
+        if (result.failed()) {
+            monitor.debug(() -> "Failed to resolve offer: %s".formatted(result.getFailureDetail()));
+            return ServiceResult.notFound("Not found");
+        } else {
+            return result;
         }
     }
 
@@ -295,7 +316,15 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     }
 
     private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, ContractNegotiation contractNegotiation) {
-        var result = verifyToken(tokenRepresentation, CONTRACT_NEGOTIATION_REQUEST_SCOPE, contractNegotiation.getLastContractOffer().getPolicy());
+        return verifyRequest(tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), contractNegotiation);
+    }
+
+    private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, Policy policy) {
+        return verifyRequest(tokenRepresentation, policy, null);
+    }
+
+    private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, Policy policy, ContractNegotiation contractNegotiation) {
+        var result = verifyToken(tokenRepresentation, CONTRACT_NEGOTIATION_REQUEST_SCOPE, policy);
         if (result.failed()) {
             monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
             return ServiceResult.notFound("Not found");
