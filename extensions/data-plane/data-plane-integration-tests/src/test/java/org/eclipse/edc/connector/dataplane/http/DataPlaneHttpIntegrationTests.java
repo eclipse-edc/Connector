@@ -65,6 +65,9 @@ import static org.mockserver.model.HttpError.error;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.KeyMatchStyle.MATCHING_KEY;
+import static org.mockserver.model.MediaType.APPLICATION_JSON;
+import static org.mockserver.model.MediaType.APPLICATION_OCTET_STREAM;
+import static org.mockserver.model.MediaType.PLAIN_TEXT_UTF_8;
 import static org.mockserver.model.Parameter.param;
 import static org.mockserver.stop.Stop.stopQuietly;
 
@@ -137,12 +140,12 @@ public class DataPlaneHttpIntegrationTests {
         var sourceDataAddress = sourceDataAddress();
 
         var sourceRequest = getRequest(queryParams, HTTP_API_PATH);
-        httpSourceMockServer.when(sourceRequest, once()).respond(successfulResponse(responseBody));
+        httpSourceMockServer.when(sourceRequest, once()).respond(successfulResponse(responseBody, PLAIN_TEXT_UTF_8));
 
         // prepare validation server of the control plane
         var validationRequest = request().withMethod(HttpMethod.GET.name()).withHeader(AUTH_HEADER_KEY, token);
         validationApiMockServer.when(validationRequest, once())
-                .respond(successfulResponse(typeManager.writeValueAsString(sourceDataAddress)));
+                .respond(successfulResponse(typeManager.writeValueAsString(sourceDataAddress), PLAIN_TEXT_UTF_8));
 
         given()
                 .baseUri(PUBLIC_API_HOST)
@@ -163,10 +166,10 @@ public class DataPlaneHttpIntegrationTests {
     void transfer_toHttpSink_success(TypeManager typeManager) {
         var body = UUID.randomUUID().toString();
         var processId = UUID.randomUUID().toString();
-        httpSourceMockServer.when(getRequest(HTTP_API_PATH), once()).respond(successfulResponse(body));
+        httpSourceMockServer.when(getRequest(HTTP_API_PATH), once()).respond(successfulResponse(body, APPLICATION_JSON));
 
         // HTTP Sink Request & Response
-        httpSinkMockServer.when(postRequest(body), once()).respond(successfulResponse());
+        httpSinkMockServer.when(request(), once()).respond(successfulResponse());
 
         initiateTransfer(transferRequestPayload(processId, typeManager));
 
@@ -174,7 +177,7 @@ public class DataPlaneHttpIntegrationTests {
         // Verify HTTP Source server called exactly once.
         httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.once());
         // Verify HTTP Sink server called exactly once.
-        httpSinkMockServer.verify(postRequest(body), VerificationTimes.once());
+        httpSinkMockServer.verify(postRequest(body, APPLICATION_JSON), VerificationTimes.once());
     }
 
     @Test
@@ -187,10 +190,10 @@ public class DataPlaneHttpIntegrationTests {
                 "param2", "any other value"
         );
 
-        httpSourceMockServer.when(getRequest(queryParams, HTTP_API_PATH), once()).respond(successfulResponse(body));
+        httpSourceMockServer.when(getRequest(queryParams, HTTP_API_PATH), once()).respond(successfulResponse(body, APPLICATION_OCTET_STREAM));
 
         // HTTP Sink Request & Response
-        httpSinkMockServer.when(postRequest(body), once()).respond(successfulResponse());
+        httpSinkMockServer.when(postRequest(body, APPLICATION_OCTET_STREAM), once()).respond(successfulResponse());
 
         initiateTransfer(transferRequestPayload(processId, queryParams, typeManager));
 
@@ -198,7 +201,7 @@ public class DataPlaneHttpIntegrationTests {
         // Verify HTTP Source server called exactly once.
         httpSourceMockServer.verify(getRequest(queryParams, HTTP_API_PATH), VerificationTimes.once());
         // Verify HTTP Sink server called exactly once.
-        httpSinkMockServer.verify(postRequest(body), VerificationTimes.once());
+        httpSinkMockServer.verify(postRequest(body, APPLICATION_OCTET_STREAM), VerificationTimes.once());
     }
 
     /**
@@ -246,10 +249,10 @@ public class DataPlaneHttpIntegrationTests {
 
         // Next call to HTTP Source returns a valid response.
         var body = UUID.randomUUID().toString();
-        httpSourceMockServer.when(getRequest(HTTP_API_PATH), once()).respond(successfulResponse(body));
+        httpSourceMockServer.when(getRequest(HTTP_API_PATH), once()).respond(successfulResponse(body, PLAIN_TEXT_UTF_8));
 
         // HTTP Sink Request & Response
-        httpSinkMockServer.when(postRequest(body), once()).respond(successfulResponse());
+        httpSinkMockServer.when(postRequest(body, APPLICATION_OCTET_STREAM), once()).respond(successfulResponse());
 
         initiateTransfer(transferRequestPayload(processId, typeManager));
 
@@ -257,7 +260,7 @@ public class DataPlaneHttpIntegrationTests {
         // Verify HTTP Source server called exactly 3 times.
         httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.exactly(3));
         // Verify HTTP Sink server called exactly once.
-        httpSinkMockServer.verify(postRequest(body), VerificationTimes.once());
+        httpSinkMockServer.verify(postRequest(body, PLAIN_TEXT_UTF_8), VerificationTimes.once());
     }
 
     /**
@@ -370,17 +373,11 @@ public class DataPlaneHttpIntegrationTests {
                 .withPath("/" + path);
     }
 
-    /**
-     * Mock HTTP POST request for sink.
-     *
-     * @param responseBody Request body.
-     * @return see {@link HttpRequest}
-     */
-    private HttpRequest postRequest(String responseBody) {
+    private HttpRequest postRequest(String responseBody, MediaType contentType) {
         return request()
                 .withMethod(HttpMethod.POST.name())
                 .withHeader(AUTH_HEADER_KEY, SINK_AUTH_VALUE)
-                .withContentType(MediaType.APPLICATION_OCTET_STREAM)
+                .withContentType(contentType)
                 .withBody(binary(responseBody.getBytes(StandardCharsets.UTF_8)));
     }
 
@@ -394,15 +391,9 @@ public class DataPlaneHttpIntegrationTests {
                 .withStatusCode(HttpStatusCode.OK_200.code());
     }
 
-    /**
-     * Mock plain text response from source.
-     *
-     * @param responseBody Response body.
-     * @return see {@link HttpResponse}
-     */
-    private HttpResponse successfulResponse(String responseBody) {
+    private HttpResponse successfulResponse(String responseBody, MediaType contentType) {
         return successfulResponse()
-                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), MediaType.PLAIN_TEXT_UTF_8.toString())
+                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), contentType.toString())
                 .withBody(responseBody);
     }
 
