@@ -40,7 +40,7 @@ public class HttpDataSink extends ParallelSink {
     @Override
     protected StreamResult<Object> transferParts(List<DataSource.Part> parts) {
         for (var part : parts) {
-            var request = requestFactory.toRequest(params, part::openStream);
+            var request = requestFactory.toRequest(params, part);
             try (var response = httpClient.execute(request)) {
                 if (!response.isSuccessful()) {
                     monitor.severe(format("Error {%s: %s} received writing HTTP data %s to endpoint %s for request: %s",
