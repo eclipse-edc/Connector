@@ -27,7 +27,6 @@ import org.eclipse.edc.connector.contract.spi.negotiation.NegotiationWaitStrateg
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.validation.ContractValidationServiceImpl;
@@ -141,9 +140,6 @@ public class ContractCoreExtension implements ServiceExtension {
     private ProtocolWebhook protocolWebhook;
 
     @Inject
-    private ContractDefinitionResolver contractDefinitionResolver;
-
-    @Inject
     private ContractNegotiationObservable observable;
 
     @Inject
@@ -184,7 +180,7 @@ public class ContractCoreExtension implements ServiceExtension {
         var participantId = context.getParticipantId();
 
         var policyEquality = new PolicyEquality(typeManager);
-        var validationService = new ContractValidationServiceImpl(agentService, contractDefinitionResolver, assetIndex, policyStore, policyEngine, policyEquality);
+        var validationService = new ContractValidationServiceImpl(agentService, assetIndex, policyEngine, policyEquality);
         context.registerService(ContractValidationService.class, validationService);
 
         // bind/register rule to evaluate contract expiry

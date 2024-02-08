@@ -15,11 +15,13 @@
 package org.eclipse.edc.connector.contract;
 
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
+import org.eclipse.edc.connector.contract.offer.ConsumerOfferResolverImpl;
 import org.eclipse.edc.connector.contract.offer.ContractDefinitionResolverImpl;
 import org.eclipse.edc.connector.contract.policy.PolicyArchiveImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.offer.ConsumerOfferResolver;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
@@ -54,6 +56,11 @@ public class ContractNegotiationDefaultServicesExtension implements ServiceExten
     @Provider
     public ContractDefinitionResolver contractDefinitionResolver(ServiceExtensionContext context) {
         return new ContractDefinitionResolverImpl(context.getMonitor(), contractDefinitionStore, policyEngine, policyStore);
+    }
+
+    @Provider
+    public ConsumerOfferResolver consumerOfferResolver() {
+        return new ConsumerOfferResolverImpl(contractDefinitionStore, policyStore);
     }
 
     @Provider
