@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.contract.spi.offer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,9 +24,6 @@ import org.jetbrains.annotations.NotNull;
  * to validate incoming offer through {@link ContractValidationService#validateInitialOffer}
  */
 public interface ConsumerOfferResolver {
-
-    @NotNull
-    ServiceResult<ValidatableConsumerOffer> resolveOffer(ContractOffer offer);
 
     @NotNull
     ServiceResult<ValidatableConsumerOffer> resolveOffer(String offerId);

@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +47,7 @@ class ConsumerOfferResolverImplTest {
     }
 
     @Test
-    void resolveOffer_withId() {
+    void resolveOffer() {
         var contractDefinition = createContractDefinition();
 
         var offerId = ContractOfferId.create(contractDefinition.getId(), "1");
@@ -65,40 +64,6 @@ class ConsumerOfferResolverImplTest {
 
         assertThat(validatableOfferResult).isSucceeded().satisfies(consumerOffer -> {
             assertThat(consumerOffer.getOfferId()).usingRecursiveComparison().isEqualTo(offerId);
-            assertThat(consumerOffer.getContractDefinition()).isEqualTo(contractDefinition);
-            assertThat(consumerOffer.getAccessPolicy()).isSameAs(accessPolicy);
-            assertThat(consumerOffer.getContractPolicy()).isSameAs(contractPolicy);
-        });
-
-        verify(policyStore).findById(contractDefinition.getAccessPolicyId());
-        verify(policyStore).findById(contractDefinition.getContractPolicyId());
-        verify(definitionStore).findById(any());
-    }
-
-
-    @Test
-    void resolveOffer_withOffer() {
-
-        var offer = ContractOffer.Builder.newInstance()
-                .id(ContractOfferId.create("1", "1").toString())
-                .assetId("1")
-                .policy(Policy.Builder.newInstance().build())
-                .build();
-
-        var contractDefinition = createContractDefinition();
-        var accessPolicy = Policy.Builder.newInstance().build();
-        var accessPolicyDef = PolicyDefinition.Builder.newInstance().policy(accessPolicy).build();
-        var contractPolicy = Policy.Builder.newInstance().build();
-        var contractPolicyDef = PolicyDefinition.Builder.newInstance().policy(contractPolicy).build();
-
-        when(policyStore.findById(contractDefinition.getAccessPolicyId())).thenReturn(accessPolicyDef);
-        when(policyStore.findById(contractDefinition.getContractPolicyId())).thenReturn(contractPolicyDef);
-        when(definitionStore.findById(any())).thenReturn(contractDefinition);
-
-        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer(offer);
-
-        assertThat(validatableOfferResult).isSucceeded().satisfies(consumerOffer -> {
-            assertThat(consumerOffer.getOfferId().toString()).isEqualTo(offer.getId());
             assertThat(consumerOffer.getContractDefinition()).isEqualTo(contractDefinition);
             assertThat(consumerOffer.getAccessPolicy()).isSameAs(accessPolicy);
             assertThat(consumerOffer.getContractPolicy()).isSameAs(contractPolicy);

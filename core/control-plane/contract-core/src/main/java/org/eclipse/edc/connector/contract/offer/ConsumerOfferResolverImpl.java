@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStor
 import org.eclipse.edc.connector.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
@@ -34,11 +33,6 @@ public class ConsumerOfferResolverImpl implements ConsumerOfferResolver {
     public ConsumerOfferResolverImpl(ContractDefinitionStore contractDefinitionStore, PolicyDefinitionStore policyDefinitionStore) {
         this.contractDefinitionStore = contractDefinitionStore;
         this.policyDefinitionStore = policyDefinitionStore;
-    }
-
-    @Override
-    public @NotNull ServiceResult<ValidatableConsumerOffer> resolveOffer(ContractOffer offer) {
-        return resolveOffer(offer.getId());
     }
 
     @Override
@@ -73,5 +67,5 @@ public class ConsumerOfferResolverImpl implements ConsumerOfferResolver {
 
         }
     }
-    
+
 }

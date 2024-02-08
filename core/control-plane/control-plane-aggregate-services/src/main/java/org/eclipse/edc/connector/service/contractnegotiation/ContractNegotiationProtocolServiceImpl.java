@@ -41,6 +41,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
+import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -172,9 +173,9 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation) {
-        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> Optional.ofNullable(store.findById(id))
-                .map(negotiation -> validateRequest(claimToken, negotiation))
-                .orElse(ServiceResult.notFound("No negotiation with id %s found".formatted(id)))));
+        return transactionContext.execute(() -> getNegotiation(id)
+                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation))
+                .compose(context -> validateRequest(context.claimToken(), context.negotiation())));
     }
 
     @NotNull
@@ -217,10 +218,11 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
 
     @NotNull
     private ServiceResult<ValidatableConsumerOffer> fetchValidatableOffer(ContractRequestMessage message) {
-        var result = Optional.ofNullable(message.getContractOffer())
-                .map(consumerOfferResolver::resolveOffer)
-                .orElseGet(() -> consumerOfferResolver.resolveOffer(message.getContractOfferId()));
+        var offerId = Optional.ofNullable(message.getContractOffer())
+                .map(ContractOffer::getId)
+                .orElseGet(message::getContractOfferId);
 
+        var result = consumerOfferResolver.resolveOffer(offerId);
         if (result.failed()) {
             monitor.debug(() -> "Failed to resolve offer: %s".formatted(result.getFailureDetail()));
             return ServiceResult.notFound("Not found");

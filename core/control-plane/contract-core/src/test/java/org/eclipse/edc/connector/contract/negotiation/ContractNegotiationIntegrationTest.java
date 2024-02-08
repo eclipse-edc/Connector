@@ -175,7 +175,7 @@ class ContractNegotiationIntegrationTest {
         var validatableOffer = mock(ValidatableConsumerOffer.class);
 
         when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
-        when(offerResolver.resolveOffer(isA(ContractOffer.class))).thenReturn(ServiceResult.success(validatableOffer));
+        when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
         when(validationService.validateInitialOffer(token, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
         when(validationService.validateRequest(eq(token), any(ContractNegotiation.class))).thenReturn(Result.success());
@@ -228,7 +228,7 @@ class ContractNegotiationIntegrationTest {
         var validatableOffer = mock(ValidatableConsumerOffer.class);
 
         when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
-        when(offerResolver.resolveOffer(isA(ContractOffer.class))).thenReturn(ServiceResult.success(validatableOffer));
+        when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
         when(validationService.validateInitialOffer(token, validatableOffer)).thenReturn(Result.failure("must be declined"));
 
         // Start provider and consumer negotiation managers
@@ -260,7 +260,7 @@ class ContractNegotiationIntegrationTest {
         var validatableOffer = mock(ValidatableConsumerOffer.class);
 
         when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
-        when(offerResolver.resolveOffer(isA(ContractOffer.class))).thenReturn(ServiceResult.success(validatableOffer));
+        when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
         when(validationService.validateInitialOffer(token, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.failure("error"));
 
