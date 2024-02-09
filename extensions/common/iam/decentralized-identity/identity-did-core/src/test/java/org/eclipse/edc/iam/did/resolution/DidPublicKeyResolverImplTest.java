@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -103,6 +104,23 @@ class DidPublicKeyResolverImplTest {
         var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isSucceeded().isNotNull();
+        verify(resolverRegistry).resolve(DID_URL);
+    }
+
+    @Test
+    void resolve_noValidVerificationMethod() {
+        var didDocument = DidDocument.Builder.newInstance()
+                .verificationMethod(List.of(VerificationMethod.Builder.newInstance()
+                        .type("unknown")
+                        .publicKeyJwk(Map.of())
+                        .build()))
+                .build();
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
+
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
+
+        assertThat(result).isFailed().isNotNull()
+                .detail().contains(format("DID document with id %s does not contain any supported Verification Method", didDocument.getId()));
         verify(resolverRegistry).resolve(DID_URL);
     }
 

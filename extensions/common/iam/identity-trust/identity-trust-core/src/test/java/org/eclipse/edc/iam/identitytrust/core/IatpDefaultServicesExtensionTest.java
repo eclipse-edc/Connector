@@ -36,7 +36,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.core.IatpDefaultServicesExtension.STS_PRIVATE_KEY_ALIAS;
-import static org.eclipse.edc.iam.identitytrust.core.IatpDefaultServicesExtension.STS_PUBLIC_KEY_ALIAS;
+import static org.eclipse.edc.iam.identitytrust.core.IatpDefaultServicesExtension.STS_PUBLIC_KEY_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -65,12 +65,12 @@ class IatpDefaultServicesExtensionTest {
 
     @Test
     void verify_defaultService(ServiceExtensionContext context, IatpDefaultServicesExtension ext) {
-        var publicAlias = "public";
-        var privateAlias = "private";
+        var publicKeyId = "did:web:" + UUID.randomUUID() + "#key-id";
+        var privateKeyAlias = "private";
         Monitor mockedMonitor = mock();
         context.registerService(Monitor.class, mockedMonitor);
-        when(context.getSetting(STS_PUBLIC_KEY_ALIAS, null)).thenReturn(publicAlias);
-        when(context.getSetting(STS_PRIVATE_KEY_ALIAS, null)).thenReturn(privateAlias);
+        when(context.getSetting(STS_PUBLIC_KEY_ID, null)).thenReturn(publicKeyId);
+        when(context.getSetting(STS_PRIVATE_KEY_ALIAS, null)).thenReturn(privateKeyAlias);
         var sts = ext.createDefaultTokenService(context);
 
         assertThat(sts).isInstanceOf(EmbeddedSecureTokenService.class);
