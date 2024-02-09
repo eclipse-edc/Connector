@@ -35,7 +35,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_O
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
@@ -96,32 +95,6 @@ class JsonObjectToContractRequestMessageTransformerTest {
         assertThat(contractOffer.getId()).isNotNull();
         assertThat(contractOffer.getPolicy()).isNotNull();
         assertThat(contractOffer.getAssetId()).isEqualTo("target");
-
-        verify(context, never()).reportProblem(anyString());
-    }
-
-    @Test
-    void verify_usingOfferId() {
-        var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, OBJECT_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
-                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_DATASET, DATASET_ID)
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
-                .add(DSPACE_PROPERTY_OFFER_ID, CONTRACT_OFFER_ID)
-                .build();
-
-        var result = transformer.transform(getExpanded(message), context);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getProtocol()).isNotEmpty();
-        assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
-        assertThat(result.getProviderPid()).isEqualTo("providerPid");
-        assertThat(result.getCallbackAddress()).isEqualTo(CALLBACK);
-        assertThat(result.getDataset()).isEqualTo(DATASET_ID);
-
-        assertThat(result.getContractOfferId()).isNotNull();
 
         verify(context, never()).reportProblem(anyString());
     }

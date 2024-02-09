@@ -32,7 +32,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
@@ -94,25 +93,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
     }
 
     @Test
-    void verify_contractOfferId() {
-        var message = contractRequestMessageBuilder()
-                .processId("processId")
-                .consumerPid(CONSUMER_PID)
-                .contractOfferId(CONTRACT_OFFER_ID)
-                .build();
-
-        var result = transformer.transform(message, context);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getJsonString(ID).getString()).isNotEmpty();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
-        assertThat(result.getString(DSPACE_PROPERTY_OFFER_ID)).isEqualTo(CONTRACT_OFFER_ID);
-
-        verify(context, never()).reportProblem(anyString());
-    }
-
-    @Test
-    void verify_nullPolicyFails() {
+    void shouldFail_whenPolicyCannotBeTransformed() {
         var message = contractRequestMessageBuilder()
                 .processId("processId")
                 .consumerPid(CONSUMER_PID)

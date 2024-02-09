@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessa
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import static java.util.Objects.requireNonNull;
 
@@ -32,21 +32,15 @@ public class ContractRequestMessage extends ContractRemoteMessage {
     private String callbackAddress;
 
     private ContractOffer contractOffer;
-    private String contractOfferId;
     private String dataset;
 
     public Type getType() {
         return type;
     }
 
-    @Nullable
+    @NotNull
     public ContractOffer getContractOffer() {
         return contractOffer;
-    }
-
-    @Nullable
-    public String getContractOfferId() {
-        return contractOfferId;
     }
 
     public String getDataset() {
@@ -87,11 +81,6 @@ public class ContractRequestMessage extends ContractRemoteMessage {
             return this;
         }
 
-        public Builder contractOfferId(String id) {
-            message.contractOfferId = id;
-            return this;
-        }
-
         public Builder type(Type type) {
             message.type = type;
             return this;
@@ -103,11 +92,7 @@ public class ContractRequestMessage extends ContractRemoteMessage {
         }
 
         public ContractRequestMessage build() {
-            if (message.contractOfferId == null) {
-                requireNonNull(message.contractOffer, "contractOffer");
-            } else {
-                requireNonNull(message.contractOfferId, "contractOfferId");
-            }
+            requireNonNull(message.contractOffer, "contractOffer");
             return super.build();
         }
     }
