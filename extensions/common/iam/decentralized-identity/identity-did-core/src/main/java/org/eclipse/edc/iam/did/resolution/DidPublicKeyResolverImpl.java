@@ -37,7 +37,7 @@ public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver implemen
      * Group 1 ("did")      = the did:method:identifier portion
      * Group 2 ("fragment") = the #fragment portion
      */
-    private static final Pattern PATTERN_DID_WITH_OPTIONAL_FRAGMENT = Pattern.compile("(?<did>did:.*:[^#]*)(?<fragment>#.*)?");
+    private static final Pattern PATTERN_DID_WITH_OPTIONAL_FRAGMENT = Pattern.compile("(?<did>did:.*:[^#]*)((#)(?<fragment>.*))?");
     private static final String GROUP_DID = "did";
     private static final String GROUP_FRAGMENT = "fragment";
     private final DidResolverRegistry resolverRegistry;
