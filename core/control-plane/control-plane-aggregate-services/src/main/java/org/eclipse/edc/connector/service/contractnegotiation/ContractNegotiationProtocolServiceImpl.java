@@ -30,13 +30,11 @@ import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessa
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
-import org.eclipse.edc.connector.service.protocol.BaseProtocolService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -51,15 +49,15 @@ import java.util.function.Function;
 
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 
-public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService implements ContractNegotiationProtocolService {
+public class ContractNegotiationProtocolServiceImpl implements ContractNegotiationProtocolService {
 
     @PolicyScope
-    private static final String CONTRACT_NEGOTIATION_REQUEST_SCOPE = "request.contract.negotiation";
+    public static final String CONTRACT_NEGOTIATION_REQUEST_SCOPE = "request.contract.negotiation";
     private final ContractNegotiationStore store;
     private final TransactionContext transactionContext;
     private final ContractValidationService validationService;
     private final ConsumerOfferResolver consumerOfferResolver;
-
+    private final ProtocolTokenValidator protocolTokenValidator;
     private final ContractNegotiationObservable observable;
     private final Monitor monitor;
     private final Telemetry telemetry;
@@ -68,15 +66,14 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
                                                   TransactionContext transactionContext,
                                                   ContractValidationService validationService,
                                                   ConsumerOfferResolver consumerOfferResolver,
-                                                  IdentityService identityService,
-                                                  PolicyEngine policyEngine,
+                                                  ProtocolTokenValidator protocolTokenValidator,
                                                   ContractNegotiationObservable observable,
                                                   Monitor monitor, Telemetry telemetry) {
-        super(identityService, policyEngine, monitor);
         this.store = store;
         this.transactionContext = transactionContext;
         this.validationService = validationService;
         this.consumerOfferResolver = consumerOfferResolver;
+        this.protocolTokenValidator = protocolTokenValidator;
         this.observable = observable;
         this.monitor = monitor;
         this.telemetry = telemetry;
@@ -326,7 +323,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     }
 
     private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, Policy policy, ContractNegotiation contractNegotiation) {
-        var result = verifyToken(tokenRepresentation, CONTRACT_NEGOTIATION_REQUEST_SCOPE, policy);
+        var result = protocolTokenValidator.verifyToken(tokenRepresentation, CONTRACT_NEGOTIATION_REQUEST_SCOPE, policy);
         if (result.failed()) {
             monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
             return ServiceResult.notFound("Not found");

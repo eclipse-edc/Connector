@@ -37,15 +37,14 @@ import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryCo
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -117,7 +116,7 @@ class ContractNegotiationIntegrationTest {
     private final ConsumerOfferResolver offerResolver = mock();
     private final RemoteMessageDispatcherRegistry providerDispatcherRegistry = mock();
     private final RemoteMessageDispatcherRegistry consumerDispatcherRegistry = mock();
-    private final IdentityService identityService = mock();
+    private final ProtocolTokenValidator protocolTokenValidator = mock();
     private final ProtocolWebhook protocolWebhook = () -> "http://dummy";
     protected ClaimToken token = ClaimToken.Builder.newInstance().build();
     protected TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
@@ -153,9 +152,9 @@ class ContractNegotiationIntegrationTest {
                 .protocolWebhook(protocolWebhook)
                 .build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
-        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, offerResolver, identityService, mock(), new ContractNegotiationObservableImpl(), monitor, mock());
-        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, offerResolver, identityService, mock(), new ContractNegotiationObservableImpl(), monitor, mock());
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(token));
+        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, offerResolver, protocolTokenValidator, new ContractNegotiationObservableImpl(), monitor, mock());
+        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, offerResolver, protocolTokenValidator, new ContractNegotiationObservableImpl(), monitor, mock());
     }
 
     @AfterEach

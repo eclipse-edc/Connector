@@ -37,6 +37,7 @@ import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiation
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationServiceImpl;
 import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionEventListener;
 import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionServiceImpl;
+import org.eclipse.edc.connector.service.protocol.ProtocolTokenValidatorImpl;
 import org.eclipse.edc.connector.service.transferprocess.TransferProcessProtocolServiceImpl;
 import org.eclipse.edc.connector.service.transferprocess.TransferProcessServiceImpl;
 import org.eclipse.edc.connector.spi.asset.AssetService;
@@ -47,6 +48,7 @@ import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionServic
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
@@ -148,6 +150,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private PolicyEngine policyEngine;
 
+    @Inject(required = false)
+    private ProtocolTokenValidator protocolTokenValidator;
+
     @Override
     public String name() {
         return NAME;
@@ -168,7 +173,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public CatalogProtocolService catalogProtocolService(ServiceExtensionContext context) {
         return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry,
-                identityService, policyEngine, monitor, context.getParticipantId(), transactionContext);
+                protocolTokenValidator(), context.getParticipantId(), transactionContext);
     }
 
     @Provider
@@ -191,7 +196,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public ContractNegotiationProtocolService contractNegotiationProtocolService() {
         return new ContractNegotiationProtocolServiceImpl(contractNegotiationStore,
-                transactionContext, contractValidationService, consumerOfferResolver, identityService, policyEngine, contractNegotiationObservable,
+                transactionContext, contractValidationService, consumerOfferResolver, protocolTokenValidator(), contractNegotiationObservable,
                 monitor, telemetry);
     }
 
@@ -211,6 +216,14 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public TransferProcessProtocolService transferProcessProtocolService() {
         return new TransferProcessProtocolServiceImpl(transferProcessStore, transactionContext, contractNegotiationStore,
-                contractValidationService, identityService, policyEngine, dataAddressValidator, transferProcessObservable, clock, monitor, telemetry);
+                contractValidationService, protocolTokenValidator(), dataAddressValidator, transferProcessObservable, clock, monitor, telemetry);
+    }
+
+    @Provider
+    public ProtocolTokenValidator protocolTokenValidator() {
+        if (protocolTokenValidator == null) {
+            protocolTokenValidator = new ProtocolTokenValidatorImpl(identityService, policyEngine, monitor);
+        }
+        return protocolTokenValidator;
     }
 }

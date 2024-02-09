@@ -20,16 +20,15 @@ import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.catalog.spi.Distribution;
+import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
@@ -40,12 +39,12 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.service.catalog.CatalogProtocolServiceImpl.CATALOGING_REQUEST_SCOPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -56,11 +55,11 @@ class CatalogProtocolServiceImplTest {
     private final DatasetResolver datasetResolver = mock();
     private final ParticipantAgentService participantAgentService = mock();
     private final DataServiceRegistry dataServiceRegistry = mock();
-    private final IdentityService identityService = mock();
+    private final ProtocolTokenValidator protocolTokenValidator = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
 
     private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver,
-            participantAgentService, dataServiceRegistry, identityService, mock(), mock(), "participantId",
+            participantAgentService, dataServiceRegistry, protocolTokenValidator, "participantId",
             transactionContext);
 
     @Test
@@ -72,7 +71,7 @@ class CatalogProtocolServiceImplTest {
         var participantAgent = createParticipantAgent();
         var dataService = DataService.Builder.newInstance().build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(token));
         when(dataServiceRegistry.getDataServices()).thenReturn(List.of(dataService));
         when(datasetResolver.query(any(), any())).thenReturn(Stream.of(createDataset()));
         when(participantAgentService.createFor(any())).thenReturn(participantAgent);
@@ -94,7 +93,7 @@ class CatalogProtocolServiceImplTest {
         var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
         var tokenRepresentation = createTokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.failure("unauthorized"));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
         var result = service.getCatalog(message, tokenRepresentation);
 
@@ -109,7 +108,7 @@ class CatalogProtocolServiceImplTest {
         var participantAgent = createParticipantAgent();
         var dataset = createDataset();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(participantAgentService.createFor(any())).thenReturn(participantAgent);
         when(datasetResolver.getById(any(), any())).thenReturn(dataset);
 
@@ -127,7 +126,7 @@ class CatalogProtocolServiceImplTest {
         var tokenRepresentation = createTokenRepresentation();
         var participantAgent = createParticipantAgent();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(participantAgentService.createFor(any())).thenReturn(participantAgent);
         when(datasetResolver.getById(any(), any())).thenReturn(null);
 
@@ -141,7 +140,7 @@ class CatalogProtocolServiceImplTest {
         var querySpec = QuerySpec.none();
         var tokenRepresentation = createTokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.failure("unauthorized"));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
         var result = service.getDataset("datasetId", tokenRepresentation);
 

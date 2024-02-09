@@ -28,24 +28,14 @@ import java.util.Set;
  */
 public class VerificationContext {
 
-    // TODO it will be removed with the TokenGenerator/Verification refactor
-    @Deprecated
-    private String audience;
-    private Policy policy;
-
-    private Set<String> scopes = new HashSet<>();
     private final Map<Class<?>, Object> additional;
+    private Policy policy;
+    private Set<String> scopes = new HashSet<>();
 
     private VerificationContext() {
         additional = new HashMap<>();
     }
 
-    /**
-     * Returns the audience or null if not available.
-     */
-    public String getAudience() {
-        return audience;
-    }
 
     /**
      * Returns the {@link Policy} associated with the verification context
@@ -86,11 +76,6 @@ public class VerificationContext {
 
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder audience(String audience) {
-            context.audience = audience;
-            return this;
         }
 
         public Builder data(Class<?> clazz, Object object) {

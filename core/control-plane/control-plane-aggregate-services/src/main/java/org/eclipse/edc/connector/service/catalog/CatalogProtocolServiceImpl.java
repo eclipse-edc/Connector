@@ -19,13 +19,13 @@ import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
-import org.eclipse.edc.connector.service.protocol.BaseProtocolService;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.policy.engine.spi.PolicyScope;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
-import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,10 @@ import org.jetbrains.annotations.NotNull;
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
-public class CatalogProtocolServiceImpl extends BaseProtocolService implements CatalogProtocolService {
+public class CatalogProtocolServiceImpl implements CatalogProtocolService {
+
+    @PolicyScope
+    public static final String CATALOGING_REQUEST_SCOPE = "request.catalog";
 
     private static final String PARTICIPANT_ID_PROPERTY_KEY = "participantId";
 
@@ -43,20 +46,18 @@ public class CatalogProtocolServiceImpl extends BaseProtocolService implements C
     private final String participantId;
     private final TransactionContext transactionContext;
 
-    private PolicyEngine policyEngine;
+    private final ProtocolTokenValidator protocolTokenValidator;
 
     public CatalogProtocolServiceImpl(DatasetResolver datasetResolver,
                                       ParticipantAgentService participantAgentService,
                                       DataServiceRegistry dataServiceRegistry,
-                                      IdentityService identityService,
-                                      PolicyEngine policyEngine,
-                                      Monitor monitor,
+                                      ProtocolTokenValidator protocolTokenValidator,
                                       String participantId,
                                       TransactionContext transactionContext) {
-        super(identityService, policyEngine, monitor);
         this.datasetResolver = datasetResolver;
         this.participantAgentService = participantAgentService;
         this.dataServiceRegistry = dataServiceRegistry;
+        this.protocolTokenValidator = protocolTokenValidator;
         this.participantId = participantId;
         this.transactionContext = transactionContext;
     }
@@ -93,4 +94,9 @@ public class CatalogProtocolServiceImpl extends BaseProtocolService implements C
                     return ServiceResult.success(dataset);
                 }));
     }
+
+    private ServiceResult<ClaimToken> verifyToken(TokenRepresentation tokenRepresentation) {
+        return protocolTokenValidator.verifyToken(tokenRepresentation, CATALOGING_REQUEST_SCOPE, Policy.Builder.newInstance().build());
+    }
 }
+
