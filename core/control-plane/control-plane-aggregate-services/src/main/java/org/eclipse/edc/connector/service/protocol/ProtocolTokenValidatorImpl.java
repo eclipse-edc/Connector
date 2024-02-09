@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.service.protocol;
 
+import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
@@ -25,13 +26,11 @@ import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 
-import java.util.List;
-
 /**
- * Base class for all protocol service implementation. This will contain common logic such as validating the JWT token
- * and extracting the {@link ClaimToken}
+ * Implementation of {@link ProtocolTokenValidator} which uses the {@link PolicyEngine} for extracting
+ * the scope from the {@link Policy} within a scope
  */
-public abstract class BaseProtocolService {
+public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
 
     private final IdentityService identityService;
 
@@ -39,7 +38,7 @@ public abstract class BaseProtocolService {
 
     private final Monitor monitor;
 
-    protected BaseProtocolService(IdentityService identityService, PolicyEngine policyEngine, Monitor monitor) {
+    public ProtocolTokenValidatorImpl(IdentityService identityService, PolicyEngine policyEngine, Monitor monitor) {
         this.identityService = identityService;
         this.monitor = monitor;
         this.policyEngine = policyEngine;
@@ -49,21 +48,13 @@ public abstract class BaseProtocolService {
      * Validate and extract the {@link ClaimToken} from the input {@link TokenRepresentation} by using the {@link IdentityService}
      *
      * @param tokenRepresentation The input {@link TokenRepresentation}
+     * @param policyScope         The policy scope
+     * @param policy              The {@link Policy}
      * @return The {@link ClaimToken} if success, failure otherwise
      */
-    //TODO remove once this lands https://github.com/eclipse-edc/Connector/issues/3819
-    protected ServiceResult<ClaimToken> verifyToken(TokenRepresentation tokenRepresentation) {
-        // TODO: since we are pushing here the invocation of the IdentityService we don't know the audience here
-        //  The audience removal will be tackle next. IdentityService that relies on this parameter would not work
-        //  for the time being.
-
-        // TODO: policy extractors will be handled next
-        var verificationContext = VerificationContext.Builder.newInstance()
-                .policy(Policy.Builder.newInstance().build())
-                .scopes(List.of())
-                .build();
-
-        return verifyToken(tokenRepresentation, verificationContext);
+    @Override
+    public ServiceResult<ClaimToken> verifyToken(TokenRepresentation tokenRepresentation, String policyScope, Policy policy) {
+        return verifyToken(tokenRepresentation, createVerificationContext(policyScope, policy));
     }
 
     protected ServiceResult<ClaimToken> verifyToken(TokenRepresentation tokenRepresentation, VerificationContext verificationContext) {
@@ -74,19 +65,6 @@ public abstract class BaseProtocolService {
             return ServiceResult.unauthorized("Unauthorized");
         }
         return ServiceResult.success(result.getContent());
-    }
-
-
-    /**
-     * Validate and extract the {@link ClaimToken} from the input {@link TokenRepresentation} by using the {@link IdentityService}
-     *
-     * @param tokenRepresentation The input {@link TokenRepresentation}
-     * @param scope               The policy scope
-     * @param policy              The {@link Policy}
-     * @return The {@link ClaimToken} if success, failure otherwise
-     */
-    protected ServiceResult<ClaimToken> verifyToken(TokenRepresentation tokenRepresentation, String scope, Policy policy) {
-        return verifyToken(tokenRepresentation, createVerificationContext(scope, policy));
     }
 
     private VerificationContext createVerificationContext(String scope, Policy policy) {

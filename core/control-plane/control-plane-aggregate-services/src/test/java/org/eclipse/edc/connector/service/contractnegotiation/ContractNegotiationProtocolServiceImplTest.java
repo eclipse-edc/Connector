@@ -31,11 +31,10 @@ import org.eclipse.edc.connector.contract.spi.validation.ContractValidationServi
 import org.eclipse.edc.connector.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -71,6 +70,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
+import static org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl.CONTRACT_NEGOTIATION_REQUEST_SCOPE;
 import static org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImplTest.TestFunctions.contractOffer;
 import static org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImplTest.TestFunctions.createPolicy;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -98,14 +98,14 @@ class ContractNegotiationProtocolServiceImplTest {
 
     private final ConsumerOfferResolver consumerOfferResolver = mock();
     private final ContractNegotiationListener listener = mock();
-    private final IdentityService identityService = mock();
+    private final ProtocolTokenValidator protocolTokenValidator = mock();
     private ContractNegotiationProtocolService service;
 
     @BeforeEach
     void setUp() {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
-        service = new ContractNegotiationProtocolServiceImpl(store, transactionContext, validationService, consumerOfferResolver, identityService, mock(),
+        service = new ContractNegotiationProtocolServiceImpl(store, transactionContext, validationService, consumerOfferResolver, protocolTokenValidator,
                 observable, mock(), mock());
     }
 
@@ -125,7 +125,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
         when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
         when(consumerOfferResolver.resolveOffer(contractOffer.getId())).thenReturn(ServiceResult.success(validatableOffer));
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
         when(validationService.validateInitialOffer(claimToken, validatableOffer)).thenReturn(Result.success(validatedOffer));
 
@@ -168,7 +168,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
         when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
         when(consumerOfferResolver.resolveOffer(contractOffer.getId())).thenReturn(ServiceResult.success(validatableOffer));
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findById(any())).thenReturn(negotiation);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateInitialOffer(claimToken, validatableOffer)).thenReturn(Result.success(validatedOffer));
@@ -233,7 +233,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .build();
         var negotiation = createContractNegotiationRequested();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findById(processId)).thenReturn(negotiation);
         when(store.findByIdAndLease(processId)).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(claimToken, negotiation)).thenReturn(Result.success());
@@ -264,7 +264,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .type(ContractNegotiationEventMessage.Type.ACCEPTED)
                 .policy(Policy.Builder.newInstance().build())
                 .build();
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findById(any())).thenReturn(contractNegotiation);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(contractNegotiation));
         when(validationService.validateRequest(eq(claimToken), any(ContractNegotiation.class))).thenReturn(Result.success());
@@ -296,7 +296,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .contractAgreement(contractAgreement)
                 .build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findById(any())).thenReturn(negotiationConsumerRequested);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiationConsumerRequested));
         when(validationService.validateConfirmed(eq(claimToken), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
@@ -331,7 +331,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .providerPid("providerPid")
                 .build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findById(any())).thenReturn(negotiation);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
@@ -363,7 +363,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var claimToken = ClaimToken.Builder.newInstance().build();
         var tokenRepresentation = tokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findById(any())).thenReturn(negotiation);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
@@ -394,7 +394,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var claimToken = claimToken();
         var tokenRepresentation = tokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findById(any())).thenReturn(negotiation);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
@@ -418,7 +418,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var contractOffer = contractOffer();
         var negotiation = contractNegotiationBuilder().id(id).type(PROVIDER).contractOffer(contractOffer).state(VERIFIED.code()).build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findById(id)).thenReturn(negotiation);
         when(validationService.validateRequest(claimToken, negotiation)).thenReturn(Result.success());
 
@@ -434,7 +434,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var claimToken = claimToken();
         var tokenRepresentation = tokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findById(any())).thenReturn(null);
 
         var result = service.findById("invalidId", tokenRepresentation);
@@ -452,7 +452,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
         var contractOffer = contractOffer();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
 
         var negotiation = contractNegotiationBuilder().id(id).type(PROVIDER).contractOffer(contractOffer).state(VERIFIED.code()).build();
 
@@ -472,7 +472,7 @@ class ContractNegotiationProtocolServiceImplTest {
     <M extends RemoteMessage> void notify_shouldReturnNotFound_whenNotFound(MethodCall<M> methodCall, M message) {
         var claimToken = claimToken();
         var tokenRepresentation = tokenRepresentation();
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
         when(store.findByCorrelationIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
 
@@ -495,7 +495,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
         when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
         when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(store.findById(any())).thenReturn(createContractNegotiationOffered());
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(createContractNegotiationOffered()));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
@@ -518,7 +518,7 @@ class ContractNegotiationProtocolServiceImplTest {
         when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
         when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
         when(store.findById(any())).thenReturn(createContractNegotiationOffered());
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.failure("unauthorized"));
+        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
         var result = methodCall.call(service, message, tokenRepresentation);
 
@@ -666,8 +666,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
             when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
             when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
-            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
-                    .thenReturn(Result.success(claimToken()));
+            when(protocolTokenValidator.verifyToken(any(), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken()));
             when(store.findById(any())).thenReturn(negotiation);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
             when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
@@ -696,8 +695,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
             when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
             when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
-            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
-                    .thenReturn(Result.success(claimToken()));
+            when(protocolTokenValidator.verifyToken(any(), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken()));
             when(store.findById(any())).thenReturn(negotiation);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
             when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
@@ -722,8 +720,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
             when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
             when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
-            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
-                    .thenReturn(Result.success(claimToken()));
+            when(protocolTokenValidator.verifyToken(any(), eq(CONTRACT_NEGOTIATION_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken()));
             when(store.findById(any())).thenReturn(negotiation);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
             when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());

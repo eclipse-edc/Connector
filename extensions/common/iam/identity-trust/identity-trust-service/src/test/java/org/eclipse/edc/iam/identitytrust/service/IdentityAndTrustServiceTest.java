@@ -71,7 +71,7 @@ import static org.mockito.Mockito.when;
 
 class IdentityAndTrustServiceTest {
     public static final String EXPECTED_OWN_DID = "did:web:test";
-    
+
     public static final String CONSUMER_DID = "did:web:consumer";
     private final SecureTokenService mockedSts = mock();
     private final PresentationVerifier mockedVerifier = mock();
@@ -96,7 +96,6 @@ class IdentityAndTrustServiceTest {
 
     private VerificationContext verificationContext() {
         return VerificationContext.Builder.newInstance()
-                .audience("test-audience")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }

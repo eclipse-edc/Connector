@@ -63,7 +63,6 @@ class DapsIntegrationTest {
         assertThat(tokenResult.succeeded()).withFailMessage(tokenResult::getFailureDetail).isTrue();
 
         var verificationContext = VerificationContext.Builder.newInstance()
-                .audience("audience")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
 

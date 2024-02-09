@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.identitytrust;
 
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsNotExpired;
@@ -38,7 +37,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -144,16 +142,6 @@ public class IdentityAndTrustService implements IdentityService {
         var accessToken = claimToken.getStringClaim(PRESENTATION_ACCESS_TOKEN_CLAIM);
         var issuer = claimToken.getStringClaim(ISSUER);
 
-        /* TODO: DEMO the scopes should be extracted elsewhere. replace this section!!############################*/
-        //TODO remove once this lands https://github.com/eclipse-edc/Connector/issues/3819
-        var scopes = new ArrayList<String>();
-        try {
-            var scope = SignedJWT.parse(accessToken).getJWTClaimsSet().getStringClaim("scope");
-            scopes.add(scope);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-
         var siTokenClaims = Map.of(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken,
                 ISSUED_AT, Instant.now().toString(),
                 AUDIENCE, issuer,
@@ -168,7 +156,7 @@ public class IdentityAndTrustService implements IdentityService {
 
         // get CS Url, execute VP request
         var vpResponse = credentialServiceUrlResolver.resolve(issuer)
-                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, scopes));
+                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, context.getScopes().stream().toList()));
 
         if (vpResponse.failed()) {
             return vpResponse.mapTo();

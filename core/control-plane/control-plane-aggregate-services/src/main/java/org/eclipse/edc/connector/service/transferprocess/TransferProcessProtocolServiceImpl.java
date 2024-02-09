@@ -18,7 +18,7 @@ package org.eclipse.edc.connector.service.transferprocess;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
-import org.eclipse.edc.connector.service.protocol.BaseProtocolService;
+import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
@@ -31,10 +31,8 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessa
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -55,16 +53,19 @@ import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlane
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
 
-public class TransferProcessProtocolServiceImpl extends BaseProtocolService implements TransferProcessProtocolService {
+public class TransferProcessProtocolServiceImpl implements TransferProcessProtocolService {
 
     @PolicyScope
-    private static final String TRANSFER_PROCESS_REQUEST_SCOPE = "request.transfer.process";
+    public static final String TRANSFER_PROCESS_REQUEST_SCOPE = "request.transfer.process";
     private final TransferProcessStore transferProcessStore;
     private final TransactionContext transactionContext;
     private final ContractNegotiationStore negotiationStore;
     private final ContractValidationService contractValidationService;
     private final DataAddressValidatorRegistry dataAddressValidator;
     private final TransferProcessObservable observable;
+
+    private final ProtocolTokenValidator protocolTokenValidator;
+
     private final Clock clock;
     private final Monitor monitor;
     private final Telemetry telemetry;
@@ -72,15 +73,14 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
     public TransferProcessProtocolServiceImpl(TransferProcessStore transferProcessStore,
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
-                                              IdentityService identityService,
-                                              PolicyEngine policyEngine,
+                                              ProtocolTokenValidator protocolTokenValidator,
                                               DataAddressValidatorRegistry dataAddressValidator, TransferProcessObservable observable,
                                               Clock clock, Monitor monitor, Telemetry telemetry) {
-        super(identityService, policyEngine, monitor);
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
         this.contractValidationService = contractValidationService;
+        this.protocolTokenValidator = protocolTokenValidator;
         this.dataAddressValidator = dataAddressValidator;
         this.observable = observable;
         this.clock = clock;
@@ -248,7 +248,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
     }
 
     private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, TransferRequestMessageContext context) {
-        var result = verifyToken(tokenRepresentation, TRANSFER_PROCESS_REQUEST_SCOPE, context.agreement().getPolicy());
+        var result = protocolTokenValidator.verifyToken(tokenRepresentation, TRANSFER_PROCESS_REQUEST_SCOPE, context.agreement().getPolicy());
         if (result.failed()) {
             monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
             return ServiceResult.notFound("Not found");
