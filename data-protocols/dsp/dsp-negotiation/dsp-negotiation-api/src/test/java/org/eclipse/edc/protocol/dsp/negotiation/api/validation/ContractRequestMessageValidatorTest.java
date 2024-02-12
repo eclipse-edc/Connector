@@ -29,11 +29,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 
 class ContractRequestMessageValidatorTest {
 
@@ -48,6 +50,7 @@ class ContractRequestMessageValidatorTest {
                                 .add(TYPE, ODRL_POLICY_TYPE_OFFER)
                                 .add(ID, UUID.randomUUID().toString())
                                 .add(ODRL_TARGET_ATTRIBUTE, id("target"))))
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, value("http://any/address"))
                 .build();
 
         var result = validator.validate(input);
@@ -63,8 +66,13 @@ class ContractRequestMessageValidatorTest {
         var result = validator.validate(input);
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .hasSize(1)
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TYPE));
+                .hasSize(2)
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TYPE))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(DSPACE_PROPERTY_CALLBACK_ADDRESS));
+    }
+
+    private JsonArrayBuilder value(String value) {
+        return createArrayBuilder().add(createObjectBuilder().add(VALUE, value));
     }
 
     @Test

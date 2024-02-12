@@ -24,6 +24,10 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 
 class ContractRequestMessageTest {
     public static final String CALLBACK_ADDRESS = "http://test.com";
+<<<<<<< HEAD
+=======
+    public static final String DATASET = "dataset1";
+>>>>>>> 2190e5ada (feat(dsp): add negotiation/offers endpoint)
     public static final String ID = "id1";
     public static final String ASSET_ID = "asset1";
     public static final String PROTOCOL = "DPS";
@@ -47,6 +51,7 @@ class ContractRequestMessageTest {
     void verify_contractOfferIdOrContractOffer() {
         ContractRequestMessage.Builder.newInstance()
                 .type(INITIAL)
+                .callbackAddress("any")
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
                 .protocol(PROTOCOL)
@@ -61,6 +66,7 @@ class ContractRequestMessageTest {
         // verify no contract offer is set
         assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
                 .type(INITIAL)
+                .callbackAddress("any")
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
                 .protocol(PROTOCOL)

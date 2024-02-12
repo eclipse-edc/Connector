@@ -35,20 +35,14 @@ import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProt
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
-import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.jetbrains.annotations.NotNull;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
-import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.CONTRACT_OFFER;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.EVENT;
+import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.INITIAL_CONTRACT_OFFER;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.VERIFICATION;
@@ -59,7 +53,6 @@ import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNam
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 
 /**
  * Provides consumer and provider endpoints for the contract negotiation according to the http binding
@@ -70,18 +63,12 @@ import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_P
 @Path(BASE_PATH)
 public class DspNegotiationApiController {
 
-    private final TypeTransformerRegistry transformerRegistry;
     private final DspRequestHandler dspRequestHandler;
-    private final Monitor monitor;
     private final ContractNegotiationProtocolService protocolService;
 
-    public DspNegotiationApiController(TypeTransformerRegistry transformerRegistry,
-                                       ContractNegotiationProtocolService protocolService,
-                                       Monitor monitor,
+    public DspNegotiationApiController(ContractNegotiationProtocolService protocolService,
                                        DspRequestHandler dspRequestHandler) {
-        this.monitor = monitor;
         this.protocolService = protocolService;
-        this.transformerRegistry = transformerRegistry;
         this.dspRequestHandler = dspRequestHandler;
     }
 
@@ -112,13 +99,33 @@ public class DspNegotiationApiController {
      */
     @POST
     @Path(INITIAL_CONTRACT_REQUEST)
-    public Response initiateNegotiation(JsonObject jsonObject,
-                                        @HeaderParam(AUTHORIZATION) String token) {
+    public Response initialContractRequest(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractRequestMessage.class, ContractNegotiation.class)
                 .expectedMessageType(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                 .message(jsonObject)
                 .token(token)
-                .serviceCall(this::validateAndProcessRequest)
+                .serviceCall(protocolService::notifyRequested)
+                .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
+                .build();
+
+        return dspRequestHandler.createResource(request);
+    }
+
+    /**
+     * Consumer-specific endpoint.
+     *
+     * @param jsonObject dspace:ContractOfferMessage sent by a consumer.
+     * @param token      identity token.
+     * @return the created contract negotiation or an error.
+     */
+    @POST
+    @Path(INITIAL_CONTRACT_OFFER)
+    public Response initialContractOffer(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class)
+                .expectedMessageType(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
+                .message(jsonObject)
+                .token(token)
+                .serviceCall(protocolService::notifyOffered)
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .build();
 
@@ -135,9 +142,9 @@ public class DspNegotiationApiController {
      */
     @POST
     @Path("{id}" + CONTRACT_REQUEST)
-    public Response consumerOffer(@PathParam("id") String id,
-                                  JsonObject jsonObject,
-                                  @HeaderParam(AUTHORIZATION) String token) {
+    public Response contractRequest(@PathParam("id") String id,
+                                    JsonObject jsonObject,
+                                    @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractRequestMessage.class, ContractNegotiation.class)
                 .expectedMessageType(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                 .processId(id)
@@ -276,14 +283,6 @@ public class DspNegotiationApiController {
                 .build();
 
         return dspRequestHandler.updateResource(request);
-    }
-
-    @NotNull
-    private ServiceResult<ContractNegotiation> validateAndProcessRequest(ContractRequestMessage message, TokenRepresentation tokenRepresentation) {
-        if (message.getCallbackAddress() == null) {
-            throw new InvalidRequestException(format("ContractRequestMessage must contain a '%s' property", DSPACE_PROPERTY_CALLBACK_ADDRESS));
-        }
-        return protocolService.notifyRequested(message, tokenRepresentation);
     }
 
 }

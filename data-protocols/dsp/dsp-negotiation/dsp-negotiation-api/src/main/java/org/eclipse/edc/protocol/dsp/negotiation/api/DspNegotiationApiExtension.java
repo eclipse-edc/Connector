@@ -26,10 +26,8 @@ import org.eclipse.edc.protocol.dsp.negotiation.api.validation.ContractRequestMe
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -46,16 +44,12 @@ import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNam
 @Extension(value = DspNegotiationApiExtension.NAME)
 public class DspNegotiationApiExtension implements ServiceExtension {
 
-    public static final String NAME = "Dataspace Protocol Negotiation Api Extension";
+    public static final String NAME = "Dataspace Protocol Negotiation Api";
 
     @Inject
     private WebService webService;
     @Inject
     private DspApiConfiguration apiConfiguration;
-    @Inject
-    private TypeTransformerRegistry transformerRegistry;
-    @Inject
-    private Monitor monitor;
     @Inject
     private ContractNegotiationProtocolService protocolService;
     @Inject
@@ -77,8 +71,7 @@ public class DspNegotiationApiExtension implements ServiceExtension {
         validatorRegistry.register(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE, ContractAgreementVerificationMessageValidator.instance());
         validatorRegistry.register(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE, ContractNegotiationTerminationMessageValidator.instance());
 
-        var controller = new DspNegotiationApiController(transformerRegistry,
-                protocolService, monitor, dspRequestHandler);
+        var controller = new DspNegotiationApiController(protocolService, dspRequestHandler);
 
         webService.registerResource(apiConfiguration.getContextAlias(), controller);
     }
