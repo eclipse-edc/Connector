@@ -38,12 +38,14 @@ public class KafkaDataSinkFactory implements DataSinkFactory {
     private final Monitor monitor;
     private final KafkaPropertiesFactory propertiesFactory;
     private final Validator<DataAddress> validation;
+    private final int partitionSize;
 
-    public KafkaDataSinkFactory(ExecutorService executorService, Monitor monitor, KafkaPropertiesFactory propertiesFactory) {
+    public KafkaDataSinkFactory(ExecutorService executorService, Monitor monitor, KafkaPropertiesFactory propertiesFactory, int partitionSize) {
         this.executorService = executorService;
         this.monitor = monitor;
         this.propertiesFactory = propertiesFactory;
         this.validation = new KafkaDataAddressValidator();
+        this.partitionSize = partitionSize;
     }
 
     @Override
@@ -73,6 +75,7 @@ public class KafkaDataSinkFactory implements DataSinkFactory {
                 .requestId(request.getId())
                 .topic(destination.getStringProperty(TOPIC))
                 .producerProperties(producerProps)
+                .partitionSize(partitionSize)
                 .executorService(executorService)
                 .build();
     }
