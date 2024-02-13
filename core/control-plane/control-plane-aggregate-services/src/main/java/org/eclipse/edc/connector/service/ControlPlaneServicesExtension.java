@@ -222,7 +222,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public ProtocolTokenValidator protocolTokenValidator() {
         if (protocolTokenValidator == null) {
-            protocolTokenValidator = new ProtocolTokenValidatorImpl(identityService, policyEngine, monitor);
+            protocolTokenValidator = new ProtocolTokenValidatorImpl(identityService, policyEngine, monitor, participantAgentService);
         }
         return protocolTokenValidator;
     }

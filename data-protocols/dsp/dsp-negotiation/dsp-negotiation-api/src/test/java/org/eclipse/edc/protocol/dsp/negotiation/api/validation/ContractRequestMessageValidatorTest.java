@@ -80,6 +80,7 @@ class ContractRequestMessageValidatorTest {
         var input = createObjectBuilder()
                 .add(TYPE, createArrayBuilder().add(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE))
                 .add(DSPACE_PROPERTY_OFFER, createArrayBuilder().add(createObjectBuilder()))
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, value("http://any/address"))
                 .build();
 
         var result = validator.validate(input);

@@ -67,8 +67,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    public @NotNull Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, ValidatableConsumerOffer consumerOffer) {
-        var agent = agentService.createFor(token);
+    public @NotNull Result<ValidatedConsumerOffer> validateInitialOffer(ParticipantAgent agent, ValidatableConsumerOffer consumerOffer) {
         return validateInitialOffer(consumerOffer, agent)
                 .map(sanitizedPolicy -> {
                     var offer = createContractOffer(sanitizedPolicy, consumerOffer.getOfferId());
@@ -77,9 +76,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    @NotNull
-    public Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement) {
-        var agent = agentService.createFor(token);
+    public @NotNull Result<ContractAgreement> validateAgreement(ParticipantAgent agent, ContractAgreement agreement) {
         var consumerIdentity = agent.getIdentity();
         if (consumerIdentity == null || !consumerIdentity.equals(agreement.getConsumerId())) {
             return failure("Invalid provider credentials");
@@ -98,8 +95,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    public @NotNull Result<Void> validateRequest(ClaimToken token, ContractAgreement agreement) {
-        var agent = agentService.createFor(token);
+    public @NotNull Result<Void> validateRequest(ParticipantAgent agent, ContractAgreement agreement) {
         return Optional.ofNullable(agent.getIdentity())
                 .filter(id -> id.equals(agreement.getConsumerId()) || id.equals(agreement.getProviderId()))
                 .map(id -> Result.success())
@@ -107,23 +103,19 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    @NotNull
-    public Result<Void> validateRequest(ClaimToken token, ContractNegotiation negotiation) {
-        var agent = agentService.createFor(token);
+    public @NotNull Result<Void> validateRequest(ParticipantAgent agent, ContractNegotiation negotiation) {
         var counterPartyIdentity = agent.getIdentity();
         return counterPartyIdentity != null && counterPartyIdentity.equals(negotiation.getCounterPartyId()) ? success() : failure("Invalid counter-party identity");
     }
 
     @Override
-    @NotNull
-    public Result<Void> validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
-        if (latestOffer == null) {
-            return failure("No offer found");
-        }
-
-        var agent = agentService.createFor(token);
+    public @NotNull Result<Void> validateConfirmed(ParticipantAgent agent, ContractAgreement agreement, ContractOffer latestOffer) {
         if (!Objects.equals(agent.getIdentity(), agreement.getProviderId())) {
             return failure("Invalid provider credentials");
+        }
+
+        if (latestOffer == null) {
+            return failure("No offer found");
         }
 
         if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAssetId()), latestOffer.getPolicy())) {
@@ -131,6 +123,34 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         return success();
+    }
+
+    @Override
+    public @NotNull Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, ValidatableConsumerOffer consumerOffer) {
+        return validateInitialOffer(agentService.createFor(token), consumerOffer);
+    }
+
+    @Override
+    @NotNull
+    public Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement) {
+        return validateAgreement(agentService.createFor(token), agreement);
+    }
+
+    @Override
+    public @NotNull Result<Void> validateRequest(ClaimToken token, ContractAgreement agreement) {
+        return validateRequest(agentService.createFor(token), agreement);
+    }
+
+    @Override
+    @NotNull
+    public Result<Void> validateRequest(ClaimToken token, ContractNegotiation negotiation) {
+        return validateRequest(agentService.createFor(token), negotiation);
+    }
+
+    @Override
+    @NotNull
+    public Result<Void> validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
+        return validateConfirmed(agentService.createFor(token), agreement, latestOffer);
     }
 
     /**

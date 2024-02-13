@@ -67,7 +67,7 @@ class ContractOfferMessageValidatorTest {
         var result = validator.validate(input);
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .hasSize(1)
+                .hasSize(2)
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TYPE))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(DSPACE_PROPERTY_CALLBACK_ADDRESS));
     }
@@ -77,6 +77,7 @@ class ContractOfferMessageValidatorTest {
         var input = createObjectBuilder()
                 .add(TYPE, createArrayBuilder().add(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE))
                 .add(DSPACE_PROPERTY_OFFER, createArrayBuilder().add(createObjectBuilder()))
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, value("http://any/address"))
                 .build();
 
         var result = validator.validate(input);

@@ -23,11 +23,8 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage.Type.INITIAL;
 
 class ContractRequestMessageTest {
+
     public static final String CALLBACK_ADDRESS = "http://test.com";
-<<<<<<< HEAD
-=======
-    public static final String DATASET = "dataset1";
->>>>>>> 2190e5ada (feat(dsp): add negotiation/offers endpoint)
     public static final String ID = "id1";
     public static final String ASSET_ID = "asset1";
     public static final String PROTOCOL = "DPS";
@@ -35,6 +32,7 @@ class ContractRequestMessageTest {
     @Test
     void verify_noCallbackNeededForCounterOffer() {
         ContractRequestMessage.Builder.newInstance()
+                .callbackAddress("http://any")
                 .type(COUNTER_OFFER)
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
@@ -50,6 +48,7 @@ class ContractRequestMessageTest {
     @Test
     void verify_contractOfferIdOrContractOffer() {
         ContractRequestMessage.Builder.newInstance()
+                .callbackAddress("http://any")
                 .type(INITIAL)
                 .callbackAddress("any")
                 .consumerPid("consumerPid")
@@ -65,6 +64,7 @@ class ContractRequestMessageTest {
 
         // verify no contract offer is set
         assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
+                .callbackAddress("http://any")
                 .type(INITIAL)
                 .callbackAddress("any")
                 .consumerPid("consumerPid")
@@ -73,5 +73,13 @@ class ContractRequestMessageTest {
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("contractOffer");
 
+    }
+
+    private ContractOffer contractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(ID)
+                .assetId(ASSET_ID)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
     }
 }

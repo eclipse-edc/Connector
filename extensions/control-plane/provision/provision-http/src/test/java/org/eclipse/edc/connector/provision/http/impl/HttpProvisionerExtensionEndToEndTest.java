@@ -118,7 +118,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                                      ContractNegotiationStore negotiationStore,
                                      AssetIndex assetIndex,
                                      TransferProcessStore store, PolicyDefinitionStore policyStore) throws Exception {
-        when(contractValidationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
+        when(contractValidationService.validateAgreement(any(ClaimToken.class), any())).thenReturn(Result.success(null));
         negotiationStore.save(createContractNegotiation());
         policyStore.create(createPolicyDefinition());
         assetIndex.create(createAssetEntry());
