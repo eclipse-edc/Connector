@@ -196,11 +196,9 @@ public class IdentityAndTrustService implements IdentityService {
         if (credentials.isEmpty()) {
             return failure("No VerifiableCredentials were found on VP");
         }
-        var b = ClaimToken.Builder.newInstance();
-        credentials.stream().flatMap(vc -> vc.getCredentialSubject().stream())
-                .map(CredentialSubject::getClaims)
-                .forEach(claimSet -> claimSet.forEach(b::claim));
-
+        var key = "vc";
+        var b = ClaimToken.Builder.newInstance()
+                .claims(Map.of(key, credentials));
         return success(b.build());
     }
 
