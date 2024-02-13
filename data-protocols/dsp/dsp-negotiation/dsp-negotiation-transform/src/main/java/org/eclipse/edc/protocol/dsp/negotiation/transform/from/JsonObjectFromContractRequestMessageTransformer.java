@@ -27,7 +27,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
@@ -75,9 +74,6 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
                     .build();
             builder.add(DSPACE_PROPERTY_OFFER, enrichedPolicy);
 
-        } else {
-            builder.add(DSPACE_PROPERTY_OFFER_ID, requestMessage.getContractOfferId());
-            addIfNotNull(requestMessage.getDataset(), DSPACE_PROPERTY_DATASET, builder);
         }
 
         return builder.build();

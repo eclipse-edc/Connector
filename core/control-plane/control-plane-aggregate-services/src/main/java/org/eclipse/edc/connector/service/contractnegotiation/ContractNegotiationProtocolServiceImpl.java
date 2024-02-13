@@ -39,7 +39,6 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -215,9 +214,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
 
     @NotNull
     private ServiceResult<ValidatableConsumerOffer> fetchValidatableOffer(ContractRequestMessage message) {
-        var offerId = Optional.ofNullable(message.getContractOffer())
-                .map(ContractOffer::getId)
-                .orElseGet(message::getContractOfferId);
+        var offerId = message.getContractOffer().getId();
 
         var result = consumerOfferResolver.resolveOffer(offerId);
         if (result.failed()) {

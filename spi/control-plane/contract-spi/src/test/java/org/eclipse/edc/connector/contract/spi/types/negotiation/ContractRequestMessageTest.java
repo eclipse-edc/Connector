@@ -37,23 +37,17 @@ class ContractRequestMessageTest {
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
                 .protocol(PROTOCOL)
-                .contractOfferId(OFFER_ID)
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id(ID)
+                        .assetId(ASSET_ID)
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
                 .dataset(DATASET)
                 .build();
     }
 
     @Test
     void verify_contractOfferIdOrContractOffer() {
-        ContractRequestMessage.Builder.newInstance()
-                .type(INITIAL)
-                .consumerPid("consumerPid")
-                .providerPid("providerPid")
-                .protocol(PROTOCOL)
-                .contractOfferId(OFFER_ID)
-                .dataset(DATASET)
-                .counterPartyAddress(CALLBACK_ADDRESS)
-                .build();
-
         ContractRequestMessage.Builder.newInstance()
                 .type(INITIAL)
                 .consumerPid("consumerPid")
@@ -68,7 +62,7 @@ class ContractRequestMessageTest {
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build();
 
-        // verify no contract offer or contract offer id set
+        // verify no contract offer is set
         assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
                 .type(INITIAL)
                 .consumerPid("consumerPid")
