@@ -33,12 +33,28 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
         createDatabase(PROVIDER);
     };
 
+    static String[] controlPlanePostgresqlModules = new String[] {
+            ":system-tests:e2e-transfer-test:control-plane",
+            ":extensions:control-plane:store:sql:control-plane-sql",
+            ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
+            ":extensions:common:transaction:transaction-local",
+            ":extensions:common:api:management-api-configuration",
+            ":extensions:policy-monitor:store:sql:policy-monitor-store-sql"
+    };
+
+    static String[] dataPlanePostgresqlModules = new String[] {
+            ":system-tests:e2e-transfer-test:data-plane",
+            ":extensions:data-plane:store:sql:data-plane-store-sql",
+            ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
+            ":extensions:common:transaction:transaction-local"
+    };
+
     @RegisterExtension
     static EdcClassRuntimesExtension runtimes = new EdcClassRuntimesExtension(
             new EdcRuntimeExtension(
-                    ":system-tests:e2e-transfer-test:control-plane-postgresql",
                     "consumer-control-plane",
-                    CONSUMER.controlPlanePostgresConfiguration()
+                    CONSUMER.controlPlanePostgresConfiguration(),
+                    controlPlanePostgresqlModules
             ),
             new EdcRuntimeExtension(
                     ":system-tests:e2e-transfer-test:backend-service",
@@ -50,14 +66,14 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
                     }
             ),
             new EdcRuntimeExtension(
-                    ":system-tests:e2e-transfer-test:data-plane",
                     "provider-data-plane",
-                    PROVIDER.dataPlanePostgresConfiguration()
+                    PROVIDER.dataPlanePostgresConfiguration(),
+                    dataPlanePostgresqlModules
             ),
             new EdcRuntimeExtension(
-                    ":system-tests:e2e-transfer-test:control-plane-postgresql",
                     "provider-control-plane",
-                    PROVIDER.controlPlanePostgresConfiguration()
+                    PROVIDER.controlPlanePostgresConfiguration(),
+                    controlPlanePostgresqlModules
             ),
             new EdcRuntimeExtension(
                     ":system-tests:e2e-transfer-test:backend-service",
