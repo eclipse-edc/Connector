@@ -18,6 +18,7 @@ import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegis
 import org.eclipse.edc.iam.identitytrust.core.defaults.InMemorySignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
+import org.eclipse.edc.identitytrust.ClaimTokenCreatorFunction;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
@@ -28,6 +29,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.AudienceResolver;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -36,8 +38,12 @@ import org.eclipse.edc.token.JwtGenerationService;
 
 import java.security.PrivateKey;
 import java.time.Clock;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+
+import static org.eclipse.edc.spi.result.Result.failure;
+import static org.eclipse.edc.spi.result.Result.success;
 
 @Extension("Identity And Trust Extension to register default services")
 public class IatpDefaultServicesExtension implements ServiceExtension {
@@ -51,6 +57,7 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     @Setting(value = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + IatpDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION_MIN)
     private static final String STS_TOKEN_EXPIRATION = "edc.iam.sts.token.expiration"; // in minutes
     private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
+    public static final String CLAIMTOKEN_VC_KEY = "vc";
     @Inject
     private Clock clock;
     @Inject
@@ -96,4 +103,16 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
         return RemoteMessage::getCounterPartyId;
     }
 
+    // Default ClaimToken creator function, will use "vc" as key
+    @Provider(isDefault = true)
+    public ClaimTokenCreatorFunction defaultClaimTokenFunction() {
+        return credentials -> {
+            if (credentials.isEmpty()) {
+                return failure("No VerifiableCredentials were found on VP");
+            }
+            var b = ClaimToken.Builder.newInstance()
+                    .claims(Map.of(CLAIMTOKEN_VC_KEY, credentials));
+            return success(b.build());
+        };
+    }
 }

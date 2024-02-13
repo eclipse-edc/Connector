@@ -18,11 +18,11 @@ import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsNotExpired;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsRevoked;
+import org.eclipse.edc.identitytrust.ClaimTokenCreatorFunction;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.CredentialServiceUrlResolver;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
-import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
@@ -79,6 +79,7 @@ public class IdentityAndTrustService implements IdentityService {
     private final TrustedIssuerRegistry trustedIssuerRegistry;
     private final Clock clock;
     private final CredentialServiceUrlResolver credentialServiceUrlResolver;
+    private final ClaimTokenCreatorFunction claimTokenCreatorFunction;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -89,7 +90,7 @@ public class IdentityAndTrustService implements IdentityService {
     public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid,
                                    PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
                                    TokenValidationAction tokenValidationAction,
-                                   TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver) {
+                                   TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver, ClaimTokenCreatorFunction claimTokenCreatorFunction) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
         this.presentationVerifier = presentationVerifier;
@@ -98,6 +99,7 @@ public class IdentityAndTrustService implements IdentityService {
         this.trustedIssuerRegistry = trustedIssuerRegistry;
         this.clock = clock;
         this.credentialServiceUrlResolver = csUrlResolver;
+        this.claimTokenCreatorFunction = claimTokenCreatorFunction;
     }
 
     @Override
@@ -171,7 +173,7 @@ public class IdentityAndTrustService implements IdentityService {
         }).reduce(Result.success(), Result::merge);
         //todo: at this point we have established what the other participant's DID is, and that it's authentic
         // so we need to make sure that `iss == sub == DID`
-        return result.compose(u -> extractClaimToken(presentations.stream().map(p -> p.presentation().getCredentials().stream())
+        return result.compose(u -> claimTokenCreatorFunction.apply(presentations.stream().map(p -> p.presentation().getCredentials().stream())
                 .reduce(Stream.empty(), Stream::concat)
                 .toList()));
     }
@@ -188,18 +190,6 @@ public class IdentityAndTrustService implements IdentityService {
         filters.addAll(getAdditionalValidations());
         var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c)).reduce(Result::merge);
         return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
-    }
-
-
-    @NotNull
-    private Result<ClaimToken> extractClaimToken(List<VerifiableCredential> credentials) {
-        if (credentials.isEmpty()) {
-            return failure("No VerifiableCredentials were found on VP");
-        }
-        var key = "vc";
-        var b = ClaimToken.Builder.newInstance()
-                .claims(Map.of(key, credentials));
-        return success(b.build());
     }
 
     private Collection<? extends CredentialValidationRule> getAdditionalValidations() {

@@ -81,7 +81,7 @@ class IdentityAndTrustServiceTest {
     private final CredentialServiceUrlResolver credentialServiceUrlResolverMock = mock();
     private final TokenValidationAction actionMock = mock();
     private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, mockedVerifier, mockedClient,
-            actionMock, trustedIssuerRegistryMock, Clock.systemUTC(), credentialServiceUrlResolverMock);
+            actionMock, trustedIssuerRegistryMock, Clock.systemUTC(), credentialServiceUrlResolverMock, vcs -> Result.success(ClaimToken.Builder.newInstance().claim("vc", vcs).build()));
 
     @BeforeEach
     void setup() {
