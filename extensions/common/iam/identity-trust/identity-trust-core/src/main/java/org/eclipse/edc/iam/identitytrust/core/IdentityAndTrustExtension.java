@@ -22,6 +22,7 @@ import org.eclipse.edc.iam.identitytrust.DidCredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultCredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.verification.MultiFormatPresentationVerifier;
+import org.eclipse.edc.identitytrust.ClaimTokenCreatorFunction;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
@@ -105,6 +106,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private TokenValidationRulesRegistry rulesRegistry;
     @Inject
     private DidPublicKeyResolver didPublicKeyResolver;
+    @Inject
+    private ClaimTokenCreatorFunction claimTokenFunction;
 
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
@@ -141,7 +144,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         var validationAction = tokenValidationAction();
 
         return new IdentityAndTrustService(secureTokenService, getOwnDid(context), getPresentationVerifier(context),
-                getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver);
+                getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver, claimTokenFunction);
     }
 
     @Provider
