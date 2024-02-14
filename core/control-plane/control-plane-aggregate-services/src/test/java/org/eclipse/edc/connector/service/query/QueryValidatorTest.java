@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.service.query;
 
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,10 +32,6 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class QueryValidatorTest {
-
-    @BeforeEach
-    void setUp() {
-    }
 
     @Test
     void validate_isValid() {
@@ -83,6 +78,16 @@ class QueryValidatorTest {
     void validate_isMapTypeTrue() {
         var queryValidator = new QueryValidator(TestObject.class);
         var query = with(criterion("someMap.foo", "=", "bar"));
+
+        var result = queryValidator.validate(query);
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void shouldPermitQueryToJsonLdTags() {
+        var queryValidator = new QueryValidator(TestObject.class);
+        var query = with(criterion("someMap.foo.@id", "=", "bar"));
 
         var result = queryValidator.validate(query);
 

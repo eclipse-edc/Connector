@@ -22,15 +22,15 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 
-import static org.eclipse.edc.test.e2e.PostgresUtil.createDatabase;
+import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
 
 @PostgresqlDbIntegrationTest
 class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
 
     @RegisterExtension
     static BeforeAllCallback createDatabase = context -> {
-        createDatabase(CONSUMER);
-        createDatabase(PROVIDER);
+        createDatabase(CONSUMER.getName());
+        createDatabase(PROVIDER.getName());
     };
 
     static String[] controlPlanePostgresqlModules = new String[] {

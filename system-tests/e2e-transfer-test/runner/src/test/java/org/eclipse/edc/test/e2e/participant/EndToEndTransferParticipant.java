@@ -19,7 +19,6 @@ import io.restassured.common.mapper.TypeRef;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.edc.test.e2e.PostgresConstants;
 import org.eclipse.edc.test.system.utils.Participant;
 import org.hamcrest.Matcher;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +44,7 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.system.ServiceExtensionContext.PARTICIPANT_ID;
+import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.defaultDatasourceConfiguration;
 
 public class EndToEndTransferParticipant extends Participant {
 
@@ -208,22 +208,8 @@ public class EndToEndTransferParticipant extends Participant {
 
     public Map<String, String> controlPlanePostgresConfiguration() {
         var baseConfiguration = controlPlaneConfiguration();
-
-        var postgresConfiguration = new HashMap<String, String>() {
-            {
-                put("edc.datasource.default.url", jdbcUrl());
-                put("edc.datasource.default.user", PostgresConstants.USER);
-                put("edc.datasource.default.password", PostgresConstants.PASSWORD);
-            }
-        };
-        baseConfiguration.putAll(postgresConfiguration);
-
+        baseConfiguration.putAll(defaultDatasourceConfiguration(getName()));
         return baseConfiguration;
-    }
-
-    @NotNull
-    public String jdbcUrl() {
-        return PostgresConstants.JDBC_URL_PREFIX + getName();
     }
 
     public Map<String, String> dataPlaneConfiguration() {
@@ -246,17 +232,7 @@ public class EndToEndTransferParticipant extends Participant {
 
     public Map<String, String> dataPlanePostgresConfiguration() {
         var baseConfiguration = dataPlaneConfiguration();
-
-        var postgresConfiguration = new HashMap<String, String>() {
-            {
-                put("edc.datasource.default.url", jdbcUrl());
-                put("edc.datasource.default.user", PostgresConstants.USER);
-                put("edc.datasource.default.password", PostgresConstants.PASSWORD);
-            }
-        };
-
-        baseConfiguration.putAll(postgresConfiguration);
-
+        baseConfiguration.putAll(defaultDatasourceConfiguration(getName()));
         return baseConfiguration;
     }
 
