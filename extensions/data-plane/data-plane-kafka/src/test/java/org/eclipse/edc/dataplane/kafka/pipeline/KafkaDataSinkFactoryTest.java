@@ -44,7 +44,7 @@ class KafkaDataSinkFactoryTest {
 
     @BeforeEach
     public void setUp() {
-        factory = new KafkaDataSinkFactory(mock(ExecutorService.class), mock(Monitor.class), propertiesFactory);
+        factory = new KafkaDataSinkFactory(mock(ExecutorService.class), mock(Monitor.class), propertiesFactory, 1);
     }
 
     @Test
