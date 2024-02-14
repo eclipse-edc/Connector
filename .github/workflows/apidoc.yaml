@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        apiGroup: [ 'default-api', 'public-api', 'management-api', 'control-api' ]
+        apiGroup: [ 'observability-api', 'public-api', 'management-api', 'control-api' ]
     env:
       rootDir: resources/openapi/yaml/${{ matrix.apiGroup }}
       SWAGGERHUB_API_KEY: ${{ secrets.SWAGGERHUB_TOKEN }}
