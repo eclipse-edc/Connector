@@ -23,33 +23,32 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
  * Collection of DCAT, DCT and ODRL type and attribute names.
  */
 public interface PropertyAndTypeNames {
-
+    //DCAT
     String DCAT_CATALOG_TYPE = DCAT_SCHEMA + "Catalog";
     String DCAT_DATASET_TYPE = DCAT_SCHEMA + "Dataset";
     String DCAT_DISTRIBUTION_TYPE = DCAT_SCHEMA + "Distribution";
     String DCAT_DATA_SERVICE_TYPE = DCAT_SCHEMA + "DataService";
-
-    String EDC_CREATED_AT = EDC_NAMESPACE + "createdAt";
-
     String DCAT_DATA_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "service";
     String DCAT_DATASET_ATTRIBUTE = DCAT_SCHEMA + "dataset";
     String DCAT_DISTRIBUTION_ATTRIBUTE = DCAT_SCHEMA + "distribution";
     String DCAT_ACCESS_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "accessService";
-    String ODRL_POLICY_ATTRIBUTE = ODRL_SCHEMA + "hasPolicy";
 
+    //EDC
+    String EDC_CREATED_AT = EDC_NAMESPACE + "createdAt";
+
+    //DCT
     @Deprecated(since = "0.5.1")
     String DEPRECATED_DCT_FORMAT_ATTRIBUTE = "https://purl.org/dc/terms/format";
     String DCT_FORMAT_ATTRIBUTE = DCT_SCHEMA + "format";
     String DCT_TERMS_ATTRIBUTE = DCT_SCHEMA + "terms";
     String DCT_ENDPOINT_URL_ATTRIBUTE = DCT_SCHEMA + "endpointUrl";
 
+    String ODRL_POLICY_ATTRIBUTE = ODRL_SCHEMA + "hasPolicy";
     String ODRL_POLICY_TYPE_SET = ODRL_SCHEMA + "Set";
     String ODRL_POLICY_TYPE_OFFER = ODRL_SCHEMA + "Offer";
     String ODRL_POLICY_TYPE_AGREEMENT = ODRL_SCHEMA + "Agreement";
-
     String ODRL_CONSTRAINT_TYPE = ODRL_SCHEMA + "Constraint";
     String ODRL_LOGICAL_CONSTRAINT_TYPE = ODRL_SCHEMA + "LogicalConstraint";
-
     String ODRL_TARGET_ATTRIBUTE = ODRL_SCHEMA + "target";
     String ODRL_PERMISSION_ATTRIBUTE = ODRL_SCHEMA + "permission";
     String ODRL_PROHIBITION_ATTRIBUTE = ODRL_SCHEMA + "prohibition";
@@ -57,6 +56,7 @@ public interface PropertyAndTypeNames {
     String ODRL_ACTION_ATTRIBUTE = ODRL_SCHEMA + "action";
     String ODRL_ACTION_TYPE_ATTRIBUTE = ODRL_SCHEMA + "type";
     String ODRL_CONSEQUENCE_ATTRIBUTE = ODRL_SCHEMA + "consequence";
+    String ODRL_REMEDY_ATTRIBUTE = ODRL_SCHEMA + "remedy";
     String ODRL_INCLUDED_IN_ATTRIBUTE = ODRL_SCHEMA + "includedIn";
     String ODRL_REFINEMENT_ATTRIBUTE = ODRL_SCHEMA + "refinement";
     String ODRL_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "constraint";

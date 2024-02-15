@@ -223,8 +223,11 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             return constraintsBuilder.build();
         }
 
-        private JsonObject visitAction(Action action) {
+        private JsonObject visitAction(@Nullable Action action) {
             var actionBuilder = jsonFactory.createObjectBuilder();
+            if (action == null) {
+                return actionBuilder.build();
+            }
             actionBuilder.add(ODRL_ACTION_TYPE_ATTRIBUTE, action.getType());
             if (action.getIncludedIn() != null) {
                 actionBuilder.add(ODRL_INCLUDED_IN_ATTRIBUTE, action.getIncludedIn());
