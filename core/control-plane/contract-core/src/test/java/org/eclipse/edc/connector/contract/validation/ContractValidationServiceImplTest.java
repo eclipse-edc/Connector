@@ -382,6 +382,29 @@ class ContractValidationServiceImplTest {
         assertThat(result).isFailed().detail().isEqualTo("Asset ID from the ContractOffer is not included in the ContractDefinition");
     }
 
+    @Test
+    void validateInitialOffer_fails_whenContractPolicyEvaluationFails() {
+
+        var validatableOffer = createValidatableConsumerOffer();
+        var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var claimToken = ClaimToken.Builder.newInstance().build();
+
+        //prepare mocks
+        when(agentService.createFor(eq(claimToken))).thenReturn(participantAgent);
+        when(policyEngine.evaluate(eq(CATALOGING_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.failure("evaluation failure"));
+        when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
+        when(assetIndex.countAssets(anyList())).thenReturn(1L);
+
+        //act
+        var result = validationService.validateInitialOffer(claimToken, validatableOffer);
+
+        //assert
+        assertThat(result).isFailed().detail()
+                .startsWith("Policy in scope %s not fulfilled for offer %s, policy evaluation".formatted(NEGOTIATION_SCOPE, validatableOffer.getOfferId().toString()))
+                .contains("evaluation failure");
+    }
+
     @ParameterizedTest
     @ValueSource(strings = { PROVIDER_ID })
     @NullSource

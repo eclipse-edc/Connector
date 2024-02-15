@@ -170,7 +170,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var policyContext = PolicyContextImpl.Builder.newInstance().additional(ParticipantAgent.class, agent).build();
         var policyResult = policyEngine.evaluate(scope, policy, policyContext);
         if (policyResult.failed()) {
-            return failure(format("Policy in scope %s not fulfilled for offer %s", scope, offerId.toString()));
+            return failure(format("Policy in scope %s not fulfilled for offer %s, policy evaluation %s", scope, offerId.toString(), policyResult.getFailureDetail()));
         }
         return Result.success(policy);
     }
