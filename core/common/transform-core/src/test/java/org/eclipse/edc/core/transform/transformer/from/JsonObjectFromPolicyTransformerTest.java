@@ -24,18 +24,24 @@ import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.OdrlNamespace;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.OrConstraint;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.policy.model.XoneConstraint;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
@@ -54,11 +60,18 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OR_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAINT_ATTRIBUTE;
+import static org.eclipse.edc.policy.model.PolicyType.CONTRACT;
+import static org.eclipse.edc.policy.model.PolicyType.OFFER;
+import static org.eclipse.edc.policy.model.PolicyType.SET;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -92,7 +105,7 @@ class JsonObjectFromPolicyTransformerTest {
         var result = transformer.transform(policy, context);
         
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(OdrlNamespace.ODRL_SCHEMA + "Set");
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(ODRL_POLICY_TYPE_SET);
         assertThat(result.get(ODRL_TARGET_ATTRIBUTE))
                 .isNotNull()
                 .isInstanceOf(JsonArray.class)
@@ -321,7 +334,30 @@ class JsonObjectFromPolicyTransformerTest {
     
         verify(context, never()).reportProblem(anyString());
     }
-    
+
+    @ParameterizedTest
+    @ArgumentsSource(PolicyTypeToOdrl.class)
+    void shouldMapPolicyTypeToOdrlType(PolicyType type, String expectedType) {
+        var policy = Policy.Builder.newInstance().type(type).build();
+
+        var result = transformer.transform(policy, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getString(TYPE)).isEqualTo(expectedType);
+    }
+
+    private static class PolicyTypeToOdrl implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            return Stream.of(
+                    arguments(SET, ODRL_POLICY_TYPE_SET),
+                    arguments(OFFER, ODRL_POLICY_TYPE_OFFER),
+                    arguments(CONTRACT, ODRL_POLICY_TYPE_AGREEMENT)
+            );
+        }
+    }
+
     private Action getAction() {
         return Action.Builder.newInstance().type("USE").build();
     }

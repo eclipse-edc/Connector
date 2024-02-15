@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
@@ -57,24 +56,20 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
         addIfNotNull(requestMessage.getProviderPid(), DSPACE_PROPERTY_PROVIDER_PID, builder);
         addIfNotNull(requestMessage.getCallbackAddress(), DSPACE_PROPERTY_CALLBACK_ADDRESS, builder);
 
-        if (requestMessage.getContractOffer() != null) {
-            builder.add(DSPACE_PROPERTY_DATASET, requestMessage.getContractOffer().getAssetId());
-            var policy = context.transform(requestMessage.getContractOffer().getPolicy(), JsonObject.class);
-            if (policy == null) {
-                context.problem()
-                        .nullProperty()
-                        .type(ContractRequestMessage.class)
-                        .property("contractOffer")
-                        .report();
-                return null;
-            }
-
-            var enrichedPolicy = Json.createObjectBuilder(policy)
-                    .add(ID, requestMessage.getContractOffer().getId())
-                    .build();
-            builder.add(DSPACE_PROPERTY_OFFER, enrichedPolicy);
-
+        var policy = context.transform(requestMessage.getContractOffer().getPolicy(), JsonObject.class);
+        if (policy == null) {
+            context.problem()
+                    .nullProperty()
+                    .type(ContractRequestMessage.class)
+                    .property("contractOffer")
+                    .report();
+            return null;
         }
+
+        var enrichedPolicy = Json.createObjectBuilder(policy)
+                .add(ID, requestMessage.getContractOffer().getId())
+                .build();
+        builder.add(DSPACE_PROPERTY_OFFER, enrichedPolicy);
 
         return builder.build();
     }

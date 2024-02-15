@@ -22,6 +22,7 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
@@ -38,13 +39,14 @@ public class PolicyFixtures {
     public static JsonObject noConstraintPolicy() {
         return createObjectBuilder()
                 .add(CONTEXT, ODRL_JSONLD)
-                .add(TYPE, "use")
+                .add(TYPE, ODRL_POLICY_TYPE_SET)
                 .build();
     }
 
     public static JsonObject policy(List<JsonObject> permissions) {
         return createObjectBuilder()
                 .add(CONTEXT, ODRL_JSONLD)
+                .add(TYPE, ODRL_POLICY_TYPE_SET)
                 .add("permission", createArrayBuilder(permissions))
                 .build();
     }

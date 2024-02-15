@@ -15,17 +15,23 @@
 package org.eclipse.edc.core.transform.transformer.to;
 
 import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 
@@ -42,19 +48,35 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
     public @Nullable Policy transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Policy.Builder.newInstance();
 
-        visitProperties(object, key -> {
-            switch (key) {
-                case ODRL_PERMISSION_ATTRIBUTE:
-                    return v -> builder.permissions(transformArray(v, Permission.class, context));
-                case ODRL_PROHIBITION_ATTRIBUTE:
-                    return v -> builder.prohibitions(transformArray(v, Prohibition.class, context));
-                case ODRL_OBLIGATION_ATTRIBUTE:
-                    return v -> builder.duties(transformArray(v, Duty.class, context));
-                case ODRL_TARGET_ATTRIBUTE:
-                    return v -> builder.target(transformString(v, context));
-                default:
-                    return v -> builder.extensibleProperty(key, transformGenericProperty(v, context));
-            }
+        var type = object.getJsonArray(TYPE).stream().findFirst()
+                .map(JsonString.class::cast)
+                .map(JsonString::getString)
+                .orElse(ODRL_POLICY_TYPE_SET);
+
+        var policyType = switch (type) {
+            case ODRL_POLICY_TYPE_SET -> PolicyType.SET;
+            case ODRL_POLICY_TYPE_OFFER -> PolicyType.OFFER;
+            case ODRL_POLICY_TYPE_AGREEMENT -> PolicyType.CONTRACT;
+            default -> null;
+        };
+
+        if (policyType == null) {
+            context.problem()
+                    .invalidProperty()
+                    .property(TYPE)
+                    .error("Invalid type %s for ODRL policy, should be one of [%s, %s, %s]".formatted(type, ODRL_POLICY_TYPE_SET, ODRL_POLICY_TYPE_OFFER, ODRL_POLICY_TYPE_AGREEMENT))
+                    .report();
+            return null;
+        }
+
+        builder.type(policyType);
+
+        visitProperties(object, key -> switch (key) {
+            case ODRL_PERMISSION_ATTRIBUTE -> v -> builder.permissions(transformArray(v, Permission.class, context));
+            case ODRL_PROHIBITION_ATTRIBUTE -> v -> builder.prohibitions(transformArray(v, Prohibition.class, context));
+            case ODRL_OBLIGATION_ATTRIBUTE -> v -> builder.duties(transformArray(v, Duty.class, context));
+            case ODRL_TARGET_ATTRIBUTE -> v -> builder.target(transformString(v, context));
+            default -> v -> builder.extensibleProperty(key, transformGenericProperty(v, context));
         });
 
         return builderResult(builder::build, context);

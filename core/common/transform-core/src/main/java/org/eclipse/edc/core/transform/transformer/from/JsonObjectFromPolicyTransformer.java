@@ -28,7 +28,6 @@ import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Expression;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.MultiplicityConstraint;
-import org.eclipse.edc.policy.model.OdrlNamespace;
 import org.eclipse.edc.policy.model.OrConstraint;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
@@ -58,6 +57,9 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OR_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
@@ -77,18 +79,16 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
     @Override
     public @Nullable JsonObject transform(@NotNull Policy policy, @NotNull TransformerContext context) {
-        return policy.accept(new Visitor(context, jsonFactory));
+        return policy.accept(new Visitor(jsonFactory));
     }
 
     /**
      * Walks the policy object model, transforming it to a JsonObject.
      */
     private static class Visitor implements Policy.Visitor<JsonObject>, Rule.Visitor<JsonObject>, Constraint.Visitor<JsonObject>, Expression.Visitor<JsonObject> {
-        private final TransformerContext context;
         private final JsonBuilderFactory jsonFactory;
 
-        Visitor(TransformerContext context, JsonBuilderFactory jsonFactory) {
-            this.context = context;
+        Visitor(JsonBuilderFactory jsonFactory) {
             this.jsonFactory = jsonFactory;
         }
 
@@ -152,7 +152,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
             var builder = jsonFactory.createObjectBuilder()
                     .add(ID, randomUUID().toString())
-                    .add(TYPE, OdrlNamespace.ODRL_SCHEMA + getTypeAsString(policy.getType()))
+                    .add(TYPE, getTypeAsString(policy.getType()))
                     .add(ODRL_PERMISSION_ATTRIBUTE, permissionsBuilder)
                     .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder)
                     .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
@@ -237,12 +237,11 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             return actionBuilder.build();
         }
 
-        // Hint: can be removed if internal type "contract" was changed to "agreement"
         private String getTypeAsString(PolicyType type) {
             return switch (type) {
-                default -> "Set";
-                case OFFER -> "Offer";
-                case CONTRACT -> "Agreement";
+                case SET -> ODRL_POLICY_TYPE_SET;
+                case OFFER -> ODRL_POLICY_TYPE_OFFER;
+                case CONTRACT -> ODRL_POLICY_TYPE_AGREEMENT;
             };
         }
     }

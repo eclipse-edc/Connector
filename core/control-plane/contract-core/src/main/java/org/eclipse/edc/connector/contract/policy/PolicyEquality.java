@@ -33,7 +33,8 @@ public class PolicyEquality implements BiPredicate<Policy, Policy> {
     public boolean test(Policy one, Policy two) {
         var oneTree = mapper.<ObjectNode>valueToTree(one);
         var twoTree = mapper.<ObjectNode>valueToTree(two);
-        // TODO: target is excluded from the equality as it's not possible to map it to the current IDS implementation: https://github.com/eclipse-edc/Connector/issues/1791
+        oneTree.remove("@type");
+        twoTree.remove("@type");
         oneTree.remove("target");
         twoTree.remove("target");
         return oneTree.equals(twoTree);

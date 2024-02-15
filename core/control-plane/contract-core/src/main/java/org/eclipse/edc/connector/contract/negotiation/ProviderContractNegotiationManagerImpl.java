@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiatio
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
@@ -123,7 +124,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                             .contractSigningDate(clock.instant().getEpochSecond())
                             .providerId(participantId)
                             .consumerId(negotiation.getCounterPartyId())
-                            .policy(lastOffer.getPolicy())
+                            .policy(lastOffer.getPolicy().toBuilder().type(PolicyType.CONTRACT).build())
                             .assetId(lastOffer.getAssetId())
                             .build();
                 });

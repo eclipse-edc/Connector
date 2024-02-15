@@ -45,6 +45,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
@@ -133,6 +134,7 @@ public class Participant {
                 .when()
                 .post("/v2/policydefinitions")
                 .then()
+                .log().ifError()
                 .statusCode(200)
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);
@@ -446,7 +448,8 @@ public class Participant {
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
         var dataset = getDatasetForAsset(provider, assetId);
         var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-        var contractAgreementId = negotiateContract(provider, policy);
+        var policyWithTarget = createObjectBuilder(policy).add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, dataset.get(ID))).build();
+        var contractAgreementId = negotiateContract(provider, policyWithTarget);
         var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType);
         assertThat(transferProcessId).isNotNull();
         return transferProcessId;

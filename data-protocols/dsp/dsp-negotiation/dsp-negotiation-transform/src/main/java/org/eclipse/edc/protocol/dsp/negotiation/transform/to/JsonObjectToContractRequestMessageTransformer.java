@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
@@ -67,11 +66,6 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
         var callback = requestObject.get(DSPACE_PROPERTY_CALLBACK_ADDRESS);
         if (callback != null) {
             builder.callbackAddress(transformString(callback, context));
-        }
-
-        var dataset = requestObject.get(DSPACE_PROPERTY_DATASET);
-        if (dataset != null) {
-            builder.dataset(transformString(dataset, context));
         }
 
         var contractOffer = returnJsonObject(requestObject.get(DSPACE_PROPERTY_OFFER), context, DSPACE_PROPERTY_OFFER, false);

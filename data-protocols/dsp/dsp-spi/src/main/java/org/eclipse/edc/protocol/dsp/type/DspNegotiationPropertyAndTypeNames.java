@@ -37,7 +37,6 @@ public interface DspNegotiationPropertyAndTypeNames {
     String DSPACE_PROPERTY_EVENT_TYPE = DSPACE_SCHEMA + "eventType";
     String DSPACE_PROPERTY_AGREEMENT = DSPACE_SCHEMA + "agreement";
     String DSPACE_PROPERTY_OFFER = DSPACE_SCHEMA + "offer";
-    String DSPACE_PROPERTY_DATASET = DSPACE_SCHEMA + "dataset";
     String DSPACE_PROPERTY_TIMESTAMP = DSPACE_SCHEMA + "timestamp";
     String DSPACE_PROPERTY_CONSUMER_ID = DSPACE_SCHEMA + "consumerId";
     String DSPACE_PROPERTY_PROVIDER_ID = DSPACE_SCHEMA + "providerId";
