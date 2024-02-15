@@ -68,7 +68,7 @@ public class ReflectionUtil {
             var closingBracketIx = first.toString().indexOf(CLOSING_BRACKET);
             var propName = first.toString().substring(0, openingBracketIx);
             var arrayIndex = Integer.parseInt(first.toString().substring(openingBracketIx + 1, closingBracketIx));
-            var iterableObject = (List) getFieldValue(propName, object);
+            var iterableObject = (List) getFieldValue("'%s'".formatted(propName), object);
             return (T) iterableObject.get(arrayIndex);
         } else {
             if (object instanceof Map<?, ?> map) {

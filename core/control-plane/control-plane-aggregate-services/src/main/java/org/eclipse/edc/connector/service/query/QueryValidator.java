@@ -84,7 +84,7 @@ public class QueryValidator {
 
             // cannot query on extensible (=Map) types
             if (type == Map.class) {
-                var pattern = Pattern.compile("^[0-9A-Za-z.':/]*$");
+                var pattern = Pattern.compile("^[0-9A-Za-z.':/@]*$");
                 var matcher = pattern.matcher(path);
                 return matcher.find() ? Result.success() :
                         Result.failure("Querying Map types is not yet supported");
@@ -93,7 +93,7 @@ public class QueryValidator {
             if (field != null) {
                 type = field.getType();
                 if (Collection.class.isAssignableFrom(type)) {
-                    ParameterizedType genericType = (ParameterizedType) field.getGenericType();
+                    var genericType = (ParameterizedType) field.getGenericType();
                     type = (Class<?>) genericType.getActualTypeArguments()[0];
                 }
             } else {

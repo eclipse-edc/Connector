@@ -38,10 +38,11 @@ class AssetQueryValidatorTest {
             Asset.PROPERTY_CONTENT_TYPE,
             "someCustomVal",
             "_anotherValidVal",
-
+            "'http://some.url/property'.nestedvalue"
     })
     void validate_validProperty(String key) {
         var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion(key, "=", "someval"))).build();
+
         assertThat(validator.validate(query).succeeded()).isTrue();
     }
 
