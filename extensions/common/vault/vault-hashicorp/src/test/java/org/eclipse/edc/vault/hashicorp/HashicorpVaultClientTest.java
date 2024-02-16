@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -30,10 +31,13 @@ import org.eclipse.edc.vault.hashicorp.model.CreateEntryResponsePayload;
 import org.eclipse.edc.vault.hashicorp.model.EntryMetadata;
 import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayload;
 import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayloadGetVaultEntryData;
-import org.eclipse.edc.vault.hashicorp.model.TokenRenewRequest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 
@@ -43,13 +47,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
@@ -70,6 +74,9 @@ class HashicorpVaultClientTest {
     private static final String AUTH_KEY = "auth";
     private static final String LEASE_DURATION_KEY = "lease_duration";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<>() {
+    };
+    private static final String INCREMENT_KEY = "increment";
     private static final HashicorpVaultConfigValues HASHICORP_VAULT_CLIENT_CONFIG_VALUES = HashicorpVaultConfigValues.Builder.newInstance()
             .url(VAULT_URL)
             .healthCheckPath(HEALTH_PATH)
@@ -92,19 +99,18 @@ class HashicorpVaultClientTest {
     class HealthCheck {
         @Test
         void doHealthCheck_whenHealthCheckReturns200_shouldSucceed() throws IOException {
-            // prepare
             var body = """
                     {
-                    "initialized": true,
-                    "sealed": false,
-                    "standby": false,
-                    "performance_standby": false,
-                    "replication_performance_mode": "mode",
-                    "replication_dr_mode": "mode",
-                    "server_time_utc": 100,
-                    "version": "1.0.0",
-                    "cluster_name": "name",
-                    "cluster_id": "id"
+                        "initialized": true,
+                        "sealed": false,
+                        "standby": false,
+                        "performance_standby": false,
+                        "replication_performance_mode": "mode",
+                        "replication_dr_mode": "mode",
+                        "server_time_utc": 100,
+                        "version": "1.0.0",
+                        "cluster_name": "name",
+                        "cluster_id": "id"
                     }
                     """;
             var response = new Response.Builder()
@@ -116,11 +122,9 @@ class HashicorpVaultClientTest {
                     .build();
             when(httpClient.execute(any(Request.class))).thenReturn(response);
 
-            // invoke
             var healthCheckResponseResult = vaultClient.doHealthCheck();
 
-            // verify
-            assertThat(healthCheckResponseResult.succeeded()).isTrue();
+            assertThat(healthCheckResponseResult).isSucceeded();
             verify(httpClient).execute(
                     argThat(request -> request.method().equalsIgnoreCase("GET") &&
                             request.url().encodedPath().contains(HEALTH_PATH) &&
@@ -131,19 +135,18 @@ class HashicorpVaultClientTest {
         @ParameterizedTest
         @MethodSource("healthCheckErrorResponseProvider")
         void doHealthCheck_whenHealthCheckDoesNotReturn200_shouldFail(HealthCheckTestParameter testParameter) throws IOException {
-            // prepare
             var body = """
                     {
-                    "initialized": false,
-                    "sealed": true,
-                    "standby": true,
-                    "performance_standby": true,
-                    "replication_performance_mode": "mode",
-                    "replication_dr_mode": "mode",
-                    "server_time_utc": 100,
-                    "version": "1.0.0",
-                    "cluster_name": "name",
-                    "cluster_id": "id"
+                        "initialized": false,
+                        "sealed": true,
+                        "standby": true,
+                        "performance_standby": true,
+                        "replication_performance_mode": "mode",
+                        "replication_dr_mode": "mode",
+                        "server_time_utc": 100,
+                        "version": "1.0.0",
+                        "cluster_name": "name",
+                        "cluster_id": "id"
                     }
                     """;
             var response = new Response.Builder()
@@ -155,10 +158,8 @@ class HashicorpVaultClientTest {
                     .build();
             when(httpClient.execute(any(Request.class))).thenReturn(response);
 
-            // invoke
             var healthCheckResult = vaultClient.doHealthCheck();
 
-            // verify
             assertThat(healthCheckResult.failed()).isTrue();
             verify(httpClient).execute(
                     argThat(request -> request.method().equalsIgnoreCase("GET") &&
@@ -170,15 +171,11 @@ class HashicorpVaultClientTest {
 
         @Test
         void doHealthCheck_whenHealthCheckThrowsIoException_shouldFail() throws IOException {
-            // prepare
             when(httpClient.execute(any(Request.class))).thenThrow(new IOException("foo-bar"));
 
-            // invoke
             var healthCheckResult = vaultClient.doHealthCheck();
 
-            // verify
             assertThat(healthCheckResult.failed()).isTrue();
-            verify(monitor).warning(eq("Failed to perform healthcheck with reason: foo-bar"), any(IOException.class));
             assertThat(healthCheckResult.getFailureDetail()).isEqualTo("Failed to perform healthcheck with reason: foo-bar");
         }
 
@@ -203,9 +200,9 @@ class HashicorpVaultClientTest {
         void lookUpToken_whenApiReturns200_shouldSucceed() throws IOException {
             var body = """
                     {
-                      "data": {
-                        "renewable": true
-                      }
+                        "data": {
+                            "renewable": true
+                        }
                     }
                     """;
             var response = new Response.Builder()
@@ -247,12 +244,11 @@ class HashicorpVaultClientTest {
             var tokenLookUpResult = vaultClient.lookUpToken();
 
             assertThat(tokenLookUpResult.failed()).isTrue();
-            verify(monitor).warning(eq("Failed to look up token with reason: foo-bar"), any(Exception.class));
             assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Failed to look up token with reason: foo-bar");
         }
 
         @ParameterizedTest
-        @MethodSource("invalidTokenLookUpResponseProvider")
+        @ArgumentsSource(InvalidTokenLookUpResponseArgumentProvider.class)
         void lookUpToken_withInvalidTokenLookUpResponse_shouldFail(Map<String, Object> tokenLookUpResponse) throws IOException {
             var response = new Response.Builder()
                     .code(200)
@@ -266,18 +262,16 @@ class HashicorpVaultClientTest {
             var tokenLookUpResult = vaultClient.lookUpToken();
 
             assertThat(tokenLookUpResult.failed()).isTrue();
-            verify(monitor).warning(matches("Failed to parse renewable flag *"));
             assertThat(tokenLookUpResult.getFailureDetail()).startsWith("Token look up response could not be parsed: Failed to parse renewable flag");
         }
-
 
         @Test
         void renewToken_whenApiReturns200_shouldSucceed() throws IOException {
             var body = """
                     {
-                      "auth": {
-                        "lease_duration": 1800
-                      }
+                        "auth": {
+                            "lease_duration": 1800
+                        }
                     }
                     """;
             var response = new Response.Builder()
@@ -297,10 +291,10 @@ class HashicorpVaultClientTest {
             var copy = Objects.requireNonNull(request.newBuilder().build());
             var buffer = new Buffer();
             Objects.requireNonNull(copy.body()).writeTo(buffer);
-            var tokenRenewRequest = OBJECT_MAPPER.readValue(buffer.readUtf8(), TokenRenewRequest.class);
+            var tokenRenewRequest = OBJECT_MAPPER.readValue(buffer.readUtf8(), MAP_TYPE_REFERENCE);
             // given a configured ttl of 5 this should equal "5s"
-            assertThat(tokenRenewRequest.getIncrement()).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl()));
-            assertThat(tokenRenewResult).isSucceeded().satisfies(ttl -> assertThat(ttl).isEqualTo(1800L));
+            assertThat(tokenRenewRequest.get(INCREMENT_KEY)).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl()));
+            assertThat(tokenRenewResult).isSucceeded().isEqualTo(1800L);
         }
 
         @Test
@@ -327,14 +321,13 @@ class HashicorpVaultClientTest {
             var tokenRenewResult = vaultClient.renewToken();
 
             assertThat(tokenRenewResult.failed()).isTrue();
-            verify(monitor).warning(eq("Failed to renew token with reason: foo-bar"), any(Exception.class));
             assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Failed to renew token with reason: foo-bar");
             // should be called only once
             verify(httpClient).execute(any(Request.class), anyList());
         }
 
         @ParameterizedTest
-        @MethodSource("invalidTokenRenewResponseProvider")
+        @ArgumentsSource(InvalidTokenRenewResponseArgumentProvider.class)
         void renewToken_withInvalidTokenRenewResponse_shouldFail(Map<String, Object> tokenRenewResponse) throws IOException {
             var response = new Response.Builder()
                     .code(200)
@@ -348,24 +341,29 @@ class HashicorpVaultClientTest {
             var tokenRenewResult = vaultClient.renewToken();
 
             assertThat(tokenRenewResult.failed()).isTrue();
-            verify(monitor).warning(matches("Failed to parse ttl *"));
             assertThat(tokenRenewResult.getFailureDetail()).startsWith("Token renew response could not be parsed: Failed to parse ttl");
         }
 
-        private static List<Map<String, Object>> invalidTokenLookUpResponseProvider() {
-            return List.of(
-                    Map.of(),
-                    Map.of(DATA_KEY, Map.of()),
-                    Map.of(DATA_KEY, Map.of(RENEWABLE_KEY, "not a boolean"))
-            );
+        private static class InvalidTokenLookUpResponseArgumentProvider implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(Map.of()),
+                        arguments(Map.of(DATA_KEY, Map.of())),
+                        arguments(Map.of(DATA_KEY, Map.of(RENEWABLE_KEY, "not a boolean")))
+                );
+            }
         }
 
-        private static List<Map<String, Object>> invalidTokenRenewResponseProvider() {
-            return List.of(
-                    Map.of(),
-                    Map.of(AUTH_KEY, Map.of()),
-                    Map.of(AUTH_KEY, Map.of(LEASE_DURATION_KEY, "not a long"))
-            );
+        private static class InvalidTokenRenewResponseArgumentProvider implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(Map.of()),
+                        arguments(Map.of(AUTH_KEY, Map.of())),
+                        arguments(Map.of(AUTH_KEY, Map.of(LEASE_DURATION_KEY, "not a long")))
+                );
+            }
         }
     }
 
@@ -373,7 +371,6 @@ class HashicorpVaultClientTest {
     class Secret {
         @Test
         void getSecret_whenApiReturns200_shouldSucceed() throws IOException {
-            // prepare
             var ow = new ObjectMapper().writer();
             var data = GetEntryResponsePayloadGetVaultEntryData.Builder.newInstance().data(new HashMap<>(0)).build();
             var body = GetEntryResponsePayload.Builder.newInstance().data(data).build();
@@ -388,10 +385,8 @@ class HashicorpVaultClientTest {
 
             when(httpClient.execute(any(Request.class))).thenReturn(response);
 
-            // invoke
             var result = vaultClient.getSecretValue(KEY);
 
-            // verify
             assertNotNull(result);
             verify(httpClient).execute(argThat(request -> request.method().equalsIgnoreCase("GET") &&
                     request.url().encodedPath().contains(CUSTOM_SECRET_PATH + "/data") &&
@@ -400,7 +395,6 @@ class HashicorpVaultClientTest {
 
         @Test
         void setSecret_whenApiReturns200_shouldSucceed() throws IOException {
-            // prepare
             var ow = new ObjectMapper().writer();
             var data = EntryMetadata.Builder.newInstance().build();
             var body = CreateEntryResponsePayload.Builder.newInstance().data(data).build();
@@ -418,10 +412,8 @@ class HashicorpVaultClientTest {
             when(httpClient.execute(any(Request.class))).thenReturn(response);
             when(call.execute()).thenReturn(response);
 
-            // invoke
             var result = vaultClient.setSecret(KEY, secretValue);
 
-            // verify
             assertNotNull(result);
             verify(httpClient).execute(argThat(request -> request.method().equalsIgnoreCase("POST") &&
                     request.url().encodedPath().contains(CUSTOM_SECRET_PATH + "/data") &&
@@ -430,7 +422,6 @@ class HashicorpVaultClientTest {
 
         @Test
         void destroySecret_whenApiReturns200_shouldSucceed() throws IOException {
-            // prepare
             var response = new Response.Builder()
                     .code(200)
                     .message("any")
@@ -440,10 +431,8 @@ class HashicorpVaultClientTest {
                     .build();
             when(httpClient.execute(any(Request.class))).thenReturn(response);
 
-            // invoke
             var result = vaultClient.destroySecret(KEY);
 
-            // verify
             assertThat(result).isNotNull();
             assertThat(result.succeeded()).isTrue();
             verify(httpClient).execute(argThat(request -> request.method().equalsIgnoreCase("DELETE") &&

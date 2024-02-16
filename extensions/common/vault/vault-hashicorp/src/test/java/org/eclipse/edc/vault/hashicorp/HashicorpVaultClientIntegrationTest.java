@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Mercedes-Benz Tech Innovation GmbH
+ *  Copyright (c) 2024 Mercedes-Benz Tech Innovation GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -69,7 +69,7 @@ class HashicorpVaultClientIntegrationTest {
     void lookUpToken_whenTokenNotExpired_shouldSucceed() {
         var tokenLookUpResult = client.lookUpToken();
 
-        assertThat(tokenLookUpResult).isSucceeded().satisfies(isRenewable -> assertThat(isRenewable).isTrue());
+        assertThat(tokenLookUpResult).isSucceeded().isEqualTo(true);
     }
 
     @Test
@@ -79,7 +79,7 @@ class HashicorpVaultClientIntegrationTest {
                 .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var tokenLookUpResult = client.lookUpToken();
-                    assertThat(tokenLookUpResult.failed()).isTrue();
+                    assertThat(tokenLookUpResult).isFailed();
                     assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
                 });
     }
@@ -98,7 +98,7 @@ class HashicorpVaultClientIntegrationTest {
                 .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var tokenRenewResult = client.renewToken();
-                    assertThat(tokenRenewResult.failed()).isTrue();
+                    assertThat(tokenRenewResult).isFailed();
                     assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: 403");
                 });
     }

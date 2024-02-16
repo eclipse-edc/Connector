@@ -17,7 +17,6 @@ package org.eclipse.edc.vault.hashicorp;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -61,7 +60,7 @@ class HashicorpVaultHealthCheckTest {
             var result = healthCheck.get();
 
             assertThat(result).isFailed();
-            assertFailureMessagesSize(result, 1);
+            assertThat(result.getFailure()).messages().hasSize(1);
             verify(monitor).warning("Healthcheck failed with reason(s): %s".formatted(healthCheckErr));
         }
     }
@@ -91,7 +90,7 @@ class HashicorpVaultHealthCheckTest {
             var result = healthCheck.get();
 
             assertThat(result).isFailed();
-            assertFailureMessagesSize(result, 1);
+            assertThat(result.getFailure()).messages().hasSize(1);
             verify(monitor).warning("Healthcheck failed with reason(s): %s".formatted(tokenLookUpErr));
         }
     }
@@ -107,11 +106,7 @@ class HashicorpVaultHealthCheckTest {
         var result = healthCheck.get();
 
         assertThat(result).isFailed();
-        assertFailureMessagesSize(result, 2);
+        assertThat(result.getFailure()).messages().hasSize(2);
         verify(monitor).warning("Healthcheck failed with reason(s): %s, %s".formatted(healthCheckErr, tokenLookUpErr));
-    }
-
-    private void assertFailureMessagesSize(HealthCheckResult result, int i) {
-        assertThat(result.getFailure()).messages().hasSize(i);
     }
 }

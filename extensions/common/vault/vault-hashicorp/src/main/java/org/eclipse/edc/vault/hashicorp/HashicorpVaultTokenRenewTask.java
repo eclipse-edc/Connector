@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Mercedes-Benz Tech Innovation GmbH
+ *  Copyright (c) 2024 Mercedes-Benz Tech Innovation GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -45,6 +45,16 @@ public class HashicorpVaultTokenRenewTask {
     private Future<?> tokenRenewTask;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
 
+    /**
+     * Constructor for the HashicorpVaultTokenRenewTask.
+     * Pass a reasonable {@code renewBuffer} (like 10s) to ensure that the token renewal operation can be executed
+     * before the token expires and failed renewals can be retried in time.
+     *
+     * @param executorInstrumentation executor instrumentation used to initialize a {@link ScheduledExecutorService}
+     * @param client the HashicorpVaultClient
+     * @param renewBuffer the renewal buffer time in seconds
+     * @param monitor the monitor
+     */
     public HashicorpVaultTokenRenewTask(@NotNull ExecutorInstrumentation executorInstrumentation,
                                         @NotNull HashicorpVaultClient client,
                                         long renewBuffer,

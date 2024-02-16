@@ -31,7 +31,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryRequestPayload;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryResponsePayload;
 import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayload;
-import org.eclipse.edc.vault.hashicorp.model.TokenRenewRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -41,6 +40,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This is a client implementation for interacting with Hashicorp Vault.
+ */
 public class HashicorpVaultClient {
     private static final String VAULT_DATA_ENTRY_NAME = "content";
     private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
@@ -58,19 +60,15 @@ public class HashicorpVaultClient {
     private static final String LEASE_DURATION_KEY = "lease_duration";
     private static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<>() {
     };
+    private static final String INCREMENT_SECONDS_FORMAT = "%ds";
+    private static final String INCREMENT_KEY = "increment";
 
-    @NotNull
     private final EdcHttpClient httpClient;
-    @NotNull
     private final Headers headers;
-    @NotNull
     private final ObjectMapper objectMapper;
-    @NotNull
-    private final Monitor monitor;
-    @NotNull
     private final HashicorpVaultConfigValues configValues;
-    @NotNull
     private final HttpUrl healthCheckUrl;
+    private final Monitor monitor;
 
     HashicorpVaultClient(@NotNull EdcHttpClient httpClient,
                          @NotNull ObjectMapper objectMapper,
@@ -107,9 +105,7 @@ public class HashicorpVaultClient {
             }
             return Result.failure("Vault is not available. Reason: %s, additional information: %s".formatted(errMsg, body.string()));
         } catch (IOException e) {
-            var errMsg = "Failed to perform healthcheck with reason: %s".formatted(e.getMessage());
-            monitor.warning(errMsg, e);
-            return Result.failure(errMsg);
+            return Result.failure("Failed to perform healthcheck with reason: %s".formatted(e.getMessage()));
         }
     }
 
@@ -133,7 +129,7 @@ public class HashicorpVaultClient {
                 if (responseBody == null) {
                     return Result.failure("Token look up returned empty body");
                 }
-                var payload = objectMapper.readValue(responseBody.string(), new TypeReference<Map<String, Object>>() {});
+                var payload = objectMapper.readValue(responseBody.string(), MAP_TYPE_REFERENCE);
                 var parseRenewableResult = parseRenewable(payload);
                 if (parseRenewableResult.failed()) {
                     return Result.failure("Token look up response could not be parsed: %s".formatted(parseRenewableResult.getFailureDetail()));
@@ -144,9 +140,7 @@ public class HashicorpVaultClient {
                 return Result.failure("Token look up failed with status %d".formatted(response.code()));
             }
         } catch (IOException e) {
-            var errMsg = "Failed to look up token with reason: %s".formatted(e.getMessage());
-            monitor.warning(errMsg, e);
-            return Result.failure(errMsg);
+            return Result.failure("Failed to look up token with reason: %s".formatted(e.getMessage()));
         }
     }
 
@@ -164,10 +158,7 @@ public class HashicorpVaultClient {
                 .newBuilder()
                 .addPathSegments(TOKEN_RENEW_SELF_PATH)
                 .build();
-        var requestPayload = TokenRenewRequest.Builder
-                .newInstance()
-                .increment(configValues.ttl())
-                .build();
+        var requestPayload = getTokenRenewRequestPayload();
         var request = httpPost(uri, requestPayload);
 
         try (var response = httpClient.execute(request, FALLBACK_FACTORIES)) {
@@ -187,9 +178,7 @@ public class HashicorpVaultClient {
                 return Result.failure("Token renew failed with status: %d".formatted(response.code()));
             }
         } catch (IOException e) {
-            var errMsg = "Failed to renew token with reason: %s".formatted(e.getMessage());
-            monitor.warning(errMsg, e);
-            return Result.failure(errMsg);
+            return Result.failure("Failed to renew token with reason: %s".formatted(e.getMessage()));
         }
     }
 
@@ -201,25 +190,22 @@ public class HashicorpVaultClient {
 
             if (response.isSuccessful()) {
                 if (response.code() == HTTP_CODE_404) {
-                    return Result.failure("Secret %s not found".formatted(key));
+                    return Result.failure("Secret not found");
                 }
 
                 var responseBody = response.body();
                 if (responseBody == null) {
-                    return Result.failure("Secret %s response body is empty".formatted(key));
+                    return Result.failure("Secret response body is empty");
                 }
                 var payload = objectMapper.readValue(responseBody.string(), GetEntryResponsePayload.class);
                 var value = payload.getData().getData().get(VAULT_DATA_ENTRY_NAME);
 
                 return Result.success(value);
             } else {
-                return Result.failure("Failed to get secret %s with status %d".formatted(key, response.code()));
+                return Result.failure("Failed to get secret with status %d".formatted(response.code()));
             }
-
         } catch (IOException e) {
-            var errMsg = "Failed to get secret %s with reason: %s".formatted(key, e.getMessage());
-            monitor.warning(errMsg, e);
-            return Result.failure(errMsg);
+            return Result.failure("Failed to get secret with reason: %s".formatted(e.getMessage()));
         }
     }
 
@@ -237,19 +223,17 @@ public class HashicorpVaultClient {
         try (var response = httpClient.execute(request)) {
             if (response.isSuccessful()) {
                 if (response.body() == null) {
-                    return Result.failure("Setting secret %s returned empty body".formatted(key));
+                    return Result.failure("Setting secret returned empty body");
                 }
                 var responseBody = response.body().string();
                 var responsePayload =
                         objectMapper.readValue(responseBody, CreateEntryResponsePayload.class);
                 return Result.success(responsePayload);
             } else {
-                return Result.failure("Failed to set secret %s with status %d".formatted(key, response.code()));
+                return Result.failure("Failed to set secret with status %d".formatted(response.code()));
             }
         } catch (IOException e) {
-            var errMsg = "Failed to set secret %s with reason: %s".formatted(key, e.getMessage());
-            monitor.warning(errMsg, e);
-            return Result.failure(errMsg);
+            return Result.failure("Failed to set secret with reason: %s".formatted(e.getMessage()));
         }
     }
 
@@ -260,11 +244,9 @@ public class HashicorpVaultClient {
         try (var response = httpClient.execute(request)) {
             return response.isSuccessful() || response.code() == HTTP_CODE_404
                     ? Result.success()
-                    : Result.failure("Failed to destroy secret %s with status %d".formatted(key, response.code()));
+                    : Result.failure("Failed to destroy secret with status %d".formatted(response.code()));
         } catch (IOException e) {
-            var errMsg = "Failed to destroy secret %s with reason: %s".formatted(key, e.getMessage());
-            monitor.warning(errMsg, e);
-            return Result.failure(errMsg);
+            return Result.failure("Failed to destroy secret with reason: %s".formatted(e.getMessage()));
         }
     }
 
@@ -336,6 +318,10 @@ public class HashicorpVaultClient {
         return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);
     }
 
+    private Map<String, String> getTokenRenewRequestPayload() {
+        return Map.of(INCREMENT_KEY, INCREMENT_SECONDS_FORMAT.formatted(configValues.ttl()));
+    }
+
     private Result<Boolean> parseRenewable(Map<String, Object> map) {
         try {
             var data = objectMapper.convertValue(getValueFromMap(map, DATA_KEY), new TypeReference<Map<String, Object>>() {
@@ -343,9 +329,9 @@ public class HashicorpVaultClient {
             var isRenewable = objectMapper.convertValue(getValueFromMap(data, RENEWABLE_KEY), Boolean.class);
             return Result.success(isRenewable);
         } catch (IllegalArgumentException e) {
-            var errMsg = "Failed to parse renewable flag from %s with reason: %s".formatted(map, e.getMessage());
-            monitor.warning(errMsg);
-            return Result.failure(errMsg);
+            var errMsgFormat = "Failed to parse renewable flag from token look up response %s with reason: %s";
+            monitor.warning(errMsgFormat.formatted(map, e.getStackTrace()));
+            return Result.failure(errMsgFormat.formatted(map, e.getMessage()));
         }
     }
 
@@ -356,9 +342,9 @@ public class HashicorpVaultClient {
             var ttl = objectMapper.convertValue(getValueFromMap(auth, LEASE_DURATION_KEY), Long.class);
             return Result.success(ttl);
         } catch (IllegalArgumentException e) {
-            var errMsg = "Failed to parse ttl from %s with reason: %s".formatted(map, e.getMessage());
-            monitor.warning(errMsg);
-            return Result.failure(errMsg);
+            var errMsgFormat = "Failed to parse ttl from token renewal response %s with reason: %s";
+            monitor.warning(errMsgFormat.formatted(map, e.getStackTrace()));
+            return Result.failure(errMsgFormat.formatted(map, e.getMessage()));
         }
     }
 
