@@ -83,8 +83,6 @@ public class ScopeFilter {
 
         return Permission.Builder.newInstance()
                 .action(permission.getAction())
-                .assignee(permission.getAssignee())
-                .assigner(permission.getAssigner())
                 .constraints(filteredConstraints)
                 .duties(filteredDuties)
                 .build();
@@ -100,8 +98,6 @@ public class ScopeFilter {
 
         return Duty.Builder.newInstance()
                 .action(duty.getAction())
-                .assignee(duty.getAssignee())
-                .assigner(duty.getAssigner())
                 .constraints(filteredConstraints)
                 .parentPermission(duty.getParentPermission())
                 .consequence(filteredConsequence)
@@ -117,8 +113,6 @@ public class ScopeFilter {
 
         return Prohibition.Builder.newInstance()
                 .action(prohibition.getAction())
-                .assignee(prohibition.getAssignee())
-                .assigner(prohibition.getAssigner())
                 .constraints(filteredConstraints)
                 .build();
     }

@@ -408,8 +408,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByProhibitions() {
             var p = createPolicyBuilder("test-policy")
                     .prohibition(createProhibitionBuilder("prohibition1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -417,7 +416,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             getPolicyDefinitionStore().create(policyDef);
 
             // query by prohibition assignee
-            var query = createQuery(Criterion.criterion("policy.prohibitions.assignee", "=", "test-assignee"));
+            var query = createQuery(Criterion.criterion("policy.prohibitions.action.type", "=", "test-action-type"));
             var result = getPolicyDefinitionStore().findAll(query);
             assertThat(result).hasSize(1)
                     .usingRecursiveFieldByFieldElementComparator()
@@ -435,8 +434,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByProhibitions_valueNotExist() {
             var p = createPolicyBuilder("test-policy")
                     .prohibition(createProhibitionBuilder("prohibition1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -453,8 +451,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByPermissions() {
             var p = createPolicyBuilder("test-policy")
                     .permission(createPermissionBuilder("permission1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -462,7 +459,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             getPolicyDefinitionStore().create(policyDef);
 
             // query by prohibition assignee
-            var query = createQuery(Criterion.criterion("policy.permissions.assignee", "=", "test-assignee"));
+            var query = createQuery(Criterion.criterion("policy.permissions.action.type", "=", "test-action-type"));
             var result = getPolicyDefinitionStore().findAll(query);
             assertThat(result).hasSize(1)
                     .usingRecursiveFieldByFieldElementComparator()
@@ -480,8 +477,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByPermissions_valueNotExist() {
             var p = createPolicyBuilder("test-policy")
                     .permission(createPermissionBuilder("permission1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -498,8 +494,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByDuties() {
             var p = createPolicyBuilder("test-policy")
                     .duty(createDutyBuilder("prohibition1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -508,7 +503,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             getPolicyDefinitionStore().create(createPolicy("another-policy"));
 
             // query by prohibition assignee
-            var query = createQuery(Criterion.criterion("policy.obligations.assignee", "=", "test-assignee"));
+            var query = createQuery(Criterion.criterion("policy.obligations.action.type", "=", "test-action-type"));
             var result = getPolicyDefinitionStore().findAll(query);
             assertThat(result).hasSize(1)
                     .usingRecursiveFieldByFieldElementComparator()
@@ -526,8 +521,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByDuties_valueNotExist() {
             var p = createPolicyBuilder("test-policy")
                     .duty(createDutyBuilder("prohibition1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 

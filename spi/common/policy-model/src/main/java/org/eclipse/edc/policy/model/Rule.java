@@ -35,9 +35,6 @@ public abstract class Rule {
 
     protected Action action;
 
-    protected String assignee;
-    protected String assigner;
-
     protected List<Constraint> constraints = new ArrayList<>();
 
     public Action getAction() {
@@ -48,29 +45,11 @@ public abstract class Rule {
         return constraints;
     }
 
-    public String getAssigner() {
-        return assigner;
-    }
-
-    public String getAssignee() {
-        return assignee;
-    }
-
     public abstract <R> R accept(Visitor<R> visitor);
 
     @SuppressWarnings("unchecked")
     protected abstract static class Builder<T extends Rule, B extends Builder<T, B>> {
         protected T rule;
-
-        public B assigner(String assigner) {
-            rule.assigner = assigner;
-            return (B) this;
-        }
-
-        public B assignee(String assignee) {
-            rule.assignee = assignee;
-            return (B) this;
-        }
 
         public B action(Action action) {
             rule.action = action;
