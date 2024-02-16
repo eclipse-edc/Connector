@@ -32,7 +32,6 @@ public class ContractRequestMessage extends ContractRemoteMessage {
     private String callbackAddress;
 
     private ContractOffer contractOffer;
-    private String dataset;
 
     public Type getType() {
         return type;
@@ -41,10 +40,6 @@ public class ContractRequestMessage extends ContractRemoteMessage {
     @NotNull
     public ContractOffer getContractOffer() {
         return contractOffer;
-    }
-
-    public String getDataset() {
-        return dataset;
     }
 
     public String getCallbackAddress() {
@@ -83,11 +78,6 @@ public class ContractRequestMessage extends ContractRemoteMessage {
 
         public Builder type(Type type) {
             message.type = type;
-            return this;
-        }
-
-        public Builder dataset(String dataset) {
-            message.dataset = dataset;
             return this;
         }
 

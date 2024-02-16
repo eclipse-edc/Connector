@@ -47,7 +47,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.model.PolicyType.OFFER;
-import static org.eclipse.edc.policy.model.PolicyType.SET;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
@@ -90,7 +89,8 @@ class DatasetResolverImplTest {
             assertThat(dataset.getDistributions()).hasSize(1).first().isEqualTo(distribution);
             assertThat(dataset.getOffers()).hasSize(1).allSatisfy((id, policy) -> {
                 assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).asString().isEqualTo("definitionId");
-                assertThat(policy.getTarget()).isEqualTo("assetId");
+                assertThat(policy.getType()).isEqualTo(OFFER);
+                assertThat(policy.getTarget()).isEqualTo(null);
             });
             assertThat(dataset.getProperties()).contains(entry("key", "value"));
         });
@@ -110,8 +110,8 @@ class DatasetResolverImplTest {
 
     @Test
     void query_shouldReturnOneDataset_whenMultipleDefinitionsOnSameAsset() {
-        var policy1 = Policy.Builder.newInstance().type(SET).build();
-        var policy2 = Policy.Builder.newInstance().type(OFFER).build();
+        var policy1 = Policy.Builder.newInstance().inheritsFrom("inherits1").build();
+        var policy2 = Policy.Builder.newInstance().inheritsFrom("inherits2").build();
         when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(
                 contractDefinitionBuilder("definition1").contractPolicyId("policy1").build(),
                 contractDefinitionBuilder("definition2").contractPolicyId("policy2").build()
@@ -127,11 +127,11 @@ class DatasetResolverImplTest {
             assertThat(dataset.getOffers()).hasSize(2)
                     .anySatisfy((id, policy) -> {
                         assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).asString().isEqualTo("definition1");
-                        assertThat(policy.getType()).isEqualTo(SET);
+                        assertThat(policy.getInheritsFrom()).isEqualTo("inherits1");
                     })
                     .anySatisfy((id, policy) -> {
                         assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).asString().isEqualTo("definition2");
-                        assertThat(policy.getType()).isEqualTo(OFFER);
+                        assertThat(policy.getInheritsFrom()).isEqualTo("inherits2");
                     });
         });
     }
@@ -221,8 +221,8 @@ class DatasetResolverImplTest {
 
     @Test
     void getById_shouldReturnDataset() {
-        var policy1 = Policy.Builder.newInstance().type(SET).build();
-        var policy2 = Policy.Builder.newInstance().type(OFFER).build();
+        var policy1 = Policy.Builder.newInstance().inheritsFrom("inherits1").build();
+        var policy2 = Policy.Builder.newInstance().inheritsFrom("inherits2").build();
         when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(
                 contractDefinitionBuilder("definition1").contractPolicyId("policy1").build(),
                 contractDefinitionBuilder("definition2").contractPolicyId("policy2").build()
@@ -239,11 +239,11 @@ class DatasetResolverImplTest {
         assertThat(dataset.getOffers()).hasSize(2)
                 .anySatisfy((id, policy) -> {
                     assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).isEqualTo("definition1");
-                    assertThat(policy.getType()).isEqualTo(SET);
+                    assertThat(policy.getInheritsFrom()).isEqualTo("inherits1");
                 })
                 .anySatisfy((id, policy) -> {
                     assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).isEqualTo("definition2");
-                    assertThat(policy.getType()).isEqualTo(OFFER);
+                    assertThat(policy.getInheritsFrom()).isEqualTo("inherits2");
                 });
         verify(assetIndex).findById("datasetId");
         verify(contractDefinitionResolver).definitionsFor(participantAgent);

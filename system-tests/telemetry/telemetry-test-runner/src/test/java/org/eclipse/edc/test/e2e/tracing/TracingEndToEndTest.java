@@ -81,7 +81,7 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
                 .add("consumerId", "test-consumer-id")
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
-                        .add(TYPE, "use")
+                        .add(TYPE, "Offer")
                         .add(ID, "offer-id")
                         .add("target", "test-asset")
                         .build())

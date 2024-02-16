@@ -33,7 +33,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
@@ -51,7 +50,6 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToContractRequestMessageTransformerTest {
 
-    private static final String DATASET_ID = "datasetId";
     private static final String CALLBACK = "https://test.com";
     private static final String OBJECT_ID = "id1";
     private static final String CONTRACT_OFFER_ID = "contractOfferId";
@@ -74,7 +72,6 @@ class JsonObjectToContractRequestMessageTransformerTest {
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_DATASET, DATASET_ID)
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
                 .add(DSPACE_PROPERTY_OFFER, contractOffer())
                 .build();
@@ -88,7 +85,6 @@ class JsonObjectToContractRequestMessageTransformerTest {
         assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
         assertThat(result.getProviderPid()).isEqualTo("providerPid");
         assertThat(result.getCallbackAddress()).isEqualTo(CALLBACK);
-        assertThat(result.getDataset()).isEqualTo(DATASET_ID);
 
         var contractOffer = result.getContractOffer();
         assertThat(contractOffer).isNotNull();
@@ -106,7 +102,6 @@ class JsonObjectToContractRequestMessageTransformerTest {
                 .add(JsonLdKeywords.ID, OBJECT_ID)
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                 .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
-                .add(DSPACE_PROPERTY_DATASET, DATASET_ID)
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
                 .add(DSPACE_PROPERTY_OFFER, contractOffer())
                 .build();
@@ -119,7 +114,6 @@ class JsonObjectToContractRequestMessageTransformerTest {
         assertThat(result.getProtocol()).isNotEmpty();
         assertThat(result.getConsumerPid()).isEqualTo("processId");
         assertThat(result.getCallbackAddress()).isEqualTo(CALLBACK);
-        assertThat(result.getDataset()).isEqualTo(DATASET_ID);
 
         var contractOffer = result.getContractOffer();
         assertThat(contractOffer).isNotNull();
@@ -178,7 +172,6 @@ class JsonObjectToContractRequestMessageTransformerTest {
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_DATASET, DATASET_ID)
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
                 .add(DSPACE_PROPERTY_OFFER, contractOffer())
                 .build();

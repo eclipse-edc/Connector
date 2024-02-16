@@ -24,8 +24,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 
 class ContractRequestMessageTest {
     public static final String CALLBACK_ADDRESS = "http://test.com";
-    public static final String OFFER_ID = "offerId";
-    public static final String DATASET = "dataset1";
     public static final String ID = "id1";
     public static final String ASSET_ID = "asset1";
     public static final String PROTOCOL = "DPS";
@@ -42,7 +40,6 @@ class ContractRequestMessageTest {
                         .assetId(ASSET_ID)
                         .policy(Policy.Builder.newInstance().build())
                         .build())
-                .dataset(DATASET)
                 .build();
     }
 
@@ -58,7 +55,6 @@ class ContractRequestMessageTest {
                         .assetId(ASSET_ID)
                         .policy(Policy.Builder.newInstance().build())
                         .build())
-                .dataset(DATASET)
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build();
 
@@ -68,7 +64,6 @@ class ContractRequestMessageTest {
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
                 .protocol(PROTOCOL)
-                .dataset(DATASET)
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("contractOffer");
 

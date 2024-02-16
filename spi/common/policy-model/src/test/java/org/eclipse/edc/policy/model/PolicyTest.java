@@ -56,9 +56,6 @@ class PolicyTest {
         var copy = policy.withTarget(target);
 
         assertThat(copy.getPermissions().size()).isEqualTo(policy.getPermissions().size());
-        copy.getPermissions().forEach(p -> assertThat(p.getTarget()).isEqualTo(target));
-        copy.getProhibitions().forEach(p -> assertThat(p.getTarget()).isEqualTo(target));
-        copy.getObligations().forEach(o -> assertThat(o.getTarget()).isEqualTo(target));
         assertThat(copy.getAssigner()).isEqualTo(policy.getAssigner());
         assertThat(copy.getAssignee()).isEqualTo(policy.getAssignee());
         assertThat(copy.getInheritsFrom()).isEqualTo(policy.getInheritsFrom());

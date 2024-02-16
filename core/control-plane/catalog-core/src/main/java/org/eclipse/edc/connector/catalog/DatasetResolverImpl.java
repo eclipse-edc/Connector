@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -92,7 +93,8 @@ public class DatasetResolverImpl implements DatasetResolver {
                     var policyDefinition = policyDefinitionStore.findById(contractDefinition.getContractPolicyId());
                     if (policyDefinition != null) {
                         var contractId = ContractOfferId.create(contractDefinition.getId(), asset.getId());
-                        datasetBuilder.offer(contractId.toString(), policyDefinition.getPolicy().withTarget(asset.getId()));
+                        var offerPolicy = policyDefinition.getPolicy().toBuilder().type(PolicyType.OFFER).build();
+                        datasetBuilder.offer(contractId.toString(), offerPolicy);
                     }
                 });
 

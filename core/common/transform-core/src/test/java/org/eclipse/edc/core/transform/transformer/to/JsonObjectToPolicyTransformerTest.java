@@ -18,22 +18,27 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Prohibition;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.core.transform.transformer.TestInput.getExpanded;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
@@ -42,6 +47,10 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_O
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
+import static org.eclipse.edc.policy.model.PolicyType.CONTRACT;
+import static org.eclipse.edc.policy.model.PolicyType.OFFER;
+import static org.eclipse.edc.policy.model.PolicyType.SET;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -56,9 +65,7 @@ class JsonObjectToPolicyTransformerTest {
     private static final String TARGET = "target";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final TransformerContext context = mock(TransformerContext.class);
-
-
+    private final TransformerContext context = mock();
     private final Permission permission = Permission.Builder.newInstance().build();
     private final Prohibition prohibition = Prohibition.Builder.newInstance().build();
     private final Duty duty = Duty.Builder.newInstance().build();
@@ -120,20 +127,17 @@ class JsonObjectToPolicyTransformerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            ODRL_POLICY_TYPE_SET,
-            ODRL_POLICY_TYPE_OFFER,
-            ODRL_POLICY_TYPE_AGREEMENT
-    })
-    void transform_differentPolicyTypes_returnPolicy(String type) {
+    @ArgumentsSource(PolicyTypeArguments.class)
+    void transform_differentPolicyTypes_returnPolicy(String type, PolicyType policyType) {
         var policy = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.CONTEXT, JsonObject.EMPTY_JSON_OBJECT)
+                .add(CONTEXT, JsonObject.EMPTY_JSON_OBJECT)
                 .add(TYPE, type)
                 .build();
 
         var result = transformer.transform(getExpanded(policy), context);
 
         assertThat(result).isNotNull();
+        assertThat(result.getType()).isEqualTo(policyType);
         verify(context, never()).reportProblem(anyString());
     }
 
@@ -142,10 +146,24 @@ class JsonObjectToPolicyTransformerTest {
         var policy = jsonFactory.createObjectBuilder()
                 .add(TYPE, "not-a-policy")
                 .build();
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
 
-        transformer.transform(getExpanded(policy), context);
+        var result = transformer.transform(getExpanded(policy), context);
 
-        verify(context, never()).reportProblem(anyString());
+        assertThat(result).isNull();
+        verify(context).reportProblem(anyString());
+    }
+
+    private static class PolicyTypeArguments implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) throws Exception {
+            return Stream.of(
+                    arguments(ODRL_POLICY_TYPE_SET, SET),
+                    arguments(ODRL_POLICY_TYPE_OFFER, OFFER),
+                    arguments(ODRL_POLICY_TYPE_AGREEMENT, CONTRACT)
+            );
+        }
     }
 
 

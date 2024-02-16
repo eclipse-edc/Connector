@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -64,7 +65,7 @@ class JsonObjectToPolicyDefinitionTransformerTest {
                 .add(EDC_POLICY_DEFINITION_POLICY, policyJson)
                 .build();
 
-        var result = transformer.transform(json, context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo("definitionId");
@@ -90,8 +91,8 @@ class JsonObjectToPolicyDefinitionTransformerTest {
                                         .build())
                                 .build())
                 .build();
-        var jsonObj = expand(json);
-        var result = transformer.transform(jsonObj, context);
+
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo("definitionId");
@@ -100,6 +101,23 @@ class JsonObjectToPolicyDefinitionTransformerTest {
         assertThat(result.getPrivateProperties())
                 .hasSize(1)
                 .containsEntry(EDC_NAMESPACE + "test-prop", "test-val");
+    }
+
+    @Test
+    void shouldFailWhenPolicyCannotBeTransformed() {
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
+        var policyJson = createObjectBuilder().build();
+        when(context.transform(any(), eq(Policy.class))).thenReturn(null);
+        var json = createObjectBuilder()
+                .add(ID, "definitionId")
+                .add(TYPE, EDC_POLICY_DEFINITION_TYPE)
+                .add(EDC_POLICY_DEFINITION_POLICY, policyJson)
+                .build();
+
+        var result = transformer.transform(expand(json), context);
+
+        assertThat(result).isNull();
+        verify(context).transform(policyJson, Policy.class);
     }
 
     private JsonObject expand(JsonObject jsonObject) {
