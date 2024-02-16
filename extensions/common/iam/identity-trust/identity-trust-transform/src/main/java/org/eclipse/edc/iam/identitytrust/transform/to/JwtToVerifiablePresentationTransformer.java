@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.json.JsonObject;
@@ -67,15 +68,24 @@ public class JwtToVerifiablePresentationTransformer implements TypeTransformer<S
             builder.holder(claimsSet.getIssuer());
             builder.id(claimsSet.getJWTID());
 
+            if (vpObject instanceof String) {
+                vpObject = objectMapper.readValue(vpObject.toString(), Map.class);
+            }
+
             if (vpObject instanceof Map map) {
-                builder.types((List<String>) map.get("type"));
+                var type = map.get("type");
+                if (type instanceof String) {
+                    builder.types(List.of(type.toString()));
+                } else {
+                    builder.types((List<String>) type);
+                }
 
                 var credentialObject = map.get("verifiableCredential");
                 builder.credentials(extractCredentials(credentialObject, context));
                 return builder.build();
             }
 
-        } catch (ParseException e) {
+        } catch (ParseException | JsonProcessingException e) {
             monitor.warning("Error parsing JWT", e);
             context.reportProblem("Error parsing JWT: %s".formatted(e.getMessage()));
         }

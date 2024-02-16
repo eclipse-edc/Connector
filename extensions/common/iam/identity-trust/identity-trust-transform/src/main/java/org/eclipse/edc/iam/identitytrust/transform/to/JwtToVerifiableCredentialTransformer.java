@@ -88,7 +88,7 @@ public class JwtToVerifiableCredentialTransformer implements TypeTransformer<Str
 
     private void getIssuanceDate(Map vcObject, VerifiableCredential.Builder builder, JWTClaimsSet fallback) {
         builder.issuanceDate(ofNullable(vcObject.get(ISSUANCE_DATE_PROPERTY))
-                .map(o -> Instant.parse(o.toString()))
+                .map(this::toInstant)
                 .orElseGet(() -> fallback.getIssueTime().toInstant()));
     }
 
@@ -97,7 +97,7 @@ public class JwtToVerifiableCredentialTransformer implements TypeTransformer<Str
      */
     private void getExpirationDate(Map vcObject, VerifiableCredential.Builder builder, JWTClaimsSet fallback) {
         builder.expirationDate(ofNullable(vcObject.get(EXPIRATION_DATE_PROPERTY))
-                .map(o -> Instant.parse(o.toString()))
+                .map(this::toInstant)
                 .orElseGet(() -> ofNullable(fallback.getExpirationTime()).map(Date::toInstant).orElse(null)));
     }
 
@@ -115,5 +115,14 @@ public class JwtToVerifiableCredentialTransformer implements TypeTransformer<Str
         var bldr = CredentialSubject.Builder.newInstance();
         subject.entrySet().forEach(e -> bldr.claim(e.getKey(), e.getValue()));
         return bldr.build();
+    }
+
+    private Instant toInstant(Object stringOrMap) {
+        var str = stringOrMap.toString();
+
+        if (stringOrMap instanceof Map) {
+            str = ((Map) stringOrMap).get("value").toString();
+        }
+        return Instant.parse(str);
     }
 }
