@@ -76,7 +76,6 @@ class JsonObjectToPermissionTransformerTest {
         assertThat(result.getConstraints().get(0)).isEqualTo(constraint);
         assertThat(result.getDuties()).hasSize(1);
         assertThat(result.getDuties().get(0)).isEqualTo(duty);
-        assertThat(result.getTarget()).isEqualTo(TARGET);
 
         verify(context, never()).reportProblem(anyString());
         verify(context, times(1)).transform(isA(JsonObject.class), eq(Action.class));

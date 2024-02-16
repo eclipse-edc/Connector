@@ -88,7 +88,6 @@ public class TestFunctions {
     public static Policy createPolicy() {
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
-                        .target("")
                         .action(Action.Builder.newInstance()
                                 .type("USE")
                                 .build())

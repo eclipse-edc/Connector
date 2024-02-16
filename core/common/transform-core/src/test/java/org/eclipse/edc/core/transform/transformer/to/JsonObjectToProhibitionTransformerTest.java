@@ -69,7 +69,6 @@ class JsonObjectToProhibitionTransformerTest {
         assertThat(result.getAction()).isEqualTo(action);
         assertThat(result.getConstraints()).hasSize(1);
         assertThat(result.getConstraints().get(0)).isEqualTo(constraint);
-        assertThat(result.getTarget()).isEqualTo(TARGET);
 
         verify(context, never()).reportProblem(anyString());
         verify(context, times(1)).transform(isA(JsonObject.class), eq(Action.class));

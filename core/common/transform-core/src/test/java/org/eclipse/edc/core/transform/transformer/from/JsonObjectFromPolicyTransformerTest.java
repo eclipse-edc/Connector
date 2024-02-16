@@ -239,7 +239,6 @@ class JsonObjectFromPolicyTransformerTest {
         var action = getAction();
         var consequence = Duty.Builder.newInstance().action(action).build();
         var duty = Duty.Builder.newInstance()
-                .target("target")
                 .action(action)
                 .constraint(constraint)
                 .consequence(consequence)
@@ -249,7 +248,6 @@ class JsonObjectFromPolicyTransformerTest {
         var result = transformer.transform(policy, context);
         
         var dutyJson = result.get(ODRL_OBLIGATION_ATTRIBUTE).asJsonArray().get(0).asJsonObject();
-        assertThat(dutyJson.getString(ODRL_TARGET_ATTRIBUTE)).isEqualTo("target");
         assertThat(dutyJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE)).hasSize(1);
         
         var constraintJson = dutyJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0).asJsonObject();

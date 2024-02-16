@@ -50,8 +50,6 @@ public class JsonObjectToPermissionTransformer extends AbstractJsonLdTransformer
                     return value -> builder.constraints(transformArray(value, Constraint.class, context));
                 case ODRL_DUTY_ATTRIBUTE:
                     return value -> builder.duties(transformArray(value, Duty.class, context));
-                case ODRL_TARGET_ATTRIBUTE:
-                    return value -> builder.target(transformString(value, context));
                 default:
                     return doNothing();
             }
