@@ -54,6 +54,10 @@ public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver implemen
 
     @Override
     protected Result<String> resolveInternal(String id) {
+        if (id == null) {
+            return Result.failure("The provided DID is null");
+        }
+
         var matcher = PATTERN_DID_WITH_OPTIONAL_FRAGMENT.matcher(id);
         if (!matcher.matches()) {
             throw new IllegalArgumentException("The given ID must conform to 'did:method:identifier[:fragment]' but did not"); //todo: use Result?

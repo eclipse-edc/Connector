@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
-import com.nimbusds.jwt.JWTClaimNames;
 import jakarta.json.Json;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
@@ -37,7 +36,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -49,6 +47,7 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.AccessTokenNotNullRule;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.HasSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerEqualsSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.JtiValidationRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.SubJwkIsNullRule;
@@ -58,9 +57,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.JWT_VC_TOKEN_CONTEXT;
 
 @Extension("Identity And Trust Extension")
 public class IdentityAndTrustExtension implements ServiceExtension {
@@ -125,12 +124,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new AccessTokenNotNullRule());
 
         // add all rules for validating VerifiableCredential JWTs
-        rulesRegistry.addRule("iatp-vc", (toVerify, additional) -> Optional.ofNullable(toVerify.getStringClaim(JWTClaimNames.SUBJECT)).map(s ->
-                Result.success()).orElseGet(() -> Result.failure("Token could not be verified: Claim verification failed. JWT missing required claims: [sub]")).mapTo());
-
-        rulesRegistry.addRule("iatp-vp", (toVerify, additional) -> Optional.ofNullable(toVerify.getStringClaim(JWTClaimNames.SUBJECT)).map(s ->
-                Result.success()).orElseGet(() -> Result.failure("Token could not be verified: Claim verification failed. JWT missing required claims: [sub]")).mapTo());
-
+        rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new HasSubjectRule());
 
         // TODO move in a separated extension?
         signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new JwsSignature2020Suite(typeManager.getMapper(JSON_LD)));

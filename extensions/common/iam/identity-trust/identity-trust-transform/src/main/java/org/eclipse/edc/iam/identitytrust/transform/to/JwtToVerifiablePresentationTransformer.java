@@ -23,44 +23,33 @@ import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @SuppressWarnings("unchecked")
-public class JwtToVerifiablePresentationTransformer implements TypeTransformer<String, VerifiablePresentation> {
+public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransformer<VerifiablePresentation> {
+
+    private static final String VERIFIABLE_CREDENTIAL_PROPERTY = "verifiableCredential";
     private static final String VP_CLAIM = "vp";
+
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final JsonLd jsonLd;
 
     public JwtToVerifiablePresentationTransformer(Monitor monitor, ObjectMapper objectMapper, JsonLd jsonLd) {
+        super(VerifiablePresentation.class);
         this.monitor = monitor;
         this.objectMapper = objectMapper;
         this.jsonLd = jsonLd;
     }
 
     @Override
-    public Class<String> getInputType() {
-        return String.class;
-    }
-
-    @Override
-    public Class<VerifiablePresentation> getOutputType() {
-        return VerifiablePresentation.class;
-    }
-
-    @Override
     public @Nullable VerifiablePresentation transform(@NotNull String jsonWebToken, @NotNull TransformerContext context) {
-
-        var builder = VerifiablePresentation.Builder.newInstance();
         try {
+            var builder = VerifiablePresentation.Builder.newInstance();
             var signedJwt = SignedJWT.parse(jsonWebToken);
             var claimsSet = signedJwt.getJWTClaimsSet();
 
@@ -72,19 +61,15 @@ public class JwtToVerifiablePresentationTransformer implements TypeTransformer<S
                 vpObject = objectMapper.readValue(vpObject.toString(), Map.class);
             }
 
-            if (vpObject instanceof Map map) {
-                var type = map.get("type");
-                if (type instanceof String) {
-                    builder.types(List.of(type.toString()));
-                } else {
-                    builder.types((List<String>) type);
-                }
+            if (vpObject instanceof Map vp) {
+                // types
+                listOrReturn(vp.get(TYPE_PROPERTY), Object::toString).forEach(builder::type);
 
-                var credentialObject = map.get("verifiableCredential");
-                builder.credentials(extractCredentials(credentialObject, context));
+                // verifiable credentials
+                listOrReturn(vp.get(VERIFIABLE_CREDENTIAL_PROPERTY), o -> extractCredentials(o, context)).forEach(builder::credential);
+
                 return builder.build();
             }
-
         } catch (ParseException | JsonProcessingException e) {
             monitor.warning("Error parsing JWT", e);
             context.reportProblem("Error parsing JWT: %s".formatted(e.getMessage()));
@@ -93,27 +78,19 @@ public class JwtToVerifiablePresentationTransformer implements TypeTransformer<S
         return null;
     }
 
-    private List<VerifiableCredential> extractCredentials(Object credentialsObject, TransformerContext context) {
-        Collection<?> list;
-        if (credentialsObject instanceof Collection<?>) {
-            list = (Collection<?>) credentialsObject;
-        } else {
-            list = List.of(credentialsObject);
+    @Nullable
+    private VerifiableCredential extractCredentials(Object credential, TransformerContext context) {
+        if (credential instanceof String) { // VC is JWT
+            return context.transform(credential.toString(), VerifiableCredential.class);
         }
+        // VC is LDP
+        var input = objectMapper.convertValue(credential, JsonObject.class);
+        var expansion = jsonLd.expand(input);
+        if (expansion.succeeded()) {
+            return context.transform(expansion.getContent(), VerifiableCredential.class);
+        }
+        context.reportProblem("Error expanding embedded VC: %s".formatted(expansion.getFailureDetail()));
+        return null;
 
-        return list.stream().map(obj -> {
-            if (obj instanceof String) { // VC is JWT
-                return context.transform(obj.toString(), VerifiableCredential.class);
-            } else { // VC is LDP
-                var input = objectMapper.convertValue(obj, JsonObject.class);
-                var expansion = jsonLd.expand(input);
-                if (expansion.succeeded()) {
-                    return context.transform(expansion.getContent(), VerifiableCredential.class);
-                }
-                context.reportProblem("Error expanding embedded VC: %s".formatted(expansion.getFailureDetail()));
-                return null;
-            }
-
-        }).filter(Objects::nonNull).toList();
     }
 }

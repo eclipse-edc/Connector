@@ -132,7 +132,6 @@ public class IdentityAndTrustService implements IdentityService {
 
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
-
         var claimTokenResult = tokenValidationAction.apply(tokenRepresentation);
 
         if (claimTokenResult.failed()) {

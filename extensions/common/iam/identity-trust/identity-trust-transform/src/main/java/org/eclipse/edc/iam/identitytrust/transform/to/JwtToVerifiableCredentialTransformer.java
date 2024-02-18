@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.identitytrust.model.CredentialStatus;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
@@ -22,41 +21,33 @@ import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
-public class JwtToVerifiableCredentialTransformer implements TypeTransformer<String, VerifiableCredential> {
-    public static final String EXPIRATION_DATE_PROPERTY = "expirationDate";
-    public static final String ISSUANCE_DATE_PROPERTY = "issuanceDate";
-    public static final String ID_PROPERTY = "id";
-    public static final String TYPE_PROPERTY = "type";
-    public static final String TYPE_CLAIM = TYPE_PROPERTY;
+public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer<VerifiableCredential> {
+
+    private static final String ID_PROPERTY = "id";
     private static final String VC_CLAIM = "vc";
-    private static final String SUBJECT_CLAIM = "credentialSubject";
+    private static final String CREDENTIAL_SUBJECT_PROPERTY = "credentialSubject";
     private static final String CREDENTIAL_STATUS_PROPERTY = "credentialStatus";
+    private static final String EXPIRATION_DATE_PROPERTY = "expirationDate";
+    private static final String ISSUANCE_DATE_PROPERTY = "issuanceDate";
+
     private final Monitor monitor;
 
+
     public JwtToVerifiableCredentialTransformer(Monitor monitor) {
+        super(VerifiableCredential.class);
         this.monitor = monitor;
-    }
-
-    @Override
-    public Class<String> getInputType() {
-        return String.class;
-    }
-
-    @Override
-    public Class<VerifiableCredential> getOutputType() {
-        return VerifiableCredential.class;
     }
 
     @Override
@@ -64,18 +55,28 @@ public class JwtToVerifiableCredentialTransformer implements TypeTransformer<Str
         try {
             var jwt = SignedJWT.parse(serializedJwt);
             var claims = jwt.getJWTClaimsSet();
-            var builder = VerifiableCredential.Builder.newInstance();
 
             var vcObject = claims.getClaim(VC_CLAIM);
-            if (vcObject instanceof Map vc) {
-                builder.types((List<String>) vc.get(TYPE_CLAIM));
-                builder.credentialSubject(extractSubject((Map<String, ?>) vc.get(SUBJECT_CLAIM)));
 
-                getExpirationDate(vc, builder, claims);
-                getIssuanceDate(vc, builder, claims);
+            if (vcObject instanceof Map vc) {
+                var builder = VerifiableCredential.Builder.newInstance();
+
+                // types
+                listOrReturn(vc.get(TYPE_PROPERTY), Object::toString).forEach(builder::type);
+
+                // credential subjects
+                listOrReturn(vc.get(CREDENTIAL_SUBJECT_PROPERTY), o -> extractSubject((Map<String, ?>) o, claims.getSubject())).forEach(builder::credentialSubject);
+
+                // credential status
+                listOrReturn(vc.get(CREDENTIAL_STATUS_PROPERTY), o -> extractStatus((Map<String, Object>) o)).forEach(builder::credentialStatus);
+
+                // expiration date
+                extractDate(vc.get(EXPIRATION_DATE_PROPERTY), claims.getExpirationTime()).ifPresent(builder::expirationDate);
+
+                // issuance date
+                extractDate(vc.get(ISSUANCE_DATE_PROPERTY), claims.getExpirationTime()).ifPresent(builder::issuanceDate);
 
                 builder.issuer(new Issuer(claims.getIssuer(), Map.of()));
-                builder.credentialStatus(extractStatus((Map<String, Object>) vc.get(CREDENTIAL_STATUS_PROPERTY)));
                 builder.name(claims.getSubject()); // todo: is this correct?
                 return builder.build();
             }
@@ -86,19 +87,10 @@ public class JwtToVerifiableCredentialTransformer implements TypeTransformer<Str
         return null;
     }
 
-    private void getIssuanceDate(Map vcObject, VerifiableCredential.Builder builder, JWTClaimsSet fallback) {
-        builder.issuanceDate(ofNullable(vcObject.get(ISSUANCE_DATE_PROPERTY))
+    private Optional<Instant> extractDate(@Nullable Object dateObject, Date fallback) {
+        return ofNullable(dateObject)
                 .map(this::toInstant)
-                .orElseGet(() -> fallback.getIssueTime().toInstant()));
-    }
-
-    /**
-     * Expiration date is entirely optional, take it either from the VC or from the JWT
-     */
-    private void getExpirationDate(Map vcObject, VerifiableCredential.Builder builder, JWTClaimsSet fallback) {
-        builder.expirationDate(ofNullable(vcObject.get(EXPIRATION_DATE_PROPERTY))
-                .map(this::toInstant)
-                .orElseGet(() -> ofNullable(fallback.getExpirationTime()).map(Date::toInstant).orElse(null)));
+                .or(() -> ofNullable(fallback).map(Date::toInstant));
     }
 
     private CredentialStatus extractStatus(Map<String, Object> status) {
@@ -111,18 +103,11 @@ public class JwtToVerifiableCredentialTransformer implements TypeTransformer<Str
         return new CredentialStatus(id, type, status);
     }
 
-    private CredentialSubject extractSubject(Map<String, ?> subject) {
-        var bldr = CredentialSubject.Builder.newInstance();
-        subject.entrySet().forEach(e -> bldr.claim(e.getKey(), e.getValue()));
-        return bldr.build();
-    }
-
-    private Instant toInstant(Object stringOrMap) {
-        var str = stringOrMap.toString();
-
-        if (stringOrMap instanceof Map) {
-            str = ((Map) stringOrMap).get("value").toString();
-        }
-        return Instant.parse(str);
+    private CredentialSubject extractSubject(Map<String, ?> subject, String fallback) {
+        var builder = CredentialSubject.Builder.newInstance();
+        var id = Objects.requireNonNullElse(subject.remove(ID_PROPERTY), fallback);
+        builder.id(id.toString());
+        subject.forEach(builder::claim);
+        return builder.build();
     }
 }

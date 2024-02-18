@@ -18,15 +18,14 @@ package org.eclipse.edc.identitytrust.verification;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 
 public class VerifierContext {
 
-    private Collection<CredentialVerifier> verifiers = new ArrayList<>();
+    private final List<CredentialVerifier> verifiers = new ArrayList<>();
     private String audience;
 
-    public Collection<CredentialVerifier> getVerifiers() {
+    public List<CredentialVerifier> getVerifiers() {
         return verifiers;
     }
 
@@ -41,13 +40,10 @@ public class VerifierContext {
         return audience;
     }
 
-    public VerifierContext withAudience(String audience) {
-        this.audience = audience;
-        return this;
-    }
-
     public Builder toBuilder() {
-        return new Builder(this);
+        return new Builder()
+                .verifiers(verifiers)
+                .audience(audience);
     }
 
     public static class Builder {
@@ -55,10 +51,6 @@ public class VerifierContext {
 
         private Builder() {
             context = new VerifierContext();
-        }
-
-        private Builder(VerifierContext verifierContext) {
-            this.context = verifierContext;
         }
 
         public static Builder newInstance() {
@@ -70,8 +62,8 @@ public class VerifierContext {
             return this;
         }
 
-        public Builder verifiers(CredentialVerifier... verifiers) {
-            this.context.verifiers = new ArrayList<>(Arrays.asList(verifiers));
+        public Builder verifiers(List<CredentialVerifier> verifiers) {
+            this.context.verifiers.addAll(verifiers);
             return this;
         }
 
