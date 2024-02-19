@@ -26,9 +26,7 @@ import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
@@ -51,16 +49,13 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class ContractValidationServiceImpl implements ContractValidationService {
 
-    private final ParticipantAgentService agentService;
     private final AssetIndex assetIndex;
     private final PolicyEngine policyEngine;
     private final PolicyEquality policyEquality;
 
-    public ContractValidationServiceImpl(ParticipantAgentService agentService,
-                                         AssetIndex assetIndex,
+    public ContractValidationServiceImpl(AssetIndex assetIndex,
                                          PolicyEngine policyEngine,
                                          PolicyEquality policyEquality) {
-        this.agentService = agentService;
         this.assetIndex = assetIndex;
         this.policyEngine = policyEngine;
         this.policyEquality = policyEquality;
@@ -123,34 +118,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         return success();
-    }
-
-    @Override
-    public @NotNull Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, ValidatableConsumerOffer consumerOffer) {
-        return validateInitialOffer(agentService.createFor(token), consumerOffer);
-    }
-
-    @Override
-    @NotNull
-    public Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement) {
-        return validateAgreement(agentService.createFor(token), agreement);
-    }
-
-    @Override
-    public @NotNull Result<Void> validateRequest(ClaimToken token, ContractAgreement agreement) {
-        return validateRequest(agentService.createFor(token), agreement);
-    }
-
-    @Override
-    @NotNull
-    public Result<Void> validateRequest(ClaimToken token, ContractNegotiation negotiation) {
-        return validateRequest(agentService.createFor(token), negotiation);
-    }
-
-    @Override
-    @NotNull
-    public Result<Void> validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
-        return validateConfirmed(agentService.createFor(token), agreement, latestOffer);
     }
 
     /**

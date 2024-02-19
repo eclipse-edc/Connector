@@ -40,7 +40,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -110,9 +109,6 @@ public class ContractCoreExtension implements ServiceExtension {
     private ContractNegotiationStore store;
 
     @Inject
-    private ParticipantAgentService agentService;
-
-    @Inject
     private PolicyEngine policyEngine;
 
     @Inject
@@ -180,7 +176,7 @@ public class ContractCoreExtension implements ServiceExtension {
         var participantId = context.getParticipantId();
 
         var policyEquality = new PolicyEquality(typeManager);
-        var validationService = new ContractValidationServiceImpl(agentService, assetIndex, policyEngine, policyEquality);
+        var validationService = new ContractValidationServiceImpl(assetIndex, policyEngine, policyEquality);
         context.registerService(ContractValidationService.class, validationService);
 
         // bind/register rule to evaluate contract expiry

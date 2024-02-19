@@ -32,7 +32,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMess
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
-import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -105,7 +105,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     public ServiceResult<TransferProcess> notifyStarted(TransferStartMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> fetchRequestContext(message, this::findTransferProcess)
                 .compose(context -> verifyRequest(tokenRepresentation, context))
-                .compose(context -> onMessageDo(message, context.claimToken(), context.agreement(), transferProcess -> startedAction(message, transferProcess)))
+                .compose(context -> onMessageDo(message, context.participantAgent(), context.agreement(), transferProcess -> startedAction(message, transferProcess)))
         );
     }
 
@@ -115,7 +115,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     public ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> fetchRequestContext(message, this::findTransferProcess)
                 .compose(context -> verifyRequest(tokenRepresentation, context))
-                .compose(context -> onMessageDo(message, context.claimToken(), context.agreement(), transferProcess -> completedAction(message, transferProcess)))
+                .compose(context -> onMessageDo(message, context.participantAgent(), context.agreement(), transferProcess -> completedAction(message, transferProcess)))
         );
     }
 
@@ -125,7 +125,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     public ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> fetchRequestContext(message, this::findTransferProcess)
                 .compose(context -> verifyRequest(tokenRepresentation, context))
-                .compose(context -> onMessageDo(message, context.claimToken(), context.agreement(), transferProcess -> terminatedAction(message, transferProcess)))
+                .compose(context -> onMessageDo(message, context.participantAgent(), context.agreement(), transferProcess -> terminatedAction(message, transferProcess)))
         );
     }
 
@@ -135,7 +135,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     public ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> fetchRequestContext(id, this::findTransferProcessById)
                 .compose(context -> verifyRequest(tokenRepresentation, context))
-                .compose(context -> validateCounterParty(context.claimToken(), context.agreement(), context.transferProcess())));
+                .compose(context -> validateCounterParty(context.participantAgent(), context.agreement(), context.transferProcess())));
     }
 
     @NotNull
@@ -229,7 +229,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     private ServiceResult<ClaimTokenContext> validateAgreement(TransferRemoteMessage message, ClaimTokenContext context) {
-        var validationResult = contractValidationService.validateAgreement(context.claimToken(), context.agreement());
+        var validationResult = contractValidationService.validateAgreement(context.participantAgent(), context.agreement());
         if (validationResult.failed()) {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid"));
         }
@@ -248,7 +248,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, TransferRequestMessageContext context) {
-        var result = protocolTokenValidator.verifyToken(tokenRepresentation, TRANSFER_PROCESS_REQUEST_SCOPE, context.agreement().getPolicy());
+        var result = protocolTokenValidator.verify(tokenRepresentation, TRANSFER_PROCESS_REQUEST_SCOPE, context.agreement().getPolicy());
         if (result.failed()) {
             monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
             return ServiceResult.notFound("Not found");
@@ -265,9 +265,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return ServiceResult.success(agreement);
     }
 
-    private ServiceResult<TransferProcess> onMessageDo(TransferRemoteMessage message, ClaimToken claimToken, ContractAgreement agreement, Function<TransferProcess, ServiceResult<TransferProcess>> action) {
+    private ServiceResult<TransferProcess> onMessageDo(TransferRemoteMessage message, ParticipantAgent participantAgent, ContractAgreement agreement, Function<TransferProcess, ServiceResult<TransferProcess>> action) {
         return findAndLease(message)
-                .compose(transferProcess -> validateCounterParty(claimToken, agreement, transferProcess)
+                .compose(transferProcess -> validateCounterParty(participantAgent, agreement, transferProcess)
                         .compose(p -> {
                             if (p.shouldIgnoreIncomingMessage(message.getId())) {
                                 return ServiceResult.success(p);
@@ -278,8 +278,8 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                         .onFailure(f -> breakLease(transferProcess)));
     }
 
-    private ServiceResult<TransferProcess> validateCounterParty(ClaimToken claimToken, ContractAgreement agreement, TransferProcess transferProcess) {
-        var validation = contractValidationService.validateRequest(claimToken, agreement);
+    private ServiceResult<TransferProcess> validateCounterParty(ParticipantAgent participantAgent, ContractAgreement agreement, TransferProcess transferProcess) {
+        var validation = contractValidationService.validateRequest(participantAgent, agreement);
         if (validation.failed()) {
             return ServiceResult.badRequest(validation.getFailureMessages());
         }
@@ -326,7 +326,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private record TransferRequestMessageContext(ContractAgreement agreement, TransferProcess transferProcess) {
     }
 
-    private record ClaimTokenContext(ClaimToken claimToken, ContractAgreement agreement,
+    private record ClaimTokenContext(ParticipantAgent participantAgent, ContractAgreement agreement,
                                      TransferProcess transferProcess) {
     }
 }

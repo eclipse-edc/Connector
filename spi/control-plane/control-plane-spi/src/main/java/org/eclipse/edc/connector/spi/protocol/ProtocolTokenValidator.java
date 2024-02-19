@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.spi.protocol;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 
@@ -27,18 +26,6 @@ import org.eclipse.edc.spi.result.ServiceResult;
  */
 @ExtensionPoint
 public interface ProtocolTokenValidator {
-    
-    /**
-     * Verify the {@link TokenRepresentation} in the context of a policy
-     *
-     * @param tokenRepresentation The token
-     * @param policyScope         The policy scope
-     * @param policy              The policy
-     * @return Returns the extracted {@link ClaimToken} if successful, failure otherwise
-     * @deprecated please use {@link #verify(TokenRepresentation, String, Policy)}
-     */
-    @Deprecated(since = "0.5.1")
-    ServiceResult<ClaimToken> verifyToken(TokenRepresentation tokenRepresentation, String policyScope, Policy policy);
 
     /**
      * Verify the {@link TokenRepresentation} in the context of a policy
