@@ -126,7 +126,7 @@ class TransferProcessProtocolServiceImplTest {
 
         when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
+        when(validationService.validateAgreement(any(ClaimToken.class), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
 
         var result = service.notifyRequested(message, tokenRepresentation);
@@ -157,7 +157,7 @@ class TransferProcessProtocolServiceImplTest {
 
         when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
+        when(validationService.validateAgreement(any(ClaimToken.class), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
         when(store.findForCorrelationId(any())).thenReturn(transferProcess(REQUESTED, "transferProcessId"));
 
@@ -182,7 +182,7 @@ class TransferProcessProtocolServiceImplTest {
 
         when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(Result.failure("error"));
+        when(validationService.validateAgreement(any(ClaimToken.class), any())).thenReturn(Result.failure("error"));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
 
         var result = service.notifyRequested(message, tokenRepresentation);
@@ -229,7 +229,7 @@ class TransferProcessProtocolServiceImplTest {
 
         when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
+        when(validationService.validateAgreement(any(ClaimToken.class), any())).thenReturn(Result.success(null));
 
         var result = service.notifyRequested(message, tokenRepresentation);
 
@@ -699,8 +699,8 @@ class TransferProcessProtocolServiceImplTest {
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-            when(validationService.validateAgreement(any(), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
-            when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
+            when(validationService.validateAgreement(any(ClaimToken.class), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
+            when(validationService.validateRequest(any(ClaimToken.class), isA(ContractAgreement.class))).thenReturn(Result.success());
 
             var result = methodCall.call(service, message, tokenRepresentation());
 
@@ -722,8 +722,8 @@ class TransferProcessProtocolServiceImplTest {
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-            when(validationService.validateAgreement(any(), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
-            when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
+            when(validationService.validateAgreement(any(ClaimToken.class), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
+            when(validationService.validateRequest(any(ClaimToken.class), isA(ContractAgreement.class))).thenReturn(Result.success());
 
             var result = methodCall.call(service, message, tokenRepresentation());
 
@@ -741,8 +741,8 @@ class TransferProcessProtocolServiceImplTest {
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-            when(validationService.validateAgreement(any(), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
-            when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
+            when(validationService.validateAgreement(any(ClaimToken.class), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
+            when(validationService.validateRequest(any(ClaimToken.class), isA(ContractAgreement.class))).thenReturn(Result.success());
 
             var result = methodCall.call(service, message, tokenRepresentation());
 

@@ -43,7 +43,7 @@ import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
@@ -72,6 +72,7 @@ import org.mockito.stubbing.Answer;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -118,7 +119,7 @@ class ContractNegotiationIntegrationTest {
     private final RemoteMessageDispatcherRegistry consumerDispatcherRegistry = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
     private final ProtocolWebhook protocolWebhook = () -> "http://dummy";
-    protected ClaimToken token = ClaimToken.Builder.newInstance().build();
+    protected ParticipantAgent participantAgent = new ParticipantAgent(Collections.emptyMap(), Collections.emptyMap());
     protected TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
     private String consumerNegotiationId;
 
@@ -152,7 +153,7 @@ class ContractNegotiationIntegrationTest {
                 .protocolWebhook(protocolWebhook)
                 .build();
 
-        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(token));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(participantAgent));
         consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, offerResolver, protocolTokenValidator, new ContractNegotiationObservableImpl(), monitor, mock());
         providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, offerResolver, protocolTokenValidator, new ContractNegotiationObservableImpl(), monitor, mock());
     }
@@ -175,9 +176,9 @@ class ContractNegotiationIntegrationTest {
 
         when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
         when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
-        when(validationService.validateInitialOffer(token, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
-        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
-        when(validationService.validateRequest(eq(token), any(ContractNegotiation.class))).thenReturn(Result.success());
+        when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
+        when(validationService.validateConfirmed(eq(participantAgent), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
+        when(validationService.validateRequest(eq(participantAgent), any(ContractNegotiation.class))).thenReturn(Result.success());
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -213,8 +214,8 @@ class ContractNegotiationIntegrationTest {
             assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
             assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
-            verify(validationService, atLeastOnce()).validateInitialOffer(token, validatableOffer);
-            verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+            verify(validationService, atLeastOnce()).validateInitialOffer(participantAgent, validatableOffer);
+            verify(validationService, atLeastOnce()).validateConfirmed(eq(participantAgent), any(ContractAgreement.class), any(ContractOffer.class));
         });
     }
 
@@ -228,7 +229,7 @@ class ContractNegotiationIntegrationTest {
 
         when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
         when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
-        when(validationService.validateInitialOffer(token, validatableOffer)).thenReturn(Result.failure("must be declined"));
+        when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.failure("must be declined"));
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -246,7 +247,7 @@ class ContractNegotiationIntegrationTest {
 
         await().atMost(DEFAULT_TEST_TIMEOUT)
                 .pollInterval(DEFAULT_POLL_INTERVAL)
-                .untilAsserted(() -> verify(validationService, atLeastOnce()).validateInitialOffer(token, validatableOffer));
+                .untilAsserted(() -> verify(validationService, atLeastOnce()).validateInitialOffer(participantAgent, validatableOffer));
     }
 
     @Test
@@ -260,8 +261,8 @@ class ContractNegotiationIntegrationTest {
 
         when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
         when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
-        when(validationService.validateInitialOffer(token, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
-        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.failure("error"));
+        when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
+        when(validationService.validateConfirmed(eq(participantAgent), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.failure("error"));
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -298,8 +299,8 @@ class ContractNegotiationIntegrationTest {
             assertThat(consumerNegotiation.getContractAgreement()).isNull();
             assertThat(providerNegotiation.getContractAgreement()).isNull();
 
-            verify(validationService, atLeastOnce()).validateInitialOffer(token, validatableOffer);
-            verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+            verify(validationService, atLeastOnce()).validateInitialOffer(participantAgent, validatableOffer);
+            verify(validationService, atLeastOnce()).validateConfirmed(eq(participantAgent), any(ContractAgreement.class), any(ContractOffer.class));
         });
     }
 

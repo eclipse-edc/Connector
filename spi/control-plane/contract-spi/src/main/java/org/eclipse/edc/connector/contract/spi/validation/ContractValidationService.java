@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.contract.spi.validation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
@@ -36,15 +37,68 @@ public interface ContractValidationService {
     @PolicyScope
     String TRANSFER_SCOPE = "transfer.process";
 
-    
+    /**
+     * Validates the contract offer for the consumer represented by the given claims.
+     *
+     * @param agent         The {@link ParticipantAgent} of the consumer
+     * @param consumerOffer The initial {@link ValidatableConsumerOffer} id to validate
+     * @return The referenced {@link ValidatedConsumerOffer}.
+     */
+    @NotNull
+    Result<ValidatedConsumerOffer> validateInitialOffer(ParticipantAgent agent, ValidatableConsumerOffer consumerOffer);
+
+    /**
+     * Validates the contract agreement that the consumer referenced in its transfer request.
+     * The {@code ParticipantAgent} must represent the counter-party that is referenced in the contract agreement.
+     *
+     * @param agent     The {@link ParticipantAgent} of the consumer
+     * @param agreement The {@link ContractAgreement} between consumer and provider to validate
+     * @return The result of the validation
+     */
+    @NotNull
+    Result<ContractAgreement> validateAgreement(ParticipantAgent agent, ContractAgreement agreement);
+
+    /**
+     * Validates the request for a contract agreement. Verifies that the requesting party is involved
+     * in the contract agreement, but does not perform policy evaluation.
+     *
+     * @param agent     The {@link ParticipantAgent} of the counter-party
+     * @param agreement The agreement
+     * @return The result of the validation
+     */
+    @NotNull
+    Result<Void> validateRequest(ParticipantAgent agent, ContractAgreement agreement);
+
+    /**
+     * Validates the request for a contract negotiation.
+     *
+     * @param agent       The {@link ParticipantAgent} of the consumer
+     * @param negotiation The negotiation
+     * @return The result of the validation
+     */
+    @NotNull
+    Result<Void> validateRequest(ParticipantAgent agent, ContractNegotiation negotiation);
+
+    /**
+     * When the negotiation has been confirmed by the provider, the consumer must validate it ensuring that it is the same that was sent in the last offer.
+     *
+     * @param agent       The {@link ParticipantAgent} the provider agent
+     * @param agreement   The {@link ContractAgreement} between consumer and provider
+     * @param latestOffer The last {@link ContractOffer}
+     */
+    @NotNull
+    Result<Void> validateConfirmed(ParticipantAgent agent, ContractAgreement agreement, ContractOffer latestOffer);
+
     /**
      * Validates the contract offer for the consumer represented by the given claims.
      *
      * @param token         The {@link ClaimToken} of the consumer
      * @param consumerOffer The initial {@link ValidatableConsumerOffer} id to validate
      * @return The referenced {@link ValidatedConsumerOffer}.
+     * @deprecated please use the same method that accepts {@link ParticipantAgent}
      */
     @NotNull
+    @Deprecated(since = "0.5.1")
     Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, ValidatableConsumerOffer consumerOffer);
 
     /**
@@ -54,8 +108,10 @@ public interface ContractValidationService {
      * @param token     The {@link ClaimToken} of the consumer
      * @param agreement The {@link ContractAgreement} between consumer and provider to validate
      * @return The result of the validation
+     * @deprecated please use the same method that accepts {@link ParticipantAgent}
      */
     @NotNull
+    @Deprecated(since = "0.5.1")
     Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement);
 
     /**
@@ -65,8 +121,10 @@ public interface ContractValidationService {
      * @param token     The {@link ClaimToken} of the counter-party
      * @param agreement The agreement
      * @return The result of the validation
+     * @deprecated please use the same method that accepts {@link ParticipantAgent}
      */
     @NotNull
+    @Deprecated(since = "0.5.1")
     Result<Void> validateRequest(ClaimToken token, ContractAgreement agreement);
 
     /**
@@ -75,8 +133,10 @@ public interface ContractValidationService {
      * @param token       The {@link ClaimToken} of the consumer
      * @param negotiation The negotiation
      * @return The result of the validation
+     * @deprecated please use the same method that accepts {@link ParticipantAgent}
      */
     @NotNull
+    @Deprecated(since = "0.5.1")
     Result<Void> validateRequest(ClaimToken token, ContractNegotiation negotiation);
 
     /**
@@ -85,8 +145,10 @@ public interface ContractValidationService {
      * @param token       The {@link ClaimToken} the provider token
      * @param agreement   The {@link ContractAgreement} between consumer and provider
      * @param latestOffer The last {@link ContractOffer}
+     * @deprecated please use the same method that accepts {@link ParticipantAgent}
      */
     @NotNull
+    @Deprecated(since = "0.5.1")
     Result<Void> validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer);
 
 }

@@ -75,7 +75,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processOffering(ContractNegotiation negotiation) {
-        var messageBuilder = ContractOfferMessage.Builder.newInstance().contractOffer(negotiation.getLastContractOffer());
+        var messageBuilder = ContractOfferMessage.Builder.newInstance()
+                .contractOffer(negotiation.getLastContractOffer())
+                .callbackAddress(protocolWebhook.url());
 
         return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
                 .onSuccessResult(this::transitionToOffered)

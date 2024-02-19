@@ -235,7 +235,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionOffered() {
         if (CONSUMER == type) {
-            transition(OFFERED, OFFERED, REQUESTED);
+            transition(OFFERED, OFFERED, REQUESTED, INITIAL);
         } else {
             transition(OFFERED, OFFERED, OFFERING);
         }
@@ -521,9 +521,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
             Objects.requireNonNull(entity.counterPartyId);
             Objects.requireNonNull(entity.counterPartyAddress);
             Objects.requireNonNull(entity.protocol);
-            if (Type.PROVIDER == entity.type) {
-                Objects.requireNonNull(entity.correlationId);
-            }
+
             if (entity.state == 0) {
                 entity.transitionTo(INITIAL.code());
             }

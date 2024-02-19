@@ -96,6 +96,7 @@ class JsonObjectFromContractOfferMessageTransformerTest {
     @Test
     void transform_shouldReportProblem_whenPolicyTransformationFails() {
         var message = ContractOfferMessage.Builder.newInstance()
+                .callbackAddress("callbackAddress")
                 .id(MESSAGE_ID)
                 .processId("processId")
                 .providerPid("providerPid")

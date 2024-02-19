@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -94,6 +95,7 @@ class ProviderContractNegotiationManagerImplTest {
     private final PolicyDefinitionStore policyStore = mock();
     private final ContractNegotiationListener listener = mock();
     private final ContractNegotiationPendingGuard pendingGuard = mock();
+    private final ProtocolWebhook protocolWebhook = mock();
     private ProviderContractNegotiationManagerImpl manager;
 
     @BeforeEach
@@ -109,6 +111,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .policyStore(policyStore)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .pendingGuard(pendingGuard)
+                .protocolWebhook(protocolWebhook)
                 .build();
     }
 
@@ -119,6 +122,7 @@ class ProviderContractNegotiationManagerImplTest {
         var ack = ContractNegotiationAck.Builder.newInstance().consumerPid("consumerPid").build();
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
+        when(protocolWebhook.url()).thenReturn("http://callback.address");
 
         manager.start();
 
@@ -128,7 +132,10 @@ class ProviderContractNegotiationManagerImplTest {
             var storedNegotiation = captor.getValue();
             assertThat(storedNegotiation.getState()).isEqualTo(OFFERED.code());
             assertThat(storedNegotiation.getCorrelationId()).isEqualTo("consumerPid");
-            verify(dispatcherRegistry, only()).dispatch(any(), isA(ContractOfferMessage.class));
+            var messageCaptor = ArgumentCaptor.forClass(ContractOfferMessage.class);
+            verify(dispatcherRegistry, only()).dispatch(any(), messageCaptor.capture());
+            var message = messageCaptor.getValue();
+            assertThat(message.getCallbackAddress()).isEqualTo("http://callback.address");
             verify(listener).offered(any());
         });
     }
@@ -258,6 +265,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(starting.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
+        when(protocolWebhook.url()).thenReturn("http://callback.address");
 
         manager.start();
 

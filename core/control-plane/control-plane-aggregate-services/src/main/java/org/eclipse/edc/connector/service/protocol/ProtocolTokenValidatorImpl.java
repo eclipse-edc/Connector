@@ -18,6 +18,8 @@ import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
+import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.RequestScope;
@@ -35,13 +37,16 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
     private final IdentityService identityService;
 
     private final PolicyEngine policyEngine;
+    private final ParticipantAgentService agentService;
 
     private final Monitor monitor;
 
-    public ProtocolTokenValidatorImpl(IdentityService identityService, PolicyEngine policyEngine, Monitor monitor) {
+    public ProtocolTokenValidatorImpl(IdentityService identityService, PolicyEngine policyEngine, Monitor monitor,
+                                      ParticipantAgentService agentService) {
         this.identityService = identityService;
         this.monitor = monitor;
         this.policyEngine = policyEngine;
+        this.agentService = agentService;
     }
 
     /**
@@ -54,17 +59,26 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
      */
     @Override
     public ServiceResult<ClaimToken> verifyToken(TokenRepresentation tokenRepresentation, String policyScope, Policy policy) {
-        return verifyToken(tokenRepresentation, createVerificationContext(policyScope, policy));
-    }
-
-    protected ServiceResult<ClaimToken> verifyToken(TokenRepresentation tokenRepresentation, VerificationContext verificationContext) {
-        var result = identityService.verifyJwtToken(tokenRepresentation, verificationContext);
+        var result = identityService.verifyJwtToken(tokenRepresentation, createVerificationContext(policyScope, policy));
 
         if (result.failed()) {
             monitor.debug(() -> "Unauthorized: %s".formatted(result.getFailureDetail()));
             return ServiceResult.unauthorized("Unauthorized");
         }
         return ServiceResult.success(result.getContent());
+    }
+
+    @Override
+    public ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, String policyScope, Policy policy) {
+        var tokenValidation = identityService.verifyJwtToken(tokenRepresentation, createVerificationContext(policyScope, policy));
+        if (tokenValidation.failed()) {
+            monitor.debug(() -> "Unauthorized: %s".formatted(tokenValidation.getFailureDetail()));
+            return ServiceResult.unauthorized("Unauthorized");
+        }
+
+        var claimToken = tokenValidation.getContent();
+        var participantAgent = agentService.createFor(claimToken);
+        return ServiceResult.success(participantAgent);
     }
 
     private VerificationContext createVerificationContext(String scope, Policy policy) {
