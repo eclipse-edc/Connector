@@ -34,7 +34,7 @@ public class DataPlaneKafkaExtension implements ServiceExtension {
 
     private static final int DEFAULT_PARTITION_SIZE = 5;
 
-    @Setting(value="The partitionSize used by the KafkaDataSink", type="int", defaultValue="5", min=1)
+    @Setting(value = "The partitionSize used by the kafka data sink", type = "int", defaultValue = "5", min = 1)
     private static final String EDC_DATAPLANE_KAFKA_SINK_PARTITION_SIZE = "edc.dataplane.kafka.sink.partition.size";
 
     @Inject
