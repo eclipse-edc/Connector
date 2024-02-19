@@ -16,10 +16,8 @@ package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import org.eclipse.edc.transform.spi.TypeTransformer;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -29,9 +27,7 @@ abstract class AbstractJwtTransformer<OUTPUT> implements TypeTransformer<String,
 
 
     protected static final String TYPE_PROPERTY = "type";
-
-
-    private static final String VALUE_PROPERTY = "value";
+    
 
     private final Class<OUTPUT> output;
 
@@ -67,15 +63,4 @@ abstract class AbstractJwtTransformer<OUTPUT> implements TypeTransformer<String,
         return List.of(mapping.apply(o));
     }
 
-    /**
-     * Convert the provided object into an {@link Instant}.
-     * Handle the case where the instance if provided as a map.
-     */
-    protected Instant toInstant(Object o) {
-        var str = o.toString();
-        if (o instanceof Map) {
-            str = ((Map) o).get(VALUE_PROPERTY).toString();
-        }
-        return Instant.parse(str);
-    }
 }

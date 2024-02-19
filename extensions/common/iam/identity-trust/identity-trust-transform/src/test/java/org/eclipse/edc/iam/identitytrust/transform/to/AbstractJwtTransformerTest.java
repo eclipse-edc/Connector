@@ -20,9 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -67,22 +65,4 @@ class AbstractJwtTransformerTest {
                 .contains(2);
     }
 
-    @Test
-    void toInstant_string() {
-        Object obj = Instant.now();
-
-        var result = transformer.toInstant(obj.toString());
-
-        assertThat(result).isEqualTo(obj);
-    }
-
-    @Test
-    void toInstant_map() {
-        var now = Instant.now();
-        var obj = Map.of("value", now.toString());
-
-        var result = transformer.toInstant(obj);
-
-        assertThat(result).isEqualTo(now);
-    }
 }

@@ -89,7 +89,8 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
 
     private Optional<Instant> extractDate(@Nullable Object dateObject, Date fallback) {
         return ofNullable(dateObject)
-                .map(this::toInstant)
+                .map(Object::toString)
+                .map(Instant::parse)
                 .or(() -> ofNullable(fallback).map(Date::toInstant));
     }
 
