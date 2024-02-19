@@ -30,6 +30,7 @@ import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -118,7 +119,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                                      ContractNegotiationStore negotiationStore,
                                      AssetIndex assetIndex,
                                      TransferProcessStore store, PolicyDefinitionStore policyStore) throws Exception {
-        when(contractValidationService.validateAgreement(any(ClaimToken.class), any())).thenReturn(Result.success(null));
+        when(contractValidationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
         negotiationStore.save(createContractNegotiation());
         policyStore.create(createPolicyDefinition());
         assetIndex.create(createAssetEntry());

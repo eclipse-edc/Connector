@@ -28,9 +28,7 @@ import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -77,10 +75,9 @@ class ContractValidationServiceImplTest {
     private final AssetIndex assetIndex = mock();
     private final PolicyEngine policyEngine = mock();
     private final PolicyEquality policyEquality = mock();
-    private final ParticipantAgentService agentService = mock();
 
     private final ContractValidationService validationService =
-            new ContractValidationServiceImpl(agentService, assetIndex, policyEngine, policyEquality);
+            new ContractValidationServiceImpl(assetIndex, policyEngine, policyEquality);
 
     private static ContractDefinition.Builder createContractDefinitionBuilder() {
         return ContractDefinition.Builder.newInstance()
@@ -343,15 +340,13 @@ class ContractValidationServiceImplTest {
 
         var validatableOffer = createValidatableConsumerOffer();
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
-        var claimToken = ClaimToken.Builder.newInstance().build();
 
-        when(agentService.createFor(eq(claimToken))).thenReturn(participantAgent);
         when(policyEngine.evaluate(eq(CATALOGING_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.failure("evaluation failure"));
         when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
         when(assetIndex.countAssets(anyList())).thenReturn(1L);
 
-        var result = validationService.validateInitialOffer(claimToken, validatableOffer);
+        var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
 
         assertThat(result).isFailed().detail()
                 .startsWith("Policy in scope %s not fulfilled for offer %s, policy evaluation".formatted(NEGOTIATION_SCOPE, validatableOffer.getOfferId().toString()))

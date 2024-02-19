@@ -20,7 +20,6 @@ import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -35,7 +34,6 @@ import org.eclipse.edc.spi.result.ServiceResult;
 public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
 
     private final IdentityService identityService;
-
     private final PolicyEngine policyEngine;
     private final ParticipantAgentService agentService;
 
@@ -47,25 +45,6 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
         this.monitor = monitor;
         this.policyEngine = policyEngine;
         this.agentService = agentService;
-    }
-
-    /**
-     * Validate and extract the {@link ClaimToken} from the input {@link TokenRepresentation} by using the {@link IdentityService}
-     *
-     * @param tokenRepresentation The input {@link TokenRepresentation}
-     * @param policyScope         The policy scope
-     * @param policy              The {@link Policy}
-     * @return The {@link ClaimToken} if success, failure otherwise
-     */
-    @Override
-    public ServiceResult<ClaimToken> verifyToken(TokenRepresentation tokenRepresentation, String policyScope, Policy policy) {
-        var result = identityService.verifyJwtToken(tokenRepresentation, createVerificationContext(policyScope, policy));
-
-        if (result.failed()) {
-            monitor.debug(() -> "Unauthorized: %s".formatted(result.getFailureDetail()));
-            return ServiceResult.unauthorized("Unauthorized");
-        }
-        return ServiceResult.success(result.getContent());
     }
 
     @Override

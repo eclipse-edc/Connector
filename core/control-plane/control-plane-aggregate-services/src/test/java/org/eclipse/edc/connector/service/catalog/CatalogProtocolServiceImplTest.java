@@ -23,8 +23,6 @@ import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.eclipse.edc.spi.agent.ParticipantAgentService;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -53,28 +51,24 @@ import static org.mockito.Mockito.when;
 class CatalogProtocolServiceImplTest {
 
     private final DatasetResolver datasetResolver = mock();
-    private final ParticipantAgentService participantAgentService = mock();
     private final DataServiceRegistry dataServiceRegistry = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
 
     private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver,
-            participantAgentService, dataServiceRegistry, protocolTokenValidator, "participantId",
-            transactionContext);
+            dataServiceRegistry, protocolTokenValidator, "participantId", transactionContext);
 
     @Test
     void getCatalog_shouldReturnCatalogWithConnectorDataServiceAndItsDataset() {
         var querySpec = QuerySpec.none();
         var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
-        var token = create();
         var tokenRepresentation = createTokenRepresentation();
         var participantAgent = createParticipantAgent();
         var dataService = DataService.Builder.newInstance().build();
 
-        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(token));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(dataServiceRegistry.getDataServices()).thenReturn(List.of(dataService));
         when(datasetResolver.query(any(), any())).thenReturn(Stream.of(createDataset()));
-        when(participantAgentService.createFor(any())).thenReturn(participantAgent);
 
         var result = service.getCatalog(message, tokenRepresentation);
 
@@ -83,7 +77,6 @@ class CatalogProtocolServiceImplTest {
             assertThat(catalog.getDatasets()).hasSize(1);
         });
         verify(datasetResolver).query(eq(participantAgent), eq(querySpec));
-        verify(participantAgentService).createFor(token);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
@@ -93,7 +86,7 @@ class CatalogProtocolServiceImplTest {
         var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
         var tokenRepresentation = createTokenRepresentation();
 
-        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
         var result = service.getCatalog(message, tokenRepresentation);
 
@@ -102,32 +95,26 @@ class CatalogProtocolServiceImplTest {
 
     @Test
     void getDataset_shouldReturnDataset() {
-        var claimToken = create();
         var tokenRepresentation = createTokenRepresentation();
-
         var participantAgent = createParticipantAgent();
         var dataset = createDataset();
 
-        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
-        when(participantAgentService.createFor(any())).thenReturn(participantAgent);
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(datasetResolver.getById(any(), any())).thenReturn(dataset);
 
         var result = service.getDataset("datasetId", tokenRepresentation);
 
         assertThat(result).isSucceeded().isEqualTo(dataset);
-        verify(participantAgentService).createFor(claimToken);
         verify(datasetResolver).getById(participantAgent, "datasetId");
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
     void getDataset_shouldFail_whenDatasetIsNull() {
-        var claimToken = create();
-        var tokenRepresentation = createTokenRepresentation();
         var participantAgent = createParticipantAgent();
+        var tokenRepresentation = createTokenRepresentation();
 
-        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(claimToken));
-        when(participantAgentService.createFor(any())).thenReturn(participantAgent);
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(datasetResolver.getById(any(), any())).thenReturn(null);
 
         var result = service.getDataset("datasetId", tokenRepresentation);
@@ -137,10 +124,9 @@ class CatalogProtocolServiceImplTest {
 
     @Test
     void getDataset_shouldFail_whenTokenValidationFails() {
-        var querySpec = QuerySpec.none();
         var tokenRepresentation = createTokenRepresentation();
 
-        when(protocolTokenValidator.verifyToken(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
         var result = service.getDataset("datasetId", tokenRepresentation);
 
@@ -158,10 +144,6 @@ class CatalogProtocolServiceImplTest {
                 .offer(UUID.randomUUID().toString(), Policy.Builder.newInstance().build())
                 .distribution(distribution)
                 .build();
-    }
-
-    private ClaimToken create() {
-        return ClaimToken.Builder.newInstance().build();
     }
 
     private TokenRepresentation createTokenRepresentation() {
