@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.identitytrust.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
@@ -39,8 +40,12 @@ public class VerifiableCredential {
     public static final String VERIFIABLE_CREDENTIAL_NAME_PROPERTY = SCHEMA_ORG_NAMESPACE + "name";
     public static final String VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY = SCHEMA_ORG_NAMESPACE + "description";
     public static final String VERIFIABLE_CREDENTIAL_PROOF_PROPERTY = "https://w3id.org/security#proof";
-    private List<CredentialSubject> credentialSubject = new ArrayList<>();
+
+    @JsonProperty("credentialSubject")
+    private List<CredentialSubject> credentialSubjects = new ArrayList<>();
     private String id; // must be URI, but URI is less efficient at runtime
+
+    @JsonProperty("type")
     private List<String> types = new ArrayList<>();
     private Issuer issuer; // can be URI or an object containing an ID
     private Instant issuanceDate; // v2 of the spec renames this to "validFrom"
@@ -52,8 +57,8 @@ public class VerifiableCredential {
     private VerifiableCredential() {
     }
 
-    public List<CredentialSubject> getCredentialSubject() {
-        return credentialSubject;
+    public List<CredentialSubject> getCredentialSubjects() {
+        return credentialSubjects;
     }
 
     public String getId() {
@@ -101,12 +106,12 @@ public class VerifiableCredential {
         }
 
         public Builder credentialSubjects(List<CredentialSubject> credentialSubject) {
-            this.instance.credentialSubject = credentialSubject;
+            this.instance.credentialSubjects = credentialSubject;
             return this;
         }
 
         public Builder credentialSubject(CredentialSubject subject) {
-            this.instance.credentialSubject.add(subject);
+            this.instance.credentialSubjects.add(subject);
             return this;
         }
 
@@ -162,7 +167,7 @@ public class VerifiableCredential {
             if (instance.types.isEmpty()) {
                 throw new IllegalArgumentException("VerifiableCredentials MUST have at least one 'type' value.");
             }
-            if (instance.credentialSubject == null || instance.credentialSubject.isEmpty()) {
+            if (instance.credentialSubjects == null || instance.credentialSubjects.isEmpty()) {
                 throw new IllegalArgumentException("VerifiableCredential must have a non-null, non-empty 'credentialSubject' property.");
             }
             Objects.requireNonNull(instance.issuer, "VerifiableCredential must have an 'issuer' property.");

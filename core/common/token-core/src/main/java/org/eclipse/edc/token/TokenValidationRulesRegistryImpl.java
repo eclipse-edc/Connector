@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 /**
  * In-memory implementation of {@link TokenValidationRulesRegistry}
  */
@@ -38,6 +40,6 @@ public class TokenValidationRulesRegistryImpl implements TokenValidationRulesReg
 
     @Override
     public List<TokenValidationRule> getRules(String context) {
-        return Collections.unmodifiableList(rules.get(context));
+        return Collections.unmodifiableList(rules.getOrDefault(context, emptyList()));
     }
 }

@@ -43,7 +43,7 @@ import static java.lang.String.format;
 import static org.eclipse.edc.identitytrust.VcConstants.IATP_CONTEXT_URL;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
-@Extension(value = IdentityTrustTransformExtension.NAME, categories = { "iam", "transform", "jsonld" })
+@Extension(value = IdentityTrustTransformExtension.NAME, categories = {"iam", "transform", "jsonld"})
 public class IdentityTrustTransformExtension implements ServiceExtension {
     public static final String NAME = "Identity And Trust Transform Extension";
 
