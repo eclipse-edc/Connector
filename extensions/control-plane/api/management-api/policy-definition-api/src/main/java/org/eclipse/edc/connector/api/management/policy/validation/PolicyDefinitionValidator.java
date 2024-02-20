@@ -18,15 +18,18 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
+import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.Validator;
 
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 
 public class PolicyDefinitionValidator {
     public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
                 .verifyId(OptionalIdNotBlank::new)
                 .verify(EDC_POLICY_DEFINITION_POLICY, MandatoryObject::new)
+                .verifyObject(EDC_POLICY_DEFINITION_POLICY, builder -> builder.verify(path -> new TypeIs(path, ODRL_POLICY_TYPE_SET)))
                 .build();
     }
 }
