@@ -277,11 +277,9 @@ public class Participant {
      */
     public String initContractNegotiation(Participant provider, String assetId) {
         var dataset = getDatasetForAsset(provider, assetId);
-        assertThat(dataset).withFailMessage("Catalog received from " + provider.getName() + " was empty!").isNotEmpty();
-
         var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-
-        return initContractNegotiation(provider, policy);
+        var policyWithTarget = createObjectBuilder(policy).add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, dataset.get(ID))).build();
+        return initContractNegotiation(provider, policyWithTarget);
     }
 
     /**
@@ -481,11 +479,21 @@ public class Participant {
         return getContractNegotiationField(id, "state");
     }
 
+    protected String getContractNegotiationField(String negotiationId, String fieldName) {
+        return managementEndpoint.baseRequest()
+                .contentType(JSON)
+                .when()
+                .get("/v2/contractnegotiations/{id}", negotiationId)
+                .then()
+                .statusCode(200)
+                .extract().body().jsonPath()
+                .getString(fieldName);
+    }
+
     private ContractOfferId extractContractDefinitionId(JsonObject dataset) {
         var contractId = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
         return ContractOfferId.parseId(contractId).orElseThrow(f -> new RuntimeException(f.getFailureDetail()));
     }
-
 
     private String getContractAgreementId(String negotiationId) {
         var contractAgreementIdAtomic = new AtomicReference<String>();
@@ -500,17 +508,6 @@ public class Participant {
         var contractAgreementId = contractAgreementIdAtomic.get();
         assertThat(id).isNotEmpty();
         return contractAgreementId;
-    }
-
-    protected String getContractNegotiationField(String negotiationId, String fieldName) {
-        return managementEndpoint.baseRequest()
-                .contentType(JSON)
-                .when()
-                .get("/v2/contractnegotiations/{id}", negotiationId)
-                .then()
-                .statusCode(200)
-                .extract().body().jsonPath()
-                .getString(fieldName);
     }
 
     /**

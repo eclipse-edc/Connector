@@ -26,6 +26,8 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
 class PolicyDefinitionValidatorTest {
@@ -35,7 +37,8 @@ class PolicyDefinitionValidatorTest {
     @Test
     void shouldSucceed_whenObjectIsValid() {
         var policyDefinition = createObjectBuilder()
-                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(createObjectBuilder()))
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder()
+                        .add(createObjectBuilder().add(TYPE, createArrayBuilder().add(ODRL_POLICY_TYPE_SET))))
                 .build();
 
         var result = validator.validate(policyDefinition);
@@ -59,6 +62,18 @@ class PolicyDefinitionValidatorTest {
 
     @Test
     void shouldFail_whenPolicyIsMissing() {
+        var policyDefinition = createObjectBuilder().build();
+
+        var result = validator.validate(policyDefinition);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .filteredOn(it -> EDC_POLICY_DEFINITION_POLICY.equals(it.path()))
+                .anySatisfy(violation -> Assertions.assertThat(violation.message()).contains("mandatory"));
+    }
+
+    @Test
+    void shouldFail_whenTypeIsMissing() {
         var policyDefinition = createObjectBuilder().build();
 
         var result = validator.validate(policyDefinition);
