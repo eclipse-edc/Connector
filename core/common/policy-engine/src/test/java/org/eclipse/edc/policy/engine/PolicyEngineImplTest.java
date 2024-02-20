@@ -310,12 +310,32 @@ class PolicyEngineImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(PolicyProvider.class)
-    void shouldTriggerDynamicFunction(Policy policy, Class<Rule> ruleClass, boolean evaluateReturn) {
+    void shouldTriggerDynamicFunction_whenWildcardScope(Policy policy, Class<Rule> ruleClass, boolean evaluateReturn) {
         bindingRegistry.dynamicBind((key) -> Set.of(TEST_SCOPE));
 
         var context = PolicyContextImpl.Builder.newInstance().build();
         DynamicAtomicConstraintFunction<Rule> function = mock(DynamicAtomicConstraintFunction.class);
         policyEngine.registerFunction(ALL_SCOPES, ruleClass, function);
+
+        when(function.canHandle(any())).thenReturn(true);
+        when(function.evaluate(any(), any(), any(), any(), eq(context))).thenReturn(evaluateReturn);
+
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+
+        assertThat(result.succeeded()).isTrue();
+
+        verify(function).canHandle(any());
+        verify(function).evaluate(any(), any(), any(), any(), eq(context));
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(PolicyProvider.class)
+    void shouldTriggerDynamicFunction_whenExplicitScope(Policy policy, Class<Rule> ruleClass, boolean evaluateReturn) {
+        bindingRegistry.dynamicBind((key) -> Set.of(TEST_SCOPE));
+
+        var context = PolicyContextImpl.Builder.newInstance().build();
+        DynamicAtomicConstraintFunction<Rule> function = mock(DynamicAtomicConstraintFunction.class);
+        policyEngine.registerFunction(TEST_SCOPE, ruleClass, function);
 
         when(function.canHandle(any())).thenReturn(true);
         when(function.evaluate(any(), any(), any(), any(), eq(context))).thenReturn(evaluateReturn);
