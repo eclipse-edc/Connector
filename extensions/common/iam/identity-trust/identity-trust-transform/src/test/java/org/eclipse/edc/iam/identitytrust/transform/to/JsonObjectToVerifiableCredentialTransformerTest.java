@@ -66,8 +66,8 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         var vc = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
 
         assertThat(vc).isNotNull();
-        assertThat(vc.getCredentialSubjects()).isNotNull().hasSize(1);
-        assertThat(vc.getTypes()).hasSize(2);
+        assertThat(vc.getCredentialSubject()).isNotNull().hasSize(1);
+        assertThat(vc.getType()).hasSize(2);
         assertThat(vc.getDescription()).isNotNull();
         assertThat(vc.getName()).isNotNull();
         assertThat(vc.getCredentialStatus()).isNotNull();
@@ -82,8 +82,8 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         var vc = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
 
         assertThat(vc).isNotNull();
-        assertThat(vc.getCredentialSubjects()).isNotNull().hasSize(1);
-        assertThat(vc.getTypes()).hasSize(2);
+        assertThat(vc.getCredentialSubject()).isNotNull().hasSize(1);
+        assertThat(vc.getType()).hasSize(2);
         assertThat(vc.getDescription()).isNotNull();
         assertThat(vc.getName()).isNotNull();
         assertThat(vc.getCredentialStatus()).isNotNull();

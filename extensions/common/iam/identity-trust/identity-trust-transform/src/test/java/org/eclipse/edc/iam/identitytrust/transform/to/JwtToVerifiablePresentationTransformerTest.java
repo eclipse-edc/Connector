@@ -69,8 +69,8 @@ class JwtToVerifiablePresentationTransformerTest {
         assertThat(vp).isNotNull();
         assertThat(vp.getTypes()).containsExactlyInAnyOrder("VerifiablePresentation", "CredentialManagerPresentation");
         assertThat(vp.getCredentials()).hasSize(1).allSatisfy(vc -> {
-            assertThat(vc.getCredentialSubjects()).isNotEmpty();
-            assertThat(vc.getTypes()).isNotEmpty();
+            assertThat(vc.getCredentialSubject()).isNotEmpty();
+            assertThat(vc.getType()).isNotEmpty();
         });
     }
 
@@ -83,8 +83,8 @@ class JwtToVerifiablePresentationTransformerTest {
         assertThat(vp.getCredentials()).hasSize(1)
                 .doesNotContainNull()
                 .allSatisfy(vc -> {
-                    assertThat(vc.getCredentialSubjects()).isNotEmpty();
-                    assertThat(vc.getTypes()).isNotEmpty();
+                    assertThat(vc.getCredentialSubject()).isNotEmpty();
+                    assertThat(vc.getType()).isNotEmpty();
                 });
     }
 
@@ -127,8 +127,8 @@ class JwtToVerifiablePresentationTransformerTest {
         assertThat(vp.getCredentials()).hasSize(1)
                 .doesNotContainNull()
                 .allSatisfy(vc -> {
-                    assertThat(vc.getCredentialSubjects()).isNotEmpty();
-                    assertThat(vc.getTypes()).isNotEmpty();
+                    assertThat(vc.getCredentialSubject()).isNotEmpty();
+                    assertThat(vc.getType()).isNotEmpty();
                 });
         verify(context, never()).reportProblem(anyString());
     }
