@@ -203,8 +203,6 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         private JsonObjectBuilder visitRule(Rule rule) {
             var ruleBuilder = jsonFactory.createObjectBuilder();
 
-            Optional.ofNullable(rule.getTarget()).ifPresent(it -> ruleBuilder.add(ODRL_TARGET_ATTRIBUTE, it));
-
             ruleBuilder.add(ODRL_ACTION_ATTRIBUTE, visitAction(rule.getAction()));
             if (rule.getConstraints() != null && !rule.getConstraints().isEmpty()) {
                 ruleBuilder.add(ODRL_CONSTRAINT_ATTRIBUTE, visitConstraints(rule));

@@ -563,7 +563,6 @@ public abstract class ContractNegotiationStoreTestBase {
                     .assignee("test-assignee")
                     .assigner("test-assigner")
                     .permission(Permission.Builder.newInstance()
-                            .target("")
                             .action(Action.Builder.newInstance()
                                     .type("USE")
                                     .build())

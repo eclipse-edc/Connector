@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 
 /**
  * Converts from an ODRL prohibition as a {@link JsonObject} in JSON-LD expanded form to a {@link Prohibition}.
@@ -46,8 +45,6 @@ public class JsonObjectToProhibitionTransformer extends AbstractJsonLdTransforme
                     return value -> builder.action(transformObject(value, Action.class, context));
                 case ODRL_CONSTRAINT_ATTRIBUTE:
                     return value -> builder.constraints(transformArray(value, Constraint.class, context));
-                case ODRL_TARGET_ATTRIBUTE:
-                    return value -> builder.target(transformString(value, context));
                 default:
                     return doNothing();
             }

@@ -83,9 +83,6 @@ public class ScopeFilter {
 
         return Permission.Builder.newInstance()
                 .action(permission.getAction())
-                .assignee(permission.getAssignee())
-                .assigner(permission.getAssigner())
-                .target(permission.getTarget())
                 .constraints(filteredConstraints)
                 .duties(filteredDuties)
                 .build();
@@ -101,9 +98,6 @@ public class ScopeFilter {
 
         return Duty.Builder.newInstance()
                 .action(duty.getAction())
-                .assignee(duty.getAssignee())
-                .assigner(duty.getAssigner())
-                .target(duty.getTarget())
                 .constraints(filteredConstraints)
                 .parentPermission(duty.getParentPermission())
                 .consequence(filteredConsequence)
@@ -119,9 +113,6 @@ public class ScopeFilter {
 
         return Prohibition.Builder.newInstance()
                 .action(prohibition.getAction())
-                .assignee(prohibition.getAssignee())
-                .assigner(prohibition.getAssigner())
-                .target(prohibition.getTarget())
                 .constraints(filteredConstraints)
                 .build();
     }
@@ -130,8 +121,7 @@ public class ScopeFilter {
     Constraint applyScope(Constraint rootConstraint, String scope) {
         if (rootConstraint instanceof AtomicConstraint) {
             return applyScope((AtomicConstraint) rootConstraint, scope);
-        } else if (rootConstraint instanceof MultiplicityConstraint) {
-            var multiplicityConstraint = (MultiplicityConstraint) rootConstraint;
+        } else if (rootConstraint instanceof MultiplicityConstraint multiplicityConstraint) {
             var filteredConstraints = multiplicityConstraint.getConstraints().stream().map(c -> applyScope(c, scope)).filter(Objects::nonNull).collect(toList());
             return filteredConstraints.isEmpty() ? null : multiplicityConstraint.create(filteredConstraints);
         }
