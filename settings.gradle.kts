@@ -83,6 +83,7 @@ include(":data-protocols:dsp:dsp-transfer-process")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-api")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform")
+include(":data-protocols:dsp:dsp-version:dsp-version-api")
 
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
@@ -236,9 +237,9 @@ include(":system-tests:e2e-transfer-test:data-plane")
 include(":system-tests:e2e-transfer-test:runner")
 include(":system-tests:management-api:management-api-test-runner")
 include(":system-tests:management-api:management-api-test-runtime")
+include(":system-tests:protocol-test")
 include(":system-tests:sts-api:sts-api-test-runner")
 include(":system-tests:sts-api:sts-api-test-runtime")
-
 include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 

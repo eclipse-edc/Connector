@@ -14,10 +14,12 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.api;
 
+import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
-import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
+import org.eclipse.edc.protocol.dsp.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.transferprocess.api.controller.DspTransferProcessApiController;
+import org.eclipse.edc.protocol.dsp.transferprocess.api.controller.DspTransferProcessApiController20241;
 import org.eclipse.edc.protocol.dsp.transferprocess.api.validation.TransferCompletionMessageValidator;
 import org.eclipse.edc.protocol.dsp.transferprocess.api.validation.TransferRequestMessageValidator;
 import org.eclipse.edc.protocol.dsp.transferprocess.api.validation.TransferStartMessageValidator;
@@ -33,6 +35,7 @@ import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTyp
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.version.DspVersions.V_2024_1;
 
 /**
  * Creates and registers the controller for dataspace protocol transfer process requests.
@@ -51,6 +54,8 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
     private DspRequestHandler dspRequestHandler;
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
+    @Inject
+    private ProtocolVersionRegistry versionRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -59,8 +64,9 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
         validatorRegistry.register(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE, TransferCompletionMessageValidator.instance());
         validatorRegistry.register(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE, TransferTerminationMessageValidator.instance());
 
-        var controller = new DspTransferProcessApiController(transferProcessProtocolService, dspRequestHandler);
+        webService.registerResource(config.getContextAlias(), new DspTransferProcessApiController(transferProcessProtocolService, dspRequestHandler));
+        webService.registerResource(config.getContextAlias(), new DspTransferProcessApiController20241(transferProcessProtocolService, dspRequestHandler));
 
-        webService.registerResource(config.getContextAlias(), controller);
+        versionRegistry.register(V_2024_1);
     }
 }
