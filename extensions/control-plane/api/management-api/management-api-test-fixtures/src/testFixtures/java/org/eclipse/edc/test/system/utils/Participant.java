@@ -196,6 +196,7 @@ public class Participant {
         var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "CatalogRequest")
+                .add("counterPartyId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
                 .add("protocol", protocol);
 
@@ -240,6 +241,7 @@ public class Participant {
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "DatasetRequest")
                 .add(ID, assetId)
+                .add("counterPartyId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
                 .add("protocol", protocol)
                 .build();
