@@ -35,22 +35,24 @@ The format of the Data Address returned by the EDR API will be updated to align 
 backward compatibility to the existing format should be maintained by retaining the previous fields):
 
 ```json
+{
   "dspace:dataAddress": {
-"@type": "dspace:DataAddress",
-"dspace:endpointType": "https://w3id.org/idsa/v4.1/HTTP",
-"dspace:endpoint": "http://example.com",
-"dspace:endpointProperties": [
-{
-"@type": "dspace:EndpointProperty",
-"dspace:name": "authorization",
-"dspace:value": "token"
-},
-{
-"@type": "dspace:EndpointProperty",
-"dspace:name": "authType",
-"dspace:value": "bearer"
-}
-]
+    "@type": "dspace:DataAddress",
+    "dspace:endpointType": "https://w3id.org/idsa/v4.1/HTTP",
+    "dspace:endpoint": "http://example.com",
+    "dspace:endpointProperties": [
+      {
+        "@type": "dspace:EndpointProperty",
+        "dspace:name": "authorization",
+        "dspace:value": "token"
+      },
+      {
+        "@type": "dspace:EndpointProperty",
+        "dspace:name": "authType",
+        "dspace:value": "bearer"
+      }
+    ]
+  }
 }
 ```
 
@@ -96,7 +98,7 @@ public record AccessTokenData(ClaimToken claimToken, DataAddress address) {
 }
 ```
 
-When `DataPlaneAuthorizationTokenService.obtainToken()` is called, `TokenParameters` will contain (at least) the
+When `DataPlaneAccessTokenService.obtainToken()` is called, `TokenParameters` will contain (at least) the
 following claims:
 
 ```java 
@@ -131,7 +133,7 @@ encapsulates the token and transport-specific request information as a `Map`, e.
 ##### `AccessTokenData` Resolution
 
 First, the `DataPlaneAuthorizationService.authorize` implementation will
-invoke `DataPlaneAuthorizationTokenService.resolve()` to resolve the `AccessTokenData` containing the `DataAddress` and
+invoke `DataPlaneAccessTokenService.resolve()` to resolve the `AccessTokenData` containing the `DataAddress` and
 claims associated with the token:
 
 ```java
