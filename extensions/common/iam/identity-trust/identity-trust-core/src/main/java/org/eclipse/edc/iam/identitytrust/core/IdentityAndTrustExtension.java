@@ -23,6 +23,7 @@ import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultCredentialServiceC
 import org.eclipse.edc.iam.identitytrust.verification.MultiFormatPresentationVerifier;
 import org.eclipse.edc.identitytrust.ClaimTokenCreatorFunction;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
+import org.eclipse.edc.identitytrust.IatpParticipantAgentServiceExtension;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.validation.TokenValidationAction;
@@ -34,6 +35,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
+import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -108,6 +110,12 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private ClaimTokenCreatorFunction claimTokenFunction;
 
+    @Inject
+    private ParticipantAgentService participantAgentService;
+
+    @Inject
+    private IatpParticipantAgentServiceExtension participantAgentServiceExtension;
+
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
 
@@ -128,6 +136,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
         // TODO move in a separated extension?
         signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new JwsSignature2020Suite(typeManager.getMapper(JSON_LD)));
+
+        participantAgentService.register(participantAgentServiceExtension);
     }
 
     @Provider

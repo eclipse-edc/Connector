@@ -14,11 +14,13 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
+import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultIatpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.core.defaults.InMemorySignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
 import org.eclipse.edc.identitytrust.ClaimTokenCreatorFunction;
+import org.eclipse.edc.identitytrust.IatpParticipantAgentServiceExtension;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
@@ -90,6 +92,11 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public SignatureSuiteRegistry createSignatureSuiteRegistry() {
         return new InMemorySignatureSuiteRegistry();
+    }
+
+    @Provider(isDefault = true)
+    public IatpParticipantAgentServiceExtension createDefaultIatpParticipantAgentServiceExtension() {
+        return new DefaultIatpParticipantAgentServiceExtension();
     }
 
     @Provider(isDefault = true)
