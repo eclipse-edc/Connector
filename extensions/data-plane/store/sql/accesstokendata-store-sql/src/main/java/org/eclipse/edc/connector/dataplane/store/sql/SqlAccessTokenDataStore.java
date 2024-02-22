@@ -44,8 +44,12 @@ public class SqlAccessTokenDataStore extends AbstractSqlStore implements AccessT
 
     private final AccessTokenDataStatements statements;
 
-    public SqlAccessTokenDataStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                   AccessTokenDataStatements statements, ObjectMapper objectMapper, QueryExecutor queryExecutor) {
+    public SqlAccessTokenDataStore(DataSourceRegistry dataSourceRegistry,
+                                   String dataSourceName,
+                                   TransactionContext transactionContext,
+                                   AccessTokenDataStatements statements,
+                                   ObjectMapper objectMapper,
+                                   QueryExecutor queryExecutor) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
     }
