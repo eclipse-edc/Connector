@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.spi.registry;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -33,11 +33,11 @@ public interface TransferServiceRegistry {
 
 
     /**
-     * Resolves a {@link TransferService}s to use for serving a particular {@link DataFlowRequest}.
+     * Resolves a {@link TransferService}s to use for serving a particular {@link DataFlowStartMessage}.
      *
      * @param request the request to resolve.
      * @return the service to be used to serve the request, or {@code null} if no service was resolved.
      */
     @Nullable
-    TransferService resolveTransferService(DataFlowRequest request);
+    TransferService resolveTransferService(DataFlowStartMessage request);
 }

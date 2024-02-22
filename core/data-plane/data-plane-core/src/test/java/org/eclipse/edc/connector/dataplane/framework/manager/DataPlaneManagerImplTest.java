@@ -26,7 +26,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -70,7 +70,7 @@ class DataPlaneManagerImplTest {
     private final TransferService transferService = mock();
     private final TransferProcessApiClient transferProcessApiClient = mock();
     private final DataPlaneStore store = mock();
-    private final DataFlowRequest request = createRequest();
+    private final DataFlowStartMessage request = createRequest();
     private final TransferServiceRegistry registry = mock();
     private DataPlaneManagerImpl manager;
 
@@ -88,7 +88,7 @@ class DataPlaneManagerImplTest {
 
     @Test
     void initiateDataFlow() {
-        var request = DataFlowRequest.Builder.newInstance()
+        var request = DataFlowStartMessage.Builder.newInstance()
                 .id("1")
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
@@ -186,7 +186,7 @@ class DataPlaneManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(transferService).transfer(isA(DataFlowStartMessage.class));
             verify(store).save(argThat(it -> it.getState() == STARTED.code()));
         });
     }
@@ -203,7 +203,7 @@ class DataPlaneManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(transferService).transfer(isA(DataFlowStartMessage.class));
             verify(store, atLeastOnce()).save(argThat(it -> it.getState() == COMPLETED.code()));
         });
     }
@@ -221,7 +221,7 @@ class DataPlaneManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(transferService).transfer(isA(DataFlowStartMessage.class));
             verify(store, never()).save(argThat(it -> it.getState() == COMPLETED.code()));
         });
     }
@@ -238,7 +238,7 @@ class DataPlaneManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(transferService).transfer(isA(DataFlowStartMessage.class));
             verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code() && it.getErrorDetail().equals("an error")));
         });
     }
@@ -255,7 +255,7 @@ class DataPlaneManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(transferService).transfer(isA(DataFlowStartMessage.class));
             verify(store, atLeastOnce()).save(argThat(it -> it.getState() == RECEIVED.code()));
         });
     }
@@ -348,8 +348,8 @@ class DataPlaneManagerImplTest {
         return aryEq(new Criterion[]{ hasState(state) });
     }
 
-    private DataFlowRequest createRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage createRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id("1")
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())

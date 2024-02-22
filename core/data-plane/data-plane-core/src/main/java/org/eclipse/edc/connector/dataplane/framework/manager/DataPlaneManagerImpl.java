@@ -25,7 +25,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
@@ -63,7 +63,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public Result<Boolean> validate(DataFlowRequest dataRequest) {
+    public Result<Boolean> validate(DataFlowStartMessage dataRequest) {
         var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
         return transferService != null ?
                 transferService.validate(dataRequest) :
@@ -72,7 +72,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public void initiate(DataFlowRequest dataRequest) {
+    public void initiate(DataFlowStartMessage dataRequest) {
         var dataFlow = DataFlow.Builder.newInstance()
                 .id(dataRequest.getProcessId())
                 .source(dataRequest.getSourceDataAddress())

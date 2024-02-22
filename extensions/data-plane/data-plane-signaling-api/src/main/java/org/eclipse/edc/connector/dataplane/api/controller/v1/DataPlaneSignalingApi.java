@@ -34,7 +34,7 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest.EDC_DATA_FLOW_START_MESSAGE_SIMPLE_TYPE;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SIMPLE_TYPE;
 
 @OpenAPIDefinition
 @Tag(name = "Data Plane Signaling api API",

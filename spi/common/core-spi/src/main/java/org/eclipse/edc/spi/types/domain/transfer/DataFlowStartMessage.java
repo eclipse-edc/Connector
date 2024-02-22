@@ -33,8 +33,8 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
  * A request to transfer data from a source to destination.
  */
 @JsonTypeName("dataspaceconnector:dataflowrequest")
-@JsonDeserialize(builder = DataFlowRequest.Builder.class)
-public class DataFlowRequest implements Polymorphic, TraceCarrier {
+@JsonDeserialize(builder = DataFlowStartMessage.Builder.class)
+public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
 
     public static final String DC_DATA_FLOW_START_MESSAGE_ID = EDC_NAMESPACE + "id";
     public static final String DC_DATA_FLOW_START_MESSAGE_PROCESS_ID = EDC_NAMESPACE + "processId";
@@ -52,6 +52,10 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
     private String id;
     private String processId;
 
+    private String assetId;
+    private String participantId;
+    private String agreementId;
+
     private DataAddress sourceDataAddress;
     private DataAddress destinationDataAddress;
     private String transferType;
@@ -61,7 +65,7 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
     private Map<String, String> properties = Map.of();
     private Map<String, String> traceContext = Map.of(); // TODO: should this stay in the DataFlow class?
 
-    private DataFlowRequest() {
+    private DataFlowStartMessage() {
     }
 
     /**
@@ -97,6 +101,29 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
      */
     public String getTransferType() {
         return transferType;
+    }
+
+
+    /**
+     * The agreement id associated to the request
+     */
+    public String getAgreementId() {
+        return agreementId;
+    }
+
+    /**
+     * The asset id associated to the request
+     */
+    public String getAssetId() {
+        return assetId;
+    }
+
+
+    /**
+     * The participant id associated to the request
+     */
+    public String getParticipantId() {
+        return participantId;
     }
 
     /**
@@ -137,13 +164,13 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private final DataFlowRequest request;
+        private final DataFlowStartMessage request;
 
         private Builder() {
-            this(new DataFlowRequest());
+            this(new DataFlowStartMessage());
         }
 
-        private Builder(DataFlowRequest request) {
+        private Builder(DataFlowStartMessage request) {
             this.request = request;
         }
 
@@ -186,6 +213,22 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
             return this;
         }
 
+        public Builder agreementId(String agreementId) {
+            request.agreementId = agreementId;
+            return this;
+        }
+
+        public Builder participantId(String participantId) {
+            request.participantId = participantId;
+            return this;
+        }
+
+        public Builder assetId(String assetId) {
+            request.assetId = assetId;
+            return this;
+        }
+
+
         public Builder trackable(boolean value) {
             request.trackable = value;
             return this;
@@ -206,7 +249,7 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
             return this;
         }
 
-        public DataFlowRequest build() {
+        public DataFlowStartMessage build() {
             if (request.id == null) {
                 request.id = UUID.randomUUID().toString();
             }

@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -74,8 +74,8 @@ public class PipelineServiceIntegrationTest {
         });
     }
 
-    private DataFlowRequest.Builder createRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage.Builder createRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id("1")
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("any").build())
@@ -90,17 +90,17 @@ public class PipelineServiceIntegrationTest {
         }
 
         @Override
-        public boolean canHandle(DataFlowRequest request) {
+        public boolean canHandle(DataFlowStartMessage request) {
             return true;
         }
 
         @Override
-        public DataSink createSink(DataFlowRequest request) {
+        public DataSink createSink(DataFlowStartMessage request) {
             return sink;
         }
 
         @Override
-        public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
+        public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
             return Result.success();
         }
     }
@@ -117,17 +117,17 @@ public class PipelineServiceIntegrationTest {
         }
 
         @Override
-        public boolean canHandle(DataFlowRequest request) {
+        public boolean canHandle(DataFlowStartMessage request) {
             return true;
         }
 
         @Override
-        public DataSource createSource(DataFlowRequest request) {
+        public DataSource createSource(DataFlowStartMessage request) {
             return new InputStreamDataSource("test", new ByteArrayInputStream(data.getBytes()));
         }
 
         @Override
-        public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
+        public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
             return Result.success();
         }
     }

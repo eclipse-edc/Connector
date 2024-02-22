@@ -24,7 +24,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -61,7 +61,7 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
 
     @Override
     public @NotNull StatusResult<DataFlowResponse> initiateFlow(TransferProcess transferProcess, Policy policy) {
-        var dataFlowRequest = DataFlowRequest.Builder.newInstance()
+        var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(transferProcess.getId())
                 .trackable(true)

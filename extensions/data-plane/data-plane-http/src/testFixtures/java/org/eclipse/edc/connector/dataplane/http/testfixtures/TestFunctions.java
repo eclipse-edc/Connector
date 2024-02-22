@@ -22,7 +22,7 @@ import okhttp3.ResponseBody;
 import okio.Okio;
 import org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class TestFunctions {
     private TestFunctions() {
     }
 
-    public static DataFlowRequest.Builder createRequest(String type) {
+    public static DataFlowStartMessage.Builder createRequest(String type) {
         return createRequest(
                 Map.of(DataFlowRequestSchema.METHOD, "GET"),
                 DataAddress.Builder.newInstance().type(type).properties(emptyMap()).build(),
@@ -46,8 +46,8 @@ public class TestFunctions {
         );
     }
 
-    public static DataFlowRequest.Builder createRequest(Map<String, String> properties, DataAddress source, DataAddress destination) {
-        return DataFlowRequest.Builder.newInstance()
+    public static DataFlowStartMessage.Builder createRequest(Map<String, String> properties, DataAddress source, DataAddress destination) {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(UUID.randomUUID().toString())
                 .properties(properties)

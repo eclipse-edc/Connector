@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -56,7 +56,7 @@ class PipelineServiceImplTest {
 
     Monitor monitor = mock();
     PipelineServiceImpl service = new PipelineServiceImpl(monitor);
-    DataFlowRequest request = DataFlowRequest.Builder.newInstance()
+    DataFlowStartMessage request = DataFlowStartMessage.Builder.newInstance()
             .id("1")
             .processId("1")
             .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())

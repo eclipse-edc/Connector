@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.framework.registry;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -41,7 +41,7 @@ public class TransferServiceRegistryImpl implements TransferServiceRegistry {
 
     @Override
     @Nullable
-    public TransferService resolveTransferService(DataFlowRequest request) {
+    public TransferService resolveTransferService(DataFlowStartMessage request) {
         var possibleServices = transferServices.stream().filter(s -> s.canHandle(request));
         return transferServiceSelectionStrategy.chooseTransferService(request, possibleServices);
     }

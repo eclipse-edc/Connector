@@ -25,7 +25,7 @@ import org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -266,7 +266,7 @@ public class DataPlaneHttpIntegrationTests {
     /**
      * Request payload to initiate DPF transfer.
      *
-     * @param processId ProcessID of transfer.See {@link DataFlowRequest}
+     * @param processId ProcessID of transfer.See {@link DataFlowStartMessage}
      * @return JSON object. see {@link ObjectNode}.
      */
     private ObjectNode transferRequestPayload(String processId, TypeManager typeManager) {
@@ -276,7 +276,7 @@ public class DataPlaneHttpIntegrationTests {
     /**
      * Request payload with query params to initiate DPF transfer.
      *
-     * @param processId   ProcessID of transfer.See {@link DataFlowRequest}
+     * @param processId   ProcessID of transfer.See {@link DataFlowStartMessage}
      * @param queryParams Query params name and value as key-value entries.
      * @return JSON object. see {@link ObjectNode}.
      */

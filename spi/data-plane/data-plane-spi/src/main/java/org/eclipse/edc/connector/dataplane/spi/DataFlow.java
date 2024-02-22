@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.net.URI;
 import java.util.Map;
@@ -80,8 +80,8 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         return properties;
     }
 
-    public DataFlowRequest toRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    public DataFlowStartMessage toRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id(getId())
                 .sourceDataAddress(getSource())
                 .destinationDataAddress(getDestination())

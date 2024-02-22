@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.util.Objects;
 
@@ -37,7 +37,7 @@ public class EmbeddedDataPlaneClient implements DataPlaneClient {
 
     @WithSpan
     @Override
-    public StatusResult<Void> transfer(DataFlowRequest request) {
+    public StatusResult<Void> transfer(DataFlowStartMessage request) {
         var result = dataPlaneManager.validate(request);
         if (result.failed()) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, result.getFailureDetail());

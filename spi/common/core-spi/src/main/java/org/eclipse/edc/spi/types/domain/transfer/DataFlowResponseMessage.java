@@ -19,7 +19,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
- * A response message from the data plane upon receiving a {@link DataFlowRequest}
+ * A response message from the data plane upon receiving a {@link DataFlowStartMessage}
  */
 public record DataFlowResponseMessage(DataAddress dataAddress) {
 
