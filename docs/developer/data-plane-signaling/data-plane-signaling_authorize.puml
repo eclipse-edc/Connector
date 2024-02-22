@@ -28,21 +28,18 @@ autonumber
 participant DataPlaneAuthorizationService as dpauths
 participant DataPlaneAccessTokenService as dpats
 participant DataPlaneAccessControlService as dpacs
-participant AccessTokenDataStore as store
 participant TokenValidationService as tvs
 
-[-> dpauths: authorize(token, requestData)
+[-> dpauths: <<authorize(token, requestData)>>
 activate dpauths
 dpauths -> tvs: validate token w/ own public key
 activate tvs
 return Result
-dpauths -> dpats: resolve(token)
+dpauths -> dpats: <<resolve(token)>>
 activate dpats
-dpats -> store: getById(jti)
-activate store
+dpats -> dpats: restore AccessTokenData \nfrom raw token
 return AccessTokenData
-return AccessTokenData
-dpauths -> dpacs: checkAccess(ClaimToken, \nDataAddress, requestData)
+dpauths -> dpacs: <<checkAccess(ClaimToken, DataAddress, requestData)>>
 dpacs --> dpacs: perform access control
 dpacs -> dpauths: return true | false
 

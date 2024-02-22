@@ -28,26 +28,20 @@ autonumber
 participant DataPlaneAuthorizationService as dpauths
 participant DataPlaneAccessTokenService as dpats
 participant TokenGenerationService as tgs
-participant AccessTokenDataStore as store
 
-
-[-> dpauths: createEndpointDataReference(DataFlowStartMessage)
+[-> dpauths: <<createEndpointDataReference(DataFlowStartMessage)>>
 activate dpauths
 dpauths -> dpauths: convert DataFlowStartMessage to \nTokenParameters + DataAddress
-dpauths -> dpats: obtainToken(tokenParams, dataAddress)
+dpauths -> dpats: <<obtainToken(tokenParams, dataAddress)>>
 activate dpats
 
 dpats->dpats: convert TokenParameters -> TokenDecorator[]
-dpats -> tgs: generate(TokenDecorator[])
+
+dpats -> tgs: <<generate(TokenDecorator[])>>
 activate tgs
 return TokenRepresentation
-deactivate tgs
-dpats -> dpats: create AccessTokenData w. random ID from \nClaimToken + DataAddress
-dpats -> store: persist AccessTokenData
-activate store
-return
-dpats -> dpats: create JWT (jti = AccessTokenData.Id)
-dpats --> dpauths: return TokenRepresentation \nw/ serialized JWT
+
+dpats --> dpauths: return TokenRepresentation \n(containing serialized JWT)
 deactivate dpats
 [<-- dpauths: return serialized JWT
 deactivate dpauths
