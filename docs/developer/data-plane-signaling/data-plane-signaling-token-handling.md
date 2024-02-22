@@ -106,7 +106,7 @@ String participantId;
 String processId;
 String assetId;
 String agreementId;
-String transferType
+String transferType;
 ```
 
 The returned `TokenRepresentation` may contain an additional parameter `tokenType` indicating the token type,
@@ -117,6 +117,10 @@ handle them.
 
 A default in-process `DataPlaneAccessTokenService` implementation will delegate to the existing `TokenGenerationService`
 and `TokenValidationService` using a custom token decorator context (`edc:dataplane`).
+
+The token creation flow is illustrated by the following sequence diagram:
+
+![](./data-plane-signaling_create-token.png)
 
 ### Request Authorization
 
@@ -147,7 +151,7 @@ String participantId;
 String processId;
 String assetId;
 String agreementId;
-String transferType
+String transferType;
 ```
 
 #### Authorization Check
@@ -162,6 +166,9 @@ public interface DataPlaneAccessControlService {
 
 } 
 ```
+
+The authorization flow is illustrated by the following sequence diagram:
+![](data-plane-signaling_authorize.png)
 
 A default implementation will be provided that always returns true. Extensions can supply alternative implementations
 that perform use-case-specific authorization checks.
