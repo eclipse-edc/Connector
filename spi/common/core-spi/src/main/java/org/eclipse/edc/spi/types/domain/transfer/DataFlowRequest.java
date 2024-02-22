@@ -27,12 +27,28 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 /**
  * A request to transfer data from a source to destination.
  */
 @JsonTypeName("dataspaceconnector:dataflowrequest")
 @JsonDeserialize(builder = DataFlowRequest.Builder.class)
 public class DataFlowRequest implements Polymorphic, TraceCarrier {
+
+    public static final String DC_DATA_FLOW_START_MESSAGE_ID = EDC_NAMESPACE + "id";
+    public static final String DC_DATA_FLOW_START_MESSAGE_PROCESS_ID = EDC_NAMESPACE + "processId";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_SIMPLE_TYPE = "DataFlowStartMessage";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_TYPE = EDC_NAMESPACE + EDC_DATA_FLOW_START_MESSAGE_SIMPLE_TYPE;
+    public static final String EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_DATASET_ID = EDC_NAMESPACE + "datasetId";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID = EDC_NAMESPACE + "participantId";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID = EDC_NAMESPACE + "agreementId";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS = EDC_NAMESPACE + "sourceDataAddress";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS = EDC_NAMESPACE + "destinationDataAddress";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_DESTINATION_CALLBACK_ADDRESS = EDC_NAMESPACE + "callbackAddress";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_DESTINATION_PROPERTIES = EDC_NAMESPACE + "properties";
+
     private String id;
     private String processId;
 
