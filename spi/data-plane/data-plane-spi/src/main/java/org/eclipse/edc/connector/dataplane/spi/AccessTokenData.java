@@ -21,6 +21,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
  * Container object for a {@link ClaimToken} and a {@link DataAddress} that the data plane uses to keep track of currently
  * all access tokens that are currently valid.
  */
-public record AccessTokenData(ClaimToken claimToken, DataAddress dataAddress, String id) {
+public record AccessTokenData(String id, ClaimToken claimToken, DataAddress dataAddress) {
 
 }

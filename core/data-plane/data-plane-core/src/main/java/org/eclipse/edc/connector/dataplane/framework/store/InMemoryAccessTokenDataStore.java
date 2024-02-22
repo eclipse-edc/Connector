@@ -53,10 +53,10 @@ public class InMemoryAccessTokenDataStore implements AccessTokenDataStore {
     }
 
     @Override
-    public StoreResult<AccessTokenData> deleteById(String id) {
+    public StoreResult<Void> deleteById(String id) {
         var prev = store.remove(id);
         return Optional.ofNullable(prev)
-                .map(StoreResult::success)
+                .map(p -> StoreResult.<Void>success())
                 .orElse(StoreResult.notFound(OBJECT_NOT_FOUND.formatted(id)));
     }
 

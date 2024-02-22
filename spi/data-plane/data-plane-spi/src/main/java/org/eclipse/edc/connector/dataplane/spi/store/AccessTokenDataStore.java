@@ -52,7 +52,7 @@ public interface AccessTokenDataStore {
      * @param id The ID of the {@link AccessTokenData} that is supposed to be deleted.
      * @return success if deleted, a failure if an object with the given ID does not exist.
      */
-    StoreResult<AccessTokenData> deleteById(String id);
+    StoreResult<Void> deleteById(String id);
 
     /**
      * Returns all {@link AccessTokenData} objects in the store that are covered by a given {@link QuerySpec}.

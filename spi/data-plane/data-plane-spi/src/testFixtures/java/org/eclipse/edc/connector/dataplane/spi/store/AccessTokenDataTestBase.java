@@ -36,7 +36,7 @@ public abstract class AccessTokenDataTestBase {
     void storeAndGetById() {
         var object = accessTokenData("1");
         getStore().store(object);
-        assertThat(getStore().getById("1")).isEqualTo(object);
+        assertThat(getStore().getById("1")).usingRecursiveComparison().isEqualTo(object);
     }
 
     @Test
@@ -59,7 +59,7 @@ public abstract class AccessTokenDataTestBase {
         var object = accessTokenData("1");
         getStore().store(object);
 
-        assertThat(getStore().deleteById("1").getContent()).isEqualTo(object);
+        assertThat(getStore().deleteById("1").succeeded()).isTrue();
     }
 
     @Test
@@ -82,7 +82,7 @@ public abstract class AccessTokenDataTestBase {
     @Test
     void query_byClaim() {
         var ct = ClaimToken.Builder.newInstance().claim("foo", "bar").build();
-        var atd = new AccessTokenData(ct, dataAddress(), "test-id");
+        var atd = new AccessTokenData("test-id", ct, dataAddress());
         getStore().store(atd);
 
         assertThat(getStore().query(QuerySpec.Builder.newInstance().filter(new Criterion("claimToken.claims.foo", "=", "bar")).build()))
@@ -94,7 +94,7 @@ public abstract class AccessTokenDataTestBase {
     @Test
     void query_byDataAddressProperty() {
         var ct = ClaimToken.Builder.newInstance().claim("foo", "bar").build();
-        var atd = new AccessTokenData(ct, DataAddress.Builder.newInstance().type("foo-type").property("qux", "quz").build(), "test-id");
+        var atd = new AccessTokenData("test-id", ct, DataAddress.Builder.newInstance().type("foo-type").property("qux", "quz").build());
         getStore().store(atd);
 
         assertThat(getStore().query(QuerySpec.Builder.newInstance().filter(new Criterion("dataAddress.properties.qux", "=", "quz")).build()))
@@ -106,7 +106,7 @@ public abstract class AccessTokenDataTestBase {
     @Test
     void query_byMultipleCriteria() {
         var ct = ClaimToken.Builder.newInstance().claim("foo", "bar").build();
-        var atd = new AccessTokenData(ct, DataAddress.Builder.newInstance().type("foo-type").property("qux", "quz").build(), "test-id");
+        var atd = new AccessTokenData("test-id", ct, DataAddress.Builder.newInstance().type("foo-type").property("qux", "quz").build());
         getStore().store(atd);
 
         assertThat(getStore().query(QuerySpec.Builder.newInstance().filter(List.of(
@@ -161,6 +161,6 @@ public abstract class AccessTokenDataTestBase {
     }
 
     protected AccessTokenData accessTokenData(String id) {
-        return new AccessTokenData(ClaimToken.Builder.newInstance().build(), dataAddress(), id);
+        return new AccessTokenData(id, ClaimToken.Builder.newInstance().build(), dataAddress());
     }
 }
