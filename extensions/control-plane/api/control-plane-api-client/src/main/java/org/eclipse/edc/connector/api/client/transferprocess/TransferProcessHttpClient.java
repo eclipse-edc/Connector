@@ -24,7 +24,7 @@ import org.eclipse.edc.connector.api.client.transferprocess.model.TransferProces
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -50,20 +50,20 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
     }
 
     @Override
-    public Result<Void> completed(DataFlowRequest dataFlowRequest) {
-        return sendRequest(dataFlowRequest, "complete", null);
+    public Result<Void> completed(DataFlowStartMessage dataFlowStartMessage) {
+        return sendRequest(dataFlowStartMessage, "complete", null);
     }
 
     @Override
-    public Result<Void> failed(DataFlowRequest dataFlowRequest, String reason) {
-        return sendRequest(dataFlowRequest, "fail", TransferProcessFailRequest.Builder.newInstance().errorMessage(reason).build());
+    public Result<Void> failed(DataFlowStartMessage dataFlowStartMessage, String reason) {
+        return sendRequest(dataFlowStartMessage, "fail", TransferProcessFailRequest.Builder.newInstance().errorMessage(reason).build());
     }
 
-    private Result<Void> sendRequest(DataFlowRequest dataFlowRequest, String action, Object body) {
+    private Result<Void> sendRequest(DataFlowStartMessage dataFlowStartMessage, String action, Object body) {
 
-        if (dataFlowRequest.getCallbackAddress() != null) {
+        if (dataFlowStartMessage.getCallbackAddress() != null) {
             try {
-                var request = createRequest(buildUrl(dataFlowRequest, action), body);
+                var request = createRequest(buildUrl(dataFlowStartMessage, action), body);
                 try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNotIn(200, 204)))) {
                     if (!response.isSuccessful()) {
                         var message = "Failed to send callback request: received %s from the TransferProcess API"
@@ -78,16 +78,16 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
                 return Result.failure("Failed to send callback request: " + e.getMessage());
             }
         } else {
-            monitor.warning(String.format("Missing callback address in DataFlowRequest %s", dataFlowRequest.getId()));
+            monitor.warning(String.format("Missing callback address in DataFlowRequest %s", dataFlowStartMessage.getId()));
         }
         return Result.success();
 
     }
 
     @NotNull
-    private String buildUrl(DataFlowRequest dataFlowRequest, String action) {
-        var callbackAddress = dataFlowRequest.getCallbackAddress();
-        var url = URI.create(callbackAddress + "/").resolve(String.format("./transferprocess/%s/%s", dataFlowRequest.getProcessId(), action)).normalize();
+    private String buildUrl(DataFlowStartMessage dataFlowStartMessage, String action) {
+        var callbackAddress = dataFlowStartMessage.getCallbackAddress();
+        var url = URI.create(callbackAddress + "/").resolve(String.format("./transferprocess/%s/%s", dataFlowStartMessage.getProcessId(), action)).normalize();
         return url.toString();
     }
 

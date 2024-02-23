@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector.spi.client;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 /**
  * Main interaction interface for an EDC runtime (=control plane) to communicate with the DPF.
@@ -27,7 +27,7 @@ public interface DataPlaneClient {
     /**
      * Delegates data transfer to the Data Plane.
      */
-    StatusResult<Void> transfer(DataFlowRequest request);
+    StatusResult<Void> transfer(DataFlowStartMessage request);
 
     /**
      * Terminate the transfer.

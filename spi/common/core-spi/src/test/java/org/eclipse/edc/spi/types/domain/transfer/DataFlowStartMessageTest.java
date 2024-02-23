@@ -25,14 +25,14 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DataFlowRequestTest {
+class DataFlowStartMessageTest {
 
     @Test
     void verifySerializeDeserialize() throws JsonProcessingException {
 
         var uri = URI.create("http://test");
         var mapper = new TypeManager().getMapper();
-        var request = DataFlowRequest.Builder.newInstance()
+        var request = DataFlowStartMessage.Builder.newInstance()
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("foo").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("bar").build())
                 .id(UUID.randomUUID().toString())
@@ -41,13 +41,21 @@ class DataFlowRequestTest {
                 .callbackAddress(uri)
                 .properties(Map.of("key", "value"))
                 .traceContext(Map.of("key2", "value2"))
+                .participantId("participantId")
+                .transferType("transferType")
+                .agreementId("agreementId")
+                .assetId("assetId")
                 .build();
         var serialized = mapper.writeValueAsString(request);
-        var deserialized = mapper.readValue(serialized, DataFlowRequest.class);
+        var deserialized = mapper.readValue(serialized, DataFlowStartMessage.class);
 
         assertThat(deserialized).isNotNull();
         assertThat(deserialized.getProperties().get("key")).isEqualTo("value");
         assertThat(deserialized.getTraceContext().get("key2")).isEqualTo("value2");
         assertThat(deserialized.getCallbackAddress()).isEqualTo(uri);
+        assertThat(deserialized.getAgreementId()).isEqualTo("agreementId");
+        assertThat(deserialized.getTransferType()).isEqualTo("transferType");
+        assertThat(deserialized.getAssetId()).isEqualTo("assetId");
+        assertThat(deserialized.getParticipantId()).isEqualTo("participantId");
     }
 }

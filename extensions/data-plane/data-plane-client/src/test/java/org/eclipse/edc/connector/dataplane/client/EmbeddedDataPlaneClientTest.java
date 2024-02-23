@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,8 +75,8 @@ class EmbeddedDataPlaneClientTest {
         verify(dataPlaneManager).terminate("dataFlowId");
     }
 
-    private static DataFlowRequest createDataFlowRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    private static DataFlowStartMessage createDataFlowRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .trackable(true)
                 .id("123")
                 .processId("456")

@@ -19,7 +19,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -111,8 +111,8 @@ class KafkaDataSourceFactoryTest {
         assertThatExceptionOfType(EdcException.class).isThrownBy(() -> factory.createSource(request));
     }
 
-    private DataFlowRequest createRequest(String sourceType, Map<String, Object> sourceProperties) {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage createRequest(String sourceType, Map<String, Object> sourceProperties) {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id("id")
                 .processId("processId")
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("notused").build())

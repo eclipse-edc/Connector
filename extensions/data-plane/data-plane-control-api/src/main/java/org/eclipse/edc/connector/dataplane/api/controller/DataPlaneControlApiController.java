@@ -28,7 +28,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.util.List;
 
@@ -47,7 +47,7 @@ public class DataPlaneControlApiController implements DataPlaneControlApi {
 
     @POST
     @Override
-    public void initiateTransfer(DataFlowRequest request, @Suspended AsyncResponse response) {
+    public void initiateTransfer(DataFlowStartMessage request, @Suspended AsyncResponse response) {
         // TODO token authentication
         var result = dataPlaneManager.validate(request);
         if (result.succeeded()) {

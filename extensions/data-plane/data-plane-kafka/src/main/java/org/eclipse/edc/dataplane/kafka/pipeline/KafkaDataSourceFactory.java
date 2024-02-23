@@ -22,7 +22,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.validator.dataaddress.kafka.KafkaDataAddressValidator;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
@@ -55,18 +55,18 @@ public class KafkaDataSourceFactory implements DataSourceFactory {
     }
 
     @Override
-    public boolean canHandle(DataFlowRequest dataRequest) {
+    public boolean canHandle(DataFlowStartMessage dataRequest) {
         return KAFKA_TYPE.equalsIgnoreCase(dataRequest.getSourceDataAddress().getType());
     }
 
     @Override
-    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
+    public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
         var source = request.getSourceDataAddress();
         return validation.validate(source).flatMap(ValidationResult::toResult);
     }
 
     @Override
-    public DataSource createSource(DataFlowRequest request) {
+    public DataSource createSource(DataFlowStartMessage request) {
         var validationResult = validateRequest(request);
         if (validationResult.failed()) {
             throw new EdcException(validationResult.getFailureDetail());

@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.api.controller;
 
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,19 +30,19 @@ import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSche
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 
-public class DataFlowRequestSupplier implements BiFunction<ContainerRequestContextApi, DataAddress, DataFlowRequest> {
+public class DataFlowRequestSupplier implements BiFunction<ContainerRequestContextApi, DataAddress, DataFlowStartMessage> {
 
     /**
-     * Create a {@link DataFlowRequest} based on incoming request and claims decoded from the access token.
+     * Create a {@link DataFlowStartMessage} based on incoming request and claims decoded from the access token.
      *
      * @param contextApi  Api for accessing request properties.
      * @param dataAddress Source data address.
      * @return DataFlowRequest
      */
     @Override
-    public DataFlowRequest apply(ContainerRequestContextApi contextApi, DataAddress dataAddress) {
+    public DataFlowStartMessage apply(ContainerRequestContextApi contextApi, DataAddress dataAddress) {
         var props = createProps(contextApi);
-        return DataFlowRequest.Builder.newInstance()
+        return DataFlowStartMessage.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(dataAddress)
                 .destinationDataAddress(DataAddress.Builder.newInstance()

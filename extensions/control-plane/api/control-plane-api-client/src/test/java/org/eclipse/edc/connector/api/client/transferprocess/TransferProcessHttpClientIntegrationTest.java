@@ -39,7 +39,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -159,8 +159,8 @@ public class TransferProcessHttpClientIntegrationTest {
                 .build();
     }
 
-    private DataFlowRequest createDataFlowRequest(String processId, URI callbackAddress) {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage createDataFlowRequest(String processId, URI callbackAddress) {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(processId)
                 .callbackAddress(callbackAddress)

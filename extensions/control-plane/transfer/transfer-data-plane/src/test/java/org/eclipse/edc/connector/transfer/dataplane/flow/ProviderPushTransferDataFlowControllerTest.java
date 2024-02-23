@@ -25,7 +25,7 @@ import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -70,7 +70,7 @@ class ProviderPushTransferDataFlowControllerTest {
                 .contentDataAddress(testDataAddress())
                 .build();
 
-        when(dataPlaneClient.transfer(any(DataFlowRequest.class))).thenReturn(StatusResult.success());
+        when(dataPlaneClient.transfer(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success());
         var dataPlaneInstance = createDataPlaneInstance();
         when(selectorService.select(any(), any())).thenReturn(dataPlaneInstance);
         when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
@@ -78,7 +78,7 @@ class ProviderPushTransferDataFlowControllerTest {
         var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
 
         assertThat(result.succeeded()).isTrue();
-        var captor = ArgumentCaptor.forClass(DataFlowRequest.class);
+        var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
         verify(dataPlaneClient).transfer(captor.capture());
         var captured = captor.getValue();
         assertThat(captured.isTrackable()).isTrue();

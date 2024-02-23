@@ -22,7 +22,7 @@ import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -154,8 +154,8 @@ class RemoteDataPlaneClientTest {
                 .withBody(MAPPER.writeValueAsString(new TransferErrorResponse(List.of(errorMsg))), MediaType.APPLICATION_JSON);
     }
 
-    private static DataFlowRequest createDataFlowRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    private static DataFlowStartMessage createDataFlowRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .trackable(true)
                 .id("123")
                 .processId("456")

@@ -25,7 +25,7 @@ import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -112,7 +112,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
         var token = UUID.randomUUID().toString();
         var errorMsg = UUID.randomUUID().toString();
         when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
-        when(pipelineService.transfer(any(DataFlowRequest.class), any()))
+        when(pipelineService.transfer(any(DataFlowStartMessage.class), any()))
                 .thenReturn(failedFuture(new RuntimeException(errorMsg)));
 
         baseRequest()
@@ -144,7 +144,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
                 .extract().body().asString();
 
         assertThat(responseBody).isEqualTo("data");
-        var requestCaptor = ArgumentCaptor.forClass(DataFlowRequest.class);
+        var requestCaptor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
         verify(pipelineService).transfer(requestCaptor.capture(), any());
         var request = requestCaptor.getValue();
         assertThat(request.getDestinationDataAddress().getType()).isEqualTo(AsyncStreamingDataSink.TYPE);
