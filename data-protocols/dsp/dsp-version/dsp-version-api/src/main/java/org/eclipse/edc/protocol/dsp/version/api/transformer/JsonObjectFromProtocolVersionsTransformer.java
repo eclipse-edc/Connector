@@ -27,6 +27,9 @@ import static org.eclipse.edc.protocol.dsp.type.DspVersionPropertyAndTypeNames.D
 import static org.eclipse.edc.protocol.dsp.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
 import static org.eclipse.edc.protocol.dsp.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_VERSION;
 
+/**
+ * Transform {@link ProtocolVersions} into {@link JsonObject}
+ */
 public class JsonObjectFromProtocolVersionsTransformer extends AbstractJsonLdTransformer<ProtocolVersions, JsonObject> {
 
     public JsonObjectFromProtocolVersionsTransformer() {

@@ -27,6 +27,9 @@ import org.eclipse.edc.web.spi.WebService;
 
 import static org.eclipse.edc.protocol.dsp.version.api.DspVersionApiExtension.NAME;
 
+/**
+ * Provide API for the protocol versions.
+ */
 @Extension(NAME)
 public class DspVersionApiExtension implements ServiceExtension {
 
