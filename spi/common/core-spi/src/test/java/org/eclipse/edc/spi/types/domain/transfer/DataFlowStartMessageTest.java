@@ -41,6 +41,10 @@ class DataFlowStartMessageTest {
                 .callbackAddress(uri)
                 .properties(Map.of("key", "value"))
                 .traceContext(Map.of("key2", "value2"))
+                .participantId("participantId")
+                .transferType("transferType")
+                .agreementId("agreementId")
+                .assetId("assetId")
                 .build();
         var serialized = mapper.writeValueAsString(request);
         var deserialized = mapper.readValue(serialized, DataFlowStartMessage.class);
@@ -49,5 +53,9 @@ class DataFlowStartMessageTest {
         assertThat(deserialized.getProperties().get("key")).isEqualTo("value");
         assertThat(deserialized.getTraceContext().get("key2")).isEqualTo("value2");
         assertThat(deserialized.getCallbackAddress()).isEqualTo(uri);
+        assertThat(deserialized.getAgreementId()).isEqualTo("agreementId");
+        assertThat(deserialized.getTransferType()).isEqualTo("transferType");
+        assertThat(deserialized.getAssetId()).isEqualTo("assetId");
+        assertThat(deserialized.getParticipantId()).isEqualTo("participantId");
     }
 }
