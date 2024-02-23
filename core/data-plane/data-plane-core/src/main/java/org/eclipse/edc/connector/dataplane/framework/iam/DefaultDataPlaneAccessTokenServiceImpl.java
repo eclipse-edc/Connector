@@ -28,15 +28,11 @@ import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -58,7 +54,12 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
     private final TokenValidationService tokenValidationService;
     private final PublicKeyResolver publicKeyResolver;
 
-    public DefaultDataPlaneAccessTokenServiceImpl(TokenGenerationService tokenGenerationService, AccessTokenDataStore accessTokenDataStore, Monitor monitor, Supplier<PrivateKey> privateKeySupplier, TokenValidationService tokenValidationService, PublicKeyResolver publicKeyResolver) {
+    public DefaultDataPlaneAccessTokenServiceImpl(TokenGenerationService tokenGenerationService,
+                                                  AccessTokenDataStore accessTokenDataStore,
+                                                  Monitor monitor,
+                                                  Supplier<PrivateKey> privateKeySupplier,
+                                                  TokenValidationService tokenValidationService,
+                                                  PublicKeyResolver publicKeyResolver) {
         this.tokenGenerationService = tokenGenerationService;
         this.accessTokenDataStore = accessTokenDataStore;
         this.monitor = monitor;

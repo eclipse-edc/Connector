@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.framework.iam;
 
-import org.assertj.core.api.Assert;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.dataplane.spi.AccessTokenData;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
@@ -29,7 +28,6 @@ import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -52,7 +50,7 @@ class DefaultDataPlaneAccessTokenServiceImplTest {
     private final TokenValidationService tokenValidationService = mock();
     private final DefaultDataPlaneAccessTokenServiceImpl accessTokenService = new DefaultDataPlaneAccessTokenServiceImpl(tokenGenService,
             store, mock(), mock(), tokenValidationService, mock());
-    private final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+    private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     @Test
     void obtainToken() {
@@ -131,7 +129,7 @@ class DefaultDataPlaneAccessTokenServiceImplTest {
         when(store.getById(eq(tokenId))).thenReturn(new AccessTokenData(tokenId, ClaimToken.Builder.newInstance().build(),
                 DataAddress.Builder.newInstance().type("test-type").build()));
 
-        var result= accessTokenService.resolve("some-jwt");
+        var result = accessTokenService.resolve("some-jwt");
         assertThat(result).isSucceeded()
                 .satisfies(atd -> Assertions.assertThat(atd.id()).isEqualTo(tokenId));
         verify(tokenValidationService).validate(eq("some-jwt"), any(), anyList());
@@ -145,7 +143,7 @@ class DefaultDataPlaneAccessTokenServiceImplTest {
         when(tokenValidationService.validate(anyString(), any(), anyList()))
                 .thenReturn(Result.failure("test-failure"));
 
-        var result= accessTokenService.resolve("some-jwt");
+        var result = accessTokenService.resolve("some-jwt");
         assertThat(result).isFailed()
                 .detail().isEqualTo("test-failure");
         verify(tokenValidationService).validate(eq("some-jwt"), any(), anyList());
@@ -160,7 +158,7 @@ class DefaultDataPlaneAccessTokenServiceImplTest {
                 .thenReturn(Result.success(claimToken));
         when(store.getById(eq(tokenId))).thenReturn(null);
 
-        var result= accessTokenService.resolve("some-jwt");
+        var result = accessTokenService.resolve("some-jwt");
         assertThat(result).isFailed()
                 .detail().isEqualTo("AccessTokenData with ID 'test-id' does not exist.");
         verify(tokenValidationService).validate(eq("some-jwt"), any(), anyList());
