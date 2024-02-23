@@ -55,7 +55,7 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     }
 
     @Override
-    public @NotNull StatusResult<DataFlowResponse> initiateFlow(TransferProcess transferProcess, Policy policy) {
+    public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
         var contentAddress = transferProcess.getContentDataAddress();
         var dataRequest = transferProcess.getDataRequest();
 
@@ -67,6 +67,16 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
                 .orElse(failure(FATAL_ERROR, format("Failed to find DataPlaneInstance for source/destination: %s/%s", contentAddress.getType(), HTTP_PROXY)));
     }
 
+    @Override
+    public StatusResult<Void> terminate(TransferProcess transferProcess) {
+        return StatusResult.success();
+    }
+
+    @Override
+    public Set<String> transferTypesFor(Asset asset) {
+        return transferTypes;
+    }
+
     // Shim translation from "Http-PULL" to HttpProxy dataAddress
     private DataAddress destinationAddress(DataRequest dataRequest) {
         if (transferTypes.contains(dataRequest.getDestinationType())) {
@@ -76,16 +86,6 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
         } else {
             return dataRequest.getDataDestination();
         }
-    }
-
-    @Override
-    public StatusResult<Void> terminate(TransferProcess transferProcess) {
-        return StatusResult.success();
-    }
-
-    @Override
-    public Set<String> transferTypesFor(Asset asset) {
-        return transferTypes;
     }
 
     private DataFlowResponse toResponse(DataAddress address) {

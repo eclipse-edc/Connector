@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -44,14 +45,17 @@ import static org.mockito.Mockito.when;
 
 class ProviderPushTransferDataFlowControllerTest {
 
+    private static final String HTTP_DATA_PULL = "HttpData-PULL";
     private final DataPlaneClient dataPlaneClient = mock();
     private final DataPlaneClientFactory dataPlaneClientFactory = mock();
     private final DataPlaneSelectorService selectorService = mock();
-
-    private static final String HTTP_DATA_PULL = "HttpData-PULL";
-
     private final ProviderPushTransferDataFlowController flowController =
             new ProviderPushTransferDataFlowController(() -> URI.create("http://localhost"), selectorService, dataPlaneClientFactory);
+
+    @NotNull
+    private static DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
+        return DataPlaneInstance.Builder.newInstance().url("http://any");
+    }
 
     @Test
     void canHandle() {
@@ -70,16 +74,16 @@ class ProviderPushTransferDataFlowControllerTest {
                 .contentDataAddress(testDataAddress())
                 .build();
 
-        when(dataPlaneClient.transfer(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success());
+        when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(mock(DataFlowResponseMessage.class)));
         var dataPlaneInstance = createDataPlaneInstance();
         when(selectorService.select(any(), any())).thenReturn(dataPlaneInstance);
         when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
-        var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
+        var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
         assertThat(result.succeeded()).isTrue();
         var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
-        verify(dataPlaneClient).transfer(captor.capture());
+        verify(dataPlaneClient).start(captor.capture());
         var captured = captor.getValue();
         assertThat(captured.isTrackable()).isTrue();
         assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
@@ -97,14 +101,14 @@ class ProviderPushTransferDataFlowControllerTest {
                 .contentDataAddress(testDataAddress())
                 .build();
 
-        when(dataPlaneClient.transfer(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
+        when(dataPlaneClient.start(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
         var dataPlaneInstance = createDataPlaneInstance();
         when(selectorService.select(any(), any())).thenReturn(dataPlaneInstance);
         when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
-        var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
+        var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
-        verify(dataPlaneClient).transfer(any());
+        verify(dataPlaneClient).start(any());
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
@@ -129,6 +133,46 @@ class ProviderPushTransferDataFlowControllerTest {
     }
 
     @Test
+    void terminate_shouldCallTerminateOnTheRightDataPlane() {
+        var dataPlaneInstance = createDataPlaneInstance();
+        var mockedDataPlane = mock(DataPlaneInstance.class);
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .id("transferProcessId")
+                .dataRequest(createDataRequest())
+                .contentDataAddress(testDataAddress())
+                .dataPlaneId(dataPlaneInstance.getId())
+                .build();
+        when(mockedDataPlane.getId()).thenReturn("notValidId");
+        when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
+        when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+        when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance, mockedDataPlane));
+
+        var result = flowController.terminate(transferProcess);
+
+        assertThat(result).isSucceeded();
+        verify(dataPlaneClient).terminate("transferProcessId");
+        verify(mockedDataPlane).getId();
+    }
+
+    @Test
+    void terminate_shouldFail_withInvalidDataPlaneId() {
+        var dataPlaneInstance = createDataPlaneInstance();
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .id("transferProcessId")
+                .dataRequest(createDataRequest())
+                .contentDataAddress(testDataAddress())
+                .dataPlaneId("invalid")
+                .build();
+        when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
+        when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+        when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance));
+
+        var result = flowController.terminate(transferProcess);
+
+        assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
+    }
+    
+    @Test
     void transferTypes_shouldReturnTypesForSpecifiedAsset() {
         when(selectorService.getAll()).thenReturn(List.of(
                 dataPlaneInstanceBuilder().allowedSourceType("TargetSrc").allowedDestType("TargetDest").build(),
@@ -144,11 +188,6 @@ class ProviderPushTransferDataFlowControllerTest {
 
     private DataPlaneInstance createDataPlaneInstance() {
         return dataPlaneInstanceBuilder().build();
-    }
-
-    @NotNull
-    private static DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
-        return DataPlaneInstance.Builder.newInstance().url("http://any");
     }
 
     private DataAddress testDataAddress() {

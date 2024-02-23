@@ -82,6 +82,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .column(getPendingColumn())
                 .column(getTransferTypeColumn())
                 .jsonColumn(getProtocolMessagesColumn())
+                .column(getDataPlaneIdColumn())
                 .insertInto(getTransferProcessTableName());
     }
 
@@ -107,6 +108,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .column(getPendingColumn())
                 .column(getTransferTypeColumn())
                 .jsonColumn(getProtocolMessagesColumn())
+                .column(getDataPlaneIdColumn())
                 .update(getTransferProcessTableName(), getIdColumn());
     }
 

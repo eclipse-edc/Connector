@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -31,6 +32,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
@@ -60,7 +62,7 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
     }
 
     @Override
-    public @NotNull StatusResult<DataFlowResponse> initiateFlow(TransferProcess transferProcess, Policy policy) {
+    public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
         var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(transferProcess.getId())
@@ -73,16 +75,18 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
 
         var dataPlaneInstance = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getDataDestination());
         return clientFactory.createClient(dataPlaneInstance)
-                .transfer(dataFlowRequest)
-                .map(it -> DataFlowResponse.Builder.newInstance().build());
+                .start(dataFlowRequest)
+                .map(it -> DataFlowResponse.Builder.newInstance().dataPlaneId(dataPlaneInstance.getId()).build());
     }
 
     @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
-        return selectorClient.getAll().stream().map(clientFactory::createClient)
+        return selectorClient.getAll().stream()
+                .filter(dataPlaneInstanceFilter(transferProcess))
+                .map(clientFactory::createClient)
                 .map(client -> client.terminate(transferProcess.getId()))
                 .reduce(StatusResult::merge)
-                .orElse(StatusResult.success());
+                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to select the data plane for terminating the transfer process %s".formatted(transferProcess.getId())));
     }
 
     @Override
@@ -95,4 +99,11 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
                 .collect(toSet());
     }
 
+    private Predicate<DataPlaneInstance> dataPlaneInstanceFilter(TransferProcess transferProcess) {
+        if (transferProcess.getDataPlaneId() != null) {
+            return (dataPlaneInstance -> dataPlaneInstance.getId().equals(transferProcess.getDataPlaneId()));
+        } else {
+            return (d) -> true;
+        }
+    }
 }

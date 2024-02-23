@@ -42,7 +42,7 @@ class EmbeddedDataPlaneClientTest {
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
         doNothing().when(dataPlaneManager).initiate(any());
 
-        var result = client.transfer(request);
+        var result = client.start(request);
 
         verify(dataPlaneManager).validate(request);
         verify(dataPlaneManager).initiate(request);
@@ -57,7 +57,7 @@ class EmbeddedDataPlaneClientTest {
         when(dataPlaneManager.validate(any())).thenReturn(Result.failure(errorMsg));
         doNothing().when(dataPlaneManager).initiate(any());
 
-        var result = client.transfer(request);
+        var result = client.start(request);
 
         verify(dataPlaneManager).validate(request);
         verify(dataPlaneManager, never()).initiate(any());

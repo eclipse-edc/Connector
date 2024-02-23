@@ -257,6 +257,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 process.isPending(),
                 process.getTransferType(),
                 toJson(process.getProtocolMessages()),
+                process.getDataPlaneId(),
                 process.getId());
 
         var newDr = process.getDataRequest();
@@ -313,7 +314,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getCallbackAddresses()),
                 process.isPending(),
                 process.getTransferType(),
-                toJson(process.getProtocolMessages()));
+                toJson(process.getProtocolMessages()),
+                process.getDataPlaneId());
 
         //insert DataRequest
         var dr = process.getDataRequest();
@@ -358,6 +360,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .pending(resultSet.getBoolean(statements.getPendingColumn()))
                 .transferType(resultSet.getString(statements.getTransferTypeColumn()))
                 .protocolMessages(fromJson(resultSet.getString(statements.getProtocolMessagesColumn()), ProtocolMessages.class))
+                .dataPlaneId(resultSet.getString(statements.getDataPlaneIdColumn()))
                 .build();
     }
 

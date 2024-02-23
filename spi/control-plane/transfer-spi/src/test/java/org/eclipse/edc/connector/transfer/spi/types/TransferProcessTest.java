@@ -67,6 +67,8 @@ class TransferProcessTest {
                 .stateCount(1)
                 .stateTimestamp(1)
                 .privateProperties(Map.of("k", "v"))
+                .dataPlaneId("dataPlaneId")
+                .transferType("transferType")
                 .build();
 
         var copy = process.copy();
@@ -77,6 +79,8 @@ class TransferProcessTest {
         assertEquals(process.getStateCount(), copy.getStateCount());
         assertEquals(process.getStateTimestamp(), copy.getStateTimestamp());
         assertEquals(process.getPrivateProperties(), copy.getPrivateProperties());
+        assertEquals(process.getDataPlaneId(), copy.getDataPlaneId());
+        assertEquals(process.getTransferType(), copy.getTransferType());
         assertNotNull(process.getContentDataAddress());
 
         assertThat(process).usingRecursiveComparison().isEqualTo(copy);
@@ -93,7 +97,9 @@ class TransferProcessTest {
         process.transitionRequested();
 
         assertThrows(IllegalStateException.class, process::transitionStarting, "STARTING is not a valid state for consumer");
-        process.transitionStarted();
+        process.transitionStarted("dataPlaneId");
+        // should not set the data plane id
+        assertThat(process.getDataPlaneId()).isNull();
 
         process.transitionCompleting();
         process.transitionCompleted();
@@ -113,7 +119,10 @@ class TransferProcessTest {
         assertThrows(IllegalStateException.class, process::transitionRequested, "REQUESTED is not a valid state for provider");
 
         process.transitionStarting();
-        process.transitionStarted();
+        process.transitionStarted("dataPlaneId");
+        // should set the data plane id
+        assertThat(process.getDataPlaneId()).isEqualTo("dataPlaneId");
+
 
         process.transitionCompleting();
         process.transitionCompleted();

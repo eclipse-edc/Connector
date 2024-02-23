@@ -82,7 +82,7 @@ class RemoteDataPlaneClientTest {
         var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(flowRequest));
         dataPlane.when(httpRequest, once()).respond(response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code()));
 
-        var result = dataPlaneClient.transfer(flowRequest);
+        var result = dataPlaneClient.start(flowRequest);
 
         dataPlane.verify(httpRequest, VerificationTimes.once());
 
@@ -102,7 +102,7 @@ class RemoteDataPlaneClientTest {
         var errorMsg = UUID.randomUUID().toString();
         dataPlane.when(httpRequest, once()).respond(withResponse(errorMsg));
 
-        var result = dataPlaneClient.transfer(flowRequest);
+        var result = dataPlaneClient.start(flowRequest);
 
         dataPlane.verify(httpRequest, VerificationTimes.once());
 
@@ -121,7 +121,7 @@ class RemoteDataPlaneClientTest {
         var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(flowRequest));
         dataPlane.when(httpRequest, once()).respond(response().withStatusCode(HttpStatusCode.OK_200.code()));
 
-        var result = dataPlaneClient.transfer(flowRequest);
+        var result = dataPlaneClient.start(flowRequest);
 
         dataPlane.verify(httpRequest, VerificationTimes.once());
 
