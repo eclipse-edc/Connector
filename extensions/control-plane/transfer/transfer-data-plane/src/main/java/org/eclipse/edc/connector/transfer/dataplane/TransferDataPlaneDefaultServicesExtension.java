@@ -27,8 +27,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import java.time.Clock;
 import java.util.Date;
 
-import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.DEFAULT_TOKEN_VALIDITY_SECONDS;
-import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_VALIDITY_SECONDS;
+import static org.eclipse.edc.connector.dataplane.spi.TransferDataPlaneConfig.DEFAULT_TOKEN_VALIDITY_SECONDS;
+import static org.eclipse.edc.connector.dataplane.spi.TransferDataPlaneConfig.TOKEN_VALIDITY_SECONDS;
 
 /**
  * Provides default service implementations for fallback

@@ -22,6 +22,8 @@ dependencies {
     api(project(":spi:control-plane:control-plane-api-client-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
 
+    implementation(project(":spi:common:token-spi"))
+    implementation(project(":core:common:token-core")) // for the JwtGenerationService
     implementation(project(":core:common:connector-core"))
     implementation(project(":core:common:boot"))
     implementation(project(":core:common:state-machine"))
