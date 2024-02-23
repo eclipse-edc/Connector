@@ -49,7 +49,11 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     public <R> Response getResource(GetDspRequest<R> request) {
         monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getId()));
 
-        var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(request.getToken()).build();
+        var token = request.getToken();
+        if (token == null) {
+            return type(request.getErrorType()).processId(request.getId()).unauthorized();
+        }
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
 
         var serviceResult = request.getServiceCall().apply(request.getId(), tokenRepresentation);
         if (serviceResult.failed()) {
@@ -76,7 +80,10 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
                 request.getResultClass(),
                 request.getProcessId() != null ? ": " + request.getProcessId() : ""));
 
-        var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(request.getToken()).build();
+        var token = request.getToken();
+        if (token == null) {
+            return type(request.getErrorType()).unauthorized();
+        }
 
         var validation = validatorRegistry.validate(request.getExpectedMessageType(), request.getMessage());
         if (validation.failed()) {
@@ -96,6 +103,8 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
             monitor.debug(() -> "DSP: Transformation failed: %s".formatted(inputTransformation.getFailureMessages()));
             return type(request.getErrorType()).badRequest();
         }
+
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
 
         var serviceResult = request.getServiceCall().apply(inputTransformation.getContent(), tokenRepresentation);
         if (serviceResult.failed()) {
@@ -121,6 +130,11 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
                 request.getInputClass().getSimpleName(),
                 request.getResultClass(),
                 request.getProcessId() != null ? ": " + request.getProcessId() : ""));
+
+        var token = request.getToken();
+        if (token == null) {
+            return type(request.getErrorType()).processId(request.getProcessId()).unauthorized();
+        }
 
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(request.getToken()).build();
 

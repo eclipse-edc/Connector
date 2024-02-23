@@ -38,6 +38,7 @@ import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiation
 import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionEventListener;
 import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionServiceImpl;
 import org.eclipse.edc.connector.service.protocol.ProtocolTokenValidatorImpl;
+import org.eclipse.edc.connector.service.protocol.VersionProtocolServiceImpl;
 import org.eclipse.edc.connector.service.transferprocess.TransferProcessProtocolServiceImpl;
 import org.eclipse.edc.connector.service.transferprocess.TransferProcessServiceImpl;
 import org.eclipse.edc.connector.spi.asset.AssetService;
@@ -49,6 +50,8 @@ import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProt
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
@@ -153,6 +156,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject(required = false)
     private ProtocolTokenValidator protocolTokenValidator;
 
+    @Inject
+    private ProtocolVersionRegistry protocolVersionRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -226,4 +232,10 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
         }
         return protocolTokenValidator;
     }
+
+    @Provider
+    public VersionProtocolService versionProtocolService() {
+        return new VersionProtocolServiceImpl(protocolVersionRegistry, protocolTokenValidator());
+    }
+
 }

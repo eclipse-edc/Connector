@@ -51,7 +51,6 @@ import static org.eclipse.edc.util.types.Cast.cast;
  */
 public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
-    private List<ServiceExtension> runningServiceExtensions;
     private DefaultServiceExtensionContext context;
 
     public EdcExtension() {
@@ -115,6 +114,10 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
 
     public void setConfiguration(Map<String, String> configuration) {
         registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(configuration));
+    }
+
+    public <T> T getService(Class<T> clazz) {
+        return context.getService(clazz);
     }
 
     @Override

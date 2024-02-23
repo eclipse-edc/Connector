@@ -28,6 +28,17 @@ import org.eclipse.edc.spi.result.ServiceResult;
 public interface ProtocolTokenValidator {
 
     /**
+     * Verify the {@link TokenRepresentation}
+     *
+     * @param tokenRepresentation The token
+     * @param policyScope         The policy scope
+     * @return Returns the extracted {@link ParticipantAgent} if successful, failure otherwise
+     */
+    default ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, String policyScope) {
+        return verify(tokenRepresentation, policyScope, Policy.Builder.newInstance().build());
+    }
+
+    /**
      * Verify the {@link TokenRepresentation} in the context of a policy
      *
      * @param tokenRepresentation The token

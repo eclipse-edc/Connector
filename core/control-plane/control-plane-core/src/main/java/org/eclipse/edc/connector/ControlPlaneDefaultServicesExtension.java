@@ -17,6 +17,7 @@ package org.eclipse.edc.connector;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.defaults.callback.CallbackRegistryImpl;
+import org.eclipse.edc.connector.defaults.protocol.ProtocolVersionRegistryImpl;
 import org.eclipse.edc.connector.defaults.storage.assetindex.InMemoryAssetIndex;
 import org.eclipse.edc.connector.defaults.storage.contractdefinition.InMemoryContractDefinitionStore;
 import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
@@ -24,6 +25,7 @@ import org.eclipse.edc.connector.defaults.storage.policydefinition.InMemoryPolic
 import org.eclipse.edc.connector.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
+import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -91,6 +93,11 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public CallbackRegistry defaultCallbackRegistry() {
         return new CallbackRegistryImpl();
+    }
+
+    @Provider(isDefault = true)
+    public ProtocolVersionRegistry protocolVersionRegistry() {
+        return new ProtocolVersionRegistryImpl();
     }
 
     private ContractDefinitionStore getContractDefinitionStore() {

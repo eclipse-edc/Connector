@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.protocol.dsp.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;

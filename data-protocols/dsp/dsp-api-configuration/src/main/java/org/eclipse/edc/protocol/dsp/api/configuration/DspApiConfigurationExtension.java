@@ -37,6 +37,7 @@ import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTrans
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.protocol.dsp.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
