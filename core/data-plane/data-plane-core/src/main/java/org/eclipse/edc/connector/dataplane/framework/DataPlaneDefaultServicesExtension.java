@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImp
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryAccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryDataPlaneStore;
+import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
@@ -64,4 +65,9 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
         return new PipelineServiceImpl(context.getMonitor());
     }
 
+    // todo: should this be a default service?
+    @Provider(isDefault = true)
+    public PublicEndpointGeneratorService publicEndpointGenerator() {
+        return new PublicEndpointGeneratorServiceImpl();
+    }
 }
