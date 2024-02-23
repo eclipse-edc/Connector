@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DEPRECATED_DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
@@ -54,7 +55,7 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
         visitProperties(messageObject, k -> switch (k) {
             case DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID -> v -> builder.contractId(transformString(v, context));
             case DSPACE_PROPERTY_CALLBACK_ADDRESS -> v -> builder.callbackAddress(transformString(v, context));
-            case DCT_FORMAT_ATTRIBUTE -> v -> builder.transferType(transformString(v, context));
+            case DCT_FORMAT_ATTRIBUTE, DEPRECATED_DCT_FORMAT_ATTRIBUTE -> v -> builder.transferType(transformString(v, context));
             default -> doNothing();
         });
 
@@ -67,7 +68,12 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
     private DataAddress createDataAddress(@NotNull JsonObject requestObject, @NotNull TransformerContext context) {
         var dataAddressBuilder = DataAddress.Builder.newInstance();
 
-        transformString(requestObject.get(DCT_FORMAT_ATTRIBUTE), dataAddressBuilder::type, context);
+        var format = requestObject.get(DCT_FORMAT_ATTRIBUTE);
+        if (format != null) {
+            transformString(format, dataAddressBuilder::type, context);
+        } else {
+            transformString(requestObject.get(DEPRECATED_DCT_FORMAT_ATTRIBUTE), dataAddressBuilder::type, context);
+        }
 
         var dataAddressObject = returnJsonObject(requestObject.get(DSPACE_PROPERTY_DATA_ADDRESS), context, DSPACE_PROPERTY_DATA_ADDRESS, false);
         if (dataAddressObject != null) {
