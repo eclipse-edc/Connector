@@ -37,6 +37,8 @@ public interface PropertyAndTypeNames {
     String DCAT_ACCESS_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "accessService";
     String ODRL_POLICY_ATTRIBUTE = ODRL_SCHEMA + "hasPolicy";
 
+    @Deprecated(since = "0.5.1")
+    String DEPRECATED_DCT_FORMAT_ATTRIBUTE = "https://purl.org/dc/terms/format";
     String DCT_FORMAT_ATTRIBUTE = DCT_SCHEMA + "format";
     String DCT_TERMS_ATTRIBUTE = DCT_SCHEMA + "terms";
     String DCT_ENDPOINT_URL_ATTRIBUTE = DCT_SCHEMA + "endpointUrl";

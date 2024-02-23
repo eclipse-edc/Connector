@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DEPRECATED_DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
@@ -64,6 +65,7 @@ class JsonObjectToTransferRequestMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getContractId()).isEqualTo(contractId);
+        assertThat(result.getTransferType()).isEqualTo(destinationType);
         assertThat(result.getDataDestination().getType()).isEqualTo(destinationType);
         assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
         assertThat(result.getConsumerPid()).isEqualTo("processId");
@@ -86,11 +88,32 @@ class JsonObjectToTransferRequestMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getContractId()).isEqualTo(contractId);
+        assertThat(result.getTransferType()).isEqualTo(destinationType);
         assertThat(result.getDataDestination().getType()).isEqualTo(destinationType);
         assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
         assertThat(result.getDataDestination().getStringProperty("accessKeyId")).isEqualTo("TESTID");
         assertThat(result.getDataDestination().getStringProperty("region")).isEqualTo("eu-central-1");
 
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Deprecated(since = "0.5.1")
+    @Test
+    void jsonObjectToTransferRequestWithDataAddress_withDeprecatedDctNamespace() {
+        var json = Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID, contractId)
+                .add(DEPRECATED_DCT_FORMAT_ATTRIBUTE, destinationType)
+                .add(DSPACE_PROPERTY_DATA_ADDRESS, createDataAddress())
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "processId")
+                .build();
+
+        var result = transformer.transform(getExpanded(json), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getTransferType()).isEqualTo(destinationType);
+        assertThat(result.getDataDestination().getType()).isEqualTo(destinationType);
         verify(context, never()).reportProblem(anyString());
     }
 
