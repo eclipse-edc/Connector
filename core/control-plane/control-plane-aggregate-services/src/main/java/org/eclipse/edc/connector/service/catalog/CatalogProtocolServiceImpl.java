@@ -35,7 +35,8 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     @PolicyScope
     public static final String CATALOGING_REQUEST_SCOPE = "request.catalog";
 
-    private static final String PARTICIPANT_ID_PROPERTY_KEY = "participantId";
+    @Deprecated(since = "0.5.1")
+    private static final String EDC_PROPERTY_PARTICIPANT_ID = EDC_NAMESPACE + "participantId";
 
     private final DatasetResolver datasetResolver;
     private final DataServiceRegistry dataServiceRegistry;
@@ -67,7 +68,8 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
                         return Catalog.Builder.newInstance()
                                 .dataServices(dataServices)
                                 .datasets(datasets.toList())
-                                .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, participantId)
+                                .participantId(participantId)
+                                .property(EDC_PROPERTY_PARTICIPANT_ID, participantId)
                                 .build();
                     }
                 })

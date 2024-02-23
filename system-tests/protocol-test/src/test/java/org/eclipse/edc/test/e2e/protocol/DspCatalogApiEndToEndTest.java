@@ -33,6 +33,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.version.DspVersions.V_2024_1;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.hamcrest.CoreMatchers.notNullValue;
 
 @EndToEndTest
 public class DspCatalogApiEndToEndTest {
@@ -71,7 +72,8 @@ public class DspCatalogApiEndToEndTest {
                 .then()
                 .log().ifError()
                 .statusCode(200)
-                .contentType(JSON);
+                .contentType(JSON)
+                .body("'dspace:participantId'", notNullValue());
 
         assertThat(runtime.getContext().getService(ProtocolVersionRegistry.class).getAll().protocolVersions())
                 .contains(V_2024_1);
