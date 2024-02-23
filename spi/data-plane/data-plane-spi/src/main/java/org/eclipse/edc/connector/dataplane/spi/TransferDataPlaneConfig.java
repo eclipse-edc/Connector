@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.transfer.dataplane;
+package org.eclipse.edc.connector.dataplane.spi;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 

@@ -46,8 +46,8 @@ import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.function.Supplier;
 
-import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_SIGNER_PRIVATE_KEY_ALIAS;
-import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_VERIFIER_PUBLIC_KEY_ALIAS;
+import static org.eclipse.edc.connector.dataplane.spi.TransferDataPlaneConfig.TOKEN_SIGNER_PRIVATE_KEY_ALIAS;
+import static org.eclipse.edc.connector.dataplane.spi.TransferDataPlaneConfig.TOKEN_VERIFIER_PUBLIC_KEY_ALIAS;
 
 @Extension(value = TransferDataPlaneCoreExtension.NAME)
 public class TransferDataPlaneCoreExtension implements ServiceExtension {

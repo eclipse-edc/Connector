@@ -1,2 +1,3 @@
 org.eclipse.edc.connector.dataplane.framework.DataPlaneFrameworkExtension
 org.eclipse.edc.connector.dataplane.framework.DataPlaneDefaultServicesExtension
+org.eclipse.edc.connector.dataplane.framework.DataPlaneDefaultIamServicesExtension

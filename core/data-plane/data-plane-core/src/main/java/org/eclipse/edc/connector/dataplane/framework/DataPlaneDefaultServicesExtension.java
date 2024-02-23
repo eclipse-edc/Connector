@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImp
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryAccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryDataPlaneStore;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
@@ -26,7 +25,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -66,9 +64,4 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
         return new PipelineServiceImpl(context.getMonitor());
     }
 
-    @Provider(isDefault = true)
-    public DataPlaneAccessControlService defaultAccessControlService(ServiceExtensionContext context) {
-        context.getMonitor().debug("DataPlane Access Control: default implementation is used, will always return Result.success()");
-        return (claimToken, address, requestData) -> Result.success();
-    }
 }
