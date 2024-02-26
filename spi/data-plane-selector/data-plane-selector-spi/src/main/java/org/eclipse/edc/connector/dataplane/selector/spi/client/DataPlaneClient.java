@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector.spi.client;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 /**
@@ -27,7 +28,7 @@ public interface DataPlaneClient {
     /**
      * Delegates data transfer to the Data Plane.
      */
-    StatusResult<Void> transfer(DataFlowStartMessage request);
+    StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage request);
 
     /**
      * Terminate the transfer.

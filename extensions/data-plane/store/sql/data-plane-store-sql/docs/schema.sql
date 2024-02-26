@@ -24,7 +24,6 @@ CREATE TABLE IF NOT EXISTS edc_data_plane
     trace_context        JSON,
     error_detail         VARCHAR,
     callback_address     VARCHAR,
-    trackable            BOOLEAN,
     lease_id             VARCHAR
         CONSTRAINT data_plane_lease_lease_id_fk
                     REFERENCES edc_lease

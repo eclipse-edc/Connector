@@ -36,10 +36,6 @@ public interface DataPlaneStatements extends StatefulEntityStatements, LeaseStat
         return "callback_address";
     }
 
-    default String getTrackableColumn() {
-        return "trackable";
-    }
-
     default String getSourceColumn() {
         return "source";
     }

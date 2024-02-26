@@ -21,10 +21,40 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 /**
  * A response message from the data plane upon receiving a {@link DataFlowStartMessage}
  */
-public record DataFlowResponseMessage(DataAddress dataAddress) {
+public class DataFlowResponseMessage {
 
     public static final String DATA_FLOW_RESPONSE_MESSAGE_SIMPLE_TYPE = "DataFlowResponseMessage";
     public static final String DATA_FLOW_RESPONSE_MESSAGE_TYPE = EDC_NAMESPACE + DATA_FLOW_RESPONSE_MESSAGE_SIMPLE_TYPE;
     public static final String DATA_FLOW_RESPONSE_MESSAGE_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";
 
+    private DataAddress dataAddress;
+
+    private DataFlowResponseMessage() {
+    }
+
+    public DataAddress getDataAddress() {
+        return dataAddress;
+    }
+
+    public static class Builder {
+
+        DataFlowResponseMessage response;
+
+        private Builder() {
+            response = new DataFlowResponseMessage();
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder dataAddress(DataAddress dataAddress) {
+            response.dataAddress = dataAddress;
+            return this;
+        }
+
+        public DataFlowResponseMessage build() {
+            return response;
+        }
+    }
 }

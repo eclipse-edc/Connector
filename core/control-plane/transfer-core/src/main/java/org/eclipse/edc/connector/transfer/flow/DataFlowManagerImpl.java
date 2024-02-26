@@ -54,9 +54,9 @@ public class DataFlowManagerImpl implements DataFlowManager {
 
     @WithSpan
     @Override
-    public @NotNull StatusResult<DataFlowResponse> initiate(TransferProcess transferProcess, Policy policy) {
+    public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
         try {
-            return chooseControllerAndApply(transferProcess, controller -> controller.initiateFlow(transferProcess, policy));
+            return chooseControllerAndApply(transferProcess, controller -> controller.start(transferProcess, policy));
         } catch (Exception e) {
             return StatusResult.failure(FATAL_ERROR, runtimeException(transferProcess.getId(), e.getLocalizedMessage()));
         }
@@ -95,6 +95,7 @@ public class DataFlowManagerImpl implements DataFlowManager {
         return format("Unable to process transfer %s. No data flow controller found", id);
     }
 
-    record PrioritizedDataFlowController(int priority, DataFlowController controller) { }
+    record PrioritizedDataFlowController(int priority, DataFlowController controller) {
+    }
 
 }

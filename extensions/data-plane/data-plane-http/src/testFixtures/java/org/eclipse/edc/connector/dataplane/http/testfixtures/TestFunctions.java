@@ -52,8 +52,7 @@ public class TestFunctions {
                 .processId(UUID.randomUUID().toString())
                 .properties(properties)
                 .sourceDataAddress(source)
-                .destinationDataAddress(destination)
-                .trackable(true);
+                .destinationDataAddress(destination);
     }
 
     public static Response.Builder createHttpResponse() {

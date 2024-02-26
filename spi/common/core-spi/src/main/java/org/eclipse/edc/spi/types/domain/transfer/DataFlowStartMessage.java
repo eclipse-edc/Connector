@@ -60,7 +60,6 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
     private DataAddress destinationDataAddress;
     private String transferType;
     private URI callbackAddress;
-    private boolean trackable;
 
     private Map<String, String> properties = Map.of();
     private Map<String, String> traceContext = Map.of(); // TODO: should this stay in the DataFlow class?
@@ -124,13 +123,6 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
      */
     public String getParticipantId() {
         return participantId;
-    }
-
-    /**
-     * Returns true if the request must be tracked for delivery guarantees.
-     */
-    public boolean isTrackable() {
-        return trackable;
     }
 
     /**
@@ -225,12 +217,6 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
 
         public Builder assetId(String assetId) {
             request.assetId = assetId;
-            return this;
-        }
-
-
-        public Builder trackable(boolean value) {
-            request.trackable = value;
             return this;
         }
 

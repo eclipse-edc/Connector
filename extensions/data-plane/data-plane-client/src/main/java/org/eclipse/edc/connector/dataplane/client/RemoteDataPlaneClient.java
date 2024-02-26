@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.io.IOException;
@@ -54,7 +55,7 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
 
     @WithSpan
     @Override
-    public StatusResult<Void> transfer(DataFlowStartMessage dataFlowStartMessage) {
+    public StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage dataFlowStartMessage) {
         RequestBody body;
         try {
             body = RequestBody.create(mapper.writeValueAsString(dataFlowStartMessage), TYPE_JSON);
@@ -64,7 +65,13 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
         var request = new Request.Builder().post(body).url(dataPlane.getUrl()).build();
 
         try (var response = httpClient.execute(request)) {
-            return handleResponse(response, dataFlowStartMessage.getId());
+            var result = handleResponse(response, dataFlowStartMessage.getId());
+
+            if (result.failed()) {
+                return StatusResult.failure(result.getFailure().status(), result.getFailureDetail());
+            } else {
+                return StatusResult.success(DataFlowResponseMessage.Builder.newInstance().build());
+            }
         } catch (IOException e) {
             return StatusResult.failure(FATAL_ERROR, e.getMessage());
         }

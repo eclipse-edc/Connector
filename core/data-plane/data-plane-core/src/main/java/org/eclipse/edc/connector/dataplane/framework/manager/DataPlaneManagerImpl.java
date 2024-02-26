@@ -55,14 +55,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
-        return builder
-                .processor(processDataFlowInState(RECEIVED, this::processReceived))
-                .processor(processDataFlowInState(COMPLETED, this::processCompleted))
-                .processor(processDataFlowInState(FAILED, this::processFailed));
-    }
-
-    @Override
     public Result<Boolean> validate(DataFlowStartMessage dataRequest) {
         var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
         return transferService != null ?
@@ -79,7 +71,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .destination(dataRequest.getDestinationDataAddress())
                 .callbackAddress(dataRequest.getCallbackAddress())
                 .traceContext(telemetry.getCurrentTraceContext())
-                .trackable(dataRequest.isTrackable())
                 .properties(dataRequest.getProperties())
                 .state(RECEIVED.code())
                 .build();
@@ -114,6 +105,14 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         } else {
             return StatusResult.from(result).map(it -> null);
         }
+    }
+
+    @Override
+    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
+        return builder
+                .processor(processDataFlowInState(RECEIVED, this::processReceived))
+                .processor(processDataFlowInState(COMPLETED, this::processCompleted))
+                .processor(processDataFlowInState(FAILED, this::processFailed));
     }
 
     private boolean processReceived(DataFlow dataFlow) {
@@ -188,17 +187,22 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     public static class Builder extends AbstractStateEntityManager.Builder<DataFlow, DataPlaneStore, DataPlaneManagerImpl, Builder> {
 
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
         private Builder() {
             super(new DataPlaneManagerImpl());
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         @Override
         public Builder self() {
             return this;
+        }
+
+        public DataPlaneManagerImpl build() {
+            Objects.requireNonNull(manager.transferProcessClient);
+            return manager;
         }
 
         public Builder transferServiceRegistry(TransferServiceRegistry transferServiceRegistry) {
@@ -209,11 +213,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         public Builder transferProcessClient(TransferProcessApiClient transferProcessClient) {
             manager.transferProcessClient = transferProcessClient;
             return this;
-        }
-
-        public DataPlaneManagerImpl build() {
-            Objects.requireNonNull(manager.transferProcessClient);
-            return manager;
         }
     }
 

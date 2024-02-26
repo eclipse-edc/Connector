@@ -79,6 +79,10 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
         return "transfer_type";
     }
 
+    default String getDataPlaneIdColumn() {
+        return "data_plane_id";
+    }
+
     default String getContractIdColumn() {
         return "contract_id";
     }

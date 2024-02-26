@@ -33,6 +33,22 @@ import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSche
 public class DataFlowRequestSupplier implements BiFunction<ContainerRequestContextApi, DataAddress, DataFlowStartMessage> {
 
     /**
+     * Put all properties of the incoming request (method, request body, query params...) into a map.
+     */
+    private static Map<String, String> createProps(ContainerRequestContextApi contextApi) {
+        var props = new HashMap<String, String>();
+        props.put(METHOD, contextApi.method());
+        props.put(QUERY_PARAMS, contextApi.queryParams());
+        props.put(PATH, contextApi.path());
+        Optional.ofNullable(contextApi.mediaType())
+                .ifPresent(mediaType -> {
+                    props.put(MEDIA_TYPE, mediaType);
+                    props.put(BODY, contextApi.body());
+                });
+        return props;
+    }
+
+    /**
      * Create a {@link DataFlowStartMessage} based on incoming request and claims decoded from the access token.
      *
      * @param contextApi  Api for accessing request properties.
@@ -48,25 +64,8 @@ public class DataFlowRequestSupplier implements BiFunction<ContainerRequestConte
                 .destinationDataAddress(DataAddress.Builder.newInstance()
                         .type(AsyncStreamingDataSink.TYPE)
                         .build())
-                .trackable(false)
                 .id(UUID.randomUUID().toString())
                 .properties(props)
                 .build();
-    }
-
-    /**
-     * Put all properties of the incoming request (method, request body, query params...) into a map.
-     */
-    private static Map<String, String> createProps(ContainerRequestContextApi contextApi) {
-        var props = new HashMap<String, String>();
-        props.put(METHOD, contextApi.method());
-        props.put(QUERY_PARAMS, contextApi.queryParams());
-        props.put(PATH, contextApi.path());
-        Optional.ofNullable(contextApi.mediaType())
-                .ifPresent(mediaType -> {
-                    props.put(MEDIA_TYPE, mediaType);
-                    props.put(BODY, contextApi.body());
-                });
-        return props;
     }
 }

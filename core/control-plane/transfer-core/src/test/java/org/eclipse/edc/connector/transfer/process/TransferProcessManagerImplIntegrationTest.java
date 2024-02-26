@@ -166,6 +166,27 @@ class TransferProcessManagerImplIntegrationTest {
 
     }
 
+    private ProvisionedResourceSet provisionedResourceSet() {
+        return ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(new TestProvisionedDataDestinationResource("test-resource", "1")))
+                .build();
+    }
+
+    private TransferProcess.Builder transferProcessBuilder() {
+        var processId = UUID.randomUUID().toString();
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(processId)
+                .destinationType("test-type")
+                .contractId(UUID.randomUUID().toString())
+                .build();
+
+        return TransferProcess.Builder.newInstance()
+                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
+                .type(CONSUMER)
+                .id("test-process-" + processId)
+                .dataRequest(dataRequest);
+    }
+
     @Nested
     class IdempotencyProcessStateReplication {
 
@@ -176,7 +197,7 @@ class TransferProcessManagerImplIntegrationTest {
             when(dispatcherRegistry.dispatch(any(), isA(messageType)))
                     .thenReturn(completedFuture(StatusResult.failure(ERROR_RETRY)))
                     .thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
-            when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
             when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
             var transfer = transferProcessBuilder().type(type).state(state.code()).build();
@@ -205,36 +226,15 @@ class TransferProcessManagerImplIntegrationTest {
             @Override
             public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
                 return Stream.of(
-                    arguments(CONSUMER, REQUESTING, TransferRequestMessage.class),
-                    arguments(CONSUMER, COMPLETING, TransferCompletionMessage.class),
-                    arguments(CONSUMER, TERMINATING, TransferTerminationMessage.class),
-                    arguments(PROVIDER, STARTING, TransferStartMessage.class),
-                    arguments(PROVIDER, COMPLETING, TransferCompletionMessage.class),
-                    arguments(PROVIDER, TERMINATING, TransferTerminationMessage.class)
+                        arguments(CONSUMER, REQUESTING, TransferRequestMessage.class),
+                        arguments(CONSUMER, COMPLETING, TransferCompletionMessage.class),
+                        arguments(CONSUMER, TERMINATING, TransferTerminationMessage.class),
+                        arguments(PROVIDER, STARTING, TransferStartMessage.class),
+                        arguments(PROVIDER, COMPLETING, TransferCompletionMessage.class),
+                        arguments(PROVIDER, TERMINATING, TransferTerminationMessage.class)
                 );
             }
         }
-    }
-
-    private ProvisionedResourceSet provisionedResourceSet() {
-        return ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(new TestProvisionedDataDestinationResource("test-resource", "1")))
-                .build();
-    }
-
-    private TransferProcess.Builder transferProcessBuilder() {
-        var processId = UUID.randomUUID().toString();
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(processId)
-                .destinationType("test-type")
-                .contractId(UUID.randomUUID().toString())
-                .build();
-
-        return TransferProcess.Builder.newInstance()
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
-                .type(CONSUMER)
-                .id("test-process-" + processId)
-                .dataRequest(dataRequest);
     }
 }
 

@@ -36,13 +36,22 @@ class EmbeddedDataPlaneClientTest {
     private final DataPlaneManager dataPlaneManager = mock();
     private final DataPlaneClient client = new EmbeddedDataPlaneClient(dataPlaneManager);
 
+    private static DataFlowStartMessage createDataFlowRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
+                .id("123")
+                .processId("456")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .build();
+    }
+
     @Test
     void transfer_shouldSucceed_whenTransferInitiatedCorrectly() {
         var request = createDataFlowRequest();
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
         doNothing().when(dataPlaneManager).initiate(any());
 
-        var result = client.transfer(request);
+        var result = client.start(request);
 
         verify(dataPlaneManager).validate(request);
         verify(dataPlaneManager).initiate(request);
@@ -57,7 +66,7 @@ class EmbeddedDataPlaneClientTest {
         when(dataPlaneManager.validate(any())).thenReturn(Result.failure(errorMsg));
         doNothing().when(dataPlaneManager).initiate(any());
 
-        var result = client.transfer(request);
+        var result = client.start(request);
 
         verify(dataPlaneManager).validate(request);
         verify(dataPlaneManager, never()).initiate(any());
@@ -73,15 +82,5 @@ class EmbeddedDataPlaneClientTest {
 
         assertThat(result).isSucceeded();
         verify(dataPlaneManager).terminate("dataFlowId");
-    }
-
-    private static DataFlowStartMessage createDataFlowRequest() {
-        return DataFlowStartMessage.Builder.newInstance()
-                .trackable(true)
-                .id("123")
-                .processId("456")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .build();
     }
 }

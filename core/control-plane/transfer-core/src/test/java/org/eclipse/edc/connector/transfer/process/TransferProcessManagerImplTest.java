@@ -146,7 +146,7 @@ class TransferProcessManagerImplTest {
     @BeforeEach
     void setup() {
         when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
-        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.success(createDataFlowResponse()));
+        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(createDataFlowResponse()));
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
@@ -497,7 +497,7 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
-        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
         when(dispatcherRegistry.dispatch(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
         manager.start();
@@ -519,7 +519,7 @@ class TransferProcessManagerImplTest {
     @Test
     void starting_onFailureAndRetriesNotExhausted_updatesStateCountForRetry() {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
-        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.failure(ERROR_RETRY));
         when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
 
@@ -535,7 +535,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
 
         manager.start();
 
@@ -547,7 +547,7 @@ class TransferProcessManagerImplTest {
     @Test
     void starting_onFailureAndRetriesExhausted_transitToTerminating() {
         var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(RETRY_EXHAUSTED).build();
-        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.failure(ERROR_RETRY));
         when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
 

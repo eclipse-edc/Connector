@@ -307,7 +307,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private boolean processStarting(TransferProcess process) {
         var policy = policyArchive.findPolicyForContract(process.getContractId());
 
-        return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.initiate(process, policy))
+        return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.start(process, policy))
                 .onSuccess((p, dataFlowResponse) -> sendTransferStartMessage(p, dataFlowResponse, policy))
                 .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .onFailure((t, failure) -> transitionToStarting(t))
@@ -388,7 +388,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .dataAddress(dataFlowResponse.getDataAddress());
 
         dispatch(messageBuilder, process, policy, Object.class)
-                .onSuccess((t, content) -> transitionToStarted(t))
+                .onSuccess((t, content) -> transitionToStarted(t, dataFlowResponse.getDataPlaneId()))
                 .onFailure((t, throwable) -> transitionToStarting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -513,8 +513,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         update(transferProcess);
     }
 
-    private void transitionToStarted(TransferProcess process) {
-        process.transitionStarted();
+    private void transitionToStarted(TransferProcess process, String dataPlaneId) {
+        process.transitionStarted(dataPlaneId);
         observable.invokeForEach(l -> l.preStarted(process));
         update(process);
         observable.invokeForEach(l -> l.started(process, TransferProcessStartedData.Builder.newInstance().build()));

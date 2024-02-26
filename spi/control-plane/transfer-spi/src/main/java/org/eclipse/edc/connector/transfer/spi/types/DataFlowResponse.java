@@ -18,17 +18,22 @@ import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
- * A Response for {@link DataFlowManager#initiate} operation
+ * A Response for {@link DataFlowManager#start} operation
  */
 public class DataFlowResponse {
 
     private DataAddress dataAddress;
+    private String dataPlaneId;
 
     private DataFlowResponse() {
     }
 
     public DataAddress getDataAddress() {
         return dataAddress;
+    }
+
+    public String getDataPlaneId() {
+        return dataPlaneId;
     }
 
     public static class Builder {
@@ -45,6 +50,11 @@ public class DataFlowResponse {
 
         public Builder dataAddress(DataAddress dataAddress) {
             response.dataAddress = dataAddress;
+            return this;
+        }
+
+        public Builder dataPlaneId(String dataPlaneId) {
+            response.dataPlaneId = dataPlaneId;
             return this;
         }
 
