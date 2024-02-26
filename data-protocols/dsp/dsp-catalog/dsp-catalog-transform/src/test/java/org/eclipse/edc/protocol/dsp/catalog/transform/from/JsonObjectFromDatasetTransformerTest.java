@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.core.transform.transformer.from;
+package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;

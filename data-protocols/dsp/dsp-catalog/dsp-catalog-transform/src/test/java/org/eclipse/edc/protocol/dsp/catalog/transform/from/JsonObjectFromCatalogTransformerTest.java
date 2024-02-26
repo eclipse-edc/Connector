@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.core.transform.transformer.from;
+package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
@@ -38,6 +38,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_PARTICIPANT_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -51,9 +52,9 @@ class JsonObjectFromCatalogTransformerTest {
 
     private static final String CATALOG_PROPERTY = "catalog:prop:key";
 
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private ObjectMapper mapper = mock(ObjectMapper.class);
-    private TransformerContext context = mock(TransformerContext.class);
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final ObjectMapper mapper = mock();
+    private final TransformerContext context = mock();
 
     private JsonObjectFromCatalogTransformer transformer;
 
@@ -75,8 +76,8 @@ class JsonObjectFromCatalogTransformerTest {
     @Test
     void transform_returnJsonObject() {
         when(mapper.convertValue(any(), eq(JsonValue.class))).thenReturn(Json.createValue("value"));
-
         var catalog = getCatalog();
+
         var result = transformer.transform(catalog, context);
 
         assertThat(result).isNotNull();
@@ -94,7 +95,7 @@ class JsonObjectFromCatalogTransformerTest {
                 .isInstanceOf(JsonArray.class)
                 .matches(v -> v.asJsonArray().size() == 1)
                 .matches(v -> v.asJsonArray().get(0).equals(dataServiceJson));
-
+        assertThat(result.getString(DSPACE_PROPERTY_PARTICIPANT_ID)).isEqualTo("participantId");
         assertThat(result.get(CATALOG_PROPERTY)).isNotNull();
 
         verify(context, times(1)).transform(catalog.getDatasets().get(0), JsonObject.class);
@@ -125,6 +126,7 @@ class JsonObjectFromCatalogTransformerTest {
                                 .build())
                         .build())
                 .dataService(DataService.Builder.newInstance().build())
+                .participantId("participantId")
                 .property(CATALOG_PROPERTY, "value")
                 .build();
     }

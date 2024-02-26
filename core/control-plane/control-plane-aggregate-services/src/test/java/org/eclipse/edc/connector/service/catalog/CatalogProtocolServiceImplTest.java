@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -58,80 +59,90 @@ class CatalogProtocolServiceImplTest {
     private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver,
             dataServiceRegistry, protocolTokenValidator, "participantId", transactionContext);
 
-    @Test
-    void getCatalog_shouldReturnCatalogWithConnectorDataServiceAndItsDataset() {
-        var querySpec = QuerySpec.none();
-        var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
-        var tokenRepresentation = createTokenRepresentation();
-        var participantAgent = createParticipantAgent();
-        var dataService = DataService.Builder.newInstance().build();
+    @Nested
+    class GetCatalog {
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.success(participantAgent));
-        when(dataServiceRegistry.getDataServices()).thenReturn(List.of(dataService));
-        when(datasetResolver.query(any(), any())).thenReturn(Stream.of(createDataset()));
+        @Test
+        void shouldReturnCatalogWithConnectorDataServiceAndItsDataset() {
+            var querySpec = QuerySpec.none();
+            var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
+            var tokenRepresentation = createTokenRepresentation();
+            var participantAgent = createParticipantAgent();
+            var dataService = DataService.Builder.newInstance().build();
 
-        var result = service.getCatalog(message, tokenRepresentation);
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.success(participantAgent));
+            when(dataServiceRegistry.getDataServices()).thenReturn(List.of(dataService));
+            when(datasetResolver.query(any(), any())).thenReturn(Stream.of(createDataset()));
 
-        assertThat(result).isSucceeded().satisfies(catalog -> {
-            assertThat(catalog.getDataServices()).hasSize(1).first().isSameAs(dataService);
-            assertThat(catalog.getDatasets()).hasSize(1);
-        });
-        verify(datasetResolver).query(eq(participantAgent), eq(querySpec));
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+            var result = service.getCatalog(message, tokenRepresentation);
+
+            assertThat(result).isSucceeded().satisfies(catalog -> {
+                assertThat(catalog.getDataServices()).hasSize(1).first().isSameAs(dataService);
+                assertThat(catalog.getDatasets()).hasSize(1);
+                assertThat(catalog.getParticipantId()).isEqualTo("participantId");
+            });
+            verify(datasetResolver).query(eq(participantAgent), eq(querySpec));
+            verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void shouldFail_whenTokenValidationFails() {
+            var querySpec = QuerySpec.none();
+            var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
+            var tokenRepresentation = createTokenRepresentation();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.unauthorized("unauthorized"));
+
+            var result = service.getCatalog(message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
+        }
     }
 
-    @Test
-    void getCatalog_shouldFail_whenTokenValidationFails() {
-        var querySpec = QuerySpec.none();
-        var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
-        var tokenRepresentation = createTokenRepresentation();
+    @Nested
+    class GetDataset {
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.unauthorized("unauthorized"));
+        @Test
+        void shouldReturnDataset() {
+            var tokenRepresentation = createTokenRepresentation();
+            var participantAgent = createParticipantAgent();
+            var dataset = createDataset();
 
-        var result = service.getCatalog(message, tokenRepresentation);
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.success(participantAgent));
+            when(datasetResolver.getById(any(), any())).thenReturn(dataset);
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
+            var result = service.getDataset("datasetId", tokenRepresentation);
+
+            assertThat(result).isSucceeded().isEqualTo(dataset);
+            verify(datasetResolver).getById(participantAgent, "datasetId");
+            verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void shouldFail_whenDatasetIsNull() {
+            var participantAgent = createParticipantAgent();
+            var tokenRepresentation = createTokenRepresentation();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.success(participantAgent));
+            when(datasetResolver.getById(any(), any())).thenReturn(null);
+
+            var result = service.getDataset("datasetId", tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
+
+        @Test
+        void shouldFail_whenTokenValidationFails() {
+            var tokenRepresentation = createTokenRepresentation();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.unauthorized("unauthorized"));
+
+            var result = service.getDataset("datasetId", tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
+        }
     }
 
-    @Test
-    void getDataset_shouldReturnDataset() {
-        var tokenRepresentation = createTokenRepresentation();
-        var participantAgent = createParticipantAgent();
-        var dataset = createDataset();
-
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.success(participantAgent));
-        when(datasetResolver.getById(any(), any())).thenReturn(dataset);
-
-        var result = service.getDataset("datasetId", tokenRepresentation);
-
-        assertThat(result).isSucceeded().isEqualTo(dataset);
-        verify(datasetResolver).getById(participantAgent, "datasetId");
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
-
-    @Test
-    void getDataset_shouldFail_whenDatasetIsNull() {
-        var participantAgent = createParticipantAgent();
-        var tokenRepresentation = createTokenRepresentation();
-
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.success(participantAgent));
-        when(datasetResolver.getById(any(), any())).thenReturn(null);
-
-        var result = service.getDataset("datasetId", tokenRepresentation);
-
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
-    }
-
-    @Test
-    void getDataset_shouldFail_whenTokenValidationFails() {
-        var tokenRepresentation = createTokenRepresentation();
-
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.unauthorized("unauthorized"));
-
-        var result = service.getDataset("datasetId", tokenRepresentation);
-
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
-    }
 
     private ParticipantAgent createParticipantAgent() {
         return new ParticipantAgent(emptyMap(), emptyMap());

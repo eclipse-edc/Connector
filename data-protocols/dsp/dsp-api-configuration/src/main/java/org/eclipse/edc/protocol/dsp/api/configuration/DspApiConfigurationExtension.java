@@ -17,21 +17,13 @@ package org.eclipse.edc.protocol.dsp.api.configuration;
 import jakarta.json.Json;
 import org.eclipse.edc.core.transform.transformer.OdrlTransformersFactory;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromAssetTransformer;
-import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromCatalogTransformer;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromCriterionTransformer;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDataAddressTransformer;
-import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDataServiceTransformer;
-import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDatasetTransformer;
-import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDistributionTransformer;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromQuerySpecTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToAssetTransformer;
-import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataAddressTransformer;
-import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataServiceTransformer;
-import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDatasetTransformer;
-import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDistributionTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -140,23 +132,13 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
 
         // EDC model to JSON-LD transformers
-        transformerRegistry.register(new JsonObjectFromCatalogTransformer(jsonBuilderFactory, mapper));
-        transformerRegistry.register(new JsonObjectFromDatasetTransformer(jsonBuilderFactory, mapper));
         transformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory));
-        transformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonBuilderFactory));
-        transformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonBuilderFactory));
         transformerRegistry.register(new JsonObjectFromAssetTransformer(jsonBuilderFactory, mapper));
         transformerRegistry.register(new JsonObjectFromDataAddressTransformer(jsonBuilderFactory));
         transformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
         transformerRegistry.register(new JsonObjectFromCriterionTransformer(jsonBuilderFactory, mapper));
 
         // JSON-LD to EDC model transformers
-        // DCAT transformers
-        transformerRegistry.register(new JsonObjectToCatalogTransformer());
-        transformerRegistry.register(new JsonObjectToDataServiceTransformer());
-        transformerRegistry.register(new JsonObjectToDatasetTransformer());
-        transformerRegistry.register(new JsonObjectToDistributionTransformer());
-
         // ODRL Transformers
         OdrlTransformersFactory.jsonObjectToOdrlTransformers().forEach(transformerRegistry::register);
 
