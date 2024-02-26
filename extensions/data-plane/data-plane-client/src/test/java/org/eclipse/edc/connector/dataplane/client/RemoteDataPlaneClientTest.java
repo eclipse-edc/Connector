@@ -70,6 +70,20 @@ class RemoteDataPlaneClientTest {
         stopQuietly(dataPlane);
     }
 
+    private static HttpResponse withResponse(String errorMsg) throws JsonProcessingException {
+        return response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code())
+                .withBody(MAPPER.writeValueAsString(new TransferErrorResponse(List.of(errorMsg))), MediaType.APPLICATION_JSON);
+    }
+
+    private static DataFlowStartMessage createDataFlowRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
+                .id("123")
+                .processId("456")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .build();
+    }
+
     @AfterEach
     public void resetMockServer() {
         dataPlane.reset();
@@ -147,20 +161,5 @@ class RemoteDataPlaneClientTest {
         var result = dataPlaneClient.terminate("processId");
 
         assertThat(result).isFailed();
-    }
-
-    private static HttpResponse withResponse(String errorMsg) throws JsonProcessingException {
-        return response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code())
-                .withBody(MAPPER.writeValueAsString(new TransferErrorResponse(List.of(errorMsg))), MediaType.APPLICATION_JSON);
-    }
-
-    private static DataFlowStartMessage createDataFlowRequest() {
-        return DataFlowStartMessage.Builder.newInstance()
-                .trackable(true)
-                .id("123")
-                .processId("456")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .build();
     }
 }

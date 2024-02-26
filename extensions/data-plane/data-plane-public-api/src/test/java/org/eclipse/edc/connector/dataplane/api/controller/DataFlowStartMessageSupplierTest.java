@@ -51,7 +51,6 @@ class DataFlowStartMessageSupplierTest {
 
         var request = supplier.apply(contextApi, address);
 
-        assertThat(request.isTrackable()).isFalse();
         assertThat(request.getId()).isNotBlank();
         assertThat(request.getDestinationDataAddress().getType()).isEqualTo(AsyncStreamingDataSink.TYPE);
         assertThat(request.getSourceDataAddress().getType()).isEqualTo(address.getType());
@@ -81,7 +80,6 @@ class DataFlowStartMessageSupplierTest {
 
         var request = supplier.apply(contextApi, address);
 
-        assertThat(request.isTrackable()).isFalse();
         assertThat(request.getId()).isNotBlank();
         assertThat(request.getDestinationDataAddress().getType()).isEqualTo(AsyncStreamingDataSink.TYPE);
         assertThat(request.getSourceDataAddress().getType()).isEqualTo(address.getType());

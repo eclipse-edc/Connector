@@ -66,7 +66,6 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
         var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(transferProcess.getId())
-                .trackable(true)
                 .sourceDataAddress(transferProcess.getContentDataAddress())
                 .destinationDataAddress(transferProcess.getDataDestination())
                 .transferType(transferProcess.getTransferType())

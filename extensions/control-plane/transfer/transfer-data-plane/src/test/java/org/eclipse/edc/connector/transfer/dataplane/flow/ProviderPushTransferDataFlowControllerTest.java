@@ -85,7 +85,6 @@ class ProviderPushTransferDataFlowControllerTest {
         var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
         verify(dataPlaneClient).start(captor.capture());
         var captured = captor.getValue();
-        assertThat(captured.isTrackable()).isTrue();
         assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
         assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
         assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
@@ -171,7 +170,7 @@ class ProviderPushTransferDataFlowControllerTest {
 
         assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
     }
-    
+
     @Test
     void transferTypes_shouldReturnTypesForSpecifiedAsset() {
         when(selectorService.getAll()).thenReturn(List.of(

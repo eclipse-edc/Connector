@@ -95,7 +95,6 @@ class DataPlaneManagerImplTest {
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .callbackAddress(URI.create("http://any"))
                 .properties(Map.of("key", "value"))
-                .trackable(true)
                 .build();
 
         manager.initiate(request);
@@ -108,7 +107,6 @@ class DataPlaneManagerImplTest {
         assertThat(dataFlow.getDestination()).isSameAs(request.getDestinationDataAddress());
         assertThat(dataFlow.getCallbackAddress()).isEqualTo(URI.create("http://any"));
         assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
-        assertThat(dataFlow.isTrackable()).isEqualTo(request.isTrackable());
         assertThat(dataFlow.getState()).isEqualTo(RECEIVED.code());
     }
 
@@ -340,7 +338,6 @@ class DataPlaneManagerImplTest {
                 .source(DataAddress.Builder.newInstance().type("source").build())
                 .destination(DataAddress.Builder.newInstance().type("destination").build())
                 .callbackAddress(URI.create("http://any"))
-                .trackable(true)
                 .properties(Map.of("key", "value"));
     }
 

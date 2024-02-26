@@ -40,7 +40,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     private DataAddress source;
     private DataAddress destination;
     private URI callbackAddress;
-    private boolean trackable;
     private Map<String, String> properties = Map.of();
 
     @Override
@@ -49,7 +48,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
                 .source(source)
                 .destination(destination)
                 .callbackAddress(callbackAddress)
-                .trackable(trackable)
                 .properties(properties);
 
         return copy(builder);
@@ -72,10 +70,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         return callbackAddress;
     }
 
-    public boolean isTrackable() {
-        return trackable;
-    }
-
     public Map<String, String> getProperties() {
         return properties;
     }
@@ -88,7 +82,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
                 .processId(getId())
                 .callbackAddress(getCallbackAddress())
                 .traceContext(traceContext)
-                .trackable(isTrackable())
                 .properties(getProperties())
                 .build();
     }
@@ -158,11 +151,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
         public Builder callbackAddress(URI callbackAddress) {
             entity.callbackAddress = callbackAddress;
-            return this;
-        }
-
-        public Builder trackable(boolean trackable) {
-            entity.trackable = trackable;
             return this;
         }
 
