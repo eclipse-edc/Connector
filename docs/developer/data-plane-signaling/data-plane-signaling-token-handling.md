@@ -39,7 +39,9 @@ backward compatibility to the existing format should be maintained by retaining 
   "dspace:dataAddress": {
     "@type": "dspace:DataAddress",
     "dspace:endpointType": "https://w3id.org/idsa/v4.1/HTTP",
-    "dspace:endpoint": "http://example.com",
+    "dspace:endpoint": {
+      "url": "http://example.com"
+    },
     "dspace:endpointProperties": [
       {
         "@type": "dspace:EndpointProperty",
@@ -69,29 +71,47 @@ These operations will be encapsulated in the `DataPlaneAuthorizationService`:
 
 ```java
 public interface DataPlaneAuthorizationService {
-
     Result<DataAddress> createEndpointDataReference(DataFlowStartMessage message);
-
     Result<DataAddress> authorize(String token, Map<String, Object> requestData);
+}
+```
+
+### Public endpoint resolution
+
+In addition to creating an access token (see next section), the data plane must determine the public endpoint, where
+consumers can obtain the data. In the case of HTTP, this would be the internet-facing HTTP URL of the data plane ("
+public url"), e.g. `"http://example.com"`, and the type would be `"https://w3id.org/idsa/v4.1/HTTP"`.
+This tuple consisting of `endpoint` and `endpointType` is determined by another service called
+a `PublicEndpointGenerator` (as public endpoints could be dynamically _generated_):
+
+```java
+public interface PublicEndpointGenerator {
+    Endpoint generateEndpoint(DataAddress sourceDataAddress);
+}
+
+public record Endpoint(Map<String, Object> endpoint, String endpointType) {
 
 }
 ```
 
+Note that the `endpoint` is an extensible (= schemaless) complex object because it could contain structured data, such
+as a bucket name, folder path, prefix, etc. The `endpointType` is _always_ a String.
+The shape of the `endpoint` is specific to each source type and must be documented out-of-band.
+
 ### EDR and Token Creation
 
 When `DataPlaneAuthorizationService.createEndpointDataReference()` is invoked, the service will delegate to
-the `DataPlaneTokenService.obtainToken()` to create the authorization token and package it in an EDR.
+the `DataPlaneAccessTokenService.obtainToken()` to create the authorization token and package it in an EDR. There could
+be a separate `DataPlaneAccessTokenService` per `endpointType`, effectively enabling the data plane to generate
+different tokens for each transfer type.
 
 The `DataPlaneAccessTokenService` is a defined extensibility point that can be used to integrate third-party
 authorization servers:
 
 ```java
 public interface DataPlaneAccessTokenService {
-
     Result<TokenRepresentation> obtainToken(TokenParameters parameters, DataAddress address);
-
     Result<AccessTokenData> resolve(String token);
-
 }
 
 public record AccessTokenData(ClaimToken claimToken, DataAddress address) {
@@ -136,12 +156,13 @@ encapsulates the token and transport-specific request information as a `Map`, e.
 
 ##### `AccessTokenData` Resolution
 
-First, the `DataPlaneAuthorizationService.authorize` implementation will
-invoke `DataPlaneAccessTokenService.resolve()` to resolve the `AccessTokenData` containing the `DataAddress` and
-claims associated with the token:
+First, the `DataPlaneAuthorizationService.authorize()` implementation will invoke `DataPlaneAccessTokenService.resolve()`
+to resolve the `AccessTokenData` containing the `DataAddress` and claims associated with the token:
 
 ```java
-public record AccessTokenData(ClaimToken claimToken, DataAddress address)
+public record AccessTokenData(ClaimToken claimToken, DataAddress address) {
+
+}
 ```
 
 The `ClaimToken` will contain the claims originally passed in the `TokenParameters` used to create the token:
@@ -161,9 +182,7 @@ to `DataPlaneAccessControlService.checkAccess`:
 
 ```java
 public interface DataPlaneAccessControlService {
-
     boolean checkAccess(ClaimToken claimToken, DataAddress address, Map<String, Object> requestData)
-
 } 
 ```
 
