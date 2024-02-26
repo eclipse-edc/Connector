@@ -27,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
@@ -76,6 +78,8 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
             case ODRL_PROHIBITION_ATTRIBUTE -> v -> builder.prohibitions(transformArray(v, Prohibition.class, context));
             case ODRL_OBLIGATION_ATTRIBUTE -> v -> builder.duties(transformArray(v, Duty.class, context));
             case ODRL_TARGET_ATTRIBUTE -> v -> builder.target(transformString(v, context));
+            case ODRL_ASSIGNER_ATTRIBUTE -> v -> builder.assigner(transformString(v, context));
+            case ODRL_ASSIGNEE_ATTRIBUTE -> v -> builder.assignee(transformString(v, context));
             default -> v -> builder.extensibleProperty(key, transformGenericProperty(v, context));
         });
 

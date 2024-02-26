@@ -38,6 +38,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -59,7 +60,9 @@ class ContractRequestValidatorTest {
                 .add(POLICY, createArrayBuilder().add(createObjectBuilder()
                         .add(TYPE, createArrayBuilder().add(ODRL_POLICY_TYPE_OFFER))
                         .add(ID, "offer-id")
-                        .add(ODRL_TARGET_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "target")))))
+                        .add(ODRL_ASSIGNER_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "assigner")))
+                        .add(ODRL_TARGET_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "target"))))
+                )
                 .build();
 
         var result = validator.validate(input);
@@ -87,6 +90,7 @@ class ContractRequestValidatorTest {
                 .allSatisfy(violation -> assertThat(violation.path()).startsWith(POLICY))
                 .anySatisfy(violation -> assertThat(violation.path()).endsWith(TYPE))
                 .anySatisfy(violation -> assertThat(violation.path()).endsWith(ODRL_TARGET_ATTRIBUTE))
+                .anySatisfy(violation -> assertThat(violation.path()).endsWith(ODRL_ASSIGNER_ATTRIBUTE))
                 .anySatisfy(violation -> assertThat(violation.path()).endsWith(ID));
     }
 
@@ -165,6 +169,7 @@ class ContractRequestValidatorTest {
                 .add(POLICY, createArrayBuilder().add(createObjectBuilder()
                         .add(ID, "offer-id")
                         .add(TYPE, createArrayBuilder().add(ODRL_POLICY_TYPE_OFFER))
+                        .add(ODRL_ASSIGNER_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "assigner")))
                         .add(ODRL_TARGET_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "target")))))
                 .build();
 

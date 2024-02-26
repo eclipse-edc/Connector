@@ -48,6 +48,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSEQUENCE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_DUTY_ATTRIBUTE;
@@ -157,6 +159,9 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
                     .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder)
                     .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
 
+            Optional.ofNullable(policy.getAssignee()).ifPresent(it -> builder.add(ODRL_ASSIGNEE_ATTRIBUTE, it));
+            Optional.ofNullable(policy.getAssigner()).ifPresent(it -> builder.add(ODRL_ASSIGNER_ATTRIBUTE, it));
+
             Optional.ofNullable(policy.getTarget())
                     .ifPresent(target -> builder.add(
                             ODRL_TARGET_ATTRIBUTE,
@@ -242,6 +247,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
                 case CONTRACT -> ODRL_POLICY_TYPE_AGREEMENT;
             };
         }
+
     }
 
 }

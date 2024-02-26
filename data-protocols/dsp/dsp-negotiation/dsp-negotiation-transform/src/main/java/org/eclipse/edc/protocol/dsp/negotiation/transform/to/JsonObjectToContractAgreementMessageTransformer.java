@@ -126,9 +126,17 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
                     .report();
             return null;
         }
-        builder.id(agreementId);
 
-        if (!transformMandatoryString(jsonAgreement.get(DSPACE_PROPERTY_CONSUMER_ID), builder::consumerId, context)) {
+        var assignee = policy.getAssignee();
+        var assigner = policy.getAssigner();
+
+        builder.id(agreementId)
+                .consumerId(assignee)
+                .providerId(assigner)
+                .policy(policy)
+                .assetId(policy.getTarget());
+
+        if (assignee == null && !transformMandatoryString(jsonAgreement.get(DSPACE_PROPERTY_CONSUMER_ID), builder::consumerId, context)) {
             context.problem()
                     .missingProperty()
                     .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
@@ -137,7 +145,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
             return null;
         }
 
-        if (!transformMandatoryString(jsonAgreement.get(DSPACE_PROPERTY_PROVIDER_ID), builder::providerId, context)) {
+        if (assigner == null && !transformMandatoryString(jsonAgreement.get(DSPACE_PROPERTY_PROVIDER_ID), builder::providerId, context)) {
             context.problem()
                     .missingProperty()
                     .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
@@ -145,9 +153,6 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
                     .report();
             return null;
         }
-
-        builder.policy(policy);
-        builder.assetId(policy.getTarget());
 
         var timestamp = transformString(jsonAgreement.get(DSPACE_PROPERTY_TIMESTAMP), context);
         if (timestamp == null) {

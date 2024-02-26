@@ -19,10 +19,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.TypeManager;
 
+import java.util.List;
 import java.util.function.BiPredicate;
 
 public class PolicyEquality implements BiPredicate<Policy, Policy> {
 
+    private static final List<String> EXCLUDED_PROPERTIES = List.of("@type", "assignee", "target");
     private final ObjectMapper mapper;
 
     public PolicyEquality(TypeManager typeManager) {
@@ -33,10 +35,10 @@ public class PolicyEquality implements BiPredicate<Policy, Policy> {
     public boolean test(Policy one, Policy two) {
         var oneTree = mapper.<ObjectNode>valueToTree(one);
         var twoTree = mapper.<ObjectNode>valueToTree(two);
-        oneTree.remove("@type");
-        twoTree.remove("@type");
-        oneTree.remove("target");
-        twoTree.remove("target");
+        EXCLUDED_PROPERTIES.forEach(property -> {
+            oneTree.remove(property);
+            twoTree.remove(property);
+        });
         return oneTree.equals(twoTree);
     }
 }

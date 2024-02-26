@@ -35,6 +35,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 
@@ -68,8 +69,11 @@ public class ContractRequestValidator {
                     .verifyObject(POLICY, builder -> builder
                             .verifyId(MandatoryIdNotBlank::new)
                             .verify(path -> new TypeIs(path, ODRL_POLICY_TYPE_OFFER))
+                            .verify(ODRL_ASSIGNER_ATTRIBUTE, MandatoryObject::new)
+                            .verifyObject(ODRL_ASSIGNER_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new))
                             .verify(ODRL_TARGET_ATTRIBUTE, MandatoryObject::new)
-                            .verifyObject(ODRL_TARGET_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new)))
+                            .verifyObject(ODRL_TARGET_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new))
+                    )
                     .build();
 
             return validator.validate(input);

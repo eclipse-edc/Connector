@@ -44,6 +44,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -339,20 +340,6 @@ public class Participant {
      * @param assetId             asset id
      * @param privateProperties   private properties
      * @param destination         data destination address
-     * @return id of the transfer process.
-     */
-    public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination) {
-        return initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, null);
-    }
-
-    /**
-     * Initiate data transfer.
-     *
-     * @param provider            data provider
-     * @param contractAgreementId contract agreement id
-     * @param assetId             asset id
-     * @param privateProperties   private properties
-     * @param destination         data destination address
      * @param transferType        type of transfer
      * @return id of the transfer process.
      */
@@ -448,8 +435,11 @@ public class Participant {
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
         var dataset = getDatasetForAsset(provider, assetId);
         var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-        var policyWithTarget = createObjectBuilder(policy).add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, dataset.get(ID))).build();
-        var contractAgreementId = negotiateContract(provider, policyWithTarget);
+        var offer = createObjectBuilder(policy)
+                .add(ODRL_ASSIGNER_ATTRIBUTE, createObjectBuilder().add(ID, provider.id))
+                .add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, dataset.get(ID)))
+                .build();
+        var contractAgreementId = negotiateContract(provider, offer);
         var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType);
         assertThat(transferProcessId).isNotNull();
         return transferProcessId;

@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import static java.time.Instant.ofEpochSecond;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
@@ -50,13 +52,6 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
 
     @Override
     public @Nullable JsonObject transform(@NotNull ContractAgreementMessage agreementMessage, @NotNull TransformerContext context) {
-        var builder = jsonFactory.createObjectBuilder()
-                .add(ID, agreementMessage.getId())
-                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
-                .add(DSPACE_PROPERTY_PROVIDER_PID, agreementMessage.getProviderPid())
-                .add(DSPACE_PROPERTY_CONSUMER_PID, agreementMessage.getConsumerPid())
-                .add(DSPACE_PROPERTY_PROCESS_ID, agreementMessage.getProcessId());
-
         var agreement = agreementMessage.getContractAgreement();
 
         var policy = context.transform(agreement.getPolicy(), JsonObject.class);
@@ -69,19 +64,25 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
             return null;
         }
 
-        // add the consumer id, provider id, and signing timestamp to the agreement
         var signing = ofEpochSecond(agreement.getContractSigningDate()).toString();
 
         var copiedPolicy = Json.createObjectBuilder(policy)
                 .add(ID, agreement.getId())
+                .add(ODRL_ASSIGNEE_ATTRIBUTE, agreement.getConsumerId())
+                .add(ODRL_ASSIGNER_ATTRIBUTE, agreement.getProviderId())
                 .add(DSPACE_PROPERTY_CONSUMER_ID, agreement.getConsumerId())
                 .add(DSPACE_PROPERTY_PROVIDER_ID, agreement.getProviderId())
                 .add(DSPACE_PROPERTY_TIMESTAMP, signing)
                 .build();
 
-        builder.add(DSPACE_PROPERTY_AGREEMENT, copiedPolicy);
-
-        return builder.build();
+        return jsonFactory.createObjectBuilder()
+                .add(ID, agreementMessage.getId())
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(DSPACE_PROPERTY_PROVIDER_PID, agreementMessage.getProviderPid())
+                .add(DSPACE_PROPERTY_CONSUMER_PID, agreementMessage.getConsumerPid())
+                .add(DSPACE_PROPERTY_PROCESS_ID, agreementMessage.getProcessId())
+                .add(DSPACE_PROPERTY_AGREEMENT, copiedPolicy)
+                .build();
     }
 
 }

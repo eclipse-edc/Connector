@@ -56,4 +56,14 @@ class PolicyEqualityTest {
 
         assertThat(result).isTrue();
     }
+
+    @Test
+    void assigneeIsExcludedFromTheComparison() {
+        var one = Policy.Builder.newInstance().assignee("one").build();
+        var two = Policy.Builder.newInstance().assignee("other").build();
+
+        var result = comparator.test(one, two);
+
+        assertThat(result).isTrue();
+    }
 }

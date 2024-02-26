@@ -309,6 +309,7 @@ public class ContractNegotiationApiEndToEndTest {
                     .add("permission", permissionJson)
                     .add("prohibition", prohibitionJson)
                     .add("obligation", dutyJson)
+                    .add("assigner", "provider-id")
                     .add("target", "asset-id")
                     .build();
         }

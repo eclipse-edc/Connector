@@ -51,6 +51,8 @@ public interface PropertyAndTypeNames {
     String ODRL_LOGICAL_CONSTRAINT_TYPE = ODRL_SCHEMA + "LogicalConstraint";
 
     String ODRL_TARGET_ATTRIBUTE = ODRL_SCHEMA + "target";
+    String ODRL_ASSIGNEE_ATTRIBUTE = ODRL_SCHEMA + "assignee";
+    String ODRL_ASSIGNER_ATTRIBUTE = ODRL_SCHEMA + "assigner";
     String ODRL_PERMISSION_ATTRIBUTE = ODRL_SCHEMA + "permission";
     String ODRL_PROHIBITION_ATTRIBUTE = ODRL_SCHEMA + "prohibition";
     String ODRL_OBLIGATION_ATTRIBUTE = ODRL_SCHEMA + "obligation";
