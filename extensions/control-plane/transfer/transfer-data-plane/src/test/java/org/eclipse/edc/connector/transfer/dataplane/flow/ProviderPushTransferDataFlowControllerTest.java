@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
@@ -81,7 +82,33 @@ class ProviderPushTransferDataFlowControllerTest {
 
         var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
-        assertThat(result.succeeded()).isTrue();
+        assertThat(result).isSucceeded().extracting(DataFlowResponse::getDataPlaneId).isEqualTo(dataPlaneInstance.getId());
+        var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
+        verify(dataPlaneClient).start(captor.capture());
+        var captured = captor.getValue();
+        assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
+        assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
+        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
+        assertThat(captured.getProperties()).isEmpty();
+        assertThat(captured.getCallbackAddress()).isNotNull();
+    }
+
+    @Test
+    void initiateFlow_transferSuccess_withoutDataPlane() {
+        var request = createDataRequest();
+        var source = testDataAddress();
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .dataRequest(createDataRequest())
+                .contentDataAddress(testDataAddress())
+                .build();
+
+        when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(mock(DataFlowResponseMessage.class)));
+        when(selectorService.select(any(), any())).thenReturn(null);
+        when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+
+        var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
+
+        assertThat(result).isSucceeded().extracting(DataFlowResponse::getDataPlaneId).isNull();
         var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
         verify(dataPlaneClient).start(captor.capture());
         var captured = captor.getValue();
