@@ -37,7 +37,7 @@ As an example, we create the module `:extensions:policy:ids-policy`.
 ### Step 2: Implement a `ServiceExtension`
 
 The new policy extension will provide a service extension class and two constraint functions. In
-`IdsPolicyExtension`, first, the scope `ALL_SCOPES` is bound to the rule type `USE`. Next, both policy 
+`IdsPolicyExtension`, first, the scope `ALL_SCOPES` is bound to the rule type `use`. Next, both policy 
 functions are registered to the policy engine.
 
 ```java
@@ -59,7 +59,7 @@ public class IdsPolicyExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        ruleBindingRegistry.bind(USE, ALL_SCOPES);
+        ruleBindingRegistry.bind("use", ALL_SCOPES);
 
         policyEngine.registerFunction(ALL_SCOPES, Permission.class, ABS_SPATIAL_POSITION, new AbsSpatialPositionConstraintFunction());
         policyEngine.registerFunction(ALL_SCOPES, Permission.class, PARTNER_LEVEL, new PartnerLevelConstraintFunction());

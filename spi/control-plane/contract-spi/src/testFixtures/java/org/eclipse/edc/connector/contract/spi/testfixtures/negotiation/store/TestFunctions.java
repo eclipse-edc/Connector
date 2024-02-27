@@ -89,7 +89,7 @@ public class TestFunctions {
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
                         .action(Action.Builder.newInstance()
-                                .type("USE")
+                                .type("use")
                                 .build())
                         .constraint(AtomicConstraint.Builder.newInstance()
                                 .leftExpression(new LiteralExpression("foo"))

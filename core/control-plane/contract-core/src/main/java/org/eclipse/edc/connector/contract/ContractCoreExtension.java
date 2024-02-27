@@ -62,7 +62,7 @@ import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.D
 import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_SEND_RETRY_BASE_DELAY;
 import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_SEND_RETRY_LIMIT;
 import static org.eclipse.edc.connector.core.policy.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
 
 @Provides({
         ContractValidationService.class, ConsumerContractNegotiationManager.class,
@@ -180,8 +180,7 @@ public class ContractCoreExtension implements ServiceExtension {
         context.registerService(ContractValidationService.class, validationService);
 
         // bind/register rule to evaluate contract expiry
-        ruleBindingRegistry.bind("USE", TRANSFER_SCOPE);
-        ruleBindingRegistry.bind(ODRL_SCHEMA + "use", TRANSFER_SCOPE);
+        ruleBindingRegistry.bind(ODRL_USE_ACTION_ATTRIBUTE, TRANSFER_SCOPE);
         ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, TRANSFER_SCOPE);
         var function = new ContractExpiryCheckFunction();
         policyEngine.registerFunction(TRANSFER_SCOPE, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, function);

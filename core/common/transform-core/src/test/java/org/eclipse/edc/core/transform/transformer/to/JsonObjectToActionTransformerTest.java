@@ -59,12 +59,12 @@ class JsonObjectToActionTransformerTest {
 
     @Test
     void transform_onlyActionType_returnAction() {
-        var action = jsonFactory.createObjectBuilder().add(ODRL_ACTION_TYPE_ATTRIBUTE, "USE").build();
+        var action = jsonFactory.createObjectBuilder().add(ODRL_ACTION_TYPE_ATTRIBUTE, "use").build();
 
         var result = transformer.transform(getExpanded(action), context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getType()).isEqualTo("USE");
+        assertThat(result.getType()).isEqualTo("use");
         assertThat(result.getIncludedIn()).isNull();
         assertThat(result.getConstraint()).isNull();
 
@@ -73,14 +73,14 @@ class JsonObjectToActionTransformerTest {
 
     @Test
     void transform_onlyActionAttribute_returnAction() {
-        var actionContainer = jsonFactory.createObjectBuilder().add(ODRL_ACTION_ATTRIBUTE, "USE").build();
+        var actionContainer = jsonFactory.createObjectBuilder().add(ODRL_ACTION_ATTRIBUTE, "use").build();
         var expanded = getExpanded(actionContainer);
         var action = expanded.getJsonArray(ODRL_ACTION_ATTRIBUTE).get(0).asJsonObject();
 
         var result = transformer.transform(action, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getType()).isEqualTo("USE");
+        assertThat(result.getType()).isEqualTo("use");
         assertThat(result.getIncludedIn()).isNull();
         assertThat(result.getConstraint()).isNull();
 
@@ -114,7 +114,7 @@ class JsonObjectToActionTransformerTest {
         when(context.transform(any(JsonObject.class), eq(Constraint.class))).thenReturn(constraint);
 
         var action = jsonFactory.createObjectBuilder()
-                .add(ODRL_ACTION_TYPE_ATTRIBUTE, "USE")
+                .add(ODRL_ACTION_TYPE_ATTRIBUTE, "use")
                 .add(ODRL_INCLUDED_IN_ATTRIBUTE, "includedIn")
                 .add(ODRL_REFINEMENT_ATTRIBUTE, jsonFactory.createObjectBuilder().build())
                 .build();
@@ -122,7 +122,7 @@ class JsonObjectToActionTransformerTest {
         var result = transformer.transform(getExpanded(action), context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getType()).isEqualTo("USE");
+        assertThat(result.getType()).isEqualTo("use");
         assertThat(result.getIncludedIn()).isEqualTo("includedIn");
         assertThat(result.getConstraint()).isEqualTo(constraint);
 

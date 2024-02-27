@@ -43,7 +43,7 @@ import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.D
 import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_ITERATION_WAIT;
 import static org.eclipse.edc.connector.core.policy.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
 import static org.eclipse.edc.connector.policy.monitor.PolicyMonitorExtension.NAME;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
 
 @Extension(value = NAME)
 @Provides({ PolicyMonitorManager.class })
@@ -94,7 +94,7 @@ public class PolicyMonitorExtension implements ServiceExtension {
         var iterationWaitMillis = context.getSetting(POLICY_MONITOR_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = new ExponentialWaitStrategy(iterationWaitMillis);
 
-        ruleBindingRegistry.bind(ODRL_SCHEMA + "use", POLICY_MONITOR_SCOPE);
+        ruleBindingRegistry.bind(ODRL_USE_ACTION_ATTRIBUTE, POLICY_MONITOR_SCOPE);
         ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, POLICY_MONITOR_SCOPE);
         policyEngine.registerFunction(POLICY_MONITOR_SCOPE, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, new ContractExpiryCheckFunction());
 

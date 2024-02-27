@@ -91,7 +91,7 @@ class JsonObjectFromPolicyTransformerTest {
     
     @Test
     void transform_policyWithAllRuleTypes_returnJsonObject() {
-        var action = Action.Builder.newInstance().type("USE").build();
+        var action = Action.Builder.newInstance().type("use").build();
         var permission = Permission.Builder.newInstance().action(action).build();
         var prohibition = Prohibition.Builder.newInstance().action(action).build();
         var duty = Duty.Builder.newInstance().action(action).build();
@@ -147,7 +147,7 @@ class JsonObjectFromPolicyTransformerTest {
     void transform_actionWithAllAttributes_returnJsonObject() {
         var constraint = getConstraint();
         var action = Action.Builder.newInstance()
-                .type("USE")
+                .type("use")
                 .includedIn("includedIn")
                 .constraint(constraint)
                 .build();
@@ -357,7 +357,7 @@ class JsonObjectFromPolicyTransformerTest {
     }
 
     private Action getAction() {
-        return Action.Builder.newInstance().type("USE").build();
+        return Action.Builder.newInstance().type("use").build();
     }
     
     private AtomicConstraint getConstraint() {

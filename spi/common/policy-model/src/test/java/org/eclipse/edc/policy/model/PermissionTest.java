@@ -26,7 +26,7 @@ class PermissionTest {
     @Test
     void serializeDeserialize() throws JsonProcessingException {
         var mapper = new ObjectMapper();
-        var serialized = mapper.writeValueAsString(Permission.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build());
+        var serialized = mapper.writeValueAsString(Permission.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build());
         assertThat(mapper.readValue(serialized, Permission.class).getAction()).isNotNull();
     }
 
