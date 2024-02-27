@@ -73,9 +73,11 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
                 .build();
 
         var dataPlaneInstance = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getDataDestination());
+
+        var dataPlaneInstanceId = dataPlaneInstance != null ? dataPlaneInstance.getId() : null;
         return clientFactory.createClient(dataPlaneInstance)
                 .start(dataFlowRequest)
-                .map(it -> DataFlowResponse.Builder.newInstance().dataPlaneId(dataPlaneInstance.getId()).build());
+                .map(it -> DataFlowResponse.Builder.newInstance().dataPlaneId(dataPlaneInstanceId).build());
     }
 
     @Override
