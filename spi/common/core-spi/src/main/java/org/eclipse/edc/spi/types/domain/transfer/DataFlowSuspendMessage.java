@@ -14,15 +14,55 @@
 
 package org.eclipse.edc.spi.types.domain.transfer;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * A message for suspending an in progress transfer in the data plane
  */
-public record DataFlowSuspendMessage(String reason) {
+public class DataFlowSuspendMessage {
 
     public static final String DATA_FLOW_SUSPEND_MESSAGE_SIMPLE_TYPE = "DataFlowSuspendMessage";
     public static final String DATA_FLOW_SUSPEND_MESSAGE_TYPE = EDC_NAMESPACE + DATA_FLOW_SUSPEND_MESSAGE_SIMPLE_TYPE;
     public static final String DATA_FLOW_SUSPEND_MESSAGE_REASON = EDC_NAMESPACE + "reason";
 
+    private String reason;
+
+    private DataFlowSuspendMessage() {
+
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder {
+        private final DataFlowSuspendMessage message;
+
+        private Builder() {
+            this(new DataFlowSuspendMessage());
+        }
+
+        private Builder(DataFlowSuspendMessage message) {
+            this.message = message;
+        }
+
+        @JsonCreator
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder reason(String reason) {
+            message.reason = reason;
+            return this;
+        }
+
+        public DataFlowSuspendMessage build() {
+            return message;
+        }
+
+    }
 }
