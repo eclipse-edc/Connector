@@ -51,7 +51,7 @@ public interface DataPlaneSignalingApi {
                             content = @Content(schema = @Schema(implementation = DataFlowResponseMessageSchema.class))),
             }
     )
-    JsonObject start(JsonObject request, AsyncResponse response);
+    JsonObject start(JsonObject dataFlowStartMessage, AsyncResponse response);
 
     @Operation(description = "Get the current state of a data transfer.",
             responses = {
@@ -60,7 +60,7 @@ public interface DataPlaneSignalingApi {
                     @ApiResponse(responseCode = "404", description = "Data transfer not found in the data plane")
             }
     )
-    JsonObject getTransferState(String id);
+    JsonObject getTransferState(String transferProcessId);
 
     @Operation(description = "Terminates a data transfer.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowTerminateMessageSchema.class))),
@@ -70,7 +70,7 @@ public interface DataPlaneSignalingApi {
                     @ApiResponse(responseCode = "409", description = "Cannot terminate the transfer"),
             }
     )
-    void terminate(String id, JsonObject body);
+    void terminate(String transferProcessId, JsonObject terminationMessage);
 
     @Operation(description = "Suspend a data transfer.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowSuspendMessageSchema.class))),
@@ -80,7 +80,7 @@ public interface DataPlaneSignalingApi {
                     @ApiResponse(responseCode = "409", description = "Cannot suspend the transfer"),
             }
     )
-    void suspend(String transferProcessId, JsonObject body);
+    void suspend(String transferProcessId, JsonObject suspendMessage);
 
 
     @Schema(name = "DataFlowStartMessage", example = DataFlowStartMessageSchema.DATA_FLOW_START_EXAMPLE)
