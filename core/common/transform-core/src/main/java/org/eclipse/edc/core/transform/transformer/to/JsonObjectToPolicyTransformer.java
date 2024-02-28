@@ -22,6 +22,7 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Prohibition;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,8 +43,11 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIB
  */
 public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<JsonObject, Policy> {
 
-    public JsonObjectToPolicyTransformer() {
+    private final ParticipantIdMapper participantIdMapper;
+
+    public JsonObjectToPolicyTransformer(ParticipantIdMapper participantIdMapper) {
         super(JsonObject.class, Policy.class);
+        this.participantIdMapper = participantIdMapper;
     }
 
     @Override
@@ -78,8 +82,8 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
             case ODRL_PROHIBITION_ATTRIBUTE -> v -> builder.prohibitions(transformArray(v, Prohibition.class, context));
             case ODRL_OBLIGATION_ATTRIBUTE -> v -> builder.duties(transformArray(v, Duty.class, context));
             case ODRL_TARGET_ATTRIBUTE -> v -> builder.target(transformString(v, context));
-            case ODRL_ASSIGNER_ATTRIBUTE -> v -> builder.assigner(transformString(v, context));
-            case ODRL_ASSIGNEE_ATTRIBUTE -> v -> builder.assignee(transformString(v, context));
+            case ODRL_ASSIGNER_ATTRIBUTE -> v -> builder.assigner(participantIdMapper.fromIri(transformString(v, context)));
+            case ODRL_ASSIGNEE_ATTRIBUTE -> v -> builder.assignee(participantIdMapper.fromIri(transformString(v, context)));
             default -> v -> builder.extensibleProperty(key, transformGenericProperty(v, context));
         });
 

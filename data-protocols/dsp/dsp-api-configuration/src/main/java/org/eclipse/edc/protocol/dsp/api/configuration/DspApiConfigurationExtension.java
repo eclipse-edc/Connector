@@ -33,6 +33,7 @@ import org.eclipse.edc.protocol.dsp.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -97,6 +98,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     private JsonLd jsonLd;
     @Inject
     private TypeTransformerRegistry transformerRegistry;
+    @Inject
+    private ParticipantIdMapper participantIdMapper;
 
     @Override
     public String name() {
@@ -132,7 +135,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
 
         // EDC model to JSON-LD transformers
-        transformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory));
+        transformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper));
         transformerRegistry.register(new JsonObjectFromAssetTransformer(jsonBuilderFactory, mapper));
         transformerRegistry.register(new JsonObjectFromDataAddressTransformer(jsonBuilderFactory));
         transformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
@@ -140,7 +143,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
         // JSON-LD to EDC model transformers
         // ODRL Transformers
-        OdrlTransformersFactory.jsonObjectToOdrlTransformers().forEach(transformerRegistry::register);
+        OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper).forEach(transformerRegistry::register);
 
         transformerRegistry.register(new JsonValueToGenericTypeTransformer(mapper));
         transformerRegistry.register(new JsonObjectToAssetTransformer());

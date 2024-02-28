@@ -22,6 +22,7 @@ import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Prohibition;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,21 +68,20 @@ class JsonObjectToPolicyTransformerTest {
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
+    private final ParticipantIdMapper participantIdMapper = mock();
     private final Permission permission = Permission.Builder.newInstance().build();
     private final Prohibition prohibition = Prohibition.Builder.newInstance().build();
     private final Duty duty = Duty.Builder.newInstance().build();
 
-    private JsonObjectToPolicyTransformer transformer;
+    private final JsonObjectToPolicyTransformer transformer = new JsonObjectToPolicyTransformer(participantIdMapper);
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectToPolicyTransformer();
-
         when(context.transform(isA(JsonObject.class), eq(Permission.class))).thenReturn(permission);
         when(context.transform(isA(JsonObject.class), eq(Prohibition.class))).thenReturn(prohibition);
         when(context.transform(isA(JsonObject.class), eq(Duty.class))).thenReturn(duty);
+        when(participantIdMapper.fromIri(any())).thenAnswer(it -> it.getArgument(0));
     }
-
 
     @Test
     void transform_withAllRuleTypesAsObjects_returnPolicy() {
@@ -117,6 +117,8 @@ class JsonObjectToPolicyTransformerTest {
         verify(context, times(1)).transform(isA(JsonObject.class), eq(Permission.class));
         verify(context, times(1)).transform(isA(JsonObject.class), eq(Prohibition.class));
         verify(context, times(1)).transform(isA(JsonObject.class), eq(Duty.class));
+        verify(participantIdMapper).fromIri("assignee");
+        verify(participantIdMapper).fromIri("assigner");
     }
 
     @Test

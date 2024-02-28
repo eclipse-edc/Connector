@@ -21,6 +21,7 @@ import org.eclipse.edc.core.transform.transformer.to.JsonObjectToOperatorTransfo
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToPermissionTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToProhibitionTransformer;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.TypeTransformer;
 
 import java.util.stream.Stream;
@@ -30,9 +31,9 @@ public final class OdrlTransformersFactory {
     private OdrlTransformersFactory() {
     }
 
-    public static Stream<TypeTransformer<?, ?>> jsonObjectToOdrlTransformers() {
+    public static Stream<TypeTransformer<?, ?>> jsonObjectToOdrlTransformers(ParticipantIdMapper participantIdMapper) {
         return Stream.of(
-                new JsonObjectToPolicyTransformer(),
+                new JsonObjectToPolicyTransformer(participantIdMapper),
                 new JsonObjectToPermissionTransformer(),
                 new JsonObjectToProhibitionTransformer(),
                 new JsonObjectToDutyTransformer(),

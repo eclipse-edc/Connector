@@ -31,6 +31,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.policy.model.XoneConstraint;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,23 +76,27 @@ import static org.eclipse.edc.policy.model.PolicyType.CONTRACT;
 import static org.eclipse.edc.policy.model.PolicyType.OFFER;
 import static org.eclipse.edc.policy.model.PolicyType.SET;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class JsonObjectFromPolicyTransformerTest {
     
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
+    private final ParticipantIdMapper participantIdMapper = mock();
     
-    private JsonObjectFromPolicyTransformer transformer;
-    
+    private final JsonObjectFromPolicyTransformer transformer =
+            new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper);
+
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromPolicyTransformer(jsonFactory);
+        when(participantIdMapper.toIri(any())).thenAnswer(it -> it.getArgument(0));
     }
-    
+
     @Test
     void transform_policyWithAllRuleTypes_returnJsonObject() {
         var action = Action.Builder.newInstance().type("use").build();
@@ -149,6 +154,8 @@ class JsonObjectFromPolicyTransformerTest {
         assertThat(dutyJson.getJsonObject(ODRL_CONSTRAINT_ATTRIBUTE)).isNull();
         
         verify(context, never()).reportProblem(anyString());
+        verify(participantIdMapper).toIri("assignee");
+        verify(participantIdMapper).toIri("assigner");
     }
     
     @Test

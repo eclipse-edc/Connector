@@ -23,6 +23,7 @@ import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDistrib
 import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToCatalogRequestMessageTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -46,6 +47,9 @@ public class DspCatalogTransformExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private ParticipantIdMapper participantIdMapper;
+
     @Override
     public String name() {
         return NAME;
@@ -59,7 +63,7 @@ public class DspCatalogTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory));
         registry.register(new JsonObjectToCatalogRequestMessageTransformer());
 
-        registry.register(new JsonObjectFromCatalogTransformer(jsonFactory, mapper));
+        registry.register(new JsonObjectFromCatalogTransformer(jsonFactory, mapper, participantIdMapper));
         registry.register(new JsonObjectFromDatasetTransformer(jsonFactory, mapper));
         registry.register(new JsonObjectFromDistributionTransformer(jsonFactory));
         registry.register(new JsonObjectFromDataServiceTransformer(jsonFactory));

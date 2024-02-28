@@ -35,6 +35,7 @@ import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.policy.model.XoneConstraint;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,15 +74,17 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
  */
 public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<Policy, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
+    private final ParticipantIdMapper participantIdMapper;
 
-    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory) {
+    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper) {
         super(Policy.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
+        this.participantIdMapper = participantIdMapper;
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull Policy policy, @NotNull TransformerContext context) {
-        return policy.accept(new Visitor(jsonFactory));
+        return policy.accept(new Visitor(jsonFactory, participantIdMapper));
     }
 
     /**
@@ -89,9 +92,11 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
      */
     private static class Visitor implements Policy.Visitor<JsonObject>, Rule.Visitor<JsonObject>, Constraint.Visitor<JsonObject>, Expression.Visitor<JsonObject> {
         private final JsonBuilderFactory jsonFactory;
+        private final ParticipantIdMapper participantIdMapper;
 
-        Visitor(JsonBuilderFactory jsonFactory) {
+        Visitor(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper) {
             this.jsonFactory = jsonFactory;
+            this.participantIdMapper = participantIdMapper;
         }
 
         @Override
@@ -159,8 +164,8 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
                     .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder)
                     .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
 
-            Optional.ofNullable(policy.getAssignee()).ifPresent(it -> builder.add(ODRL_ASSIGNEE_ATTRIBUTE, it));
-            Optional.ofNullable(policy.getAssigner()).ifPresent(it -> builder.add(ODRL_ASSIGNER_ATTRIBUTE, it));
+            Optional.ofNullable(policy.getAssignee()).map(participantIdMapper::toIri).ifPresent(it -> builder.add(ODRL_ASSIGNEE_ATTRIBUTE, it));
+            Optional.ofNullable(policy.getAssigner()).map(participantIdMapper::toIri).ifPresent(it -> builder.add(ODRL_ASSIGNER_ATTRIBUTE, it));
 
             Optional.ofNullable(policy.getTarget())
                     .ifPresent(target -> builder.add(
