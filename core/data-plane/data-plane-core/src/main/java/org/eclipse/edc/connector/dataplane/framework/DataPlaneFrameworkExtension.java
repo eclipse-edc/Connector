@@ -15,9 +15,14 @@
 package org.eclipse.edc.connector.dataplane.framework;
 
 import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
+import org.eclipse.edc.connector.dataplane.framework.iam.DataPlaneAuthorizationServiceImpl;
 import org.eclipse.edc.connector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceRegistryImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
+import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
@@ -25,6 +30,7 @@ import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -88,6 +94,12 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @Inject
     private PipelineService pipelineService;
+    @Inject
+    private DataPlaneAccessTokenService accessTokenService;
+    @Inject
+    private DataPlaneAccessControlService accessControlService;
+    @Inject
+    private PublicEndpointGeneratorService endpointGenerator;
 
     @Override
     public String name() {
@@ -137,6 +149,11 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         if (dataPlaneManager != null) {
             dataPlaneManager.stop();
         }
+    }
+
+    @Provider
+    public DataPlaneAuthorizationService authorizationService(ServiceExtensionContext context) {
+        return new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, context.getParticipantId(), clock);
     }
 
     @NotNull

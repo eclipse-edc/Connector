@@ -35,10 +35,10 @@ public interface DataPlaneAccessTokenService {
      * Common patterns include encoding that information directly in the token, or storing that information in a separate store and correlating it with the token ID.
      *
      * @param parameters Headers and claims that are to be included in the token.
-     * @param address    Information about the data resource for which the token is to be generated. May contain additional information about the token, such as an {@code authType}
+     * @param backendDataAddress    Information about the backend data resource for which the token is to be generated. May contain additional information about the token, such as an {@code authType}
      * @return The token representation
      */
-    Result<TokenRepresentation> obtainToken(TokenParameters parameters, DataAddress address);
+    Result<TokenRepresentation> obtainToken(TokenParameters parameters, DataAddress backendDataAddress);
 
     /**
      * Takes a token and restores from it the original information that was used to create the token, most notably claims ({@link org.eclipse.edc.spi.iam.ClaimToken})
