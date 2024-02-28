@@ -381,7 +381,7 @@ class ContractNegotiationIntegrationTest {
                         .assigner("assigner")
                         .assignee("assignee")
                         .duty(Duty.Builder.newInstance()
-                                .action(Action.Builder.newInstance().type("USE").build())
+                                .action(Action.Builder.newInstance().type("use").build())
                                 .build())
                         .build())
                 .build();

@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:policy-monitor:policy-monitor-spi"))
+    api(project(":spi:common:json-ld-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:control-plane:transfer-spi"))

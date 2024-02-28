@@ -199,7 +199,7 @@ class PolicyEngineImplTest {
     void validateRuleFunctionOutOfScope() {
         bindingRegistry.bind("foo", ALL_SCOPES);
 
-        var action = Action.Builder.newInstance().type("USE").build();
+        var action = Action.Builder.newInstance().type("use").build();
 
         var permission = Permission.Builder.newInstance().action(action).build();
 

@@ -134,7 +134,7 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
     }
 
     private Policy policy() {
-        var action = Action.Builder.newInstance().type("USE").build();
+        var action = Action.Builder.newInstance().type("use").build();
         var permission = Permission.Builder.newInstance().action(action).build();
         var prohibition = Prohibition.Builder.newInstance().action(action).build();
         var duty = Duty.Builder.newInstance().action(action).build();

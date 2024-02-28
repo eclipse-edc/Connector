@@ -68,5 +68,6 @@ public interface PropertyAndTypeNames {
     String ODRL_AND_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "and";
     String ODRL_OR_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "or";
     String ODRL_XONE_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "xone";
+    String ODRL_USE_ACTION_ATTRIBUTE = ODRL_SCHEMA + "use";
 
 }

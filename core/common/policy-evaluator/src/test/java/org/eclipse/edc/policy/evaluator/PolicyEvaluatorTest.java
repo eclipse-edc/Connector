@@ -191,7 +191,7 @@ class PolicyEvaluatorTest {
 
     @Test
     void verifyPermissionRuleFunctions() {
-        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build();
+        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build();
         var policy = Policy.Builder.newInstance().permission(permission).build();
 
         var evaluator = PolicyEvaluator.Builder.newInstance().permissionRuleFunction((p) -> true).build();

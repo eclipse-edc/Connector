@@ -564,7 +564,7 @@ public abstract class ContractNegotiationStoreTestBase {
                     .assigner("test-assigner")
                     .permission(Permission.Builder.newInstance()
                             .action(Action.Builder.newInstance()
-                                    .type("USE")
+                                    .type("use")
                                     .build())
                             .constraint(AtomicConstraint.Builder.newInstance()
                                     .leftExpression(new LiteralExpression("foo"))

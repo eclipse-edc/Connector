@@ -233,7 +233,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             var store = getPolicyDefinitionStore();
             store.create(policy);
 
-            var action = Action.Builder.newInstance().type("UPDATED_USE").build();
+            var action = Action.Builder.newInstance().type("play").build();
             var updatedPermission = Permission.Builder.newInstance().action(action).build();
             var updatedDuty = Duty.Builder.newInstance().action(action).build();
             var updatedProhibition = Prohibition.Builder.newInstance().action(action).build();
