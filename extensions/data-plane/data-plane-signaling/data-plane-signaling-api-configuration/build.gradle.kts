@@ -15,16 +15,17 @@
 
 plugins {
     `java-library`
-    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 dependencies {
-    api(project(":spi:common:web-spi"))
     api(project(":spi:common:json-ld-spi"))
+    api(project(":spi:common:web-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
 
+    implementation(project(":core:common:jersey-providers"))
     implementation(libs.jakarta.rsApi)
 
+    testImplementation(project(":core:common:junit"))
 }
 edcBuild {
     swagger {

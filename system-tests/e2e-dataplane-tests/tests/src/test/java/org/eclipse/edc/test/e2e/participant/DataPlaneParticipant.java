@@ -34,7 +34,8 @@ public class DataPlaneParticipant extends Participant {
     private final URI dataPlaneDefault = URI.create("http://localhost:" + getFreePort());
     private final URI dataPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
-    private final Endpoint dataplaneControlApi = new Endpoint(dataPlaneControl);
+    private final URI dataPlaneSignaling = URI.create("http://localhost:" + getFreePort() + "/api/signaling");
+    private final Endpoint dataPlaneSignalingApi = new Endpoint(dataPlaneSignaling);
 
     private DataPlaneParticipant() {
         super();
@@ -49,6 +50,8 @@ public class DataPlaneParticipant extends Participant {
                 put("web.http.public.path", "/public");
                 put("web.http.control.port", String.valueOf(dataPlaneControl.getPort()));
                 put("web.http.control.path", dataPlaneControl.getPath());
+                put("web.http.signaling.port", String.valueOf(dataPlaneSignaling.getPort()));
+                put("web.http.signaling.path", dataPlaneSignaling.getPath());
                 put("edc.vault", resourceAbsolutePath(getName() + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
@@ -63,12 +66,13 @@ public class DataPlaneParticipant extends Participant {
      * Uses the data plane's control API to initiate a transfer
      */
     public String initiateTransfer(DataFlowStartMessage startMessage) {
-        return dataplaneControlApi.baseRequest()
+        return dataPlaneSignalingApi.baseRequest()
                 .contentType(ContentType.JSON)
                 .body(startMessage)
-                .post("/transfer")
+                .post("/v1/dataflows")
                 .then()
                 .body(Matchers.notNullValue())
+                .statusCode(200)
                 .extract().body().asString();
     }
 

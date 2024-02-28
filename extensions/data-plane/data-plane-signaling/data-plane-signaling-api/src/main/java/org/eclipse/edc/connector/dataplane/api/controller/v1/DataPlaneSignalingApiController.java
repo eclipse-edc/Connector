@@ -22,6 +22,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.MediaType;
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -31,7 +32,7 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
 
     @POST
     @Override
-    public JsonObject start(JsonObject dataFlowStartMessage, AsyncResponse response) {
+    public JsonObject start(JsonObject dataFlowStartMessage, @Suspended AsyncResponse response) {
         throw new UnsupportedOperationException();
     }
 

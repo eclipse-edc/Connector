@@ -170,7 +170,8 @@ include(":extensions:control-plane:callback:callback-static-endpoint")
 
 include(":extensions:data-plane:data-plane-client")
 include(":extensions:data-plane:data-plane-control-api")
-include(":extensions:data-plane:data-plane-signaling-api")
+include(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api")
+include(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api-configuration")
 include(":extensions:data-plane:data-plane-public-api")
 
 include(":extensions:data-plane:data-plane-http")
