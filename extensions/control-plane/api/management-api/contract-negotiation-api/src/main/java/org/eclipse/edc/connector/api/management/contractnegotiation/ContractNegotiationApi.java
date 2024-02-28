@@ -152,6 +152,7 @@ public interface ContractNegotiationApi {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
                         "@type": "odrl:Offer",
                         "@id": "policy-id",
+                        "assigner": "providerId",
                         "permission": [],
                         "prohibition": [],
                         "obligation": [],

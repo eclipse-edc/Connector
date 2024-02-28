@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -51,6 +52,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSEQUENCE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_DUTY_ATTRIBUTE;
@@ -97,6 +100,8 @@ class JsonObjectFromPolicyTransformerTest {
         var duty = Duty.Builder.newInstance().action(action).build();
         var policy = Policy.Builder.newInstance()
                 .target("target")
+                .assignee("assignee")
+                .assigner("assigner")
                 .permission(permission)
                 .prohibition(prohibition)
                 .duty(duty)
@@ -111,10 +116,13 @@ class JsonObjectFromPolicyTransformerTest {
                 .isInstanceOf(JsonArray.class)
                 .extracting(JsonValue::asJsonArray)
                 .matches(it -> !it.isEmpty())
-                .asList().first()
+                .asInstanceOf(LIST).first()
                 .asInstanceOf(type(JsonObject.class))
                 .matches(it -> it.getString(ID).equals("target"));
-    
+
+        assertThat(result.getString(ODRL_ASSIGNEE_ATTRIBUTE)).isEqualTo("assignee");
+        assertThat(result.getString(ODRL_ASSIGNER_ATTRIBUTE)).isEqualTo("assigner");
+
         assertThat(result.get(ODRL_PERMISSION_ATTRIBUTE))
                 .isNotNull()
                 .isInstanceOf(JsonArray.class)

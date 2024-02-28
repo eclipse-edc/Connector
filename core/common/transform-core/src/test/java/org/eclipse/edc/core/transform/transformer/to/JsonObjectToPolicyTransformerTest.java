@@ -31,7 +31,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -40,6 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.core.transform.transformer.TestInput.getExpanded;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
@@ -82,14 +83,29 @@ class JsonObjectToPolicyTransformerTest {
     }
 
 
-    @ParameterizedTest
-    @MethodSource("jsonSource")
-    void transform_withAllRuleTypesAsObjects_returnPolicy(JsonObject policy) {
+    @Test
+    void transform_withAllRuleTypesAsObjects_returnPolicy() {
+        var jsonFactory = Json.createBuilderFactory(Map.of());
+        var permissionJson = jsonFactory.createObjectBuilder().add(TYPE, "permission").build();
+        var prohibitionJson = jsonFactory.createObjectBuilder().add(TYPE, "prohibition").build();
+        var dutyJson = jsonFactory.createObjectBuilder().add(TYPE, "duty").build();
+
+        var policy = jsonFactory.createObjectBuilder()
+                .add(TYPE, ODRL_POLICY_TYPE_SET)
+                .add(ODRL_TARGET_ATTRIBUTE, TARGET)
+                .add(ODRL_ASSIGNER_ATTRIBUTE, "assigner")
+                .add(ODRL_ASSIGNEE_ATTRIBUTE, "assignee")
+                .add(ODRL_PERMISSION_ATTRIBUTE, permissionJson)
+                .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
+                .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)
+                .build();
 
         var result = transformer.transform(getExpanded(policy), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getTarget()).isEqualTo(TARGET);
+        assertThat(result.getAssigner()).isEqualTo("assigner");
+        assertThat(result.getAssignee()).isEqualTo("assignee");
         assertThat(result.getPermissions()).hasSize(1);
         assertThat(result.getPermissions().get(0)).isEqualTo(permission);
         assertThat(result.getProhibitions()).hasSize(1);
@@ -101,7 +117,6 @@ class JsonObjectToPolicyTransformerTest {
         verify(context, times(1)).transform(isA(JsonObject.class), eq(Permission.class));
         verify(context, times(1)).transform(isA(JsonObject.class), eq(Prohibition.class));
         verify(context, times(1)).transform(isA(JsonObject.class), eq(Duty.class));
-
     }
 
     @Test
@@ -157,39 +172,13 @@ class JsonObjectToPolicyTransformerTest {
     private static class PolicyTypeArguments implements ArgumentsProvider {
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return Stream.of(
                     arguments(ODRL_POLICY_TYPE_SET, SET),
                     arguments(ODRL_POLICY_TYPE_OFFER, OFFER),
                     arguments(ODRL_POLICY_TYPE_AGREEMENT, CONTRACT)
             );
         }
-    }
-
-
-    static Stream<JsonObject> jsonSource() {
-        var jsonFactory = Json.createBuilderFactory(Map.of());
-        var permissionJson = jsonFactory.createObjectBuilder().add(TYPE, "permission").build();
-        var prohibitionJson = jsonFactory.createObjectBuilder().add(TYPE, "prohibition").build();
-        var dutyJson = jsonFactory.createObjectBuilder().add(TYPE, "duty").build();
-
-        return Stream.of(
-                jsonFactory.createObjectBuilder()
-                        .add(TYPE, ODRL_POLICY_TYPE_SET)
-                        .add(ODRL_TARGET_ATTRIBUTE, TARGET)
-                        .add(ODRL_PERMISSION_ATTRIBUTE, permissionJson)
-                        .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
-                        .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)
-                        .build(),
-                jsonFactory.createObjectBuilder()
-                        .add(TYPE, ODRL_POLICY_TYPE_SET)
-                        .add(ODRL_TARGET_ATTRIBUTE, jsonFactory.createArrayBuilder().add(TARGET))
-                        .add(ODRL_PERMISSION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(permissionJson))
-                        .add(ODRL_PROHIBITION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(prohibitionJson))
-                        .add(ODRL_OBLIGATION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(dutyJson))
-                        .build()
-
-        );
     }
 
 }
