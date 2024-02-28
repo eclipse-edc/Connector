@@ -105,7 +105,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
             // Only add the scope claim if there are scopes returned from the policy engine evaluation
             if (!scopes.isEmpty()) {
-                tokenParametersBuilder.claims(SCOPE_CLAIM, String.join(" ", requestScopeBuilder.build().getScopes()));
+                tokenParametersBuilder.claims(SCOPE_CLAIM, String.join(" ", scopes));
             }
 
         }
