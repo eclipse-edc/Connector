@@ -14,19 +14,30 @@
 
 package org.eclipse.edc.connector.api.signaling.configuration;
 
+import jakarta.json.Json;
+import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistry;
+import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistryImpl;
+import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowSuspendMessageTransformer;
+import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowTerminateMessageTransformer;
+import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowSuspendMessageTransformer;
+import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowTerminateMessageTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+
+import java.util.Map;
 
 import static org.eclipse.edc.connector.api.signaling.configuration.SignalingApiConfigurationExtension.NAME;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
@@ -62,6 +73,8 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
     private JsonLd jsonLd;
     @Inject
     private TypeManager typeManager;
+    @Inject
+    private TypeTransformerRegistry transformerRegistry;
 
     @Override
     public String name() {
@@ -77,5 +90,17 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(webServiceConfiguration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(webServiceConfiguration.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, SIGNALING_SCOPE));
+    }
+
+    @Provider
+    public SignalingApiTransformerRegistry managementApiTypeTransformerRegistry() {
+        var factory = Json.createBuilderFactory(Map.of());
+
+        var registry = new SignalingApiTransformerRegistryImpl(this.transformerRegistry);
+        registry.register(new JsonObjectFromDataFlowSuspendMessageTransformer(factory));
+        registry.register(new JsonObjectToDataFlowSuspendMessageTransformer());
+        registry.register(new JsonObjectFromDataFlowTerminateMessageTransformer(factory));
+        registry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
+        return registry;
     }
 }

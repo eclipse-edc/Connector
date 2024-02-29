@@ -12,10 +12,10 @@
  *
  */
 
-package org.eclipse.edc.core.transform.transformer.from;
+package org.eclipse.edc.connector.api.signaling.transform.from;
 
 import jakarta.json.Json;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,46 +24,46 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage.DATA_FLOW_TERMINATE_MESSAGE_REASON;
-import static org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage.DATA_FLOW_TERMINATE_MESSAGE_TYPE;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage.DATA_FLOW_SUSPEND_MESSAGE_REASON;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage.DATA_FLOW_SUSPEND_MESSAGE_TYPE;
 import static org.mockito.Mockito.mock;
 
-class JsonObjectFromDataFlowTerminateMessageTransformerTest {
+class JsonObjectFromDataFlowSuspendMessageTransformerTest {
 
 
     private final TransformerContext context = mock(TransformerContext.class);
-    private JsonObjectFromDataFlowTerminateMessageTransformer transformer;
+    private JsonObjectFromDataFlowSuspendMessageTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromDataFlowTerminateMessageTransformer(Json.createBuilderFactory(Map.of()));
+        transformer = new JsonObjectFromDataFlowSuspendMessageTransformer(Json.createBuilderFactory(Map.of()));
     }
 
     @Test
     void transform() {
 
-        var message = DataFlowTerminateMessage.Builder.newInstance().reason("reason").build();
+        var message = DataFlowSuspendMessage.Builder.newInstance().reason("reason").build();
 
         var jsonObject = transformer.transform(message, context);
 
         assertThat(jsonObject).isNotNull();
 
-        assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(DATA_FLOW_TERMINATE_MESSAGE_TYPE);
-        assertThat(jsonObject.getJsonString(DATA_FLOW_TERMINATE_MESSAGE_REASON).getString()).isEqualTo("reason");
+        assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(DATA_FLOW_SUSPEND_MESSAGE_TYPE);
+        assertThat(jsonObject.getJsonString(DATA_FLOW_SUSPEND_MESSAGE_REASON).getString()).isEqualTo("reason");
 
     }
 
     @Test
     void transform_withoutReason() {
 
-        var message = DataFlowTerminateMessage.Builder.newInstance().build();
+        var message = DataFlowSuspendMessage.Builder.newInstance().build();
 
         var jsonObject = transformer.transform(message, context);
 
         assertThat(jsonObject).isNotNull();
 
-        assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(DATA_FLOW_TERMINATE_MESSAGE_TYPE);
-        assertThat(jsonObject.containsKey(DATA_FLOW_TERMINATE_MESSAGE_REASON)).isFalse();
+        assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(DATA_FLOW_SUSPEND_MESSAGE_TYPE);
+        assertThat(jsonObject.containsKey(DATA_FLOW_SUSPEND_MESSAGE_REASON)).isFalse();
 
     }
 
