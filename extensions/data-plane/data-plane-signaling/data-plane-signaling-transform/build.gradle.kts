@@ -24,10 +24,10 @@ dependencies {
 
     implementation(project(":core:common:transform-core")) // for the transformer registry impl
     implementation(project(":core:common:jersey-providers"))
-    implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":extensions:common:json-ld"))
 }
 edcBuild {
     swagger {

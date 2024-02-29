@@ -12,14 +12,11 @@
  *
  */
 
-package org.eclipse.edc.core.transform.transformer.to;
+package org.eclipse.edc.connector.api.signaling.transform.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,24 +24,25 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.core.transform.transformer.TestInput.getExpanded;
+import static org.eclipse.edc.connector.api.signaling.transform.TestFunctions.getExpanded;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage.DATA_FLOW_TERMINATE_MESSAGE_TYPE;
 import static org.mockito.Mockito.mock;
 
-class JsonObjectToDataFlowSuspendMessageTransformerTest {
+class JsonObjectToDataFlowTerminateMessageTransformerTest {
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
-    private final TitaniumJsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
-    private JsonObjectToDataFlowSuspendMessageTransformer transformer;
+
+    private JsonObjectToDataFlowTerminateMessageTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectToDataFlowSuspendMessageTransformer();
+        transformer = new JsonObjectToDataFlowTerminateMessageTransformer();
     }
 
     @Test
@@ -52,7 +50,7 @@ class JsonObjectToDataFlowSuspendMessageTransformerTest {
 
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, DataFlowSuspendMessage.DATA_FLOW_SUSPEND_MESSAGE_TYPE)
+                .add(TYPE, DATA_FLOW_TERMINATE_MESSAGE_TYPE)
                 .add("reason", "reason")
                 .build();
 
@@ -68,7 +66,7 @@ class JsonObjectToDataFlowSuspendMessageTransformerTest {
 
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, DataFlowSuspendMessage.DATA_FLOW_SUSPEND_MESSAGE_TYPE)
+                .add(TYPE, DATA_FLOW_TERMINATE_MESSAGE_TYPE)
                 .build();
 
         var message = transformer.transform(getExpanded(jsonObj), context);
@@ -83,5 +81,4 @@ class JsonObjectToDataFlowSuspendMessageTransformerTest {
                 .add(VOCAB, EDC_NAMESPACE)
                 .add(EDC_PREFIX, EDC_NAMESPACE);
     }
-
 }

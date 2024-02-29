@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.core.transform.transformer.to;
+package org.eclipse.edc.connector.api.signaling.transform.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;

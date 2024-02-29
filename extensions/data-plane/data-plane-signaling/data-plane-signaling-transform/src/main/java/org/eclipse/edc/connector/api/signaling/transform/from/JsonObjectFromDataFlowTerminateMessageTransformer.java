@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.core.transform.transformer.from;
+package org.eclipse.edc.connector.api.signaling.transform.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
