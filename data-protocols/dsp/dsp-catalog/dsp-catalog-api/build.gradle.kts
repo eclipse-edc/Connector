@@ -14,6 +14,7 @@
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 dependencies {
@@ -32,4 +33,10 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
     testImplementation(libs.restAssured)
+}
+
+edcBuild {
+    swagger {
+        apiGroup.set("dsp-api")
+    }
 }

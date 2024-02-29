@@ -14,6 +14,7 @@
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 dependencies {
@@ -27,4 +28,10 @@ dependencies {
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)
+}
+
+edcBuild {
+    swagger {
+        apiGroup.set("dsp-api")
+    }
 }
