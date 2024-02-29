@@ -182,6 +182,17 @@ class JsonObjectFromPolicyTransformerTest {
     
         verify(context, never()).reportProblem(anyString());
     }
+
+    @Test
+    void transform_actionNull_returnJsonObject() {
+        var permission = Permission.Builder.newInstance().action(null).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
+
+        var result = transformer.transform(policy, context);
+
+        var permissionJson = result.get(ODRL_PERMISSION_ATTRIBUTE).asJsonArray().get(0).asJsonObject();
+        assertThat(permissionJson.get(ODRL_ACTION_ATTRIBUTE)).isNotNull();
+    }
     
     @Test
     void transform_permissionWithConstraintAndDuty_returnJsonObject() {
