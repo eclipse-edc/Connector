@@ -16,6 +16,7 @@ package org.eclipse.edc.test.e2e;
 
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
+import org.eclipse.edc.connector.transfer.spi.flow.FlowType;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -42,11 +43,11 @@ public class DataplaneEndToEndTest {
                     "data-plane",
                     DATAPLANE.dataPlaneConfiguration()
             );
+
     protected final Duration timeout = Duration.ofSeconds(60);
 
     @Test
-    void placeHolder() {
-        // no impl yet, we don't have a DataPlaneSignalingApiController yet
+    void startTransfer_httpPull() {
         var generator = runtime.getContext().getService(PublicEndpointGeneratorService.class);
         generator.addGeneratorFunction("HttpData", dataAddress -> Endpoint.url("http//fizz.buzz.com/bar"));
 
@@ -54,9 +55,9 @@ public class DataplaneEndToEndTest {
                 .processId("test-processId")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://fizz.buzz").build())
+                .transferType(FlowType.PULL.toString())
                 .assetId("test-asset")
                 .agreementId("test-agreement")
                 .build();
-        var result = DATAPLANE.initiateTransfer(flowMessage);
     }
 }

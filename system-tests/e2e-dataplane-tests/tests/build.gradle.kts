@@ -33,7 +33,7 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
-    testCompileOnly(project(":system-tests:e2e-transfer-test:data-plane"))
+    testCompileOnly(project(":system-tests:e2e-dataplane-tests:runtimes:data-plane"))
 }
 
 edcBuild {

@@ -22,6 +22,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.MediaType;
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -31,28 +32,28 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
 
     @POST
     @Override
-    public JsonObject start(JsonObject request, AsyncResponse response) {
+    public JsonObject start(JsonObject dataFlowStartMessage, @Suspended AsyncResponse response) {
         throw new UnsupportedOperationException();
     }
 
     @GET
     @Path("/{id}/state")
     @Override
-    public JsonObject getTransferState(@PathParam("id") String id) {
+    public JsonObject getTransferState(@PathParam("id") String transferProcessId) {
         throw new UnsupportedOperationException();
     }
 
     @POST
     @Path("/{id}/terminate")
     @Override
-    public void terminate(@PathParam("id") String id, JsonObject body) {
+    public void terminate(@PathParam("id") String transferProcessId, JsonObject terminationMessage) {
         throw new UnsupportedOperationException();
     }
 
     @POST
     @Path("/{id}/suspend")
     @Override
-    public void suspend(@PathParam("id") String id, JsonObject body) {
+    public void suspend(@PathParam("id") String id, JsonObject suspendMessage) {
         throw new UnsupportedOperationException();
     }
 }

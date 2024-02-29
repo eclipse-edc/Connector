@@ -16,12 +16,13 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":core:data-plane:data-plane-core"))
-    implementation(project(":extensions:control-plane:api:control-plane-api-client"))
-    implementation(project(":extensions:data-plane:data-plane-http"))
-    implementation(project(":extensions:data-plane:data-plane-control-api"))
-    implementation(project(":extensions:data-plane:data-plane-public-api"))
-    implementation(project(":extensions:common:vault:vault-filesystem"))
+    runtimeOnly(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api"))
+    runtimeOnly(project(":core:data-plane:data-plane-core"))
+    runtimeOnly(project(":extensions:control-plane:api:control-plane-api-client"))
+    runtimeOnly(project(":extensions:data-plane:data-plane-http"))
+    runtimeOnly(project(":extensions:data-plane:data-plane-control-api"))
+    runtimeOnly(project(":extensions:data-plane:data-plane-public-api"))
+    runtimeOnly(project(":extensions:common:vault:vault-filesystem"))
 }
 
 edcBuild {
