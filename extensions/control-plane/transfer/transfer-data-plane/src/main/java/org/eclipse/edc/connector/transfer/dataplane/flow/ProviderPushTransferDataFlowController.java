@@ -36,8 +36,8 @@ import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
-import static org.eclipse.edc.connector.transfer.spi.flow.FlowType.PULL;
-import static org.eclipse.edc.connector.transfer.spi.flow.FlowType.PUSH;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 
 public class ProviderPushTransferDataFlowController implements DataFlowController {
 
@@ -68,7 +68,7 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
                 .processId(transferProcess.getId())
                 .sourceDataAddress(transferProcess.getContentDataAddress())
                 .destinationDataAddress(transferProcess.getDataDestination())
-                .transferType(transferProcess.getTransferType())
+                .flowType(PUSH)
                 .callbackAddress(callbackUrl != null ? callbackUrl.get() : null)
                 .build();
 

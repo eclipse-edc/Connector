@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.transfer.spi.flow;
+package org.eclipse.edc.spi.types.domain.transfer;
 
 /**
  * Data Flow types, generally they can be Push (provider pushing data to the consumer) and Pull (consumer pulling data
