@@ -39,9 +39,7 @@ backward compatibility to the existing format should be maintained by retaining 
   "dspace:dataAddress": {
     "@type": "dspace:DataAddress",
     "dspace:endpointType": "https://w3id.org/idsa/v4.1/HTTP",
-    "dspace:endpoint": {
-      "url": "http://example.com"
-    },
+    "dspace:endpoint": "http://example.com",
     "dspace:endpointProperties": [
       {
         "@type": "dspace:EndpointProperty",
@@ -61,6 +59,8 @@ backward compatibility to the existing format should be maintained by retaining 
 Support for the optional DSP `authType` property will be added. If present, its value must be `bearer,` which indicates
 clients must present the contained token as a bearer token to the associated HTTP endpoint.
 
+_Note that all endpoints must be represented as URI-style strings._
+
 ## 3. Data Plane Authorization
 
 Data Plane authorization involves creating an access token as part of the EDR when a `DataFlowStartMessage` is received
@@ -72,6 +72,7 @@ These operations will be encapsulated in the `DataPlaneAuthorizationService`:
 ```java
 public interface DataPlaneAuthorizationService {
     Result<DataAddress> createEndpointDataReference(DataFlowStartMessage message);
+
     Result<DataAddress> authorize(String token, Map<String, Object> requestData);
 }
 ```
@@ -89,14 +90,14 @@ public interface PublicEndpointGenerator {
     Endpoint generateEndpoint(DataAddress sourceDataAddress);
 }
 
-public record Endpoint(Map<String, Object> endpoint, String endpointType) {
+public record Endpoint(String endpoint, String endpointType) {
+
 
 }
 ```
 
-Note that the `endpoint` is an extensible (= schemaless) complex object because it could contain structured data, such
-as a bucket name, folder path, prefix, etc. The `endpointType` is _always_ a String.
-The shape of the `endpoint` is specific to each source type and must be documented out-of-band.
+Note that the `endpoint` is represented as URI-style string. Thus, both `endpoint` and `endpointType` are _always_
+Strings. The shape of the `endpoint` is specific to each source type and must be documented out-of-band.
 
 ### EDR and Token Creation
 
@@ -111,6 +112,7 @@ authorization servers:
 ```java
 public interface DataPlaneAccessTokenService {
     Result<TokenRepresentation> obtainToken(TokenParameters parameters, DataAddress address);
+
     Result<AccessTokenData> resolve(String token);
 }
 
@@ -156,7 +158,8 @@ encapsulates the token and transport-specific request information as a `Map`, e.
 
 ##### `AccessTokenData` Resolution
 
-First, the `DataPlaneAuthorizationService.authorize()` implementation will invoke `DataPlaneAccessTokenService.resolve()`
+First, the `DataPlaneAuthorizationService.authorize()` implementation will
+invoke `DataPlaneAccessTokenService.resolve()`
 to resolve the `AccessTokenData` containing the `DataAddress` and claims associated with the token:
 
 ```java
