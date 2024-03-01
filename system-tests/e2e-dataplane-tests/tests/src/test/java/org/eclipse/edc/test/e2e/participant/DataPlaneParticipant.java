@@ -16,7 +16,7 @@ package org.eclipse.edc.test.e2e.participant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.restassured.http.ContentType;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.test.system.utils.Participant;
 import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +65,7 @@ public class DataPlaneParticipant extends Participant {
     /**
      * Uses the data plane's control API to initiate a transfer
      */
-    public String initiateTransfer(DataFlowStartMessage startMessage) {
+    public String initiateTransfer(JsonObject startMessage) {
         return dataPlaneSignalingApi.baseRequest()
                 .contentType(ContentType.JSON)
                 .body(startMessage)

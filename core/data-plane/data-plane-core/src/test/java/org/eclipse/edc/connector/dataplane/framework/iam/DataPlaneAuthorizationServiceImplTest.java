@@ -58,7 +58,7 @@ class DataPlaneAuthorizationServiceImplTest {
 
     @BeforeEach
     void setup() {
-        when(endpointGenerator.generateFor(any())).thenReturn(Result.success(new Endpoint(Map.of("url", "http://example.com"), "https://w3id.org/idsa/v4.1/HTTP")));
+        when(endpointGenerator.generateFor(any())).thenReturn(Result.success(Endpoint.url("http://example.com")));
     }
 
     @Test

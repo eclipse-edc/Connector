@@ -14,10 +14,13 @@
 
 package org.eclipse.edc.connector.api.signaling.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistry;
 import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistryImpl;
+import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowStartMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowSuspendMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowTerminateMessageTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -35,6 +38,7 @@ import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -86,7 +90,7 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
         context.registerService(SignalingApiConfiguration.class, new SignalingApiConfiguration(webServiceConfiguration));
 
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, SIGNALING_SCOPE);
-        var jsonLdMapper = typeManager.getMapper(JSON_LD);
+        var jsonLdMapper = getJsonLdMapper();
         webService.registerResource(webServiceConfiguration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(webServiceConfiguration.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, SIGNALING_SCOPE));
     }
@@ -96,9 +100,16 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
         var factory = Json.createBuilderFactory(Map.of());
 
         var registry = new SignalingApiTransformerRegistryImpl(this.transformerRegistry);
+        registry.register(new JsonObjectToDataFlowStartMessageTransformer());
         registry.register(new JsonObjectToDataFlowSuspendMessageTransformer());
         registry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
         registry.register(new JsonObjectToDataAddressTransformer());
+        registry.register(new JsonObjectFromDataAddressTransformer(factory, getJsonLdMapper()));
         return registry;
+    }
+
+    @NotNull
+    private ObjectMapper getJsonLdMapper() {
+        return typeManager.getMapper(JSON_LD);
     }
 }

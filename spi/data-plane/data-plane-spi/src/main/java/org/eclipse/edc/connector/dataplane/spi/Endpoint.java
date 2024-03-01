@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.spi;
 
-import java.util.Map;
-
 /**
  * Representation of a publicly accessible data egress point. This indicates to consumers the type of data (denoted by the {@code endpointType})
  * and an object containing fields describing the endpoint.
@@ -25,7 +23,7 @@ import java.util.Map;
  * @param endpoint     An object describing the endpoint
  * @param endpointType A string uniquely identifying the type of endpoint
  */
-public record Endpoint(Map<String, Object> endpoint, String endpointType) {
+public record Endpoint(String endpoint, String endpointType) {
 
     /**
      * Convenience factory method to create a HTTP endpoint.
@@ -34,7 +32,7 @@ public record Endpoint(Map<String, Object> endpoint, String endpointType) {
      * @return the endpoint.
      */
     public static Endpoint url(String url) {
-        return new Endpoint(Map.of("url", url), "https://w3id.org/idsa/v4.1/HTTP");
+        return new Endpoint(url, "https://w3id.org/idsa/v4.1/HTTP");
     }
 
 }

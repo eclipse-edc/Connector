@@ -51,7 +51,7 @@ public interface DataPlaneSignalingApi {
                             content = @Content(schema = @Schema(implementation = DataFlowResponseMessageSchema.class))),
             }
     )
-    JsonObject start(JsonObject dataFlowStartMessage, AsyncResponse response);
+    void start(JsonObject dataFlowStartMessage, AsyncResponse response);
 
     @Operation(description = "Get the current state of a data transfer.",
             responses = {
