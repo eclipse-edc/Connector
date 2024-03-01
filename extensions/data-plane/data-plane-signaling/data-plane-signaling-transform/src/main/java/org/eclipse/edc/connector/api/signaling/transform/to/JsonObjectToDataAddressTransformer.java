@@ -19,7 +19,6 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization;
-import org.eclipse.edc.connector.api.signaling.transform.DspaceEndpointProperty;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -84,5 +83,7 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
         }
     }
 
-
+    //container to hold endpoint property objects
+    private record DspaceEndpointProperty(String name, String value) {
+    }
 }
