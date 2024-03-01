@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -156,7 +157,7 @@ class DataPlaneAuthorizationServiceImplTest {
     private DataFlowStartMessage.Builder createStartMessage() {
         return DataFlowStartMessage.Builder.newInstance()
                 .processId("test-processid")
-                .transferType("test-transfer-type")
+                .flowType(FlowType.PULL)
                 .agreementId("test-agreementid")
                 .participantId("test-participantid")
                 .assetId("test-assetid")

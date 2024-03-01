@@ -36,7 +36,7 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
     public static final String CLAIM_AGREEMENT_ID = "agreement_id";
     public static final String CLAIM_ASSET_ID = "asset_id";
     public static final String CLAIM_PROCESS_ID = "process_id";
-    public static final String CLAIM_TRANSFER_TYPE = "transfer_type";
+    public static final String CLAIM_FLOW_TYPE = "flow_type";
     private final DataPlaneAccessTokenService accessTokenService;
     private final PublicEndpointGeneratorService endpointGenerator;
     private final DataPlaneAccessControlService accessControlService;
@@ -94,7 +94,7 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
                 .claims(CLAIM_AGREEMENT_ID, message.getAgreementId())
                 .claims(CLAIM_ASSET_ID, message.getAssetId())
                 .claims(CLAIM_PROCESS_ID, message.getProcessId())
-                .claims(CLAIM_TRANSFER_TYPE, message.getTransferType())
+                .claims(CLAIM_FLOW_TYPE, message.getFlowType().toString())
                 .build();
     }
 

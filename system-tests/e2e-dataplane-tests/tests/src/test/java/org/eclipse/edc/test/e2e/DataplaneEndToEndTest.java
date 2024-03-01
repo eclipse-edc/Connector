@@ -16,11 +16,11 @@ package org.eclipse.edc.test.e2e;
 
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
-import org.eclipse.edc.connector.transfer.spi.flow.FlowType;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.test.e2e.participant.DataPlaneParticipant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -55,7 +55,7 @@ public class DataplaneEndToEndTest {
                 .processId("test-processId")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://fizz.buzz").build())
-                .transferType(FlowType.PULL.toString())
+                .flowType(FlowType.PULL)
                 .assetId("test-asset")
                 .agreementId("test-agreement")
                 .build();

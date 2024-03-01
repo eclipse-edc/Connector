@@ -42,7 +42,7 @@ class DataFlowStartMessageTest {
                 .properties(Map.of("key", "value"))
                 .traceContext(Map.of("key2", "value2"))
                 .participantId("participantId")
-                .transferType("transferType")
+                .flowType(FlowType.PUSH)
                 .agreementId("agreementId")
                 .assetId("assetId")
                 .build();
@@ -54,7 +54,7 @@ class DataFlowStartMessageTest {
         assertThat(deserialized.getTraceContext().get("key2")).isEqualTo("value2");
         assertThat(deserialized.getCallbackAddress()).isEqualTo(uri);
         assertThat(deserialized.getAgreementId()).isEqualTo("agreementId");
-        assertThat(deserialized.getTransferType()).isEqualTo("transferType");
+        assertThat(deserialized.getFlowType()).isEqualTo(request.getFlowType());
         assertThat(deserialized.getAssetId()).isEqualTo("assetId");
         assertThat(deserialized.getParticipantId()).isEqualTo("participantId");
     }

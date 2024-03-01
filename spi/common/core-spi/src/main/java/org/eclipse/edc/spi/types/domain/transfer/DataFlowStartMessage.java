@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.Polymorphic;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -40,14 +41,14 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
     public static final String DC_DATA_FLOW_START_MESSAGE_PROCESS_ID = EDC_NAMESPACE + "processId";
     public static final String EDC_DATA_FLOW_START_MESSAGE_SIMPLE_TYPE = "DataFlowStartMessage";
     public static final String EDC_DATA_FLOW_START_MESSAGE_TYPE = EDC_NAMESPACE + EDC_DATA_FLOW_START_MESSAGE_SIMPLE_TYPE;
-    public static final String EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE = EDC_NAMESPACE + "flowType";
     public static final String EDC_DATA_FLOW_START_MESSAGE_DATASET_ID = EDC_NAMESPACE + "datasetId";
     public static final String EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID = EDC_NAMESPACE + "participantId";
     public static final String EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID = EDC_NAMESPACE + "agreementId";
     public static final String EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS = EDC_NAMESPACE + "sourceDataAddress";
     public static final String EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS = EDC_NAMESPACE + "destinationDataAddress";
     public static final String EDC_DATA_FLOW_START_MESSAGE_DESTINATION_CALLBACK_ADDRESS = EDC_NAMESPACE + "callbackAddress";
-    public static final String EDC_DATA_FLOW_START_MESSAGE_DESTINATION_PROPERTIES = EDC_NAMESPACE + "properties";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_PROPERTIES = EDC_NAMESPACE + "properties";
 
     private String id;
     private String processId;
@@ -58,10 +59,10 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
 
     private DataAddress sourceDataAddress;
     private DataAddress destinationDataAddress;
-    private String transferType;
+    private FlowType flowType;
     private URI callbackAddress;
 
-    private Map<String, String> properties = Map.of();
+    private Map<String, String> properties = new HashMap<>();
     private Map<String, String> traceContext = Map.of(); // TODO: should this stay in the DataFlow class?
 
     private DataFlowStartMessage() {
@@ -96,10 +97,10 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
     }
 
     /**
-     * The transfer type to use for the request
+     * The {@link FlowType} for the request
      */
-    public String getTransferType() {
-        return transferType;
+    public FlowType getFlowType() {
+        return flowType;
     }
 
 
@@ -200,8 +201,8 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
             return this;
         }
 
-        public Builder transferType(String transferType) {
-            request.transferType = transferType;
+        public Builder flowType(FlowType flowType) {
+            request.flowType = flowType;
             return this;
         }
 
@@ -222,6 +223,11 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
 
         public Builder properties(Map<String, String> value) {
             request.properties = value == null ? null : Map.copyOf(value);
+            return this;
+        }
+
+        public Builder property(String key, String value) {
+            request.properties.put(key, value);
             return this;
         }
 

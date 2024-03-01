@@ -31,9 +31,9 @@ import java.util.Set;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
-import static org.eclipse.edc.connector.transfer.spi.flow.FlowType.PULL;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.response.StatusResult.failure;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
 
 public class ConsumerPullTransferDataFlowController implements DataFlowController {
 
