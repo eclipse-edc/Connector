@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.core.entity.AbstractStateEntityManager;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.StatefulEntity;
@@ -29,6 +30,7 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -79,32 +81,36 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public DataFlowStates transferState(String processId) {
+    public DataFlowStates getTransferState(String processId) {
         return Optional.ofNullable(store.findById(processId)).map(StatefulEntity::getState)
                 .map(DataFlowStates::from).orElse(null);
     }
 
     @Override
-    public StatusResult<Void> terminate(String dataFlowId) {
+    public StatusResult<Void> terminate(String dataFlowId, @Nullable String reason) {
         var result = store.findByIdAndLease(dataFlowId);
-        if (result.succeeded()) {
-            var dataFlow = result.getContent();
-            var transferService = transferServiceRegistry.resolveTransferService(dataFlow.toRequest());
-
-            if (transferService == null) {
-                return StatusResult.failure(FATAL_ERROR, "TransferService cannot be resolved for DataFlow %s".formatted(dataFlowId));
-            }
-
-            var terminateResult = transferService.terminate(dataFlow);
-            if (terminateResult.failed()) {
-                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlowId, terminateResult.getFailureDetail()));
-            }
-            dataFlow.transitToTerminated();
-            store.save(dataFlow);
-            return StatusResult.success();
-        } else {
+        if (result.failed()) {
             return StatusResult.from(result).map(it -> null);
         }
+
+        var dataFlow = result.getContent();
+        var transferService = transferServiceRegistry.resolveTransferService(dataFlow.toRequest());
+
+        if (transferService == null) {
+            return StatusResult.failure(FATAL_ERROR, "TransferService cannot be resolved for DataFlow %s".formatted(dataFlowId));
+        }
+
+        var terminateResult = transferService.terminate(dataFlow);
+        if (terminateResult.failed()) {
+            if (terminateResult.reason().equals(StreamFailure.Reason.NOT_FOUND)) {
+                monitor.warning("No source was found for DataFlow '%s'. This may indicate an inconsistent state.".formatted(dataFlowId));
+            } else {
+                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlowId, terminateResult.getFailureDetail()));
+            }
+        }
+        dataFlow.transitToTerminated(reason);
+        store.save(dataFlow);
+        return StatusResult.success();
     }
 
     @Override

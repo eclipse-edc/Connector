@@ -19,8 +19,11 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,6 +40,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
  */
 public class DataFlow extends StatefulEntity<DataFlow> {
 
+    public static final String TERMINATION_REASON = "terminationReason";
     private DataAddress source;
     private DataAddress destination;
     private URI callbackAddress;
@@ -71,7 +75,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     }
 
     public Map<String, String> getProperties() {
-        return properties;
+        return Collections.unmodifiableMap(properties);
     }
 
     public DataFlowStartMessage toRequest() {
@@ -103,8 +107,12 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(NOTIFIED.code());
     }
 
-    public void transitToTerminated() {
+    public void transitToTerminated(@Nullable String reason) {
         transitionTo(TERMINATED.code());
+        if (reason != null) {
+            properties = new HashMap<>(properties); //properties could be immutable
+            properties.put(TERMINATION_REASON, reason);
+        }
     }
 
     public void transitionToStarted() {

@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.entity.StateEntityManager;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Manages the execution of data plane requests.
@@ -40,7 +41,7 @@ public interface DataPlaneManager extends StateEntityManager {
     /**
      * Returns the transfer state for the process.
      */
-    DataFlowStates transferState(String processId);
+    DataFlowStates getTransferState(String processId);
 
     /**
      * Terminate the data flow.
@@ -48,5 +49,16 @@ public interface DataPlaneManager extends StateEntityManager {
      * @param dataFlowId the data flow id.
      * @return success if data flow is terminated, failed otherwise.
      */
-    StatusResult<Void> terminate(String dataFlowId);
+    default StatusResult<Void> terminate(String dataFlowId) {
+        return terminate(dataFlowId, null);
+    }
+
+    /**
+     * Terminate the data flow and specifies a reason.
+     *
+     * @param dataFlowId the data flow id.
+     * @param reason     the reason for the termination. May be null.
+     * @return success if data flow is terminated, failed otherwise.
+     */
+    StatusResult<Void> terminate(String dataFlowId, @Nullable String reason);
 }
