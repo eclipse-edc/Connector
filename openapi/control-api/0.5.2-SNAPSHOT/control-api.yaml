@@ -1,0 +1,437 @@
+openapi: 3.0.1
+info:
+  title: control-api
+  description: REST API documentation for the control-api
+  version: 0.5.2-SNAPSHOT
+servers:
+- url: /
+tags:
+- name: Data Plane control API
+  description: 'Api targeted by the Control Plane to delegate a data transfer (Provider
+    Push or Streaming) to the Data Plane after the contract has been successfully
+    negotiated and agreed between the two participants. '
+- name: Data Plane Signaling api API
+  description: 'Api targeted by the Control Plane to delegate a data transfer to the
+    Data Plane after the contract has been successfully negotiated and agreed between
+    the two participants. '
+paths:
+  /token:
+    get:
+      tags:
+      - Consumer Pull Token Validation
+      description: "Checks that the provided token has been signed by the present\
+        \ entity and asserts its validity. If token is valid, then the data address\
+        \ contained in its claims is decrypted and returned back to the caller."
+      operationId: validate
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: Token is valid
+        "400":
+          description: Request was malformed
+        "403":
+          description: Token is invalid
+  /transfer:
+    post:
+      tags:
+      - Data Plane control API
+      description: Initiates a data transfer for the given request. The transfer will
+        be performed asynchronously.
+      operationId: initiateTransfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataFlowStartMessage'
+      responses:
+        "200":
+          description: Data transfer initiated
+        "400":
+          description: Failed to validate request
+  /transfer/{transferProcessId}:
+    get:
+      tags:
+      - Data Plane control API
+      description: Get the current state of a data transfer.
+      operationId: getTransferState
+      parameters:
+      - name: transferProcessId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: Missing access token
+    delete:
+      tags:
+      - Data Plane control API
+      description: Terminates a data transfer.
+      operationId: terminateTransfer
+      parameters:
+      - name: transferProcessId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "204":
+          description: Data transfer terminated
+        "404":
+          description: Data transfer not handled by the data plane
+        "409":
+          description: Cannot terminate the transfer
+  /transferprocess/{processId}/complete:
+    post:
+      tags:
+      - Transfer Process Control Api
+      description: "Requests completion of the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received"
+      operationId: complete
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /transferprocess/{processId}/fail:
+    post:
+      tags:
+      - Transfer Process Control Api
+      description: "Requests completion of the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received"
+      operationId: fail
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferProcessFailStateDto'
+      responses:
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v1/dataflows:
+    post:
+      tags:
+      - Data Plane Signaling api API
+      description: "Initiates a data transfer for the given start message. If the\
+        \ data transfer is handled by the data plane, it will be performed asynchronously.\
+        \ If it's a consumer-pull scenario, a data address will be returned"
+      operationId: start
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataFlowStartMessage'
+      responses:
+        "200":
+          description: Data transfer initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataFlowResponseMessage'
+        "400":
+          description: Failed to validate request
+  /v1/dataflows/{id}/state:
+    get:
+      tags:
+      - Data Plane Signaling api API
+      description: Get the current state of a data transfer.
+      operationId: getTransferState
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: State of the data transfer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataFlowState'
+        "404":
+          description: Data transfer not found in the data plane
+  /v1/dataflows/{id}/suspend:
+    post:
+      tags:
+      - Data Plane Signaling api API
+      description: Suspend a data transfer.
+      operationId: suspend
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataFlowSuspendMessage'
+      responses:
+        "204":
+          description: Data transfer suspended
+        "404":
+          description: Data transfer not handled by the data plane
+        "409":
+          description: Cannot suspend the transfer
+  /v1/dataflows/{id}/terminate:
+    post:
+      tags:
+      - Data Plane Signaling api API
+      description: Terminates a data transfer.
+      operationId: terminate
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataFlowTerminateMessage'
+      responses:
+        "204":
+          description: Data transfer terminated
+        "404":
+          description: Data transfer not handled by the data plane
+        "409":
+          description: Cannot terminate the transfer
+components:
+  schemas:
+    ApiErrorDetail:
+      type: object
+      properties:
+        invalidValue:
+          type: object
+          example: null
+        message:
+          type: string
+          example: null
+        path:
+          type: string
+          example: null
+        type:
+          type: string
+          example: null
+      example: null
+    DataAddress:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+      example: null
+    DataFlowResponseMessage:
+      type: object
+      properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: DataFlowResponseMessage
+        dataAddress:
+          $ref: '#/components/schemas/DataAddress'
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': DataFlowResponseMessage
+        dataAddress:
+          type: HttpData
+          baseUrl: https://jsonplaceholder.typicode.com/todos
+    DataFlowStartMessage:
+      type: object
+      properties:
+        agreementId:
+          type: string
+          example: null
+        assetId:
+          type: string
+          example: null
+        callbackAddress:
+          type: string
+          format: uri
+          example: null
+        destinationDataAddress:
+          $ref: '#/components/schemas/DataAddress'
+        flowType:
+          type: string
+          example: null
+          enum:
+          - PUSH
+          - PULL
+        id:
+          type: string
+          example: null
+        participantId:
+          type: string
+          example: null
+        processId:
+          type: string
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+            example: null
+          example: null
+        sourceDataAddress:
+          $ref: '#/components/schemas/DataAddress'
+        traceContext:
+          type: object
+          additionalProperties:
+            type: string
+            example: null
+          example: null
+      example: null
+    DataFlowState:
+      type: object
+      properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: DataFlowState
+        state:
+          type: string
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': DataFlowState
+        state: STARTED
+    DataFlowSuspendMessage:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: DataFlowSuspendMessage
+        state:
+          type: string
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': DataFlowSuspendMessage
+        reason: reason
+    DataFlowTerminateMessage:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: DataFlowTerminateMessage
+        state:
+          type: string
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': DataFlowTerminateMessage
+        reason: reason
+    JsonObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+          example: null
+        valueType:
+          type: string
+          example: null
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+      additionalProperties:
+        $ref: '#/components/schemas/JsonValue'
+      example: null
+    JsonValue:
+      type: object
+      properties:
+        valueType:
+          type: string
+          example: null
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+      example: null
+    Properties:
+      type: object
+      example: null
+    TransferProcessFailStateDto:
+      type: object
+      properties:
+        errorMessage:
+          type: string
+          example: null
+      example: null
