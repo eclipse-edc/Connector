@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.signaling.configuration;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistry;
 import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistryImpl;
+import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowResponseMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowSuspendMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowTerminateMessageTransformer;
@@ -99,6 +100,7 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
         registry.register(new JsonObjectToDataFlowSuspendMessageTransformer());
         registry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
         registry.register(new JsonObjectToDataAddressTransformer());
+        registry.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
         return registry;
     }
 }
