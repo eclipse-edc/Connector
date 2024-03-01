@@ -36,8 +36,8 @@ import static jakarta.ws.rs.core.Response.status;
 import static java.lang.String.format;
 
 @Path("/transfer")
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 public class DataPlaneControlApiController implements DataPlaneControlApi {
     private final DataPlaneManager dataPlaneManager;
 
@@ -65,7 +65,7 @@ public class DataPlaneControlApiController implements DataPlaneControlApi {
     @Override
     @Path("/{transferProcessId}")
     public DataFlowStates getTransferState(@PathParam("transferProcessId") String transferProcessId) {
-        return dataPlaneManager.transferState(transferProcessId);
+        return dataPlaneManager.getTransferState(transferProcessId);
     }
 
     @DELETE

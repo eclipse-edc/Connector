@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.signaling.transform.to;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
@@ -30,7 +29,6 @@ import java.util.function.Function;
 
 import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY;
 import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 
 /**
  * Transforms a {@link JsonObject} into a DataAddress using the DSPACE-serialization format.
@@ -56,7 +54,7 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
                 builder.type(endpointType);
             }
             case DspaceDataAddressSerialization.ENDPOINT_PROPERTIES_PROPERTY ->
-                    transformEndpointProperties(jsonValue, ep -> builder.property(ep.name(), ep.value()));
+                    transformEndpointProperties(jsonValue, ep -> builder.property(ep.name(), ep.value()), context);
             default -> throw new IllegalArgumentException("Unexpected value: " + key);
         }
     }
@@ -67,23 +65,24 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
      *
      * @param jsonValue The endpointProperties JsonArray
      * @param consumer  A consumer that takes the {@link DspaceEndpointProperty} and processes it.
+     * @param context   the transformer context, to which this method delegates when transforming strings.
      */
-    private void transformEndpointProperties(JsonValue jsonValue, Consumer<DspaceEndpointProperty> consumer) {
+    private void transformEndpointProperties(JsonValue jsonValue, Consumer<DspaceEndpointProperty> consumer, TransformerContext context) {
         Function<JsonObject, DspaceEndpointProperty> converter = (jo) -> {
-            var name = jo.getJsonArray(ENDPOINT_PROPERTY_NAME_PROPERTY).get(0).asJsonObject().get(VALUE);
-            var value = jo.getJsonArray(ENDPOINT_PROPERTY_VALUE_PROPERTY).get(0).asJsonObject().get(VALUE);
-            return new DspaceEndpointProperty(((JsonString) name).getString(), ((JsonString) value).getString());
+            var name = transformString(jo.get(ENDPOINT_PROPERTY_NAME_PROPERTY), context);
+            var value = transformString(jo.get(ENDPOINT_PROPERTY_VALUE_PROPERTY), context);
+            return new DspaceEndpointProperty(name, value);
         };
         if (jsonValue instanceof JsonObject object) {
             consumer.accept(converter.apply(object));
         }
         if (jsonValue instanceof JsonArray array) {
             // invoke the method recursively for every dspace:EndpointProperty entry
-            array.forEach(jv -> transformEndpointProperties(jv, consumer));
+            array.forEach(jv -> transformEndpointProperties(jv, consumer, context));
         }
     }
 
-    //container to hold endpoint property objects
+    //container to hold endpoint property objects 
     private record DspaceEndpointProperty(String name, String value) {
     }
 }

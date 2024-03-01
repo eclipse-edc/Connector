@@ -40,7 +40,7 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper mapper;
 
-    protected JsonObjectFromDataAddressTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromDataAddressTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
         super(DataAddress.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.mapper = mapper;
@@ -58,7 +58,8 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
         var objectBuilder = jsonFactory.createObjectBuilder()
                 .add(TYPE, DSPACE_DATAADDRESS_TYPE)
                 .add(ENDPOINT_TYPE_PROPERTY, dataAddress.getType())
-                .add(ENDPOINT_PROPERTY, dataAddress.getStringProperty("endpoint"));
+                .add(ENDPOINT_PROPERTY, dataAddress.getProperties().getOrDefault("endpoint", "https://example.com").toString());
+
 
         objectBuilder.add(ENDPOINT_PROPERTIES_PROPERTY, propsBuilder.build());
 

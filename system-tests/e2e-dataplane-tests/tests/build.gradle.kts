@@ -20,6 +20,7 @@ plugins {
 dependencies {
 
     testImplementation(project(":spi:data-plane:data-plane-spi"))
+    testImplementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
@@ -33,6 +34,8 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
+    testImplementation(project(":core:common:transform-core")) // for the transformer registry impl
+
     testCompileOnly(project(":system-tests:e2e-dataplane-tests:runtimes:data-plane"))
 }
 
