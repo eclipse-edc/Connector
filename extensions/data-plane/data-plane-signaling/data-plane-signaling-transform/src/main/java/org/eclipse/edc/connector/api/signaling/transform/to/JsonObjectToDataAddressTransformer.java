@@ -55,7 +55,6 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
             case DspaceDataAddressSerialization.ENDPOINT_TYPE_PROPERTY -> {
                 var endpointType = transformString(jsonValue, context);
                 builder.type(endpointType);
-                builder.property("endpointType", endpointType); //todo: should we have this duplicated?
             }
             case DspaceDataAddressSerialization.ENDPOINT_PROPERTIES_PROPERTY ->
                     transformEndpointProperties(jsonValue, ep -> builder.property(ep.name(), ep.value()));

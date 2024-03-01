@@ -64,7 +64,6 @@ class JsonObjectToDataAddressTransformerTest {
                 .containsEntry("authorization", "some-token")
                 .containsEntry("authType", "bearer")
                 .containsEntry("fizz", "buzz")
-                .containsEntry("endpointType", dataAddress.getType())
                 .containsEntry("endpoint", "http://example.com");
     }
 
