@@ -23,7 +23,6 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.container.AsyncResponse;
 import org.eclipse.edc.connector.dataplane.api.model.DataFlowState;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
@@ -51,7 +50,7 @@ public interface DataPlaneSignalingApi {
                             content = @Content(schema = @Schema(implementation = DataFlowResponseMessageSchema.class))),
             }
     )
-    void start(JsonObject dataFlowStartMessage, AsyncResponse response);
+    JsonObject start(JsonObject dataFlowStartMessage);
 
     @Operation(description = "Get the current state of a data transfer.",
             responses = {
