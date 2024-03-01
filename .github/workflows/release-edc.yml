@@ -41,7 +41,14 @@ jobs:
     outputs:
       edc-version: ${{ env.EDC_VERSION }}
 
-  # Calls the openapi workflow to publish the api spec
+  publish-openapi-ui:
+    needs: Prepare-Release
+    uses: eclipse-edc/.github/.github/workflows/publish-openapi-ui.yml@main
+    secrets: inherit
+    with:
+      version: ${{ needs.Prepare-Release.outputs.edc-version }}
+
+  # DEPRECATED: Calls the openapi workflow to publish the api spec on SwaggerHub
   Publish-OpenApi:
     needs:
       - Prepare-Release
