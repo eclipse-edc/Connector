@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_TRANSFER_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.PROPERTIES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURN_COUNT;
@@ -63,6 +64,9 @@ public class JsonObjectFromDataPlaneInstanceTransformer extends AbstractJsonLdTr
 
         var dstBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedDestTypes());
         builder.add(ALLOWED_DEST_TYPES, dstBldr);
+
+        var transferTypesBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedTransferTypes());
+        builder.add(ALLOWED_TRANSFER_TYPES, transferTypesBldr);
 
 
         return builder.build();

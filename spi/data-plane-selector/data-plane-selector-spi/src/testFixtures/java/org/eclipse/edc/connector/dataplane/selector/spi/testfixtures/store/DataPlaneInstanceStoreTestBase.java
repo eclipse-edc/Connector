@@ -35,6 +35,13 @@ public abstract class DataPlaneInstanceStoreTestBase {
     }
 
     @Test
+    void save_withAllowedTransferTypes() {
+        var inst = TestFunctions.createInstanceBuilder("test-id").allowedTransferType("transfer-type").build();
+        getStore().create(inst);
+        Assertions.assertThat(getStore().getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(inst);
+    }
+
+    @Test
     void save_whenExists_shouldNotUpsert() {
         var inst = TestFunctions.createInstance("test-id");
         getStore().create(inst);
