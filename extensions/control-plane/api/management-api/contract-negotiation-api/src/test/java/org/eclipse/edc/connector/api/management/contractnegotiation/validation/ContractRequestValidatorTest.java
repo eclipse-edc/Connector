@@ -34,7 +34,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
@@ -56,7 +55,6 @@ class ContractRequestValidatorTest {
         var input = Json.createObjectBuilder()
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
-                .add(PROVIDER_ID, value("connector-id"))
                 .add(POLICY, createArrayBuilder().add(createObjectBuilder()
                         .add(TYPE, createArrayBuilder().add(ODRL_POLICY_TYPE_OFFER))
                         .add(ID, "offer-id")
@@ -75,7 +73,6 @@ class ContractRequestValidatorTest {
         var input = Json.createObjectBuilder()
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
-                .add(PROVIDER_ID, value("connector-id"))
                 .add(POLICY, createArrayBuilder()
                         .add(createObjectBuilder()
                                 .add(TYPE, createArrayBuilder().add("wrongType"))
@@ -99,7 +96,6 @@ class ContractRequestValidatorTest {
         var input = Json.createObjectBuilder()
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
-                .add(PROVIDER_ID, value("connector-id"))
                 .build();
 
         var result = validator.validate(input);
@@ -128,7 +124,6 @@ class ContractRequestValidatorTest {
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(CONNECTOR_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
-                .add(PROVIDER_ID, value("connector-id"))
                 .add(OFFER, createArrayBuilder().add(createObjectBuilder()))
                 .build();
 
@@ -147,7 +142,6 @@ class ContractRequestValidatorTest {
         var input = Json.createObjectBuilder()
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
-                .add(PROVIDER_ID, value("connector-id"))
                 .add(OFFER, createArrayBuilder().add(createObjectBuilder()
                         .add(OFFER_ID, value("offerId"))
                         .add(ASSET_ID, value("offerId"))
@@ -165,7 +159,6 @@ class ContractRequestValidatorTest {
         var input = Json.createObjectBuilder()
                 .add(CONNECTOR_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
-                .add(PROVIDER_ID, value("connector-id"))
                 .add(POLICY, createArrayBuilder().add(createObjectBuilder()
                         .add(ID, "offer-id")
                         .add(TYPE, createArrayBuilder().add(ODRL_POLICY_TYPE_OFFER))
