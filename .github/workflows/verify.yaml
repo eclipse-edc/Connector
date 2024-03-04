@@ -74,6 +74,8 @@ jobs:
   End-To-End-Tests:
     runs-on: ubuntu-latest
     steps:
+      - name: clean directory
+        run: rm -rf ./*
       - uses: actions/checkout@v4
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
 

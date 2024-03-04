@@ -36,7 +36,6 @@ dependencies {
     testImplementation(project(":core:common:transform-core")) // for the transformer registry impl
 
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
-    testCompileOnly(project(":system-tests:e2e-dataplane-tests:runtimes:data-plane"))
 }
 
 edcBuild {
