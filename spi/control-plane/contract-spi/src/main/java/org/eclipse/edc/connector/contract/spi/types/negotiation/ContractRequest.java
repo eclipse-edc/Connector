@@ -40,7 +40,6 @@ public class ContractRequest {
     public static final String POLICY = EDC_NAMESPACE + "policy";
     public static final String CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
 
-    private String providerId;
     private String protocol;
     private String counterPartyAddress;
     private ContractOffer contractOffer;
@@ -51,7 +50,7 @@ public class ContractRequest {
     }
 
     public String getProviderId() {
-        return providerId;
+        return this.contractOffer.getPolicy().getAssigner();
     }
 
     public String getProtocol() {
@@ -79,11 +78,6 @@ public class ContractRequest {
 
         public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
             contractRequest.callbackAddresses = callbackAddresses;
-            return this;
-        }
-
-        public Builder providerId(String providerId) {
-            contractRequest.providerId = providerId;
             return this;
         }
 
