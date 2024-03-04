@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api-configuration"))
     implementation(libs.jakarta.rsApi)
-    implementation(libs.restAssured)
+    testImplementation(libs.restAssured)
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
 
 }
