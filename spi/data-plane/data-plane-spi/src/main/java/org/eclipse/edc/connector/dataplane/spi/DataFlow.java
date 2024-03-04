@@ -44,7 +44,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     private DataAddress source;
     private DataAddress destination;
     private URI callbackAddress;
-    private Map<String, String> properties = Map.of();
+    private Map<String, String> properties = new HashMap<>();
 
     @Override
     public DataFlow copy() {
@@ -110,7 +110,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     public void transitToTerminated(@Nullable String reason) {
         transitionTo(TERMINATED.code());
         if (reason != null) {
-            properties = new HashMap<>(properties); //properties could be immutable
             properties.put(TERMINATION_REASON, reason);
         }
     }
