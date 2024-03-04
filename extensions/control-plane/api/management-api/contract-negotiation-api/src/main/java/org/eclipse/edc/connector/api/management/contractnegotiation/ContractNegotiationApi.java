@@ -132,8 +132,6 @@ public interface ContractNegotiationApi {
             String connectorAddress,
             @Schema(requiredMode = REQUIRED)
             String counterPartyAddress,
-            @Schema(requiredMode = REQUIRED)
-            String providerId,
             @Deprecated(since = "0.3.2")
             @Schema(deprecated = true, description = "please use policy instead of offer")
             ContractOfferDescriptionSchema offer,
@@ -147,7 +145,6 @@ public interface ContractNegotiationApi {
                     "@type": "https://w3id.org/edc/v0.0.1/ns/ContractRequest",
                     "counterPartyAddress": "http://provider-address",
                     "protocol": "dataspace-protocol-http",
-                    "providerId": "provider-id",
                     "policy": {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
                         "@type": "odrl:Offer",
