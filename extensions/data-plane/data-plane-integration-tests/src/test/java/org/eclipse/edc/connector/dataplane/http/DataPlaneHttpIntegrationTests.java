@@ -26,10 +26,10 @@ import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
@@ -43,19 +43,22 @@ import org.mockserver.verify.VerificationTimes;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.AUTHORIZATION;
 import static io.restassured.RestAssured.given;
+import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
+import static java.util.Collections.emptyMap;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions.createRequest;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
@@ -97,7 +100,7 @@ public class DataPlaneHttpIntegrationTests {
     private static final String TRANSFER_RESULT_PATH = format("%s/{processId}", TRANSFER_PATH);
     private static final String PROCESS_ID = "processId";
     private static final String HTTP_API_PATH = "sample";
-    private static final String AUTH_HEADER_KEY = HttpHeaderNames.AUTHORIZATION.toString();
+    private static final String AUTH_HEADER_KEY = AUTHORIZATION.toString();
     private static final String SOURCE_AUTH_VALUE = "source-auth-key";
     private static final String SINK_AUTH_VALUE = "sink-auth-key";
     private static ClientAndServer httpSourceMockServer;
@@ -117,10 +120,20 @@ public class DataPlaneHttpIntegrationTests {
                     "edc.dataplane.token.validation.endpoint", VALIDATION_API_HOST
             ));
 
+    @BeforeAll
+    public static void setUp() {
+        httpSourceMockServer = startClientAndServer(HTTP_SOURCE_API_PORT);
+        httpSinkMockServer = startClientAndServer(HTTP_SINK_API_PORT);
+        validationApiMockServer = startClientAndServer(VALIDATION_API_PORT);
+    }
 
-    /**
-     * Reset mock server internal state after every test.
-     */
+    @AfterAll
+    public static void tearDown() {
+        stopQuietly(httpSourceMockServer);
+        stopQuietly(httpSinkMockServer);
+        stopQuietly(validationApiMockServer);
+    }
+
     @AfterEach
     public void resetMockServer() {
         httpSourceMockServer.reset();
@@ -128,139 +141,194 @@ public class DataPlaneHttpIntegrationTests {
         validationApiMockServer.reset();
     }
 
-    @Test
-    void transfer_pull_withSourceQueryParamsAndPath_success(TypeManager typeManager) {
-        // prepare data source and validation servers
-        var token = UUID.randomUUID().toString();
-        var responseBody = "some info";
-        var queryParams = Map.of(
-                "param1", "foo",
-                "param2", "bar"
-        );
-        var sourceDataAddress = sourceDataAddress();
+    @Nested
+    class Pull {
+        @Test
+        void transfer_pull_withSourceQueryParamsAndPath_success(TypeManager typeManager) {
+            // prepare data source and validation servers
+            var token = UUID.randomUUID().toString();
+            var responseBody = "some info";
+            var queryParams = Map.of(
+                    "param1", "foo",
+                    "param2", "bar"
+            );
+            var sourceDataAddress = sourceDataAddress();
 
-        var sourceRequest = getRequest(queryParams, HTTP_API_PATH);
-        httpSourceMockServer.when(sourceRequest, once()).respond(successfulResponse(responseBody, PLAIN_TEXT_UTF_8));
+            var sourceRequest = getRequest(queryParams, HTTP_API_PATH);
+            httpSourceMockServer.when(sourceRequest, once()).respond(successfulResponse(responseBody, PLAIN_TEXT_UTF_8));
 
-        // prepare validation server of the control plane
-        var validationRequest = request().withMethod(HttpMethod.GET.name()).withHeader(AUTH_HEADER_KEY, token);
-        validationApiMockServer.when(validationRequest, once())
-                .respond(successfulResponse(typeManager.writeValueAsString(sourceDataAddress), PLAIN_TEXT_UTF_8));
+            // prepare validation server of the control plane
+            var validationRequest = request().withMethod(HttpMethod.GET.name()).withHeader(AUTH_HEADER_KEY, token);
+            validationApiMockServer.when(validationRequest, once())
+                    .respond(successfulResponse(typeManager.writeValueAsString(sourceDataAddress), PLAIN_TEXT_UTF_8));
 
-        given()
-                .baseUri(PUBLIC_API_HOST)
-                .contentType(ContentType.JSON)
-                .when()
-                .queryParams(queryParams)
-                .header(HttpHeaderNames.AUTHORIZATION.toString(), token)
-                .get(format("%s/%s", PUBLIC_PATH, HTTP_API_PATH))
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body(CoreMatchers.equalTo(responseBody));
+            given()
+                    .baseUri(PUBLIC_API_HOST)
+                    .contentType(ContentType.JSON)
+                    .when()
+                    .queryParams(queryParams)
+                    .header(AUTHORIZATION.toString(), token)
+                    .get(format("%s/%s", PUBLIC_PATH, HTTP_API_PATH))
+                    .then()
+                    .assertThat()
+                    .statusCode(HttpStatus.SC_OK)
+                    .body(equalTo(responseBody));
 
-        httpSourceMockServer.verify(sourceRequest, VerificationTimes.once());
+            httpSourceMockServer.verify(sourceRequest, VerificationTimes.once());
+        }
+
+        @Test
+        void transfer_invalidInput_failure(TypeManager typeManager) {
+            var processId = UUID.randomUUID().toString();
+            var invalidRequest = transferRequestPayload(processId, typeManager).remove("processId");
+
+            given()
+                    .baseUri(CONTROL_API_HOST)
+                    .contentType(ContentType.JSON)
+                    .body(invalidRequest)
+                    .when()
+                    .post(TRANSFER_PATH)
+                    .then()
+                    .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+        }
+
+        @Test
+        void shouldProxyMethodAndBody_whenSet(TypeManager typeManager) {
+            var sourceAddress = HttpDataAddress.Builder.newInstance()
+                    .baseUrl(HTTP_SOURCE_API_HOST)
+                    .proxyMethod(TRUE.toString())
+                    .proxyPath(TRUE.toString())
+                    .proxyBody(TRUE.toString())
+                    .build();
+            httpSourceMockServer.when(request(), once()).respond(successfulResponse("any", PLAIN_TEXT_UTF_8));
+            validationApiMockServer.when(request(), once())
+                    .respond(successfulResponse(typeManager.writeValueAsString(sourceAddress), PLAIN_TEXT_UTF_8));
+
+            given()
+                    .baseUri(PUBLIC_API_HOST)
+                    .contentType(ContentType.JSON)
+                    .when()
+                    .header(AUTHORIZATION.toString(), "any")
+                    .body("body")
+                    .put(format("%s/%s", PUBLIC_PATH, HTTP_API_PATH))
+                    .then()
+                    .log().ifError()
+                    .statusCode(HttpStatus.SC_OK);
+
+            httpSourceMockServer.verify(request().withMethod("PUT").withBody("body"), VerificationTimes.once());
+        }
     }
 
-    @Test
-    void transfer_toHttpSink_success(TypeManager typeManager) {
-        var body = UUID.randomUUID().toString();
-        var processId = UUID.randomUUID().toString();
-        httpSourceMockServer.when(getRequest(HTTP_API_PATH), once()).respond(successfulResponse(body, APPLICATION_JSON));
+    @Nested
+    class Push {
+        @Test
+        void transfer_toHttpSink_success(TypeManager typeManager) {
+            var body = UUID.randomUUID().toString();
+            var processId = UUID.randomUUID().toString();
+            httpSourceMockServer.when(getRequest(HTTP_API_PATH), once()).respond(successfulResponse(body, APPLICATION_JSON));
 
-        // HTTP Sink Request & Response
-        httpSinkMockServer.when(request(), once()).respond(successfulResponse());
+            // HTTP Sink Request & Response
+            httpSinkMockServer.when(request(), once()).respond(successfulResponse());
 
-        initiateTransfer(transferRequestPayload(processId, typeManager));
+            initiateTransfer(transferRequestPayload(processId, typeManager));
 
-        await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-        // Verify HTTP Source server called exactly once.
-        httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.once());
-        // Verify HTTP Sink server called exactly once.
-        httpSinkMockServer.verify(postRequest(body, APPLICATION_JSON), VerificationTimes.once());
-    }
+            await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
+            // Verify HTTP Source server called exactly once.
+            httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.once());
+            // Verify HTTP Sink server called exactly once.
+            httpSinkMockServer.verify(postRequest(body, APPLICATION_JSON), VerificationTimes.once());
+        }
 
-    @Test
-    void transfer_toHttpSink_withSourceQueryParams_success(TypeManager typeManager) {
-        // HTTP Source Request & Response
-        var body = UUID.randomUUID().toString();
-        var processId = UUID.randomUUID().toString();
-        var queryParams = Map.of(
-                "param1", "any value",
-                "param2", "any other value"
-        );
+        @Test
+        void transfer_toHttpSink_withSourceQueryParams_success(TypeManager typeManager) {
+            // HTTP Source Request & Response
+            var body = UUID.randomUUID().toString();
+            var processId = UUID.randomUUID().toString();
+            var queryParams = Map.of(
+                    "param1", "any value",
+                    "param2", "any other value"
+            );
 
-        httpSourceMockServer.when(getRequest(queryParams, HTTP_API_PATH), once()).respond(successfulResponse(body, APPLICATION_OCTET_STREAM));
+            httpSourceMockServer.when(getRequest(queryParams, HTTP_API_PATH), once()).respond(successfulResponse(body, APPLICATION_OCTET_STREAM));
 
-        // HTTP Sink Request & Response
-        httpSinkMockServer.when(postRequest(body, APPLICATION_OCTET_STREAM), once()).respond(successfulResponse());
+            // HTTP Sink Request & Response
+            httpSinkMockServer.when(postRequest(body, APPLICATION_OCTET_STREAM), once()).respond(successfulResponse());
 
-        initiateTransfer(transferRequestPayload(processId, queryParams, typeManager));
+            initiateTransfer(transferRequestPayload(processId, queryParams, typeManager));
 
-        await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-        // Verify HTTP Source server called exactly once.
-        httpSourceMockServer.verify(getRequest(queryParams, HTTP_API_PATH), VerificationTimes.once());
-        // Verify HTTP Sink server called exactly once.
-        httpSinkMockServer.verify(postRequest(body, APPLICATION_OCTET_STREAM), VerificationTimes.once());
-    }
+            await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
+            // Verify HTTP Source server called exactly once.
+            httpSourceMockServer.verify(getRequest(queryParams, HTTP_API_PATH), VerificationTimes.once());
+            // Verify HTTP Sink server called exactly once.
+            httpSinkMockServer.verify(postRequest(body, APPLICATION_OCTET_STREAM), VerificationTimes.once());
+        }
 
-    /**
-     * Verify DPF transfer api layer validation is working as expected.
-     */
-    @Test
-    void transfer_invalidInput_failure(TypeManager typeManager) {
-        // Request without processId to initiate transfer.
-        var processId = UUID.randomUUID().toString();
-        var invalidRequest = transferRequestPayload(processId, typeManager).remove("processId");
+        @Test
+        void transfer_toHttpSink_sourceNotAvailable_noInteractionWithSink(TypeManager typeManager) {
+            var processId = UUID.randomUUID().toString();
+            // HTTP Source Request & Error Response
+            httpSourceMockServer.when(getRequest(HTTP_API_PATH)).error(withDropConnection());
 
-        given()
-                .baseUri(CONTROL_API_HOST)
-                .contentType(ContentType.JSON)
-                .body(invalidRequest)
-                .when()
-                .post(TRANSFER_PATH)
-                .then()
-                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
+            initiateTransfer(transferRequestPayload(processId, typeManager));
 
-    @Test
-    void transfer_toHttpSink_sourceNotAvailable_noInteractionWithSink(TypeManager typeManager) {
-        var processId = UUID.randomUUID().toString();
-        // HTTP Source Request & Error Response
-        httpSourceMockServer.when(getRequest(HTTP_API_PATH)).error(withDropConnection());
+            await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
+            // Verify HTTP Source server called at lest once.
+            httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.atLeast(1));
+            // Verify zero interaction with HTTP Sink.
+            httpSinkMockServer.verifyZeroInteractions();
+        }
 
-        initiateTransfer(transferRequestPayload(processId, typeManager));
+        /**
+         * Validate if intermittently source is dropping connection than DPF server retries to fetch data.
+         */
+        @Test
+        void transfer_toHttpSink_sourceTemporaryDropConnection_success(TypeManager typeManager) {
+            var processId = UUID.randomUUID().toString();
+            // First two calls to HTTP Source returns a failure response.
+            httpSourceMockServer.when(getRequest(HTTP_API_PATH), exactly(2)).error(withDropConnection());
 
-        await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-        // Verify HTTP Source server called at lest once.
-        httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.atLeast(1));
-        // Verify zero interaction with HTTP Sink.
-        httpSinkMockServer.verifyZeroInteractions();
-    }
+            // Next call to HTTP Source returns a valid response.
+            var body = UUID.randomUUID().toString();
+            httpSourceMockServer.when(getRequest(HTTP_API_PATH), once()).respond(successfulResponse(body, PLAIN_TEXT_UTF_8));
 
-    /**
-     * Validate if intermittently source is dropping connection than DPF server retries to fetch data.
-     */
-    @Test
-    void transfer_toHttpSink_sourceTemporaryDropConnection_success(TypeManager typeManager) {
-        var processId = UUID.randomUUID().toString();
-        // First two calls to HTTP Source returns a failure response.
-        httpSourceMockServer.when(getRequest(HTTP_API_PATH), exactly(2)).error(withDropConnection());
+            // HTTP Sink Request & Response
+            httpSinkMockServer.when(postRequest(body, APPLICATION_OCTET_STREAM), once()).respond(successfulResponse());
 
-        // Next call to HTTP Source returns a valid response.
-        var body = UUID.randomUUID().toString();
-        httpSourceMockServer.when(getRequest(HTTP_API_PATH), once()).respond(successfulResponse(body, PLAIN_TEXT_UTF_8));
+            initiateTransfer(transferRequestPayload(processId, typeManager));
 
-        // HTTP Sink Request & Response
-        httpSinkMockServer.when(postRequest(body, APPLICATION_OCTET_STREAM), once()).respond(successfulResponse());
+            await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
+            // Verify HTTP Source server called exactly 3 times.
+            httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.exactly(3));
+            // Verify HTTP Sink server called exactly once.
+            httpSinkMockServer.verify(postRequest(body, PLAIN_TEXT_UTF_8), VerificationTimes.once());
+        }
 
-        initiateTransfer(transferRequestPayload(processId, typeManager));
+        private void initiateTransfer(Object payload) {
+            given()
+                    .baseUri(CONTROL_API_HOST)
+                    .contentType(ContentType.JSON)
+                    .body(payload)
+                    .when()
+                    .post(TRANSFER_PATH)
+                    .then()
+                    .assertThat().statusCode(HttpStatus.SC_OK);
+        }
 
-        await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-        // Verify HTTP Source server called exactly 3 times.
-        httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.exactly(3));
-        // Verify HTTP Sink server called exactly once.
-        httpSinkMockServer.verify(postRequest(body, PLAIN_TEXT_UTF_8), VerificationTimes.once());
+        private void expectState(String processId, DataFlowStates expectedState) {
+            given()
+                    .baseUri(CONTROL_API_HOST)
+                    .pathParam(PROCESS_ID, processId)
+                    .when()
+                    .get(TRANSFER_RESULT_PATH)
+                    .then()
+                    .assertThat().statusCode(HttpStatus.SC_OK)
+                    .body(containsString(expectedState.name()));
+        }
+
+        private HttpError withDropConnection() {
+            return error()
+                    .withDropConnection(true);
+        }
     }
 
     /**
@@ -270,7 +338,7 @@ public class DataPlaneHttpIntegrationTests {
      * @return JSON object. see {@link ObjectNode}.
      */
     private ObjectNode transferRequestPayload(String processId, TypeManager typeManager) {
-        return transferRequestPayload(processId, Collections.emptyMap(), typeManager);
+        return transferRequestPayload(processId, emptyMap(), typeManager);
     }
 
     /**
@@ -309,38 +377,11 @@ public class DataPlaneHttpIntegrationTests {
     private HttpDataAddress sourceDataAddress() {
         return HttpDataAddress.Builder.newInstance()
                 .baseUrl(HTTP_SOURCE_API_HOST)
-                .proxyPath(Boolean.TRUE.toString())
-                .proxyQueryParams(Boolean.TRUE.toString())
+                .proxyPath(TRUE.toString())
+                .proxyQueryParams(TRUE.toString())
                 .authKey(AUTH_HEADER_KEY)
                 .authCode(SOURCE_AUTH_VALUE)
                 .build();
-    }
-
-    /**
-     * Initiate a transfer and assert if response is HTTP OK.
-     *
-     * @param payload Request payload.
-     */
-    private void initiateTransfer(Object payload) {
-        given()
-                .baseUri(CONTROL_API_HOST)
-                .contentType(ContentType.JSON)
-                .body(payload)
-                .when()
-                .post(TRANSFER_PATH)
-                .then()
-                .assertThat().statusCode(HttpStatus.SC_OK);
-    }
-
-    private void expectState(String processId, DataFlowStates expectedState) {
-        given()
-                .baseUri(CONTROL_API_HOST)
-                .pathParam(PROCESS_ID, processId)
-                .when()
-                .get(TRANSFER_RESULT_PATH)
-                .then()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .body(containsString(expectedState.name()));
     }
 
     /**
@@ -349,7 +390,7 @@ public class DataPlaneHttpIntegrationTests {
      * @return see {@link HttpRequest}
      */
     private HttpRequest getRequest(String path) {
-        return getRequest(Collections.emptyMap(), path);
+        return getRequest(emptyMap(), path);
     }
 
     /**
@@ -395,29 +436,5 @@ public class DataPlaneHttpIntegrationTests {
         return successfulResponse()
                 .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), contentType.toString())
                 .withBody(responseBody);
-    }
-
-    /**
-     * Mock error response which to force the connection to be dropped without any response being returned.
-     *
-     * @return see {@link HttpError}
-     */
-    private HttpError withDropConnection() {
-        return error()
-                .withDropConnection(true);
-    }
-
-    @BeforeAll
-    public static void setUp() {
-        httpSourceMockServer = startClientAndServer(HTTP_SOURCE_API_PORT);
-        httpSinkMockServer = startClientAndServer(HTTP_SINK_API_PORT);
-        validationApiMockServer = startClientAndServer(VALIDATION_API_PORT);
-    }
-
-    @AfterAll
-    public static void tearDown() {
-        stopQuietly(httpSourceMockServer);
-        stopQuietly(httpSinkMockServer);
-        stopQuietly(validationApiMockServer);
     }
 }

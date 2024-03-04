@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.api.controller;
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,6 +62,7 @@ public class DataFlowRequestSupplier implements BiFunction<ContainerRequestConte
         return DataFlowStartMessage.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(dataAddress)
+                .flowType(FlowType.PULL)
                 .destinationDataAddress(DataAddress.Builder.newInstance()
                         .type(AsyncStreamingDataSink.TYPE)
                         .build())

@@ -33,6 +33,7 @@ import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSche
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
 
 public class BaseSourceHttpParamsDecorator implements HttpParamsDecorator {
 
@@ -53,7 +54,7 @@ public class BaseSourceHttpParamsDecorator implements HttpParamsDecorator {
     }
 
     private @NotNull String extractMethod(HttpDataAddress address, DataFlowStartMessage request) {
-        if (Boolean.parseBoolean(address.getProxyMethod()) && "HttpProxy".equals(request.getDestinationDataAddress().getType())) {
+        if (Boolean.parseBoolean(address.getProxyMethod()) && PULL.equals(request.getFlowType())) {
             return Optional.ofNullable(request.getProperties().get(METHOD))
                     .orElseThrow(() -> new EdcException(format("DataFlowRequest %s: 'method' property is missing", request.getId())));
         }
