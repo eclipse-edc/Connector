@@ -47,7 +47,7 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
     }
 
     @Override
-    public DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy) {
+    public DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy, String transferType) {
         var strategy = selectionStrategyRegistry.find(selectionStrategy);
         if (strategy == null) {
             throw new IllegalArgumentException("Strategy " + selectionStrategy + " was not found");
@@ -55,7 +55,7 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
 
         return transactionContext.execute(() -> {
             try (var stream = store.getAll()) {
-                var dataPlanes = stream.filter(dataPlane -> dataPlane.canHandle(source, destination)).toList();
+                var dataPlanes = stream.filter(dataPlane -> dataPlane.canHandle(source, destination, transferType)).toList();
                 return strategy.apply(dataPlanes);
             }
         });

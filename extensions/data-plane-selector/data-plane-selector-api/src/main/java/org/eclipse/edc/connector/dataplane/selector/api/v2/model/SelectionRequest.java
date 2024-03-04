@@ -27,10 +27,13 @@ public class SelectionRequest {
     public static final String SELECTION_REQUEST_TYPE = EDC_NAMESPACE + "SelectionRequest";
     public static final String SOURCE_ADDRESS = EDC_NAMESPACE + "source";
     public static final String DEST_ADDRESS = EDC_NAMESPACE + "destination";
+    public static final String TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String STRATEGY = EDC_NAMESPACE + "strategy";
     private DataAddress source;
     private DataAddress destination;
     private String strategy;
+
+    private String transferType;
 
     private SelectionRequest() {
     }
@@ -47,6 +50,9 @@ public class SelectionRequest {
         return strategy;
     }
 
+    public String getTransferType() {
+        return transferType;
+    }
 
     public static final class Builder {
         private final SelectionRequest instance;
@@ -71,6 +77,11 @@ public class SelectionRequest {
 
         public Builder strategy(String strategy) {
             this.instance.strategy = strategy;
+            return this;
+        }
+
+        public Builder transferType(String transferType) {
+            this.instance.transferType = transferType;
             return this;
         }
 

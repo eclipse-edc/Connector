@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -94,6 +95,17 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
         when(SELECTOR_SERVICE_MOCK.select(any(), any())).thenReturn(expected);
 
         var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test2").build());
+
+        assertThat(result).usingRecursiveComparison().isEqualTo(expected);
+
+    }
+
+    @Test
+    void find_withTransferType() {
+        var expected = createInstance("some-instance");
+        when(SELECTOR_SERVICE_MOCK.select(any(), any(), eq("random"), eq("transferType"))).thenReturn(expected);
+
+        var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test2").build(), "random", "transferType");
 
         assertThat(result).usingRecursiveComparison().isEqualTo(expected);
 

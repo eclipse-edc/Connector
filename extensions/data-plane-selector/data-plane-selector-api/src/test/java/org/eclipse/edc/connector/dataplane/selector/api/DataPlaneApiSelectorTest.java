@@ -66,6 +66,7 @@ public class DataPlaneApiSelectorTest {
                     assertThat(transformed.getUrl().toString()).isEqualTo("http://somewhere.com:1234/api/v1");
                     assertThat(transformed.getAllowedDestTypes()).containsExactlyInAnyOrder("your-dest-type");
                     assertThat(transformed.getAllowedSourceTypes()).containsExactlyInAnyOrder("source-type1", "source-type2");
+                    assertThat(transformed.getAllowedTransferTypes()).containsExactlyInAnyOrder("transfer-type");
                 });
     }
 
@@ -83,6 +84,7 @@ public class DataPlaneApiSelectorTest {
                     assertThat(transformed.getStrategy()).isNotBlank();
                     assertThat(transformed.getDestination()).isNotNull();
                     assertThat(transformed.getSource()).isNotNull();
+                    assertThat(transformed.getTransferType()).isNotNull();
                 });
     }
 
