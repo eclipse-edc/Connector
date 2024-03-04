@@ -17,6 +17,7 @@ plugins {
 
 dependencies {
     runtimeOnly(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api"))
+    runtimeOnly(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api-configuration"))
     runtimeOnly(project(":core:data-plane:data-plane-core"))
     runtimeOnly(project(":extensions:control-plane:api:control-plane-api-client"))
     runtimeOnly(project(":extensions:data-plane:data-plane-http"))

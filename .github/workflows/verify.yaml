@@ -80,7 +80,7 @@ jobs:
       - name: End to End Integration Tests
         uses: eclipse-edc/.github/.github/actions/run-tests@main
         with:
-          command: ./gradlew test jacocoTestReport -DincludeTags="EndToEndTest"
+          command: ./gradlew test jacocoTestReport -DincludeTags="EndToEndTest" -PverboseTest=true --refresh-dependencies
 
   Component-Tests:
     env:
