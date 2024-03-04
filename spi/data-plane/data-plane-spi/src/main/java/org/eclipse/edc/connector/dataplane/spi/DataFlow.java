@@ -162,7 +162,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         }
 
         public Builder properties(Map<String, String> properties) {
-            entity.properties = properties;
+            entity.properties = new HashMap<>(properties);
             return this;
         }
 
