@@ -1898,6 +1898,8 @@ components:
         - source-type2
         allowedDestTypes:
         - your-dest-type
+        allowedTransferTypes:
+        - transfer-type
     Dataset:
       type: object
       description: DCAT dataset
@@ -2245,6 +2247,9 @@ components:
         strategy:
           type: string
           example: null
+        transferType:
+          type: string
+          example: null
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -2255,6 +2260,7 @@ components:
           '@type': https://w3id.org/edc/v0.0.1/ns/DataAddress
           type: test-dst2
         strategy: you_custom_strategy
+        transferType: you_custom_transfer_type
     TerminateNegotiationSchema:
       type: object
       properties:
