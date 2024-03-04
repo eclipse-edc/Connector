@@ -18,8 +18,6 @@ import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
 
@@ -29,7 +27,7 @@ class PublicEndpointGeneratorServiceImplTest {
 
     @Test
     void generateFor() {
-        var endpoint = new Endpoint(Map.of("fizz", "buzz"), "bar-type");
+        var endpoint = new Endpoint("fizz", "bar-type");
         generatorService.addGeneratorFunction("testtype", dataAddress -> endpoint);
 
         assertThat(generatorService.generateFor(DataAddress.Builder.newInstance().type("testtype").build())).isSucceeded()
@@ -43,5 +41,5 @@ class PublicEndpointGeneratorServiceImplTest {
                 .detail()
                 .isEqualTo("No Endpoint generator function registered for source data type 'testtype'");
     }
-    
+
 }

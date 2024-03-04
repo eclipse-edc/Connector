@@ -41,6 +41,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlow.TERMINATION_REASON;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
@@ -125,6 +126,20 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
+    void terminate_shouldTerminateDataFlow_withReason() {
+        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+        when(registry.resolveTransferService(any())).thenReturn(transferService);
+        when(transferService.terminate(any())).thenReturn(StreamResult.success());
+
+        var result = manager.terminate("dataFlowId", "test-reason");
+
+        assertThat(result).isSucceeded();
+        verify(store).save(argThat(d -> d.getState() == TERMINATED.code() && d.getProperties().get(TERMINATION_REASON).equals("test-reason")));
+        verify(transferService).terminate(dataFlow);
+    }
+
+    @Test
     void terminate_shouldReturnFatalError_whenDataFlowDoesNotExist() {
         when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.notFound("not found"));
 
@@ -170,6 +185,19 @@ class DataPlaneManagerImplTest {
 
         assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
         verify(store, never()).save(any());
+    }
+
+    @Test
+    void terminate_shouldStillTerminate_whenDataFlowHasNoSource() {
+        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+        when(registry.resolveTransferService(any())).thenReturn(transferService);
+        when(transferService.terminate(any())).thenReturn(StreamResult.notFound());
+
+        var result = manager.terminate("dataFlowId", "test-reason");
+
+        assertThat(result).isSucceeded();
+        verify(store).save(argThat(f -> f.getProperties().containsKey(TERMINATION_REASON)));
     }
 
     @Test

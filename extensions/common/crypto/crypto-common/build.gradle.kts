@@ -28,4 +28,6 @@ dependencies {
     implementation(libs.bouncyCastle.bcprovJdk18on)
     testImplementation(testFixtures(project(":core:common:junit")))
     testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
+    testRuntimeOnly(libs.tink)
+
 }

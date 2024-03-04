@@ -76,7 +76,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
-
       - name: End to End Integration Tests
         uses: eclipse-edc/.github/.github/actions/run-tests@main
         with:

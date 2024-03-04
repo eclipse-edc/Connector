@@ -58,7 +58,7 @@ class DataPlaneAuthorizationServiceImplTest {
 
     @BeforeEach
     void setup() {
-        when(endpointGenerator.generateFor(any())).thenReturn(Result.success(new Endpoint(Map.of("url", "http://example.com"), "https://w3id.org/idsa/v4.1/HTTP")));
+        when(endpointGenerator.generateFor(any())).thenReturn(Result.success(Endpoint.url("http://example.com")));
     }
 
     @Test
@@ -70,7 +70,7 @@ class DataPlaneAuthorizationServiceImplTest {
         assertThat(result).isSucceeded()
                 .satisfies(da -> {
                     assertThat(da.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-                    assertThat(da.getProperties().get("endpoint")).isEqualTo(Map.of("url", "http://example.com"));
+                    assertThat(da.getProperties().get("endpoint")).isEqualTo("http://example.com");
                     assertThat(da.getProperties().get("endpointType")).isEqualTo(da.getType());
                     assertThat(da.getStringProperty("authorization")).isEqualTo("footoken");
                 });
@@ -98,7 +98,7 @@ class DataPlaneAuthorizationServiceImplTest {
         assertThat(result).isSucceeded()
                 .satisfies(da -> {
                     assertThat(da.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-                    assertThat(da.getProperties().get("endpoint")).isEqualTo(Map.of("url", "http://example.com"));
+                    assertThat(da.getProperties().get("endpoint")).isEqualTo("http://example.com");
                     assertThat(da.getStringProperty("authorization")).isEqualTo("footoken");
                     assertThat(da.getStringProperty("authType")).isEqualTo("bearer");
                     assertThat(da.getStringProperty("fizz")).isEqualTo("buzz");
