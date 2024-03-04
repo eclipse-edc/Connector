@@ -334,7 +334,6 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
         when(transformerRegistry.transform(any(JsonObject.class), eq(ContractRequest.class))).thenReturn(Result.success(
                 ContractRequest.Builder.newInstance()
                         .protocol("test-protocol")
-                        .providerId("test-provider-id")
                         .counterPartyAddress("test-cb")
                         .contractOffer(ContractOffer.Builder.newInstance()
                                 .id("test-offer-id")

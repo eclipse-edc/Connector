@@ -122,7 +122,6 @@ class ConsumerContractNegotiationManagerImplTest {
         var contractOffer = contractOffer();
 
         var request = ContractRequest.Builder.newInstance()
-                .providerId("providerId")
                 .counterPartyAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
@@ -323,7 +322,7 @@ class ConsumerContractNegotiationManagerImplTest {
 
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance().id("id:assetId:random")
-                .policy(Policy.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().assigner("providerId").build())
                 .assetId("assetId")
                 .build();
     }
