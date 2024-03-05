@@ -113,7 +113,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure("No offer found");
         }
 
-        if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAssetId()), latestOffer.getPolicy())) {
+        if (!policyEquality.test(agreement.getPolicy(), latestOffer.getPolicy())) {
             return failure("Policy in the contract agreement is not equal to the one in the contract offer");
         }
 
@@ -149,7 +149,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure("Asset ID from the ContractOffer is not included in the ContractDefinition");
         }
 
-        var contractPolicy = consumerOffer.getContractPolicy().withTarget(consumerOffer.getOfferId().assetIdPart());
+        var contractPolicy = consumerOffer.getContractPolicy();
         return evaluatePolicy(contractPolicy, NEGOTIATION_SCOPE, agent, consumerOffer.getOfferId());
     }
 

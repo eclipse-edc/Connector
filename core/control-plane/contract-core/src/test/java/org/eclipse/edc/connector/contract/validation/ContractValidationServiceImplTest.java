@@ -108,7 +108,6 @@ class ContractValidationServiceImplTest {
 
         assertThat(result.succeeded()).isTrue();
         var validatedOffer = result.getContent().getOffer();
-        assertThat(validatedOffer.getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
         assertThat(validatedOffer.getAssetId()).isEqualTo(asset.getId());
         assertThat(result.getContent().getConsumerIdentity()).isEqualTo(CONSUMER_ID); // verify the returned policy has the consumer id set, essential for later validation checks
 
@@ -405,21 +404,17 @@ class ContractValidationServiceImplTest {
                 .build();
     }
 
-    private ValidatableConsumerOffer createValidatableConsumerOffer(Asset asset, Policy policy) {
-        return createValidatableConsumerOffer(asset, policy, policy);
-    }
-
     private ValidatableConsumerOffer createValidatableConsumerOffer() {
         return createValidatableConsumerOffer(Asset.Builder.newInstance().build(), createPolicy());
     }
 
-    private ValidatableConsumerOffer createValidatableConsumerOffer(Asset asset, Policy accessPolicy, Policy contractPolicy) {
+    private ValidatableConsumerOffer createValidatableConsumerOffer(Asset asset, Policy policy) {
         var offerId = ContractOfferId.create("1", asset.getId());
         return ValidatableConsumerOffer.Builder.newInstance()
                 .offerId(offerId)
                 .contractDefinition(createContractDefinition())
-                .accessPolicy(accessPolicy)
-                .contractPolicy(contractPolicy)
+                .accessPolicy(policy)
+                .contractPolicy(policy)
                 .build();
     }
 

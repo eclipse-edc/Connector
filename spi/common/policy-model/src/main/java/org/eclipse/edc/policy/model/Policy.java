@@ -107,26 +107,6 @@ public class Policy {
     }
 
     /**
-     * Returns a copy of this policy with the specified target.
-     *
-     * @param target the target.
-     * @return a copy with the specified target.
-     */
-    public Policy withTarget(String target) {
-        return Builder.newInstance()
-                .prohibitions(prohibitions)
-                .permissions(permissions)
-                .duties(obligations)
-                .assigner(assigner)
-                .assignee(assignee)
-                .inheritsFrom(inheritsFrom)
-                .type(type)
-                .extensibleProperties(extensibleProperties)
-                .target(target)
-                .build();
-    }
-
-    /**
      * A {@link Builder} initialized with the current policy.
      */
     public Builder toBuilder() {

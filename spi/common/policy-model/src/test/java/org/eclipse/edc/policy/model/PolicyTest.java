@@ -25,43 +25,35 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PolicyTest {
 
-    @Test
-    void serializeDeserialize() throws JsonProcessingException {
-        var mapper = new ObjectMapper();
-
-        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build();
-        var policy = Policy.Builder.newInstance().permission(permission).build();
-
-        var serialized = mapper.writeValueAsString(policy);
-        assertThat(mapper.readValue(serialized, Policy.class).getPermissions()).isNotEmpty();
-    }
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    void withTarget() {
+    void serDes() throws JsonProcessingException {
         var target = "target-id";
         var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build();
-        var prohibition = Prohibition.Builder.newInstance().action(Action.Builder.newInstance().type("MODIFY").build()).build();
-        var duty = Duty.Builder.newInstance().action(Action.Builder.newInstance().type("DELETE").build()).build();
+        var prohibition = Prohibition.Builder.newInstance().action(Action.Builder.newInstance().type("modify").build()).build();
+        var duty = Duty.Builder.newInstance().action(Action.Builder.newInstance().type("delete").build()).build();
         var policy = Policy.Builder.newInstance()
                 .permission(permission)
                 .prohibition(prohibition)
                 .duty(duty)
                 .assigner("assigner")
                 .assignee("assignee")
-                .inheritsFrom("inheritsFroms")
+                .inheritsFrom("inheritsFrom")
                 .type(PolicyType.SET)
                 .extensibleProperties(new HashMap<>())
+                .target(target)
                 .build();
 
-        var copy = policy.withTarget(target);
+        var deserialized = mapper.readValue(mapper.writeValueAsString(policy), Policy.class);
 
-        assertThat(copy.getPermissions().size()).isEqualTo(policy.getPermissions().size());
-        assertThat(copy.getAssigner()).isEqualTo(policy.getAssigner());
-        assertThat(copy.getAssignee()).isEqualTo(policy.getAssignee());
-        assertThat(copy.getInheritsFrom()).isEqualTo(policy.getInheritsFrom());
-        assertThat(copy.getType()).isEqualTo(policy.getType());
-        assertThat(copy.getExtensibleProperties()).isEqualTo(policy.getExtensibleProperties());
-        assertThat(copy.getTarget()).isEqualTo(target);
+        assertThat(deserialized.getPermissions().size()).isEqualTo(policy.getPermissions().size());
+        assertThat(deserialized.getAssigner()).isEqualTo(policy.getAssigner());
+        assertThat(deserialized.getAssignee()).isEqualTo(policy.getAssignee());
+        assertThat(deserialized.getInheritsFrom()).isEqualTo(policy.getInheritsFrom());
+        assertThat(deserialized.getType()).isEqualTo(policy.getType());
+        assertThat(deserialized.getExtensibleProperties()).isEqualTo(policy.getExtensibleProperties());
+        assertThat(deserialized.getTarget()).isEqualTo(target);
     }
 
 }
