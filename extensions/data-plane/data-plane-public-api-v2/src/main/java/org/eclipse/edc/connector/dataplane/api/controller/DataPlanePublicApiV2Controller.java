@@ -48,18 +48,18 @@ import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static jakarta.ws.rs.core.Response.status;
 
-@Path("{any:.*}")
+@Path("/v2/{any:.*}")
 @Produces(WILDCARD)
-public class DataPlanePublicApiController implements DataPlanePublicApi {
+public class DataPlanePublicApiV2Controller implements DataPlanePublicApiV2 {
 
     private final PipelineService pipelineService;
     private final DataFlowRequestSupplier requestSupplier;
     private final ExecutorService executorService;
     private final DataPlaneAuthorizationService authorizationService;
 
-    public DataPlanePublicApiController(PipelineService pipelineService,
-                                        ExecutorService executorService,
-                                        DataPlaneAuthorizationService authorizationService) {
+    public DataPlanePublicApiV2Controller(PipelineService pipelineService,
+                                          ExecutorService executorService,
+                                          DataPlaneAuthorizationService authorizationService) {
         this.pipelineService = pipelineService;
         this.authorizationService = authorizationService;
         this.requestSupplier = new DataFlowRequestSupplier();

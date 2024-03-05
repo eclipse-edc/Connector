@@ -15,7 +15,7 @@
 
 package org.eclipse.edc.connector.dataplane.api;
 
-import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApiController;
+import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApiV2Controller;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -42,7 +42,7 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
     private static final int DEFAULT_PUBLIC_PORT = 8185;
     private static final String PUBLIC_API_CONFIG = "web.http.public";
     private static final String PUBLIC_CONTEXT_ALIAS = "public";
-    private static final String PUBLIC_CONTEXT_PATH = "/api/v1/public";
+    private static final String PUBLIC_CONTEXT_PATH = "/api/v2/public";
 
     private static final int DEFAULT_THREAD_POOL = 10;
 
@@ -89,7 +89,7 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
                 Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
                 "Data plane proxy transfers"
         );
-        var publicApiController = new DataPlanePublicApiController(pipelineService, executorService, authorizationService);
+        var publicApiController = new DataPlanePublicApiV2Controller(pipelineService, executorService, authorizationService);
         webService.registerResource(configuration.getContextAlias(), publicApiController);
     }
 }

@@ -27,13 +27,12 @@ import jakarta.ws.rs.container.ContainerRequestContext;
                 "data from the provider data source (e.g. backend Rest API, internal database...) through its Data Plane" +
                 "instance. Thus the Data Plane is the only entry/output door for the data, which avoids the provider to expose" +
                 "directly its data externally." +
-                "" +
                 "The Data Plane public API being a proxy, it supports all verbs (i.e. GET, POST, PUT, PATCH, DELETE), which" +
                 "can then conveyed until the data source is required. This is especially useful when the actual data source" +
                 "is a Rest API itself." +
                 "In the same manner, any set of arbitrary query parameters, path parameters and request body are supported " +
                 "(in the limits fixed by the HTTP server) and can also conveyed to the actual data source.")
-public interface DataPlanePublicApi {
+public interface DataPlanePublicApiV2 {
 
     @Operation(description = "Send `GET` data query to the Data Plane.",
             responses = {

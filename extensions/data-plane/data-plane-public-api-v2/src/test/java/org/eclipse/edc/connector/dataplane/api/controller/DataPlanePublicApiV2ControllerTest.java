@@ -56,7 +56,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-class DataPlanePublicApiControllerTest extends RestControllerTestBase {
+class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
 
     private final PipelineService pipelineService = mock();
     private final DataAddressResolver dataAddressResolver = mock();
@@ -166,7 +166,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DataPlanePublicApiController(pipelineService, Executors.newSingleThreadExecutor(), authorizationService);
+        return new DataPlanePublicApiV2Controller(pipelineService, Executors.newSingleThreadExecutor(), authorizationService);
     }
 
     private RequestSpecification baseRequest() {
