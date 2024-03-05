@@ -16,12 +16,10 @@
 package org.eclipse.edc.connector.dataplane.api;
 
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApiController;
-import org.eclipse.edc.connector.dataplane.api.validation.ConsumerPullTransferDataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -45,9 +43,6 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
     private static final String PUBLIC_API_CONFIG = "web.http.public";
     private static final String PUBLIC_CONTEXT_ALIAS = "public";
     private static final String PUBLIC_CONTEXT_PATH = "/api/v1/public";
-
-    @Setting
-    private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
 
     private static final int DEFAULT_THREAD_POOL = 10;
 
@@ -89,14 +84,12 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var validationEndpoint = context.getConfig().getString(CONTROL_PLANE_VALIDATION_ENDPOINT);
-        var dataAddressResolver = new ConsumerPullTransferDataAddressResolver(httpClient, validationEndpoint, typeManager.getMapper());
         var configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
         var executorService = executorInstrumentation.instrument(
                 Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
                 "Data plane proxy transfers"
         );
-        var publicApiController = new DataPlanePublicApiController(pipelineService, dataAddressResolver, executorService, authorizationService);
+        var publicApiController = new DataPlanePublicApiController(pipelineService, executorService, authorizationService);
         webService.registerResource(configuration.getContextAlias(), publicApiController);
     }
 }

@@ -32,7 +32,6 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -54,15 +53,14 @@ import static jakarta.ws.rs.core.Response.status;
 public class DataPlanePublicApiController implements DataPlanePublicApi {
 
     private final PipelineService pipelineService;
-    private final DataAddressResolver dataAddressResolver;
     private final DataFlowRequestSupplier requestSupplier;
     private final ExecutorService executorService;
     private final DataPlaneAuthorizationService authorizationService;
 
-    public DataPlanePublicApiController(PipelineService pipelineService, DataAddressResolver dataAddressResolver,
-                                        ExecutorService executorService, DataPlaneAuthorizationService authorizationService) {
+    public DataPlanePublicApiController(PipelineService pipelineService,
+                                        ExecutorService executorService,
+                                        DataPlaneAuthorizationService authorizationService) {
         this.pipelineService = pipelineService;
-        this.dataAddressResolver = dataAddressResolver;
         this.authorizationService = authorizationService;
         this.requestSupplier = new DataFlowRequestSupplier();
         this.executorService = executorService;
@@ -145,7 +143,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
 
         processRequest(startMessage, response);
     }
-    
+
     private Map<String, Object> buildRequestData(ContainerRequestContext requestContext) {
         var requestData = new HashMap<String, Object>();
         requestData.put("headers", requestContext.getHeaders());

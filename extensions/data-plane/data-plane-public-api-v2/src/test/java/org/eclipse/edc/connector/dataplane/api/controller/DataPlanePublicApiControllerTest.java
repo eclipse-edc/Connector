@@ -166,7 +166,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DataPlanePublicApiController(pipelineService, dataAddressResolver, Executors.newSingleThreadExecutor(), authorizationService);
+        return new DataPlanePublicApiController(pipelineService, Executors.newSingleThreadExecutor(), authorizationService);
     }
 
     private RequestSpecification baseRequest() {
