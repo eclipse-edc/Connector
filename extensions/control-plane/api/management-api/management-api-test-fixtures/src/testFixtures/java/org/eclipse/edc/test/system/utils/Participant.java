@@ -88,6 +88,10 @@ public class Participant {
         return managementEndpoint;
     }
 
+    public String getId() {
+        return id;
+    }
+
     /**
      * Create a new {@link org.eclipse.edc.spi.types.domain.asset.Asset}.
      *
@@ -279,10 +283,7 @@ public class Participant {
      * @return id of the contract negotiation.
      */
     public String initContractNegotiation(Participant provider, String assetId) {
-        var dataset = getDatasetForAsset(provider, assetId);
-        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-        var policyWithTarget = createObjectBuilder(policy).add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, dataset.get(ID))).build();
-        return initContractNegotiation(provider, policyWithTarget);
+        return initContractNegotiation(provider, getOfferForAsset(provider, assetId));
     }
 
     /**
@@ -433,12 +434,7 @@ public class Participant {
      * @return transfer process id.
      */
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
-        var dataset = getDatasetForAsset(provider, assetId);
-        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-        var offer = createObjectBuilder(policy)
-                .add(ODRL_ASSIGNER_ATTRIBUTE, createObjectBuilder().add(ID, provider.id))
-                .add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, dataset.get(ID)))
-                .build();
+        var offer = getOfferForAsset(provider, assetId);
         var contractAgreementId = negotiateContract(provider, offer);
         var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType);
         assertThat(transferProcessId).isNotNull();
@@ -480,6 +476,15 @@ public class Participant {
                 .statusCode(200)
                 .extract().body().jsonPath()
                 .getString(fieldName);
+    }
+
+    private JsonObject getOfferForAsset(Participant provider, String assetId) {
+        var dataset = getDatasetForAsset(provider, assetId);
+        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
+        return createObjectBuilder(policy)
+                .add(ODRL_ASSIGNER_ATTRIBUTE, createObjectBuilder().add(ID, provider.id))
+                .add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, dataset.get(ID)))
+                .build();
     }
 
     private ContractOfferId extractContractDefinitionId(JsonObject dataset) {
