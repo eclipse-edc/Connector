@@ -93,7 +93,11 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
                 Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
                 "Data plane proxy transfers"
         );
-        var publicApiController = new DataPlanePublicApiController(pipelineService, dataAddressResolver, executorService);
+        var monitor = context.getMonitor().withPrefix("DataPlane Public API");
+        var publicApiController = new DataPlanePublicApiController(pipelineService, dataAddressResolver, executorService, monitor);
         webService.registerResource(configuration.getContextAlias(), publicApiController);
+
+        monitor.warning("This public API controller is scheduled for removal. Please consider upgrading your deployment " +
+                "to the data-plane-public-api-v2 module. The Data Plane Public API will then be available under at /v2/ prefix.");
     }
 }

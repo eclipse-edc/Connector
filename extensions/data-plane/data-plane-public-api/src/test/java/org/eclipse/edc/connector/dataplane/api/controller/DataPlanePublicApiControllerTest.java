@@ -152,6 +152,11 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
         assertThat(request.getProperties()).containsEntry("method", "POST").containsEntry("pathSegments", "any").containsEntry("queryParams", "foo=bar");
     }
 
+    @Override
+    protected Object controller() {
+        return new DataPlanePublicApiController(pipelineService, dataAddressResolver, Executors.newSingleThreadExecutor(), mock());
+    }
+
     private RequestSpecification baseRequest() {
         return given()
                 .baseUri("http://localhost:" + port)
@@ -160,11 +165,6 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
 
     private DataAddress testDestAddress() {
         return DataAddress.Builder.newInstance().type("test").build();
-    }
-
-    @Override
-    protected Object controller() {
-        return new DataPlanePublicApiController(pipelineService, dataAddressResolver, Executors.newSingleThreadExecutor());
     }
 
     private record TestDataSource(String mediaType, String data) implements DataSource, DataSource.Part {

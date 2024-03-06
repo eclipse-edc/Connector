@@ -34,6 +34,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -53,18 +54,48 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
     private final DataAddressResolver dataAddressResolver;
     private final DataFlowRequestSupplier requestSupplier;
     private final ExecutorService executorService;
+    private final Monitor monitor;
 
     public DataPlanePublicApiController(PipelineService pipelineService, DataAddressResolver dataAddressResolver,
-                                        ExecutorService executorService) {
+                                        ExecutorService executorService, Monitor monitor) {
         this.pipelineService = pipelineService;
         this.dataAddressResolver = dataAddressResolver;
+        this.monitor = monitor;
         this.requestSupplier = new DataFlowRequestSupplier();
         this.executorService = executorService;
+    }
+
+    private static Response error(Response.Status status, String error) {
+        return status(status).type(APPLICATION_JSON).entity(new TransferErrorResponse(List.of(error))).build();
     }
 
     @GET
     @Override
     public void get(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
+    }
+
+    /**
+     * Sends a {@link POST} request to the data source and returns data.
+     *
+     * @param requestContext Request context.
+     * @param response       Data fetched from the data source.
+     */
+    @POST
+    @Override
+    public void post(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
+    }
+
+    /**
+     * Sends a {@link PUT} request to the data source and returns data.
+     *
+     * @param requestContext Request context.
+     * @param response       Data fetched from the data source.
+     */
+    @PUT
+    @Override
+    public void put(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
         handle(requestContext, response);
     }
 
@@ -92,31 +123,10 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
         handle(requestContext, response);
     }
 
-    /**
-     * Sends a {@link PUT} request to the data source and returns data.
-     *
-     * @param requestContext Request context.
-     * @param response       Data fetched from the data source.
-     */
-    @PUT
-    @Override
-    public void put(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
-        handle(requestContext, response);
-    }
-
-    /**
-     * Sends a {@link POST} request to the data source and returns data.
-     *
-     * @param requestContext Request context.
-     * @param response       Data fetched from the data source.
-     */
-    @POST
-    @Override
-    public void post(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
-        handle(requestContext, response);
-    }
-
     private void handle(ContainerRequestContext context, AsyncResponse response) {
+
+        monitor.warning("The DataPlane Public API is deprecated. Please consider upgrading to the /v2/ path. Your request will then be: %s"
+                .formatted(context.getUriInfo().getBaseUri() + "v2/" + context.getUriInfo().getPath()));
         var contextApi = new ContainerRequestContextApiImpl(context);
         var token = contextApi.headers().get(HttpHeaders.AUTHORIZATION);
         if (token == null) {
@@ -152,10 +162,6 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
                         response.resume(error(INTERNAL_SERVER_ERROR, error));
                     }
                 });
-    }
-
-    private static Response error(Response.Status status, String error) {
-        return status(status).type(APPLICATION_JSON).entity(new TransferErrorResponse(List.of(error))).build();
     }
 
 }

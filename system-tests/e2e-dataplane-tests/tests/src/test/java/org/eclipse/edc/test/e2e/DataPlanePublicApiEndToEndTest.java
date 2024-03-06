@@ -102,21 +102,6 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
         assertThat(body).isNotNull();
     }
 
-    @Test
-    void get_expect200() {
-        var token = createEdr();
-        var body = DATAPLANE.getDataPlanePublicEndpoint()
-                .baseRequest()
-                .contentType(ContentType.JSON)
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .get("/v2/foo")
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .extract().body().asString();
-        assertThat(body).isNotNull();
-    }
-
     private Key resolvePrivateKey() {
         var privateKeyPem = runtime.getService(Vault.class).resolveSecret(PRIVATE_KEY_ALIAS);
         return new PemParser(mock()).parse(privateKeyPem).orElseThrow(f -> new RuntimeException(f.getFailureDetail()));
