@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.api.management.contractdefinition;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectFromContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.validation.ContractDefinitionValidator;
@@ -29,6 +28,7 @@ import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -49,7 +49,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     ManagementApiConfiguration config;
 
     @Inject
-    ManagementApiTypeTransformerRegistry transformerRegistry;
+    TypeTransformerRegistry transformerRegistry;
 
     @Inject
     ContractDefinitionService service;
@@ -78,7 +78,9 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
         validatorRegistry.register(CONTRACT_DEFINITION_TYPE, ContractDefinitionValidator.instance(criterionOperatorRegistry));
 
         var monitor = context.getMonitor();
+        var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
 
-        webService.registerResource(config.getContextAlias(), new ContractDefinitionApiController(transformerRegistry, service, monitor, validatorRegistry));
+        webService.registerResource(config.getContextAlias(), new ContractDefinitionApiController(
+                managementApiTransformerRegistry, service, monitor, validatorRegistry));
     }
 }

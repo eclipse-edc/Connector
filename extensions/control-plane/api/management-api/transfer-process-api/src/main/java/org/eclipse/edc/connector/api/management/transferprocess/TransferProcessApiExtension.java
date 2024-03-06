@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.management.transferprocess;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectFromTransferProcessTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectFromTransferStateTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTerminateTransferTransformer;
@@ -28,6 +27,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -47,7 +47,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
     private ManagementApiConfiguration configuration;
 
     @Inject
-    private ManagementApiTypeTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @Inject
     private TransferProcessService service;
@@ -63,16 +63,18 @@ public class TransferProcessApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var builderFactory = Json.createBuilderFactory(emptyMap());
-        transformerRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
-        transformerRegistry.register(new JsonObjectFromTransferStateTransformer(builderFactory));
 
-        transformerRegistry.register(new JsonObjectToTerminateTransferTransformer());
-        transformerRegistry.register(new JsonObjectToTransferRequestTransformer());
+        var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
+        managementApiTransformerRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
+        managementApiTransformerRegistry.register(new JsonObjectFromTransferStateTransformer(builderFactory));
+
+        managementApiTransformerRegistry.register(new JsonObjectToTerminateTransferTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToTransferRequestTransformer());
 
         validatorRegistry.register(TRANSFER_REQUEST_TYPE, TransferRequestValidator.instance(context.getMonitor()));
         validatorRegistry.register(TERMINATE_TRANSFER_TYPE, TerminateTransferValidator.instance());
 
-        var newController = new TransferProcessApiController(context.getMonitor(), service, transformerRegistry, validatorRegistry);
+        var newController = new TransferProcessApiController(context.getMonitor(), service, managementApiTransformerRegistry, validatorRegistry);
         webService.registerResource(configuration.getContextAlias(), newController);
     }
 }

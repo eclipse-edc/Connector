@@ -28,6 +28,14 @@ public interface TypeTransformerRegistry {
     void register(TypeTransformer<?, ?> transformer);
 
     /**
+     * Return a type transformer registry specific to a context.
+     *
+     * @param context the context.
+     * @return the type transformer registry context specific.
+     */
+    @NotNull TypeTransformerRegistry forContext(String context);
+
+    /**
      * Returns a transformer that can transfor input to outputType
      * Throws an exception if the transformer cannot be found.
      *

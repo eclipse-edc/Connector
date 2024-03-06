@@ -16,8 +16,6 @@ package org.eclipse.edc.connector.api.signaling.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
-import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistry;
-import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistryImpl;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowResponseMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataAddressTransformer;
@@ -27,7 +25,6 @@ import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlow
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -51,6 +48,7 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 @Provides(SignalingApiConfiguration.class)
 @Extension(value = NAME)
 public class SignalingApiConfigurationExtension implements ServiceExtension {
+
     public static final String NAME = "DataPlane Signaling API Configuration Extension";
     public static final String WEB_SERVICE_NAME = "DataPlane Signaling API";
 
@@ -94,20 +92,16 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
         var jsonLdMapper = getJsonLdMapper();
         webService.registerResource(webServiceConfiguration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(webServiceConfiguration.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, SIGNALING_SCOPE));
-    }
 
-    @Provider
-    public SignalingApiTransformerRegistry managementApiTypeTransformerRegistry() {
         var factory = Json.createBuilderFactory(Map.of());
 
-        var registry = new SignalingApiTransformerRegistryImpl(this.transformerRegistry);
-        registry.register(new JsonObjectToDataFlowStartMessageTransformer());
-        registry.register(new JsonObjectToDataFlowSuspendMessageTransformer());
-        registry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
-        registry.register(new JsonObjectToDataAddressTransformer());
-        registry.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
-        registry.register(new JsonObjectFromDataAddressTransformer(factory, getJsonLdMapper()));
-        return registry;
+        var signalingApiTypeTransformerRegistry = transformerRegistry.forContext("signaling-api");
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowStartMessageTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowSuspendMessageTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
+        signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(factory, getJsonLdMapper()));
     }
 
     @NotNull
