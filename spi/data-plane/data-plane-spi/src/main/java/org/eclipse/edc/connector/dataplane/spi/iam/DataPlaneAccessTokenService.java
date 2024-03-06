@@ -38,7 +38,7 @@ public interface DataPlaneAccessTokenService {
      *
      * @param parameters          Headers and claims that are to be included in the token.
      * @param backendDataAddress  Information about the backend data resource for which the token is to be generated. May contain additional information about the token, such as an {@code authType}
-     * @param additionalTokenData
+     * @param additionalTokenData Additional data that further characterizes the token, but should not be included in the resulting {@link TokenRepresentation}.
      * @return The token representation
      */
     Result<TokenRepresentation> obtainToken(TokenParameters parameters, DataAddress backendDataAddress, Map<String, Object> additionalTokenData);

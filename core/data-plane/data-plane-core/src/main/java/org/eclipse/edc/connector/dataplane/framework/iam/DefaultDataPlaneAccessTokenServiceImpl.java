@@ -75,7 +75,7 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
      *
      * @param parameters          Headers and claims that are to be included in the token. If the claims do <em>not</em> contain a "jti" claim, one is generated randomly and inserted into the claims.
      * @param backendDataAddress  Information about the data resource for which the token is to be generated. May contain additional information about the token, such as an {@code authType}
-     * @param additionalTokenData Additional data that further characterizes the token, but should not be included in the resulting {@link TokenRepresentation}.
+     * @param additionalTokenData Additional data that further characterizes the token, but should not be included in the resulting {@link TokenRepresentation}. Will be persisted in the {@link AccessTokenDataStore}.
      * @return A token representation in serialized JWT format (signed). The JWTs "kid" header contains the ID of the public key that can be used to verify the token.
      */
     @Override

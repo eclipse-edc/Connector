@@ -64,7 +64,7 @@ class DataPlaneAuthorizationServiceImplTest {
 
     @Test
     void createEndpointDataReference() {
-        when(accessTokenService.obtainToken(any(), any(), Map.of())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("footoken").build()));
+        when(accessTokenService.obtainToken(any(), any(), anyMap())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("footoken").build()));
         var startMsg = createStartMessage().build();
 
         var result = authorizationService.createEndpointDataReference(startMsg);
@@ -89,7 +89,7 @@ class DataPlaneAuthorizationServiceImplTest {
 
     @Test
     void createEndpointDataReference_withAuthType() {
-        when(accessTokenService.obtainToken(any(), any(), Map.of())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance()
+        when(accessTokenService.obtainToken(any(), any(), anyMap())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance()
                 .token("footoken")
                 .additional(Map.of("authType", "bearer", "fizz", "buzz"))
                 .build()));
@@ -108,7 +108,7 @@ class DataPlaneAuthorizationServiceImplTest {
 
     @Test
     void createEndpointDataReference_tokenServiceFails() {
-        when(accessTokenService.obtainToken(any(), any(), Map.of())).thenReturn(Result.failure("test-failure"));
+        when(accessTokenService.obtainToken(any(), any(), anyMap())).thenReturn(Result.failure("test-failure"));
         var startMsg = createStartMessage().build();
         assertThat(authorizationService.createEndpointDataReference(startMsg)).isFailed()
                 .detail().isEqualTo("test-failure");
