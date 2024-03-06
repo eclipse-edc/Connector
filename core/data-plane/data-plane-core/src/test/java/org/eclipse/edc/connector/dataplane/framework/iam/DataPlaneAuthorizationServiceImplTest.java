@@ -41,6 +41,7 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -63,7 +64,7 @@ class DataPlaneAuthorizationServiceImplTest {
 
     @Test
     void createEndpointDataReference() {
-        when(accessTokenService.obtainToken(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("footoken").build()));
+        when(accessTokenService.obtainToken(any(), any(), Map.of())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("footoken").build()));
         var startMsg = createStartMessage().build();
 
         var result = authorizationService.createEndpointDataReference(startMsg);
@@ -82,13 +83,13 @@ class DataPlaneAuthorizationServiceImplTest {
             assertThat(tp.getStringClaim(ISSUER)).isEqualTo(OWN_PARTICIPANT_ID);
             assertThat(tp.getStringClaim(SUBJECT)).isEqualTo(OWN_PARTICIPANT_ID);
             assertThat(tp.getClaims().get(ISSUED_AT)).isNotNull();
-        }), any());
+        }), any(), anyMap());
     }
 
 
     @Test
     void createEndpointDataReference_withAuthType() {
-        when(accessTokenService.obtainToken(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance()
+        when(accessTokenService.obtainToken(any(), any(), Map.of())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance()
                 .token("footoken")
                 .additional(Map.of("authType", "bearer", "fizz", "buzz"))
                 .build()));
@@ -107,7 +108,7 @@ class DataPlaneAuthorizationServiceImplTest {
 
     @Test
     void createEndpointDataReference_tokenServiceFails() {
-        when(accessTokenService.obtainToken(any(), any())).thenReturn(Result.failure("test-failure"));
+        when(accessTokenService.obtainToken(any(), any(), Map.of())).thenReturn(Result.failure("test-failure"));
         var startMsg = createStartMessage().build();
         assertThat(authorizationService.createEndpointDataReference(startMsg)).isFailed()
                 .detail().isEqualTo("test-failure");

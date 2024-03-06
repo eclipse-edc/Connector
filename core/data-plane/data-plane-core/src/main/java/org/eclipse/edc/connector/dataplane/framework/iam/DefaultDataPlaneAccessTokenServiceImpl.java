@@ -32,6 +32,7 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -72,12 +73,13 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
      * Generates JWT tokens based on the {@link TokenParameters}. A representation of the claims and the data address is stored for subsequent use, using the token ID ("jti")
      * as correlation id.
      *
-     * @param parameters         Headers and claims that are to be included in the token. If the claims do <em>not</em> contain a "jti" claim, one is generated randomly and inserted into the claims.
-     * @param backendDataAddress Information about the data resource for which the token is to be generated. May contain additional information about the token, such as an {@code authType}
+     * @param parameters          Headers and claims that are to be included in the token. If the claims do <em>not</em> contain a "jti" claim, one is generated randomly and inserted into the claims.
+     * @param backendDataAddress  Information about the data resource for which the token is to be generated. May contain additional information about the token, such as an {@code authType}
+     * @param additionalTokenData Additional data that further characterizes the token, but should not be included in the resulting {@link TokenRepresentation}.
      * @return A token representation in serialized JWT format (signed). The JWTs "kid" header contains the ID of the public key that can be used to verify the token.
      */
     @Override
-    public Result<TokenRepresentation> obtainToken(TokenParameters parameters, DataAddress backendDataAddress) {
+    public Result<TokenRepresentation> obtainToken(TokenParameters parameters, DataAddress backendDataAddress, Map<String, Object> additionalTokenData) {
         Objects.requireNonNull(parameters, "TokenParameters must be non-null.");
         Objects.requireNonNull(backendDataAddress, "DataAddress must be non-null.");
         var claimDecorators = parameters.getClaims().entrySet().stream().map(e -> (TokenDecorator) claimDecorator -> claimDecorator.claims(e.getKey(), e.getValue()));
@@ -101,7 +103,7 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
 
         // store a record of the token for future reference. We'll need that when we resolve the AccessTokenData later.
         var claimToken = ClaimToken.Builder.newInstance().claims(parameters.getClaims()).build();
-        var accessTokenData = new AccessTokenData(id, claimToken, backendDataAddress);
+        var accessTokenData = new AccessTokenData(id, claimToken, backendDataAddress, additionalTokenData);
 
         var storeResult = accessTokenDataStore.store(accessTokenData);
         var content = tokenResult.getContent();
