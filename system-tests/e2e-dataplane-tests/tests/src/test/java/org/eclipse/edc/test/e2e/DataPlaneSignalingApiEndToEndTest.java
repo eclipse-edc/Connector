@@ -32,18 +32,16 @@ import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
-import org.eclipse.edc.test.e2e.participant.DataPlaneParticipant;
+import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.net.URI;
 import java.time.Duration;
@@ -59,20 +57,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
 @EndToEndTest
-public class DataPlaneSignalingApiEndToEndTest {
+public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
-    public static final String DATAPLANE_PUBLIC_ENDPOINT_URL = "http://fizz.buzz/bar";
-    protected static final DataPlaneParticipant DATAPLANE = DataPlaneParticipant.Builder.newInstance()
-            .name("provider")
-            .id("urn:connector:provider")
-            .build();
-    @RegisterExtension
-    static EdcRuntimeExtension runtime =
-            new EdcRuntimeExtension(
-                    ":system-tests:e2e-dataplane-tests:runtimes:data-plane",
-                    "data-plane",
-                    DATAPLANE.dataPlaneConfiguration()
-            );
+    private static final String DATAPLANE_PUBLIC_ENDPOINT_URL = "http://fizz.buzz/bar";
 
     protected final Duration timeout = Duration.ofSeconds(60);
     private ObjectMapper mapper;
@@ -97,9 +84,17 @@ public class DataPlaneSignalingApiEndToEndTest {
 
         var processId = "test-processId";
         var flowMessage = createStartMessage(processId);
-        var jo = registry.transform(flowMessage, JsonObject.class).orElseThrow(failTest());
+        var startMessage = registry.transform(flowMessage, JsonObject.class).orElseThrow(failTest());
 
-        var resultJson = DATAPLANE.initiateTransfer(jo);
+        var resultJson = DATAPLANE.getDataPlaneSignalingEndpoint()
+                .baseRequest()
+                .contentType(ContentType.JSON)
+                .body(startMessage)
+                .post("/v1/dataflows")
+                .then()
+                .body(Matchers.notNullValue())
+                .statusCode(200)
+                .extract().body().asString();
         var dataAddress = registry.transform(mapper.readValue(resultJson, JsonObject.class), DataAddress.class)
                 .orElseThrow(failTest());
 
@@ -127,7 +122,7 @@ public class DataPlaneSignalingApiEndToEndTest {
                 .build();
         runtime.getService(DataPlaneStore.class).save(flow);
 
-        var resultJson = DATAPLANE.getDataPlaneSignalingApi()
+        var resultJson = DATAPLANE.getDataPlaneSignalingEndpoint()
                 .baseRequest()
                 .contentType(ContentType.JSON)
                 .get("/v1/dataflows/%s/state".formatted(dataFlowId))
@@ -159,7 +154,7 @@ public class DataPlaneSignalingApiEndToEndTest {
                 .add(DATA_FLOW_TERMINATE_MESSAGE_REASON, "test-reason")
                 .build();
 
-        DATAPLANE.getDataPlaneSignalingApi()
+        DATAPLANE.getDataPlaneSignalingEndpoint()
                 .baseRequest()
                 .body(terminateMessage)
                 .contentType(ContentType.JSON)

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Amadeus
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,9 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Amadeus - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
- *       Mercedes-Benz Tech Innovation GmbH - publish public api context into dedicated swagger hub page
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
@@ -30,37 +28,38 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.WILDCARD;
-import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static jakarta.ws.rs.core.Response.status;
 
-@Path("{any:.*}")
+@Path("/v2/{any:.*}")
 @Produces(WILDCARD)
-public class DataPlanePublicApiController implements DataPlanePublicApi {
+public class DataPlanePublicApiV2Controller implements DataPlanePublicApiV2 {
 
     private final PipelineService pipelineService;
-    private final DataAddressResolver dataAddressResolver;
     private final DataFlowRequestSupplier requestSupplier;
     private final ExecutorService executorService;
-    private final Monitor monitor;
+    private final DataPlaneAuthorizationService authorizationService;
 
-    public DataPlanePublicApiController(PipelineService pipelineService, DataAddressResolver dataAddressResolver,
-                                        ExecutorService executorService, Monitor monitor) {
+    public DataPlanePublicApiV2Controller(PipelineService pipelineService,
+                                          ExecutorService executorService,
+                                          DataPlaneAuthorizationService authorizationService) {
         this.pipelineService = pipelineService;
-        this.dataAddressResolver = dataAddressResolver;
-        this.monitor = monitor;
+        this.authorizationService = authorizationService;
         this.requestSupplier = new DataFlowRequestSupplier();
         this.executorService = executorService;
     }
@@ -123,25 +122,36 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
         handle(requestContext, response);
     }
 
-    private void handle(ContainerRequestContext context, AsyncResponse response) {
+    private void handle(ContainerRequestContext requestContext, AsyncResponse response) {
+        var contextApi = new ContainerRequestContextApiImpl(requestContext);
 
-        monitor.warning("The DataPlane Public API is deprecated. Please consider upgrading to the /v2/ path. Your request will then be: %s"
-                .formatted(context.getUriInfo().getBaseUri() + "v2/" + context.getUriInfo().getPath()));
-        var contextApi = new ContainerRequestContextApiImpl(context);
         var token = contextApi.headers().get(HttpHeaders.AUTHORIZATION);
         if (token == null) {
-            response.resume(error(BAD_REQUEST, "Missing token"));
+            response.resume(error(UNAUTHORIZED, "Missing Authorization Header"));
             return;
         }
 
-        var tokenValidation = dataAddressResolver.resolve(token);
-        if (tokenValidation.failed()) {
-            response.resume(error(FORBIDDEN, tokenValidation.getFailureDetail()));
+        var sourceDataAddress = authorizationService.authorize(token, buildRequestData(requestContext));
+        if (sourceDataAddress.failed()) {
+            response.resume(error(FORBIDDEN, sourceDataAddress.getFailureDetail()));
             return;
         }
 
-        var dataAddress = tokenValidation.getContent();
-        var dataFlowRequest = requestSupplier.apply(contextApi, dataAddress);
+        var startMessage = requestSupplier.apply(contextApi, sourceDataAddress.getContent());
+
+        processRequest(startMessage, response);
+    }
+
+    private Map<String, Object> buildRequestData(ContainerRequestContext requestContext) {
+        var requestData = new HashMap<String, Object>();
+        requestData.put("headers", requestContext.getHeaders());
+        requestData.put("path", requestContext.getUriInfo());
+        requestData.put("method", requestContext.getMethod());
+        requestData.put("content-type", requestContext.getMediaType());
+        return requestData;
+    }
+
+    private void processRequest(DataFlowStartMessage dataFlowStartMessage, AsyncResponse response) {
 
         AsyncStreamingDataSink.AsyncResponseContext asyncResponseContext = callback -> {
             StreamingOutput output = t -> callback.outputStreamConsumer().accept(t);
@@ -151,7 +161,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
 
         var sink = new AsyncStreamingDataSink(asyncResponseContext, executorService);
 
-        pipelineService.transfer(dataFlowRequest, sink)
+        pipelineService.transfer(dataFlowStartMessage, sink)
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
                         if (result.failed()) {

@@ -29,5 +29,6 @@ public class AccessTokenDataMapping extends TranslationMapping {
         add("id", statements.getIdColumn());
         add("claimToken", new JsonFieldTranslator(statements.getClaimTokenColumn()));
         add("dataAddress", new JsonFieldTranslator(statements.getDataAddressColumn()));
+        add("additionalProperties", new JsonFieldTranslator(statements.getAdditionalPropertiesColumn()));
     }
 }

@@ -17,9 +17,11 @@
 CREATE TABLE IF NOT EXISTS edc_accesstokendata
 (
     id           VARCHAR NOT NULL PRIMARY KEY,
-    claim_token  json    NOT NULL,
-    data_address JSON    NOT NULL
+    claim_token  JSON    NOT NULL,
+    data_address JSON    NOT NULL,
+    additional_properties JSON DEFAULT '{}'
 );
 
 COMMENT ON COLUMN edc_accesstokendata.claim_token IS 'ClaimToken serialized as JSON map';
 COMMENT ON COLUMN edc_accesstokendata.data_address IS 'DataAddress serialized as JSON map';
+COMMENT ON COLUMN edc_accesstokendata.additional_properties IS 'Optional Additional properties serialized as JSON map';

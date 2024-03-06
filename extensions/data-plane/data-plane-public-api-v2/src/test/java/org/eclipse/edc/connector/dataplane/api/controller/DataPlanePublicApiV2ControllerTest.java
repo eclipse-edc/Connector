@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.api.controller;
 
 import io.restassured.specification.RequestSpecification;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
@@ -27,6 +28,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -46,23 +48,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-class DataPlanePublicApiControllerTest extends RestControllerTestBase {
+class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
 
     private final PipelineService pipelineService = mock();
     private final DataAddressResolver dataAddressResolver = mock();
+    private final DataPlaneAuthorizationService authorizationService = mock();
+
+    @BeforeEach
+    void setup() {
+        when(authorizationService.authorize(anyString(), anyMap()))
+                .thenReturn(Result.success(testDestAddress()));
+    }
 
     @Test
     void should_returnBadRequest_if_missingAuthorizationHeader() {
         baseRequest()
                 .post("/any")
                 .then()
-                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
-                .body("errors[0]", is("Missing token"));
+                .statusCode(Response.Status.UNAUTHORIZED.getStatusCode())
+                .body("errors[0]", is("Missing Authorization Header"));
     }
 
     @Test
@@ -76,7 +88,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
     @Test
     void should_returnForbidden_if_tokenValidationFails() {
         var token = UUID.randomUUID().toString();
-        when(dataAddressResolver.resolve(any())).thenReturn(Result.failure("token is not value"));
+        when(authorizationService.authorize(anyString(), anyMap())).thenReturn(Result.failure("token is not valid"));
 
         baseRequest()
                 .header(AUTHORIZATION, token)
@@ -86,7 +98,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
                 .contentType(JSON)
                 .body("errors.size()", is(1));
 
-        verify(dataAddressResolver).resolve(token);
+        verify(authorizationService).authorize(eq(token), anyMap());
     }
 
     @Test
@@ -149,17 +161,17 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
         var request = requestCaptor.getValue();
         assertThat(request.getDestinationDataAddress().getType()).isEqualTo(AsyncStreamingDataSink.TYPE);
         assertThat(request.getSourceDataAddress().getType()).isEqualTo("test");
-        assertThat(request.getProperties()).containsEntry("method", "POST").containsEntry("pathSegments", "any").containsEntry("queryParams", "foo=bar");
+        assertThat(request.getProperties()).containsEntry("method", "POST").containsEntry("pathSegments", "v2/any").containsEntry("queryParams", "foo=bar");
     }
 
     @Override
     protected Object controller() {
-        return new DataPlanePublicApiController(pipelineService, dataAddressResolver, Executors.newSingleThreadExecutor(), mock());
+        return new DataPlanePublicApiV2Controller(pipelineService, Executors.newSingleThreadExecutor(), authorizationService);
     }
 
     private RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port)
+                .baseUri("http://localhost:" + port + "/v2")
                 .when();
     }
 

@@ -32,17 +32,15 @@ import jakarta.ws.rs.container.ContainerRequestContext;
                 "is a Rest API itself." +
                 "In the same manner, any set of arbitrary query parameters, path parameters and request body are supported " +
                 "(in the limits fixed by the HTTP server) and can also conveyed to the actual data source.")
-public interface DataPlanePublicApi {
+public interface DataPlanePublicApiV2 {
 
     @Operation(description = "Send `GET` data query to the Data Plane.",
             responses = {
                     @ApiResponse(responseCode = "400", description = "Missing access token"),
                     @ApiResponse(responseCode = "403", description = "Access token is expired or invalid"),
                     @ApiResponse(responseCode = "500", description = "Failed to transfer data")
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "0.5.1")
     void get(ContainerRequestContext context, AsyncResponse response);
 
     @Operation(description = "Send `POST` data query to the Data Plane.",
@@ -50,10 +48,8 @@ public interface DataPlanePublicApi {
                     @ApiResponse(responseCode = "400", description = "Missing access token"),
                     @ApiResponse(responseCode = "403", description = "Access token is expired or invalid"),
                     @ApiResponse(responseCode = "500", description = "Failed to transfer data")
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "0.5.1")
     void post(ContainerRequestContext context, AsyncResponse response);
 
     @Operation(description = "Send `PUT` data query to the Data Plane.",
@@ -61,10 +57,8 @@ public interface DataPlanePublicApi {
                     @ApiResponse(responseCode = "400", description = "Missing access token"),
                     @ApiResponse(responseCode = "403", description = "Access token is expired or invalid"),
                     @ApiResponse(responseCode = "500", description = "Failed to transfer data")
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "0.5.1")
     void put(ContainerRequestContext context, AsyncResponse response);
 
     @Operation(description = "Send `DELETE` data query to the Data Plane.",
@@ -81,9 +75,7 @@ public interface DataPlanePublicApi {
                     @ApiResponse(responseCode = "400", description = "Missing access token"),
                     @ApiResponse(responseCode = "403", description = "Access token is expired or invalid"),
                     @ApiResponse(responseCode = "500", description = "Failed to transfer data")
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "0.5.1")
     void patch(ContainerRequestContext context, AsyncResponse response);
 }

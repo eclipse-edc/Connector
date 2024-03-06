@@ -33,6 +33,7 @@ public class BaseSqlAccessTokenStatements implements AccessTokenDataStatements {
                 .column(getIdColumn())
                 .jsonColumn(getClaimTokenColumn())
                 .jsonColumn(getDataAddressColumn())
+                .jsonColumn(getAdditionalPropertiesColumn())
                 .insertInto(getTableName());
     }
 

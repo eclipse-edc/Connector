@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.store.sql;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.dataplane.spi.AccessTokenData;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
@@ -34,6 +35,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Map;
 
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
@@ -42,6 +44,8 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
  */
 public class SqlAccessTokenDataStore extends AbstractSqlStore implements AccessTokenDataStore {
 
+    private static final TypeReference<Map<String, Object>> MAP_TYPE_REF = new TypeReference<>() {
+    };
     private final AccessTokenDataStatements statements;
 
     public SqlAccessTokenDataStore(DataSourceRegistry dataSourceRegistry,
@@ -113,7 +117,8 @@ public class SqlAccessTokenDataStore extends AbstractSqlStore implements AccessT
         queryExecutor.execute(connection, sql,
                 dataFlow.id(),
                 toJson(dataFlow.claimToken()),
-                toJson(dataFlow.dataAddress())
+                toJson(dataFlow.dataAddress()),
+                toJson(dataFlow.additionalProperties())
         );
     }
 
@@ -121,9 +126,10 @@ public class SqlAccessTokenDataStore extends AbstractSqlStore implements AccessT
     private AccessTokenData mapAccessTokenData(ResultSet resultSet) throws SQLException {
         var claimToken = fromJson(resultSet.getString(statements.getClaimTokenColumn()), ClaimToken.class);
         var dataAddress = fromJson(resultSet.getString(statements.getDataAddressColumn()), DataAddress.class);
+        var additionalProperties = fromJson(resultSet.getString(statements.getAdditionalPropertiesColumn()), MAP_TYPE_REF);
         var id = resultSet.getString(statements.getIdColumn());
 
-        return new AccessTokenData(id, claimToken, dataAddress);
+        return new AccessTokenData(id, claimToken, dataAddress, additionalProperties);
     }
 
     private @Nullable AccessTokenData findByIdInternal(Connection conn, String id) {

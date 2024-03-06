@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -161,6 +162,6 @@ public abstract class AccessTokenDataTestBase {
     }
 
     protected AccessTokenData accessTokenData(String id) {
-        return new AccessTokenData(id, ClaimToken.Builder.newInstance().build(), dataAddress());
+        return new AccessTokenData(id, ClaimToken.Builder.newInstance().build(), dataAddress(), Map.of("foo", List.of("bar", "baz")));
     }
 }

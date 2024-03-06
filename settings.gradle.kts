@@ -175,6 +175,7 @@ include(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api-co
 include(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client")
 include(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform")
 include(":extensions:data-plane:data-plane-public-api")
+include(":extensions:data-plane:data-plane-public-api-v2")
 
 include(":extensions:data-plane:data-plane-http")
 include(":extensions:data-plane:data-plane-http-oauth2")

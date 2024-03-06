@@ -15,10 +15,7 @@
 package org.eclipse.edc.test.e2e.participant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.restassured.http.ContentType;
-import jakarta.json.JsonObject;
 import org.eclipse.edc.test.system.utils.Participant;
-import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -35,14 +32,17 @@ public class DataPlaneParticipant extends Participant {
     private final URI dataPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
     private final URI dataPlaneSignaling = URI.create("http://localhost:" + getFreePort() + "/api/signaling");
-    private final Endpoint dataPlaneSignalingApi = new Endpoint(dataPlaneSignaling);
 
     private DataPlaneParticipant() {
         super();
     }
 
-    public Endpoint getDataPlaneSignalingApi() {
-        return dataPlaneSignalingApi;
+    public Endpoint getDataPlaneSignalingEndpoint() {
+        return new Endpoint(dataPlaneSignaling);
+    }
+
+    public Endpoint getDataPlanePublicEndpoint() {
+        return new Endpoint(dataPlanePublic);
     }
 
     public Map<String, String> dataPlaneConfiguration() {
@@ -64,20 +64,6 @@ public class DataPlaneParticipant extends Participant {
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
             }
         };
-    }
-
-    /**
-     * Uses the data plane's control API to initiate a transfer
-     */
-    public String initiateTransfer(JsonObject startMessage) {
-        return dataPlaneSignalingApi.baseRequest()
-                .contentType(ContentType.JSON)
-                .body(startMessage)
-                .post("/v1/dataflows")
-                .then()
-                .body(Matchers.notNullValue())
-                .statusCode(200)
-                .extract().body().asString();
     }
 
     @NotNull
