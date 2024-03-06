@@ -24,7 +24,7 @@ public abstract class AbstractDataPlaneTest {
             .id("urn:connector:provider")
             .build();
     @RegisterExtension
-    static EdcRuntimeExtension runtime =
+    protected static EdcRuntimeExtension runtime =
             new EdcRuntimeExtension(
                     ":system-tests:e2e-dataplane-tests:runtimes:data-plane",
                     "data-plane",

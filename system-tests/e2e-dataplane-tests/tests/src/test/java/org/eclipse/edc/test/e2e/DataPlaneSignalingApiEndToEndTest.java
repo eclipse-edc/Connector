@@ -37,6 +37,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -83,9 +84,17 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
         var processId = "test-processId";
         var flowMessage = createStartMessage(processId);
-        var jo = registry.transform(flowMessage, JsonObject.class).orElseThrow(failTest());
+        var startMessage = registry.transform(flowMessage, JsonObject.class).orElseThrow(failTest());
 
-        var resultJson = DATAPLANE.initiateTransfer(jo);
+        var resultJson = DATAPLANE.getDataPlaneSignalingEndpoint()
+                .baseRequest()
+                .contentType(ContentType.JSON)
+                .body(startMessage)
+                .post("/v1/dataflows")
+                .then()
+                .body(Matchers.notNullValue())
+                .statusCode(200)
+                .extract().body().asString();
         var dataAddress = registry.transform(mapper.readValue(resultJson, JsonObject.class), DataAddress.class)
                 .orElseThrow(failTest());
 
@@ -113,7 +122,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
                 .build();
         runtime.getService(DataPlaneStore.class).save(flow);
 
-        var resultJson = DATAPLANE.getDataPlaneSignalingApi()
+        var resultJson = DATAPLANE.getDataPlaneSignalingEndpoint()
                 .baseRequest()
                 .contentType(ContentType.JSON)
                 .get("/v1/dataflows/%s/state".formatted(dataFlowId))
@@ -145,7 +154,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
                 .add(DATA_FLOW_TERMINATE_MESSAGE_REASON, "test-reason")
                 .build();
 
-        DATAPLANE.getDataPlaneSignalingApi()
+        DATAPLANE.getDataPlaneSignalingEndpoint()
                 .baseRequest()
                 .body(terminateMessage)
                 .contentType(ContentType.JSON)

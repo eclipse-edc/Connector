@@ -39,6 +39,10 @@ public interface AccessTokenDataStatements extends SqlStatements {
         return "data_address";
     }
 
+    default String getAdditionalPropertiesColumn() {
+        return "additional_properties";
+    }
+
     String getInsertTemplate();
 
     String getSelectTemplate();
