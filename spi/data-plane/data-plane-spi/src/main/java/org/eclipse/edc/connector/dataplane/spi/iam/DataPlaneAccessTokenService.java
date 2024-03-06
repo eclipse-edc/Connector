@@ -21,6 +21,8 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
+import java.util.Map;
+
 /**
  * This service serves as facility to both create and validate access tokens.
  */
@@ -34,11 +36,12 @@ public interface DataPlaneAccessTokenService {
      * <p>
      * Common patterns include encoding that information directly in the token, or storing that information in a separate store and correlating it with the token ID.
      *
-     * @param parameters Headers and claims that are to be included in the token.
-     * @param backendDataAddress    Information about the backend data resource for which the token is to be generated. May contain additional information about the token, such as an {@code authType}
+     * @param parameters          Headers and claims that are to be included in the token.
+     * @param backendDataAddress  Information about the backend data resource for which the token is to be generated. May contain additional information about the token, such as an {@code authType}
+     * @param additionalTokenData Additional data that further characterizes the token, but should not be included in the resulting {@link TokenRepresentation}.
      * @return The token representation
      */
-    Result<TokenRepresentation> obtainToken(TokenParameters parameters, DataAddress backendDataAddress);
+    Result<TokenRepresentation> obtainToken(TokenParameters parameters, DataAddress backendDataAddress, Map<String, Object> additionalTokenData);
 
     /**
      * Takes a token and restores from it the original information that was used to create the token, most notably claims ({@link org.eclipse.edc.spi.iam.ClaimToken})

@@ -30,6 +30,7 @@ import java.time.Clock;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.stream.Collectors.toMap;
 import static org.eclipse.edc.spi.result.Result.success;
 
 public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorizationService {
@@ -59,7 +60,9 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
     public Result<DataAddress> createEndpointDataReference(DataFlowStartMessage message) {
         var endpoint = endpointGenerator.generateFor(message.getSourceDataAddress());
 
-        return endpoint.compose(e -> accessTokenService.obtainToken(createTokenParams(message), message.getSourceDataAddress()))
+        var additionalProperties = message.getProperties().entrySet().stream().collect(toMap(Map.Entry::getKey, entry -> (Object) entry.getValue()));
+        
+        return endpoint.compose(e -> accessTokenService.obtainToken(createTokenParams(message), message.getSourceDataAddress(), additionalProperties))
                 .compose(tokenRepresentation -> createDataAddress(tokenRepresentation, endpoint.getContent()));
     }
 
