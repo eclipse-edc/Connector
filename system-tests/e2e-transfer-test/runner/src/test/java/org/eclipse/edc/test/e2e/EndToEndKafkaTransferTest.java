@@ -73,14 +73,12 @@ class EndToEndKafkaTransferTest {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String KAFKA_SERVER = "localhost:9092";
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
-
     private static final String SINK_HTTP_PATH = "/api/service";
     private static final String SOURCE_TOPIC = "source_topic";
     private static final String SINK_TOPIC = "sink_topic";
     private static final int EVENT_DESTINATION_PORT = getFreePort();
     private static final JsonNode JSON_MESSAGE = sampleMessage();
     private static final AtomicInteger MESSAGE_COUNTER = new AtomicInteger();
-
     private static final EndToEndTransferParticipant CONSUMER = EndToEndTransferParticipant.Builder.newInstance()
             .name("consumer")
             .id("urn:connector:consumer")
@@ -89,12 +87,16 @@ class EndToEndKafkaTransferTest {
             .name("provider")
             .id("urn:connector:provider")
             .build();
-
+    static String[] controlPlaneModules = new String[]{
+            ":system-tests:e2e-transfer-test:control-plane",
+            ":extensions:control-plane:transfer:transfer-data-plane",
+            ":extensions:data-plane:data-plane-client"
+    };
     @RegisterExtension
     static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:control-plane",
             "consumer-control-plane",
-            CONSUMER.controlPlaneConfiguration()
+            CONSUMER.controlPlaneConfiguration(),
+            controlPlaneModules
     );
 
     @RegisterExtension
@@ -106,14 +108,87 @@ class EndToEndKafkaTransferTest {
 
     @RegisterExtension
     static EdcRuntimeExtension providerControlPlane = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:control-plane",
             "provider-control-plane",
-            PROVIDER.controlPlaneConfiguration()
+            PROVIDER.controlPlaneConfiguration(),
+            controlPlaneModules
     );
 
     @BeforeAll
     public static void setUp() {
         startKafkaProducer();
+    }
+
+    private static Consumer<String, JsonNode> createKafkaConsumer() {
+        var props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_SERVER);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "runner");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonDeserializer.class.getName());
+        return new KafkaConsumer<>(props);
+    }
+
+    private static Producer<String, JsonNode> createKafkaProducer() {
+        var props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_SERVER);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonSerializer.class.getName());
+        return new KafkaProducer<>(props);
+    }
+
+    private static void startKafkaProducer() {
+        var producer = createKafkaProducer();
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
+                () -> producer.send(new ProducerRecord<>(SOURCE_TOPIC, String.valueOf(MESSAGE_COUNTER.getAndIncrement()), JSON_MESSAGE)),
+                0, 100, MILLISECONDS);
+    }
+
+    private static JsonObject httpSink() {
+        return Json.createObjectBuilder()
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(EDC_NAMESPACE + "type", "HttpData")
+                .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
+                        .add(EDC_NAMESPACE + "name", "data")
+                        .add(EDC_NAMESPACE + "baseUrl", format("http://localhost:%s", EVENT_DESTINATION_PORT))
+                        .add(EDC_NAMESPACE + "path", SINK_HTTP_PATH)
+                        .build())
+                .build();
+    }
+
+    @NotNull
+    private static JsonObject kafkaSink() {
+        return Json.createObjectBuilder()
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(EDC_NAMESPACE + "type", "Kafka")
+                .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
+                        .add(EDC_NAMESPACE + "topic", SINK_TOPIC)
+                        .add(EDC_NAMESPACE + kafkaProperty("bootstrap.servers"), KAFKA_SERVER)
+                        .build())
+                .build();
+    }
+
+    @NotNull
+    private static Map<String, Object> kafkaSourceProperty() {
+        return Map.of(
+                "name", "data",
+                "type", "Kafka",
+                "topic", SOURCE_TOPIC,
+                kafkaProperty("bootstrap.servers"), KAFKA_SERVER,
+                kafkaProperty("max.poll.records"), "100"
+        );
+    }
+
+    private static JsonNode sampleMessage() {
+        var node = OBJECT_MAPPER.createObjectNode();
+        node.put("foo", "bar");
+        return node;
+    }
+
+    private static String kafkaProperty(String property) {
+        return "kafka." + property;
+    }
+
+    private static JsonObject noPrivateProperty() {
+        return Json.createObjectBuilder().build();
     }
 
     @Test
@@ -185,83 +260,10 @@ class EndToEndKafkaTransferTest {
         }
     }
 
-    private static Consumer<String, JsonNode> createKafkaConsumer() {
-        var props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_SERVER);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "runner");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonDeserializer.class.getName());
-        return new KafkaConsumer<>(props);
-    }
-
-    private static Producer<String, JsonNode> createKafkaProducer() {
-        var props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_SERVER);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonSerializer.class.getName());
-        return new KafkaProducer<>(props);
-    }
-
-    private static void startKafkaProducer() {
-        var producer = createKafkaProducer();
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-                () -> producer.send(new ProducerRecord<>(SOURCE_TOPIC, String.valueOf(MESSAGE_COUNTER.getAndIncrement()), JSON_MESSAGE)),
-                0, 100, MILLISECONDS);
-    }
-
     private void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {
         PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
         var policy = inForceDatePolicy("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s");
         var policyDefinition = PROVIDER.createPolicyDefinition(policy);
         PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), policyDefinition, policyDefinition);
-    }
-
-    private static JsonObject httpSink() {
-        return Json.createObjectBuilder()
-                .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                .add(EDC_NAMESPACE + "type", "HttpData")
-                .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
-                        .add(EDC_NAMESPACE + "name", "data")
-                        .add(EDC_NAMESPACE + "baseUrl", format("http://localhost:%s", EVENT_DESTINATION_PORT))
-                        .add(EDC_NAMESPACE + "path", SINK_HTTP_PATH)
-                        .build())
-                .build();
-    }
-
-    @NotNull
-    private static JsonObject kafkaSink() {
-        return Json.createObjectBuilder()
-                .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                .add(EDC_NAMESPACE + "type", "Kafka")
-                .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
-                        .add(EDC_NAMESPACE + "topic", SINK_TOPIC)
-                        .add(EDC_NAMESPACE + kafkaProperty("bootstrap.servers"), KAFKA_SERVER)
-                        .build())
-                .build();
-    }
-
-    @NotNull
-    private static Map<String, Object> kafkaSourceProperty() {
-        return Map.of(
-                "name", "data",
-                "type", "Kafka",
-                "topic", SOURCE_TOPIC,
-                kafkaProperty("bootstrap.servers"), KAFKA_SERVER,
-                kafkaProperty("max.poll.records"), "100"
-        );
-    }
-
-    private static JsonNode sampleMessage() {
-        var node = OBJECT_MAPPER.createObjectNode();
-        node.put("foo", "bar");
-        return node;
-    }
-
-    private static String kafkaProperty(String property) {
-        return "kafka." + property;
-    }
-
-    private static JsonObject noPrivateProperty() {
-        return Json.createObjectBuilder().build();
     }
 }

@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     testImplementation(project(":spi:control-plane:transfer-spi"))
+    testImplementation(project(":spi:data-plane:data-plane-spi"))
     testImplementation(project(":extensions:common:sql:sql-core"))
 
     testImplementation(project(":core:common:junit"))

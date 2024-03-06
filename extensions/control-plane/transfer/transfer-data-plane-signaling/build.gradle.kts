@@ -12,27 +12,28 @@
  *
  */
 
-
 plugins {
     `java-library`
 }
 
 dependencies {
-    api(project(":spi:common:http-spi"))
     api(project(":spi:common:core-spi"))
+    api(project(":spi:control-plane:contract-spi"))
+    api(project(":spi:control-plane:transfer-spi"))
+
+    api(project(":spi:control-plane:transfer-data-plane-spi"))
+    api(project(":spi:data-plane:data-plane-spi"))
+    api(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
-    implementation(project(":core:common:util"))
-    implementation(project(":core:common:transform-dspace"))
-    implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
-
-    implementation(libs.opentelemetry.instrumentation.annotations)
-
+    
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:transform-core"))
-    testImplementation(project(":extensions:common:json-ld"))
-    testImplementation(libs.restAssured)
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
 }
+
+edcBuild {
+    swagger {
+        apiGroup.set("control-api")
+    }
+}
+
 
 

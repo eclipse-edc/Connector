@@ -154,6 +154,7 @@ include(":extensions:control-plane:api:management-api:management-api-test-fixtur
 include(":extensions:control-plane:api:management-api:policy-definition-api")
 include(":extensions:control-plane:api:management-api:transfer-process-api")
 include(":extensions:control-plane:transfer:transfer-data-plane")
+include(":extensions:control-plane:transfer:transfer-data-plane-signaling")
 include(":extensions:control-plane:transfer:transfer-pull-http-receiver")
 include(":extensions:control-plane:transfer:transfer-pull-http-dynamic-receiver")
 include(":extensions:control-plane:provision:provision-http")

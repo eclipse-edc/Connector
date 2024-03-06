@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Amadeus
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Amadeus - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -35,50 +36,65 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toSet;
-import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
-import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
-import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 
-@Deprecated(since = "0.5.1")
-public class ProviderPushTransferDataFlowController implements DataFlowController {
+/**
+ * Implementation of {@link DataFlowController} that is compliant with the data plane signaling.
+ * <p>
+ * It handles all the transfer process where the transferType met the criteria defined in the format mapping of the
+ * signaling spec
+ *
+ * @see <a href="https://github.com/eclipse-edc/Connector/blob/main/docs/developer/data-plane-signaling/data-plane-signaling.md">Data plane signaling</a>
+ * @see <a href="https://github.com/eclipse-edc/Connector/blob/main/docs/developer/data-plane-signaling/data-plane-signaling-mapping.md">Data plane signaling transfer type mapping</a>
+ */
+public class DataPlaneSignalingFlowController implements DataFlowController {
 
     private final ControlApiUrl callbackUrl;
     private final DataPlaneSelectorService selectorClient;
     private final DataPlaneClientFactory clientFactory;
 
-    private final Set<String> transferTypes = Set.of("%s-%s".formatted("HttpData", PULL));
+    private final String selectionStrategy;
 
-    public ProviderPushTransferDataFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, DataPlaneClientFactory clientFactory) {
+    public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, DataPlaneClientFactory clientFactory, String selectionStrategy) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
         this.clientFactory = clientFactory;
+        this.selectionStrategy = selectionStrategy;
     }
 
     @Override
     public boolean canHandle(TransferProcess transferProcess) {
-        // Backward compatibility: adds check if a transfer type is provided, it should not be Http-PULL
-        return !HTTP_PROXY.equals(transferProcess.getDestinationType()) &&
-                (Optional.ofNullable(transferProcess.getTransferType()).map(type -> !transferTypes.contains(type)).orElse(true));
-
+        return extractFlowType(transferProcess).succeeded();
     }
 
     @Override
     public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
+        var flowType = extractFlowType(transferProcess);
+        if (flowType.failed()) {
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, flowType.getFailureDetail());
+        }
+
+        var dataPlaneInstance = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getDataDestination(), selectionStrategy, transferProcess.getTransferType());
         var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(transferProcess.getId())
                 .sourceDataAddress(transferProcess.getContentDataAddress())
                 .destinationDataAddress(transferProcess.getDataDestination())
-                .flowType(PUSH)
+                .participantId(policy.getAssignee())
+                .agreementId(transferProcess.getContractId())
+                .assetId(transferProcess.getAssetId())
+                .flowType(flowType.getContent())
                 .callbackAddress(callbackUrl != null ? callbackUrl.get() : null)
                 .build();
 
-        var dataPlaneInstance = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getDataDestination());
-
         var dataPlaneInstanceId = dataPlaneInstance != null ? dataPlaneInstance.getId() : null;
+
         return clientFactory.createClient(dataPlaneInstance)
                 .start(dataFlowRequest)
-                .map(it -> DataFlowResponse.Builder.newInstance().dataPlaneId(dataPlaneInstanceId).build());
+                .map(it -> DataFlowResponse.Builder.newInstance()
+                        .dataAddress(it.getDataAddress())
+                        .dataPlaneId(dataPlaneInstanceId)
+                        .build()
+                );
     }
 
     @Override
@@ -95,10 +111,26 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
     public Set<String> transferTypesFor(Asset asset) {
         return selectorClient.getAll().stream()
                 .filter(it -> it.getAllowedSourceTypes().contains(asset.getDataAddress().getType()))
-                .map(DataPlaneInstance::getAllowedDestTypes)
+                .map(DataPlaneInstance::getAllowedTransferTypes)
                 .flatMap(Collection::stream)
-                .map(it -> "%s-%s".formatted(it, PUSH))
                 .collect(toSet());
+    }
+
+    private StatusResult<FlowType> extractFlowType(TransferProcess transferProcess) {
+        return Optional.ofNullable(transferProcess.getTransferType())
+                .map(transferType -> transferType.split("-"))
+                .filter(tokens -> tokens.length == 2)
+                .map(tokens -> parseFlowType(tokens[1]))
+                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to extract flow type from transferType %s".formatted(transferProcess.getTransferType())));
+
+    }
+
+    private StatusResult<FlowType> parseFlowType(String flowType) {
+        try {
+            return StatusResult.success(FlowType.valueOf(flowType));
+        } catch (Exception e) {
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Unknown flow type %s".formatted(flowType));
+        }
     }
 
     private Predicate<DataPlaneInstance> dataPlaneInstanceFilter(TransferProcess transferProcess) {

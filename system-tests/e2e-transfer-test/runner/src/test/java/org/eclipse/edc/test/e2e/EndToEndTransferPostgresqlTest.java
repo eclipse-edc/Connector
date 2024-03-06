@@ -33,8 +33,10 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
         createDatabase(PROVIDER.getName());
     };
 
-    static String[] controlPlanePostgresqlModules = new String[] {
+    static String[] controlPlanePostgresqlModules = new String[]{
             ":system-tests:e2e-transfer-test:control-plane",
+            ":extensions:control-plane:transfer:transfer-data-plane",
+            ":extensions:data-plane:data-plane-client",
             ":extensions:control-plane:store:sql:control-plane-sql",
             ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
             ":extensions:common:transaction:transaction-local",
@@ -42,7 +44,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
             ":extensions:policy-monitor:store:sql:policy-monitor-store-sql"
     };
 
-    static String[] dataPlanePostgresqlModules = new String[] {
+    static String[] dataPlanePostgresqlModules = new String[]{
             ":system-tests:e2e-transfer-test:data-plane",
             ":extensions:data-plane:store:sql:data-plane-store-sql",
             ":extensions:common:sql:sql-pool:sql-pool-apache-commons",

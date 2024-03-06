@@ -35,6 +35,7 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.response.StatusResult.failure;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
 
+@Deprecated(since = "0.5.1")
 public class ConsumerPullTransferDataFlowController implements DataFlowController {
 
     private final DataPlaneSelectorService selectorService;
