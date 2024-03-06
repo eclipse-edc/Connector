@@ -62,7 +62,7 @@ class ContractNegotiationApiTest {
         transformer.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformer.register(new JsonObjectToCallbackAddressTransformer());
         transformer.register(new JsonObjectToTerminateNegotiationCommandTransformer());
-        OdrlTransformersFactory.jsonObjectToOdrlTransformers().forEach(transformer::register);
+        OdrlTransformersFactory.jsonObjectToOdrlTransformers(mock()).forEach(transformer::register);
     }
 
     @Test

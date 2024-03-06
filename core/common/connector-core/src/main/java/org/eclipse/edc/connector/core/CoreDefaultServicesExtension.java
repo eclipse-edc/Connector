@@ -20,11 +20,13 @@ import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
 import org.eclipse.edc.connector.core.base.OkHttpClientFactory;
 import org.eclipse.edc.connector.core.base.RetryPolicyFactory;
+import org.eclipse.edc.connector.core.base.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -51,8 +53,6 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
     @Inject(required = false)
     private EventListener okHttpEventListener;
 
-    private InMemoryVault inMemoryVault;
-
     @Override
     public String name() {
         return NAME;
@@ -77,7 +77,7 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public EventExecutorServiceContainer eventExecutorServiceContainer() {
-        return new EventExecutorServiceContainer(Executors.newFixedThreadPool(1)); // TODO: make configurable
+        return new EventExecutorServiceContainer(Executors.newFixedThreadPool(1));
     }
 
     @Provider(isDefault = true)
@@ -105,14 +105,15 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
         return RetryPolicyFactory.create(context);
     }
 
-
     @Provider(isDefault = true)
     public Vault createInmemVault(ServiceExtensionContext context) {
         context.getMonitor().warning("Using the InMemoryVault is not suitable for production scenarios and should be replaced with an actual Vault!");
-        if (inMemoryVault == null) {
-            inMemoryVault = new InMemoryVault(context.getMonitor());
-        }
-        return inMemoryVault;
+        return new InMemoryVault(context.getMonitor());
+    }
+
+    @Provider(isDefault = true)
+    public ParticipantIdMapper participantIdMapper() {
+        return new NoOpParticipantIdMapper();
     }
 
 }

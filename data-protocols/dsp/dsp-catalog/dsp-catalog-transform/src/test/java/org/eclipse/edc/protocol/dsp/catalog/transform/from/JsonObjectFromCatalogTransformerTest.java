@@ -25,6 +25,7 @@ import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,15 +56,15 @@ class JsonObjectFromCatalogTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final ObjectMapper mapper = mock();
     private final TransformerContext context = mock();
+    private final ParticipantIdMapper participantIdMapper = mock();
 
-    private JsonObjectFromCatalogTransformer transformer;
+    private final JsonObjectFromCatalogTransformer transformer = new JsonObjectFromCatalogTransformer(jsonFactory, mapper, participantIdMapper);
 
     private JsonObject datasetJson;
     private JsonObject dataServiceJson;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromCatalogTransformer(jsonFactory, mapper);
 
         datasetJson = getJsonObject("dataset");
         dataServiceJson = getJsonObject("dataService");
@@ -71,6 +72,7 @@ class JsonObjectFromCatalogTransformerTest {
         when(context.transform(isA(Dataset.class), eq(JsonObject.class))).thenReturn(datasetJson);
         when(context.transform(isA(DataService.class), eq(JsonObject.class))).thenReturn(dataServiceJson);
         when(context.problem()).thenReturn(new ProblemBuilder(context));
+        when(participantIdMapper.toIri(any())).thenReturn("urn:namespace:participantId");
     }
 
     @Test
@@ -95,7 +97,7 @@ class JsonObjectFromCatalogTransformerTest {
                 .isInstanceOf(JsonArray.class)
                 .matches(v -> v.asJsonArray().size() == 1)
                 .matches(v -> v.asJsonArray().get(0).equals(dataServiceJson));
-        assertThat(result.getString(DSPACE_PROPERTY_PARTICIPANT_ID)).isEqualTo("participantId");
+        assertThat(result.getString(DSPACE_PROPERTY_PARTICIPANT_ID)).isEqualTo("urn:namespace:participantId");
         assertThat(result.get(CATALOG_PROPERTY)).isNotNull();
 
         verify(context, times(1)).transform(catalog.getDatasets().get(0), JsonObject.class);

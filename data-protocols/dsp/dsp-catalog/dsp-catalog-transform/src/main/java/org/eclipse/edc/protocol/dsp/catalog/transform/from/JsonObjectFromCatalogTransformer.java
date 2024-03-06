@@ -19,6 +19,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,11 +38,13 @@ import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.D
 public class JsonObjectFromCatalogTransformer extends AbstractJsonLdTransformer<Catalog, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper mapper;
+    private final ParticipantIdMapper participantIdMapper;
 
-    public JsonObjectFromCatalogTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromCatalogTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper, ParticipantIdMapper participantIdMapper) {
         super(Catalog.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.mapper = mapper;
+        this.participantIdMapper = participantIdMapper;
     }
 
     @Override
@@ -57,7 +60,7 @@ public class JsonObjectFromCatalogTransformer extends AbstractJsonLdTransformer<
         var objectBuilder = jsonFactory.createObjectBuilder()
                 .add(ID, catalog.getId())
                 .add(TYPE, DCAT_CATALOG_TYPE)
-                .add(DSPACE_PROPERTY_PARTICIPANT_ID, catalog.getParticipantId())
+                .add(DSPACE_PROPERTY_PARTICIPANT_ID, participantIdMapper.toIri(catalog.getParticipantId()))
                 .add(DCAT_DATASET_ATTRIBUTE, datasets)
                 .add(DCAT_DATA_SERVICE_ATTRIBUTE, dataServices);
     
