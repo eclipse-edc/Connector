@@ -16,12 +16,12 @@ package org.eclipse.edc.connector.api.signaling.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
-import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowResponseMessageTransformer;
-import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowStartMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowSuspendMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowTerminateMessageTransformer;
+import org.eclipse.edc.core.transform.dspace.from.JsonObjectFromDataAddressTransformer;
+import org.eclipse.edc.core.transform.dspace.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;

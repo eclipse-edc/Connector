@@ -50,6 +50,7 @@ include(":core:common:policy-engine")
 include(":core:common:policy-evaluator")
 include(":core:common:state-machine")
 include(":core:common:transform-core")
+include(":core:common:transform-dspace")
 include(":core:common:validator-core")
 include(":core:common:util")
 

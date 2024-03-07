@@ -18,12 +18,22 @@ import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.api.management.configuration.transform.JsonObjectFromContractAgreementTransformer;
+import org.eclipse.edc.core.transform.transformer.OdrlTransformersFactory;
+import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromAssetTransformer;
+import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromCriterionTransformer;
+import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDataAddressTransformer;
+import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromPolicyTransformer;
+import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromQuerySpecTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToAssetTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -76,6 +86,8 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     private JsonLd jsonLd;
     @Inject
     private TypeTransformerRegistry transformerRegistry;
+    @Inject
+    private ParticipantIdMapper participantIdMapper;
 
     @Override
     public String name() {
@@ -94,10 +106,21 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         webService.registerResource(webServiceConfiguration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(webServiceConfiguration.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, MANAGEMENT_SCOPE));
 
-        var factory = Json.createBuilderFactory(Map.of());
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
+
+        var factory = Json.createBuilderFactory(Map.of());
         managementApiTransformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory));
+        managementApiTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(factory));
+        managementApiTransformerRegistry.register(new JsonObjectFromAssetTransformer(factory, jsonLdMapper));
+        managementApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper));
+        managementApiTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(factory));
+        managementApiTransformerRegistry.register(new JsonObjectFromCriterionTransformer(factory, jsonLdMapper));
+
+        OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper).forEach(managementApiTransformerRegistry::register);
         managementApiTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
-        managementApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager.getMapper(JSON_LD)));
+        managementApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
+        managementApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(jsonLdMapper));
     }
 }

@@ -235,9 +235,7 @@ public abstract class AbstractEndToEndTransfer {
         return createObjectBuilder()
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
                 .add(EDC_NAMESPACE + "type", "HttpData")
-                .add(EDC_NAMESPACE + "properties", createObjectBuilder()
-                        .add(EDC_NAMESPACE + "baseUrl", baseUrl)
-                        .build())
+                .add(EDC_NAMESPACE + "baseUrl", baseUrl)
                 .build();
     }
 
