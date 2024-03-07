@@ -182,7 +182,7 @@
     "gteq":                 "odrl:gteq",
     "lt":                   "odrl:lt",
     "lteq":                 "odrl:lteq",
-    "neq":                  "odrl:neg",
+    "neq":                  "odrl:neq",
     "isA":                  "odrl:isA",
     "hasPart":              "odrl:hasPart",
     "isPartOf":             "odrl:isPartOf",
