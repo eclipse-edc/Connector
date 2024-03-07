@@ -16,12 +16,12 @@
 package org.eclipse.edc.connector.api.management.contractagreement;
 
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -36,7 +36,7 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     private ManagementApiConfiguration config;
 
     @Inject
-    private ManagementApiTypeTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @Inject
     private ContractAgreementService service;
@@ -53,7 +53,9 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        var controller = new ContractAgreementApiController(service, transformerRegistry, monitor, validatorRegistry);
+        var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
+
+        var controller = new ContractAgreementApiController(service, managementApiTransformerRegistry, monitor, validatorRegistry);
         webService.registerResource(config.getContextAlias(), controller);
     }
 }

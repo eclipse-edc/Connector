@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.client;
 
-import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistry;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -24,6 +23,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
@@ -34,7 +34,6 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 public class DataPlaneSignalingClientExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Signaling Client";
 
-
     @Inject
     private EdcHttpClient httpClient;
 
@@ -42,8 +41,9 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
     private TypeManager typeManager;
 
     @Inject
-    private SignalingApiTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
+    @Inject
     private JsonLd jsonLd;
 
     @Override
@@ -54,7 +54,8 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
     @Provider
     public DataPlaneClientFactory dataPlaneClientFactory() {
         var mapper = typeManager.getMapper(JSON_LD);
-        return instance -> new DataPlaneSignalingClient(httpClient, transformerRegistry, jsonLd, mapper, instance);
+        var signalingApiTypeTransformerRegistry = transformerRegistry.forContext("signaling-api");
+        return instance -> new DataPlaneSignalingClient(httpClient, signalingApiTypeTransformerRegistry, jsonLd, mapper, instance);
     }
 }
 

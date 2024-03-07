@@ -19,8 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.ContentType;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistry;
-import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistryImpl;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowStartMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataAddressTransformer;
@@ -37,6 +35,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +43,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -61,14 +59,11 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
     private static final String DATAPLANE_PUBLIC_ENDPOINT_URL = "http://fizz.buzz/bar";
 
-    protected final Duration timeout = Duration.ofSeconds(60);
     private ObjectMapper mapper;
-    private SignalingApiTransformerRegistry registry;
+    private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl();
 
     @BeforeEach
     void setup() {
-        // this registry is entirely separate from the one that is included in the runtime
-        registry = new SignalingApiTransformerRegistryImpl(new TypeTransformerRegistryImpl());
         var builderFactory = Json.createBuilderFactory(Map.of());
         mapper = JacksonJsonLd.createObjectMapper();
         registry.register(new JsonObjectFromDataFlowStartMessageTransformer(builderFactory, mapper));

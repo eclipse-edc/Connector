@@ -18,15 +18,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.api.signaling.transform.SignalingApiTransformerRegistryImpl;
+import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowResponseMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowStartMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowSuspendMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowTerminateMessageTransformer;
+import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowResponseMessageTransformer;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
+import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.EdcException;
@@ -37,7 +39,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
-import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -64,7 +65,6 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
@@ -83,10 +83,7 @@ class DataPlaneSignalingClientTest {
     private static final String DATA_PLANE_PATH = "/v1/dataflows";
     private static final String DATA_PLANE_API_URI = "http://localhost:" + DATA_PLANE_API_PORT + DATA_PLANE_PATH;
 
-    private static final TypeTransformerRegistry UNDERLYING_REGISTRY = mock();
-    private static final TypeTransformerRegistry TRANSFORMER_REGISTRY = new SignalingApiTransformerRegistryImpl(UNDERLYING_REGISTRY);
-    private static final TypeTransformer<DataAddress, JsonObject> FROM_DATA_ADDRESS_TRANSFORMER = mock();
-    private static final TypeTransformer<JsonObject, DataAddress> TO_DATA_ADDRESS_TRANSFORMER = mock();
+    private static final TypeTransformerRegistry TRANSFORMER_REGISTRY = new TypeTransformerRegistryImpl();
     private static final TitaniumJsonLd JSON_LD = new TitaniumJsonLd(mock(Monitor.class));
     private static ClientAndServer dataPlane;
     private final DataPlaneInstance instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
@@ -103,35 +100,13 @@ class DataPlaneSignalingClientTest {
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowStartMessageTransformer(factory, MAPPER));
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
         TRANSFORMER_REGISTRY.register(new JsonObjectToDataFlowResponseMessageTransformer());
-
-        when(UNDERLYING_REGISTRY.transformerFor(any(DataAddress.class), eq(JsonObject.class))).thenReturn(FROM_DATA_ADDRESS_TRANSFORMER);
-        when(UNDERLYING_REGISTRY.transformerFor(any(JsonObject.class), eq(DataAddress.class))).thenReturn(TO_DATA_ADDRESS_TRANSFORMER);
-        when(FROM_DATA_ADDRESS_TRANSFORMER.transform(any(DataAddress.class), any())).thenReturn(Json.createObjectBuilder().build());
-        when(TO_DATA_ADDRESS_TRANSFORMER.transform(any(JsonObject.class), any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
+        TRANSFORMER_REGISTRY.register(new JsonObjectFromDataAddressTransformer(factory, MAPPER));
+        TRANSFORMER_REGISTRY.register(new JsonObjectToDataAddressTransformer());
     }
 
     @AfterAll
     public static void tearDown() {
         stopQuietly(dataPlane);
-    }
-
-    private static HttpResponse withResponse(String errorMsg) throws JsonProcessingException {
-        return response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code())
-                .withBody(MAPPER.writeValueAsString(new TransferErrorResponse(List.of(errorMsg))), MediaType.APPLICATION_JSON);
-    }
-
-    private static DataFlowStartMessage createDataFlowRequest() {
-        return DataFlowStartMessage.Builder.newInstance()
-                .id("123")
-                .processId("456")
-                .flowType(FlowType.PULL)
-                .assetId("assetId")
-                .agreementId("agreementId")
-                .participantId("participantId")
-                .callbackAddress(URI.create("http://void"))
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .build();
     }
 
     @AfterEach
@@ -312,5 +287,24 @@ class DataPlaneSignalingClientTest {
                 .anySatisfy(s -> assertThat(s)
                         .isEqualTo("Transform Failure")
                 );
+    }
+
+    private HttpResponse withResponse(String errorMsg) throws JsonProcessingException {
+        return response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code())
+                .withBody(MAPPER.writeValueAsString(new TransferErrorResponse(List.of(errorMsg))), MediaType.APPLICATION_JSON);
+    }
+
+    private DataFlowStartMessage createDataFlowRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
+                .id("123")
+                .processId("456")
+                .flowType(FlowType.PULL)
+                .assetId("assetId")
+                .agreementId("agreementId")
+                .participantId("participantId")
+                .callbackAddress(URI.create("http://void"))
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .build();
     }
 }

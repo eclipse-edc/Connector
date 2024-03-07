@@ -14,50 +14,42 @@
 
 package org.eclipse.edc.connector.dataplane.client;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowStartMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowSuspendMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowTerminateMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowResponseMessageTransformer;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DataPlaneSignalingClientTransformExtensionTest {
 
+    private final TypeTransformerRegistry signalingRegistry = mock();
+
+    @BeforeEach
+    void setUp(ServiceExtensionContext context) {
+        TypeTransformerRegistry parentRegistry = mock();
+        when(parentRegistry.forContext("signaling-api")).thenReturn(signalingRegistry);
+        context.registerService(TypeTransformerRegistry.class, parentRegistry);
+    }
+
     @Test
-    void verifyTransformerRegistry(DataPlaneSignalingClientTransformExtension extension) {
+    void verifyTransformerRegistry(DataPlaneSignalingClientTransformExtension extension, ServiceExtensionContext context) {
+        extension.initialize(context);
 
-        var registry = extension.signalingApiTransformerRegistry();
-
-        assertThat(registry.transformerFor(DataFlowSuspendMessage.Builder.newInstance().build(), JsonObject.class))
-                .isInstanceOf(JsonObjectFromDataFlowSuspendMessageTransformer.class);
-
-        assertThat(registry.transformerFor(DataFlowTerminateMessage.Builder.newInstance().build(), JsonObject.class))
-                .isInstanceOf(JsonObjectFromDataFlowTerminateMessageTransformer.class);
-
-        assertThat(registry.transformerFor(startMessage(), JsonObject.class))
-                .isInstanceOf(JsonObjectFromDataFlowStartMessageTransformer.class);
-
-        assertThat(registry.transformerFor(Json.createObjectBuilder().build(), DataFlowResponseMessage.class))
-                .isInstanceOf(JsonObjectToDataFlowResponseMessageTransformer.class);
+        verify(signalingRegistry).register(isA(JsonObjectFromDataFlowSuspendMessageTransformer.class));
+        verify(signalingRegistry).register(isA(JsonObjectFromDataFlowTerminateMessageTransformer.class));
+        verify(signalingRegistry).register(isA(JsonObjectFromDataFlowStartMessageTransformer.class));
+        verify(signalingRegistry).register(isA(JsonObjectToDataFlowResponseMessageTransformer.class));
     }
 
-    private DataFlowStartMessage startMessage() {
-        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        return DataFlowStartMessage.Builder.newInstance()
-                .processId("processId")
-                .sourceDataAddress(dataAddress)
-                .destinationDataAddress(dataAddress)
-                .build();
-    }
 }

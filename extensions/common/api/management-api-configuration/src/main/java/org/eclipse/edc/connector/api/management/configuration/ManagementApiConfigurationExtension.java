@@ -18,14 +18,11 @@ import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.api.management.configuration.transform.JsonObjectFromContractAgreementTransformer;
-import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
-import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -96,16 +93,11 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(webServiceConfiguration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(webServiceConfiguration.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, MANAGEMENT_SCOPE));
-    }
 
-    @Provider
-    public ManagementApiTypeTransformerRegistry managementApiTypeTransformerRegistry() {
         var factory = Json.createBuilderFactory(Map.of());
-
-        var registry = new ManagementApiTypeTransformerRegistryImpl(this.transformerRegistry);
-        registry.register(new JsonObjectFromContractAgreementTransformer(factory));
-        registry.register(new JsonObjectToDataAddressTransformer());
-        registry.register(new JsonValueToGenericTypeTransformer(typeManager.getMapper(JSON_LD)));
-        return registry;
+        var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
+        managementApiTransformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory));
+        managementApiTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
+        managementApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager.getMapper(JSON_LD)));
     }
 }
