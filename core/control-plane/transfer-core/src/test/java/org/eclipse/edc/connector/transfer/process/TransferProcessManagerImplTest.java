@@ -203,7 +203,7 @@ class TransferProcessManagerImplTest {
                 .thenReturn(List.of(transferProcess))
                 .thenReturn(emptyList());
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class)))
+        when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class)))
                 .thenReturn(Result.success(resourceManifest));
 
         manager.start();
@@ -222,7 +222,7 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                 .thenReturn(List.of(transferProcess))
                 .thenReturn(emptyList());
-        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class)))
+        when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class)))
                 .thenReturn(Result.failure("error"));
 
         manager.start();
@@ -259,7 +259,7 @@ class TransferProcessManagerImplTest {
         var contentDataAddress = DataAddress.Builder.newInstance().type("type").build();
         when(addressResolver.resolveForAsset(any())).thenReturn(contentDataAddress);
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateProviderResourceManifest(any(DataRequest.class), any(), any()))
+        when(manifestGenerator.generateProviderResourceManifest(any(TransferProcess.class), any(), any()))
                 .thenReturn(resourceManifest);
 
         manager.start();
@@ -290,7 +290,7 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
         when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateProviderResourceManifest(any(DataRequest.class), any(), any()))
+        when(manifestGenerator.generateProviderResourceManifest(any(TransferProcess.class), any(), any()))
                 .thenReturn(resourceManifest);
 
         manager.start();
