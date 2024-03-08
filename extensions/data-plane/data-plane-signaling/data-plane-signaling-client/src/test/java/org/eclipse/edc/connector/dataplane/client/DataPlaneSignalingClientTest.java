@@ -27,8 +27,8 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.dspace.from.JsonObjectFromDataAddressTransformer;
-import org.eclipse.edc.core.transform.dspace.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.core.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
+import org.eclipse.edc.core.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.EdcException;
@@ -100,8 +100,8 @@ class DataPlaneSignalingClientTest {
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowStartMessageTransformer(factory, MAPPER));
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
         TRANSFORMER_REGISTRY.register(new JsonObjectToDataFlowResponseMessageTransformer());
-        TRANSFORMER_REGISTRY.register(new JsonObjectFromDataAddressTransformer(factory, MAPPER));
-        TRANSFORMER_REGISTRY.register(new JsonObjectToDataAddressTransformer());
+        TRANSFORMER_REGISTRY.register(new JsonObjectFromDataAddressDspaceTransformer(factory, MAPPER));
+        TRANSFORMER_REGISTRY.register(new JsonObjectToDataAddressDspaceTransformer());
     }
 
     @AfterAll

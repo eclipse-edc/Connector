@@ -15,17 +15,17 @@
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
 import jakarta.json.Json;
-import org.eclipse.edc.core.transform.dspace.from.JsonObjectFromDataAddressTransformer;
-import org.eclipse.edc.core.transform.dspace.to.JsonObjectToDataAddressTransformer;
-import org.eclipse.edc.core.transform.transformer.OdrlTransformersFactory;
-import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromAssetTransformer;
-import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromCriterionTransformer;
-import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromPolicyTransformer;
-import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromQuerySpecTransformer;
-import org.eclipse.edc.core.transform.transformer.to.JsonObjectToAssetTransformer;
-import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCriterionTransformer;
-import org.eclipse.edc.core.transform.transformer.to.JsonObjectToQuerySpecTransformer;
-import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
+import org.eclipse.edc.core.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
+import org.eclipse.edc.core.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromAssetTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToAssetTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
+import org.eclipse.edc.core.transform.transformer.odrl.OdrlTransformersFactory;
+import org.eclipse.edc.core.transform.transformer.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -138,7 +138,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var dspApiTransformerRegistry = transformerRegistry.forContext("dsp-api");
         dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper));
         dspApiTransformerRegistry.register(new JsonObjectFromAssetTransformer(jsonBuilderFactory, mapper));
-        dspApiTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(jsonBuilderFactory, mapper));
+        dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(jsonBuilderFactory, mapper));
         dspApiTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromCriterionTransformer(jsonBuilderFactory, mapper));
 
@@ -150,7 +150,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer());
     }
 
 }

@@ -16,6 +16,7 @@ package org.eclipse.edc.jsonld.spi;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
@@ -72,4 +73,5 @@ public interface PropertyAndTypeNames {
     String ODRL_XONE_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "xone";
     String ODRL_USE_ACTION_ATTRIBUTE = ODRL_SCHEMA + "use";
 
+    String DSPACE_PROPERTY_PARTICIPANT_ID = DSPACE_SCHEMA + "participantId";
 }

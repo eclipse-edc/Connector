@@ -35,7 +35,6 @@ dependencies {
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
     testImplementation(project(":core:common:transform-core")) // for the transformer registry impl
-    testImplementation(project(":core:common:transform-dspace"))
     testImplementation(project(":extensions:common:crypto:crypto-common"))
 
     testCompileOnly(project(":system-tests:e2e-dataplane-tests:runtimes:data-plane"))

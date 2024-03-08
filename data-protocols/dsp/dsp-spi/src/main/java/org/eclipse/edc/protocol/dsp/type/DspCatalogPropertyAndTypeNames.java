@@ -25,6 +25,5 @@ public interface DspCatalogPropertyAndTypeNames {
 
     String DSPACE_TYPE_CATALOG_ERROR = DSPACE_SCHEMA + "CatalogError";
     String DSPACE_PROPERTY_FILTER = DSPACE_SCHEMA + "filter";
-    String DSPACE_PROPERTY_PARTICIPANT_ID = DSPACE_SCHEMA + "participantId";
 
 }
