@@ -53,6 +53,7 @@ include(":core:common:transform-core")
 include(":core:common:transform-dspace")
 include(":core:common:validator-core")
 include(":core:common:util")
+include(":core:common:edr-store-core")
 
 include(":core:control-plane:catalog-core")
 include(":core:control-plane:contract-core")
@@ -66,6 +67,7 @@ include(":core:data-plane:data-plane-core")
 include(":core:data-plane-selector:data-plane-selector-core")
 
 include(":core:policy-monitor:policy-monitor-core")
+
 
 // modules that provide implementations for data ingress/egress ------------------------------------
 include(":data-protocols:dsp:dsp-api-configuration")
@@ -220,6 +222,7 @@ include(":spi:common:validator-spi")
 include(":spi:common:web-spi")
 include(":spi:common:identity-trust-spi")
 include(":spi:common:identity-trust-sts-spi")
+include(":spi:common:edr-store-spi")
 
 
 include(":spi:control-plane:asset-spi")
