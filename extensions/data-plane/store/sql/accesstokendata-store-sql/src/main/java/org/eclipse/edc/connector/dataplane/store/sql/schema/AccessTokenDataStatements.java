@@ -49,7 +49,8 @@ public interface AccessTokenDataStatements extends SqlStatements {
 
     String getDeleteTemplate();
 
-    SqlQueryStatement createQuery(QuerySpec querySpec);
+    String getUpdateTemplate();
 
+    SqlQueryStatement createQuery(QuerySpec querySpec);
 }
 

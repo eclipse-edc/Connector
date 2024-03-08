@@ -85,6 +85,21 @@ public class SqlAccessTokenDataStore extends AbstractSqlStore implements AccessT
     }
 
     @Override
+    public StoreResult<Void> update(AccessTokenData accessTokenData) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                if (findByIdInternal(connection, accessTokenData.id()) != null) {
+                    update(connection, accessTokenData);
+                    return StoreResult.success();
+                }
+                return StoreResult.notFound(OBJECT_NOT_FOUND.formatted(accessTokenData.id()));
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
     public StoreResult<Void> deleteById(String id) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
@@ -119,6 +134,18 @@ public class SqlAccessTokenDataStore extends AbstractSqlStore implements AccessT
                 toJson(dataFlow.claimToken()),
                 toJson(dataFlow.dataAddress()),
                 toJson(dataFlow.additionalProperties())
+        );
+    }
+
+    private void update(Connection connection, AccessTokenData data) {
+
+        var sql = statements.getUpdateTemplate();
+        queryExecutor.execute(connection, sql,
+                data.id(),
+                toJson(data.claimToken()),
+                toJson(data.dataAddress()),
+                toJson(data.additionalProperties()),
+                data.id()
         );
     }
 

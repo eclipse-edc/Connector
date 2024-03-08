@@ -47,6 +47,14 @@ public interface AccessTokenDataStore {
     StoreResult<Void> store(AccessTokenData accessTokenData);
 
     /**
+     * Replaces an {@link AccessTokenData} object int the persistence layer. Will return a failure if an object with that ID does not exist.
+     *
+     * @param accessTokenData the new object
+     * @return success if updated, a failure if an object with the same ID does not exist.
+     */
+    StoreResult<Void> update(AccessTokenData accessTokenData);
+
+    /**
      * Deletes an {@link AccessTokenData} entity with the given ID.
      *
      * @param id The ID of the {@link AccessTokenData} that is supposed to be deleted.
