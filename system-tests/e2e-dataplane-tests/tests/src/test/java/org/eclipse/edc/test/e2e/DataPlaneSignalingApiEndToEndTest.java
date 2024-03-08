@@ -27,8 +27,8 @@ import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.dspace.from.JsonObjectFromDataAddressTransformer;
-import org.eclipse.edc.core.transform.dspace.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.core.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
+import org.eclipse.edc.core.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -69,8 +69,8 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         var builderFactory = Json.createBuilderFactory(Map.of());
         mapper = JacksonJsonLd.createObjectMapper();
         registry.register(new JsonObjectFromDataFlowStartMessageTransformer(builderFactory, mapper));
-        registry.register(new JsonObjectFromDataAddressTransformer(builderFactory, mapper));
-        registry.register(new JsonObjectToDataAddressTransformer());
+        registry.register(new JsonObjectFromDataAddressDspaceTransformer(builderFactory, mapper));
+        registry.register(new JsonObjectToDataAddressDspaceTransformer());
         registry.register(new JsonObjectToDataFlowResponseMessageTransformer());
     }
 

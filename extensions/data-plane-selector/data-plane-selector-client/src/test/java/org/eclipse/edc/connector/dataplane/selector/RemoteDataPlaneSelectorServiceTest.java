@@ -22,9 +22,9 @@ import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectFromDa
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDataAddressTransformer;
-import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataAddressTransformer;
-import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;

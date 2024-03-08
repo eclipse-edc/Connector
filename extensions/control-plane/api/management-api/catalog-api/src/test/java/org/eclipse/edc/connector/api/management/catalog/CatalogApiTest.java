@@ -24,7 +24,7 @@ import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToDa
 import org.eclipse.edc.connector.api.management.catalog.validation.CatalogRequestValidator;
 import org.eclipse.edc.connector.api.management.catalog.validation.DatasetRequestValidator;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.transformer.to.JsonObjectToQuerySpecTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;

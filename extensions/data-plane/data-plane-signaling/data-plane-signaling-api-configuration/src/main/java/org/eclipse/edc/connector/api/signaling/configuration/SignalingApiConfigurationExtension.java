@@ -20,8 +20,8 @@ import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromData
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowStartMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowSuspendMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowTerminateMessageTransformer;
-import org.eclipse.edc.core.transform.dspace.from.JsonObjectFromDataAddressTransformer;
-import org.eclipse.edc.core.transform.dspace.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.core.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
+import org.eclipse.edc.core.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -99,10 +99,9 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowStartMessageTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowSuspendMessageTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
-        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
-        signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(factory, getJsonLdMapper()));
-
+        signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(factory, jsonLdMapper));
     }
 
     @NotNull
