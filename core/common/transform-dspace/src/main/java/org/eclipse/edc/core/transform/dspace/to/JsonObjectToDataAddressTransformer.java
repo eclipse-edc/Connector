@@ -12,12 +12,11 @@
  *
  */
 
-package org.eclipse.edc.connector.api.signaling.transform.to;
+package org.eclipse.edc.core.transform.dspace.to;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -27,8 +26,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTIES_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_TYPE_PROPERTY;
 
 /**
  * Transforms a {@link JsonObject} into a DataAddress using the DSPACE-serialization format.
@@ -47,13 +49,9 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
 
     private void transformProperties(String key, JsonValue jsonValue, DataAddress.Builder builder, TransformerContext context) {
         switch (key) {
-            case DspaceDataAddressSerialization.ENDPOINT_PROPERTY ->
-                    transformString(jsonValue, endpoint -> builder.property("endpoint", endpoint), context);
-            case DspaceDataAddressSerialization.ENDPOINT_TYPE_PROPERTY -> {
-                var endpointType = transformString(jsonValue, context);
-                builder.type(endpointType);
-            }
-            case DspaceDataAddressSerialization.ENDPOINT_PROPERTIES_PROPERTY ->
+            case ENDPOINT_PROPERTY -> { }
+            case ENDPOINT_TYPE_PROPERTY -> builder.type(transformString(jsonValue, context));
+            case ENDPOINT_PROPERTIES_PROPERTY ->
                     transformEndpointProperties(jsonValue, ep -> builder.property(ep.name(), ep.value()), context);
             default -> throw new IllegalArgumentException("Unexpected value: " + key);
         }

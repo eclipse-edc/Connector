@@ -132,12 +132,12 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public DspRequestHandler dspRequestHandler() {
-        return new DspRequestHandlerImpl(monitor, validatorRegistry, transformerRegistry);
+        return new DspRequestHandlerImpl(monitor, validatorRegistry, transformerRegistry.forContext("dsp-api"));
     }
 
     @Provider
     public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
-        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry, typeManager.getMapper(JSON_LD), jsonLdService, DSP_SCOPE);
+        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry.forContext("dsp-api"), typeManager.getMapper(JSON_LD), jsonLdService, DSP_SCOPE);
     }
 
     private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {

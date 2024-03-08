@@ -12,27 +12,19 @@
  *
  */
 
-
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 dependencies {
+    api(project(":spi:common:catalog-spi"))
+    api(project(":spi:common:core-spi"))
     api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:data-plane:data-plane-spi"))
+    api(project(":spi:common:transform-spi"))
 
-    implementation(project(":core:common:transform-dspace"))
-    implementation(project(":core:common:jersey-providers"))
-    implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
-    implementation(libs.jakarta.rsApi)
+    api(libs.jakartaJson)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":extensions:common:json-ld"))
 }
-edcBuild {
-    swagger {
-        apiGroup.set("control-api")
-    }
-}
-
-

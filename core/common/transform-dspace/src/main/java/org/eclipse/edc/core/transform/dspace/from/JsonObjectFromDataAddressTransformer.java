@@ -12,11 +12,12 @@
  *
  */
 
-package org.eclipse.edc.connector.api.signaling.transform.from;
+package org.eclipse.edc.core.transform.dspace.from;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import jakarta.json.stream.JsonCollectors;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -25,18 +26,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.DSPACE_DATAADDRESS_TYPE;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTIES_PROPERTY;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_PROPERTY_TYPE;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_TYPE_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.DSPACE_DATAADDRESS_TYPE;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTIES_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_PROPERTY_TYPE;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_TYPE_PROPERTY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 
 public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransformer<DataAddress, JsonObject> {
-    private static final Set<String> EXCLUDED_PROPERTIES = Set.of(EDC_DATA_ADDRESS_TYPE_PROPERTY, "endpoint");
+
+    private static final Set<String> EXCLUDED_PROPERTIES = Set.of(EDC_DATA_ADDRESS_TYPE_PROPERTY);
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper mapper;
 
@@ -48,22 +49,16 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
 
     @Override
     public @Nullable JsonObject transform(@NotNull DataAddress dataAddress, @NotNull TransformerContext context) {
-
-        var propsBuilder = jsonFactory.createArrayBuilder();
-
-        dataAddress.getProperties().entrySet().stream()
+        var endpointProperties = dataAddress.getProperties().entrySet().stream()
                 .filter(e -> !EXCLUDED_PROPERTIES.contains(e.getKey()))
-                .forEach(e -> propsBuilder.add(endpointProperty(e.getKey(), e.getValue())));
+                .map(it -> endpointProperty(it.getKey(), it.getValue()))
+                .collect(JsonCollectors.toJsonArray());
 
-        var objectBuilder = jsonFactory.createObjectBuilder()
+        return jsonFactory.createObjectBuilder()
                 .add(TYPE, DSPACE_DATAADDRESS_TYPE)
                 .add(ENDPOINT_TYPE_PROPERTY, dataAddress.getType())
-                .add(ENDPOINT_PROPERTY, dataAddress.getProperties().getOrDefault("endpoint", "https://example.com").toString());
-
-
-        objectBuilder.add(ENDPOINT_PROPERTIES_PROPERTY, propsBuilder.build());
-
-        return objectBuilder.build();
+                .add(ENDPOINT_PROPERTIES_PROPERTY, endpointProperties)
+                .build();
     }
 
     private JsonObject endpointProperty(String key, Object value) {

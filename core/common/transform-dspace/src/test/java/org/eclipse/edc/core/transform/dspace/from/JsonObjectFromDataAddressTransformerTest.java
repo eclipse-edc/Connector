@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.signaling.transform.from;
+package org.eclipse.edc.core.transform.dspace.from;
 
 import jakarta.json.Json;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -23,16 +23,17 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTIES_PROPERTY;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_TYPE_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTIES_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_TYPE_PROPERTY;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromDataAddressTransformerTest {
 
-    private final JsonObjectFromDataAddressTransformer transformer = new JsonObjectFromDataAddressTransformer(Json.createBuilderFactory(Map.of()), JacksonJsonLd.createObjectMapper());
+    private final JsonObjectFromDataAddressTransformer transformer = new JsonObjectFromDataAddressTransformer(
+            Json.createBuilderFactory(Map.of()), JacksonJsonLd.createObjectMapper());
     private final TransformerContext context = mock();
 
     @Test
@@ -48,14 +49,18 @@ class JsonObjectFromDataAddressTransformerTest {
 
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getString(ENDPOINT_TYPE_PROPERTY)).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-        assertThat(jsonObject.getString(ENDPOINT_PROPERTY)).isEqualTo("https://example.com");
-        assertThat(jsonObject.getJsonArray(ENDPOINT_PROPERTIES_PROPERTY)).hasSize(2)
+        assertThat(jsonObject.get(ENDPOINT_PROPERTY)).isEqualTo(null);
+        assertThat(jsonObject.getJsonArray(ENDPOINT_PROPERTIES_PROPERTY)).hasSize(3)
                 .anySatisfy(jv -> {
                     assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY)).isEqualTo("authorization");
                     assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_VALUE_PROPERTY)).isEqualTo("secret-token");
                 }).anySatisfy(jv -> {
                     assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY)).isEqualTo("foo");
                     assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_VALUE_PROPERTY)).isEqualTo("bar");
+                })
+                .anySatisfy(jv -> {
+                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY)).isEqualTo("endpoint");
+                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_VALUE_PROPERTY)).isEqualTo("https://example.com");
                 });
     }
 
@@ -71,13 +76,8 @@ class JsonObjectFromDataAddressTransformerTest {
         var jsonObject = transformer.transform(dataAddress, context);
 
         assertThat(jsonObject).isNotNull();
-        assertThat(jsonObject.getString(ENDPOINT_TYPE_PROPERTY)).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-        assertThat(jsonObject.getString(ENDPOINT_PROPERTY)).isEqualTo("https://example.com");
-        assertThat(jsonObject.getJsonArray(ENDPOINT_PROPERTIES_PROPERTY)).hasSize(2)
+        assertThat(jsonObject.getJsonArray(ENDPOINT_PROPERTIES_PROPERTY))
                 .anySatisfy(jv -> {
-                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY)).isEqualTo("authorization");
-                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_VALUE_PROPERTY)).isEqualTo("secret-token");
-                }).anySatisfy(jv -> {
                     assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY)).isEqualTo("foo");
                     assertThat(jv.asJsonObject().getJsonObject(ENDPOINT_PROPERTY_VALUE_PROPERTY))
                             .containsKey("complexObj");

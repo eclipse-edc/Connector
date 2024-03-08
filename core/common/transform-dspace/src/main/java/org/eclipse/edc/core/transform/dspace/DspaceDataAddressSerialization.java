@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.signaling.transform;
+package org.eclipse.edc.core.transform.dspace;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 

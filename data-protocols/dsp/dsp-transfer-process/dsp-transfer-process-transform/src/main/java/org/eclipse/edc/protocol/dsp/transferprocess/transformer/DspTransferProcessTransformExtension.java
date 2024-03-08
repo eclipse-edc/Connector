@@ -54,17 +54,18 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var builderFactory = Json.createBuilderFactory(Map.of());
 
-        registry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
-        registry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory));
-        registry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory));
-        registry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory));
-        registry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory));
-        registry.register(new JsonObjectFromDataAddressTransformer(builderFactory));
+        var dspApiTransformerRegistry = registry.forContext("dsp-api");
+        dspApiTransformerRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory));
 
-        registry.register(new JsonObjectToTransferRequestMessageTransformer());
-        registry.register(new JsonObjectToTransferCompletionMessageTransformer());
-        registry.register(new JsonObjectToTransferStartMessageTransformer());
-        registry.register(new JsonObjectToTransferTerminationMessageTransformer());
-        registry.register(new JsonObjectToTransferProcessAckTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToTransferRequestMessageTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToTransferCompletionMessageTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToTransferStartMessageTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToTransferTerminationMessageTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToTransferProcessAckTransformer());
     }
 }

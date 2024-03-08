@@ -12,12 +12,13 @@
  *
  */
 
-package org.eclipse.edc.connector.api.signaling.transform.to;
+package org.eclipse.edc.core.transform.dspace.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.core.transform.dspace.TestFunctions;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -25,9 +26,11 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.DSPACE_DATAADDRESS_TYPE;
-import static org.eclipse.edc.connector.api.signaling.transform.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_PROPERTY_TYPE;
-import static org.eclipse.edc.connector.api.signaling.transform.TestFunctions.getExpanded;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.DSPACE_DATAADDRESS_TYPE;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTIES_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_PROPERTY_PROPERTY_TYPE;
+import static org.eclipse.edc.core.transform.dspace.DspaceDataAddressSerialization.ENDPOINT_TYPE_PROPERTY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
@@ -45,9 +48,9 @@ class JsonObjectToDataAddressTransformerTest {
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, DSPACE_DATAADDRESS_TYPE)
-                .add("endpointType", "https://w3id.org/idsa/v4.1/HTTP")
-                .add("endpoint", "http://example.com")
-                .add("endpointProperties", jsonFactory.createArrayBuilder()
+                .add(ENDPOINT_TYPE_PROPERTY, "https://w3id.org/idsa/v4.1/HTTP")
+                .add(ENDPOINT_PROPERTY, "http://example.com")
+                .add(ENDPOINT_PROPERTIES_PROPERTY, jsonFactory.createArrayBuilder()
                         .add(property("authorization", "some-token"))
                         .add(property("authType", "bearer"))
                         .add(property("foo", "bar"))
@@ -55,7 +58,7 @@ class JsonObjectToDataAddressTransformerTest {
                 )
                 .build();
 
-        var expanded = getExpanded(jsonObj);
+        var expanded = TestFunctions.getExpanded(jsonObj);
 
         var dataAddress = transformer.transform(expanded, context);
         assertThat(dataAddress).isNotNull();
@@ -63,8 +66,7 @@ class JsonObjectToDataAddressTransformerTest {
         assertThat(dataAddress.getProperties())
                 .containsEntry("authorization", "some-token")
                 .containsEntry("authType", "bearer")
-                .containsEntry("fizz", "buzz")
-                .containsEntry("endpoint", "http://example.com");
+                .containsEntry("fizz", "buzz");
     }
 
     @Test
@@ -72,15 +74,15 @@ class JsonObjectToDataAddressTransformerTest {
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, DSPACE_DATAADDRESS_TYPE)
-                .add("endpointType", "https://w3id.org/idsa/v4.1/HTTP")
-                .add("endpoint", "http://example.com")
-                .add("endpointProperties", jsonFactory.createArrayBuilder()
+                .add(ENDPOINT_TYPE_PROPERTY, "https://w3id.org/idsa/v4.1/HTTP")
+                .add(ENDPOINT_PROPERTY, "http://example.com")
+                .add(ENDPOINT_PROPERTIES_PROPERTY, jsonFactory.createArrayBuilder()
                         .add(property("fizz", "buzz"))
                 )
                 .add("rogueProperty", 42L)
                 .build();
 
-        var expanded = getExpanded(jsonObj);
+        var expanded = TestFunctions.getExpanded(jsonObj);
 
         assertThatThrownBy(() -> transformer.transform(expanded, context))
                 .isInstanceOf(IllegalArgumentException.class)

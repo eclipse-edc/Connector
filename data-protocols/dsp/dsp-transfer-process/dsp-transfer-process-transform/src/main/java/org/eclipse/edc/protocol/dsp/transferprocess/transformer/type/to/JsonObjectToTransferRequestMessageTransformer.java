@@ -55,32 +55,12 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
         visitProperties(messageObject, k -> switch (k) {
             case DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID -> v -> builder.contractId(transformString(v, context));
             case DSPACE_PROPERTY_CALLBACK_ADDRESS -> v -> builder.callbackAddress(transformString(v, context));
+            case DSPACE_PROPERTY_DATA_ADDRESS -> v -> builder.dataDestination(transformObject(v, DataAddress.class, context));
             case DCT_FORMAT_ATTRIBUTE, DEPRECATED_DCT_FORMAT_ATTRIBUTE -> v -> builder.transferType(transformString(v, context));
             default -> doNothing();
         });
 
-        builder.dataDestination(createDataAddress(messageObject, context));
-
         return builder.build();
-    }
-
-    // TODO replace with JsonObjectToDataAddressTransformer
-    private DataAddress createDataAddress(@NotNull JsonObject requestObject, @NotNull TransformerContext context) {
-        var dataAddressBuilder = DataAddress.Builder.newInstance();
-
-        var format = requestObject.get(DCT_FORMAT_ATTRIBUTE);
-        if (format != null) {
-            transformString(format, dataAddressBuilder::type, context);
-        } else {
-            transformString(requestObject.get(DEPRECATED_DCT_FORMAT_ATTRIBUTE), dataAddressBuilder::type, context);
-        }
-
-        var dataAddressObject = returnJsonObject(requestObject.get(DSPACE_PROPERTY_DATA_ADDRESS), context, DSPACE_PROPERTY_DATA_ADDRESS, false);
-        if (dataAddressObject != null) {
-            dataAddressObject.forEach((key, value) -> transformString(value, v -> dataAddressBuilder.property(key, v), context));
-        }
-
-        return dataAddressBuilder.build();
     }
 
 }

@@ -20,10 +20,9 @@ plugins {
 dependencies {
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
-
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
 
     implementation(project(":core:common:validator-core"))

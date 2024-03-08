@@ -23,6 +23,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-http-spi"))
     implementation(project(":core:common:jersey-providers"))
     implementation(project(":core:common:transform-core"))
+    implementation(project(":core:common:transform-dspace"))
 
     testImplementation(project(":core:common:junit"))
 }

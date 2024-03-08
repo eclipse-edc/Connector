@@ -21,13 +21,14 @@ dependencies {
     api(project(":spi:common:http-spi"))
     api(project(":spi:common:core-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
-    implementation(project(":core:common:transform-core")) // for the transformer registry impl
     implementation(project(":core:common:util"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:transform-core"))
+    testImplementation(project(":core:common:transform-dspace"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.restAssured)
     testImplementation(libs.mockserver.netty)
