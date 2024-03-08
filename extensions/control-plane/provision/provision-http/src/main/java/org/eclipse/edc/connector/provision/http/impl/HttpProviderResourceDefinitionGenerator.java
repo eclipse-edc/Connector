@@ -17,10 +17,9 @@
 package org.eclipse.edc.connector.provision.http.impl;
 
 import org.eclipse.edc.connector.transfer.spi.provision.ProviderResourceDefinitionGenerator;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,23 +38,17 @@ public class HttpProviderResourceDefinitionGenerator implements ProviderResource
     }
 
     @Override
-    public @Nullable ResourceDefinition generate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
-        var assetId = dataRequest.getAssetId();
-
-        if (assetId == null) {
-            // programming error
-            throw new EdcException("Asset id was null for request: " + dataRequest.getId());
-        }
+    public @Nullable ResourceDefinition generate(TransferProcess transferProcess, DataAddress assetAddress, Policy policy) {
         return HttpProviderResourceDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .dataAddressType(dataAddressType)
-                .transferProcessId(dataRequest.getProcessId())
-                .assetId(assetId)
+                .transferProcessId(transferProcess.getId())
+                .assetId(transferProcess.getAssetId())
                 .build();
     }
 
     @Override
-    public boolean canGenerate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
+    public boolean canGenerate(TransferProcess transferProcess, DataAddress assetAddress, Policy policy) {
         return dataAddressType.equals(assetAddress.getType());
     }
 }

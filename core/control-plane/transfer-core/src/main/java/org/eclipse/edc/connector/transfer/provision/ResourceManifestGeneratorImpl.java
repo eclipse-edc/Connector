@@ -58,11 +58,9 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
 
     @Override
     public Result<ResourceManifest> generateConsumerResourceManifest(TransferProcess transferProcess, Policy policy) {
-        var dataRequest = transferProcess.getDataRequest();
-
         var definitions = consumerGenerators.stream()
-                .filter(generator -> generator.canGenerate(dataRequest, policy))
-                .map(generator -> generator.generate(dataRequest, policy))
+                .filter(generator -> generator.canGenerate(transferProcess, policy))
+                .map(generator -> generator.generate(transferProcess, policy))
                 .filter(Objects::nonNull).collect(Collectors.toList());
 
         var manifest = ResourceManifest.Builder.newInstance().definitions(definitions).build();
@@ -81,10 +79,9 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
 
     @Override
     public ResourceManifest generateProviderResourceManifest(TransferProcess transferProcess, DataAddress assetAddress, Policy policy) {
-        var dataRequest = transferProcess.getDataRequest();
         var definitions = providerGenerators.stream()
-                .filter(generator -> generator.canGenerate(dataRequest, assetAddress, policy))
-                .map(generator -> generator.generate(dataRequest, assetAddress, policy))
+                .filter(generator -> generator.canGenerate(transferProcess, assetAddress, policy))
+                .map(generator -> generator.generate(transferProcess, assetAddress, policy))
                 .filter(Objects::nonNull).collect(Collectors.toList());
 
         return ResourceManifest.Builder.newInstance().definitions(definitions).build();
