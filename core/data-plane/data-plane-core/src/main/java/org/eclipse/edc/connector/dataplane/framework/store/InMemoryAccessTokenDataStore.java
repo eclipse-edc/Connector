@@ -53,6 +53,15 @@ public class InMemoryAccessTokenDataStore implements AccessTokenDataStore {
     }
 
     @Override
+    public StoreResult<Void> update(AccessTokenData accessTokenData) {
+        if (store.containsKey(accessTokenData.id())) {
+            store.put(accessTokenData.id(), accessTokenData);
+            return StoreResult.success();
+        }
+        return StoreResult.notFound(OBJECT_NOT_FOUND.formatted(accessTokenData.id()));
+    }
+
+    @Override
     public StoreResult<Void> deleteById(String id) {
         var prev = store.remove(id);
         return Optional.ofNullable(prev)

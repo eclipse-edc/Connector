@@ -154,6 +154,21 @@ public abstract class AccessTokenDataTestBase {
         assertThat(getStore().query(q)).hasSize(50);
     }
 
+    @Test
+    void update() {
+        var object = accessTokenData("1");
+        getStore().store(object);
+
+        var update = new AccessTokenData("1", object.claimToken(), object.dataAddress(), Map.of("fizz", "buzz"));
+
+        assertThat(getStore().update(update).succeeded()).isTrue();
+    }
+
+    @Test
+    void update_whenNotExist() {
+        var object = accessTokenData("1");
+        assertThat(getStore().update(object).failed()).isTrue();
+    }
 
     protected abstract AccessTokenDataStore getStore();
 

@@ -49,6 +49,16 @@ public class BaseSqlAccessTokenStatements implements AccessTokenDataStatements {
     }
 
     @Override
+    public String getUpdateTemplate() {
+        return executeStatement()
+                .column(getIdColumn())
+                .jsonColumn(getClaimTokenColumn())
+                .jsonColumn(getDataAddressColumn())
+                .jsonColumn(getAdditionalPropertiesColumn())
+                .update(getTableName(), getIdColumn());
+    }
+
+    @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         return new SqlQueryStatement(getSelectTemplate(), querySpec, new AccessTokenDataMapping(this), operatorTranslator);
     }
