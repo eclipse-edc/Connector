@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
@@ -66,6 +67,9 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
         when(dataplaneManager.validate(any())).thenReturn(success(true));
         when(authService.createEndpointDataReference(any()))
                 .thenReturn(success(DataAddress.Builder.newInstance().type("test-edr").build()));
+
+        when(transformerRegistry.transform(isA(DataFlowResponseMessage.class), eq(JsonObject.class)))
+                .thenReturn(success(Json.createObjectBuilder().add("foo", "bar").build()));
 
         when(transformerRegistry.transform(isA(DataAddress.class), eq(JsonObject.class)))
                 .thenReturn(success(Json.createObjectBuilder().add("foo", "bar").build()));
@@ -246,7 +250,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
                 .assetId("assetId")
                 .agreementId("agreementId")
                 .participantId("participantId")
-                .flowType(FlowType.PUSH)
+                .flowType(FlowType.PULL)
                 .callbackAddress(URI.create("http://localhost"))
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("sourceType").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("destType").build())

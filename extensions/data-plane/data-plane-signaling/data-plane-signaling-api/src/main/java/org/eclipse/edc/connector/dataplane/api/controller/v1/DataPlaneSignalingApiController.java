@@ -27,9 +27,11 @@ import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
@@ -66,15 +68,19 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
                         new InvalidRequestException("Failed to validate request: %s".formatted(startMsg.getId())) :
                         new InvalidRequestException(f.getMessages()));
 
-        monitor.debug("Create EDR");
-        var dataAddress = dataPlaneAuthorizationService.createEndpointDataReference(startMsg)
-                .onFailure(f -> monitor.warning("Error obtaining EDR DataAddress: %s".formatted(f.getFailureDetail())))
-                .orElseThrow(InvalidRequestException::new);
+        var flowResponse = DataFlowResponseMessage.Builder.newInstance();
+        if (startMsg.getFlowType().equals(FlowType.PULL)) {
+            monitor.debug("Create EDR");
+            var dataAddress = dataPlaneAuthorizationService.createEndpointDataReference(startMsg)
+                    .onFailure(f -> monitor.warning("Error obtaining EDR DataAddress: %s".formatted(f.getFailureDetail())))
+                    .orElseThrow(InvalidRequestException::new);
+
+            flowResponse.dataAddress(dataAddress);
+        }
 
         dataPlaneManager.initiate(startMsg);
 
-        return typeTransformerRegistry.transform(dataAddress, JsonObject.class)
-                .onFailure(f -> monitor.warning("Error obtaining EDR DataAddress: %s".formatted(f.getFailureDetail())))
+        return typeTransformerRegistry.transform(flowResponse.build(), JsonObject.class)
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 

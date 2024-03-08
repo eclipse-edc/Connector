@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,23 +12,36 @@
  *
  */
 
-package org.eclipse.edc.test.e2e;
+package org.eclipse.edc.test.e2e.signaling;
 
+import org.eclipse.edc.connector.dataplane.spi.Endpoint;
+import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 
 @EndToEndTest
-class EndToEndTransferInMemoryTest extends AbstractEndToEndTransfer {
+class SignalingTransferInMemoryTest extends AbstractSignalingTransfer {
 
     static String[] controlPlaneModules = new String[]{
             ":system-tests:e2e-transfer-test:control-plane",
-            ":extensions:control-plane:transfer:transfer-data-plane",
-            ":extensions:data-plane:data-plane-client"
+            ":extensions:control-plane:transfer:transfer-data-plane-signaling",
+            ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"
     };
+
+    static String[] dataPlanePostgresqlModules = new String[]{
+            ":system-tests:e2e-transfer-test:data-plane",
+    };
+    
+    static EdcRuntimeExtension dataPlane = new EdcRuntimeExtension(
+            "provider-data-plane",
+            PROVIDER.dataPlaneConfiguration(),
+            dataPlanePostgresqlModules
+    );
 
     @RegisterExtension
     static EdcClassRuntimesExtension runtimes = new EdcClassRuntimesExtension(
@@ -46,11 +59,7 @@ class EndToEndTransferInMemoryTest extends AbstractEndToEndTransfer {
                         }
                     }
             ),
-            new EdcRuntimeExtension(
-                    ":system-tests:e2e-transfer-test:data-plane",
-                    "provider-data-plane",
-                    PROVIDER.dataPlaneConfiguration()
-            ),
+            dataPlane,
             new EdcRuntimeExtension(
                     "provider-control-plane",
                     PROVIDER.controlPlaneConfiguration(),
@@ -67,4 +76,9 @@ class EndToEndTransferInMemoryTest extends AbstractEndToEndTransfer {
             )
     );
 
+    @BeforeAll
+    static void setup() {
+        var generator = dataPlane.getContext().getService(PublicEndpointGeneratorService.class);
+        generator.addGeneratorFunction("HttpData", dataAddress -> Endpoint.url(PROVIDER.publicDataPlane() + "/v2"));
+    }
 }

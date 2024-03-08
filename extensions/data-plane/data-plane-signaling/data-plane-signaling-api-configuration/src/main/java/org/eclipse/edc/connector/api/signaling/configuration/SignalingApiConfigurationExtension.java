@@ -102,6 +102,7 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
         signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(factory, getJsonLdMapper()));
+
     }
 
     @NotNull

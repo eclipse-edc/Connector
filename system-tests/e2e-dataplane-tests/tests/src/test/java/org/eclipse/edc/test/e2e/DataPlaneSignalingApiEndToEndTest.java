@@ -20,6 +20,7 @@ import io.restassured.http.ContentType;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowStartMessageTransformer;
+import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowResponseMessageTransformer;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
@@ -28,10 +29,12 @@ import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.dspace.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.core.transform.dspace.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
@@ -58,9 +61,8 @@ import static org.hamcrest.Matchers.notNullValue;
 public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
     private static final String DATAPLANE_PUBLIC_ENDPOINT_URL = "http://fizz.buzz/bar";
-
-    private ObjectMapper mapper;
     private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl();
+    private ObjectMapper mapper;
 
     @BeforeEach
     void setup() {
@@ -69,6 +71,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         registry.register(new JsonObjectFromDataFlowStartMessageTransformer(builderFactory, mapper));
         registry.register(new JsonObjectFromDataAddressTransformer(builderFactory, mapper));
         registry.register(new JsonObjectToDataAddressTransformer());
+        registry.register(new JsonObjectToDataFlowResponseMessageTransformer());
     }
 
     @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR")
@@ -76,6 +79,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
     void startTransfer() throws JsonProcessingException {
         var generator = runtime.getContext().getService(PublicEndpointGeneratorService.class);
         generator.addGeneratorFunction("HttpData", dataAddress -> Endpoint.url(DATAPLANE_PUBLIC_ENDPOINT_URL));
+        var jsonLd = runtime.getContext().getService(JsonLd.class);
 
         var processId = "test-processId";
         var flowMessage = createStartMessage(processId);
@@ -90,8 +94,13 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
                 .body(Matchers.notNullValue())
                 .statusCode(200)
                 .extract().body().asString();
-        var dataAddress = registry.transform(mapper.readValue(resultJson, JsonObject.class), DataAddress.class)
+
+        var dataFlowResponseMessage = jsonLd.expand(mapper.readValue(resultJson, JsonObject.class))
+                .compose(json -> registry.transform(json, DataFlowResponseMessage.class))
                 .orElseThrow(failTest());
+
+
+        var dataAddress = dataFlowResponseMessage.getDataAddress();
 
         // verify basic shape of the DSPACE data address (=EDR token)
         assertThat(dataAddress).isNotNull();
