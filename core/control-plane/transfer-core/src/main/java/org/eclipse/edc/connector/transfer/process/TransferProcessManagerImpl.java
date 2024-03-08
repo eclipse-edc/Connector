@@ -192,7 +192,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         ResourceManifest manifest;
         if (process.getType() == CONSUMER) {
-            var manifestResult = manifestGenerator.generateConsumerResourceManifest(process.getDataRequest(), policy);
+            var manifestResult = manifestGenerator.generateConsumerResourceManifest(process, policy);
             if (manifestResult.failed()) {
                 transitionToTerminated(process, format("Resource manifest for process %s cannot be modified to fulfil policy. %s", process.getId(), manifestResult.getFailureMessages()));
                 return true;
@@ -214,7 +214,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 vault.storeSecret(dataDestination.getKeyName(), secret);
             }
 
-            manifest = manifestGenerator.generateProviderResourceManifest(process.getDataRequest(), dataAddress, policy);
+            manifest = manifestGenerator.generateProviderResourceManifest(process, dataAddress, policy);
         }
 
         process.transitionProvisioning(manifest);
