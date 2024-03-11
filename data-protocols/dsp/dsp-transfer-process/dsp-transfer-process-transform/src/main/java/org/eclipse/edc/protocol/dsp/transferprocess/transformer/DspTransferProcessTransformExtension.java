@@ -20,19 +20,24 @@ import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonOb
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferProcessTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferStartMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferSuspensionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferTerminationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferCompletionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferProcessAckTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferStartMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferSuspensionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferTerminationMessageTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
+
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Provides the transformers for transferprocess message types via the {@link TypeTransformerRegistry}.
@@ -45,6 +50,9 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
     @Inject
     private TypeTransformerRegistry registry;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -53,19 +61,23 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var builderFactory = Json.createBuilderFactory(Map.of());
+        var objectMapper = typeManager.getMapper(JSON_LD);
 
-        var dspApiTransformerRegistry = registry.forContext("dsp-api");
-        dspApiTransformerRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory));
+        var dspRegistry = registry.forContext("dsp-api");
 
-        dspApiTransformerRegistry.register(new JsonObjectToTransferRequestMessageTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToTransferCompletionMessageTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToTransferStartMessageTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToTransferTerminationMessageTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToTransferProcessAckTransformer());
+        dspRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferSuspensionMessageTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory));
+
+        dspRegistry.register(new JsonObjectToTransferRequestMessageTransformer());
+        dspRegistry.register(new JsonObjectToTransferCompletionMessageTransformer());
+        dspRegistry.register(new JsonObjectToTransferStartMessageTransformer());
+        dspRegistry.register(new JsonObjectToTransferTerminationMessageTransformer());
+        dspRegistry.register(new JsonObjectToTransferProcessAckTransformer());
+        dspRegistry.register(new JsonObjectToTransferSuspensionMessageTransformer(objectMapper));
     }
 }
