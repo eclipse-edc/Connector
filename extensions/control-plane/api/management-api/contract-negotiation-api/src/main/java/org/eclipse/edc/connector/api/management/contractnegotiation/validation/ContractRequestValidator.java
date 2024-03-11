@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Contra
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
+import org.eclipse.edc.validator.jsonobject.validators.LogDeprecatedValue;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryIdNotBlank;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
@@ -26,7 +27,6 @@ import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.ASSET_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.OFFER_ID;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
@@ -41,11 +41,11 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_O
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 
 public class ContractRequestValidator {
-    public static final String DEPRECATED_PROVIDER_ID_LOG = format("The attribute %s has been deprecated in type %s, please use %s",
-            PROVIDER_ID, CONTRACT_REQUEST_TYPE, ODRL_ASSIGNER_ATTRIBUTE);
-
     public static Validator<JsonObject> instance(Monitor monitor) {
         return JsonObjectValidator.newValidator()
+                .verify(PROVIDER_ID, CONTRACT_REQUEST_TYPE, ODRL_ASSIGNER_ATTRIBUTE, monitor, LogDeprecatedValue::new)
+                .verify(OFFER, CONTRACT_REQUEST_TYPE, POLICY, monitor, LogDeprecatedValue::new)
+                .verify(CONNECTOR_ADDRESS, CONTRACT_REQUEST_TYPE, CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, monitor, LogDeprecatedValue::new)
                 .verify(path -> new MandatoryCounterPartyAddressOrConnectorAddress(path, monitor))
                 .verify(PROTOCOL, MandatoryValue::new)
                 .verify(path -> new MandatoryOfferOrPolicy(path, monitor))
@@ -55,15 +55,8 @@ public class ContractRequestValidator {
     private record MandatoryOfferOrPolicy(JsonLdPath path, Monitor monitor) implements Validator<JsonObject> {
         @Override
         public ValidationResult validate(JsonObject input) {
-            var providerId = new MandatoryObject(path.append(PROVIDER_ID)).validate(input);
-            if  (providerId.succeeded()) {
-                monitor.warning(DEPRECATED_PROVIDER_ID_LOG);
-            }
-
             var offerValidity = new MandatoryObject(path.append(OFFER)).validate(input);
             if (offerValidity.succeeded()) {
-                monitor.warning(format("The attribute %s has been deprecated in type %s, please use %s",
-                        OFFER, CONTRACT_REQUEST_TYPE, POLICY));
                 return JsonObjectValidator.newValidator()
                         .verifyObject(OFFER, v -> v
                                 .verify(OFFER_ID, MandatoryValue::new)
@@ -103,8 +96,6 @@ public class ContractRequestValidator {
             var connectorAddress = new MandatoryValue(path.append(CONNECTOR_ADDRESS));
             var validateConnectorAddress = connectorAddress.validate(input);
             if (validateConnectorAddress.succeeded()) {
-                monitor.warning(format("The attribute %s has been deprecated in type %s, please use %s",
-                        CONNECTOR_ADDRESS, CONTRACT_REQUEST_TYPE, CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS));
                 return ValidationResult.success();
             }
             return validateCounterParty;
