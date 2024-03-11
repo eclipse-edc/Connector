@@ -35,11 +35,14 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 
 public class ContractRequestValidator {
+    public static final String DEPRECATED_PROVIDER_ID_LOG = format("The attribute %s has been deprecated in type %s, please use %s",
+            PROVIDER_ID, CONTRACT_REQUEST_TYPE, ODRL_ASSIGNER_ATTRIBUTE);
 
     public static Validator<JsonObject> instance(Monitor monitor) {
         return JsonObjectValidator.newValidator()
@@ -52,6 +55,11 @@ public class ContractRequestValidator {
     private record MandatoryOfferOrPolicy(JsonLdPath path, Monitor monitor) implements Validator<JsonObject> {
         @Override
         public ValidationResult validate(JsonObject input) {
+            var providerId = new MandatoryObject(path.append(PROVIDER_ID)).validate(input);
+            if  (providerId.succeeded()) {
+                monitor.warning(DEPRECATED_PROVIDER_ID_LOG);
+            }
+
             var offerValidity = new MandatoryObject(path.append(OFFER)).validate(input);
             if (offerValidity.succeeded()) {
                 monitor.warning(format("The attribute %s has been deprecated in type %s, please use %s",

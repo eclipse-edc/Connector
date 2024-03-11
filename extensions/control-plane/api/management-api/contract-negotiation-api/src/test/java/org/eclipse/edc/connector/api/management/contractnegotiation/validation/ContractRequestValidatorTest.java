@@ -30,10 +30,12 @@ import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.ASSET_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.OFFER_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.POLICY;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.validation.ContractRequestValidator.DEPRECATED_PROVIDER_ID_LOG;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
@@ -115,6 +117,17 @@ class ContractRequestValidatorTest {
                 .isNotEmpty()
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(PROTOCOL));
+    }
+
+    @Test
+    void shouldSucceed_whenDeprecatedProviderIdIsUsedWarningLogged() {
+        var input = Json.createObjectBuilder()
+                .add(PROVIDER_ID, value("provider_id"))
+                .build();
+
+        validator.validate(input);
+
+        verify(monitor).warning(DEPRECATED_PROVIDER_ID_LOG);
     }
 
     @Deprecated(since = "0.3.2")
