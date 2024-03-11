@@ -23,8 +23,6 @@ import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromData
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowResponseMessageTransformer;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.eclipse.edc.connector.dataplane.spi.Endpoint;
-import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
@@ -60,7 +58,7 @@ import static org.hamcrest.Matchers.notNullValue;
 @EndToEndTest
 public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
-    private static final String DATAPLANE_PUBLIC_ENDPOINT_URL = "http://fizz.buzz/bar";
+    private static final String DATAPLANE_PUBLIC_ENDPOINT_URL = DATAPLANE.getDataPlanePublicEndpoint().getUrl().toString();
     private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl();
     private ObjectMapper mapper;
 
@@ -77,8 +75,6 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
     @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR")
     @Test
     void startTransfer() throws JsonProcessingException {
-        var generator = runtime.getContext().getService(PublicEndpointGeneratorService.class);
-        generator.addGeneratorFunction("HttpData", dataAddress -> Endpoint.url(DATAPLANE_PUBLIC_ENDPOINT_URL));
         var jsonLd = runtime.getContext().getService(JsonLd.class);
 
         var processId = "test-processId";
