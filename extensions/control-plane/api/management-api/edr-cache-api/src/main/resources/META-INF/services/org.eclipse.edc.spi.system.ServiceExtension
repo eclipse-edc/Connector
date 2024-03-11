@@ -12,3 +12,4 @@
 #
 #
 
+org.eclipse.edc.connector.api.management.edr.EdrCacheApiExtension
