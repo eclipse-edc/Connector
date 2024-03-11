@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       T-Systems International GmbH - extended method implementation
  *
  */
 
@@ -16,6 +17,7 @@ package org.eclipse.edc.validator.jsonobject;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -102,6 +104,36 @@ public class JsonObjectValidator implements Validator<JsonObject> {
         public Builder verify(String fieldName, Function<JsonLdPath, Validator<JsonObject>> provider) {
             var newPath = validator.path.append(fieldName);
             validator.validators.add(provider.apply(newPath));
+            return this;
+        }
+
+        @FunctionalInterface
+        public interface DeprecatedValidatorFunction<JsonLdPath, Validator> {
+            /**
+             * Add a validator on a deprecated field.
+             *
+             * @param jsonLdPath the root object level.
+             * @param deprecatedType the type of the field that is deprecated.
+             * @param attributeToUse the name of the attribute to be used instead of the field.
+             * @param monitor logger.
+             * @return the Validator.
+             */
+            Validator apply(JsonLdPath jsonLdPath, String deprecatedType, String attributeToUse, Monitor monitor);
+        }
+
+        /**
+         * Add a validator on a deprecated field.
+         *
+         * @param fieldName the name of the field to be validated.
+         * @param deprecatedType the type of the field that is deprecated.
+         * @param attributeToUse the name of the attribute to be used instead of the field.
+         * @param monitor logger.
+         * @param provider the validator provider.
+         * @return the builder.
+         */
+        public Builder verify(String fieldName, String deprecatedType, String attributeToUse, Monitor monitor, DeprecatedValidatorFunction<JsonLdPath, Validator<JsonObject>> provider) {
+            var newPath = validator.path.append(fieldName);
+            validator.validators.add(provider.apply(newPath, deprecatedType, attributeToUse, monitor));
             return this;
         }
 
