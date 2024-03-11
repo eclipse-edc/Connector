@@ -51,7 +51,7 @@ class DefaultDataPlaneAccessTokenServiceImplTest {
     private final TokenGenerationService tokenGenService = mock();
     private final TokenValidationService tokenValidationService = mock();
     private final DefaultDataPlaneAccessTokenServiceImpl accessTokenService = new DefaultDataPlaneAccessTokenServiceImpl(tokenGenService,
-            store, mock(), mock(), tokenValidationService, mock());
+            store, mock(), mock(), mock(), tokenValidationService, mock());
 
     @Test
     void obtainToken() {

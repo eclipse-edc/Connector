@@ -1,1 +1,1 @@
-org.eclipse.edc.connector.dataplane.api.DataPlanePublicApiExtension
+org.eclipse.edc.connector.dataplane.api.DataPlanePublicApiV2Extension

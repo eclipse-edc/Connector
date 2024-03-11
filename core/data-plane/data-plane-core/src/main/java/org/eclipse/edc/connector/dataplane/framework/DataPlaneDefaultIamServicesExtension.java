@@ -34,6 +34,7 @@ import java.security.PrivateKey;
 import java.util.function.Supplier;
 
 import static org.eclipse.edc.connector.dataplane.spi.TransferDataPlaneConfig.TOKEN_SIGNER_PRIVATE_KEY_ALIAS;
+import static org.eclipse.edc.connector.dataplane.spi.TransferDataPlaneConfig.TOKEN_VERIFIER_PUBLIC_KEY_ALIAS;
 
 @Extension(value = DataPlaneDefaultIamServicesExtension.NAME)
 public class DataPlaneDefaultIamServicesExtension implements ServiceExtension {
@@ -62,7 +63,13 @@ public class DataPlaneDefaultIamServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DataPlaneAccessTokenService defaultAccessTokenService(ServiceExtensionContext context) {
-        return new DefaultDataPlaneAccessTokenServiceImpl(new JwtGenerationService(), accessTokenDataStore, context.getMonitor().withPrefix("DataPlane IAM"), getPrivateKeySupplier(context), tokenValidationService, localPublicKeyService);
+        return new DefaultDataPlaneAccessTokenServiceImpl(new JwtGenerationService(),
+                accessTokenDataStore, context.getMonitor().withPrefix("DataPlane IAM"),
+                getPrivateKeySupplier(context), publicKeyIdSupplier(context), tokenValidationService, localPublicKeyService);
+    }
+
+    private Supplier<String> publicKeyIdSupplier(ServiceExtensionContext context) {
+        return () -> context.getConfig().getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS);
     }
 
     @NotNull

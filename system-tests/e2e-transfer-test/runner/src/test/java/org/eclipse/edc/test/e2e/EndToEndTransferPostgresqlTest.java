@@ -46,6 +46,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
 
     static String[] dataPlanePostgresqlModules = new String[]{
             ":system-tests:e2e-transfer-test:data-plane",
+            ":extensions:data-plane:data-plane-public-api",
             ":extensions:data-plane:store:sql:data-plane-store-sql",
             ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
             ":extensions:common:transaction:transaction-local"

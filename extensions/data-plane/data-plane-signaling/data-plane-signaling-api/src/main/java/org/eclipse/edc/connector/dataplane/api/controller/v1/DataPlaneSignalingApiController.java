@@ -62,11 +62,6 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
                 .onFailure(f -> monitor.warning("Error transforming %s: %s".formatted(DataFlowStartMessage.class, f.getFailureDetail())))
                 .orElseThrow(InvalidRequestException::new);
 
-        dataPlaneManager.validate(startMsg)
-                .onFailure(f -> monitor.warning("Failed to validate request: %s".formatted(f.getFailureDetail())))
-                .orElseThrow(f -> f.getMessages().isEmpty() ?
-                        new InvalidRequestException("Failed to validate request: %s".formatted(startMsg.getId())) :
-                        new InvalidRequestException(f.getMessages()));
 
         var flowResponse = DataFlowResponseMessage.Builder.newInstance();
         if (startMsg.getFlowType().equals(FlowType.PULL)) {
@@ -76,6 +71,12 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
                     .orElseThrow(InvalidRequestException::new);
 
             flowResponse.dataAddress(dataAddress);
+        } else {
+            dataPlaneManager.validate(startMsg)
+                    .onFailure(f -> monitor.warning("Failed to validate request: %s".formatted(f.getFailureDetail())))
+                    .orElseThrow(f -> f.getMessages().isEmpty() ?
+                            new InvalidRequestException("Failed to validate request: %s".formatted(startMsg.getId())) :
+                            new InvalidRequestException(f.getMessages()));
         }
 
         dataPlaneManager.initiate(startMsg);

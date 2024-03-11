@@ -14,17 +14,32 @@
 
 package org.eclipse.edc.test.e2e.signaling;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
 import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.test.e2e.participant.EndToEndTransferParticipant;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.model.HttpRequest;
+import org.mockserver.model.HttpResponse;
+import org.mockserver.model.HttpStatusCode;
+import org.mockserver.model.MediaType;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static io.restassured.RestAssured.given;
 import static jakarta.json.Json.createObjectBuilder;
@@ -33,12 +48,17 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
+import static org.mockserver.stop.Stop.stopQuietly;
 
 public abstract class AbstractSignalingTransfer {
 
@@ -50,34 +70,65 @@ public abstract class AbstractSignalingTransfer {
             .name("provider")
             .id("urn:connector:provider")
             .build();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String CALLBACK_PATH = "hooks";
+    private static final int CALLBACK_PORT = getFreePort();
+    private static ClientAndServer callbacksEndpoint;
     protected final Duration timeout = Duration.ofSeconds(60);
 
+    public static JsonObject createCallback(String url, boolean transactional, Set<String> events) {
+        return Json.createObjectBuilder()
+                .add(TYPE, EDC_NAMESPACE + "CallbackAddress")
+                .add(EDC_NAMESPACE + "transactional", transactional)
+                .add(EDC_NAMESPACE + "uri", url)
+                .add(EDC_NAMESPACE + "events", events
+                        .stream()
+                        .collect(Json::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
+                        .build())
+                .build();
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        callbacksEndpoint = startClientAndServer(CALLBACK_PORT);
+    }
+
+    @AfterEach
+    void tearDown() {
+        stopQuietly(callbacksEndpoint);
+    }
+
     @Test
-    @Disabled
     void httpPull_dataTransfer() {
         registerDataPlanes();
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
         var dynamicReceiverProps = CONSUMER.dynamicReceiverPrivateProperties();
 
-        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, dynamicReceiverProps, syncDataAddress(), "HttpData-PULL");
+        var callbacks = Json.createArrayBuilder()
+                .add(createCallback(callbackUrl(), true, Set.of("transfer.process.started")))
+                .build();
+
+        var request = request().withPath("/" + CALLBACK_PATH)
+                .withMethod(HttpMethod.POST.name());
+
+        var events = new ConcurrentHashMap<String, TransferProcessStarted>();
+
+        callbacksEndpoint.when(request).respond(req -> this.cacheEdr(req, events));
+
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, dynamicReceiverProps, syncDataAddress(), "HttpData-PULL", callbacks);
+
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
             assertThat(state).isEqualTo(STARTED.name());
         });
 
-        // retrieve the data reference
-        var edr = CONSUMER.getDataReference(transferProcessId);
+        await().atMost(timeout).untilAsserted(() -> assertThat(events.get(transferProcessId)).isNotNull());
 
-        // pull the data without query parameter
-        await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of(), equalTo("some information")));
-
-        // pull the data with additional query parameter
+        var event = events.get(transferProcessId);
         var msg = UUID.randomUUID().toString();
-        await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), equalTo(msg)));
+        await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(event.getDataAddress(), Map.of("message", msg), equalTo(msg)));
 
-        // We expect two EDR because in the test runtime we have two receiver extensions static and dynamic one
-        assertThat(CONSUMER.getAllDataReferences(transferProcessId)).hasSize(2);
     }
 
     @Test
@@ -118,20 +169,7 @@ public abstract class AbstractSignalingTransfer {
                 .add(EDC_NAMESPACE + "type", "HttpProxy")
                 .build();
     }
-
-    @NotNull
-    private Map<String, Object> httpDataAddressOauth2Properties() {
-        return Map.of(
-                "name", "transfer-test",
-                "baseUrl", PROVIDER.backendService() + "/api/provider/oauth2data",
-                "type", "HttpData",
-                "proxyQueryParams", "true",
-                "oauth2:clientId", "clientId",
-                "oauth2:clientSecretKey", "provision-oauth-secret",
-                "oauth2:tokenUrl", PROVIDER.backendService() + "/api/oauth2/token"
-        );
-    }
-
+    
     @NotNull
     private Map<String, Object> httpDataAddressProperties() {
         return Map.of(
@@ -151,6 +189,27 @@ public abstract class AbstractSignalingTransfer {
         var accessPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
         var contractPolicyId = PROVIDER.createPolicyDefinition(contractPolicy);
         PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), accessPolicyId, contractPolicyId);
+    }
+
+    private HttpResponse cacheEdr(HttpRequest request, Map<String, TransferProcessStarted> events) {
+
+        try {
+            var event = MAPPER.readValue(request.getBody().toString(), new TypeReference<EventEnvelope<TransferProcessStarted>>() {
+            });
+            events.put(event.getPayload().getTransferProcessId(), event.getPayload());
+            return response()
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), MediaType.PLAIN_TEXT_UTF_8.toString())
+                    .withBody("{}");
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private String callbackUrl() {
+        return String.format("http://localhost:%d/%s", callbacksEndpoint.getLocalPort(), CALLBACK_PATH);
     }
 
     private JsonObject noPrivateProperty() {

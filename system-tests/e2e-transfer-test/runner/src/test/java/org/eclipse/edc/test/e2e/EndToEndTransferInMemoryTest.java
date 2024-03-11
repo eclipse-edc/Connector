@@ -47,10 +47,10 @@ class EndToEndTransferInMemoryTest extends AbstractEndToEndTransfer {
                     }
             ),
             new EdcRuntimeExtension(
-                    ":system-tests:e2e-transfer-test:data-plane",
                     "provider-data-plane",
-                    PROVIDER.dataPlaneConfiguration()
-            ),
+                    PROVIDER.dataPlaneConfiguration(),
+                    ":system-tests:e2e-transfer-test:data-plane",
+                    ":extensions:data-plane:data-plane-public-api"),
             new EdcRuntimeExtension(
                     "provider-control-plane",
                     PROVIDER.controlPlaneConfiguration(),
