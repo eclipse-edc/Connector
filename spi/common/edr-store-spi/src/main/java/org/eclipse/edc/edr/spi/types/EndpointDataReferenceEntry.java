@@ -15,6 +15,7 @@
 package org.eclipse.edc.edr.spi.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import org.eclipse.edc.spi.entity.Entity;
 
 import static java.util.Objects.requireNonNull;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -22,7 +23,7 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 /**
  * Represents metadata associated with an EDR
  */
-public class EndpointDataReferenceEntry {
+public class EndpointDataReferenceEntry extends Entity {
 
     public static final String SIMPLE_TYPE = "EndpointDataReferenceEntry";
     public static final String EDR_ENTRY_TYPE = EDC_NAMESPACE + SIMPLE_TYPE;
@@ -38,6 +39,9 @@ public class EndpointDataReferenceEntry {
     public static final String EDR_ENTRY_TRANSFER_PROCESS_ID = EDC_NAMESPACE + TRANSFER_PROCESS_ID;
     public static final String PROVIDER_ID = "providerId";
     public static final String EDR_ENTRY_PROVIDER_ID = EDC_NAMESPACE + PROVIDER_ID;
+
+    public static final String CREATED_AT = "createdAt";
+    public static final String EDR_ENTRY_CREATED_AT = EDC_NAMESPACE + CREATED_AT;
     private String assetId;
     private String agreementId;
     private String transferProcessId;
@@ -68,12 +72,10 @@ public class EndpointDataReferenceEntry {
         return assetId;
     }
 
-    public static class Builder {
-
-        private final EndpointDataReferenceEntry entry;
+    public static class Builder extends Entity.Builder<EndpointDataReferenceEntry, EndpointDataReferenceEntry.Builder> {
 
         private Builder() {
-            entry = new EndpointDataReferenceEntry();
+            super(new EndpointDataReferenceEntry());
         }
 
         @JsonCreator
@@ -82,37 +84,45 @@ public class EndpointDataReferenceEntry {
         }
 
         public Builder assetId(String assetId) {
-            entry.assetId = assetId;
+            entity.assetId = assetId;
             return this;
         }
 
         public Builder agreementId(String agreementId) {
-            entry.agreementId = agreementId;
+            entity.agreementId = agreementId;
             return this;
         }
 
         public Builder transferProcessId(String transferProcessId) {
-            entry.transferProcessId = transferProcessId;
+            entity.transferProcessId = transferProcessId;
             return this;
         }
 
         public Builder providerId(String providerId) {
-            entry.providerId = providerId;
+            entity.providerId = providerId;
             return this;
         }
 
         public Builder contractNegotiationId(String contractNegotiationId) {
-            entry.contractNegotiationId = contractNegotiationId;
+            entity.contractNegotiationId = contractNegotiationId;
+            return this;
+        }
+
+        @Override
+        public Builder self() {
             return this;
         }
 
         public EndpointDataReferenceEntry build() {
-            requireNonNull(entry.assetId, ASSET_ID);
-            requireNonNull(entry.agreementId, AGREEMENT_ID);
-            requireNonNull(entry.transferProcessId, TRANSFER_PROCESS_ID);
-            requireNonNull(entry.contractNegotiationId, TRANSFER_PROCESS_ID);
-            requireNonNull(entry.providerId, TRANSFER_PROCESS_ID);
-            return entry;
+            super.build();
+            requireNonNull(entity.assetId, ASSET_ID);
+            requireNonNull(entity.agreementId, AGREEMENT_ID);
+            requireNonNull(entity.transferProcessId, TRANSFER_PROCESS_ID);
+            requireNonNull(entity.contractNegotiationId, TRANSFER_PROCESS_ID);
+            requireNonNull(entity.providerId, TRANSFER_PROCESS_ID);
+            // The id is always equals to transfer process id
+            entity.id = entity.transferProcessId;
+            return entity;
         }
     }
 }
