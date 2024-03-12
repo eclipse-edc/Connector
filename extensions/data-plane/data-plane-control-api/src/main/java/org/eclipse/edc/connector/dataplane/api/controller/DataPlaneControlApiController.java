@@ -51,7 +51,7 @@ public class DataPlaneControlApiController implements DataPlaneControlApi {
         // TODO token authentication
         var result = dataPlaneManager.validate(request);
         if (result.succeeded()) {
-            dataPlaneManager.initiate(request);
+            dataPlaneManager.start(request);
             response.resume(Response.ok().build());
         } else {
             var resp = result.getFailureMessages().isEmpty() ?

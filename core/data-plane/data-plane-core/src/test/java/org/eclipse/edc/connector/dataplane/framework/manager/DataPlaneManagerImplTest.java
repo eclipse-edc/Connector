@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.framework.manager;
 
 import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
@@ -26,7 +27,9 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -73,6 +76,7 @@ class DataPlaneManagerImplTest {
     private final DataPlaneStore store = mock();
     private final DataFlowStartMessage request = createRequest();
     private final TransferServiceRegistry registry = mock();
+    private final DataPlaneAuthorizationService authorizationService = mock();
     private DataPlaneManagerImpl manager;
 
     @BeforeEach
@@ -83,6 +87,7 @@ class DataPlaneManagerImplTest {
                 .transferServiceRegistry(registry)
                 .store(store)
                 .transferProcessClient(transferProcessApiClient)
+                .authorizationService(authorizationService)
                 .monitor(mock())
                 .build();
     }
@@ -96,9 +101,10 @@ class DataPlaneManagerImplTest {
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .callbackAddress(URI.create("http://any"))
                 .properties(Map.of("key", "value"))
+                .flowType(FlowType.PUSH)
                 .build();
 
-        manager.initiate(request);
+        manager.start(request);
 
         var captor = ArgumentCaptor.forClass(DataFlow.class);
         verify(store).save(captor.capture());
@@ -109,6 +115,63 @@ class DataPlaneManagerImplTest {
         assertThat(dataFlow.getCallbackAddress()).isEqualTo(URI.create("http://any"));
         assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
         assertThat(dataFlow.getState()).isEqualTo(RECEIVED.code());
+
+        verifyNoInteractions(authorizationService);
+    }
+
+    @Test
+    void initiatePullDataFlow() {
+
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        var request = DataFlowStartMessage.Builder.newInstance()
+                .id("1")
+                .processId("1")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .callbackAddress(URI.create("http://any"))
+                .properties(Map.of("key", "value"))
+                .flowType(FlowType.PULL)
+                .build();
+
+        when(authorizationService.createEndpointDataReference(request)).thenReturn(Result.success(dataAddress));
+
+        var result = manager.start(request);
+
+        assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isEqualTo(dataAddress);
+
+        var captor = ArgumentCaptor.forClass(DataFlow.class);
+        verify(store).save(captor.capture());
+        var dataFlow = captor.getValue();
+        assertThat(dataFlow.getId()).isEqualTo(request.getProcessId());
+        assertThat(dataFlow.getSource()).isSameAs(request.getSourceDataAddress());
+        assertThat(dataFlow.getDestination()).isSameAs(request.getDestinationDataAddress());
+        assertThat(dataFlow.getCallbackAddress()).isEqualTo(URI.create("http://any"));
+        assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
+        assertThat(dataFlow.getState()).isEqualTo(STARTED.code());
+    }
+
+    @Test
+    void initiatePullDataFlow_shouldFail_whenEdrCreationFails() {
+
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        var request = DataFlowStartMessage.Builder.newInstance()
+                .id("1")
+                .processId("1")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .callbackAddress(URI.create("http://any"))
+                .properties(Map.of("key", "value"))
+                .flowType(FlowType.PULL)
+                .build();
+
+        when(authorizationService.createEndpointDataReference(request)).thenReturn(Result.failure("failure"));
+
+        var result = manager.start(request);
+
+        assertThat(result).isFailed().detail().contains("failure");
+
+        var captor = ArgumentCaptor.forClass(DataFlow.class);
+        verifyNoInteractions(store);
     }
 
     @Test
@@ -366,6 +429,7 @@ class DataPlaneManagerImplTest {
                 .source(DataAddress.Builder.newInstance().type("source").build())
                 .destination(DataAddress.Builder.newInstance().type("destination").build())
                 .callbackAddress(URI.create("http://any"))
+                .flowType(FlowType.PUSH)
                 .properties(Map.of("key", "value"));
     }
 

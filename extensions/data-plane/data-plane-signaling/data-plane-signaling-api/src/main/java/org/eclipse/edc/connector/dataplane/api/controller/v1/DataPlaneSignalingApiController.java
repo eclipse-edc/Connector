@@ -23,15 +23,12 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
@@ -44,13 +41,11 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
 
     private final TypeTransformerRegistry typeTransformerRegistry;
-    private final DataPlaneAuthorizationService dataPlaneAuthorizationService;
     private final DataPlaneManager dataPlaneManager;
     private final Monitor monitor;
 
-    public DataPlaneSignalingApiController(TypeTransformerRegistry typeTransformerRegistry, DataPlaneAuthorizationService dataPlaneAuthorizationService, DataPlaneManager dataPlaneManager, Monitor monitor) {
+    public DataPlaneSignalingApiController(TypeTransformerRegistry typeTransformerRegistry, DataPlaneManager dataPlaneManager, Monitor monitor) {
         this.typeTransformerRegistry = typeTransformerRegistry;
-        this.dataPlaneAuthorizationService = dataPlaneAuthorizationService;
         this.dataPlaneManager = dataPlaneManager;
         this.monitor = monitor;
     }
@@ -62,26 +57,16 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
                 .onFailure(f -> monitor.warning("Error transforming %s: %s".formatted(DataFlowStartMessage.class, f.getFailureDetail())))
                 .orElseThrow(InvalidRequestException::new);
 
+        dataPlaneManager.validate(startMsg)
+                .onFailure(f -> monitor.warning("Failed to validate request: %s".formatted(f.getFailureDetail())))
+                .orElseThrow(f -> f.getMessages().isEmpty() ?
+                        new InvalidRequestException("Failed to validate request: %s".formatted(startMsg.getId())) :
+                        new InvalidRequestException(f.getMessages()));
 
-        var flowResponse = DataFlowResponseMessage.Builder.newInstance();
-        if (startMsg.getFlowType().equals(FlowType.PULL)) {
-            monitor.debug("Create EDR");
-            var dataAddress = dataPlaneAuthorizationService.createEndpointDataReference(startMsg)
-                    .onFailure(f -> monitor.warning("Error obtaining EDR DataAddress: %s".formatted(f.getFailureDetail())))
-                    .orElseThrow(InvalidRequestException::new);
+        var response = dataPlaneManager.start(startMsg)
+                .orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
 
-            flowResponse.dataAddress(dataAddress);
-        } else {
-            dataPlaneManager.validate(startMsg)
-                    .onFailure(f -> monitor.warning("Failed to validate request: %s".formatted(f.getFailureDetail())))
-                    .orElseThrow(f -> f.getMessages().isEmpty() ?
-                            new InvalidRequestException("Failed to validate request: %s".formatted(startMsg.getId())) :
-                            new InvalidRequestException(f.getMessages()));
-        }
-
-        dataPlaneManager.initiate(startMsg);
-
-        return typeTransformerRegistry.transform(flowResponse.build(), JsonObject.class)
+        return typeTransformerRegistry.transform(response, JsonObject.class)
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 

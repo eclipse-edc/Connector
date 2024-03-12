@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
@@ -46,13 +47,16 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     private URI callbackAddress;
     private Map<String, String> properties = new HashMap<>();
 
+    private FlowType flowType = FlowType.PULL;
+
     @Override
     public DataFlow copy() {
         var builder = Builder.newInstance()
                 .source(source)
                 .destination(destination)
                 .callbackAddress(callbackAddress)
-                .properties(properties);
+                .properties(properties)
+                .flowType(flowType);
 
         return copy(builder);
     }
@@ -78,6 +82,10 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         return Collections.unmodifiableMap(properties);
     }
 
+    public FlowType getFlowType() {
+        return flowType;
+    }
+
     public DataFlowStartMessage toRequest() {
         return DataFlowStartMessage.Builder.newInstance()
                 .id(getId())
@@ -87,6 +95,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
                 .callbackAddress(getCallbackAddress())
                 .traceContext(traceContext)
                 .properties(getProperties())
+                .flowType(getFlowType())
                 .build();
     }
 
@@ -158,6 +167,11 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
         public Builder callbackAddress(URI callbackAddress) {
             entity.callbackAddress = callbackAddress;
+            return this;
+        }
+
+        public Builder flowType(FlowType flowType) {
+            entity.flowType = flowType;
             return this;
         }
 

@@ -20,7 +20,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -56,18 +55,18 @@ import static org.mockito.Mockito.when;
 class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
 
     private final TypeTransformerRegistry transformerRegistry = mock();
-    private final DataPlaneAuthorizationService authService = mock();
     private final DataPlaneManager dataplaneManager = mock();
 
     @DisplayName("Expect HTTP 200 and the correct EDR when a data flow is started")
     @Test
     void start() {
         var flowStartMessage = createFlowStartMessage();
+        var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("test-edr").build()).build();
         when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
                 .thenReturn(success(flowStartMessage));
         when(dataplaneManager.validate(any())).thenReturn(success(true));
-        when(authService.createEndpointDataReference(any()))
-                .thenReturn(success(DataAddress.Builder.newInstance().type("test-edr").build()));
+        when(dataplaneManager.start(any()))
+                .thenReturn(success(flowResponse));
 
         when(transformerRegistry.transform(isA(DataFlowResponseMessage.class), eq(JsonObject.class)))
                 .thenReturn(success(Json.createObjectBuilder().add("foo", "bar").build()));
@@ -85,7 +84,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
                 .extract().body().as(JsonObject.class);
 
         assertThat(result).hasEntrySatisfying("foo", val -> assertThat(((JsonString) val).getString()).isEqualTo("bar"));
-        verify(dataplaneManager).initiate(eq(flowStartMessage));
+        verify(dataplaneManager).start(eq(flowStartMessage));
     }
 
     @DisplayName("Expect HTTP 400 when DataFlowStartMessage is invalid")
@@ -106,7 +105,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
 
         verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowStartMessage.class));
         verify(dataplaneManager).validate(any(DataFlowStartMessage.class));
-        verifyNoMoreInteractions(transformerRegistry, dataplaneManager, authService);
+        verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
 
     }
 
@@ -124,7 +123,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
                 .statusCode(400);
 
         verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowStartMessage.class));
-        verifyNoMoreInteractions(transformerRegistry, dataplaneManager, authService);
+        verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
     }
 
     @DisplayName("Expect HTTP 400 when an EDR cannot be created")
@@ -133,7 +132,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
                 .thenReturn(success(createFlowStartMessage()));
         when(dataplaneManager.validate(any())).thenReturn(success(true));
-        when(authService.createEndpointDataReference(any()))
+        when(dataplaneManager.start(any()))
                 .thenReturn(Result.failure("test-failure"));
 
         var jsonObject = Json.createObjectBuilder().build();
@@ -145,32 +144,35 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
                 .statusCode(400);
 
         verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowStartMessage.class));
-        verify(authService).createEndpointDataReference(any());
-        verifyNoMoreInteractions(transformerRegistry, dataplaneManager, authService);
+        verify(dataplaneManager).validate(any());
+        verify(dataplaneManager).start(any());
+        verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
     }
 
     @DisplayName("Expect HTTP 500 when the DataAddress cannot be serialized on egress")
     @Test
     void start_whenDataAddressTransformationFails() {
         var flowStartMessage = createFlowStartMessage();
+        var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("test-edr").build()).build();
+
         when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
                 .thenReturn(success(flowStartMessage));
         when(dataplaneManager.validate(any())).thenReturn(success(true));
-        when(authService.createEndpointDataReference(any()))
-                .thenReturn(success(DataAddress.Builder.newInstance().type("test-edr").build()));
+        when(dataplaneManager.start(any()))
+                .thenReturn(success(flowResponse));
 
         when(transformerRegistry.transform(isA(DataAddress.class), eq(JsonObject.class)))
                 .thenReturn(failure("test-failure"));
 
         var jsonObject = Json.createObjectBuilder().build();
-        var result = baseRequest()
+        baseRequest()
                 .contentType(ContentType.JSON)
                 .body(jsonObject)
                 .post("/v1/dataflows")
                 .then()
                 .statusCode(500);
 
-        verify(dataplaneManager).initiate(eq(flowStartMessage));
+        verify(dataplaneManager).start(eq(flowStartMessage));
     }
 
     @DisplayName("Expect HTTP 200 and the correct response when getting the state")
@@ -242,7 +244,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DataPlaneSignalingApiController(transformerRegistry, authService, dataplaneManager, mock());
+        return new DataPlaneSignalingApiController(transformerRegistry, dataplaneManager, mock());
     }
 
     private DataFlowStartMessage createFlowStartMessage() {

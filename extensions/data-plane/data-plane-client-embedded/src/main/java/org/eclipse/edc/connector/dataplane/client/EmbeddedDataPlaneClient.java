@@ -43,8 +43,11 @@ public class EmbeddedDataPlaneClient implements DataPlaneClient {
         if (result.failed()) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, result.getFailureDetail());
         }
-        dataPlaneManager.initiate(request);
-        return StatusResult.success(DataFlowResponseMessage.Builder.newInstance().build());
+        var startResult = dataPlaneManager.start(request);
+        if (startResult.failed()) {
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, startResult.getFailureDetail());
+        }
+        return StatusResult.success(startResult.getContent());
     }
 
     @Override

@@ -101,6 +101,8 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @Inject
     private PublicEndpointGeneratorService endpointGenerator;
 
+    private DataPlaneAuthorizationService authorizationService;
+
     @Override
     public String name() {
         return NAME;
@@ -132,6 +134,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .transferServiceRegistry(transferServiceRegistry)
                 .store(store)
                 .transferProcessClient(transferProcessApiClient)
+                .authorizationService(authorizationService(context))
                 .monitor(monitor)
                 .telemetry(telemetry)
                 .build();
@@ -153,7 +156,10 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneAuthorizationService authorizationService(ServiceExtensionContext context) {
-        return new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, context.getParticipantId(), clock);
+        if (authorizationService == null) {
+            authorizationService = new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, context.getParticipantId(), clock);
+        }
+        return authorizationService;
     }
 
     @NotNull

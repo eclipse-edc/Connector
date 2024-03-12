@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS edc_data_plane
                     ON DELETE SET NULL,
     source               JSON,
     destination          JSON,
-    properties           JSON
+    properties           JSON,
+    flow_type            VARCHAR
 );
 
 COMMENT ON COLUMN edc_data_plane.trace_context IS 'Java Map serialized as JSON';

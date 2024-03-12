@@ -63,7 +63,7 @@ class DataPlaneControlApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode());
 
-        verify(manager).initiate(isA(DataFlowStartMessage.class));
+        verify(manager).start(isA(DataFlowStartMessage.class));
     }
 
     @Test
@@ -86,7 +86,7 @@ class DataPlaneControlApiControllerTest extends RestControllerTestBase {
                 .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .body("errors", CoreMatchers.equalTo(List.of(errorMsg)));
 
-        verify(manager, never()).initiate(any());
+        verify(manager, never()).start(any());
     }
 
     @Test

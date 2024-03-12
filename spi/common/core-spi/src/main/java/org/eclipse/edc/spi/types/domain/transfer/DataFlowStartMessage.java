@@ -59,7 +59,7 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
 
     private DataAddress sourceDataAddress;
     private DataAddress destinationDataAddress;
-    private FlowType flowType;
+    private FlowType flowType = FlowType.PUSH;
     private URI callbackAddress;
 
     private Map<String, String> properties = new HashMap<>();
@@ -249,6 +249,7 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
             Objects.requireNonNull(request.sourceDataAddress, "sourceDataAddress");
             Objects.requireNonNull(request.destinationDataAddress, "destinationDataAddress");
             Objects.requireNonNull(request.traceContext, "traceContext");
+            Objects.requireNonNull(request.flowType, "flowType");
             return request;
         }
 

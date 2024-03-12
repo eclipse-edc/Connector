@@ -23,6 +23,7 @@ import okio.Okio;
 import org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -52,6 +53,7 @@ public class TestFunctions {
                 .processId(UUID.randomUUID().toString())
                 .properties(properties)
                 .sourceDataAddress(source)
+                .flowType(FlowType.PUSH)
                 .destinationDataAddress(destination);
     }
 
