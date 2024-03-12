@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import io.restassured.common.mapper.TypeRef;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.test.system.utils.Participant;
 import org.hamcrest.Matcher;
@@ -146,6 +147,27 @@ public class EndToEndTransferParticipant extends Participant {
                 .body("message", bodyMatcher);
     }
 
+
+    /**
+     * Pull data from provider using EDR.
+     *
+     * @param edr         endpoint data reference
+     * @param queryParams query parameters
+     * @param bodyMatcher matcher for response body
+     */
+    public void pullData(DataAddress edr, Map<String, String> queryParams, Matcher<String> bodyMatcher) {
+        given()
+                .baseUri(edr.getStringProperty("endpoint"))
+                .header("Authorization", edr.getStringProperty("authorization"))
+                .queryParams(queryParams)
+                .when()
+                .get()
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("message", bodyMatcher);
+    }
+
     public URI backendService() {
         return backendService;
     }
@@ -153,7 +175,7 @@ public class EndToEndTransferParticipant extends Participant {
     public URI publicDataPlane() {
         return dataPlanePublic;
     }
-    
+
     /**
      * Register a data plane using the old data plane control API URL and no transfer types
      */

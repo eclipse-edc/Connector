@@ -30,13 +30,16 @@ class SignalingTransferInMemoryTest extends AbstractSignalingTransfer {
     static String[] controlPlaneModules = new String[]{
             ":system-tests:e2e-transfer-test:control-plane",
             ":extensions:control-plane:transfer:transfer-data-plane-signaling",
+            ":extensions:control-plane:callback:callback-event-dispatcher",
+            ":extensions:control-plane:callback:callback-http-dispatcher",
             ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"
     };
 
     static String[] dataPlanePostgresqlModules = new String[]{
             ":system-tests:e2e-transfer-test:data-plane",
+            ":extensions:data-plane:data-plane-public-api-v2"
     };
-    
+
     static EdcRuntimeExtension dataPlane = new EdcRuntimeExtension(
             "provider-data-plane",
             PROVIDER.dataPlaneConfiguration(),
@@ -79,6 +82,6 @@ class SignalingTransferInMemoryTest extends AbstractSignalingTransfer {
     @BeforeAll
     static void setup() {
         var generator = dataPlane.getContext().getService(PublicEndpointGeneratorService.class);
-        generator.addGeneratorFunction("HttpData", dataAddress -> Endpoint.url(PROVIDER.publicDataPlane() + "/v2"));
+        generator.addGeneratorFunction("HttpData", dataAddress -> Endpoint.url(PROVIDER.publicDataPlane() + "/v2/"));
     }
 }

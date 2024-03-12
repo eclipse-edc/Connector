@@ -62,6 +62,7 @@ public class DataPlaneParticipant extends Participant {
                 put("edc.dataplane.token.validation.endpoint", controlPlaneControl + "/token");
                 put("edc.dataplane.http.sink.partition.size", "1");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
+                put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
             }
         };
     }

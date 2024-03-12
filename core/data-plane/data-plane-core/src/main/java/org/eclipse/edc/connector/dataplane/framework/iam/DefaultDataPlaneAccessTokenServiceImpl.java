@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.token.spi.KeyIdDecorator;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.eclipse.edc.token.spi.TokenValidationRule;
@@ -52,6 +53,7 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
     private final AccessTokenDataStore accessTokenDataStore;
     private final Monitor monitor;
     private final Supplier<PrivateKey> privateKeySupplier;
+    private final Supplier<String> publicKeyIdSupplier;
     private final TokenValidationService tokenValidationService;
     private final PublicKeyResolver publicKeyResolver;
 
@@ -59,12 +61,14 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
                                                   AccessTokenDataStore accessTokenDataStore,
                                                   Monitor monitor,
                                                   Supplier<PrivateKey> privateKeySupplier,
+                                                  Supplier<String> publicKeyIdSupplier,
                                                   TokenValidationService tokenValidationService,
                                                   PublicKeyResolver publicKeyResolver) {
         this.tokenGenerationService = tokenGenerationService;
         this.accessTokenDataStore = accessTokenDataStore;
         this.monitor = monitor;
         this.privateKeySupplier = privateKeySupplier;
+        this.publicKeyIdSupplier = publicKeyIdSupplier;
         this.tokenValidationService = tokenValidationService;
         this.publicKeyResolver = publicKeyResolver;
     }
@@ -87,7 +91,9 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
 
         var id = parameters.getStringClaim(TOKEN_ID);
         var allDecorators = new ArrayList<>(Stream.concat(claimDecorators, headerDecorators).toList());
-
+        var keyIdDecorator = new KeyIdDecorator(publicKeyIdSupplier.get());
+        allDecorators.add(keyIdDecorator);
+        
         // if there is no "jti" header on the token params, we'll assign a random one, and add it back to the decorators
         if (id == null) {
             monitor.info("No '%s' claim found on TokenParameters. Will generate a random one.".formatted(TOKEN_ID));

@@ -345,6 +345,22 @@ public class Participant {
      * @return id of the transfer process.
      */
     public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
+        return initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType, null);
+    }
+
+    /**
+     * Initiate data transfer.
+     *
+     * @param provider            data provider
+     * @param contractAgreementId contract agreement id
+     * @param assetId             asset id
+     * @param privateProperties   private properties
+     * @param destination         data destination address
+     * @param transferType        type of transfer
+     * @param callbacks           callbacks for the transfer process
+     * @return id of the transfer process.
+     */
+    public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination, String transferType, JsonArray callbacks) {
         var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "TransferRequest")
@@ -358,6 +374,10 @@ public class Participant {
 
         if (transferType != null) {
             requestBodyBuilder.add("transferType", transferType);
+        }
+
+        if (callbacks != null) {
+            requestBodyBuilder.add("callbackAddresses", callbacks);
         }
 
         var requestBody = requestBodyBuilder.build();
@@ -434,9 +454,13 @@ public class Participant {
      * @return transfer process id.
      */
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
+        return requestAsset(provider, assetId, privateProperties, destination, transferType, null);
+    }
+
+    public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType, JsonArray callbacks) {
         var offer = getOfferForAsset(provider, assetId);
         var contractAgreementId = negotiateContract(provider, offer);
-        var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType);
+        var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType, callbacks);
         assertThat(transferProcessId).isNotNull();
         return transferProcessId;
     }

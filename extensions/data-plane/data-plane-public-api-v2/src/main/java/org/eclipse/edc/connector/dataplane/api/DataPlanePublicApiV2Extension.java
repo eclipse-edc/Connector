@@ -37,8 +37,8 @@ import java.util.concurrent.Executors;
  * This extension provides generic endpoints which are open to public participants of the Dataspace to execute
  * requests on the actual data source.
  */
-@Extension(value = DataPlanePublicApiExtension.NAME)
-public class DataPlanePublicApiExtension implements ServiceExtension {
+@Extension(value = DataPlanePublicApiV2Extension.NAME)
+public class DataPlanePublicApiV2Extension implements ServiceExtension {
     public static final String NAME = "Data Plane Public API";
 
 
