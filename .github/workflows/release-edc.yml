@@ -41,6 +41,13 @@ jobs:
     outputs:
       edc-version: ${{ env.EDC_VERSION }}
 
+  publish-autodoc:
+    needs: Prepare-Release
+    uses: eclipse-edc/.github/.github/workflows/publish-autodoc.yml@main
+    secrets: inherit
+    with:
+      version: ${{ needs.Prepare-Release.outputs.edc-version }}
+
   publish-openapi-ui:
     needs: Prepare-Release
     uses: eclipse-edc/.github/.github/workflows/publish-openapi-ui.yml@main
