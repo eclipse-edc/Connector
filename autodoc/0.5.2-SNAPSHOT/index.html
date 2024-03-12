@@ -192,15 +192,100 @@ services:</h5>
 <h3 id="extension-points-1">Extension points</h3>
 <p><em>None</em></p>
 <h3 id="extensions-1">Extensions</h3>
+<h4
+id="class-orgeclipseedcconnectorcorelocalpublickeydefaultextension">Class:
+<code>org.eclipse.edc.connector.core.LocalPublicKeyDefaultExtension</code></h4>
+<p><strong>Name:</strong> "Security Default Services Extension"</p>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration">Configuration:</h5>
+<table>
+<thead>
+<tr class="header">
+<th>Key</th>
+<th>Required</th>
+<th>Type</th>
+<th>Default</th>
+<th>Pattern</th>
+<th>Min</th>
+<th>Max</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>edc.iam.publickeys.&lt;pkAlias&gt;.id</code></td>
+<td><code>*</code></td>
+<td><code>string</code></td>
+<td>``</td>
+<td></td>
+<td></td>
+<td></td>
+<td>ID of the public key.</td>
+</tr>
+<tr class="even">
+<td><code>edc.iam.publickeys.&lt;pkAlias&gt;.value</code></td>
+<td></td>
+<td><code>string</code></td>
+<td>``</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Value of the public key. Multiple formats are supported, depending
+on the KeyParsers registered in the runtime</td>
+</tr>
+<tr class="odd">
+<td><code>edc.iam.publickeys.&lt;pkAlias&gt;.path</code></td>
+<td></td>
+<td><code>string</code></td>
+<td>``</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Path to a file that holds the public key, e.g. a PEM file. Multiple
+formats are supported, depending on the KeyParsers registered in the
+runtime</td>
+</tr>
+</tbody>
+</table>
+<h5 id="provided-services-1">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.spi.iam.LocalPublicKeyService</code></li>
+</ul>
+<h5 id="referenced-injected-services-1">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>org.eclipse.edc.spi.security.KeyParserRegistry</code>
+(required)</li>
+<li><code>org.eclipse.edc.spi.security.Vault</code> (required)</li>
+</ul>
+<h4
+id="class-orgeclipseedcconnectorcorecoredefaultservicesextension">Class:
+<code>org.eclipse.edc.connector.core.CoreDefaultServicesExtension</code></h4>
+<p><strong>Name:</strong> "CoreDefaultServicesExtension"</p>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration-none-1">Configuration: <em>None</em></h5>
+<h5 id="provided-services-2">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.transaction.spi.TransactionContext</code></li>
+<li><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></li>
+<li><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></li>
+<li><code>org.eclipse.edc.connector.core.event.EventExecutorServiceContainer</code></li>
+<li><code>org.eclipse.edc.spi.security.Vault</code></li>
+<li><code>org.eclipse.edc.spi.http.EdcHttpClient</code></li>
+<li><code>okhttp3.OkHttpClient</code></li>
+<li><code>dev.failsafe.RetryPolicy&lt;T&gt;</code></li>
+<li><code>org.eclipse.edc.spi.agent.ParticipantIdMapper</code></li>
+</ul>
+<h5 id="referenced-injected-services-2">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>okhttp3.EventListener</code> (optional)</li>
+</ul>
 <h4 id="class-orgeclipseedcconnectorcorecoreservicesextension">Class:
 <code>org.eclipse.edc.connector.core.CoreServicesExtension</code></h4>
 <p><strong>Name:</strong> "Core Services"</p>
-<p><strong>Overview:</strong> This extension provides default/standard
-implementations for the {@link PrivateKeyResolver} and the {@link
-CertificateResolver} Those provider methods CANNOT be implemented in
-{@link CoreDefaultServicesExtension}, because that could potentially
-cause a conflict with injecting/providing the {@link Vault}</p>
-<h5 id="configuration">Configuration:</h5>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration-1">Configuration:</h5>
 <table>
 <thead>
 <tr class="header">
@@ -277,7 +362,7 @@ cause a conflict with injecting/providing the {@link Vault}</p>
 </tr>
 </tbody>
 </table>
-<h5 id="provided-services-1">Provided services:</h5>
+<h5 id="provided-services-3">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.spi.system.Hostname</code></li>
 <li><code>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</code></li>
@@ -292,7 +377,7 @@ cause a conflict with injecting/providing the {@link Vault}</p>
 <li><code>org.eclipse.edc.validator.spi.DataAddressValidatorRegistry</code></li>
 <li><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></li>
 </ul>
-<h5 id="referenced-injected-services-1">Referenced (injected)
+<h5 id="referenced-injected-services-3">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code>
@@ -303,123 +388,22 @@ services:</h5>
 <li><code>org.eclipse.edc.spi.types.TypeManager</code> (required)</li>
 </ul>
 <h4
-id="class-orgeclipseedcconnectorcorecoredefaultservicesextension">Class:
-<code>org.eclipse.edc.connector.core.CoreDefaultServicesExtension</code></h4>
-<p><strong>Name:</strong> "CoreDefaultServicesExtension"</p>
-<p><strong>Overview:</strong> This extension provides default/standard
-implementations for the {@link PrivateKeyResolver} and the {@link
-CertificateResolver} Those provider methods CANNOT be implemented in
-{@link CoreDefaultServicesExtension}, because that could potentially
-cause a conflict with injecting/providing the {@link Vault}</p>
-<h5 id="configuration-none-1">Configuration: <em>None</em></h5>
-<h5 id="provided-services-2">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.transaction.spi.TransactionContext</code></li>
-<li><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></li>
-<li><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></li>
-<li><code>org.eclipse.edc.connector.core.event.EventExecutorServiceContainer</code></li>
-<li><code>org.eclipse.edc.spi.security.Vault</code></li>
-<li><code>org.eclipse.edc.spi.http.EdcHttpClient</code></li>
-<li><code>okhttp3.OkHttpClient</code></li>
-<li><code>dev.failsafe.RetryPolicy&lt;T&gt;</code></li>
-<li><code>org.eclipse.edc.spi.agent.ParticipantIdMapper</code></li>
-</ul>
-<h5 id="referenced-injected-services-2">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>okhttp3.EventListener</code> (optional)</li>
-</ul>
-<h4
 id="class-orgeclipseedcconnectorcoresecuritydefaultservicesextension">Class:
 <code>org.eclipse.edc.connector.core.SecurityDefaultServicesExtension</code></h4>
 <p><strong>Name:</strong> "Security Default Services Extension"</p>
-<p><strong>Overview:</strong> This extension provides default/standard
-implementations for the {@link PrivateKeyResolver} and the {@link
-CertificateResolver} Those provider methods CANNOT be implemented in
-{@link CoreDefaultServicesExtension}, because that could potentially
-cause a conflict with injecting/providing the {@link Vault}</p>
+<p><strong>Overview:</strong> No overview provided.</p>
 <h5 id="configuration-none-2">Configuration: <em>None</em></h5>
-<h5 id="provided-services-3">Provided services:</h5>
+<h5 id="provided-services-4">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.spi.security.PrivateKeyResolver</code></li>
 <li><code>org.eclipse.edc.spi.security.CertificateResolver</code></li>
 <li><code>org.eclipse.edc.spi.security.KeyParserRegistry</code></li>
 </ul>
-<h5 id="referenced-injected-services-3">Referenced (injected)
+<h5 id="referenced-injected-services-4">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.spi.security.Vault</code> (required)</li>
 <li><code>org.eclipse.edc.spi.types.TypeManager</code> (required)</li>
-</ul>
-<h4
-id="class-orgeclipseedcconnectorcorelocalpublickeydefaultextension">Class:
-<code>org.eclipse.edc.connector.core.LocalPublicKeyDefaultExtension</code></h4>
-<p><strong>Name:</strong> "Security Default Services Extension"</p>
-<p><strong>Overview:</strong> This extension provides default/standard
-implementations for the {@link PrivateKeyResolver} and the {@link
-CertificateResolver} Those provider methods CANNOT be implemented in
-{@link CoreDefaultServicesExtension}, because that could potentially
-cause a conflict with injecting/providing the {@link Vault}</p>
-<h5 id="configuration-1">Configuration:</h5>
-<table>
-<thead>
-<tr class="header">
-<th>Key</th>
-<th>Required</th>
-<th>Type</th>
-<th>Default</th>
-<th>Pattern</th>
-<th>Min</th>
-<th>Max</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>edc.iam.publickeys.&lt;pkAlias&gt;.id</code></td>
-<td><code>*</code></td>
-<td><code>string</code></td>
-<td>``</td>
-<td></td>
-<td></td>
-<td></td>
-<td>ID of the public key.</td>
-</tr>
-<tr class="even">
-<td><code>edc.iam.publickeys.&lt;pkAlias&gt;.value</code></td>
-<td></td>
-<td><code>string</code></td>
-<td>``</td>
-<td></td>
-<td></td>
-<td></td>
-<td>Value of the public key. Multiple formats are supported, depending
-on the KeyParsers registered in the runtime</td>
-</tr>
-<tr class="odd">
-<td><code>edc.iam.publickeys.&lt;pkAlias&gt;.path</code></td>
-<td></td>
-<td><code>string</code></td>
-<td>``</td>
-<td></td>
-<td></td>
-<td></td>
-<td>Path to a file that holds the public key, e.g. a PEM file. Multiple
-formats are supported, depending on the KeyParsers registered in the
-runtime</td>
-</tr>
-</tbody>
-</table>
-<h5 id="provided-services-4">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.spi.iam.LocalPublicKeyService</code></li>
-</ul>
-<h5 id="referenced-injected-services-4">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>org.eclipse.edc.spi.security.KeyParserRegistry</code>
-(required)</li>
-<li><code>org.eclipse.edc.spi.security.Vault</code> (required)</li>
 </ul>
 <h2 id="module-orgeclipseedcedr-store-core052-snapshot">Module
 <code>org.eclipse.edc:edr-store-core:0.5.2-SNAPSHOT</code></h2>
@@ -427,26 +411,6 @@ services:</h5>
 <h3 id="extension-points-2">Extension points</h3>
 <p><em>None</em></p>
 <h3 id="extensions-2">Extensions</h3>
-<h4
-id="class-orgeclipseedccoreedrendpointdatareferencestoreextension">Class:
-<code>org.eclipse.edc.core.edr.EndpointDataReferenceStoreExtension</code></h4>
-<p><strong>Name:</strong> "Endpoint Data Reference Core Extension"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
-<h5 id="configuration-none-3">Configuration: <em>None</em></h5>
-<h5 id="provided-services-5">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore</code></li>
-</ul>
-<h5 id="referenced-injected-services-5">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex</code>
-(required)</li>
-<li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceCache</code>
-(required)</li>
-<li><code>org.eclipse.edc.transaction.spi.TransactionContext</code>
-(required)</li>
-</ul>
 <h4
 id="class-orgeclipseedccoreedrendpointdatareferencestoredefaultservicesextension">Class:
 <code>org.eclipse.edc.core.edr.EndpointDataReferenceStoreDefaultServicesExtension</code></h4>
@@ -480,12 +444,12 @@ supports hierarchical structuring.</td>
 </tr>
 </tbody>
 </table>
-<h5 id="provided-services-6">Provided services:</h5>
+<h5 id="provided-services-5">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceCache</code></li>
 <li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex</code></li>
 </ul>
-<h5 id="referenced-injected-services-6">Referenced (injected)
+<h5 id="referenced-injected-services-5">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex</code>
@@ -496,6 +460,26 @@ services:</h5>
 (required)</li>
 <li><code>org.eclipse.edc.spi.security.Vault</code> (required)</li>
 <li><code>org.eclipse.edc.spi.types.TypeManager</code> (required)</li>
+</ul>
+<h4
+id="class-orgeclipseedccoreedrendpointdatareferencestoreextension">Class:
+<code>org.eclipse.edc.core.edr.EndpointDataReferenceStoreExtension</code></h4>
+<p><strong>Name:</strong> "Endpoint Data Reference Core Extension"</p>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration-none-3">Configuration: <em>None</em></h5>
+<h5 id="provided-services-6">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore</code></li>
+</ul>
+<h5 id="referenced-injected-services-6">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex</code>
+(required)</li>
+<li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceCache</code>
+(required)</li>
+<li><code>org.eclipse.edc.transaction.spi.TransactionContext</code>
+(required)</li>
 </ul>
 <h2 id="module-orgeclipseedctoken-core052-snapshot">Module
 <code>org.eclipse.edc:token-core:0.5.2-SNAPSHOT</code></h2>
@@ -574,7 +558,8 @@ services:</h5>
 id="class-orgeclipseedcconnectorcontractcontractnegotiationcommandextension">Class:
 <code>org.eclipse.edc.connector.contract.ContractNegotiationCommandExtension</code></h4>
 <p><strong>Name:</strong> "Contract Negotiation command handlers"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
+<p><strong>Overview:</strong> Contract Negotiation Default Services
+Extension</p>
 <h5 id="configuration-none-7">Configuration: <em>None</em></h5>
 <h5 id="provided-services-10">Provided services:</h5>
 <p><em>None</em></p>
@@ -587,10 +572,38 @@ services:</h5>
 (required)</li>
 </ul>
 <h4
+id="class-orgeclipseedcconnectorcontractcontractnegotiationdefaultservicesextension">Class:
+<code>org.eclipse.edc.connector.contract.ContractNegotiationDefaultServicesExtension</code></h4>
+<p><strong>Name:</strong> "Contract Negotiation Default Services"</p>
+<p><strong>Overview:</strong> Contract Negotiation Default Services
+Extension</p>
+<h5 id="configuration-none-8">Configuration: <em>None</em></h5>
+<h5 id="provided-services-11">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver</code></li>
+<li><code>org.eclipse.edc.connector.contract.spi.offer.ConsumerOfferResolver</code></li>
+<li><code>org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable</code></li>
+<li><code>org.eclipse.edc.connector.policy.spi.store.PolicyArchive</code></li>
+<li><code>org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard</code></li>
+</ul>
+<h5 id="referenced-injected-services-11">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore</code>
+(required)</li>
+<li><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code>
+(required)</li>
+<li><code>org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore</code>
+(required)</li>
+<li><code>org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore</code>
+(required)</li>
+</ul>
+<h4
 id="class-orgeclipseedcconnectorcontractcontractcoreextension">Class:
 <code>org.eclipse.edc.connector.contract.ContractCoreExtension</code></h4>
 <p><strong>Name:</strong> "Contract Core"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
+<p><strong>Overview:</strong> Contract Negotiation Default Services
+Extension</p>
 <h5 id="configuration-3">Configuration:</h5>
 <table>
 <thead>
@@ -685,13 +698,13 @@ millisecond</td>
 </tr>
 </tbody>
 </table>
-<h5 id="provided-services-11">Provided services:</h5>
+<h5 id="provided-services-12">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.connector.contract.spi.validation.ContractValidationService</code></li>
 <li><code>org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager</code></li>
 <li><code>org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager</code></li>
 </ul>
-<h5 id="referenced-injected-services-11">Referenced (injected)
+<h5 id="referenced-injected-services-12">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.spi.asset.AssetIndex</code> (required)</li>
@@ -717,32 +730,6 @@ services:</h5>
 <li><code>org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard</code>
 (required)</li>
 <li><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code>
-(required)</li>
-</ul>
-<h4
-id="class-orgeclipseedcconnectorcontractcontractnegotiationdefaultservicesextension">Class:
-<code>org.eclipse.edc.connector.contract.ContractNegotiationDefaultServicesExtension</code></h4>
-<p><strong>Name:</strong> "Contract Negotiation Default Services"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
-<h5 id="configuration-none-8">Configuration: <em>None</em></h5>
-<h5 id="provided-services-12">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver</code></li>
-<li><code>org.eclipse.edc.connector.contract.spi.offer.ConsumerOfferResolver</code></li>
-<li><code>org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable</code></li>
-<li><code>org.eclipse.edc.connector.policy.spi.store.PolicyArchive</code></li>
-<li><code>org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard</code></li>
-</ul>
-<h5 id="referenced-injected-services-12">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore</code>
-(required)</li>
-<li><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code>
-(required)</li>
-<li><code>org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore</code>
-(required)</li>
-<li><code>org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore</code>
 (required)</li>
 </ul>
 <h2
@@ -861,42 +848,6 @@ services:</h5>
 <p><em>None</em></p>
 <h3 id="extensions-8">Extensions</h3>
 <h4
-id="class-orgeclipseedcconnectortransfertransferprocessdefaultservicesextension">Class:
-<code>org.eclipse.edc.connector.transfer.TransferProcessDefaultServicesExtension</code></h4>
-<p><strong>Name:</strong> "Transfer Process Default Services"</p>
-<p><strong>Overview:</strong> Provides core data transfer services to
-the system.</p>
-<h5 id="configuration-none-11">Configuration: <em>None</em></h5>
-<h5 id="provided-services-15">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager</code></li>
-<li><code>org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator</code></li>
-<li><code>org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager</code></li>
-<li><code>org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable</code></li>
-<li><code>org.eclipse.edc.connector.transfer.spi.TransferProcessPendingGuard</code></li>
-</ul>
-<h5 id="referenced-injected-services-15">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code>
-(required)</li>
-</ul>
-<h4
-id="class-orgeclipseedcconnectortransfertransferprocesscommandextension">Class:
-<code>org.eclipse.edc.connector.transfer.TransferProcessCommandExtension</code></h4>
-<p><strong>Name:</strong> "TransferProcessCommandExtension"</p>
-<p><strong>Overview:</strong> Provides core data transfer services to
-the system.</p>
-<h5 id="configuration-none-12">Configuration: <em>None</em></h5>
-<h5 id="provided-services-16">Provided services:</h5>
-<p><em>None</em></p>
-<h5 id="referenced-injected-services-16">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore</code>
-(required)</li>
-</ul>
-<h4
 id="class-orgeclipseedcconnectortransfertransfercoreextension">Class:
 <code>org.eclipse.edc.connector.transfer.TransferCoreExtension</code></h4>
 <p><strong>Name:</strong> "Transfer Core"</p>
@@ -962,12 +913,12 @@ the transfer with error</td>
 </tr>
 </tbody>
 </table>
-<h5 id="provided-services-17">Provided services:</h5>
+<h5 id="provided-services-15">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.connector.transfer.spi.TransferProcessManager</code></li>
 <li><code>org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry</code></li>
 </ul>
-<h5 id="referenced-injected-services-17">Referenced (injected)
+<h5 id="referenced-injected-services-15">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore</code>
@@ -1002,6 +953,42 @@ services:</h5>
 <li><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code>
 (required)</li>
 </ul>
+<h4
+id="class-orgeclipseedcconnectortransfertransferprocessdefaultservicesextension">Class:
+<code>org.eclipse.edc.connector.transfer.TransferProcessDefaultServicesExtension</code></h4>
+<p><strong>Name:</strong> "Transfer Process Default Services"</p>
+<p><strong>Overview:</strong> Provides core data transfer services to
+the system.</p>
+<h5 id="configuration-none-11">Configuration: <em>None</em></h5>
+<h5 id="provided-services-16">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager</code></li>
+<li><code>org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator</code></li>
+<li><code>org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager</code></li>
+<li><code>org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable</code></li>
+<li><code>org.eclipse.edc.connector.transfer.spi.TransferProcessPendingGuard</code></li>
+</ul>
+<h5 id="referenced-injected-services-16">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code>
+(required)</li>
+</ul>
+<h4
+id="class-orgeclipseedcconnectortransfertransferprocesscommandextension">Class:
+<code>org.eclipse.edc.connector.transfer.TransferProcessCommandExtension</code></h4>
+<p><strong>Name:</strong> "TransferProcessCommandExtension"</p>
+<p><strong>Overview:</strong> Provides core data transfer services to
+the system.</p>
+<h5 id="configuration-none-12">Configuration: <em>None</em></h5>
+<h5 id="provided-services-17">Provided services:</h5>
+<p><em>None</em></p>
+<h5 id="referenced-injected-services-17">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore</code>
+(required)</li>
+</ul>
 <h2 id="module-orgeclipseedcdata-plane-core052-snapshot">Module
 <code>org.eclipse.edc:data-plane-core:0.5.2-SNAPSHOT</code></h2>
 <p><em>Categories: None</em></p>
@@ -1009,11 +996,55 @@ services:</h5>
 <p><em>None</em></p>
 <h3 id="extensions-9">Extensions</h3>
 <h4
+id="class-orgeclipseedcconnectordataplaneframeworkdataplanedefaultiamservicesextension">Class:
+<code>org.eclipse.edc.connector.dataplane.framework.DataPlaneDefaultIamServicesExtension</code></h4>
+<p><strong>Name:</strong> "Data Plane Framework Default IAM
+Services"</p>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration-none-13">Configuration: <em>None</em></h5>
+<h5 id="provided-services-18">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService</code></li>
+<li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService</code></li>
+</ul>
+<h5 id="referenced-injected-services-18">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore</code>
+(required)</li>
+<li><code>org.eclipse.edc.token.spi.TokenValidationService</code>
+(required)</li>
+<li><code>org.eclipse.edc.spi.security.PrivateKeyResolver</code>
+(required)</li>
+<li><code>org.eclipse.edc.spi.iam.LocalPublicKeyService</code>
+(required)</li>
+</ul>
+<h4
+id="class-orgeclipseedcconnectordataplaneframeworkdataplanedefaultservicesextension">Class:
+<code>org.eclipse.edc.connector.dataplane.framework.DataPlaneDefaultServicesExtension</code></h4>
+<p><strong>Name:</strong> "Data Plane Framework Default Services"</p>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration-none-14">Configuration: <em>None</em></h5>
+<h5 id="provided-services-19">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy</code></li>
+<li><code>org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore</code></li>
+<li><code>org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore</code></li>
+<li><code>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</code></li>
+<li><code>org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService</code></li>
+</ul>
+<h5 id="referenced-injected-services-19">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>java.time.Clock</code> (required)</li>
+<li><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code>
+(required)</li>
+</ul>
+<h4
 id="class-orgeclipseedcconnectordataplaneframeworkdataplaneframeworkextension">Class:
 <code>org.eclipse.edc.connector.dataplane.framework.DataPlaneFrameworkExtension</code></h4>
 <p><strong>Name:</strong> "Data Plane Framework"</p>
-<p><strong>Overview:</strong> Provides core services for the Data Plane
-Framework.</p>
+<p><strong>Overview:</strong> No overview provided.</p>
 <h5 id="configuration-5">Configuration:</h5>
 <table>
 <thead>
@@ -1084,14 +1115,14 @@ the dataplane with error</td>
 </tr>
 </tbody>
 </table>
-<h5 id="provided-services-18">Provided services:</h5>
+<h5 id="provided-services-20">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager</code></li>
 <li><code>org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer</code></li>
 <li><code>org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry</code></li>
 <li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService</code></li>
 </ul>
-<h5 id="referenced-injected-services-18">Referenced (injected)
+<h5 id="referenced-injected-services-20">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy</code>
@@ -1113,53 +1144,6 @@ services:</h5>
 <li><code>org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService</code>
 (required)</li>
 </ul>
-<h4
-id="class-orgeclipseedcconnectordataplaneframeworkdataplanedefaultservicesextension">Class:
-<code>org.eclipse.edc.connector.dataplane.framework.DataPlaneDefaultServicesExtension</code></h4>
-<p><strong>Name:</strong> "Data Plane Framework Default Services"</p>
-<p><strong>Overview:</strong> Provides core services for the Data Plane
-Framework.</p>
-<h5 id="configuration-none-13">Configuration: <em>None</em></h5>
-<h5 id="provided-services-19">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy</code></li>
-<li><code>org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore</code></li>
-<li><code>org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore</code></li>
-<li><code>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</code></li>
-<li><code>org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService</code></li>
-</ul>
-<h5 id="referenced-injected-services-19">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>java.time.Clock</code> (required)</li>
-<li><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code>
-(required)</li>
-</ul>
-<h4
-id="class-orgeclipseedcconnectordataplaneframeworkdataplanedefaultiamservicesextension">Class:
-<code>org.eclipse.edc.connector.dataplane.framework.DataPlaneDefaultIamServicesExtension</code></h4>
-<p><strong>Name:</strong> "Data Plane Framework Default IAM
-Services"</p>
-<p><strong>Overview:</strong> Provides core services for the Data Plane
-Framework.</p>
-<h5 id="configuration-none-14">Configuration: <em>None</em></h5>
-<h5 id="provided-services-20">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService</code></li>
-<li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService</code></li>
-</ul>
-<h5 id="referenced-injected-services-20">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore</code>
-(required)</li>
-<li><code>org.eclipse.edc.token.spi.TokenValidationService</code>
-(required)</li>
-<li><code>org.eclipse.edc.spi.security.PrivateKeyResolver</code>
-(required)</li>
-<li><code>org.eclipse.edc.spi.iam.LocalPublicKeyService</code>
-(required)</li>
-</ul>
 <h2 id="module-orgeclipseedcdata-plane-selector-core052-snapshot">Module
 <code>org.eclipse.edc:data-plane-selector-core:0.5.2-SNAPSHOT</code></h2>
 <p><em>Categories: None</em></p>
@@ -1167,31 +1151,16 @@ services:</h5>
 <p><em>None</em></p>
 <h3 id="extensions-10">Extensions</h3>
 <h4
-id="class-orgeclipseedcconnectordataplaneselectordataplaneselectordefaultservicesextension">Class:
-<code>org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorDefaultServicesExtension</code></h4>
-<p><strong>Name:</strong>
-"DataPlaneSelectorDefaultServicesExtension"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
-<h5 id="configuration-none-15">Configuration: <em>None</em></h5>
-<h5 id="provided-services-21">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore</code></li>
-<li><code>org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry</code></li>
-</ul>
-<h5 id="referenced-injected-services-21">Referenced (injected)
-services:</h5>
-<p><em>None</em></p>
-<h4
 id="class-orgeclipseedcconnectordataplaneselectordataplaneselectorextension">Class:
 <code>org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorExtension</code></h4>
 <p><strong>Name:</strong> "DataPlane core selector"</p>
 <p><strong>Overview:</strong> No overview provided.</p>
-<h5 id="configuration-none-16">Configuration: <em>None</em></h5>
-<h5 id="provided-services-22">Provided services:</h5>
+<h5 id="configuration-none-15">Configuration: <em>None</em></h5>
+<h5 id="provided-services-21">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService</code></li>
 </ul>
-<h5 id="referenced-injected-services-22">Referenced (injected)
+<h5 id="referenced-injected-services-21">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore</code>
@@ -1201,6 +1170,21 @@ services:</h5>
 <li><code>org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry</code>
 (required)</li>
 </ul>
+<h4
+id="class-orgeclipseedcconnectordataplaneselectordataplaneselectordefaultservicesextension">Class:
+<code>org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorDefaultServicesExtension</code></h4>
+<p><strong>Name:</strong>
+"DataPlaneSelectorDefaultServicesExtension"</p>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration-none-16">Configuration: <em>None</em></h5>
+<h5 id="provided-services-22">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore</code></li>
+<li><code>org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry</code></li>
+</ul>
+<h5 id="referenced-injected-services-22">Referenced (injected)
+services:</h5>
+<p><em>None</em></p>
 <h2 id="module-orgeclipseedcpolicy-monitor-core052-snapshot">Module
 <code>org.eclipse.edc:policy-monitor-core:0.5.2-SNAPSHOT</code></h2>
 <p><em>Categories: None</em></p>
@@ -1689,8 +1673,8 @@ services:</h5>
 <p><em>None</em></p>
 <h3 id="extensions-21">Extensions</h3>
 <h4
-id="class-orgeclipseedcconnectordataplaneapidataplanepublicapiextension-1">Class:
-<code>org.eclipse.edc.connector.dataplane.api.DataPlanePublicApiExtension</code></h4>
+id="class-orgeclipseedcconnectordataplaneapidataplanepublicapiv2extension">Class:
+<code>org.eclipse.edc.connector.dataplane.api.DataPlanePublicApiV2Extension</code></h4>
 <p><strong>Name:</strong> "Data Plane Public API"</p>
 <p><strong>Overview:</strong> This extension provides generic endpoints
 which are open to public participants of the Dataspace to execute
@@ -1849,21 +1833,21 @@ services:</h5>
 <p><em>Categories: None</em></p>
 <h3 id="extension-points-25">Extension points</h3>
 <ul>
+<li><code>org.eclipse.edc.spi.agent.ParticipantIdMapper</code></li>
 <li><code>org.eclipse.edc.spi.command.CommandHandlerRegistry</code></li>
-<li><code>org.eclipse.edc.spi.system.health.HealthCheckService</code></li>
-<li><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></li>
 <li><code>org.eclipse.edc.spi.event.EventRouter</code></li>
 <li><code>org.eclipse.edc.spi.monitor.Monitor</code></li>
-<li><code>org.eclipse.edc.spi.security.CertificateResolver</code></li>
-<li><code>org.eclipse.edc.spi.security.Vault</code></li>
-<li><code>org.eclipse.edc.spi.security.PrivateKeyResolver</code></li>
-<li><code>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</code></li>
+<li><code>org.eclipse.edc.spi.iam.AudienceResolver</code></li>
 <li><code>org.eclipse.edc.spi.iam.IdentityService</code></li>
 <li><code>org.eclipse.edc.spi.iam.LocalPublicKeyService</code></li>
-<li><code>org.eclipse.edc.spi.iam.AudienceResolver</code></li>
-<li><code>org.eclipse.edc.spi.agent.ParticipantIdMapper</code></li>
-<li><code>org.eclipse.edc.spi.asset.AssetIndex</code></li>
 <li><code>org.eclipse.edc.spi.asset.DataAddressResolver</code></li>
+<li><code>org.eclipse.edc.spi.asset.AssetIndex</code></li>
+<li><code>org.eclipse.edc.spi.security.Vault</code></li>
+<li><code>org.eclipse.edc.spi.security.CertificateResolver</code></li>
+<li><code>org.eclipse.edc.spi.security.PrivateKeyResolver</code></li>
+<li><code>org.eclipse.edc.spi.system.health.HealthCheckService</code></li>
+<li><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></li>
+<li><code>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</code></li>
 </ul>
 <h3 id="extensions-25">Extensions</h3>
 <h2 id="module-iam-did-services052-snapshot">Module
@@ -1872,10 +1856,10 @@ services:</h5>
 <p><em>Categories: None</em></p>
 <h3 id="extension-points-26">Extension points</h3>
 <ul>
-<li><code>org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver</code></li>
-<li><code>org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry</code></li>
-<li><code>org.eclipse.edc.iam.did.spi.credentials.CredentialsVerifier</code></li>
 <li><code>org.eclipse.edc.iam.did.spi.store.DidStore</code></li>
+<li><code>org.eclipse.edc.iam.did.spi.credentials.CredentialsVerifier</code></li>
+<li><code>org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry</code></li>
+<li><code>org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver</code></li>
 </ul>
 <h3 id="extensions-26">Extensions</h3>
 <h2 id="module-jtw-services052-snapshot">Module
@@ -1900,8 +1884,8 @@ services:</h5>
 <p><em>Categories: None</em></p>
 <h3 id="extension-points-29">Extension points</h3>
 <ul>
-<li><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></li>
 <li><code>org.eclipse.edc.policy.engine.spi.RuleBindingRegistry</code></li>
+<li><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></li>
 </ul>
 <h3 id="extensions-29">Extensions</h3>
 <h2 id="module-token-services052-snapshot">Module
@@ -1949,13 +1933,13 @@ services:</h5>
 <ul>
 <li><code>org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver</code></li>
 <li><code>org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore</code></li>
-<li><code>org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager</code></li>
-<li><code>org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager</code></li>
-<li><code>org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable</code></li>
-<li><code>org.eclipse.edc.connector.contract.spi.negotiation.NegotiationWaitStrategy</code></li>
-<li><code>org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore</code></li>
-<li><code>org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard</code></li>
 <li><code>org.eclipse.edc.connector.contract.spi.validation.ContractValidationService</code></li>
+<li><code>org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore</code></li>
+<li><code>org.eclipse.edc.connector.contract.spi.negotiation.NegotiationWaitStrategy</code></li>
+<li><code>org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard</code></li>
+<li><code>org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable</code></li>
+<li><code>org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager</code></li>
+<li><code>org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager</code></li>
 </ul>
 <h3 id="extensions-34">Extensions</h3>
 <h2 id="module-control-plane-api-services052-snapshot">Module
@@ -1973,8 +1957,8 @@ services:</h5>
 <p><em>Categories: None</em></p>
 <h3 id="extension-points-36">Extension points</h3>
 <ul>
-<li><code>org.eclipse.edc.connector.policy.spi.store.PolicyArchive</code></li>
 <li><code>org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore</code></li>
+<li><code>org.eclipse.edc.connector.policy.spi.store.PolicyArchive</code></li>
 </ul>
 <h3 id="extensions-36">Extensions</h3>
 <h2 id="module-transfer-data-plane-services052-snapshot">Module
@@ -1992,14 +1976,14 @@ services:</h5>
 <p><em>Categories: None</em></p>
 <h3 id="extension-points-38">Extension points</h3>
 <ul>
-<li><code>org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager</code></li>
 <li><code>org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry</code></li>
-<li><code>org.eclipse.edc.connector.transfer.spi.TransferProcessPendingGuard</code></li>
-<li><code>org.eclipse.edc.connector.transfer.spi.TransferProcessManager</code></li>
+<li><code>org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager</code></li>
+<li><code>org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore</code></li>
 <li><code>org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager</code></li>
 <li><code>org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator</code></li>
+<li><code>org.eclipse.edc.connector.transfer.spi.TransferProcessPendingGuard</code></li>
 <li><code>org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable</code></li>
-<li><code>org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore</code></li>
+<li><code>org.eclipse.edc.connector.transfer.spi.TransferProcessManager</code></li>
 </ul>
 <h3 id="extensions-38">Extensions</h3>
 <h2 id="module-dataplane-services052-snapshot">Module
@@ -2008,11 +1992,11 @@ services:</h5>
 <p><em>Categories: None</em></p>
 <h3 id="extension-points-39">Extension points</h3>
 <ul>
-<li><code>org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager</code></li>
-<li><code>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</code></li>
 <li><code>org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry</code></li>
-<li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService</code></li>
+<li><code>org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager</code></li>
 <li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService</code></li>
+<li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService</code></li>
+<li><code>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</code></li>
 </ul>
 <h3 id="extensions-39">Extensions</h3>
 <h2 id="module-dataplane-selector-services052-snapshot">Module
@@ -2021,8 +2005,8 @@ services:</h5>
 <p><em>Categories: None</em></p>
 <h3 id="extension-points-40">Extension points</h3>
 <ul>
-<li><code>org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService</code></li>
 <li><code>org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient</code></li>
+<li><code>org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService</code></li>
 </ul>
 <h3 id="extensions-40">Extensions</h3>
 <h2 id="module-orgeclipseedcbackend-service052-snapshot">Module
@@ -2329,26 +2313,14 @@ services:</h5>
 <h3 id="extension-points-52">Extension points</h3>
 <p><em>None</em></p>
 <h3 id="extensions-52">Extensions</h3>
-<h4 id="class-orgeclipseedcapiapicoredefaultservicesextension">Class:
-<code>org.eclipse.edc.api.ApiCoreDefaultServicesExtension</code></h4>
-<p><strong>Name:</strong> "ApiCoreDefaultServicesExtension"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
-<h5 id="configuration-none-35">Configuration: <em>None</em></h5>
-<h5 id="provided-services-48">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.api.auth.spi.AuthenticationService</code></li>
-</ul>
-<h5 id="referenced-injected-services-48">Referenced (injected)
-services:</h5>
-<p><em>None</em></p>
 <h4 id="class-orgeclipseedcapiapicoreextension">Class:
 <code>org.eclipse.edc.api.ApiCoreExtension</code></h4>
 <p><strong>Name:</strong> "API Core"</p>
 <p><strong>Overview:</strong> No overview provided.</p>
-<h5 id="configuration-none-36">Configuration: <em>None</em></h5>
-<h5 id="provided-services-49">Provided services:</h5>
+<h5 id="configuration-none-35">Configuration: <em>None</em></h5>
+<h5 id="provided-services-48">Provided services:</h5>
 <p><em>None</em></p>
-<h5 id="referenced-injected-services-49">Referenced (injected)
+<h5 id="referenced-injected-services-48">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code>
@@ -2358,6 +2330,18 @@ services:</h5>
 <li><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code>
 (required)</li>
 </ul>
+<h4 id="class-orgeclipseedcapiapicoredefaultservicesextension">Class:
+<code>org.eclipse.edc.api.ApiCoreDefaultServicesExtension</code></h4>
+<p><strong>Name:</strong> "ApiCoreDefaultServicesExtension"</p>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration-none-36">Configuration: <em>None</em></h5>
+<h5 id="provided-services-49">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.api.auth.spi.AuthenticationService</code></li>
+</ul>
+<h5 id="referenced-injected-services-49">Referenced (injected)
+services:</h5>
+<p><em>None</em></p>
 <h2 id="module-orgeclipseedcapi-observability052-snapshot">Module
 <code>org.eclipse.edc:api-observability:0.5.2-SNAPSHOT</code></h2>
 <p><em>Categories: None</em></p>
@@ -3105,7 +3089,8 @@ services:</h5>
 id="class-orgeclipseedcvaultfilesystemjskprivatekeyresolverextension">Class:
 <code>org.eclipse.edc.vault.filesystem.JskPrivateKeyResolverExtension</code></h4>
 <p><strong>Name:</strong> "JKS PrivateKeyResolver Extension"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
+<p><strong>Overview:</strong> Bootstraps the file system-based vault
+extension.</p>
 <h5 id="configuration-none-47">Configuration: <em>None</em></h5>
 <h5 id="provided-services-69">Provided services:</h5>
 <ul>
@@ -3121,7 +3106,8 @@ services:</h5>
 <h4 id="class-orgeclipseedcvaultfilesystemfsvaultextension">Class:
 <code>org.eclipse.edc.vault.filesystem.FsVaultExtension</code></h4>
 <p><strong>Name:</strong> "FS Vault"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
+<p><strong>Overview:</strong> Bootstraps the file system-based vault
+extension.</p>
 <h5 id="configuration-none-48">Configuration: <em>None</em></h5>
 <h5 id="provided-services-70">Provided services:</h5>
 <ul>
@@ -3138,22 +3124,6 @@ services:</h5>
 <h3 id="extension-points-73">Extension points</h3>
 <p><em>None</em></p>
 <h3 id="extensions-73">Extensions</h3>
-<h4 id="class-orgeclipseedcvaulthashicorphashicorpvaultextension">Class:
-<code>org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension</code></h4>
-<p><strong>Name:</strong> "Hashicorp Vault"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
-<h5 id="configuration-none-49">Configuration: <em>None</em></h5>
-<h5 id="provided-services-71">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.spi.security.CertificateResolver</code></li>
-<li><code>org.eclipse.edc.spi.security.Vault</code></li>
-</ul>
-<h5 id="referenced-injected-services-71">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>org.eclipse.edc.spi.http.EdcHttpClient</code> (required)</li>
-<li><code>org.eclipse.edc.spi.types.TypeManager</code> (required)</li>
-</ul>
 <h4
 id="class-orgeclipseedcvaulthashicorphashicorpvaulthealthextension">Class:
 <code>org.eclipse.edc.vault.hashicorp.HashicorpVaultHealthExtension</code></h4>
@@ -3186,15 +3156,31 @@ id="class-orgeclipseedcvaulthashicorphashicorpvaulthealthextension">Class:
 </tr>
 </tbody>
 </table>
-<h5 id="provided-services-72">Provided services:</h5>
+<h5 id="provided-services-71">Provided services:</h5>
 <p><em>None</em></p>
-<h5 id="referenced-injected-services-72">Referenced (injected)
+<h5 id="referenced-injected-services-71">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.spi.system.health.HealthCheckService</code>
 (required)</li>
 <li><code>org.eclipse.edc.spi.types.TypeManager</code> (required)</li>
 <li><code>org.eclipse.edc.spi.http.EdcHttpClient</code> (required)</li>
+</ul>
+<h4 id="class-orgeclipseedcvaulthashicorphashicorpvaultextension">Class:
+<code>org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension</code></h4>
+<p><strong>Name:</strong> "Hashicorp Vault"</p>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration-none-49">Configuration: <em>None</em></h5>
+<h5 id="provided-services-72">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.spi.security.CertificateResolver</code></li>
+<li><code>org.eclipse.edc.spi.security.Vault</code></li>
+</ul>
+<h5 id="referenced-injected-services-72">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>org.eclipse.edc.spi.http.EdcHttpClient</code> (required)</li>
+<li><code>org.eclipse.edc.spi.types.TypeManager</code> (required)</li>
 </ul>
 <h2 id="module-orgeclipseedccontrol-plane-api052-snapshot">Module
 <code>org.eclipse.edc:control-plane-api:0.5.2-SNAPSHOT</code></h2>
@@ -3697,17 +3683,33 @@ id="module-orgeclipseedcdata-plane-signaling-client052-snapshot">Module
 <p><em>None</em></p>
 <h3 id="extensions-86">Extensions</h3>
 <h4
+id="class-orgeclipseedcconnectordataplaneclientdataplanesignalingclienttransformextension">Class:
+<code>org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientTransformExtension</code></h4>
+<p><strong>Name:</strong> "Data Plane Signaling transform Client"</p>
+<p><strong>Overview:</strong> This extension registers all the
+transformers relevant for the data plane signaling protocol</p>
+<h5 id="configuration-none-61">Configuration: <em>None</em></h5>
+<h5 id="provided-services-87">Provided services:</h5>
+<p><em>None</em></p>
+<h5 id="referenced-injected-services-87">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code>
+(required)</li>
+<li><code>org.eclipse.edc.spi.types.TypeManager</code> (required)</li>
+</ul>
+<h4
 id="class-orgeclipseedcconnectordataplaneclientdataplanesignalingclientextension">Class:
 <code>org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientExtension</code></h4>
 <p><strong>Name:</strong> "Data Plane Signaling Client"</p>
 <p><strong>Overview:</strong> This extension registers all the
 transformers relevant for the data plane signaling protocol</p>
-<h5 id="configuration-none-61">Configuration: <em>None</em></h5>
-<h5 id="provided-services-87">Provided services:</h5>
+<h5 id="configuration-none-62">Configuration: <em>None</em></h5>
+<h5 id="provided-services-88">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory</code></li>
 </ul>
-<h5 id="referenced-injected-services-87">Referenced (injected)
+<h5 id="referenced-injected-services-88">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.spi.http.EdcHttpClient</code> (required)</li>
@@ -3715,22 +3717,6 @@ services:</h5>
 <li><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code>
 (required)</li>
 <li><code>org.eclipse.edc.jsonld.spi.JsonLd</code> (required)</li>
-</ul>
-<h4
-id="class-orgeclipseedcconnectordataplaneclientdataplanesignalingclienttransformextension">Class:
-<code>org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientTransformExtension</code></h4>
-<p><strong>Name:</strong> "Data Plane Signaling transform Client"</p>
-<p><strong>Overview:</strong> This extension registers all the
-transformers relevant for the data plane signaling protocol</p>
-<h5 id="configuration-none-62">Configuration: <em>None</em></h5>
-<h5 id="provided-services-88">Provided services:</h5>
-<p><em>None</em></p>
-<h5 id="referenced-injected-services-88">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code>
-(required)</li>
-<li><code>org.eclipse.edc.spi.types.TypeManager</code> (required)</li>
 </ul>
 <h2 id="module-orgeclipseedcidentity-did-core052-snapshot">Module
 <code>org.eclipse.edc:identity-did-core:0.5.2-SNAPSHOT</code></h2>
@@ -3809,14 +3795,82 @@ services:</h5>
 <p><em>None</em></p>
 <h3 id="extensions-89">Extensions</h3>
 <h4
+id="class-orgeclipseedciamidentitytrustcoreidentityandtrustextension">Class:
+<code>org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension</code></h4>
+<p><strong>Name:</strong> "Identity And Trust Extension"</p>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration-27">Configuration:</h5>
+<table>
+<thead>
+<tr class="header">
+<th>Key</th>
+<th>Required</th>
+<th>Type</th>
+<th>Default</th>
+<th>Pattern</th>
+<th>Min</th>
+<th>Max</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>edc.iam.issuer.id</code></td>
+<td><code>*</code></td>
+<td><code>string</code></td>
+<td>``</td>
+<td></td>
+<td></td>
+<td></td>
+<td>DID of this connector</td>
+</tr>
+</tbody>
+</table>
+<h5 id="provided-services-91">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.spi.iam.IdentityService</code></li>
+<li><code>org.eclipse.edc.identitytrust.CredentialServiceClient</code></li>
+<li><code>org.eclipse.edc.identitytrust.verification.PresentationVerifier</code></li>
+</ul>
+<h5 id="referenced-injected-services-91">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>org.eclipse.edc.identitytrust.SecureTokenService</code>
+(required)</li>
+<li><code>org.eclipse.edc.identitytrust.TrustedIssuerRegistry</code>
+(required)</li>
+<li><code>org.eclipse.edc.spi.types.TypeManager</code> (required)</li>
+<li><code>org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry</code>
+(required)</li>
+<li><code>org.eclipse.edc.jsonld.spi.JsonLd</code> (required)</li>
+<li><code>java.time.Clock</code> (required)</li>
+<li><code>org.eclipse.edc.spi.http.EdcHttpClient</code> (required)</li>
+<li><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code>
+(required)</li>
+<li><code>org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry</code>
+(required)</li>
+<li><code>org.eclipse.edc.token.spi.TokenValidationService</code>
+(required)</li>
+<li><code>org.eclipse.edc.token.spi.TokenValidationRulesRegistry</code>
+(required)</li>
+<li><code>org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver</code>
+(required)</li>
+<li><code>org.eclipse.edc.identitytrust.ClaimTokenCreatorFunction</code>
+(required)</li>
+<li><code>org.eclipse.edc.spi.agent.ParticipantAgentService</code>
+(required)</li>
+<li><code>org.eclipse.edc.identitytrust.IatpParticipantAgentServiceExtension</code>
+(required)</li>
+</ul>
+<h4
 id="class-orgeclipseedciamidentitytrustcoreiatpscopeextractorextension">Class:
 <code>org.eclipse.edc.iam.identitytrust.core.IatpScopeExtractorExtension</code></h4>
 <p><strong>Name:</strong> "IATP scope extractor extension"</p>
 <p><strong>Overview:</strong> No overview provided.</p>
 <h5 id="configuration-none-64">Configuration: <em>None</em></h5>
-<h5 id="provided-services-91">Provided services:</h5>
+<h5 id="provided-services-92">Provided services:</h5>
 <p><em>None</em></p>
-<h5 id="referenced-injected-services-91">Referenced (injected)
+<h5 id="referenced-injected-services-92">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code>
@@ -3831,7 +3885,7 @@ id="class-orgeclipseedciamidentitytrustcoreiatpdefaultservicesextension">Class:
 <p><strong>Name:</strong> "Identity And Trust Extension to register
 default services"</p>
 <p><strong>Overview:</strong> No overview provided.</p>
-<h5 id="configuration-27">Configuration:</h5>
+<h5 id="configuration-28">Configuration:</h5>
 <table>
 <thead>
 <tr class="header">
@@ -3881,7 +3935,7 @@ minutes</td>
 </tr>
 </tbody>
 </table>
-<h5 id="provided-services-92">Provided services:</h5>
+<h5 id="provided-services-93">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.identitytrust.SecureTokenService</code></li>
 <li><code>org.eclipse.edc.identitytrust.TrustedIssuerRegistry</code></li>
@@ -3891,79 +3945,11 @@ minutes</td>
 <li><code>org.eclipse.edc.spi.iam.AudienceResolver</code></li>
 <li><code>org.eclipse.edc.identitytrust.ClaimTokenCreatorFunction</code></li>
 </ul>
-<h5 id="referenced-injected-services-92">Referenced (injected)
+<h5 id="referenced-injected-services-93">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>java.time.Clock</code> (required)</li>
 <li><code>org.eclipse.edc.spi.security.PrivateKeyResolver</code>
-(required)</li>
-</ul>
-<h4
-id="class-orgeclipseedciamidentitytrustcoreidentityandtrustextension">Class:
-<code>org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension</code></h4>
-<p><strong>Name:</strong> "Identity And Trust Extension"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
-<h5 id="configuration-28">Configuration:</h5>
-<table>
-<thead>
-<tr class="header">
-<th>Key</th>
-<th>Required</th>
-<th>Type</th>
-<th>Default</th>
-<th>Pattern</th>
-<th>Min</th>
-<th>Max</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>edc.iam.issuer.id</code></td>
-<td><code>*</code></td>
-<td><code>string</code></td>
-<td>``</td>
-<td></td>
-<td></td>
-<td></td>
-<td>DID of this connector</td>
-</tr>
-</tbody>
-</table>
-<h5 id="provided-services-93">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.spi.iam.IdentityService</code></li>
-<li><code>org.eclipse.edc.identitytrust.CredentialServiceClient</code></li>
-<li><code>org.eclipse.edc.identitytrust.verification.PresentationVerifier</code></li>
-</ul>
-<h5 id="referenced-injected-services-93">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>org.eclipse.edc.identitytrust.SecureTokenService</code>
-(required)</li>
-<li><code>org.eclipse.edc.identitytrust.TrustedIssuerRegistry</code>
-(required)</li>
-<li><code>org.eclipse.edc.spi.types.TypeManager</code> (required)</li>
-<li><code>org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry</code>
-(required)</li>
-<li><code>org.eclipse.edc.jsonld.spi.JsonLd</code> (required)</li>
-<li><code>java.time.Clock</code> (required)</li>
-<li><code>org.eclipse.edc.spi.http.EdcHttpClient</code> (required)</li>
-<li><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code>
-(required)</li>
-<li><code>org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry</code>
-(required)</li>
-<li><code>org.eclipse.edc.token.spi.TokenValidationService</code>
-(required)</li>
-<li><code>org.eclipse.edc.token.spi.TokenValidationRulesRegistry</code>
-(required)</li>
-<li><code>org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver</code>
-(required)</li>
-<li><code>org.eclipse.edc.identitytrust.ClaimTokenCreatorFunction</code>
-(required)</li>
-<li><code>org.eclipse.edc.spi.agent.ParticipantAgentService</code>
-(required)</li>
-<li><code>org.eclipse.edc.identitytrust.IatpParticipantAgentServiceExtension</code>
 (required)</li>
 </ul>
 <h2
@@ -4075,6 +4061,20 @@ services:</h5>
 <h3 id="extension-points-93">Extension points</h3>
 <p><em>None</em></p>
 <h3 id="extensions-93">Extensions</h3>
+<h4
+id="class-orgeclipseedciamoauth2oauth2servicedefaultservicesextension">Class:
+<code>org.eclipse.edc.iam.oauth2.Oauth2ServiceDefaultServicesExtension</code></h4>
+<p><strong>Name:</strong> "Oauth2ServiceDefaultServicesExtension"</p>
+<p><strong>Overview:</strong> Provides OAuth2 client credentials flow
+support.</p>
+<h5 id="configuration-none-67">Configuration: <em>None</em></h5>
+<h5 id="provided-services-97">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.spi.iam.AudienceResolver</code></li>
+</ul>
+<h5 id="referenced-injected-services-97">Referenced (injected)
+services:</h5>
+<p><em>None</em></p>
 <h4 id="class-orgeclipseedciamoauth2oauth2serviceextension">Class:
 <code>org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension</code></h4>
 <p><strong>Name:</strong> "OAuth2 Identity Service"</p>
@@ -4211,11 +4211,11 @@ default it is 0 seconds.</td>
 </tr>
 </tbody>
 </table>
-<h5 id="provided-services-97">Provided services:</h5>
+<h5 id="provided-services-98">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.spi.iam.IdentityService</code></li>
 </ul>
-<h5 id="referenced-injected-services-97">Referenced (injected)
+<h5 id="referenced-injected-services-98">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.spi.http.EdcHttpClient</code> (required)</li>
@@ -4234,20 +4234,6 @@ services:</h5>
 <li><code>org.eclipse.edc.token.spi.TokenDecoratorRegistry</code>
 (required)</li>
 </ul>
-<h4
-id="class-orgeclipseedciamoauth2oauth2servicedefaultservicesextension">Class:
-<code>org.eclipse.edc.iam.oauth2.Oauth2ServiceDefaultServicesExtension</code></h4>
-<p><strong>Name:</strong> "Oauth2ServiceDefaultServicesExtension"</p>
-<p><strong>Overview:</strong> Provides OAuth2 client credentials flow
-support.</p>
-<h5 id="configuration-none-67">Configuration: <em>None</em></h5>
-<h5 id="provided-services-98">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.spi.iam.AudienceResolver</code></li>
-</ul>
-<h5 id="referenced-injected-services-98">Referenced (injected)
-services:</h5>
-<p><em>None</em></p>
 <h2 id="module-orgeclipseedcoauth2-daps052-snapshot">Module
 <code>org.eclipse.edc:oauth2-daps:0.5.2-SNAPSHOT</code></h2>
 <p><em>Categories: None</em></p>
@@ -5070,6 +5056,19 @@ services:</h5>
 <p><em>None</em></p>
 <h3 id="extensions-115">Extensions</h3>
 <h4
+id="class-orgeclipseedciamidentitytruststscorestsdefaultstoresextension">Class:
+<code>org.eclipse.edc.iam.identitytrust.sts.core.StsDefaultStoresExtension</code></h4>
+<p><strong>Name:</strong> "Secure Token Service Default Stores"</p>
+<p><strong>Overview:</strong> No overview provided.</p>
+<h5 id="configuration-none-82">Configuration: <em>None</em></h5>
+<h5 id="provided-services-121">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.iam.identitytrust.sts.store.StsClientStore</code></li>
+</ul>
+<h5 id="referenced-injected-services-121">Referenced (injected)
+services:</h5>
+<p><em>None</em></p>
+<h4
 id="class-orgeclipseedciamidentitytruststscorestsdefaultservicesextension">Class:
 <code>org.eclipse.edc.iam.identitytrust.sts.core.StsDefaultServicesExtension</code></h4>
 <p><strong>Name:</strong> "Secure Token Service Default Services"</p>
@@ -5102,12 +5101,12 @@ minutes</td>
 </tr>
 </tbody>
 </table>
-<h5 id="provided-services-121">Provided services:</h5>
+<h5 id="provided-services-122">Provided services:</h5>
 <ul>
 <li><code>org.eclipse.edc.iam.identitytrust.sts.service.StsClientTokenGeneratorService</code></li>
 <li><code>org.eclipse.edc.iam.identitytrust.sts.service.StsClientService</code></li>
 </ul>
-<h5 id="referenced-injected-services-121">Referenced (injected)
+<h5 id="referenced-injected-services-122">Referenced (injected)
 services:</h5>
 <ul>
 <li><code>org.eclipse.edc.iam.identitytrust.sts.store.StsClientStore</code>
@@ -5119,19 +5118,6 @@ services:</h5>
 (required)</li>
 <li><code>java.time.Clock</code> (required)</li>
 </ul>
-<h4
-id="class-orgeclipseedciamidentitytruststscorestsdefaultstoresextension">Class:
-<code>org.eclipse.edc.iam.identitytrust.sts.core.StsDefaultStoresExtension</code></h4>
-<p><strong>Name:</strong> "Secure Token Service Default Stores"</p>
-<p><strong>Overview:</strong> No overview provided.</p>
-<h5 id="configuration-none-82">Configuration: <em>None</em></h5>
-<h5 id="provided-services-122">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.iam.identitytrust.sts.store.StsClientStore</code></li>
-</ul>
-<h5 id="referenced-injected-services-122">Referenced (injected)
-services:</h5>
-<p><em>None</em></p>
 <h2
 id="module-orgeclipseedcidentity-trust-sts-remote-core052-snapshot">Module
 <code>org.eclipse.edc:identity-trust-sts-remote-core:0.5.2-SNAPSHOT</code></h2>
@@ -5139,6 +5125,26 @@ id="module-orgeclipseedcidentity-trust-sts-remote-core052-snapshot">Module
 <h3 id="extension-points-116">Extension points</h3>
 <p><em>None</em></p>
 <h3 id="extensions-116">Extensions</h3>
+<h4
+id="class-orgeclipseedciamidentitytruststsremotecorestsremoteclientextension">Class:
+<code>org.eclipse.edc.iam.identitytrust.sts.remote.core.StsRemoteClientExtension</code></h4>
+<p><strong>Name:</strong> "Sts remote client configuration
+extension"</p>
+<p><strong>Overview:</strong> Configuration Extension for the STS OAuth2
+client</p>
+<h5 id="configuration-none-83">Configuration: <em>None</em></h5>
+<h5 id="provided-services-123">Provided services:</h5>
+<ul>
+<li><code>org.eclipse.edc.identitytrust.SecureTokenService</code></li>
+</ul>
+<h5 id="referenced-injected-services-123">Referenced (injected)
+services:</h5>
+<ul>
+<li><code>org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration</code>
+(required)</li>
+<li><code>org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client</code>
+(required)</li>
+</ul>
 <h4
 id="class-orgeclipseedciamidentitytruststsremotecorestsremoteclientconfigurationextension">Class:
 <code>org.eclipse.edc.iam.identitytrust.sts.remote.core.StsRemoteClientConfigurationExtension</code></h4>
@@ -5193,34 +5199,14 @@ client</p>
 </tr>
 </tbody>
 </table>
-<h5 id="provided-services-123">Provided services:</h5>
-<ul>
-<li><code>org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration</code></li>
-</ul>
-<h5 id="referenced-injected-services-123">Referenced (injected)
-services:</h5>
-<ul>
-<li><code>org.eclipse.edc.spi.security.Vault</code> (required)</li>
-</ul>
-<h4
-id="class-orgeclipseedciamidentitytruststsremotecorestsremoteclientextension">Class:
-<code>org.eclipse.edc.iam.identitytrust.sts.remote.core.StsRemoteClientExtension</code></h4>
-<p><strong>Name:</strong> "Sts remote client configuration
-extension"</p>
-<p><strong>Overview:</strong> Configuration Extension for the STS OAuth2
-client</p>
-<h5 id="configuration-none-83">Configuration: <em>None</em></h5>
 <h5 id="provided-services-124">Provided services:</h5>
 <ul>
-<li><code>org.eclipse.edc.identitytrust.SecureTokenService</code></li>
+<li><code>org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration</code></li>
 </ul>
 <h5 id="referenced-injected-services-124">Referenced (injected)
 services:</h5>
 <ul>
-<li><code>org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration</code>
-(required)</li>
-<li><code>org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client</code>
-(required)</li>
+<li><code>org.eclipse.edc.spi.security.Vault</code> (required)</li>
 </ul>
 </body>
 </html>
