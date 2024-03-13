@@ -25,23 +25,20 @@ import java.util.Optional;
 import static java.lang.String.format;
 
 /**
- * Verify that a @value is present but deprecated.
+ * Verifies if a deprecated value is present and, if so, logs a warning message.
  */
 public class LogDeprecatedValue implements Validator<JsonObject> {
     public final String deprecatedLog;
     private final JsonLdPath path;
     private final Monitor monitor;
 
-    public LogDeprecatedValue(JsonLdPath path, String deprecatedLog, Monitor monitor) {
+    public LogDeprecatedValue(JsonLdPath path, String deprecatedType, String attributeToUse, Monitor monitor) {
         this.path = path;
         this.monitor = monitor;
-        this.deprecatedLog = deprecatedLog;
+        this.deprecatedLog = format("The attribute %s has been deprecated in type %s, please use %s",
+                path.last(), deprecatedType, attributeToUse);
     }
 
-    public LogDeprecatedValue(JsonLdPath path, String deprecatedType, String attributeToUse, Monitor monitor) {
-        this(path, format("The attribute %s has been deprecated in type %s, please use %s",
-                path.last(), deprecatedType, attributeToUse), monitor);
-    }
     @Override
     public ValidationResult validate(JsonObject input) {
         return Optional.ofNullable(input.getJsonArray(path.last()))
