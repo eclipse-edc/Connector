@@ -19,13 +19,13 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -47,16 +47,17 @@ class EmbeddedDataPlaneClientTest {
 
     @Test
     void transfer_shouldSucceed_whenTransferInitiatedCorrectly() {
+        var response = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("type").build()).build();
         var request = createDataFlowRequest();
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
-        doNothing().when(dataPlaneManager).initiate(any());
+        when(dataPlaneManager.start(any())).thenReturn(Result.success(response));
 
         var result = client.start(request);
 
         verify(dataPlaneManager).validate(request);
-        verify(dataPlaneManager).initiate(request);
+        verify(dataPlaneManager).start(request);
 
-        assertThat(result).isSucceeded();
+        assertThat(result).isSucceeded().isEqualTo(response);
     }
 
     @Test
@@ -64,12 +65,27 @@ class EmbeddedDataPlaneClientTest {
         var errorMsg = "error";
         var request = createDataFlowRequest();
         when(dataPlaneManager.validate(any())).thenReturn(Result.failure(errorMsg));
-        doNothing().when(dataPlaneManager).initiate(any());
+        when(dataPlaneManager.start(any())).thenReturn(Result.success(DataFlowResponseMessage.Builder.newInstance().build()));
 
         var result = client.start(request);
 
         verify(dataPlaneManager).validate(request);
-        verify(dataPlaneManager, never()).initiate(any());
+        verify(dataPlaneManager, never()).start(any());
+
+        assertThat(result).isFailed().messages().hasSize(1).allSatisfy(s -> assertThat(s).contains(errorMsg));
+    }
+
+    @Test
+    void transfer_shouldReturnFailedResult_whenStartFailure() {
+        var errorMsg = "error";
+        var request = createDataFlowRequest();
+        when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
+        when(dataPlaneManager.start(any())).thenReturn(Result.failure(errorMsg));
+
+        var result = client.start(request);
+
+        verify(dataPlaneManager).validate(request);
+        verify(dataPlaneManager).start(request);
 
         assertThat(result).isFailed().messages().hasSize(1).allSatisfy(s -> assertThat(s).contains(errorMsg));
     }

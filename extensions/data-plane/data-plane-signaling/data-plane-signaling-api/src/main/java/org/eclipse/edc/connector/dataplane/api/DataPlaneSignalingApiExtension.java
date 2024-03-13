@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.dataplane.api;
 
 import org.eclipse.edc.connector.api.signaling.configuration.SignalingApiConfiguration;
 import org.eclipse.edc.connector.dataplane.api.controller.v1.DataPlaneSignalingApiController;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -38,8 +37,6 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
     @Inject
     private TypeTransformerRegistry transformerRegistry;
     @Inject
-    private DataPlaneAuthorizationService authorizationService;
-    @Inject
     private DataPlaneManager dataPlaneManager;
 
     @Override
@@ -50,7 +47,7 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var signalingApiTypeTransformerRegistry = transformerRegistry.forContext("signaling-api");
-        var controller = new DataPlaneSignalingApiController(signalingApiTypeTransformerRegistry, authorizationService,
+        var controller = new DataPlaneSignalingApiController(signalingApiTypeTransformerRegistry,
                 dataPlaneManager, context.getMonitor().withPrefix("SignalingAPI"));
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
     }

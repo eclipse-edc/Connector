@@ -40,6 +40,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -100,7 +101,7 @@ public class TransferProcessHttpClientIntegrationTest {
         store.save(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
-        manager.initiate(dataFlowRequest);
+        manager.start(dataFlowRequest);
 
         await().untilAsserted(() -> {
             var transferProcess = store.findById("tp-id");
@@ -116,7 +117,7 @@ public class TransferProcessHttpClientIntegrationTest {
         store.save(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
-        manager.initiate(dataFlowRequest);
+        manager.start(dataFlowRequest);
 
         await().untilAsserted(() -> {
             var transferProcess = store.findById("tp-id");
@@ -134,7 +135,7 @@ public class TransferProcessHttpClientIntegrationTest {
         store.save(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
-        manager.initiate(dataFlowRequest);
+        manager.start(dataFlowRequest);
 
         await().untilAsserted(() -> {
             var transferProcess = store.findById("tp-id");
@@ -166,6 +167,7 @@ public class TransferProcessHttpClientIntegrationTest {
                 .callbackAddress(callbackAddress)
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("file").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("file").build())
+                .flowType(FlowType.PUSH)
                 .build();
     }
 

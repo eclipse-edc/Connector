@@ -292,6 +292,7 @@ public class EndToEndTransferParticipant extends Participant {
                 put("edc.vault", resourceAbsolutePath(getName() + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
+                put("edc.dataplane.api.public.baseurl", dataPlanePublic + "/v2/");
                 put("edc.dataplane.token.validation.endpoint", controlPlaneControl + "/token");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
