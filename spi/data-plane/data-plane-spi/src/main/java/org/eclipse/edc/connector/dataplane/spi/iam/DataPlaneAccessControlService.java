@@ -39,10 +39,11 @@ public interface DataPlaneAccessControlService {
      * detail to the requestor for security reasons.
      * <p>
      *
-     * @param claimToken  The credential that was attached to the data request received by the data plane
-     * @param address     The resource address of the data that is being requested
-     * @param requestData Additional information about the request, e.g. URL pattern, additional headers, query params, etc.
+     * @param claimToken     The credential that was attached to the data request received by the data plane
+     * @param address        The resource address of the data that is being requested
+     * @param requestData    Additional information about the request, e.g. URL pattern, additional headers, query params, etc.
+     * @param additionalData Additional information about the claim token, such as participant ID, agreement ID, transfer process ID etc.
      * @return success if access to the resource is granted, a failure otherwise.
      */
-    Result<Void> checkAccess(ClaimToken claimToken, DataAddress address, Map<String, Object> requestData);
+    Result<Void> checkAccess(ClaimToken claimToken, DataAddress address, Map<String, Object> requestData, Map<String, Object> additionalData);
 }

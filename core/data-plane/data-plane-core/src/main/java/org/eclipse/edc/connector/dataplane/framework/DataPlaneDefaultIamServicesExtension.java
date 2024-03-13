@@ -58,7 +58,7 @@ public class DataPlaneDefaultIamServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public DataPlaneAccessControlService defaultAccessControlService(ServiceExtensionContext context) {
         context.getMonitor().debug("DataPlane Access Control: default implementation is used, will always return Result.success()");
-        return (claimToken, address, requestData) -> Result.success();
+        return (claimToken, address, requestData, additionalData) -> Result.success();
     }
 
     @Provider(isDefault = true)

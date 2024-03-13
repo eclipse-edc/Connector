@@ -34,10 +34,11 @@ import static java.util.stream.Collectors.toMap;
 import static org.eclipse.edc.spi.result.Result.success;
 
 public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorizationService {
-    public static final String CLAIM_AGREEMENT_ID = "agreement_id";
-    public static final String CLAIM_ASSET_ID = "asset_id";
-    public static final String CLAIM_PROCESS_ID = "process_id";
-    public static final String CLAIM_FLOW_TYPE = "flow_type";
+    public static final String PROPERTY_AGREEMENT_ID = "agreement_id";
+    public static final String PROPERTY_ASSET_ID = "asset_id";
+    public static final String PROPERTY_PROCESS_ID = "process_id";
+    public static final String PROPERTY_FLOW_TYPE = "flow_type";
+    private static final String PROPERTY_PARTICIPANT_ID = "participant_id";
     private final DataPlaneAccessTokenService accessTokenService;
     private final PublicEndpointGeneratorService endpointGenerator;
     private final DataPlaneAccessControlService accessControlService;
@@ -61,7 +62,13 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
         var endpoint = endpointGenerator.generateFor(message.getSourceDataAddress());
 
         var additionalProperties = message.getProperties().entrySet().stream().collect(toMap(Map.Entry::getKey, entry -> (Object) entry.getValue()));
-        
+
+        additionalProperties.put(PROPERTY_AGREEMENT_ID, message.getAgreementId());
+        additionalProperties.put(PROPERTY_ASSET_ID, message.getAssetId());
+        additionalProperties.put(PROPERTY_PROCESS_ID, message.getProcessId());
+        additionalProperties.put(PROPERTY_FLOW_TYPE, message.getFlowType().toString());
+        additionalProperties.put(PROPERTY_PARTICIPANT_ID, message.getParticipantId());
+
         return endpoint.compose(e -> accessTokenService.obtainToken(createTokenParams(message), message.getSourceDataAddress(), additionalProperties))
                 .compose(tokenRepresentation -> createDataAddress(tokenRepresentation, endpoint.getContent()));
     }
@@ -71,7 +78,7 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
         var accessTokenDataResult = accessTokenService.resolve(token);
 
         return accessTokenDataResult
-                .compose(atd -> accessControlService.checkAccess(atd.claimToken(), atd.dataAddress(), requestData))
+                .compose(atd -> accessControlService.checkAccess(atd.claimToken(), atd.dataAddress(), atd.additionalProperties(), requestData))
                 .map(u -> accessTokenDataResult.getContent().dataAddress());
     }
 
@@ -94,10 +101,6 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
                 .claims(JwtRegisteredClaimNames.ISSUER, ownParticipantId)
                 .claims(JwtRegisteredClaimNames.SUBJECT, ownParticipantId)
                 .claims(JwtRegisteredClaimNames.ISSUED_AT, clock.instant().toEpochMilli()) // todo: milli or second?
-                .claims(CLAIM_AGREEMENT_ID, message.getAgreementId())
-                .claims(CLAIM_ASSET_ID, message.getAssetId())
-                .claims(CLAIM_PROCESS_ID, message.getProcessId())
-                .claims(CLAIM_FLOW_TYPE, message.getFlowType().toString())
                 .build();
     }
 

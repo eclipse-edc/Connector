@@ -42,6 +42,7 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -76,14 +77,19 @@ class DataPlaneAuthorizationServiceImplTest {
                     assertThat(da.getStringProperty("authorization")).isEqualTo("footoken");
                 });
 
-        var requiredClaims = Set.of(JWT_ID, AUDIENCE, ISSUER, SUBJECT, ISSUED_AT, "asset_id", "agreement_id", "process_id");
+        var requiredClaims = Set.of(JWT_ID, AUDIENCE, ISSUER, SUBJECT, ISSUED_AT);
         verify(accessTokenService).obtainToken(ArgumentMatchers.assertArg(tp -> {
             assertThat(tp.getClaims().keySet()).containsAll(requiredClaims);
             assertThat(tp.getStringClaim(AUDIENCE)).isEqualTo(startMsg.getParticipantId());
             assertThat(tp.getStringClaim(ISSUER)).isEqualTo(OWN_PARTICIPANT_ID);
             assertThat(tp.getStringClaim(SUBJECT)).isEqualTo(OWN_PARTICIPANT_ID);
             assertThat(tp.getClaims().get(ISSUED_AT)).isNotNull();
-        }), any(), anyMap());
+        }), any(), argThat(m ->
+                m.containsKey("agreement_id") &&
+                        m.containsKey("participant_id") &&
+                        m.containsKey("asset_id") &&
+                        m.containsKey("process_id") &&
+                        m.containsKey("flow_type")));
     }
 
 
@@ -121,11 +127,11 @@ class DataPlaneAuthorizationServiceImplTest {
         when(accessTokenService.resolve(eq("foo-token"))).thenReturn(Result.success(new AccessTokenData("test-id",
                 claimToken,
                 address)));
-        when(accessControlService.checkAccess(eq(claimToken), eq(address), any())).thenReturn(Result.success());
+        when(accessControlService.checkAccess(eq(claimToken), eq(address), any(), anyMap())).thenReturn(Result.success());
 
         assertThat(authorizationService.authorize("foo-token", Map.of())).isSucceeded();
         verify(accessTokenService).resolve(eq("foo-token"));
-        verify(accessControlService).checkAccess(eq(claimToken), eq(address), any());
+        verify(accessControlService).checkAccess(eq(claimToken), eq(address), any(), anyMap());
         verifyNoMoreInteractions(accessTokenService, accessControlService);
     }
 
@@ -146,12 +152,12 @@ class DataPlaneAuthorizationServiceImplTest {
         when(accessTokenService.resolve(eq("foo-token"))).thenReturn(Result.success(new AccessTokenData("test-id",
                 claimToken,
                 address)));
-        when(accessControlService.checkAccess(eq(claimToken), eq(address), any())).thenReturn(Result.failure("not granted"));
+        when(accessControlService.checkAccess(eq(claimToken), eq(address), any(), anyMap())).thenReturn(Result.failure("not granted"));
 
         assertThat(authorizationService.authorize("foo-token", Map.of())).isFailed()
                 .detail().isEqualTo("not granted");
         verify(accessTokenService).resolve(eq("foo-token"));
-        verify(accessControlService).checkAccess(eq(claimToken), eq(address), any());
+        verify(accessControlService).checkAccess(eq(claimToken), eq(address), any(), anyMap());
         verifyNoMoreInteractions(accessTokenService, accessControlService);
     }
 
