@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.util.stream.Collectors.toMap;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.result.Result.success;
 
 public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorizationService {
@@ -85,10 +86,10 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
     private Result<DataAddress> createDataAddress(TokenRepresentation tokenRepresentation, Endpoint publicEndpoint) {
         var address = DataAddress.Builder.newInstance()
                 .type(publicEndpoint.endpointType())
-                .property("endpoint", publicEndpoint.endpoint())
-                .property("endpointType", publicEndpoint.endpointType()) //this is duplicated in the type() field, but will make serialization easier
+                .property(EDC_NAMESPACE + "endpoint", publicEndpoint.endpoint())
+                .property(EDC_NAMESPACE + "endpointType", publicEndpoint.endpointType()) //this is duplicated in the type() field, but will make serialization easier
                 .properties(tokenRepresentation.getAdditional()) // would contain the "authType = bearer" entry
-                .property("authorization", tokenRepresentation.getToken())
+                .property(EDC_NAMESPACE + "authorization", tokenRepresentation.getToken())
                 .build();
 
         return success(address);

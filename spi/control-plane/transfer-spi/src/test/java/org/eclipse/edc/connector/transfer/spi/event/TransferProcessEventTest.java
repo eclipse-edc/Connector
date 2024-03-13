@@ -15,8 +15,10 @@
 package org.eclipse.edc.connector.transfer.spi.event;
 
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,25 +57,38 @@ class TransferProcessEventTest {
 
     private static class EventInstances implements ArgumentsProvider {
 
+        @SuppressWarnings("unchecked")
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
 
-            var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("http://local").events(Set.of("test")).build());
             var eventBuilders = Stream.of(
-                    TransferProcessCompleted.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
-                    TransferProcessDeprovisioned.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
-                    TransferProcessTerminated.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).reason("any reason").build(),
-                    TransferProcessInitiated.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
-                    TransferProcessProvisioned.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
-                    TransferProcessRequested.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build()
+                    TransferProcessCompleted.Builder.newInstance(),
+                    TransferProcessDeprovisioned.Builder.newInstance(),
+                    TransferProcessDeprovisioningRequested.Builder.newInstance(),
+                    TransferProcessStarted.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("type").build()),
+                    TransferProcessTerminated.Builder.newInstance().reason("any reason"),
+                    TransferProcessInitiated.Builder.newInstance(),
+                    TransferProcessProvisioned.Builder.newInstance(),
+                    TransferProcessProvisioningRequested.Builder.newInstance(),
+                    TransferProcessRequested.Builder.newInstance().transferProcessId("id")
             );
 
             return eventBuilders
+                    .map(it -> baseProperties(it).build())
                     .map(it -> EventEnvelope.Builder.newInstance()
                             .at(Clock.systemUTC().millis())
                             .id(UUID.randomUUID().toString()).payload(it)
                             .build())
                     .map(Arguments::of);
+        }
+
+        private <T extends TransferProcessEvent, B extends TransferProcessEvent.Builder<T, B>> TransferProcessEvent.Builder<T, B> baseProperties(TransferProcessEvent.Builder<T, B> builder) {
+            var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("http://local").events(Set.of("test")).build());
+            return builder.transferProcessId("id")
+                    .assetId("assetId")
+                    .type(TransferProcess.Type.CONSUMER.name())
+                    .contractId("agreementId")
+                    .callbackAddresses(callbacks);
         }
     }
 

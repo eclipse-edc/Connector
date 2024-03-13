@@ -39,6 +39,8 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 /**
  * This implementation of the {@link DataPlaneAccessTokenService} uses a backing storage ({@link AccessTokenDataStore}) to keep a record of all
  * tokens it has issued. Tokens are in JWT format.
@@ -93,7 +95,7 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
         var allDecorators = new ArrayList<>(Stream.concat(claimDecorators, headerDecorators).toList());
         var keyIdDecorator = new KeyIdDecorator(publicKeyIdSupplier.get());
         allDecorators.add(keyIdDecorator);
-        
+
         // if there is no "jti" header on the token params, we'll assign a random one, and add it back to the decorators
         if (id == null) {
             monitor.info("No '%s' claim found on TokenParameters. Will generate a random one.".formatted(TOKEN_ID));
@@ -113,7 +115,7 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
 
         var storeResult = accessTokenDataStore.store(accessTokenData);
         var content = tokenResult.getContent();
-        content.getAdditional().put("authType", "bearer");
+        content.getAdditional().put(EDC_NAMESPACE + "authType", "bearer");
         return storeResult.succeeded() ? Result.success(content) : Result.failure(storeResult.getFailureMessages());
     }
 

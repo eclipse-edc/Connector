@@ -22,6 +22,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -45,6 +46,11 @@ public class EndpointDataReferenceStoreImpl implements EndpointDataReferenceStor
     @Override
     public StoreResult<DataAddress> resolveByTransferProcess(String transferProcessId) {
         return transactionalContext.execute(() -> dataReferenceCache.get(transferProcessId));
+    }
+
+    @Override
+    public @Nullable EndpointDataReferenceEntry findById(String transferProcessId) {
+        return transactionalContext.execute(() -> dataReferenceEntryIndex.findById(transferProcessId));
     }
 
     @Override

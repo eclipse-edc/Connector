@@ -46,9 +46,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
 
     @Override
     public void initiated(TransferProcess process) {
-        var event = TransferProcessInitiated.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .callbackAddresses(process.getCallbackAddresses())
+        var event = withBaseProperties(TransferProcessInitiated.Builder.newInstance(), process)
                 .build();
 
         publish(event);
@@ -56,9 +54,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
 
     @Override
     public void provisioningRequested(TransferProcess process) {
-        var event = TransferProcessProvisioningRequested.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .callbackAddresses(process.getCallbackAddresses())
+        var event = withBaseProperties(TransferProcessProvisioningRequested.Builder.newInstance(), process)
                 .build();
 
         publish(event);
@@ -66,9 +62,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
 
     @Override
     public void provisioned(TransferProcess process) {
-        var event = TransferProcessProvisioned.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .callbackAddresses(process.getCallbackAddresses())
+        var event = withBaseProperties(TransferProcessProvisioned.Builder.newInstance(), process)
                 .build();
 
         publish(event);
@@ -76,9 +70,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
 
     @Override
     public void requested(TransferProcess process) {
-        var event = TransferProcessRequested.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .callbackAddresses(process.getCallbackAddresses())
+        var event = withBaseProperties(TransferProcessRequested.Builder.newInstance(), process)
                 .build();
 
         publish(event);
@@ -86,12 +78,8 @@ public class TransferProcessEventListener implements TransferProcessListener {
 
     @Override
     public void started(TransferProcess process, TransferProcessStartedData additionalData) {
-        var event = TransferProcessStarted.Builder.newInstance()
-                .transferProcessId(process.getId())
+        var event = withBaseProperties(TransferProcessStarted.Builder.newInstance(), process)
                 .dataAddress(additionalData.getDataAddress())
-                .callbackAddresses(process.getCallbackAddresses())
-                .contractId(process.getContractId())
-                .type(process.getType().name())
                 .build();
 
         publish(event);
@@ -99,9 +87,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
 
     @Override
     public void completed(TransferProcess process) {
-        var event = TransferProcessCompleted.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .callbackAddresses(process.getCallbackAddresses())
+        var event = withBaseProperties(TransferProcessCompleted.Builder.newInstance(), process)
                 .build();
 
         publish(event);
@@ -109,10 +95,8 @@ public class TransferProcessEventListener implements TransferProcessListener {
 
     @Override
     public void terminated(TransferProcess process) {
-        var event = TransferProcessTerminated.Builder.newInstance()
+        var event = withBaseProperties(TransferProcessTerminated.Builder.newInstance(), process)
                 .reason(process.getErrorDetail())
-                .transferProcessId(process.getId())
-                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -120,9 +104,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
 
     @Override
     public void deprovisioningRequested(TransferProcess process) {
-        var event = TransferProcessDeprovisioningRequested.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .callbackAddresses(process.getCallbackAddresses())
+        var event = withBaseProperties(TransferProcessDeprovisioningRequested.Builder.newInstance(), process)
                 .build();
 
         publish(event);
@@ -130,14 +112,21 @@ public class TransferProcessEventListener implements TransferProcessListener {
 
     @Override
     public void deprovisioned(TransferProcess process) {
-        var event = TransferProcessDeprovisioned.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .callbackAddresses(process.getCallbackAddresses())
+        var event = withBaseProperties(TransferProcessDeprovisioned.Builder.newInstance(), process)
                 .build();
 
         publish(event);
     }
 
+    private <T extends TransferProcessEvent, B extends TransferProcessEvent.Builder<T, B>> B withBaseProperties(B builder, TransferProcess process) {
+        return builder.transferProcessId(process.getId())
+                .contractId(process.getContractId())
+                .assetId(process.getAssetId())
+                .type(process.getType().name())
+                .callbackAddresses(process.getCallbackAddresses());
+    }
+
+    @SuppressWarnings("unchecked")
     private void publish(TransferProcessEvent event) {
         var envelope = EventEnvelope.Builder.newInstance()
                 .payload(event)

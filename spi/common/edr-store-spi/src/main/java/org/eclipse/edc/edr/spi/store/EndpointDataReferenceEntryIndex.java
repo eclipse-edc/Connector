@@ -19,6 +19,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -27,6 +28,15 @@ import java.util.List;
  */
 @ExtensionPoint
 public interface EndpointDataReferenceEntryIndex {
+
+    /**
+     * Return a {@link EndpointDataReferenceEntry} associated with the transferProcessId in input
+     *
+     * @param transferProcessId The transferProcessId
+     * @return The result containing the EDR entry {@link EndpointDataReferenceEntry}
+     */
+    @Nullable
+    EndpointDataReferenceEntry findById(String transferProcessId);
 
     /**
      * Returns all the EDR entries in the store that are covered by a given {@link QuerySpec}.

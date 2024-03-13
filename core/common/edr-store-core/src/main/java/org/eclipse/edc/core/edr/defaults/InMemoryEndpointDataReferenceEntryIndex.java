@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,11 @@ public class InMemoryEndpointDataReferenceEntryIndex implements EndpointDataRefe
 
     public InMemoryEndpointDataReferenceEntryIndex(CriterionOperatorRegistry criterionOperatorRegistry) {
         queryResolver = new ReflectionBasedQueryResolver<>(EndpointDataReferenceEntry.class, criterionOperatorRegistry);
+    }
+
+    @Override
+    public @Nullable EndpointDataReferenceEntry findById(String transferProcessId) {
+        return cache.get(transferProcessId);
     }
 
     @Override

@@ -72,8 +72,8 @@ class DataPlaneAuthorizationServiceImplTest {
         assertThat(result).isSucceeded()
                 .satisfies(da -> {
                     assertThat(da.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-                    assertThat(da.getProperties().get("endpoint")).isEqualTo("http://example.com");
-                    assertThat(da.getProperties().get("endpointType")).isEqualTo(da.getType());
+                    assertThat(da.getStringProperty("endpoint")).isEqualTo("http://example.com");
+                    assertThat(da.getStringProperty("endpointType")).isEqualTo(da.getType());
                     assertThat(da.getStringProperty("authorization")).isEqualTo("footoken");
                 });
 
@@ -105,7 +105,7 @@ class DataPlaneAuthorizationServiceImplTest {
         assertThat(result).isSucceeded()
                 .satisfies(da -> {
                     assertThat(da.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-                    assertThat(da.getProperties().get("endpoint")).isEqualTo("http://example.com");
+                    assertThat(da.getStringProperty("endpoint")).isEqualTo("http://example.com");
                     assertThat(da.getStringProperty("authorization")).isEqualTo("footoken");
                     assertThat(da.getStringProperty("authType")).isEqualTo("bearer");
                     assertThat(da.getStringProperty("fizz")).isEqualTo("buzz");
