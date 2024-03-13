@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e;
 
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -23,17 +22,19 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.util.HashMap;
 
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
+import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER;
+import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER;
 
-@PostgresqlDbIntegrationTest
-class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
+public interface PostgresRuntimes {
+
 
     @RegisterExtension
-    static BeforeAllCallback createDatabase = context -> {
+    BeforeAllCallback CREATE_DATABASES = context -> {
         createDatabase(CONSUMER.getName());
         createDatabase(PROVIDER.getName());
     };
 
-    static String[] controlPlanePostgresqlModules = new String[]{
+    String[] CONTROL_PLANE_POSTGRESQL_MODULES = new String[]{
             ":system-tests:e2e-transfer-test:control-plane",
             ":extensions:control-plane:transfer:transfer-data-plane",
             ":extensions:data-plane:data-plane-client",
@@ -44,7 +45,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
             ":extensions:policy-monitor:store:sql:policy-monitor-store-sql"
     };
 
-    static String[] dataPlanePostgresqlModules = new String[]{
+    String[] DATA_PLANE_POSTGRESQL_MODULES = new String[]{
             ":system-tests:e2e-transfer-test:data-plane",
             ":extensions:data-plane:data-plane-public-api",
             ":extensions:data-plane:store:sql:data-plane-store-sql",
@@ -53,11 +54,11 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
     };
 
     @RegisterExtension
-    static EdcClassRuntimesExtension runtimes = new EdcClassRuntimesExtension(
+    EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
             new EdcRuntimeExtension(
                     "consumer-control-plane",
                     CONSUMER.controlPlanePostgresConfiguration(),
-                    controlPlanePostgresqlModules
+                    CONTROL_PLANE_POSTGRESQL_MODULES
             ),
             new EdcRuntimeExtension(
                     ":system-tests:e2e-transfer-test:backend-service",
@@ -71,12 +72,12 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
             new EdcRuntimeExtension(
                     "provider-data-plane",
                     PROVIDER.dataPlanePostgresConfiguration(),
-                    dataPlanePostgresqlModules
+                    DATA_PLANE_POSTGRESQL_MODULES
             ),
             new EdcRuntimeExtension(
                     "provider-control-plane",
                     PROVIDER.controlPlanePostgresConfiguration(),
-                    controlPlanePostgresqlModules
+                    CONTROL_PLANE_POSTGRESQL_MODULES
             ),
             new EdcRuntimeExtension(
                     ":system-tests:e2e-transfer-test:backend-service",
