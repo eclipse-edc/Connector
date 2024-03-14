@@ -69,6 +69,11 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     }
 
     @Override
+    public StatusResult<Void> suspend(TransferProcess transferProcess) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
         return StatusResult.success();
     }

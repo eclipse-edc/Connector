@@ -28,6 +28,8 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
+import org.eclipse.edc.connector.api.management.transferprocess.model.SuspendTransfer;
+import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferState;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 
@@ -43,6 +45,11 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 @OpenAPIDefinition
 @Tag(name = "Transfer Process")
 public interface TransferProcessApi {
+
+    String ASYNC_WARNING = "Due to the asynchronous nature of transfers, a successful response only indicates that the " +
+            "request was successfully received. This may take a long time, so clients must poll the /{id}/state " +
+            "endpoint to track the state.";
+
     @Operation(description = "Returns all transfer process according to a query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
             responses = {
@@ -78,8 +85,7 @@ public interface TransferProcessApi {
     )
     JsonObject getTransferProcessState(String id);
 
-    @Operation(description = "Initiates a data transfer with the given parameters. Please note that successfully invoking this endpoint " +
-            "only means that the transfer was initiated. Clients must poll the /{id}/state endpoint to track the state",
+    @Operation(description = "Initiates a data transfer with the given parameters. " + ASYNC_WARNING,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = TransferRequestSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The transfer was successfully initiated. Returns the transfer process ID and created timestamp",
@@ -93,11 +99,10 @@ public interface TransferProcessApi {
             })
     JsonObject initiateTransferProcess(JsonObject transferRequest);
 
-    @Operation(description = "Requests the deprovisioning of resources associated with a transfer process. Due to the asynchronous nature of transfers, a successful " +
-            "response only indicates that the request was successfully received. This may take a long time, so clients must poll the /{id}/state endpoint to track the state.",
+    @Operation(description = "Requests the deprovisioning of resources associated with a transfer process. " + ASYNC_WARNING,
             responses = {
                     @ApiResponse(responseCode = "200", description = "Request to deprovision the transfer process was successfully received",
-                            links = @Link(name = "poll-state", operationId = "getTransferProcessState")),
+                            links = @Link(name = "poll-state", operationId = "deprovisionTransferProcess")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
@@ -105,12 +110,11 @@ public interface TransferProcessApi {
             })
     void deprovisionTransferProcess(String id);
 
-    @Operation(description = "Requests the termination of a transfer process. Due to the asynchronous nature of transfers, a successful " +
-            "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
+    @Operation(description = "Requests the termination of a transfer process. " + ASYNC_WARNING,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = TerminateTransferSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Request to cancel the transfer process was successfully received",
-                            links = @Link(name = "poll-state", operationId = "getTransferProcessState")),
+                    @ApiResponse(responseCode = "200", description = "Request to terminate the transfer process was successfully received",
+                            links = @Link(name = "poll-state", operationId = "terminateTransferProcess")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
@@ -119,6 +123,20 @@ public interface TransferProcessApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     void terminateTransferProcess(String id, JsonObject terminateTransfer);
+
+    @Operation(description = "Requests the suspension of a transfer process. " + ASYNC_WARNING,
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SuspendTransferSchema.class))),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Request to suspend the transfer process was successfully received",
+                            links = @Link(name = "poll-state", operationId = "suspendTransferProcess")),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "409", description = "Could not suspend the transfer process, because it is already completed or terminated.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+            })
+    void suspendTransferProcess(String id, JsonObject suspendTransfer);
 
     @Schema(name = "TransferRequest", example = TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE)
     record TransferRequestSchema(
@@ -240,7 +258,7 @@ public interface TransferProcessApi {
 
     @Schema(name = "TerminateTransfer", example = TerminateTransferSchema.TERMINATE_TRANSFER_EXAMPLE)
     record TerminateTransferSchema(
-            @Schema(name = TYPE, example = TransferState.TRANSFER_STATE_TYPE)
+            @Schema(name = TYPE, example = TerminateTransfer.TERMINATE_TRANSFER_TYPE)
             String ldType,
             String state
     ) {
@@ -249,6 +267,21 @@ public interface TransferProcessApi {
                     "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/TerminateTransfer",
                     "reason": "a reason to terminate"
+                }
+                """;
+    }
+
+    @Schema(name = "SuspendTransfer", example = SuspendTransferSchema.SUSPEND_TRANSFER_EXAMPLE)
+    record SuspendTransferSchema(
+            @Schema(name = TYPE, example = SuspendTransfer.SUSPEND_TRANSFER_TYPE)
+            String ldType,
+            String state
+    ) {
+        public static final String SUSPEND_TRANSFER_EXAMPLE = """
+                {
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@type": "https://w3id.org/edc/v0.0.1/ns/SuspendTransfer",
+                    "reason": "a reason to suspend"
                 }
                 """;
     }

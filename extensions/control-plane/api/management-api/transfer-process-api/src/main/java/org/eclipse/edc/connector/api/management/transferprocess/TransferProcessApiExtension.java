@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectFromTransferProcessTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectFromTransferStateTransformer;
+import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToSuspendTransferTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTerminateTransferTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTransferRequestTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.validation.TerminateTransferValidator;
@@ -69,6 +70,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectFromTransferStateTransformer(builderFactory));
 
         managementApiTransformerRegistry.register(new JsonObjectToTerminateTransferTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToSuspendTransferTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToTransferRequestTransformer());
 
         validatorRegistry.register(TRANSFER_REQUEST_TYPE, TransferRequestValidator.instance(context.getMonitor()));

@@ -16,24 +16,20 @@ package org.eclipse.edc.protocol.dsp.transferprocess.api.controller;
 
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
-import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
-import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -56,13 +52,11 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessAp
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_START;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_SUSPENSION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_TERMINATION;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -122,23 +116,6 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         assertThat(request.getErrorType()).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR);
     }
 
-    @Test
-    void consumerTransferProcessSuspension_shouldReturnNotImplemented_whenOperationNotSupported() {
-        var result = baseRequest()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Json.createObjectBuilder().build())
-                .post(BASE_PATH + PROCESS_ID + TRANSFER_SUSPENSION)
-                .then()
-                .statusCode(501)
-                .extract().as(JsonObject.class);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR);
-        assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("501");
-        assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
-        assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
-    }
-
     /**
      * Verifies that an endpoint returns 401 if the identity service cannot verify the identity token.
      *
@@ -183,15 +160,6 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .when();
     }
 
-    private TransferProcess transferProcess() {
-        return TransferProcess.Builder.newInstance()
-                .id("id")
-                .dataRequest(DataRequest.Builder.newInstance()
-                        .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                        .build())
-                .build();
-    }
-
     private static class ControllerMethodArguments implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
@@ -205,6 +173,10 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                             TransferCompletionMessage.class,
                             DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE),
                     Arguments.of(
+                            BASE_PATH + PROCESS_ID + TRANSFER_SUSPENSION,
+                            TransferSuspensionMessage.class,
+                            DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE),
+                    Arguments.of(
                             BASE_PATH + PROCESS_ID + TRANSFER_TERMINATION,
                             TransferTerminationMessage.class,
                             DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
@@ -212,7 +184,4 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         }
     }
 
-    private ClaimToken token() {
-        return ClaimToken.Builder.newInstance().build();
-    }
 }

@@ -32,6 +32,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -66,23 +67,24 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
     @WithSpan
     @Override
     public StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage message) {
-        var requestBuilder = transformerRegistry.transform(message, JsonObject.class)
-                .compose(jsonLd::compact)
-                .compose(this::serializeMessage)
-                .map(rawBody -> RequestBody.create(rawBody, TYPE_JSON))
-                .map(body -> new Request.Builder().post(body).url(dataPlane.getUrl()).build());
+        return send(message, dataPlane.getUrl().toString(), message.getProcessId(), this::handleStartResponse);
+    }
 
-        if (requestBuilder.succeeded()) {
-            return sendRequest(requestBuilder.getContent(), message.getProcessId(), this::handleStartResponse);
-        } else {
-            return StatusResult.failure(FATAL_ERROR, requestBuilder.getFailureDetail());
-        }
+    @Override
+    public StatusResult<Void> suspend(String transferProcessId) {
+        var url = "%s/%s/suspend".formatted(dataPlane.getUrl(), transferProcessId);
+        var message = DataFlowSuspendMessage.Builder.newInstance().build();
+        return send(message, url, transferProcessId, r -> StatusResult.success());
     }
 
     @Override
     public StatusResult<Void> terminate(String transferProcessId) {
         var url = "%s/%s/terminate".formatted(dataPlane.getUrl(), transferProcessId);
         var message = DataFlowTerminateMessage.Builder.newInstance().build();
+        return send(message, url, transferProcessId, r -> StatusResult.success());
+    }
+
+    private <T> StatusResult<T> send(Object message, String url, String processId, Function<Response, StatusResult<T>> handleStartResponse) {
         var requestBuilder = transformerRegistry.transform(message, JsonObject.class)
                 .compose(jsonLd::compact)
                 .compose(this::serializeMessage)
@@ -90,7 +92,16 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
                 .map(body -> new Request.Builder().post(body).url(url).build());
 
         if (requestBuilder.succeeded()) {
-            return sendRequest(requestBuilder.getContent(), transferProcessId, (r) -> StatusResult.success());
+            var request = requestBuilder.getContent();
+            try (var response = httpClient.execute(request)) {
+                if (response.isSuccessful()) {
+                    return handleStartResponse.apply(response);
+                } else {
+                    return StatusResult.failure(FATAL_ERROR, format("Transfer request failed with status code %s for request %s", response.code(), processId));
+                }
+            } catch (IOException e) {
+                return StatusResult.failure(FATAL_ERROR, e.getMessage());
+            }
         } else {
             return StatusResult.failure(FATAL_ERROR, requestBuilder.getFailureDetail());
         }
@@ -126,26 +137,6 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
         } catch (JsonProcessingException e) {
             return Result.failure(e.getMessage());
         }
-    }
-
-    private <T> StatusResult<T> sendRequest(Request request, String transferProcessId, Function<Response, StatusResult<T>> bodyMapper) {
-        try (var response = httpClient.execute(request)) {
-            return handleResponse(response, transferProcessId, bodyMapper);
-        } catch (IOException e) {
-            return StatusResult.failure(FATAL_ERROR, e.getMessage());
-        }
-    }
-
-    private <T> StatusResult<T> handleResponse(Response response, String requestId, Function<Response, StatusResult<T>> bodyMapper) {
-        if (response.isSuccessful()) {
-            return bodyMapper.apply(response);
-        } else {
-            return handleError(response, requestId);
-        }
-    }
-
-    private <T> StatusResult<T> handleError(Response response, String requestId) {
-        return StatusResult.failure(FATAL_ERROR, format("Transfer request failed with status code %s for request %s", response.code(), requestId));
     }
 
 }

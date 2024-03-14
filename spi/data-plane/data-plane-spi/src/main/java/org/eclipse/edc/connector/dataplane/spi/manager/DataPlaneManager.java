@@ -58,6 +58,14 @@ public interface DataPlaneManager extends StateEntityManager {
     }
 
     /**
+     * Suspend the data flow.
+     *
+     * @param dataFlowId the data flow id.
+     * @return success if data flow is terminated, failed otherwise.
+     */
+    StatusResult<Void> suspend(String dataFlowId);
+
+    /**
      * Terminate the data flow and specifies a reason.
      *
      * @param dataFlowId the data flow id.

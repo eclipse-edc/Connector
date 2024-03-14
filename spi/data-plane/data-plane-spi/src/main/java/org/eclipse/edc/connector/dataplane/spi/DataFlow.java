@@ -33,6 +33,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 
 /**
@@ -125,6 +126,10 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
     public void transitionToStarted() {
         transitionTo(STARTED.code());
+    }
+
+    public void transitToSuspended() {
+        transitionTo(SUSPENDED.code());
     }
 
     @JsonPOJOBuilder(withPrefix = "")

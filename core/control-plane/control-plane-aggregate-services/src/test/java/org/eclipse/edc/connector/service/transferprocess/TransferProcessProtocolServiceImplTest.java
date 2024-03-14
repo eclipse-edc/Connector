@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.contract.spi.validation.ContractValidationServi
 import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
@@ -30,10 +31,12 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionM
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -70,8 +73,10 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
@@ -98,7 +103,7 @@ class TransferProcessProtocolServiceImplTest {
     private final ContractValidationService validationService = mock();
     private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final TransferProcessListener listener = mock();
-
+    private final DataFlowManager dataFlowManager = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
 
     private TransferProcessProtocolService service;
@@ -108,7 +113,7 @@ class TransferProcessProtocolServiceImplTest {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         service = new TransferProcessProtocolServiceImpl(store, transactionContext, negotiationStore, validationService,
-                protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock());
+                protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock(), dataFlowManager);
 
     }
 
@@ -429,6 +434,161 @@ class TransferProcessProtocolServiceImplTest {
 
     }
 
+    @Nested
+    class NotifySuspended {
+        @Test
+        void consumer_shouldTransitionToSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(CONSUMER).build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(t -> t.getState() == SUSPENDED.code()));
+            verify(listener).suspended(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void provider_shouldSuspendDataFlowAndTransitionToSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(PROVIDER).build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(t -> t.getState() == SUSPENDED.code()));
+            verify(listener).suspended(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void provider_shouldReturnConflict_whenDataFlowCannotBeSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(PROVIDER).build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store, times(1)).save(argThat(tp -> tp.getState() == STARTED.code()));
+        }
+
+        @Test
+        void shouldReturnConflict_whenTransferProcessCannotBeSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
+            var agreement = contractAgreement();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            // state didn't change
+            verify(store, times(1)).save(argThat(tp -> tp.getState() == DEPROVISIONING.code()));
+            verifyNoInteractions(listener);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenCounterPartyUnauthorized() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcess(TERMINATED, UUID.randomUUID().toString());
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result)
+                    .isFailed()
+                    .extracting(ServiceFailure::getReason)
+                    .isEqualTo(BAD_REQUEST);
+
+            verify(store, times(1)).save(any());
+
+        }
+    }
+
     @Test
     void notifyTerminated_shouldTransitionToTerminated() {
         var participantAgent = participantAgent();
@@ -663,6 +823,7 @@ class TransferProcessProtocolServiceImplTest {
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             MethodCall<TransferStartMessage> started = TransferProcessProtocolService::notifyStarted;
             MethodCall<TransferCompletionMessage> completed = TransferProcessProtocolService::notifyCompleted;
+            MethodCall<TransferSuspensionMessage> suspended = TransferProcessProtocolService::notifySuspended;
             MethodCall<TransferTerminationMessage> terminated = TransferProcessProtocolService::notifyTerminated;
             return Stream.of(
                     arguments(started,
@@ -672,6 +833,10 @@ class TransferProcessProtocolServiceImplTest {
                     arguments(completed,
                             build(TransferCompletionMessage.Builder.newInstance()),
                             CONSUMER, STARTED
+                    ),
+                    arguments(suspended,
+                            build(TransferSuspensionMessage.Builder.newInstance().code("TestCode").reason("TestReason")),
+                            PROVIDER, STARTED
                     ),
                     arguments(terminated,
                             build(TransferTerminationMessage.Builder.newInstance().code("TestCode").reason("TestReason")),
@@ -700,6 +865,7 @@ class TransferProcessProtocolServiceImplTest {
             when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
             when(validationService.validateRequest(any(ParticipantAgent.class), isA(ContractAgreement.class))).thenReturn(Result.success());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
 
             var result = methodCall.call(service, message, tokenRepresentation());
 

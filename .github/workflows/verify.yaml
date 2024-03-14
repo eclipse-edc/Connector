@@ -113,7 +113,6 @@ jobs:
       - Component-Tests
       - End-To-End-Tests
       - Postgresql-Integration-Tests
-      - Kafka-Integration-Tests
       - Unit-Tests
 
     permissions:

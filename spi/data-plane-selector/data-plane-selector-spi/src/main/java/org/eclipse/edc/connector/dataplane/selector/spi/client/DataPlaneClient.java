@@ -31,6 +31,14 @@ public interface DataPlaneClient {
     StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage request);
 
     /**
+     * Suspend the transfer.
+     *
+     * @param transferProcessId the transfer process id.
+     * @return success if the transfer has been suspended, failure otherwise.
+     */
+    StatusResult<Void> suspend(String transferProcessId);
+
+    /**
      * Terminate the transfer.
      *
      * @param transferProcessId the transfer process id.

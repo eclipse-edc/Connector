@@ -52,6 +52,16 @@ public class PolicyFixtures {
     }
 
     /**
+     * Create an ODRL policy that forces the contract to expire after the offset passed.
+     *
+     * @param offset the offset, examples of working ones are 10s (10 seconds), 2m (2 minutes), 1h (1 hour)
+     * @return the policy.
+     */
+    public static JsonObject contractExpiresIn(String offset) {
+        return inForceDatePolicy("gteq", "contractAgreement+0s", "lteq", "contractAgreement+" + offset);
+    }
+
+    /**
      * Create a policy with "inForceDate" permissions, to enforce contract date being in a certain range.
      * Please check the ContractExpiryCheckFunction documentation for details.
      *

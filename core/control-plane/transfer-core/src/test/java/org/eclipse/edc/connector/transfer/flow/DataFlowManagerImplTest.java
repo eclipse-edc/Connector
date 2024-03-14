@@ -119,6 +119,26 @@ class DataFlowManagerImplTest {
     }
 
     @Nested
+    class Suspend {
+        @Test
+        void shouldChooseControllerAndSuspend() {
+            var controller = mock(DataFlowController.class);
+            var dataRequest = DataRequest.Builder.newInstance().destinationType("test-dest-type").build();
+            var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
+            var transferProcess = TransferProcess.Builder.newInstance().dataRequest(dataRequest).contentDataAddress(dataAddress).build();
+
+            when(controller.canHandle(any())).thenReturn(true);
+            when(controller.suspend(any())).thenReturn(StatusResult.success());
+            manager.register(controller);
+
+            var result = manager.suspend(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verify(controller).suspend(transferProcess);
+        }
+    }
+
+    @Nested
     class Terminate {
         @Test
         void shouldChooseControllerAndTerminate() {

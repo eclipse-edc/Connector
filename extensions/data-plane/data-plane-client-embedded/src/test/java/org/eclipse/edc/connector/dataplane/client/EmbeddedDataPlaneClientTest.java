@@ -91,6 +91,16 @@ class EmbeddedDataPlaneClientTest {
     }
 
     @Test
+    void suspend_shouldProxyCallToManager() {
+        when(dataPlaneManager.suspend(any())).thenReturn(StatusResult.success());
+
+        var result = client.suspend("dataFlowId");
+
+        assertThat(result).isSucceeded();
+        verify(dataPlaneManager).suspend("dataFlowId");
+    }
+
+    @Test
     void terminate_shouldProxyCallToManager() {
         when(dataPlaneManager.terminate(any())).thenReturn(StatusResult.success());
 

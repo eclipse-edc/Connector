@@ -82,6 +82,11 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
     }
 
     @Override
+    public StatusResult<Void> suspend(TransferProcess transferProcess) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
         return selectorClient.getAll().stream()
                 .filter(dataPlaneInstanceFilter(transferProcess))

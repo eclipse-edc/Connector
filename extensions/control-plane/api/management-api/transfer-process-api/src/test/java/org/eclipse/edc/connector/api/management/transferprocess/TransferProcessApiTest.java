@@ -18,9 +18,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
+import org.eclipse.edc.connector.api.management.transferprocess.model.SuspendTransfer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer;
+import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToSuspendTransferTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTerminateTransferTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTransferRequestTransformer;
+import org.eclipse.edc.connector.api.management.transferprocess.validation.SuspendTransferValidator;
 import org.eclipse.edc.connector.api.management.transferprocess.validation.TerminateTransferValidator;
 import org.eclipse.edc.connector.api.management.transferprocess.validation.TransferRequestValidator;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
@@ -37,6 +40,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.map;
+import static org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi.SuspendTransferSchema.SUSPEND_TRANSFER_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi.TerminateTransferSchema.TERMINATE_TRANSFER_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi.TransferProcessSchema.TRANSFER_PROCESS_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi.TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE;
@@ -74,6 +78,7 @@ class TransferProcessApiTest {
         transformer.register(new JsonObjectToCallbackAddressTransformer());
         transformer.register(new JsonObjectToDataAddressTransformer());
         transformer.register(new JsonObjectToTerminateTransferTransformer());
+        transformer.register(new JsonObjectToSuspendTransferTransformer());
         transformer.register(new JsonValueToGenericTypeTransformer(objectMapper));
     }
 
@@ -113,6 +118,21 @@ class TransferProcessApiTest {
                 .extracting(e -> transformer.transform(e, TerminateTransfer.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
                         .satisfies(transformed -> assertThat(transformed.reason()).isNotBlank()));
+    }
+
+    @Test
+    void suspendTransferExample() throws JsonProcessingException {
+        var validator = SuspendTransferValidator.instance();
+
+        var jsonObject = objectMapper.readValue(SUSPEND_TRANSFER_EXAMPLE, JsonObject.class);
+
+        assertThat(jsonObject).isNotNull().extracting(jsonLd::expand).satisfies(expanded -> {
+            assertThat(expanded).isSucceeded()
+                    .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
+                    .extracting(e -> transformer.transform(e, SuspendTransfer.class))
+                    .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
+                            .satisfies(transformed -> assertThat(transformed.reason()).isNotBlank()));
+        });
     }
 
     @Test

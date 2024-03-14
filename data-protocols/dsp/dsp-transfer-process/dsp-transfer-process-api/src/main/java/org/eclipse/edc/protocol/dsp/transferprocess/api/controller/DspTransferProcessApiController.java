@@ -29,12 +29,11 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.protocol.dsp.spi.error.DspErrorResponse;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
-import org.jetbrains.annotations.NotNull;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.BASE_PATH;
@@ -47,6 +46,7 @@ import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTyp
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
 
 /**
@@ -175,19 +175,25 @@ public class DspTransferProcessApiController {
 
     /**
      * Notifies the connector that a transfer process has been suspended by the counter-part.
-     * This functionality is not yet supported.
      *
-     * @param id the ID of the process
+     * @param id         the ID of the process
+     * @param jsonObject the {@link TransferSuspensionMessage} in JSON-LD expanded form
+     * @param token      the authorization header
+     * @return empty response or error.
      */
     @POST
     @Path("{id}" + TRANSFER_SUSPENSION)
-    public Response transferProcessSuspension(@PathParam("id") String id) {
-        return error().processId(id).notImplemented();
-    }
+    public Response transferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        var request = PostDspRequest.Builder.newInstance(TransferSuspensionMessage.class, TransferProcess.class)
+                .processId(id)
+                .expectedMessageType(DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE)
+                .message(jsonObject)
+                .token(token)
+                .serviceCall(protocolService::notifySuspended)
+                .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .build();
 
-    @NotNull
-    private static DspErrorResponse error() {
-        return DspErrorResponse.type(DSPACE_TYPE_TRANSFER_ERROR);
+        return dspRequestHandler.updateResource(request);
     }
 
 }

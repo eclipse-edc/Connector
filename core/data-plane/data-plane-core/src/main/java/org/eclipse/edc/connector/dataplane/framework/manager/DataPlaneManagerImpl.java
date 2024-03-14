@@ -107,6 +107,33 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     @Override
     public StatusResult<Void> terminate(String dataFlowId, @Nullable String reason) {
+        return stop(dataFlowId)
+                .map(dataFlow -> {
+                    dataFlow.transitToTerminated(reason);
+                    store.save(dataFlow);
+                    return null;
+                });
+    }
+
+    @Override
+    public StatusResult<Void> suspend(String dataFlowId) {
+        return stop(dataFlowId)
+                .map(dataFlow -> {
+                    dataFlow.transitToSuspended();
+                    store.save(dataFlow);
+                    return null;
+                });
+    }
+
+    @Override
+    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
+        return builder
+                .processor(processDataFlowInState(RECEIVED, this::processReceived))
+                .processor(processDataFlowInState(COMPLETED, this::processCompleted))
+                .processor(processDataFlowInState(FAILED, this::processFailed));
+    }
+
+    private StatusResult<DataFlow> stop(String dataFlowId) {
         var result = store.findByIdAndLease(dataFlowId);
         if (result.failed()) {
             return StatusResult.from(result).map(it -> null);
@@ -131,17 +158,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             }
         }
 
-        dataFlow.transitToTerminated(reason);
-        store.save(dataFlow);
-        return StatusResult.success();
-    }
-
-    @Override
-    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
-        return builder
-                .processor(processDataFlowInState(RECEIVED, this::processReceived))
-                .processor(processDataFlowInState(COMPLETED, this::processCompleted))
-                .processor(processDataFlowInState(FAILED, this::processFailed));
+        return StatusResult.success(dataFlow);
     }
 
     private Result<Optional<DataAddress>> handleStartPush(DataFlow.Builder dataFlowBuilder) {

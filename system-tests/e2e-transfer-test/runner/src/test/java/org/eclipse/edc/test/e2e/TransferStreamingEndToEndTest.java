@@ -28,9 +28,11 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -51,11 +53,16 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.test.system.utils.PolicyFixtures.inForceDatePolicy;
+import static org.eclipse.edc.test.e2e.Runtimes.backendService;
+import static org.eclipse.edc.test.e2e.Runtimes.controlPlaneSignaling;
+import static org.eclipse.edc.test.e2e.Runtimes.dataPlane;
+import static org.eclipse.edc.test.system.utils.PolicyFixtures.contractExpiresIn;
+import static org.eclipse.edc.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -67,7 +74,16 @@ public class TransferStreamingEndToEndTest {
 
     @Nested
     @EndToEndTest
-    class InMemory extends Tests implements InMemoryRuntimes {
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
+                controlPlaneSignaling("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
+                backendService("consumer-backend-service", Map.of("web.http.port", String.valueOf(CONSUMER.backendService().getPort()))),
+                controlPlaneSignaling("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
+                dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
+                backendService("provider-backend-service", Map.of("web.http.port", String.valueOf(PROVIDER.backendService().getPort())))
+        );
 
     }
 
@@ -96,13 +112,13 @@ public class TransferStreamingEndToEndTest {
                     .withMethod(HttpMethod.POST.name())
                     .withPath("/api/service");
             destinationServer.when(request).respond(response());
-            PROVIDER.registerDataPlane(Set.of("Kafka"), Set.of("HttpData"));
+            PROVIDER.registerDataPlane(Set.of("HttpData-PUSH"));
 
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, contractExpiresInTenSeconds(), kafkaSourceProperty());
+            createResourcesOnProvider(assetId, contractExpiresIn("10s"), kafkaSourceProperty());
 
             var destination = httpSink(destinationServer.getLocalPort(), "/api/service");
-            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), destination);
+            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), destination, "HttpData-PUSH");
 
             await().atMost(timeout).untilAsserted(() -> {
                 destinationServer.verify(request, atLeast(1));
@@ -133,12 +149,12 @@ public class TransferStreamingEndToEndTest {
             try (var consumer = createKafkaConsumer()) {
                 consumer.subscribe(List.of(SINK_TOPIC));
 
-                PROVIDER.registerDataPlane(Set.of("Kafka"), Set.of("Kafka"));
+                PROVIDER.registerDataPlane(Set.of("Kafka-PUSH"));
 
                 var assetId = UUID.randomUUID().toString();
-                createResourcesOnProvider(assetId, contractExpiresInTenSeconds(), kafkaSourceProperty());
+                createResourcesOnProvider(assetId, contractExpiresIn("10s"), kafkaSourceProperty());
 
-                var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), kafkaSink());
+                var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), kafkaSink(), "Kafka-PUSH");
                 await().atMost(timeout).untilAsserted(() -> {
                     var records = consumer.poll(ZERO);
                     assertThat(records.isEmpty()).isFalse();
@@ -148,6 +164,38 @@ public class TransferStreamingEndToEndTest {
                 await().atMost(timeout).untilAsserted(() -> {
                     var state = CONSUMER.getTransferProcessState(transferProcessId);
                     assertThat(TransferProcessStates.valueOf(state)).isGreaterThanOrEqualTo(TERMINATED);
+                });
+
+                consumer.poll(ZERO);
+                await().pollDelay(5, SECONDS).atMost(timeout).untilAsserted(() -> {
+                    var recordsFound = consumer.poll(Duration.ofSeconds(1)).records(SINK_TOPIC);
+                    assertThat(recordsFound).isEmpty();
+                });
+            }
+        }
+
+        @Test
+        void shouldSuspendTransfer() {
+            try (var consumer = createKafkaConsumer()) {
+                consumer.subscribe(List.of(SINK_TOPIC));
+
+                PROVIDER.registerDataPlane(Set.of("Kafka-PUSH"));
+
+                var assetId = UUID.randomUUID().toString();
+                createResourcesOnProvider(assetId, noConstraintPolicy(), kafkaSourceProperty());
+
+                var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), kafkaSink(), "Kafka-PUSH");
+                await().atMost(timeout).untilAsserted(() -> {
+                    var records = consumer.poll(ZERO);
+                    assertThat(records.isEmpty()).isFalse();
+                    records.records(SINK_TOPIC).forEach(record -> assertThat(record.value()).isEqualTo(sampleMessage()));
+                });
+
+                CONSUMER.suspendTransfer(transferProcessId, "any kind of reason");
+
+                await().atMost(timeout).untilAsserted(() -> {
+                    var state = CONSUMER.getTransferProcessState(transferProcessId);
+                    assertThat(TransferProcessStates.valueOf(state)).isGreaterThanOrEqualTo(SUSPENDED);
                 });
 
                 consumer.poll(ZERO);
@@ -216,10 +264,6 @@ public class TransferStreamingEndToEndTest {
 
         private JsonObject noPrivateProperty() {
             return Json.createObjectBuilder().build();
-        }
-
-        private JsonObject contractExpiresInTenSeconds() {
-            return inForceDatePolicy("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s");
         }
 
         private String sampleMessage() {

@@ -67,13 +67,8 @@ public class JsonObjectToTransferSuspensionMessageTransformer extends AbstractJs
             return null;
         }
 
-        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CODE), builder::code, context)) {
-            context.problem()
-                    .missingProperty()
-                    .type(DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE)
-                    .property(DSPACE_PROPERTY_CODE)
-                    .report();
-            return null;
+        if (messageObject.containsKey(DSPACE_PROPERTY_CODE)) {
+            transformString(messageObject.get(DSPACE_PROPERTY_CODE), builder::code, context);
         }
 
         var reasons = messageObject.get(DSPACE_PROPERTY_REASON);

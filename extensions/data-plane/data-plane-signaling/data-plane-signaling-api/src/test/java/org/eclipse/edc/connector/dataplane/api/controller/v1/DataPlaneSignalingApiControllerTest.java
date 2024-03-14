@@ -21,6 +21,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
@@ -32,9 +33,9 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -52,6 +53,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+@ApiTest
 class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
 
     private final TypeTransformerRegistry transformerRegistry = mock();
@@ -223,22 +225,40 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
                 .statusCode(400);
     }
 
-    @DisplayName("Expect HTTP 501 because suspension messages are not yet supported")
-    @Test
-    void suspend() {
-        var flowId = "test-id";
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowSuspendMessage.class))).thenReturn(success(DataFlowSuspendMessage.Builder.newInstance()
-                .reason("foo-reaset")
-                .build()));
+    @Nested
+    class Suspend {
 
-        var jsonObject = Json.createObjectBuilder().build();
-        baseRequest()
-                .contentType(ContentType.JSON)
-                .body(jsonObject)
-                .post("/v1/dataflows/%s/suspend".formatted(flowId))
-                .then()
-                .statusCode(501)
-                .body(Matchers.containsString("Not Implemented"));
+        @Test
+        void shouldReturn204_whenDataFlowIsSuspended() {
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowSuspendMessage.class)))
+                    .thenReturn(success(DataFlowSuspendMessage.Builder.newInstance().reason("test-reason").build()));
+            var flowId = "test-id";
+            when(dataplaneManager.suspend(eq(flowId))).thenReturn(StatusResult.success());
+
+            var jsonObject = Json.createObjectBuilder().build();
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(jsonObject)
+                    .post("/v1/dataflows/%s/suspend".formatted(flowId))
+                    .then()
+                    .statusCode(204);
+        }
+
+        @Test
+        void shouldReturn500_whenDataFlowCannotBeSuspended() {
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowSuspendMessage.class)))
+                    .thenReturn(success(DataFlowSuspendMessage.Builder.newInstance().reason("test-reason").build()));
+            var flowId = "test-id";
+            when(dataplaneManager.suspend(eq(flowId))).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR));
+
+            var jsonObject = Json.createObjectBuilder().build();
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(jsonObject)
+                    .post("/v1/dataflows/%s/suspend".formatted(flowId))
+                    .then()
+                    .statusCode(400);
+        }
 
     }
 

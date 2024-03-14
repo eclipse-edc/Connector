@@ -55,6 +55,7 @@ import org.eclipse.edc.connector.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
@@ -159,6 +160,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private ProtocolVersionRegistry protocolVersionRegistry;
 
+    @Inject
+    private DataFlowManager dataFlowManager;
+
     @Override
     public String name() {
         return NAME;
@@ -222,7 +226,8 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public TransferProcessProtocolService transferProcessProtocolService() {
         return new TransferProcessProtocolServiceImpl(transferProcessStore, transactionContext, contractNegotiationStore,
-                contractValidationService, protocolTokenValidator(), dataAddressValidator, transferProcessObservable, clock, monitor, telemetry);
+                contractValidationService, protocolTokenValidator(), dataAddressValidator, transferProcessObservable, clock,
+                monitor, telemetry, dataFlowManager);
     }
 
     @Provider
