@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -14,28 +14,29 @@
 
 package org.eclipse.edc.test.e2e;
 
-import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 
-@EndToEndTest
-class EndToEndTransferInMemoryTest extends AbstractEndToEndTransfer {
+import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER;
+import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER;
 
-    static String[] controlPlaneModules = new String[]{
+public interface InMemoryRuntimes {
+
+    String[] CONTROL_PLANE_MODULES = new String[]{
             ":system-tests:e2e-transfer-test:control-plane",
             ":extensions:control-plane:transfer:transfer-data-plane",
             ":extensions:data-plane:data-plane-client"
     };
 
     @RegisterExtension
-    static EdcClassRuntimesExtension runtimes = new EdcClassRuntimesExtension(
+    EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
             new EdcRuntimeExtension(
                     "consumer-control-plane",
                     CONSUMER.controlPlaneConfiguration(),
-                    controlPlaneModules
+                    CONTROL_PLANE_MODULES
             ),
             new EdcRuntimeExtension(
                     ":system-tests:e2e-transfer-test:backend-service",
@@ -54,7 +55,7 @@ class EndToEndTransferInMemoryTest extends AbstractEndToEndTransfer {
             new EdcRuntimeExtension(
                     "provider-control-plane",
                     PROVIDER.controlPlaneConfiguration(),
-                    controlPlaneModules
+                    CONTROL_PLANE_MODULES
             ),
             new EdcRuntimeExtension(
                     ":system-tests:e2e-transfer-test:backend-service",
