@@ -37,6 +37,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * An implementation of {@link EventSubscriber} which listen to {@link TransferProcessEvent} specifically
+ * the {@link TransferProcessStarted}, {@link TransferProcessCompleted}, {@link TransferProcessTerminated} and
+ * update the {@link EndpointDataReferenceStore} accordingly
+ */
 public class EndpointDataReferenceStoreReceiver implements EventSubscriber {
 
     private final EndpointDataReferenceStore dataReferenceStore;
