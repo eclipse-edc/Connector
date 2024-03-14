@@ -77,7 +77,7 @@ class ContractNegotiationApiTest {
                 .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
                 .extracting(e -> transformer.transform(e, ContractRequest.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
-                        .satisfies(transformed -> assertThat(transformed.getProviderId()).isNotBlank()));
+                        .satisfies(transformed -> assertThat(transformed.getProtocol()).isNotBlank()));
     }
 
     @Test
