@@ -86,9 +86,10 @@ opentelemetry-proto = { module = "io.opentelemetry.proto:opentelemetry-proto", v
 restAssured = { module = "io.rest-assured:rest-assured", version.ref = "restAssured" }
 swagger-annotations-jakarta = { module = "io.swagger.core.v3:swagger-annotations-jakarta", version.ref = "swagger-annotations-jakarta" }
 titaniumJsonLd = { module = "com.apicatalog:titanium-json-ld", version.ref = "titanium" }
-testcontainers-vault = { module = "org.testcontainers:vault", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+testcontainers-kafka = { module = "org.testcontainers:kafka", version.ref = "testcontainers" }
 testcontainers-postgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+testcontainers-vault = { module = "org.testcontainers:vault", version.ref = "testcontainers" }
 tink = { module = "com.google.crypto.tink:tink", version.ref = "tink" }
 
 

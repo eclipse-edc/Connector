@@ -107,25 +107,6 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport -DincludeTags="ApiTest"
 
-  Kafka-Integration-Tests:
-    runs-on: ubuntu-latest
-
-    services:
-      kraft:
-        image: bashj79/kafka-kraft:latest
-        ports:
-          - 9092:9092
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: eclipse-edc/.github/.github/actions/setup-build@main
-
-      - name: 'Kafka Integration Tests'
-        uses: eclipse-edc/.github/.github/actions/run-tests@main
-        with:
-          command: ./gradlew -p system-tests/e2e-transfer-test/runner test -DincludeTags="KafkaIntegrationTest"
-
-
   Upload-Test-Report:
     needs:
       - API-Tests

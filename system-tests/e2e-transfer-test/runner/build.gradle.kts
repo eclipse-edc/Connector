@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -37,6 +36,8 @@ dependencies {
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
     testImplementation(libs.kafkaClients)
+    testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.testcontainers.kafka)
 
     testCompileOnly(project(":system-tests:e2e-transfer-test:backend-service"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))

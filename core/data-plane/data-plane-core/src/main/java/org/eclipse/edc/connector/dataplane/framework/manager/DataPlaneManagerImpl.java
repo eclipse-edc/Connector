@@ -81,7 +81,11 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     public Result<DataFlowResponseMessage> start(DataFlowStartMessage startMessage) {
         var dataFlowBuilder = dataFlowRequestBuilder(startMessage);
 
-        var result = handleStart(startMessage, dataFlowBuilder);
+        var result = switch (startMessage.getFlowType()) {
+            case PULL -> handleStartPull(startMessage, dataFlowBuilder);
+            case PUSH -> handleStartPush(dataFlowBuilder);
+        };
+
         if (result.failed()) {
             return result.mapTo();
         }
@@ -138,13 +142,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .processor(processDataFlowInState(RECEIVED, this::processReceived))
                 .processor(processDataFlowInState(COMPLETED, this::processCompleted))
                 .processor(processDataFlowInState(FAILED, this::processFailed));
-    }
-
-    private Result<Optional<DataAddress>> handleStart(DataFlowStartMessage startMessage, DataFlow.Builder dataFlowBuilder) {
-        return switch (startMessage.getFlowType()) {
-            case PULL -> handleStartPull(startMessage, dataFlowBuilder);
-            case PUSH -> handleStartPush(dataFlowBuilder);
-        };
     }
 
     private Result<Optional<DataAddress>> handleStartPush(DataFlow.Builder dataFlowBuilder) {

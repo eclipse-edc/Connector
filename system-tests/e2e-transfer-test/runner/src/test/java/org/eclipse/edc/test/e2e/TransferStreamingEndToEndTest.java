@@ -14,9 +14,6 @@
 
 package org.eclipse.edc.test.e2e;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpMethod;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -30,12 +27,14 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.test.e2e.annotations.KafkaIntegrationTest;
-import org.eclipse.edc.test.e2e.serializers.JacksonDeserializer;
-import org.eclipse.edc.test.e2e.serializers.JacksonSerializer;
-import org.junit.jupiter.api.BeforeAll;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
 import java.util.List;
@@ -43,12 +42,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.validation.constraints.NotNull;
 
 import static java.lang.String.format;
 import static java.time.Duration.ZERO;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,79 +66,56 @@ import static org.mockserver.verify.VerificationTimes.never;
 public class TransferStreamingEndToEndTest {
 
     @Nested
-    @KafkaIntegrationTest
+    @EndToEndTest
     class InMemory extends Tests implements InMemoryRuntimes {
 
     }
 
+    @Testcontainers
     abstract static class Tests extends TransferEndToEndTestBase {
 
-        private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-        private static final String KAFKA_SERVER = "localhost:9092";
-        private static final Duration TIMEOUT = Duration.ofSeconds(60);
-        private static final String SINK_HTTP_PATH = "/api/service";
+        @Container
+        private static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.0"));
+
         private static final String SOURCE_TOPIC = "source_topic";
         private static final String SINK_TOPIC = "sink_topic";
-        private static final int EVENT_DESTINATION_PORT = getFreePort();
-        private static final JsonNode JSON_MESSAGE = sampleMessage();
-        private static final AtomicInteger MESSAGE_COUNTER = new AtomicInteger();
 
-        @BeforeAll
-        public static void setUp() {
-            startKafkaProducer();
-        }
-
-        private static Consumer<String, JsonNode> createKafkaConsumer() {
-            var props = new Properties();
-            props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_SERVER);
-            props.put(ConsumerConfig.GROUP_ID_CONFIG, "runner");
-            props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-            props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonDeserializer.class.getName());
-            return new KafkaConsumer<>(props);
-        }
-
-        private static Producer<String, JsonNode> createKafkaProducer() {
-            var props = new Properties();
-            props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_SERVER);
-            props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-            props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonSerializer.class.getName());
-            return new KafkaProducer<>(props);
-        }
-
-        private static void startKafkaProducer() {
+        @BeforeEach
+        void setUp() {
             var producer = createKafkaProducer();
-            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-                    () -> producer.send(new ProducerRecord<>(SOURCE_TOPIC, String.valueOf(MESSAGE_COUNTER.getAndIncrement()), JSON_MESSAGE)),
+
+            newSingleThreadScheduledExecutor().scheduleAtFixedRate(
+                    () -> producer.send(new ProducerRecord<>(SOURCE_TOPIC, sampleMessage())),
                     0, 100, MILLISECONDS);
         }
 
         @Test
-        void kafkaToHttpTransfer() throws JsonProcessingException {
-            var destinationServer = startClientAndServer(EVENT_DESTINATION_PORT);
+        void kafkaToHttpTransfer() {
+            var destinationServer = startClientAndServer(getFreePort());
             var request = request()
                     .withMethod(HttpMethod.POST.name())
-                    .withPath(SINK_HTTP_PATH)
-                    .withBody(OBJECT_MAPPER.writeValueAsBytes(JSON_MESSAGE));
+                    .withPath("/api/service");
             destinationServer.when(request).respond(response());
             PROVIDER.registerDataPlane(Set.of("Kafka"), Set.of("HttpData"));
 
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, contractExpiresInTenSeconds(), kafkaSourceProperty());
 
-            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), httpSink());
+            var destination = httpSink(destinationServer.getLocalPort(), "/api/service");
+            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), destination);
 
-            await().atMost(TIMEOUT).untilAsserted(() -> {
+            await().atMost(timeout).untilAsserted(() -> {
                 destinationServer.verify(request, atLeast(1));
             });
 
-            await().atMost(TIMEOUT).untilAsserted(() -> {
+            await().atMost(timeout).untilAsserted(() -> {
                 var state = CONSUMER.getTransferProcessState(transferProcessId);
                 assertThat(TransferProcessStates.valueOf(state)).isGreaterThanOrEqualTo(TERMINATED);
             });
 
             destinationServer.clear(request)
                     .when(request).respond(response());
-            await().pollDelay(5, SECONDS).atMost(TIMEOUT).untilAsserted(() -> {
+            await().pollDelay(5, SECONDS).atMost(timeout).untilAsserted(() -> {
                 try {
                     destinationServer.verify(request, never());
                 } catch (AssertionError assertionError) {
@@ -164,76 +139,92 @@ public class TransferStreamingEndToEndTest {
                 createResourcesOnProvider(assetId, contractExpiresInTenSeconds(), kafkaSourceProperty());
 
                 var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), kafkaSink());
-                await().atMost(TIMEOUT).untilAsserted(() -> {
+                await().atMost(timeout).untilAsserted(() -> {
                     var records = consumer.poll(ZERO);
                     assertThat(records.isEmpty()).isFalse();
-                    records.records(SINK_TOPIC).forEach(record -> assertThat(record.value()).isEqualTo(JSON_MESSAGE));
+                    records.records(SINK_TOPIC).forEach(record -> assertThat(record.value()).isEqualTo(sampleMessage()));
                 });
 
-                await().atMost(TIMEOUT).untilAsserted(() -> {
+                await().atMost(timeout).untilAsserted(() -> {
                     var state = CONSUMER.getTransferProcessState(transferProcessId);
                     assertThat(TransferProcessStates.valueOf(state)).isGreaterThanOrEqualTo(TERMINATED);
                 });
 
                 consumer.poll(ZERO);
-                await().pollDelay(5, SECONDS).atMost(TIMEOUT).untilAsserted(() -> {
+                await().pollDelay(5, SECONDS).atMost(timeout).untilAsserted(() -> {
                     var recordsFound = consumer.poll(Duration.ofSeconds(1)).records(SINK_TOPIC);
                     assertThat(recordsFound).isEmpty();
                 });
             }
         }
 
-        private static JsonObject httpSink() {
+        private JsonObject httpSink(Integer port, String path) {
             return Json.createObjectBuilder()
                     .add(TYPE, EDC_NAMESPACE + "DataAddress")
                     .add(EDC_NAMESPACE + "type", "HttpData")
                     .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
                             .add(EDC_NAMESPACE + "name", "data")
-                            .add(EDC_NAMESPACE + "baseUrl", format("http://localhost:%s", EVENT_DESTINATION_PORT))
-                            .add(EDC_NAMESPACE + "path", SINK_HTTP_PATH)
+                            .add(EDC_NAMESPACE + "baseUrl", format("http://localhost:%s", port))
+                            .add(EDC_NAMESPACE + "path", path)
                             .build())
                     .build();
         }
 
         @NotNull
-        private static JsonObject kafkaSink() {
+        private JsonObject kafkaSink() {
             return Json.createObjectBuilder()
                     .add(TYPE, EDC_NAMESPACE + "DataAddress")
                     .add(EDC_NAMESPACE + "type", "Kafka")
                     .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
                             .add(EDC_NAMESPACE + "topic", SINK_TOPIC)
-                            .add(EDC_NAMESPACE + kafkaProperty("bootstrap.servers"), KAFKA_SERVER)
+                            .add(EDC_NAMESPACE + kafkaProperty("bootstrap.servers"), KAFKA.getBootstrapServers())
                             .build())
                     .build();
         }
 
         @NotNull
-        private static Map<String, Object> kafkaSourceProperty() {
+        private Map<String, Object> kafkaSourceProperty() {
             return Map.of(
                     "name", "data",
                     "type", "Kafka",
                     "topic", SOURCE_TOPIC,
-                    kafkaProperty("bootstrap.servers"), KAFKA_SERVER,
+                    kafkaProperty("bootstrap.servers"), KAFKA.getBootstrapServers(),
                     kafkaProperty("max.poll.records"), "100"
             );
         }
 
-        private static String kafkaProperty(String property) {
+        private Consumer<String, String> createKafkaConsumer() {
+            var props = new Properties();
+            props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA.getBootstrapServers());
+            props.put(ConsumerConfig.GROUP_ID_CONFIG, "runner");
+            props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+            props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+            return new KafkaConsumer<>(props);
+        }
+
+        private Producer<String, String> createKafkaProducer() {
+            var props = new Properties();
+            props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA.getBootstrapServers());
+            props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+            props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+            return new KafkaProducer<>(props);
+        }
+
+        private String kafkaProperty(String property) {
             return "kafka." + property;
         }
 
-        private static JsonObject noPrivateProperty() {
+        private JsonObject noPrivateProperty() {
             return Json.createObjectBuilder().build();
         }
 
-        private static JsonObject contractExpiresInTenSeconds() {
+        private JsonObject contractExpiresInTenSeconds() {
             return inForceDatePolicy("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s");
         }
 
-        private static JsonNode sampleMessage() {
-            var node = OBJECT_MAPPER.createObjectNode();
-            node.put("foo", "bar");
-            return node;
+        private String sampleMessage() {
+            return "sampleMessage";
         }
     }
+
 }
