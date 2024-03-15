@@ -43,12 +43,12 @@ backward compatibility to the existing format should be maintained by retaining 
     "dspace:endpointProperties": [
       {
         "@type": "dspace:EndpointProperty",
-        "dspace:name": "authorization",
+        "dspace:name": "https://w3id.org/edc/v0.0.1/ns/authorization",
         "dspace:value": "token"
       },
       {
         "@type": "dspace:EndpointProperty",
-        "dspace:name": "authType",
+        "dspace:name": "https://w3id.org/edc/v0.0.1/ns/authType",
         "dspace:value": "bearer"
       }
     ]
@@ -56,7 +56,7 @@ backward compatibility to the existing format should be maintained by retaining 
 }
 ```
 
-Support for the optional DSP `authType` property will be added. If present, its value must be `bearer,` which indicates
+Support for the optional DSP `https://w3id.org/edc/v0.0.1/ns/authType` property will be added. If present, its value must be `bearer,` which indicates
 clients must present the contained token as a bearer token to the associated HTTP endpoint.
 
 _Note that all endpoints must be represented as URI-style strings._
@@ -185,7 +185,7 @@ to `DataPlaneAccessControlService.checkAccess`:
 
 ```java
 public interface DataPlaneAccessControlService {
-    boolean checkAccess(ClaimToken claimToken, DataAddress address, Map<String, Object> requestData)
+    boolean checkAccess(ClaimToken claimToken, DataAddress address, Map<String, Object> requestData);
 } 
 ```
 
