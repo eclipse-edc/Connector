@@ -462,7 +462,7 @@ class TransferProcessManagerImplTest {
             var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
             verify(dispatcherRegistry).dispatch(eq(TransferProcessAck.class), captor.capture());
             var message = captor.getValue();
-            assertThat(message.getProcessId()).isEqualTo(null);
+            assertThat(message.getProcessId()).isEqualTo(process.getId());
             assertThat(message.getConsumerPid()).isEqualTo(process.getId());
             assertThat(message.getProviderPid()).isEqualTo(null);
             assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
@@ -712,8 +712,7 @@ class TransferProcessManagerImplTest {
 
         @Test
         void provider_shouldSuspendDataFlowAndTransitionToSuspended_whenMessageSentCorrectly() {
-            var process = createTransferProcessBuilder(SUSPENDING).type(PROVIDER)
-                    .dataRequest(createDataRequestBuilder().id("counterPartyId").build()).build();
+            var process = createTransferProcessBuilder(SUSPENDING).type(PROVIDER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
@@ -736,8 +735,7 @@ class TransferProcessManagerImplTest {
 
         @Test
         void consumer_shouldTransitionToSuspended_whenMessageSentCorrectly() {
-            var process = createTransferProcessBuilder(SUSPENDING).type(CONSUMER)
-                    .dataRequest(createDataRequestBuilder().id("counterPartyId").build()).build();
+            var process = createTransferProcessBuilder(SUSPENDING).type(CONSUMER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));

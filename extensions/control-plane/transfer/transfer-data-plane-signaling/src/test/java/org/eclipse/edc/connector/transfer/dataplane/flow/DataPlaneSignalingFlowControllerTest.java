@@ -56,11 +56,6 @@ public class DataPlaneSignalingFlowControllerTest {
     private final DataPlaneSignalingFlowController flowController =
             new DataPlaneSignalingFlowController(() -> URI.create("http://localhost"), selectorService, dataPlaneClientFactory, "random");
 
-    @NotNull
-    private static DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
-        return DataPlaneInstance.Builder.newInstance().url("http://any");
-    }
-
     @Test
     void canHandle() {
         var transferProcess = transferProcess("HttpData", HTTP_DATA_PULL);
@@ -204,7 +199,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldCallTerminate() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .dataRequest(createDataRequest())
                     .contentDataAddress(testDataAddress())
                     .build();
             when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
@@ -224,7 +218,6 @@ public class DataPlaneSignalingFlowControllerTest {
             var mockedDataPlane = mock(DataPlaneInstance.class);
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .dataRequest(createDataRequest())
                     .contentDataAddress(testDataAddress())
                     .dataPlaneId(dataPlaneInstance.getId())
                     .build();
@@ -245,7 +238,6 @@ public class DataPlaneSignalingFlowControllerTest {
             var dataPlaneInstance = createDataPlaneInstance();
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .dataRequest(createDataRequest())
                     .contentDataAddress(testDataAddress())
                     .dataPlaneId("invalid")
                     .build();
@@ -327,6 +319,12 @@ public class DataPlaneSignalingFlowControllerTest {
 
         assertThat(transferTypes).containsExactly("Custom-PUSH", "Custom-PULL");
     }
+
+    @NotNull
+    private DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
+        return DataPlaneInstance.Builder.newInstance().url("http://any");
+    }
+
 
     private DataPlaneInstance createDataPlaneInstance() {
         return dataPlaneInstanceBuilder().build();

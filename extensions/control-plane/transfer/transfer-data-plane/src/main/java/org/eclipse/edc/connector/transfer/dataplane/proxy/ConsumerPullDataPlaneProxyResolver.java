@@ -66,7 +66,7 @@ public class ConsumerPullDataPlaneProxyResolver {
                 .compose(proxyUrl -> generateAccessToken(address, transferProcess.getContractId())
                         .map(token -> DataAddress.Builder.newInstance()
                                 .type(EndpointDataReference.EDR_SIMPLE_TYPE)
-                                .property(EndpointDataReference.ID, transferProcess.getId())
+                                .property(EndpointDataReference.ID, transferProcess.getCorrelationId())
                                 .property(EndpointDataReference.CONTRACT_ID, transferProcess.getContractId())
                                 .property(EndpointDataReference.ENDPOINT, proxyUrl)
                                 .property(EndpointDataReference.AUTH_KEY, HttpHeaders.AUTHORIZATION)

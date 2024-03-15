@@ -138,7 +138,7 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isSucceeded().satisfies(tp -> {
             assertThat(tp.getCorrelationId()).isEqualTo("consumerPid");
-            assertThat(tp.getConnectorAddress()).isEqualTo("http://any");
+            assertThat(tp.getCounterPartyAddress()).isEqualTo("http://any");
             assertThat(tp.getAssetId()).isEqualTo("assetId");
         });
         verify(listener).preCreated(any());
@@ -240,7 +240,7 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isSucceeded().satisfies(transferProcess -> {
             assertThat(transferProcess.getCorrelationId()).isEqualTo("consumerPid");
-            assertThat(transferProcess.getConnectorAddress()).isEqualTo("http://any");
+            assertThat(transferProcess.getCounterPartyAddress()).isEqualTo("http://any");
             assertThat(transferProcess.getAssetId()).isEqualTo("assetId");
             assertThat(transferProcess.getDataDestination().getType()).isEqualTo(HTTP_PROXY);
         });

@@ -123,9 +123,9 @@ class DataFlowManagerImplTest {
         @Test
         void shouldChooseControllerAndSuspend() {
             var controller = mock(DataFlowController.class);
-            var dataRequest = DataRequest.Builder.newInstance().destinationType("test-dest-type").build();
+            var dataDestination = DataAddress.Builder.newInstance().type("test-dest-type").build();
             var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
-            var transferProcess = TransferProcess.Builder.newInstance().dataRequest(dataRequest).contentDataAddress(dataAddress).build();
+            var transferProcess = TransferProcess.Builder.newInstance().dataDestination(dataDestination).contentDataAddress(dataAddress).build();
 
             when(controller.canHandle(any())).thenReturn(true);
             when(controller.suspend(any())).thenReturn(StatusResult.success());

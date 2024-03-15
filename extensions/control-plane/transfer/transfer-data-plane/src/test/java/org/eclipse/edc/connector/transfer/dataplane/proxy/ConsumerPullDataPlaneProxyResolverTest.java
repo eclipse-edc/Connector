@@ -83,7 +83,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
         var proxyAddress = result.getContent();
         assertThat(proxyAddress.getType()).isEqualTo(EndpointDataReference.EDR_SIMPLE_TYPE);
         assertThat(proxyAddress.getProperties())
-                .containsEntry(EndpointDataReference.ID, transferProcess.getId())
+                .containsEntry(EndpointDataReference.ID, transferProcess.getCorrelationId())
                 .containsEntry(EndpointDataReference.CONTRACT_ID, transferProcess.getContractId())
                 .containsEntry(EndpointDataReference.ENDPOINT, proxyUrl)
                 .containsEntry(EndpointDataReference.AUTH_KEY, HttpHeaders.AUTHORIZATION)

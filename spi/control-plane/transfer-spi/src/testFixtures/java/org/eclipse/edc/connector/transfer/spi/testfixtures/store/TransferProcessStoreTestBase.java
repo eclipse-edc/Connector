@@ -601,23 +601,7 @@ public abstract class TransferProcessStoreTestBase {
         }
 
         @Test
-        void queryByDataRequestProperty_processId() {
-            var tp = createTransferProcessBuilder("testprocess1")
-                    .build();
-            getTransferProcessStore().save(tp);
-            getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-            var query = QuerySpec.Builder.newInstance()
-                    .filter(List.of(new Criterion("dataRequest.processId", "=", "testprocess1")))
-                    .build();
-
-            var result = getTransferProcessStore().findAll(query);
-
-            assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
-        }
-
-        @Test
-        void queryByDataRequestProperty_id() {
+        void queryByCorrelationId() {
             var tp = createTransferProcessBuilder("testprocess1")
                     .correlationId("counterPartyId")
                     .build();
@@ -625,7 +609,7 @@ public abstract class TransferProcessStoreTestBase {
             getTransferProcessStore().save(createTransferProcess("testprocess2"));
 
             var query = QuerySpec.Builder.newInstance()
-                    .filter(List.of(new Criterion("dataRequest.id", "=", "counterPartyId")))
+                    .filter(List.of(new Criterion("correlationId", "=", "counterPartyId")))
                     .build();
 
             var result = getTransferProcessStore().findAll(query);
@@ -636,13 +620,13 @@ public abstract class TransferProcessStoreTestBase {
         @Test
         void queryByDataRequestProperty_protocol() {
             var tp = createTransferProcessBuilder("testprocess1")
-                    .protocol("%/protocol")
+                    .protocol("test-protocol")
                     .build();
             getTransferProcessStore().save(tp);
             getTransferProcessStore().save(createTransferProcess("testprocess2"));
 
             var query = QuerySpec.Builder.newInstance()
-                    .filter(List.of(new Criterion("dataRequest.protocol", "like", "%/protocol")))
+                    .filter(List.of(new Criterion("protocol", "like", "test-protocol")))
                     .build();
 
             var result = getTransferProcessStore().findAll(query);

@@ -404,7 +404,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     @JsonIgnore
-    public String getConnectorAddress() {
+    public String getCounterPartyAddress() {
         return counterPartyAddress;
     }
 
