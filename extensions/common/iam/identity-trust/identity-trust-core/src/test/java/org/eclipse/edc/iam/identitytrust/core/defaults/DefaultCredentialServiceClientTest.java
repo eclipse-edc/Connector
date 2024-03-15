@@ -60,6 +60,7 @@ import static org.mockito.Mockito.when;
 
 class DefaultCredentialServiceClientTest {
 
+    public static final String PRESENTATION_QUERY = "/presentations/query";
     private static final String CS_URL = "http://test.com/cs";
     private final EdcHttpClient httpClientMock = mock();
     private DefaultCredentialServiceClient client;
@@ -91,7 +92,7 @@ class DefaultCredentialServiceClientTest {
         var result = client.requestPresentation(CS_URL, "foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JSON_LD);
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
     }
 
     @Test
@@ -103,7 +104,7 @@ class DefaultCredentialServiceClientTest {
         var result = client.requestPresentation(CS_URL, "foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JWT);
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
     }
 
     @Test
@@ -117,7 +118,7 @@ class DefaultCredentialServiceClientTest {
         assertThat(result.getContent()).hasSize(2)
                 .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JSON_LD))
                 .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JWT));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
     }
 
     @Test
@@ -130,7 +131,7 @@ class DefaultCredentialServiceClientTest {
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(2)
                 .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JSON_LD));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
     }
 
     @Test
@@ -143,7 +144,7 @@ class DefaultCredentialServiceClientTest {
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(2)
                 .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JWT));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
     }
 
     @ParameterizedTest(name = "CS returns HTTP error code {0}")
@@ -155,7 +156,7 @@ class DefaultCredentialServiceClientTest {
         var res = client.requestPresentation(CS_URL, "foo", List.of());
         assertThat(res.failed()).isTrue();
         assertThat(res.getFailureDetail()).isEqualTo("Presentation Query failed: HTTP %s, message: Test failure".formatted(httpCode));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
     }
 
     @DisplayName("CS returns an empty array, because no VC was found")
@@ -167,7 +168,7 @@ class DefaultCredentialServiceClientTest {
         var res = client.requestPresentation(CS_URL, "foo", List.of());
         assertThat(res.succeeded()).isTrue();
         assertThat(res.getContent()).isNotNull().doesNotContainNull().isEmpty();
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
     }
 
     private VerifiablePresentation createPresentation() {

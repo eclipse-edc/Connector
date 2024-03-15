@@ -45,7 +45,7 @@ import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
 public class DefaultCredentialServiceClient implements CredentialServiceClient {
-    public static final String PRESENTATION_ENDPOINT = "/presentation/query";
+    public static final String PRESENTATION_ENDPOINT = "/presentations/query";
     private final EdcHttpClient httpClient;
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper objectMapper;
@@ -73,7 +73,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
             var request = new Request.Builder()
                     .post(RequestBody.create(requestJson, MediaType.parse("application/json")))
                     .url(url)
-                    .addHeader("Authorization", "%s".formatted(selfIssuedTokenJwt))
+                    .addHeader("Authorization", "Bearer %s".formatted(selfIssuedTokenJwt))
                     .build();
 
             var response = httpClient.execute(request);
@@ -149,7 +149,6 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
                         .add(VcConstants.PRESENTATION_EXCHANGE_URL)
                         .add(VcConstants.IATP_CONTEXT_URL))
                 .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TYPE)
-                .add("scope", scopeArray.build())
                 .build();
     }
 }

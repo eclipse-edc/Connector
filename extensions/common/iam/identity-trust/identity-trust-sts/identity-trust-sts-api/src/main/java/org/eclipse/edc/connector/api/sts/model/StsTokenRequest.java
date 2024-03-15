@@ -26,8 +26,8 @@ import jakarta.ws.rs.FormParam;
  *  <li>clientId:           Client ID identifier.</li>
  *  <li>clientSecret:       Authorization secret for the client/</li>
  *  <li>audience:           Audience according to the <a href="https://datatracker.ietf.org/doc/html/draft-tschofenig-oauth-audience-00#section-3">spec</a>.</li>
- *  <li>bearerAccessScope:  Space-delimited scopes to be included in the access_token claim.</li>
- *  <li>accessToken:        VP/VC Access Token to be included as access_token claim.</li>
+ *  <li>bearerAccessScope:  Space-delimited scopes to be included in the token claim.</li>
+ *  <li>token:        VP/VC Access Token to be included as token claim.</li>
  *  <li>grantType:          Type of grant. Must be client_credentials.</li>
  * </ul>
  */
@@ -47,14 +47,14 @@ public final class StsTokenRequest {
     @FormParam("audience")
     private String audience;
 
-    @Parameter(name = "bearer_access_scope", description = "Scope to be added in the VP access token", style = ParameterStyle.FORM)
+    @Parameter(name = "bearer_access_scope", description = "Scope to be added in the VP token", style = ParameterStyle.FORM)
     @FormParam("bearer_access_scope")
     private String bearerAccessScope;
 
 
-    @Parameter(name = "access_token", description = "VP access token to be added as a claim in the SI token", style = ParameterStyle.FORM)
-    @FormParam("access_token")
-    private String accessToken;
+    @Parameter(name = "token", description = "VP token to be added as a claim in the SI token", style = ParameterStyle.FORM)
+    @FormParam("token")
+    private String token;
 
     @Parameter(name = "client_secret", description = "Secret of the client requesting an SI token", required = true, style = ParameterStyle.FORM)
     @FormParam("client_secret")
@@ -85,8 +85,8 @@ public final class StsTokenRequest {
     }
 
 
-    public String getAccessToken() {
-        return accessToken;
+    public String getToken() {
+        return token;
     }
 
     public static class Builder {
@@ -122,7 +122,7 @@ public final class StsTokenRequest {
         }
 
         public Builder accessToken(String accessToken) {
-            this.request.accessToken = accessToken;
+            this.request.token = accessToken;
             return this;
         }
 

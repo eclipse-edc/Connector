@@ -47,7 +47,7 @@ import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
 import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.sts.store.fixtures.TestFunctions.createClientBuilder;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
 import static org.mockito.Mockito.mock;
 
@@ -142,7 +142,7 @@ public class StsClientTokenIssuanceIntegrationTest {
                 .containsEntry(ISSUER, did)
                 .containsEntry(SUBJECT, did)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT, "access_token")
+                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT, PRESENTATION_TOKEN_CLAIM)
                 .doesNotContainKey(CLIENT_ID);
 
     }
@@ -179,7 +179,7 @@ public class StsClientTokenIssuanceIntegrationTest {
                 .containsEntry(ISSUER, did)
                 .containsEntry(SUBJECT, did)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken)
+                .containsEntry(PRESENTATION_TOKEN_CLAIM, accessToken)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
                 .doesNotContainKey(CLIENT_ID);
 

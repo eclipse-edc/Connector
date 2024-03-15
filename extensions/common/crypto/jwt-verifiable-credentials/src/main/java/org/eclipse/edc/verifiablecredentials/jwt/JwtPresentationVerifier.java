@@ -121,15 +121,12 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             //we can be sure to have a presentation token
             verificationResult = tokenValidationService.validate(serializedJwt, publicKeyResolver, vpValidationRules(context.getAudience()));
 
-            var vpClaim = signedJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
-            var vpJson = vpClaim.toString();
+            var vpClaim = (Map<String, Object>) signedJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
 
-            // obtain the "verifiableCredentials" object inside
-            var map = objectMapper.readValue(vpJson, Map.class);
-            if (!map.containsKey(VERIFIABLE_CREDENTIAL_JSON_KEY)) {
+            if (!vpClaim.containsKey(VERIFIABLE_CREDENTIAL_JSON_KEY)) {
                 return Result.failure("Presentation object did not contain mandatory object: " + VERIFIABLE_CREDENTIAL_JSON_KEY);
             }
-            var rawCredentials = extractCredentials(map.get(VERIFIABLE_CREDENTIAL_JSON_KEY));
+            var rawCredentials = extractCredentials(vpClaim.get(VERIFIABLE_CREDENTIAL_JSON_KEY));
 
             if (rawCredentials.isEmpty()) {
                 // todo: this is allowed by the spec, but it is semantic nonsense. Should we return failure or not?
@@ -141,7 +138,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
                 verificationResult = verificationResult.merge(context.toBuilder().audience(signedJwt.getJWTClaimsSet().getIssuer()).build().verify(token));
             }
 
-        } catch (ParseException | JsonProcessingException e) {
+        } catch (ParseException e) {
             throw new RuntimeException(e);
         }
         return verificationResult.mapTo();

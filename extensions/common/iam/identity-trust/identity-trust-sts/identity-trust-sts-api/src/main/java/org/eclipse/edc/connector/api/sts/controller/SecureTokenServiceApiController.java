@@ -65,7 +65,7 @@ public class SecureTokenServiceApiController implements SecureTokenServiceApi {
     private StsClientTokenAdditionalParams additionalParams(StsTokenRequest request) {
         return StsClientTokenAdditionalParams.Builder.newInstance()
                 .audience(request.getAudience())
-                .accessToken(request.getAccessToken())
+                .accessToken(request.getToken())
                 .bearerAccessScope(request.getBearerAccessScope())
                 .build();
     }

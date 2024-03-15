@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_SCOPE;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 
 public class RemoteSecureTokenService implements SecureTokenService {
@@ -37,7 +37,7 @@ public class RemoteSecureTokenService implements SecureTokenService {
 
     private static final Map<String, String> CLAIM_MAPPING = Map.of(
             AUDIENCE, AUDIENCE_PARAM,
-            PRESENTATION_ACCESS_TOKEN_CLAIM, PRESENTATION_ACCESS_TOKEN_CLAIM);
+            PRESENTATION_TOKEN_CLAIM, PRESENTATION_TOKEN_CLAIM);
 
     private final Oauth2Client oauth2Client;
     private final StsRemoteClientConfiguration configuration;

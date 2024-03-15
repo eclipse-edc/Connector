@@ -22,22 +22,22 @@ import java.util.Map;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
-class AccessTokenNotNullRuleTest {
+class TokenNotNullRuleTest {
 
-    private final AccessTokenNotNullRule rule = new AccessTokenNotNullRule();
+    private final TokenNotNullRule rule = new TokenNotNullRule();
 
     @Test
     void accessTokenClaimPresent() {
-        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("access_token", "foobartoken").build(), Map.of()))
+        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("token", "foobartoken").build(), Map.of()))
                 .isSucceeded();
     }
 
     @Test
     void accessTokenClaimEmpty() {
-        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("access_token", "").build(), Map.of()))
+        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("token", "").build(), Map.of()))
                 .isFailed()
                 .detail()
-                .isEqualTo("The 'access_token' claim is mandatory and must not be null.");
+                .isEqualTo("The 'token' claim is mandatory and must not be null.");
     }
 
     @Test
@@ -45,6 +45,6 @@ class AccessTokenNotNullRuleTest {
         assertThat(rule.checkRule(ClaimToken.Builder.newInstance().build(), Map.of()))
                 .isFailed()
                 .detail()
-                .isEqualTo("The 'access_token' claim is mandatory and must not be null.");
+                .isEqualTo("The 'token' claim is mandatory and must not be null.");
     }
 }
