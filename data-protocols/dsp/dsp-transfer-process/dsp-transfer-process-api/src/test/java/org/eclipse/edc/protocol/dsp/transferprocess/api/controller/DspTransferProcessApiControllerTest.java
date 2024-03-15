@@ -138,7 +138,6 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var captor = ArgumentCaptor.forClass(PostDspRequest.class);
         verify(dspRequestHandler).updateResource(captor.capture());
         var request = captor.getValue();
-        assertThat(request.getExpectedMessageType());
         assertThat(request.getToken()).isEqualTo("auth");
         assertThat(request.getProcessId()).isEqualTo(PROCESS_ID);
         assertThat(request.getMessage()).isNotNull();

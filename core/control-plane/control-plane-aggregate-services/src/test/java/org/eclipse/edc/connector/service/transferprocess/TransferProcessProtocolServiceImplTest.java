@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -782,7 +781,8 @@ class TransferProcessProtocolServiceImplTest {
 
     private TransferProcess.Builder transferProcessBuilder() {
         return TransferProcess.Builder.newInstance()
-                .dataRequest(dataRequest());
+                .contractId("contractId")
+                .dataDestination(DataAddress.Builder.newInstance().type("type").build());
     }
 
     private ParticipantAgent participantAgent() {
@@ -802,13 +802,6 @@ class TransferProcessProtocolServiceImplTest {
                 .consumerId("consumer")
                 .assetId("assetId")
                 .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
-
-    private DataRequest dataRequest() {
-        return DataRequest.Builder.newInstance()
-                .contractId("contractId")
-                .destinationType("type")
                 .build();
     }
 

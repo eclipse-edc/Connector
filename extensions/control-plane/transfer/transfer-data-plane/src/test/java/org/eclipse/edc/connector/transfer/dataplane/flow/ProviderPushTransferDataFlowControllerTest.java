@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
@@ -68,10 +67,8 @@ class ProviderPushTransferDataFlowControllerTest {
 
     @Test
     void initiateFlow_transferSuccess() {
-        var request = createDataRequest();
         var source = testDataAddress();
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(createDataRequest())
+        var transferProcess = transferProcessBuilder("test")
                 .contentDataAddress(testDataAddress())
                 .build();
 
@@ -88,17 +85,15 @@ class ProviderPushTransferDataFlowControllerTest {
         var captured = captor.getValue();
         assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
         assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
-        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
+        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(transferProcess.getDataDestination());
         assertThat(captured.getProperties()).isEmpty();
         assertThat(captured.getCallbackAddress()).isNotNull();
     }
 
     @Test
     void initiateFlow_transferSuccess_withoutDataPlane() {
-        var request = createDataRequest();
         var source = testDataAddress();
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(createDataRequest())
+        var transferProcess = transferProcessBuilder("test")
                 .contentDataAddress(testDataAddress())
                 .build();
 
@@ -114,7 +109,7 @@ class ProviderPushTransferDataFlowControllerTest {
         var captured = captor.getValue();
         assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
         assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
-        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
+        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(transferProcess.getDataDestination());
         assertThat(captured.getProperties()).isEmpty();
         assertThat(captured.getCallbackAddress()).isNotNull();
     }
@@ -122,8 +117,7 @@ class ProviderPushTransferDataFlowControllerTest {
     @Test
     void initiateFlow_returnFailedResultIfTransferFails() {
         var errorMsg = "error";
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(createDataRequest())
+        var transferProcess = transferProcessBuilder("test")
                 .contentDataAddress(testDataAddress())
                 .build();
 
@@ -142,9 +136,8 @@ class ProviderPushTransferDataFlowControllerTest {
 
     @Test
     void terminate_shouldCallTerminate() {
-        var transferProcess = TransferProcess.Builder.newInstance()
+        var transferProcess = transferProcessBuilder("test")
                 .id("transferProcessId")
-                .dataRequest(createDataRequest())
                 .contentDataAddress(testDataAddress())
                 .build();
         when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
@@ -162,9 +155,8 @@ class ProviderPushTransferDataFlowControllerTest {
     void terminate_shouldCallTerminateOnTheRightDataPlane() {
         var dataPlaneInstance = createDataPlaneInstance();
         var mockedDataPlane = mock(DataPlaneInstance.class);
-        var transferProcess = TransferProcess.Builder.newInstance()
+        var transferProcess = transferProcessBuilder("test")
                 .id("transferProcessId")
-                .dataRequest(createDataRequest())
                 .contentDataAddress(testDataAddress())
                 .dataPlaneId(dataPlaneInstance.getId())
                 .build();
@@ -183,9 +175,8 @@ class ProviderPushTransferDataFlowControllerTest {
     @Test
     void terminate_shouldFail_withInvalidDataPlaneId() {
         var dataPlaneInstance = createDataPlaneInstance();
-        var transferProcess = TransferProcess.Builder.newInstance()
+        var transferProcess = transferProcessBuilder("test")
                 .id("transferProcessId")
-                .dataRequest(createDataRequest())
                 .contentDataAddress(testDataAddress())
                 .dataPlaneId("invalid")
                 .build();
@@ -220,30 +211,23 @@ class ProviderPushTransferDataFlowControllerTest {
         return DataAddress.Builder.newInstance().type("test-type").build();
     }
 
-    private DataRequest createDataRequest() {
-        return createDataRequest("test");
-    }
-
-    private DataRequest createDataRequest(String destinationType) {
-        return DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .protocol("test-protocol")
-                .contractId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
-                .connectorAddress("test.connector.address")
-                .processId(UUID.randomUUID().toString())
-                .destinationType(destinationType)
-                .build();
-    }
-
     private TransferProcess transferProcess(String destinationType) {
         return transferProcess(destinationType, null);
     }
 
     private TransferProcess transferProcess(String destinationType, String transferType) {
-        return TransferProcess.Builder.newInstance()
+        return transferProcessBuilder(destinationType)
                 .transferType(transferType)
-                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).build())
                 .build();
+    }
+
+    private TransferProcess.Builder transferProcessBuilder(String destinationType) {
+        return TransferProcess.Builder.newInstance()
+                .correlationId(UUID.randomUUID().toString())
+                .protocol("test-protocol")
+                .contractId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .counterPartyAddress("test.connector.address")
+                .dataDestination(DataAddress.Builder.newInstance().type(destinationType).build());
     }
 }

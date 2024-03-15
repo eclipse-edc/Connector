@@ -17,7 +17,6 @@
 package org.eclipse.edc.connector.provision.http.impl;
 
 
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -33,8 +32,9 @@ class HttpProviderResourceDefinitionGeneratorTest {
 
     @Test
     void generate() {
-        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
-        var transferProcess = TransferProcess.Builder.newInstance().id("process-id").dataRequest(dataRequest).build();
+        var transferProcess = TransferProcess.Builder.newInstance().id("process-id").assetId("asset-id")
+                .dataDestination(DataAddress.Builder.newInstance().type("destination").build())
+                .build();
         var policy = Policy.Builder.newInstance().build();
         var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
 
@@ -49,8 +49,9 @@ class HttpProviderResourceDefinitionGeneratorTest {
 
     @Test
     void canGenerate() {
-        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
-        var transferProcess = TransferProcess.Builder.newInstance().dataRequest(dataRequest).build();
+        var transferProcess = TransferProcess.Builder.newInstance().id("process-id").assetId("asset-id")
+                .dataDestination(DataAddress.Builder.newInstance().type("destination").build())
+                .build();
         var policy = Policy.Builder.newInstance().build();
         var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
 
@@ -61,8 +62,9 @@ class HttpProviderResourceDefinitionGeneratorTest {
 
     @Test
     void canGenerate_dataAddressTypeDifferentThanAssetAddressType() {
-        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
-        var transferProcess = TransferProcess.Builder.newInstance().dataRequest(dataRequest).build();
+        var transferProcess = TransferProcess.Builder.newInstance().id("process-id").assetId("asset-id")
+                .dataDestination(DataAddress.Builder.newInstance().type("destination").build())
+                .build();
         var policy = Policy.Builder.newInstance().build();
         var assetAddress1 = DataAddress.Builder.newInstance().type("a-different-addressType").build();
 

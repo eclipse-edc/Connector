@@ -18,7 +18,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -61,13 +61,13 @@ public class ConsumerPullDataPlaneProxyResolver {
                 .orElseGet(() -> instance.getProperties().get(PUBLIC_API_URL_PROPERTY_DEPRECATED));
     }
 
-    public Result<DataAddress> toDataAddress(DataRequest request, DataAddress address, DataPlaneInstance instance) {
+    public Result<DataAddress> toDataAddress(TransferProcess transferProcess, DataAddress address, DataPlaneInstance instance) {
         return resolveProxyUrl(instance)
-                .compose(proxyUrl -> generateAccessToken(address, request.getContractId())
+                .compose(proxyUrl -> generateAccessToken(address, transferProcess.getContractId())
                         .map(token -> DataAddress.Builder.newInstance()
                                 .type(EndpointDataReference.EDR_SIMPLE_TYPE)
-                                .property(EndpointDataReference.ID, request.getId())
-                                .property(EndpointDataReference.CONTRACT_ID, request.getContractId())
+                                .property(EndpointDataReference.ID, transferProcess.getId())
+                                .property(EndpointDataReference.CONTRACT_ID, transferProcess.getContractId())
                                 .property(EndpointDataReference.ENDPOINT, proxyUrl)
                                 .property(EndpointDataReference.AUTH_KEY, HttpHeaders.AUTHORIZATION)
                                 .property(EndpointDataReference.AUTH_CODE, token)

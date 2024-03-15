@@ -43,8 +43,6 @@ import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.createDataAddressBuilder;
-import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.createDataRequest;
-import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.createDataRequestBuilder;
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.createTransferProcessBuilder;
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.initialTransferProcess;
@@ -69,7 +67,7 @@ public abstract class TransferProcessStoreTestBase {
         @Test
         void shouldCreateTheEntity() {
             var transferProcess = createTransferProcessBuilder("test-id")
-                    .dataRequest(createDataRequestBuilder().id("data-request-id").build())
+                    .correlationId("data-request-id")
                     .privateProperties(Map.of("key", "value")).build();
             getTransferProcessStore().save(transferProcess);
 
@@ -95,7 +93,7 @@ public abstract class TransferProcessStoreTestBase {
 
         @Test
         void verifyTransferType() {
-            var t = createTransferProcessBuilder("test-id").transferType("transferType").dataRequest(createDataRequestBuilder().build()).build();
+            var t = createTransferProcessBuilder("test-id").transferType("transferType").build();
             getTransferProcessStore().save(t);
 
             var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
@@ -106,7 +104,7 @@ public abstract class TransferProcessStoreTestBase {
 
         @Test
         void verifyDataPlaneId() {
-            var t = createTransferProcessBuilder("test-id").dataPlaneId("dataPlaneId").dataRequest(createDataRequestBuilder().build()).build();
+            var t = createTransferProcessBuilder("test-id").dataPlaneId("dataPlaneId").build();
             getTransferProcessStore().save(t);
 
             var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
@@ -321,8 +319,7 @@ public abstract class TransferProcessStoreTestBase {
     class FindForCorrelationId {
         @Test
         void shouldFindEntityByCorrelationId() {
-            var dataRequest = createDataRequestBuilder().id("correlationId").build();
-            var transferProcess = createTransferProcessBuilder("id1").dataRequest(dataRequest).build();
+            var transferProcess = createTransferProcessBuilder("id1").correlationId("correlationId").build();
             getTransferProcessStore().save(transferProcess);
 
             var res = getTransferProcessStore().findForCorrelationId("correlationId");
@@ -390,22 +387,19 @@ public abstract class TransferProcessStoreTestBase {
         @Test
         void shouldReplaceDataRequest_whenItGetsTheIdUpdated() {
             var builder = createTransferProcessBuilder("id1").state(STARTED.code());
-            var newDataRequest = createDataRequestBuilder()
-                    .id("new-dr-id")
+            getTransferProcessStore().save(builder.build());
+            var newTransferProcess = builder.correlationId("new-dr-id")
                     .assetId("new-asset")
                     .contractId("new-contract")
-                    .protocol("test-protocol")
-                    .build();
-            getTransferProcessStore().save(builder.build());
-            getTransferProcessStore().save(builder.dataRequest(newDataRequest).build());
+                    .protocol("test-protocol").build();
+            getTransferProcessStore().save(newTransferProcess);
 
             var result = getTransferProcessStore().findAll(QuerySpec.none());
 
             assertThat(result)
                     .hasSize(1)
                     .usingRecursiveFieldByFieldElementComparator()
-                    .map(TransferProcess::getDataRequest)
-                    .containsExactly(newDataRequest);
+                    .containsExactly(newTransferProcess);
         }
     }
 
@@ -608,9 +602,7 @@ public abstract class TransferProcessStoreTestBase {
 
         @Test
         void queryByDataRequestProperty_processId() {
-            var da = createDataRequest();
             var tp = createTransferProcessBuilder("testprocess1")
-                    .dataRequest(da)
                     .build();
             getTransferProcessStore().save(tp);
             getTransferProcessStore().save(createTransferProcess("testprocess2"));
@@ -626,15 +618,14 @@ public abstract class TransferProcessStoreTestBase {
 
         @Test
         void queryByDataRequestProperty_id() {
-            var da = createDataRequest();
             var tp = createTransferProcessBuilder("testprocess1")
-                    .dataRequest(da)
+                    .correlationId("counterPartyId")
                     .build();
             getTransferProcessStore().save(tp);
             getTransferProcessStore().save(createTransferProcess("testprocess2"));
 
             var query = QuerySpec.Builder.newInstance()
-                    .filter(List.of(new Criterion("dataRequest.id", "=", da.getId())))
+                    .filter(List.of(new Criterion("dataRequest.id", "=", "counterPartyId")))
                     .build();
 
             var result = getTransferProcessStore().findAll(query);
@@ -644,9 +635,8 @@ public abstract class TransferProcessStoreTestBase {
 
         @Test
         void queryByDataRequestProperty_protocol() {
-            var da = createDataRequestBuilder().protocol("%/protocol").build();
             var tp = createTransferProcessBuilder("testprocess1")
-                    .dataRequest(da)
+                    .protocol("%/protocol")
                     .build();
             getTransferProcessStore().save(tp);
             getTransferProcessStore().save(createTransferProcess("testprocess2"));
@@ -662,9 +652,7 @@ public abstract class TransferProcessStoreTestBase {
 
         @Test
         void queryByDataRequest_valueNotExist() {
-            var da = createDataRequest();
             var tp = createTransferProcessBuilder("testprocess1")
-                    .dataRequest(da)
                     .build();
             getTransferProcessStore().save(tp);
             getTransferProcessStore().save(createTransferProcess("testprocess2"));
@@ -981,8 +969,7 @@ public abstract class TransferProcessStoreTestBase {
         void shouldReturnTheEntityAndLeaseIt() {
             var id = UUID.randomUUID().toString();
             var correlationId = UUID.randomUUID().toString();
-            var dataRequest = createDataRequestBuilder().id(correlationId).build();
-            getTransferProcessStore().save(createTransferProcessBuilder(id).dataRequest(dataRequest).build());
+            getTransferProcessStore().save(createTransferProcessBuilder(id).correlationId(correlationId).build());
 
             var result = getTransferProcessStore().findByCorrelationIdAndLease(correlationId);
 
@@ -1001,8 +988,7 @@ public abstract class TransferProcessStoreTestBase {
         void shouldReturnAlreadyLeased_whenEntityIsAlreadyLeased() {
             var id = UUID.randomUUID().toString();
             var correlationId = UUID.randomUUID().toString();
-            var dataRequest = createDataRequestBuilder().id(correlationId).build();
-            getTransferProcessStore().save(createTransferProcessBuilder(id).dataRequest(dataRequest).build());
+            getTransferProcessStore().save(createTransferProcessBuilder(id).correlationId(correlationId).build());
             leaseEntity(id, "other owner");
 
             var result = getTransferProcessStore().findByCorrelationIdAndLease(correlationId);

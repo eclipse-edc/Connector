@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -58,10 +57,9 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     @Override
     public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
         var contentAddress = transferProcess.getContentDataAddress();
-        var dataRequest = transferProcess.getDataRequest();
 
-        return Optional.ofNullable(selectorService.select(contentAddress, destinationAddress(dataRequest)))
-                .map(instance -> resolver.toDataAddress(dataRequest, contentAddress, instance)
+        return Optional.ofNullable(selectorService.select(contentAddress, destinationAddress(transferProcess)))
+                .map(instance -> resolver.toDataAddress(transferProcess, contentAddress, instance)
                         .map(this::toResponse)
                         .map(StatusResult::success)
                         .orElse(failure -> failure(FATAL_ERROR, "Failed to generate proxy: " + failure.getFailureDetail())))
@@ -84,13 +82,13 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     }
 
     // Shim translation from "Http-PULL" to HttpProxy dataAddress
-    private DataAddress destinationAddress(DataRequest dataRequest) {
-        if (transferTypes.contains(dataRequest.getDestinationType())) {
+    private DataAddress destinationAddress(TransferProcess transferProcess) {
+        if (transferTypes.contains(transferProcess.getDestinationType())) {
             var dadBuilder = DataAddress.Builder.newInstance();
-            dataRequest.getDataDestination().getProperties().forEach(dadBuilder::property);
+            transferProcess.getDataDestination().getProperties().forEach(dadBuilder::property);
             return dadBuilder.type(HTTP_PROXY).build();
         } else {
-            return dataRequest.getDataDestination();
+            return transferProcess.getDataDestination();
         }
     }
 

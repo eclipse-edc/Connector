@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
@@ -79,11 +78,9 @@ public class DataPlaneSignalingFlowControllerTest {
             CUSTOM_PUSH,
     })
     void initiateFlow_transferSuccess(String transferType) {
-        var request = createDataRequest();
         var source = testDataAddress();
         var policy = Policy.Builder.newInstance().assignee("participantId").build();
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(createDataRequest())
+        var transferProcess = transferProcessBuilder()
                 .transferType(transferType)
                 .contentDataAddress(testDataAddress())
                 .build();
@@ -101,7 +98,7 @@ public class DataPlaneSignalingFlowControllerTest {
         var captured = captor.getValue();
         assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
         assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
-        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
+        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(transferProcess.getDataDestination());
         assertThat(captured.getParticipantId()).isEqualTo(policy.getAssignee());
         assertThat(captured.getAgreementId()).isEqualTo(transferProcess.getContractId());
         assertThat(captured.getAssetId()).isEqualTo(transferProcess.getAssetId());
@@ -113,8 +110,7 @@ public class DataPlaneSignalingFlowControllerTest {
     @Test
     void initiateFlow_transferSuccess_withReturnedDataAddress() {
         var policy = Policy.Builder.newInstance().assignee("participantId").build();
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(createDataRequest())
+        var transferProcess = transferProcessBuilder()
                 .transferType(HTTP_DATA_PULL)
                 .contentDataAddress(testDataAddress())
                 .build();
@@ -137,10 +133,8 @@ public class DataPlaneSignalingFlowControllerTest {
 
     @Test
     void initiateFlow_transferSuccess_withoutDataPlane() {
-        var request = createDataRequest();
         var source = testDataAddress();
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(createDataRequest())
+        var transferProcess = transferProcessBuilder()
                 .contentDataAddress(testDataAddress())
                 .transferType(HTTP_DATA_PULL)
                 .build();
@@ -157,7 +151,7 @@ public class DataPlaneSignalingFlowControllerTest {
         var captured = captor.getValue();
         assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
         assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
-        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
+        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(transferProcess.getDataDestination());
         assertThat(captured.getProperties()).isEmpty();
         assertThat(captured.getCallbackAddress()).isNotNull();
     }
@@ -170,8 +164,7 @@ public class DataPlaneSignalingFlowControllerTest {
             "",
     })
     void initiateFlow_invalidTransferType(String transferType) {
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(createDataRequest())
+        var transferProcess = transferProcessBuilder()
                 .contentDataAddress(testDataAddress())
                 .transferType(transferType)
                 .build();
@@ -186,8 +179,7 @@ public class DataPlaneSignalingFlowControllerTest {
     @Test
     void initiateFlow_returnFailedResultIfTransferFails() {
         var errorMsg = "error";
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(createDataRequest())
+        var transferProcess = transferProcessBuilder()
                 .contentDataAddress(testDataAddress())
                 .transferType(HTTP_DATA_PULL)
                 .build();
@@ -269,9 +261,8 @@ public class DataPlaneSignalingFlowControllerTest {
 
     @Test
     void terminate_shouldCallTerminate() {
-        var transferProcess = TransferProcess.Builder.newInstance()
+        var transferProcess = transferProcessBuilder()
                 .id("transferProcessId")
-                .dataRequest(createDataRequest())
                 .contentDataAddress(testDataAddress())
                 .build();
         when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
@@ -289,9 +280,8 @@ public class DataPlaneSignalingFlowControllerTest {
     void terminate_shouldCallTerminateOnTheRightDataPlane() {
         var dataPlaneInstance = createDataPlaneInstance();
         var mockedDataPlane = mock(DataPlaneInstance.class);
-        var transferProcess = TransferProcess.Builder.newInstance()
+        var transferProcess = transferProcessBuilder()
                 .id("transferProcessId")
-                .dataRequest(createDataRequest())
                 .contentDataAddress(testDataAddress())
                 .dataPlaneId(dataPlaneInstance.getId())
                 .build();
@@ -310,9 +300,8 @@ public class DataPlaneSignalingFlowControllerTest {
     @Test
     void terminate_shouldFail_withInvalidDataPlaneId() {
         var dataPlaneInstance = createDataPlaneInstance();
-        var transferProcess = TransferProcess.Builder.newInstance()
+        var transferProcess = transferProcessBuilder()
                 .id("transferProcessId")
-                .dataRequest(createDataRequest())
                 .contentDataAddress(testDataAddress())
                 .dataPlaneId("invalid")
                 .build();
@@ -347,27 +336,20 @@ public class DataPlaneSignalingFlowControllerTest {
         return DataAddress.Builder.newInstance().type("test-type").build();
     }
 
-    private DataRequest createDataRequest() {
-        return createDataRequest("test");
-    }
-
-    private DataRequest createDataRequest(String destinationType) {
-        return DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .protocol("test-protocol")
-                .contractId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
-                .connectorAddress("test.connector.address")
-                .processId(UUID.randomUUID().toString())
-                .destinationType(destinationType)
-                .build();
-    }
-
-
     private TransferProcess transferProcess(String destinationType, String transferType) {
         return TransferProcess.Builder.newInstance()
                 .transferType(transferType)
-                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).build())
+                .dataDestination(DataAddress.Builder.newInstance().type(destinationType).build())
                 .build();
+    }
+
+    private TransferProcess.Builder transferProcessBuilder() {
+        return TransferProcess.Builder.newInstance()
+                .correlationId(UUID.randomUUID().toString())
+                .protocol("test-protocol")
+                .contractId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .counterPartyAddress("test.connector.address")
+                .dataDestination(DataAddress.Builder.newInstance().type("test").build());
     }
 }

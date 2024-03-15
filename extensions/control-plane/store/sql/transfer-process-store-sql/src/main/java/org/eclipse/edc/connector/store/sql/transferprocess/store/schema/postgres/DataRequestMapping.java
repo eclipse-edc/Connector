@@ -16,12 +16,11 @@
 package org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgres;
 
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.TransferProcessStoreStatements;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
- * Maps fields of a {@link DataRequest} onto the corresponding
+ * Maps fields of DataRequest onto the corresponding
  * SQL schema (= column names) enabling access through Postgres JSON operators
  */
 class DataRequestMapping extends TranslationMapping {

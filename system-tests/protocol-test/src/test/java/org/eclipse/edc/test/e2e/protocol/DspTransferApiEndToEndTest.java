@@ -19,12 +19,12 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.junit.jupiter.api.Test;
@@ -66,7 +66,10 @@ public class DspTransferApiEndToEndTest {
         var id = UUID.randomUUID().toString();
         var contractId = UUID.randomUUID().toString();
         var transfer = TransferProcess.Builder.newInstance()
-                .id(id).dataRequest(DataRequest.Builder.newInstance().id("any").destinationType("any").contractId(contractId).build()).state(REQUESTED.code())
+                .id(id)
+                .contractId(contractId)
+                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                .state(REQUESTED.code())
                 .build();
         runtime.getService(TransferProcessStore.class).save(transfer);
         runtime.getService(ContractNegotiationStore.class).save(createNegotiationWithAgreement(contractId));

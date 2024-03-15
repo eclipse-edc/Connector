@@ -32,7 +32,6 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
@@ -133,20 +132,15 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         if (existingTransferProcess != null) {
             return StatusResult.success(existingTransferProcess);
         }
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(id)
-                .assetId(transferRequest.getAssetId())
-                .dataDestination(transferRequest.getDataDestination())
-                .connectorAddress(transferRequest.getCounterPartyAddress())
-                .contractId(transferRequest.getContractId())
-                .destinationType(transferRequest.getDataDestination().getType())
-                .protocol(transferRequest.getProtocol())
-                .dataDestination(transferRequest.getDataDestination())
-                .build();
 
         var process = TransferProcess.Builder.newInstance()
                 .id(id)
-                .dataRequest(dataRequest)
+                .assetId(transferRequest.getAssetId())
+                .dataDestination(transferRequest.getDataDestination())
+                .counterPartyAddress(transferRequest.getCounterPartyAddress())
+                .contractId(transferRequest.getContractId())
+                .protocol(transferRequest.getProtocol())
+                .dataDestination(transferRequest.getDataDestination())
                 .type(CONSUMER)
                 .clock(clock)
                 .transferType(transferRequest.getTransferType())

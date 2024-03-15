@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.receiver.http.dynamic;
 
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -37,8 +36,8 @@ public class TestFunctions {
                         .type(HTTP_DATA_TYPE)
                         .property(BASE_URL, "http://localhost:8080/test")
                         .build())
-                .dataRequest(DataRequest.Builder.newInstance()
-                        .destinationType("HttpProxy")
+                .dataDestination(DataAddress.Builder.newInstance()
+                        .type("HttpProxy")
                         .build())
                 .privateProperties(properties)
                 .build();
