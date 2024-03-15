@@ -101,10 +101,9 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         // verify basic shape of the DSPACE data address (=EDR token)
         assertThat(dataAddress).isNotNull();
         assertThat(dataAddress.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-        assertThat(dataAddress.getProperties())
-                .containsKey("authorization")
-                .containsEntry("endpoint", DATAPLANE_PUBLIC_ENDPOINT_URL)
-                .containsEntry("authType", "bearer");
+        assertThat(dataAddress.getStringProperty("endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL);
+        assertThat(dataAddress.getStringProperty("authorization")).isNotNull();
+        assertThat(dataAddress.getStringProperty("authType")).isEqualTo("bearer");
 
         // verify that the data flow was created
         var store = runtime.getService(DataPlaneStore.class).findById(processId);

@@ -41,6 +41,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 
 import static org.eclipse.edc.connector.api.signaling.configuration.SignalingApiConfigurationExtension.NAME;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
@@ -89,6 +91,8 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
         context.registerService(SignalingApiConfiguration.class, new SignalingApiConfiguration(webServiceConfiguration));
 
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, SIGNALING_SCOPE);
+        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, SIGNALING_SCOPE);
+
         var jsonLdMapper = getJsonLdMapper();
         webService.registerResource(webServiceConfiguration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(webServiceConfiguration.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, SIGNALING_SCOPE));

@@ -37,12 +37,7 @@ public class EndpointDataReferenceStoreDefaultServicesExtension implements Servi
     @Setting(value = "Directory/Path where to store EDRs in the vault for vaults that supports hierarchical structuring.", defaultValue = DEFAULT_EDR_VAULT_PATH)
     public static final String EDC_EDR_VAULT_PATH = "edc.edr.vault.path";
     protected static final String NAME = "Endpoint Data Reference Core Default Services Extension";
-    @Inject
-    private EndpointDataReferenceEntryIndex edrEntryStore;
-
-    @Inject
-    private EndpointDataReferenceCache edrCache;
-
+    
     @Inject
     private CriterionOperatorRegistry criterionOperatorRegistry;
 

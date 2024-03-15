@@ -170,6 +170,7 @@ include(":extensions:control-plane:store:sql:transfer-process-store-sql")
 include(":extensions:control-plane:callback:callback-event-dispatcher")
 include(":extensions:control-plane:callback:callback-http-dispatcher")
 include(":extensions:control-plane:callback:callback-static-endpoint")
+include(":extensions:control-plane:edr:edr-store-receiver")
 
 
 include(":extensions:data-plane:data-plane-client")

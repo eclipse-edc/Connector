@@ -12,6 +12,4 @@
 #
 #
 
-
-org.eclipse.edc.core.edr.EndpointDataReferenceStoreExtension
-org.eclipse.edc.core.edr.EndpointDataReferenceStoreDefaultServicesExtension
+org.eclipse.edc.connector.edr.store.receiver.EndpointDataReferenceStoreReceiverExtension
