@@ -988,9 +988,10 @@ paths:
     post:
       tags:
       - Transfer Process
-      description: "Initiates a data transfer with the given parameters. Please note\
-        \ that successfully invoking this endpoint only means that the transfer was\
-        \ initiated. Clients must poll the /{id}/state endpoint to track the state"
+      description: "Initiates a data transfer with the given parameters. Due to the\
+        \ asynchronous nature of transfers, a successful response only indicates that\
+        \ the request was successfully received. This may take a long time, so clients\
+        \ must poll the /{id}/state endpoint to track the state."
       operationId: initiateTransferProcess
       requestBody:
         content:
@@ -1114,7 +1115,7 @@ paths:
             received
           links:
             poll-state:
-              operationId: getTransferProcessState
+              operationId: deprovisionTransferProcess
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1173,14 +1174,71 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/transferprocesses/{id}/suspend:
+    post:
+      tags:
+      - Transfer Process
+      description: "Requests the suspension of a transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received. This may take a long time, so clients must poll\
+        \ the /{id}/state endpoint to track the state."
+      operationId: suspendTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuspendTransfer'
+      responses:
+        "200":
+          description: Request to suspend the transfer process was successfully received
+          links:
+            poll-state:
+              operationId: suspendTransferProcess
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "409":
+          description: "Could not suspend the transfer process, because it is already\
+            \ completed or terminated."
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
   /v2/transferprocesses/{id}/terminate:
     post:
       tags:
       - Transfer Process
       description: "Requests the termination of a transfer process. Due to the asynchronous\
         \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received. Clients must poll the /{id}/state endpoint to\
-        \ track the state."
+        \ was successfully received. This may take a long time, so clients must poll\
+        \ the /{id}/state endpoint to track the state."
       operationId: terminateTransferProcess
       parameters:
       - name: id
@@ -1198,10 +1256,11 @@ paths:
               $ref: '#/components/schemas/TerminateTransfer'
       responses:
         "200":
-          description: Request to cancel the transfer process was successfully received
+          description: Request to terminate the transfer process was successfully
+            received
           links:
             poll-state:
-              operationId: getTransferProcessState
+              operationId: terminateTransferProcess
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -2294,6 +2353,20 @@ components:
           type: test-dst2
         strategy: you_custom_strategy
         transferType: you_custom_transfer_type
+    SuspendTransfer:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/SuspendTransfer
+        state:
+          type: string
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/SuspendTransfer
+        reason: a reason to suspend
     TerminateNegotiationSchema:
       type: object
       properties:
@@ -2317,7 +2390,7 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/TransferState
+          example: https://w3id.org/edc/v0.0.1/ns/TerminateTransfer
         state:
           type: string
           example: null

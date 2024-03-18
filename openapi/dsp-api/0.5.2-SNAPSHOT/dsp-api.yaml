@@ -654,6 +654,37 @@ paths:
         schema:
           type: string
           example: null
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
       responses:
         default:
           description: default response
@@ -1338,6 +1369,37 @@ paths:
         schema:
           type: string
           example: null
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
       responses:
         default:
           description: default response
