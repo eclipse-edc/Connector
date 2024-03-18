@@ -15,14 +15,17 @@
 package org.eclipse.edc.iam.identitytrust.core.defaults;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
+import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okio.Buffer;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.Issuer;
@@ -43,8 +46,10 @@ import org.mockito.invocation.InvocationOnMock;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
@@ -64,9 +69,7 @@ class DefaultCredentialServiceClientTest {
     private static final String CS_URL = "http://test.com/cs";
     private final EdcHttpClient httpClientMock = mock();
     private DefaultCredentialServiceClient client;
-
     private TypeTransformerRegistry transformerRegistry;
-
     private ObjectMapper mapper = JacksonJsonLd.createObjectMapper().enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
     @BeforeEach
@@ -80,6 +83,20 @@ class DefaultCredentialServiceClientTest {
         when(jsonLdMock.expand(any())).thenAnswer(a -> success(a.getArgument(0)));
         client = new DefaultCredentialServiceClient(httpClientMock, Json.createBuilderFactory(Map.of()),
                 createObjectMapper(), transformerRegistry, jsonLdMock, mock());
+    }
+
+    @Test
+    @DisplayName("CS send scopes")
+    void requestPresentation_sendScopes() throws IOException {
+        
+        when(httpClientMock.execute(any()))
+                .thenReturn(response(200, getResourceFileContentAsString("single_ldp-vp.json")));
+
+        var scopes = List.of("customScope");
+        var result = client.requestPresentation(CS_URL, "foo", scopes);
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JSON_LD);
+        verify(httpClientMock).execute(argThat((r) -> containsScope(r, scopes)));
     }
 
     @Test
@@ -169,6 +186,23 @@ class DefaultCredentialServiceClientTest {
         assertThat(res.succeeded()).isTrue();
         assertThat(res.getContent()).isNotNull().doesNotContainNull().isEmpty();
         verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean containsScope(Request request, List<String> scopes) {
+
+        try (var buffer = new Buffer()) {
+            Objects.requireNonNull(request.body()).writeTo(buffer);
+            var body = mapper.readValue(buffer.inputStream(), new TypeReference<Map<String, Object>>() {
+
+            });
+            var requestScopes = (Collection<String>) body.get("scope");
+
+            return requestScopes.containsAll(scopes);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private VerifiablePresentation createPresentation() {
