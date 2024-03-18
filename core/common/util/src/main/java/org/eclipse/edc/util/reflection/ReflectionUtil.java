@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.util.reflection;
 
-import org.eclipse.edc.spi.types.PathItem;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
