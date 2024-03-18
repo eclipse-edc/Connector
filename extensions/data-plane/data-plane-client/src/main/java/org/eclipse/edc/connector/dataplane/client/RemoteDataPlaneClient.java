@@ -78,6 +78,11 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
     }
 
     @Override
+    public StatusResult<Void> suspend(String transferProcessId) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
     public StatusResult<Void> terminate(String transferProcessId) {
         var request = new Request.Builder().delete().url(dataPlane.getUrl() + "/" + transferProcessId).build();
 

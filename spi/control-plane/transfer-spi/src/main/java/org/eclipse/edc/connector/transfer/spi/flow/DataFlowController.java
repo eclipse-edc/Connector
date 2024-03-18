@@ -50,6 +50,14 @@ public interface DataFlowController {
     StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy);
 
     /**
+     * Suspend a data flow.
+     *
+     * @param transferProcess the transfer process.
+     * @return success if the flow is suspended correctly, failure otherwise;
+     */
+    StatusResult<Void> suspend(TransferProcess transferProcess);
+
+    /**
      * Terminate a data flow.
      *
      * @param transferProcess the transfer process.

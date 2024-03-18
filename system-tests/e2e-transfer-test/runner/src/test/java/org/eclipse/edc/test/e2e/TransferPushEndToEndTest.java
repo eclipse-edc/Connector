@@ -18,10 +18,13 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
 import java.util.UUID;
@@ -33,6 +36,12 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
+import static org.eclipse.edc.test.e2e.Runtimes.backendService;
+import static org.eclipse.edc.test.e2e.Runtimes.controlPlane;
+import static org.eclipse.edc.test.e2e.Runtimes.dataPlane;
+import static org.eclipse.edc.test.e2e.Runtimes.postgresControlPlane;
+import static org.eclipse.edc.test.e2e.Runtimes.postgresDataPlane;
 import static org.eclipse.edc.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
@@ -42,14 +51,37 @@ public class TransferPushEndToEndTest {
 
     @Nested
     @EndToEndTest
-    class InMemory extends Tests implements InMemoryRuntimes {
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
+                controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
+                backendService("consumer-backend-service", Map.of("web.http.port", String.valueOf(CONSUMER.backendService().getPort()))),
+                dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
+                controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
+                backendService("provider-backend-service", Map.of("web.http.port", String.valueOf(PROVIDER.backendService().getPort())))
+        );
 
     }
 
     @Nested
     @PostgresqlIntegrationTest
-    class Postgres extends Tests implements PostgresRuntimes {
+    class Postgres extends Tests {
 
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASES = context -> {
+            createDatabase(CONSUMER.getName());
+            createDatabase(PROVIDER.getName());
+        };
+
+        @RegisterExtension
+        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
+                postgresControlPlane("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration()),
+                backendService("consumer-backend-service", Map.of("web.http.port", String.valueOf(CONSUMER.backendService().getPort()))),
+                postgresDataPlane("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()),
+                postgresControlPlane("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration()),
+                backendService("provider-backend-service", Map.of("web.http.port", String.valueOf(PROVIDER.backendService().getPort())))
+        );
     }
 
     abstract static class Tests extends TransferEndToEndTestBase {

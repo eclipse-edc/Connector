@@ -43,6 +43,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
@@ -249,6 +250,48 @@ class DataPlaneSignalingClientTest {
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getDataAddress()).isNull();
+    }
+
+    @Nested
+    class Suspend {
+
+        @Test
+        void shouldCallSuspendOnAllTheAvailableDataPlanes() {
+            var httpRequest = new HttpRequest().withMethod("POST").withPath(DATA_PLANE_PATH + "/processId/suspend()");
+            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(NO_CONTENT_204.code()));
+
+            var result = dataPlaneClient.suspend("processId");
+
+            assertThat(result).isSucceeded();
+            dataPlane.verify(httpRequest, VerificationTimes.once());
+        }
+
+        @Test
+        void shouldFail_whenConflictResponse() {
+            var httpRequest = new HttpRequest().withMethod("POST").withPath(DATA_PLANE_PATH + "/processId/suspend()");
+            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(CONFLICT_409.code()));
+
+            var result = dataPlaneClient.suspend("processId");
+
+            assertThat(result).isFailed();
+        }
+
+        @Test
+        void verifyReturnFatalErrorIfTransformFails() {
+            TypeTransformerRegistry registry = mock();
+            var dataPlaneClient = new DataPlaneSignalingClient(testHttpClient(), registry, JSON_LD, MAPPER, instance);
+
+            when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
+
+            var result = dataPlaneClient.suspend("processId");
+
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+            assertThat(result.getFailureMessages())
+                    .anySatisfy(s -> assertThat(s)
+                            .isEqualTo("Transform Failure")
+                    );
+        }
     }
 
     @Test

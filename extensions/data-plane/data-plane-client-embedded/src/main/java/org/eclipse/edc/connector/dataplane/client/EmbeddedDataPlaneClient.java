@@ -51,6 +51,11 @@ public class EmbeddedDataPlaneClient implements DataPlaneClient {
     }
 
     @Override
+    public StatusResult<Void> suspend(String transferProcessId) {
+        return dataPlaneManager.suspend(transferProcessId);
+    }
+
+    @Override
     public StatusResult<Void> terminate(String transferProcessId) {
         return dataPlaneManager.terminate(transferProcessId);
     }

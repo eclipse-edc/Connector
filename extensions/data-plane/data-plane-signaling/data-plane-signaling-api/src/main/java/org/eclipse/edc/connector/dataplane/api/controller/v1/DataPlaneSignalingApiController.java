@@ -92,8 +92,7 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
                 .onFailure(f -> monitor.warning("Error transforming %s: %s".formatted(DataFlowTerminateMessage.class, f.getFailureDetail())))
                 .orElseThrow(InvalidRequestException::new);
 
-        dataPlaneManager.terminate(dataFlowId, msg.getReason())
-                .orElseThrow(InvalidRequestException::new);
+        dataPlaneManager.terminate(dataFlowId, msg.getReason()).orElseThrow(InvalidRequestException::new);
     }
 
     @POST
@@ -104,8 +103,6 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
                 .onFailure(f -> monitor.warning("Error transforming %s: %s".formatted(DataFlowSuspendMessage.class, f.getFailureDetail())))
                 .orElseThrow(InvalidRequestException::new);
 
-        monitor.warning(" >>> A valid DataFlowSuspendMessage was provided, but suspension messages are not yet supported, " +
-                "and will depend on https://github.com/eclipse-edc/Connector/issues/3350.");
-        throw new UnsupportedOperationException("Not yet implemented");
+        dataPlaneManager.suspend(id).orElseThrow(InvalidRequestException::new);
     }
 }

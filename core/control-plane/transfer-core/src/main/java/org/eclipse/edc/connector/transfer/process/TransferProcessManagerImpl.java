@@ -42,6 +42,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -75,6 +76,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
@@ -169,6 +171,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processProviderTransfersInState(STARTING, this::processStarting))
+                .processor(processTransfersInState(SUSPENDING, this::processSuspending))
                 .processor(processTransfersInState(COMPLETING, this::processCompleting))
                 .processor(processTransfersInState(TERMINATING, this::processTerminating))
                 .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning));
@@ -339,6 +342,23 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     /**
+     * Process SUSPENDING transfer<p>
+     * Suspend data flow unless it's CONSUMER and send SUSPENDED message to counter-part.
+     *
+     * @param process the SUSPENDING transfer fetched
+     * @return if the transfer has been processed or not
+     */
+    @WithSpan
+    private boolean processSuspending(TransferProcess process) {
+        return entityRetryProcessFactory.doSyncProcess(process, () -> suspendDataFlow(process))
+                .onSuccess((p, dataFlowResponse) -> sendTransferSuspensionMessage(p))
+                .onFailure((t, failure) -> transitionToSuspending(t, failure.getFailureDetail()))
+                .onFatalError((p, failure) -> transitionToTerminated(p, failure.getFailureDetail()))
+                .onRetryExhausted((p, failure) -> transitionToTerminated(p, failure.getFailureDetail()))
+                .execute("Suspend data flow");
+    }
+
+    /**
      * Process TERMINATING transfer<p>
      * Stop data flow unless it's CONSUMER and send TERMINATED message to counter-part.
      *
@@ -396,12 +416,33 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     @NotNull
+    private StatusResult<Void> suspendDataFlow(TransferProcess process) {
+        if (process.getType() == PROVIDER) {
+            return dataFlowManager.suspend(process);
+        } else {
+            return StatusResult.success();
+        }
+    }
+
+    @NotNull
     private StatusResult<Void> terminateDataFlow(TransferProcess process) {
         if (process.getType() == PROVIDER) {
             return dataFlowManager.terminate(process);
         } else {
             return StatusResult.success();
         }
+    }
+
+    private boolean sendTransferSuspensionMessage(TransferProcess process) {
+        var builder = TransferSuspensionMessage.Builder.newInstance()
+                .reason(process.getErrorDetail());
+
+        return dispatch(builder, process, policyArchive.findPolicyForContract(process.getContractId()), Object.class)
+                .onSuccess((t, content) -> transitionToSuspended(t))
+                .onFailure((t, throwable) -> transitionToSuspending(t, throwable.getMessage()))
+                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
+                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .execute("send transfer suspension to " + process.getConnectorAddress());
     }
 
     private boolean sendTransferTerminationMessage(TransferProcess process) {
@@ -530,6 +571,17 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         observable.invokeForEach(l -> l.preCompleted(transferProcess));
         update(transferProcess);
         observable.invokeForEach(l -> l.completed(transferProcess));
+    }
+
+    private void transitionToSuspending(TransferProcess process, String message) {
+        process.transitionSuspending(message);
+        update(process);
+    }
+
+    private void transitionToSuspended(TransferProcess process) {
+        process.transitionSuspended();
+        update(process);
+        observable.invokeForEach(l -> l.suspended(process));
     }
 
     private void transitionToTerminating(TransferProcess process, String message, Throwable... errors) {

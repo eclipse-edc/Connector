@@ -98,6 +98,16 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     }
 
     @Override
+    public StatusResult<Void> suspend(TransferProcess transferProcess) {
+        return selectorClient.getAll().stream()
+                .filter(dataPlaneInstanceFilter(transferProcess))
+                .map(clientFactory::createClient)
+                .map(client -> client.suspend(transferProcess.getId()))
+                .reduce(StatusResult::merge)
+                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to select the data plane for suspending the transfer process %s".formatted(transferProcess.getId())));
+    }
+
+    @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
         return selectorClient.getAll().stream()
                 .filter(dataPlaneInstanceFilter(transferProcess))
@@ -135,9 +145,9 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     private Predicate<DataPlaneInstance> dataPlaneInstanceFilter(TransferProcess transferProcess) {
         if (transferProcess.getDataPlaneId() != null) {
-            return (dataPlaneInstance -> dataPlaneInstance.getId().equals(transferProcess.getDataPlaneId()));
+            return dataPlaneInstance -> dataPlaneInstance.getId().equals(transferProcess.getDataPlaneId());
         } else {
-            return (d) -> true;
+            return d -> true;
         }
     }
 }

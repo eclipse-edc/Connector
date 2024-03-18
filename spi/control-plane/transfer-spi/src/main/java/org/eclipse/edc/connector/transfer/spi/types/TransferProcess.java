@@ -361,6 +361,24 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(TERMINATED, state -> canBeTerminated());
     }
 
+    public boolean canBeSuspended() {
+        return currentStateIsOneOf(STARTED, SUSPENDING);
+    }
+
+    public void transitionSuspending(String reason) {
+        this.errorDetail = reason;
+        transition(SUSPENDING, state -> canBeSuspended());
+    }
+
+    public void transitionSuspended(String reason) {
+        this.errorDetail = reason;
+        transitionSuspended();
+    }
+
+    public void transitionSuspended() {
+        transition(SUSPENDED, state -> canBeSuspended());
+    }
+
     public boolean currentStateIsOneOf(TransferProcessStates... states) {
         return Arrays.stream(states).map(TransferProcessStates::code).anyMatch(code -> code == state);
     }

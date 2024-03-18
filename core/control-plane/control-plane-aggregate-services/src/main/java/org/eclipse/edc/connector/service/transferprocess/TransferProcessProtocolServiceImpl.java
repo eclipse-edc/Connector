@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
@@ -30,6 +31,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionM
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
@@ -49,6 +51,7 @@ import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.joining;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
@@ -57,25 +60,25 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @PolicyScope
     public static final String TRANSFER_PROCESS_REQUEST_SCOPE = "request.transfer.process";
+
     private final TransferProcessStore transferProcessStore;
     private final TransactionContext transactionContext;
     private final ContractNegotiationStore negotiationStore;
     private final ContractValidationService contractValidationService;
     private final DataAddressValidatorRegistry dataAddressValidator;
     private final TransferProcessObservable observable;
-
     private final ProtocolTokenValidator protocolTokenValidator;
-
     private final Clock clock;
     private final Monitor monitor;
     private final Telemetry telemetry;
+    private final DataFlowManager dataFlowManager;
 
     public TransferProcessProtocolServiceImpl(TransferProcessStore transferProcessStore,
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
                                               ProtocolTokenValidator protocolTokenValidator,
                                               DataAddressValidatorRegistry dataAddressValidator, TransferProcessObservable observable,
-                                              Clock clock, Monitor monitor, Telemetry telemetry) {
+                                              Clock clock, Monitor monitor, Telemetry telemetry, DataFlowManager dataFlowManager) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
@@ -86,6 +89,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         this.clock = clock;
         this.monitor = monitor;
         this.telemetry = telemetry;
+        this.dataFlowManager = dataFlowManager;
     }
 
     @Override
@@ -116,6 +120,14 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return transactionContext.execute(() -> fetchRequestContext(message, this::findTransferProcess)
                 .compose(context -> verifyRequest(tokenRepresentation, context))
                 .compose(context -> onMessageDo(message, context.participantAgent(), context.agreement(), transferProcess -> completedAction(message, transferProcess)))
+        );
+    }
+
+    @Override
+    public @NotNull ServiceResult<TransferProcess> notifySuspended(TransferSuspensionMessage message, TokenRepresentation tokenRepresentation) {
+        return transactionContext.execute(() -> fetchRequestContext(message, this::findTransferProcess)
+                .compose(context -> verifyRequest(tokenRepresentation, context))
+                .compose(context -> onMessageDo(message, context.participantAgent(), context.agreement(), transferProcess -> suspendedAction(message, transferProcess)))
         );
     }
 
@@ -200,6 +212,26 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return ServiceResult.success(transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be completed"));
+        }
+    }
+
+    @NotNull
+    private ServiceResult<TransferProcess> suspendedAction(TransferSuspensionMessage message, TransferProcess transferProcess) {
+        if (transferProcess.getType() == PROVIDER) {
+            var suspension = dataFlowManager.suspend(transferProcess);
+            if (suspension.failed()) {
+                return ServiceResult.conflict("Cannot suspend transfer process %s: %s".formatted(transferProcess.getId(), suspension.getFailureDetail()));
+            }
+        }
+        if (transferProcess.canBeTerminated()) {
+            var reason = message.getReason().stream().map(Object::toString).collect(joining(", "));
+            transferProcess.transitionSuspended(reason);
+            transferProcess.protocolMessageReceived(message.getId());
+            update(transferProcess);
+            observable.invokeForEach(l -> l.suspended(transferProcess));
+            return ServiceResult.success(transferProcess);
+        } else {
+            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be suspended"));
         }
     }
 

@@ -65,6 +65,15 @@ public interface DataFlowManager {
     StatusResult<Void> terminate(TransferProcess transferProcess);
 
     /**
+     * Suspend a transfer
+     *
+     * @param transferProcess the transfer process.
+     * @return success if the transfer has been suspended correctly, failed otherwise.
+     */
+    @NotNull
+    StatusResult<Void> suspend(TransferProcess transferProcess);
+
+    /**
      * Returns the transfer types available for a specific asset.
      *
      * @param asset the asset.

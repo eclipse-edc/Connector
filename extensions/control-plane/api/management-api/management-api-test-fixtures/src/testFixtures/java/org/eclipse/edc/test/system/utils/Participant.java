@@ -19,7 +19,6 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -129,7 +128,7 @@ public class Participant {
     public String createPolicyDefinition(JsonObject policy) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(TYPE, "PolicyDefinitionDto")
+                .add(TYPE, "PolicyDefinition")
                 .add("policy", policy)
                 .build();
 
@@ -296,7 +295,7 @@ public class Participant {
     public String initContractNegotiation(Participant provider, JsonObject policy) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(TYPE, "ContractRequestDto")
+                .add(TYPE, "ContractRequest")
                 .add("providerId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.getUrl().toString())
                 .add("protocol", protocol)
@@ -482,6 +481,28 @@ public class Participant {
     }
 
     /**
+     * Suspend the transfer process
+     *
+     * @param id transfer process id.
+     */
+    public void suspendTransfer(String id, String reason) {
+        var requestBodyBuilder = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(TYPE, "SuspendTransfer")
+                .add(ID, id)
+                .add("reason", reason);
+
+        managementEndpoint.baseRequest()
+                .contentType(JSON)
+                .body(requestBodyBuilder.build())
+                .when()
+                .post("/v2/transferprocesses/{id}/suspend", id)
+                .then()
+                .log().ifError()
+                .statusCode(204);
+    }
+
+    /**
      * Get current state of a contract negotiation.
      *
      * @param id contract negotiation id
@@ -509,11 +530,6 @@ public class Participant {
                 .add(ODRL_ASSIGNER_ATTRIBUTE, createObjectBuilder().add(ID, provider.id))
                 .add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, dataset.get(ID)))
                 .build();
-    }
-
-    private ContractOfferId extractContractDefinitionId(JsonObject dataset) {
-        var contractId = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
-        return ContractOfferId.parseId(contractId).orElseThrow(f -> new RuntimeException(f.getFailureDetail()));
     }
 
     private String getContractAgreementId(String negotiationId) {

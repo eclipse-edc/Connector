@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.transfer.spi.event.TransferProcessProvisioned;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessProvisioningRequested;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessRequested;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessSuspended;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessTerminated;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
@@ -88,6 +89,17 @@ public class TransferProcessEventListener implements TransferProcessListener {
     @Override
     public void completed(TransferProcess process) {
         var event = withBaseProperties(TransferProcessCompleted.Builder.newInstance(), process)
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void suspended(TransferProcess process) {
+        var event = TransferProcessSuspended.Builder.newInstance()
+                .reason(process.getErrorDetail())
+                .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);

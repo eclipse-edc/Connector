@@ -25,6 +25,7 @@ public enum DataFlowStates {
     RECEIVED(100),
     STARTED(150),
     COMPLETED(200),
+    SUSPENDED(225),
     TERMINATED(250),
     FAILED(300),
     NOTIFIED(400);
