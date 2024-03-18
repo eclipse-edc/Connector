@@ -35,9 +35,12 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.core.base.OkHttpClientFactory.EDC_HTTP_CLIENT_HTTPS_ENFORCE;
+import static org.eclipse.edc.connector.core.base.OkHttpClientFactory.EDC_HTTP_CLIENT_RECEIVE_BUFFER_SIZE;
+import static org.eclipse.edc.connector.core.base.OkHttpClientFactory.EDC_HTTP_CLIENT_SEND_BUFFER_SIZE;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -75,6 +78,26 @@ class OkHttpClientFactoryTest {
         assertThatThrownBy(() -> call(okHttpClient, HTTP_URL)).isInstanceOf(EdcException.class);
         assertThatCode(() -> call(okHttpClient, HTTPS_URL)).doesNotThrowAnyException();
         verify(monitor, never()).info(argThat(messageContains("HTTPS enforcement")));
+    }
+
+    @Test
+    void shouldCreateCustomSocketFactory_whenSendSocketBufferIsSet() {
+        var config = Map.of(
+                EDC_HTTP_CLIENT_SEND_BUFFER_SIZE, "4096",
+                EDC_HTTP_CLIENT_RECEIVE_BUFFER_SIZE, "4096"
+        );
+        var context = createContextWithConfig(config);
+
+        var okHttpClient = OkHttpClientFactory.create(context, eventListener)
+                .newBuilder()
+                .build();
+
+        assertThat(okHttpClient.socketFactory()).isNotNull().satisfies(factory -> {
+            try (var socket = factory.createSocket()) {
+                assertThat(socket.getSendBufferSize()).isEqualTo(4096);
+                assertThat(socket.getReceiveBufferSize()).isEqualTo(4096);
+            }
+        });
     }
 
     @NotNull
