@@ -20,7 +20,7 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
 import org.junit.jupiter.api.BeforeAll;
@@ -57,7 +57,7 @@ public class ContractDefinitionApiEndToEndTest {
     }
 
     @Nested
-    @PostgresqlDbIntegrationTest
+    @PostgresqlIntegrationTest
     class Postgres extends Tests implements PostgresRuntime {
 
         Postgres() {

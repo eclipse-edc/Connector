@@ -31,5 +31,5 @@ import java.lang.annotation.Target;
 @IntegrationTest
 @Testcontainers
 @Tag("PostgresqlIntegrationTest")
-public @interface PostgresqlDbIntegrationTest {
+public @interface PostgresqlIntegrationTest {
 }

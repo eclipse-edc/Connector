@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.AssetIndex;
@@ -55,7 +55,7 @@ public class CatalogApiEndToEndTest {
     }
 
     @Nested
-    @PostgresqlDbIntegrationTest
+    @PostgresqlIntegrationTest
     class Postgres extends Tests implements PostgresRuntime {
 
         Postgres() {

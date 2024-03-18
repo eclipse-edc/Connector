@@ -17,7 +17,7 @@ package org.eclipse.edc.test.e2e;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,7 +47,7 @@ public class TransferPushEndToEndTest {
     }
 
     @Nested
-    @PostgresqlDbIntegrationTest
+    @PostgresqlIntegrationTest
     class Postgres extends Tests implements PostgresRuntimes {
 
     }

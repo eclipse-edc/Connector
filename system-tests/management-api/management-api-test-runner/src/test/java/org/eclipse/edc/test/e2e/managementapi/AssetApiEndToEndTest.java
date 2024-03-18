@@ -17,7 +17,7 @@ package org.eclipse.edc.test.e2e.managementapi;
 import io.restassured.http.ContentType;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -56,7 +56,7 @@ public class AssetApiEndToEndTest {
     }
 
     @Nested
-    @PostgresqlDbIntegrationTest
+    @PostgresqlIntegrationTest
     class Postgres extends Tests implements PostgresRuntime {
 
         Postgres() {

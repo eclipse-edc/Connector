@@ -24,7 +24,7 @@ import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -68,7 +68,7 @@ public class TransferProcessApiEndToEndTest {
     }
 
     @Nested
-    @PostgresqlDbIntegrationTest
+    @PostgresqlIntegrationTest
     class Postgres extends Tests implements PostgresRuntime {
 
         Postgres() {
