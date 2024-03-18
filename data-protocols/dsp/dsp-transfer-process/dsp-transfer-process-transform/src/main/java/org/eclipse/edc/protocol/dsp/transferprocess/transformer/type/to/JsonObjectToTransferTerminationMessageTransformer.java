@@ -28,7 +28,6 @@ import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_P
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
-import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
 
 public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferTerminationMessage> {
@@ -47,7 +46,7 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
             if (processId == null) {
                 context.problem()
                         .missingProperty()
-                        .type(DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                        .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
                         .property(DSPACE_PROPERTY_CONSUMER_PID)
                         .report();
                 return null;
@@ -60,7 +59,7 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
             if (processId == null) {
                 context.problem()
                         .missingProperty()
-                        .type(DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                        .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
                         .property(DSPACE_PROPERTY_PROVIDER_PID)
                         .report();
                 return null;

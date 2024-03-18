@@ -18,7 +18,7 @@ import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,8 +28,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -49,15 +47,14 @@ public class IatpScopeExtractorFunctionTest {
     @Test
     void apply() {
         var policy = Policy.Builder.newInstance().build();
-        var tokenParamBuilder = TokenParameters.Builder.newInstance().claims(AUDIENCE, "testAud");
+        var scopeBuilder = RequestScope.Builder.newInstance();
 
-        when(policyContext.getContextData(TokenParameters.Builder.class)).thenReturn(tokenParamBuilder);
+        when(policyContext.getContextData(RequestScope.Builder.class)).thenReturn(scopeBuilder);
         when(registry.extractScopes(eq(policy), any())).thenReturn(Result.success(Set.of("scope1", "scope2")));
 
         assertThat(function.apply(policy, policyContext)).isTrue();
-        assertThat(tokenParamBuilder.build())
-                .extracting(tp -> tp.getStringClaim(SCOPE))
-                .extracting(scope -> scope.split(" "))
+        assertThat(scopeBuilder.build())
+                .extracting(RequestScope::getScopes)
                 .satisfies(scopes -> assertThat(scopes).contains("scope1", "scope2"));
     }
 
@@ -73,8 +70,8 @@ public class IatpScopeExtractorFunctionTest {
     @Test
     void apply_fail_whenScopeExtractorFails() {
         var policy = Policy.Builder.newInstance().build();
-        var tokenParamBuilder = TokenParameters.Builder.newInstance().claims(AUDIENCE, "testAud");
-        when(policyContext.getContextData(TokenParameters.Builder.class)).thenReturn(tokenParamBuilder);
+        var scopeBuilder = RequestScope.Builder.newInstance();
+        when(policyContext.getContextData(RequestScope.Builder.class)).thenReturn(scopeBuilder);
 
         when(registry.extractScopes(eq(policy), any())).thenReturn(Result.failure("failure"));
 

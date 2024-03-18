@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.process;
 
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.TestProvisionedDataDestinationResource;
@@ -31,6 +32,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
@@ -90,10 +92,10 @@ class TransferProcessManagerImplIntegrationTest {
 
     private static final int TRANSFER_MANAGER_BATCH_SIZE = 10;
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
-    private final ProvisionManager provisionManager = mock(ProvisionManager.class);
-    private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
+    private final ProvisionManager provisionManager = mock();
+    private final ResourceManifestGenerator manifestGenerator = mock();
     private final Clock clock = Clock.systemUTC();
-    private final TransferProcessStore store = new InMemoryTransferProcessStore(clock);
+    private final TransferProcessStore store = new InMemoryTransferProcessStore(clock, CriterionOperatorRegistryImpl.ofDefaults());
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
     private final DataFlowManager dataFlowManager = mock();
     private TransferProcessManagerImpl manager;
@@ -101,7 +103,7 @@ class TransferProcessManagerImplIntegrationTest {
     @BeforeEach
     void setup() {
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(Result.success(resourceManifest));
+        when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class))).thenReturn(Result.success(resourceManifest));
 
         var policyArchive = mock(PolicyArchive.class);
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
@@ -164,6 +166,27 @@ class TransferProcessManagerImplIntegrationTest {
 
     }
 
+    private ProvisionedResourceSet provisionedResourceSet() {
+        return ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(new TestProvisionedDataDestinationResource("test-resource", "1")))
+                .build();
+    }
+
+    private TransferProcess.Builder transferProcessBuilder() {
+        var processId = UUID.randomUUID().toString();
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(processId)
+                .destinationType("test-type")
+                .contractId(UUID.randomUUID().toString())
+                .build();
+
+        return TransferProcess.Builder.newInstance()
+                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
+                .type(CONSUMER)
+                .id("test-process-" + processId)
+                .dataRequest(dataRequest);
+    }
+
     @Nested
     class IdempotencyProcessStateReplication {
 
@@ -173,8 +196,8 @@ class TransferProcessManagerImplIntegrationTest {
                                                                     Class<? extends TransferRemoteMessage> messageType) {
             when(dispatcherRegistry.dispatch(any(), isA(messageType)))
                     .thenReturn(completedFuture(StatusResult.failure(ERROR_RETRY)))
-                    .thenReturn(completedFuture(StatusResult.success(null)));
-            when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+                    .thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
+            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
             when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
             var transfer = transferProcessBuilder().type(type).state(state.code()).build();
@@ -203,36 +226,15 @@ class TransferProcessManagerImplIntegrationTest {
             @Override
             public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
                 return Stream.of(
-                    arguments(CONSUMER, REQUESTING, TransferRequestMessage.class),
-                    arguments(CONSUMER, COMPLETING, TransferCompletionMessage.class),
-                    arguments(CONSUMER, TERMINATING, TransferTerminationMessage.class),
-                    arguments(PROVIDER, STARTING, TransferStartMessage.class),
-                    arguments(PROVIDER, COMPLETING, TransferCompletionMessage.class),
-                    arguments(PROVIDER, TERMINATING, TransferTerminationMessage.class)
+                        arguments(CONSUMER, REQUESTING, TransferRequestMessage.class),
+                        arguments(CONSUMER, COMPLETING, TransferCompletionMessage.class),
+                        arguments(CONSUMER, TERMINATING, TransferTerminationMessage.class),
+                        arguments(PROVIDER, STARTING, TransferStartMessage.class),
+                        arguments(PROVIDER, COMPLETING, TransferCompletionMessage.class),
+                        arguments(PROVIDER, TERMINATING, TransferTerminationMessage.class)
                 );
             }
         }
-    }
-
-    private ProvisionedResourceSet provisionedResourceSet() {
-        return ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(new TestProvisionedDataDestinationResource("test-resource", "1")))
-                .build();
-    }
-
-    private TransferProcess.Builder transferProcessBuilder() {
-        var processId = UUID.randomUUID().toString();
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(processId)
-                .destinationType("test-type")
-                .contractId(UUID.randomUUID().toString())
-                .build();
-
-        return TransferProcess.Builder.newInstance()
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
-                .type(CONSUMER)
-                .id("test-process-" + processId)
-                .dataRequest(dataRequest);
     }
 }
 

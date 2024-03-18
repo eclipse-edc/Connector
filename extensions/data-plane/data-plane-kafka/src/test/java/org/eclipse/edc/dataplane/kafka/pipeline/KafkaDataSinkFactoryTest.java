@@ -19,7 +19,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +44,7 @@ class KafkaDataSinkFactoryTest {
 
     @BeforeEach
     public void setUp() {
-        factory = new KafkaDataSinkFactory(mock(ExecutorService.class), mock(Monitor.class), propertiesFactory);
+        factory = new KafkaDataSinkFactory(mock(ExecutorService.class), mock(Monitor.class), propertiesFactory, 1);
     }
 
     @Test
@@ -114,8 +114,8 @@ class KafkaDataSinkFactoryTest {
         assertThatExceptionOfType(EdcException.class).isThrownBy(() -> factory.createSink(request));
     }
 
-    private DataFlowRequest createRequest(String destinationType, Map<String, Object> destinationProperties) {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage createRequest(String destinationType, Map<String, Object> destinationProperties) {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id("id")
                 .processId("processId")
                 .destinationDataAddress(DataAddress.Builder.newInstance()

@@ -18,7 +18,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
-import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
@@ -34,6 +33,10 @@ import java.time.Instant;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
@@ -76,14 +79,60 @@ class JsonObjectToContractAgreementMessageTransformerTest {
     @Test
     void transform() {
         var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, MESSAGE_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(ID, MESSAGE_ID)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_AGREEMENT, contractAgreement())
+                .add(DSPACE_PROPERTY_AGREEMENT, jsonFactory.createObjectBuilder()
+                        .add(ID, AGREEMENT_ID)
+                        .add(TYPE, ODRL_POLICY_TYPE_AGREEMENT)
+                        .add(ODRL_ASSIGNEE_ATTRIBUTE, CONSUMER_ID)
+                        .add(ODRL_ASSIGNER_ATTRIBUTE, PROVIDER_ID)
+                        .add(DSPACE_PROPERTY_TIMESTAMP, TIMESTAMP)
+                        .build())
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
+
+        var result = transformer.transform(getExpanded(message), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getClass()).isEqualTo(ContractAgreementMessage.class);
+        assertThat(result.getProtocol()).isNotEmpty();
+        assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
+        assertThat(result.getProviderPid()).isEqualTo("providerPid");
+
+        var agreement = result.getContractAgreement();
+        assertThat(agreement).isNotNull();
+        assertThat(agreement.getClass()).isEqualTo(ContractAgreement.class);
+        assertThat(agreement.getId()).isEqualTo(AGREEMENT_ID);
+        assertThat(agreement.getConsumerId()).isEqualTo("assignee");
+        assertThat(agreement.getProviderId()).isEqualTo("assigner");
+        assertThat(agreement.getAssetId()).isEqualTo(TARGET);
+        assertThat(agreement.getContractSigningDate()).isEqualTo(Instant.parse(TIMESTAMP).getEpochSecond());
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Deprecated
+    @Test
+    void transformFallbackConsumerIdProviderId_whenAssigneeAndAssignerAreMissing() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(ID, MESSAGE_ID)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
+                .add(DSPACE_PROPERTY_AGREEMENT, jsonFactory.createObjectBuilder()
+                        .add(ID, AGREEMENT_ID)
+                        .add(TYPE, ODRL_POLICY_TYPE_AGREEMENT)
+                        .add(DSPACE_PROPERTY_CONSUMER_ID, CONSUMER_ID)
+                        .add(DSPACE_PROPERTY_PROVIDER_ID, PROVIDER_ID)
+                        .add(DSPACE_PROPERTY_TIMESTAMP, TIMESTAMP)
+                        .build())
+                .build();
+
+        var policy = policyBuilder().assignee(null).assigner(null).build();
+        when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy);
 
         var result = transformer.transform(getExpanded(message), context);
 
@@ -109,10 +158,16 @@ class JsonObjectToContractAgreementMessageTransformerTest {
     @Test
     void transform_processId() {
         var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, MESSAGE_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(ID, MESSAGE_ID)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
                 .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
-                .add(DSPACE_PROPERTY_AGREEMENT, contractAgreement())
+                .add(DSPACE_PROPERTY_AGREEMENT, jsonFactory.createObjectBuilder()
+                        .add(ID, AGREEMENT_ID)
+                        .add(TYPE, ODRL_POLICY_TYPE_AGREEMENT)
+                        .add(ODRL_ASSIGNEE_ATTRIBUTE, CONSUMER_ID)
+                        .add(ODRL_ASSIGNER_ATTRIBUTE, PROVIDER_ID)
+                        .add(DSPACE_PROPERTY_TIMESTAMP, TIMESTAMP)
+                        .build())
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
@@ -129,8 +184,6 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         assertThat(agreement).isNotNull();
         assertThat(agreement.getClass()).isEqualTo(ContractAgreement.class);
         assertThat(agreement.getId()).isEqualTo(AGREEMENT_ID);
-        assertThat(agreement.getConsumerId()).isEqualTo(CONSUMER_ID);
-        assertThat(agreement.getProviderId()).isEqualTo(PROVIDER_ID);
         assertThat(agreement.getAssetId()).isEqualTo(TARGET);
         assertThat(agreement.getContractSigningDate()).isEqualTo(Instant.parse(TIMESTAMP).getEpochSecond());
 
@@ -141,11 +194,17 @@ class JsonObjectToContractAgreementMessageTransformerTest {
     void transform_nullPolicy() {
         var value = "example";
         var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, value)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(ID, value)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_AGREEMENT, contractAgreement())
+                .add(DSPACE_PROPERTY_AGREEMENT, jsonFactory.createObjectBuilder()
+                        .add(ID, AGREEMENT_ID)
+                        .add(TYPE, ODRL_POLICY_TYPE_AGREEMENT)
+                        .add(ODRL_ASSIGNEE_ATTRIBUTE, CONSUMER_ID)
+                        .add(ODRL_ASSIGNER_ATTRIBUTE, PROVIDER_ID)
+                        .add(DSPACE_PROPERTY_TIMESTAMP, TIMESTAMP)
+                        .build())
                 .add(DSPACE_PROPERTY_TIMESTAMP, "123")
                 .build();
 
@@ -159,16 +218,16 @@ class JsonObjectToContractAgreementMessageTransformerTest {
     @Test
     void transform_invalidTimestamp() {
         var agreement = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, AGREEMENT_ID)
-                .add(JsonLdKeywords.TYPE, ODRL_POLICY_TYPE_AGREEMENT)
-                .add(DSPACE_PROPERTY_CONSUMER_ID, CONSUMER_ID)
-                .add(DSPACE_PROPERTY_PROVIDER_ID, PROVIDER_ID)
+                .add(ID, AGREEMENT_ID)
+                .add(TYPE, ODRL_POLICY_TYPE_AGREEMENT)
+                .add(ODRL_ASSIGNEE_ATTRIBUTE, CONSUMER_ID)
+                .add(ODRL_ASSIGNER_ATTRIBUTE, PROVIDER_ID)
                 .add(DSPACE_PROPERTY_TIMESTAMP, "Invalid Timestamp")
                 .build();
 
         var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, "messageId")
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(ID, "messageId")
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_AGREEMENT, agreement)
@@ -184,15 +243,15 @@ class JsonObjectToContractAgreementMessageTransformerTest {
     @Test
     void transform_missingTimestamp() {
         var agreement = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, AGREEMENT_ID)
-                .add(JsonLdKeywords.TYPE, ODRL_POLICY_TYPE_AGREEMENT)
-                .add(DSPACE_PROPERTY_CONSUMER_ID, CONSUMER_ID)
-                .add(DSPACE_PROPERTY_PROVIDER_ID, PROVIDER_ID)
+                .add(ID, AGREEMENT_ID)
+                .add(TYPE, ODRL_POLICY_TYPE_AGREEMENT)
+                .add(ODRL_ASSIGNEE_ATTRIBUTE, CONSUMER_ID)
+                .add(ODRL_ASSIGNER_ATTRIBUTE, PROVIDER_ID)
                 .build();
 
         var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, "messageId")
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(ID, "messageId")
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_AGREEMENT, agreement)
@@ -205,27 +264,22 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         verify(context, times(1)).reportProblem(contains(DSPACE_PROPERTY_TIMESTAMP));
     }
 
-    private JsonObject contractAgreement() {
-        return jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, AGREEMENT_ID)
-                .add(JsonLdKeywords.TYPE, ODRL_POLICY_TYPE_AGREEMENT)
-                .add(DSPACE_PROPERTY_CONSUMER_ID, CONSUMER_ID)
-                .add(DSPACE_PROPERTY_PROVIDER_ID, PROVIDER_ID)
-                .add(DSPACE_PROPERTY_TIMESTAMP, TIMESTAMP)
-                .build();
+    private Policy policy() {
+        return policyBuilder().build();
     }
 
-    private Policy policy() {
-        var action = Action.Builder.newInstance().type("USE").build();
+    private static Policy.Builder policyBuilder() {
+        var action = Action.Builder.newInstance().type("use").build();
         var permission = Permission.Builder.newInstance().action(action).build();
         var prohibition = Prohibition.Builder.newInstance().action(action).build();
         var duty = Duty.Builder.newInstance().action(action).build();
         return Policy.Builder.newInstance()
                 .permission(permission)
                 .prohibition(prohibition)
+                .assigner("assigner")
+                .assignee("assignee")
                 .duty(duty)
-                .target(TARGET)
-                .build();
+                .target(TARGET);
     }
 
 

@@ -36,7 +36,7 @@ import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
 import static org.hamcrest.Matchers.is;
@@ -86,10 +86,10 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
                 .jsonPath().getString("access_token");
 
         assertThat(parseClaims(token))
-                .containsEntry(ISSUER, client.getId())
-                .containsEntry(SUBJECT, client.getId())
+                .containsEntry(ISSUER, client.getDid())
+                .containsEntry(SUBJECT, client.getDid())
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, client.getClientId())
+                .doesNotContainKey(CLIENT_ID)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
     }
 
@@ -121,16 +121,16 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
 
 
         assertThat(parseClaims(token))
-                .containsEntry(ISSUER, client.getId())
-                .containsEntry(SUBJECT, client.getId())
+                .containsEntry(ISSUER, client.getDid())
+                .containsEntry(SUBJECT, client.getDid())
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, client.getClientId())
+                .doesNotContainKey(CLIENT_ID)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
-                .hasEntrySatisfying(PRESENTATION_ACCESS_TOKEN_CLAIM, (accessToken) -> {
+                .hasEntrySatisfying(PRESENTATION_TOKEN_CLAIM, (accessToken) -> {
                     assertThat(parseClaims((String) accessToken))
-                            .containsEntry(ISSUER, client.getId())
+                            .containsEntry(ISSUER, client.getDid())
                             .containsEntry(SUBJECT, audience)
-                            .containsEntry(AUDIENCE, List.of(client.getClientId()))
+                            .containsEntry(AUDIENCE, List.of(client.getDid()))
                             .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
                 });
     }
@@ -139,7 +139,7 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
     void requestToken_withAttachedAccessScope() throws IOException, ParseException {
         var clientSecret = "client_secret";
         var audience = "audience";
-        var accessToken = "test_token";
+        var token = "test_token";
         var expiresIn = 300;
         var client = initClient(clientSecret);
 
@@ -147,10 +147,10 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
         var params = Map.of(
                 "client_id", client.getClientId(),
                 "audience", audience,
-                "access_token", accessToken,
+                "token", token,
                 "client_secret", clientSecret);
 
-        var token = tokenRequest(params)
+        var accessToken = tokenRequest(params)
                 .statusCode(200)
                 .contentType(JSON)
                 .body("access_token", notNullValue())
@@ -160,12 +160,12 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
                 .jsonPath().getString("access_token");
 
 
-        assertThat(parseClaims(token))
-                .containsEntry(ISSUER, client.getId())
-                .containsEntry(SUBJECT, client.getId())
+        assertThat(parseClaims(accessToken))
+                .containsEntry(ISSUER, client.getDid())
+                .containsEntry(SUBJECT, client.getDid())
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, client.getClientId())
-                .containsEntry(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken)
+                .doesNotContainKey(CLIENT_ID)
+                .containsEntry(PRESENTATION_TOKEN_CLAIM, token)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
     }
 

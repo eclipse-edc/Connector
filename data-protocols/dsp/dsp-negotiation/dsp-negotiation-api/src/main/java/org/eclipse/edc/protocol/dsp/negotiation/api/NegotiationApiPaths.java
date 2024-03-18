@@ -21,8 +21,9 @@ public interface NegotiationApiPaths {
 
     String BASE_PATH = "/negotiations/";
     String INITIAL_CONTRACT_REQUEST = "request";
-    String CONTRACT_REQUEST = "/request";
-    String CONTRACT_OFFER = "/offers";
+    String INITIAL_CONTRACT_OFFER = "offer";
+    String CONTRACT_REQUEST = "/" + INITIAL_CONTRACT_REQUEST;
+    String CONTRACT_OFFER = "/" + INITIAL_CONTRACT_OFFER;
     String EVENT = "/events";
     String AGREEMENT = "/agreement";
     String VERIFICATION = "/verification";

@@ -76,7 +76,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
-
       - name: End to End Integration Tests
         uses: eclipse-edc/.github/.github/actions/run-tests@main
         with:
@@ -108,32 +107,12 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport -DincludeTags="ApiTest"
 
-  Kafka-Integration-Tests:
-    runs-on: ubuntu-latest
-
-    services:
-      kraft:
-        image: bashj79/kafka-kraft:latest
-        ports:
-          - 9092:9092
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: eclipse-edc/.github/.github/actions/setup-build@main
-
-      - name: 'Kafka Integration Tests'
-        uses: eclipse-edc/.github/.github/actions/run-tests@main
-        with:
-          command: ./gradlew -p system-tests/e2e-transfer-test/runner test -DincludeTags="KafkaIntegrationTest"
-
-
   Upload-Test-Report:
     needs:
       - API-Tests
       - Component-Tests
       - End-To-End-Tests
       - Postgresql-Integration-Tests
-      - Kafka-Integration-Tests
       - Unit-Tests
 
     permissions:
@@ -170,4 +149,4 @@ jobs:
         with:
           path: artifacts
       - name: CodeCov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4

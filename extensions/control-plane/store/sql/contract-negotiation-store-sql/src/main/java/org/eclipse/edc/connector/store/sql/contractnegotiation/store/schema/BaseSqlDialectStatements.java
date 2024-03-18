@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
@@ -26,6 +27,13 @@ import static org.eclipse.edc.sql.statement.SqlExecuteStatement.isNull;
  * database. This class is abstract, because there are some statements that cannot be expressed in a generic way.
  */
 public class BaseSqlDialectStatements implements ContractNegotiationStatements {
+
+    protected final SqlOperatorTranslator operatorTranslator;
+
+    public BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator) {
+        this.operatorTranslator = operatorTranslator;
+    }
+
     @Override
     public String getFindTemplate() {
         return format("SELECT * FROM %s LEFT OUTER JOIN %s ON %s.%s = %s.%s WHERE %s.%s = ?;", getContractNegotiationTable(), getContractAgreementTable(),

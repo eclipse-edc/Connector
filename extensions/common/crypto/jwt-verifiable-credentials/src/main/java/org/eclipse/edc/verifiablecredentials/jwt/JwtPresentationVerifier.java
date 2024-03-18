@@ -60,6 +60,9 @@ import java.util.Map;
  * <em>Note: VP-JWTs may only contain VCs also represented in JWT format. Mixing formats is not allowed.</em>
  */
 public class JwtPresentationVerifier implements CredentialVerifier {
+
+    public static final String JWT_VC_TOKEN_CONTEXT = "iatp-vc";
+    public static final String JWT_VP_TOKEN_CONTEXT = "iatp-vp";
     public static final String VERIFIABLE_CREDENTIAL_JSON_KEY = "verifiableCredential";
     public static final String VP_CLAIM = "vp";
     public static final String VC_CLAIM = "vc";
@@ -99,7 +102,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     public Result<Void> verify(String serializedJwt, VerifierContext context) {
 
         // verify the "outer" JWT, i.e. the VP JWT
-        var audience = context.getAudience();
+
         Result<ClaimToken> verificationResult;
 
         // verify all "inner" VC JWTs
@@ -107,30 +110,23 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             // obtain the actual JSON structure
             var signedJwt = SignedJWT.parse(serializedJwt);
             if (isCredential(signedJwt)) {
-                verificationResult = tokenValidationService.validate(serializedJwt, publicKeyResolver, getCredentialRules(audience, "iatp-vc"));
-                if (verificationResult.failed()) {
-                    return verificationResult.mapTo();
-                }
-                return verificationResult.mapTo();
+                return tokenValidationService.validate(serializedJwt, publicKeyResolver, tokenValidationRulesRegistry.getRules(JWT_VC_TOKEN_CONTEXT))
+                        .mapTo();
             }
 
             if (!isPresentation(signedJwt)) {
                 return Result.failure("Either '%s' or '%s' claim must be present in JWT.".formatted(VP_CLAIM, VC_CLAIM));
             }
 
-
             //we can be sure to have a presentation token
-            verificationResult = tokenValidationService.validate(serializedJwt, publicKeyResolver, getCredentialRules(audience, "iatp-vp"));
+            verificationResult = tokenValidationService.validate(serializedJwt, publicKeyResolver, vpValidationRules(context.getAudience()));
 
-            var vpClaim = signedJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
-            var vpJson = vpClaim.toString();
+            var vpClaim = (Map<String, Object>) signedJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
 
-            // obtain the "verifiableCredentials" object inside
-            var map = objectMapper.readValue(vpJson, Map.class);
-            if (!map.containsKey(VERIFIABLE_CREDENTIAL_JSON_KEY)) {
+            if (!vpClaim.containsKey(VERIFIABLE_CREDENTIAL_JSON_KEY)) {
                 return Result.failure("Presentation object did not contain mandatory object: " + VERIFIABLE_CREDENTIAL_JSON_KEY);
             }
-            var rawCredentials = extractCredentials(map.get(VERIFIABLE_CREDENTIAL_JSON_KEY));
+            var rawCredentials = extractCredentials(vpClaim.get(VERIFIABLE_CREDENTIAL_JSON_KEY));
 
             if (rawCredentials.isEmpty()) {
                 // todo: this is allowed by the spec, but it is semantic nonsense. Should we return failure or not?
@@ -138,20 +134,19 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             }
 
             // every VC is represented as another JWT, so we verify all of them
-            for (String token : rawCredentials) {
-                verificationResult = verificationResult.merge(context.withAudience(signedJwt.getJWTClaimsSet().getIssuer()).verify(token));
+            for (var token : rawCredentials) {
+                verificationResult = verificationResult.merge(context.toBuilder().audience(signedJwt.getJWTClaimsSet().getIssuer()).build().verify(token));
             }
 
-        } catch (ParseException | JsonProcessingException e) {
+        } catch (ParseException e) {
             throw new RuntimeException(e);
         }
         return verificationResult.mapTo();
     }
 
-
-    private List<TokenValidationRule> getCredentialRules(String audience, String ruleContext) {
+    private List<TokenValidationRule> vpValidationRules(String audience) {
         var audRule = new AudienceValidationRule(audience);
-        var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(ruleContext));
+        var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(JWT_VP_TOKEN_CONTEXT));
         rules.add(audRule);
         return rules;
     }

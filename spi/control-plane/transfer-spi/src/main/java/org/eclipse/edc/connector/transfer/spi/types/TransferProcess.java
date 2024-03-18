@@ -132,6 +132,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     private String transferType;
 
+    private String dataPlaneId;
+
     private TransferProcess() {
     }
 
@@ -292,9 +294,14 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void transitionStarted() {
+        transitionStarted(null);
+    }
+
+    public void transitionStarted(String dataPlaneId) {
         if (type == CONSUMER) {
             transition(STARTED, state -> canBeStartedConsumer());
         } else {
+            this.dataPlaneId = dataPlaneId;
             transition(STARTED, STARTED, STARTING);
         }
     }
@@ -354,6 +361,24 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(TERMINATED, state -> canBeTerminated());
     }
 
+    public boolean canBeSuspended() {
+        return currentStateIsOneOf(STARTED, SUSPENDING);
+    }
+
+    public void transitionSuspending(String reason) {
+        this.errorDetail = reason;
+        transition(SUSPENDING, state -> canBeSuspended());
+    }
+
+    public void transitionSuspended(String reason) {
+        this.errorDetail = reason;
+        transitionSuspended();
+    }
+
+    public void transitionSuspended() {
+        transition(SUSPENDED, state -> canBeSuspended());
+    }
+
     public boolean currentStateIsOneOf(TransferProcessStates... states) {
         return Arrays.stream(states).map(TransferProcessStates::code).anyMatch(code -> code == state);
     }
@@ -361,6 +386,16 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     @JsonIgnore
     public String getCorrelationId() {
         return dataRequest.getId();
+    }
+
+    /**
+     * Set the correlationId, operation that's needed on the consumer side when it receives the first message with the
+     * provider process id.
+     *
+     * @param correlationId the correlation id.
+     */
+    public void setCorrelationId(String correlationId) {
+        dataRequest.setId(correlationId);
     }
 
     @JsonIgnore
@@ -372,7 +407,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     public String getConnectorAddress() {
         return dataRequest.getConnectorAddress();
     }
-
 
     /**
      * The transfer type to use for the requested data
@@ -412,6 +446,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return dataRequest.getDestinationType();
     }
 
+    public String getDataPlaneId() {
+        return dataPlaneId;
+    }
+
     @Override
     public TransferProcess copy() {
         var builder = Builder.newInstance()
@@ -424,7 +462,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .callbackAddresses(callbackAddresses)
                 .transferType(transferType)
                 .type(type)
-                .protocolMessages(protocolMessages);
+                .protocolMessages(protocolMessages)
+                .dataPlaneId(dataPlaneId);
         return copy(builder);
     }
 
@@ -485,16 +524,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         }
 
         transitionTo(targetState);
-    }
-
-    /**
-     * Set the correlationId, operation that's needed on the consumer side when it receives the first message with the
-     * provider process id.
-     *
-     * @param correlationId the correlation id.
-     */
-    public void setCorrelationId(String correlationId) {
-        dataRequest.setId(correlationId);
     }
 
     public enum Type {
@@ -560,6 +589,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
         public Builder protocolMessages(ProtocolMessages protocolMessages) {
             entity.protocolMessages = protocolMessages;
+            return this;
+        }
+
+        public Builder dataPlaneId(String dataPlaneId) {
+            entity.dataPlaneId = dataPlaneId;
             return this;
         }
 

@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.framework.registry;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.Test;
 
 import java.util.stream.Stream;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.mock;
 class TransferServiceSelectionStrategyTest {
 
     TransferServiceSelectionStrategy strategy = TransferServiceSelectionStrategy.selectFirst();
-    DataFlowRequest request = createRequest().build();
+    DataFlowStartMessage request = createRequest().build();
     TransferService service1 = mock();
     TransferService service2 = mock();
 
@@ -46,8 +46,8 @@ class TransferServiceSelectionStrategyTest {
         assertThat(strategy.chooseTransferService(request, Stream.of(service1, service2))).isEqualTo(service1);
     }
 
-    private DataFlowRequest.Builder createRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage.Builder createRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id("1")
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("any").build())

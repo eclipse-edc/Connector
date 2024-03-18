@@ -43,8 +43,8 @@ public class StsClientServiceImpl implements StsClientService {
     }
 
     @Override
-    public ServiceResult<StsClient> findById(String clientId) {
-        return transactionContext.execute(() -> ServiceResult.from(stsClientStore.findById(clientId)));
+    public ServiceResult<StsClient> findByClientId(String clientId) {
+        return transactionContext.execute(() -> ServiceResult.from(stsClientStore.findByClientId(clientId)));
     }
 
     @Override

@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionM
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
@@ -132,12 +133,12 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public DspRequestHandler dspRequestHandler() {
-        return new DspRequestHandlerImpl(monitor, validatorRegistry, transformerRegistry);
+        return new DspRequestHandlerImpl(monitor, validatorRegistry, transformerRegistry.forContext("dsp-api"));
     }
 
     @Provider
     public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
-        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry, typeManager.getMapper(JSON_LD), jsonLdService, DSP_SCOPE);
+        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry.forContext("dsp-api"), typeManager.getMapper(JSON_LD), jsonLdService, DSP_SCOPE);
     }
 
     private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
@@ -150,6 +151,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     private void registerTransferProcessPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
         dispatcher.registerPolicyScope(TransferCompletionMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(TransferSuspensionMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
         dispatcher.registerPolicyScope(TransferTerminationMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
         dispatcher.registerPolicyScope(TransferStartMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
         dispatcher.registerPolicyScope(TransferRequestMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);

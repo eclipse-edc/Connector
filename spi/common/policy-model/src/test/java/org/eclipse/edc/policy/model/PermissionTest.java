@@ -26,34 +26,8 @@ class PermissionTest {
     @Test
     void serializeDeserialize() throws JsonProcessingException {
         var mapper = new ObjectMapper();
-        var serialized = mapper.writeValueAsString(Permission.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build());
+        var serialized = mapper.writeValueAsString(Permission.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build());
         assertThat(mapper.readValue(serialized, Permission.class).getAction()).isNotNull();
-    }
-
-    @Test
-    void withTarget() {
-        var target = "target-id";
-        var permission = Permission.Builder.newInstance()
-                .assigner("assigner")
-                .assignee("assignee")
-                .action(Action.Builder.newInstance().type("USE").build())
-                .constraint(AtomicConstraint.Builder.newInstance()
-                        .leftExpression(new LiteralExpression("left"))
-                        .operator(Operator.EQ)
-                        .rightExpression(new LiteralExpression("right"))
-                        .build())
-                .duty(Duty.Builder.newInstance().build())
-                .build();
-
-        var copy = permission.withTarget(target);
-
-        assertThat(copy.getAssigner()).isEqualTo(permission.getAssigner());
-        assertThat(copy.getAssignee()).isEqualTo(permission.getAssignee());
-        assertThat(copy.getAction()).isEqualTo(permission.getAction());
-        assertThat(copy.getConstraints()).isEqualTo(permission.getConstraints());
-        assertThat(copy.getDuties().size()).isEqualTo(permission.getDuties().size());
-        copy.getDuties().forEach(d -> assertThat(d.getTarget()).isEqualTo(target));
-        assertThat(copy.getTarget()).isEqualTo(target);
     }
 
 }

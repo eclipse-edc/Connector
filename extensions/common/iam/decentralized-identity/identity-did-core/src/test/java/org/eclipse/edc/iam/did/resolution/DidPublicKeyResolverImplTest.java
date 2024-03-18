@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -43,11 +44,11 @@ import static org.mockito.Mockito.when;
 
 class DidPublicKeyResolverImplTest {
 
-    public static final String KEYID = "#my-key1";
+    public static final String KEYID = "my-key1";
     private static final String DID_URL = "did:web:example.com";
     private final DidResolverRegistry resolverRegistry = mock();
     private final KeyParserRegistry keyParserRegistry = mock();
-    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(keyParserRegistry, resolverRegistry, mock(), mock());
+    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(keyParserRegistry, resolverRegistry);
 
     public static String readFile(String filename) throws IOException {
         try (var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename)) {
@@ -100,18 +101,35 @@ class DidPublicKeyResolverImplTest {
         var didDocument = createDidDocument();
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolveKey(DID_URL + KEYID);
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isSucceeded().isNotNull();
         verify(resolverRegistry).resolve(DID_URL);
     }
 
     @Test
-    void resolve_withVerificationMethodUrlAsId() throws IOException, JOSEException {
-        var didDocument = createDidDocument(DID_URL + KEYID);
+    void resolve_noValidVerificationMethod() {
+        var didDocument = DidDocument.Builder.newInstance()
+                .verificationMethod(List.of(VerificationMethod.Builder.newInstance()
+                        .type("unknown")
+                        .publicKeyJwk(Map.of())
+                        .build()))
+                .build();
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolveKey(DID_URL + KEYID);
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
+
+        assertThat(result).isFailed().isNotNull()
+                .detail().contains(format("DID document with id %s does not contain any supported Verification Method", didDocument.getId()));
+        verify(resolverRegistry).resolve(DID_URL);
+    }
+
+    @Test
+    void resolve_withVerificationMethodUrlAsId() {
+        var didDocument = createDidDocument(DID_URL + "#" + KEYID);
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
+
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isSucceeded().isNotNull();
         verify(resolverRegistry).resolve(DID_URL);
@@ -121,7 +139,7 @@ class DidPublicKeyResolverImplTest {
     void resolve_didNotFound() {
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.failure("Not found"));
 
-        var result = resolver.resolveKey(DID_URL + KEYID);
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isFailed();
         verify(resolverRegistry).resolve(DID_URL);
@@ -133,20 +151,20 @@ class DidPublicKeyResolverImplTest {
         didDocument.getVerificationMethod().clear();
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolveKey(DID_URL + KEYID);
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isFailed();
         verify(resolverRegistry).resolve(DID_URL);
     }
 
     @Test
-    void resolve_didContainsMultipleKeysWithSameKeyId() throws JOSEException, IOException {
+    void resolve_didContainsMultipleKeysWithSameKeyId() {
         var vm = createVerificationMethod(KEYID);
         var vm1 = createVerificationMethod(KEYID);
         var didDocument = createDidDocumentBuilder(KEYID).verificationMethod(List.of(vm, vm1)).build();
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolveKey(DID_URL + KEYID);
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isFailed()
                 .detail().contains("Every verification method must have a unique ID");
@@ -155,13 +173,13 @@ class DidPublicKeyResolverImplTest {
 
     @Test
     void resolve_didContainsMultipleKeysWithSameKeyId_withRelativeAndFullUrl() {
-        var vm = createVerificationMethod(DID_URL + KEYID);
+        var vm = createVerificationMethod(DID_URL + "#" + KEYID);
         var vm1 = createVerificationMethod(KEYID);
 
         var didDocument = createDidDocumentBuilder(KEYID).verificationMethod(List.of(vm, vm1)).build();
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolveKey(DID_URL + KEYID);
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isFailed()
                 .detail().contains("Every verification method must have a unique ID");

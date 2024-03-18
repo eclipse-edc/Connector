@@ -38,6 +38,7 @@ public class TransferProcessMapping extends StatefulEntityMapping {
     private static final String FIELD_PRIVATE_PROPERTIES = "privateProperties";
     private static final String FIELD_PENDING = "pending";
     private static final String FIELD_TRANSFER_TYPE = "transferType";
+    private static final String FIELD_DATA_PLANE_ID = "dataPlaneId";
 
 
     public TransferProcessMapping(TransferProcessStoreStatements statements) {
@@ -54,5 +55,6 @@ public class TransferProcessMapping extends StatefulEntityMapping {
         add(FIELD_DEPROVISIONED_RESOURCES, new JsonFieldTranslator(PostgresDialectStatements.DEPROVISIONED_RESOURCES_ALIAS));
         add(FIELD_PENDING, statements.getPendingColumn());
         add(FIELD_TRANSFER_TYPE, statements.getTransferTypeColumn());
+        add(FIELD_DATA_PLANE_ID, statements.getDataPlaneIdColumn());
     }
 }

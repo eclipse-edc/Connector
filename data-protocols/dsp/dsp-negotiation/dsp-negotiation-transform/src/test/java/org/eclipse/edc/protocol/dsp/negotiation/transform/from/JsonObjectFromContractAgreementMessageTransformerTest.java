@@ -35,6 +35,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
@@ -53,6 +55,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectFromContractAgreementMessageTransformerTest {
+
     private static final String PROVIDER_ID = "providerId";
     private static final String CONSUMER_ID = "consumerId";
     private static final String TIMESTAMP = "1970-01-01T00:00:00Z";
@@ -60,7 +63,7 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
     public static final String AGREEMENT_ID = UUID.randomUUID().toString();
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
 
     private final JsonObjectFromContractAgreementMessageTransformer transformer =
             new JsonObjectFromContractAgreementMessageTransformer(jsonFactory);
@@ -78,7 +81,12 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
                 .providerPid("providerPid")
                 .consumerPid("consumerPid")
                 .counterPartyAddress("https://example.com")
-                .contractAgreement(contractAgreement())
+                .contractAgreement(ContractAgreement.Builder.newInstance()
+                        .id(AGREEMENT_ID)
+                        .providerId(PROVIDER_ID)
+                        .consumerId(CONSUMER_ID)
+                        .assetId("assetId")
+                        .policy(policy()).build())
                 .build();
         var policyObject = jsonFactory.createObjectBuilder()
                 .add(ID, "contractOfferId")
@@ -100,6 +108,38 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
         assertThat(jsonAgreement).isNotNull();
         assertThat(jsonAgreement.getString(ID)).isEqualTo(AGREEMENT_ID);
         assertThat(jsonAgreement.getString(DSPACE_PROPERTY_TIMESTAMP)).isEqualTo(TIMESTAMP);
+        assertThat(jsonAgreement.getString(ODRL_ASSIGNEE_ATTRIBUTE)).isEqualTo(CONSUMER_ID);
+        assertThat(jsonAgreement.getString(ODRL_ASSIGNER_ATTRIBUTE)).isEqualTo(PROVIDER_ID);
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Deprecated
+    @Test
+    void shouldSetConsumerIdAndProviderIdForBackwardCompatibility() {
+        var message = ContractAgreementMessage.Builder.newInstance()
+                .protocol(DSP)
+                .processId("processId")
+                .providerPid("providerPid")
+                .consumerPid("consumerPid")
+                .counterPartyAddress("https://example.com")
+                .contractAgreement(ContractAgreement.Builder.newInstance()
+                        .id(AGREEMENT_ID)
+                        .providerId(PROVIDER_ID)
+                        .consumerId(CONSUMER_ID)
+                        .assetId("assetId")
+                        .policy(policy()).build())
+                .build();
+        var policyObject = jsonFactory.createObjectBuilder()
+                .add(ID, "contractOfferId")
+                .build();
+
+        when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(policyObject);
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNotNull();
+        var jsonAgreement = result.getJsonObject(DSPACE_PROPERTY_AGREEMENT);
         assertThat(jsonAgreement.getString(DSPACE_PROPERTY_CONSUMER_ID)).isEqualTo(CONSUMER_ID);
         assertThat(jsonAgreement.getString(DSPACE_PROPERTY_PROVIDER_ID)).isEqualTo(PROVIDER_ID);
 
@@ -114,7 +154,12 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
                 .providerPid("providerPid")
                 .consumerPid("consumerPid")
                 .counterPartyAddress("https://example.com")
-                .contractAgreement(contractAgreement())
+                .contractAgreement(ContractAgreement.Builder.newInstance()
+                        .id(AGREEMENT_ID)
+                        .providerId(PROVIDER_ID)
+                        .consumerId(CONSUMER_ID)
+                        .assetId("assetId")
+                        .policy(policy()).build())
                 .build();
 
         when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(null);
@@ -124,17 +169,8 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
         verify(context, times(1)).reportProblem(anyString());
     }
 
-    private ContractAgreement contractAgreement() {
-        return ContractAgreement.Builder.newInstance()
-                .id(AGREEMENT_ID)
-                .providerId(PROVIDER_ID)
-                .consumerId(CONSUMER_ID)
-                .assetId("assetId")
-                .policy(policy()).build();
-    }
-
     private Policy policy() {
-        var action = Action.Builder.newInstance().type("USE").build();
+        var action = Action.Builder.newInstance().type("use").build();
         var permission = Permission.Builder.newInstance().action(action).build();
         var prohibition = Prohibition.Builder.newInstance().action(action).build();
         var duty = Duty.Builder.newInstance().action(action).build();

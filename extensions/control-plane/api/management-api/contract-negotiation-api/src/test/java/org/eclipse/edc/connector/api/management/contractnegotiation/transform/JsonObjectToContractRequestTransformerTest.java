@@ -41,9 +41,9 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
@@ -74,7 +74,6 @@ class JsonObjectToContractRequestTransformerTest {
                 .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
                 .add(PROTOCOL, "test-protocol")
-                .add(PROVIDER_ID, "test-provider-id")
                 .add(CALLBACK_ADDRESSES, createCallbackAddress())
                 .add(POLICY, createPolicy())
                 .build();
@@ -83,7 +82,7 @@ class JsonObjectToContractRequestTransformerTest {
                 .events(Set.of("foo", "bar"))
                 .transactional(true)
                 .build());
-        var offer = createContractOffer();
+        var offer = createContractOffer("test-provider-id");
         when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(offer);
         
         var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
@@ -103,7 +102,6 @@ class JsonObjectToContractRequestTransformerTest {
                 .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
                 .add(PROTOCOL, "test-protocol")
-                .add(PROVIDER_ID, "test-provider-id")
                 .add(CALLBACK_ADDRESSES, createCallbackAddress())
                 .add(OFFER, Json.createObjectBuilder()
                         .add(OFFER_ID, "test-offer-id")
@@ -112,7 +110,7 @@ class JsonObjectToContractRequestTransformerTest {
                         .build())
                 .build();
 
-        var policy = Policy.Builder.newInstance().build();
+        var policy = Policy.Builder.newInstance().assigner("test-provider-id").build();
         var contractOfferDescription = ContractOfferDescription.Builder.newInstance()
                 .offerId("offerId")
                 .assetId("assetId")
@@ -151,7 +149,7 @@ class JsonObjectToContractRequestTransformerTest {
                 .add(PROTOCOL, "test-protocol")
                 .add(POLICY, createPolicy())
                 .build();
-        when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(createContractOffer());
+        when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(createContractOffer("test-address"));
 
         var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
 
@@ -159,8 +157,8 @@ class JsonObjectToContractRequestTransformerTest {
         assertThat(request.getProviderId()).isEqualTo("test-address");
     }
 
-    private ContractOffer createContractOffer() {
-        var policy = Policy.Builder.newInstance().target("test-asset").build();
+    private ContractOffer createContractOffer(String providerId) {
+        var policy = Policy.Builder.newInstance().target("test-asset").assigner(providerId).build();
         return ContractOffer.Builder.newInstance().id("offer-id").assetId("asset-id").policy(policy).build();
     }
 
@@ -183,6 +181,7 @@ class JsonObjectToContractRequestTransformerTest {
                 .add(ODRL_PERMISSION_ATTRIBUTE, permissionJson)
                 .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
                 .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)
+                .add(ODRL_ASSIGNER_ATTRIBUTE, "test-provider-id")
                 .build();
     }
 

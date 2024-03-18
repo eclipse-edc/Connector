@@ -24,6 +24,8 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementM
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
@@ -73,10 +75,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processOffering(ContractNegotiation negotiation) {
-        var messageBuilder = ContractOfferMessage.Builder.newInstance().contractOffer(negotiation.getLastContractOffer());
+        var messageBuilder = ContractOfferMessage.Builder.newInstance()
+                .contractOffer(negotiation.getLastContractOffer())
+                .callbackAddress(protocolWebhook.url());
 
-        return dispatch(messageBuilder, negotiation)
-                .onSuccess((n, result) -> transitionToOffered(n))
+        return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
+                .onSuccessResult(this::transitionToOffered)
                 .onFailure((n, throwable) -> transitionToOffering(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send offer to consumer: %s", throwable.getMessage())))
@@ -122,14 +126,14 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                             .contractSigningDate(clock.instant().getEpochSecond())
                             .providerId(participantId)
                             .consumerId(negotiation.getCounterPartyId())
-                            .policy(lastOffer.getPolicy())
+                            .policy(lastOffer.getPolicy().toBuilder().type(PolicyType.CONTRACT).build())
                             .assetId(lastOffer.getAssetId())
                             .build();
                 });
 
         var messageBuilder = ContractAgreementMessage.Builder.newInstance().contractAgreement(agreement);
 
-        return dispatch(messageBuilder, negotiation)
+        return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess((n, result) -> transitionToAgreed(n, agreement))
                 .onFailure((n, throwable) -> transitionToAgreeing(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -161,7 +165,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .policy(negotiation.getContractAgreement().getPolicy());
 
-        return dispatch(messageBuilder, negotiation)
+        return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess((n, result) -> transitionToFinalized(n))
                 .onFailure((n, throwable) -> transitionToFinalizing(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))

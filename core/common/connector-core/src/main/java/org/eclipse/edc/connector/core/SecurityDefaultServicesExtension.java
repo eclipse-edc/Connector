@@ -20,14 +20,12 @@ import org.eclipse.edc.connector.core.security.keyparsers.PemParser;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.security.VaultCertificateResolver;
 import org.eclipse.edc.spi.security.VaultPrivateKeyResolver;
-import org.eclipse.edc.spi.security.VaultPublicKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -59,11 +57,6 @@ public class SecurityDefaultServicesExtension implements ServiceExtension {
             privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry(context), vault, context.getMonitor().withPrefix("PrivateKeyResolution"), context.getConfig());
         }
         return privateKeyResolver;
-    }
-
-    @Provider(isDefault = true)
-    public PublicKeyResolver createDefaultPublicKeyResolver(ServiceExtensionContext context) {
-        return new VaultPublicKeyResolver(keyParserRegistry(context), context.getConfig(), context.getMonitor().withPrefix("PublicKeyResolution"), vault);
     }
 
     @Provider(isDefault = true)

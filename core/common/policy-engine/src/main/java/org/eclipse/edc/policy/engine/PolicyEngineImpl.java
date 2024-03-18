@@ -98,7 +98,7 @@ public class PolicyEngineImpl implements PolicyEngine {
             }
         });
 
-        dynamicConstraintFunctions.stream().filter(entry -> scopeFilter(entry.scope, scope)).forEach(entry -> {
+        dynamicConstraintFunctions.stream().filter(entry -> scopeFilter(entry.scope, delimitedScope)).forEach(entry -> {
             if (Duty.class.isAssignableFrom(entry.type)) {
                 evalBuilder.dynamicDutyFunction(entry.function::canHandle, (key, operator, value, duty) -> entry.function.evaluate(key, operator, value, duty, context));
             } else if (Permission.class.isAssignableFrom(entry.type)) {

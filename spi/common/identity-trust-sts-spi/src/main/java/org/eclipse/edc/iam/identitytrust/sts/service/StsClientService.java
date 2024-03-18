@@ -39,7 +39,7 @@ public interface StsClientService {
      * @param id id of the client
      * @return the client successful if found, failure otherwise
      */
-    ServiceResult<StsClient> findById(String id);
+    ServiceResult<StsClient> findByClientId(String id);
 
     /**
      * Authenticate an {@link StsClient} given the input secret

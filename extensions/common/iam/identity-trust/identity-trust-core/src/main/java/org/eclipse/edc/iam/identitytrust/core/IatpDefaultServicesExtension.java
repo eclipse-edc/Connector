@@ -14,10 +14,13 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
+import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultIatpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.core.defaults.InMemorySignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
+import org.eclipse.edc.identitytrust.ClaimTokenCreatorFunction;
+import org.eclipse.edc.identitytrust.IatpParticipantAgentServiceExtension;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
@@ -28,6 +31,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.AudienceResolver;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -36,26 +40,28 @@ import org.eclipse.edc.token.JwtGenerationService;
 
 import java.security.PrivateKey;
 import java.time.Clock;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+
+import static org.eclipse.edc.spi.result.Result.failure;
+import static org.eclipse.edc.spi.result.Result.success;
 
 @Extension("Identity And Trust Extension to register default services")
 public class IatpDefaultServicesExtension implements ServiceExtension {
 
     @Setting(value = "Alias of private key used for signing tokens, retrieved from private key resolver", defaultValue = "A random EC private key")
     public static final String STS_PRIVATE_KEY_ALIAS = "edc.iam.sts.privatekey.alias";
-    @Setting(value = "Alias of public key used for verifying the tokens, retrieved from the vault", defaultValue = "A random EC public key")
-    public static final String STS_PUBLIC_KEY_ALIAS = "edc.iam.sts.publickey.alias";
+    @Setting(value = "Id used by the counterparty to resolve the public key for token validation, e.g. did:example:123#public-key-0", defaultValue = "A random EC public key")
+    public static final String STS_PUBLIC_KEY_ID = "edc.iam.sts.publickey.id";
     // not a setting, it's defined in Oauth2ServiceExtension
     private static final String OAUTH_TOKENURL_PROPERTY = "edc.oauth.token.url";
     @Setting(value = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + IatpDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION_MIN)
     private static final String STS_TOKEN_EXPIRATION = "edc.iam.sts.token.expiration"; // in minutes
     private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
-
-
+    public static final String CLAIMTOKEN_VC_KEY = "vc";
     @Inject
     private Clock clock;
-
     @Inject
     private PrivateKeyResolver privateKeyResolver;
 
@@ -71,7 +77,7 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
         }
 
 
-        var publicKeyId = context.getSetting(STS_PUBLIC_KEY_ALIAS, null);
+        var publicKeyId = context.getSetting(STS_PUBLIC_KEY_ID, null);
         var privKeyAlias = context.getSetting(STS_PRIVATE_KEY_ALIAS, null);
 
         Supplier<PrivateKey> supplier = () -> privateKeyResolver.resolvePrivateKey(privKeyAlias).orElseThrow(f -> new EdcException("This EDC instance is not operational due to the following error: %s".formatted(f.getFailureDetail())));
@@ -89,6 +95,11 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
+    public IatpParticipantAgentServiceExtension createDefaultIatpParticipantAgentServiceExtension() {
+        return new DefaultIatpParticipantAgentServiceExtension();
+    }
+
+    @Provider(isDefault = true)
     public ScopeExtractorRegistry scopeExtractorRegistry() {
         return new IatpScopeExtractorRegistry();
     }
@@ -99,4 +110,16 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
         return RemoteMessage::getCounterPartyId;
     }
 
+    // Default ClaimToken creator function, will use "vc" as key
+    @Provider(isDefault = true)
+    public ClaimTokenCreatorFunction defaultClaimTokenFunction() {
+        return credentials -> {
+            if (credentials.isEmpty()) {
+                return failure("No VerifiableCredentials were found on VP");
+            }
+            var b = ClaimToken.Builder.newInstance()
+                    .claims(Map.of(CLAIMTOKEN_VC_KEY, credentials));
+            return success(b.build());
+        };
+    }
 }

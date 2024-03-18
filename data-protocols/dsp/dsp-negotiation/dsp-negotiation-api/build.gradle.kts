@@ -14,16 +14,15 @@
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-api-configuration"))
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
-
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
 
     implementation(project(":core:common:validator-core"))
@@ -33,4 +32,10 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)
+}
+
+edcBuild {
+    swagger {
+        apiGroup.set("dsp-api")
+    }
 }

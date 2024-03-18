@@ -22,7 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.query.CriterionToAssetPredicateConverter;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 @Extension(CatalogCoreExtension.NAME)
@@ -43,7 +43,7 @@ public class CatalogCoreExtension implements ServiceExtension {
     private DistributionResolver distributionResolver;
 
     @Inject
-    private CriterionToAssetPredicateConverter criterionToPredicateConverter;
+    private CriterionOperatorRegistry criterionOperatorRegistry;
 
     @Override
     public String name() {
@@ -53,6 +53,6 @@ public class CatalogCoreExtension implements ServiceExtension {
     @Provider
     public DatasetResolver datasetResolver() {
         return new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyDefinitionStore,
-                distributionResolver, criterionToPredicateConverter);
+                distributionResolver, criterionOperatorRegistry);
     }
 }

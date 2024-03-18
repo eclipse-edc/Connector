@@ -22,6 +22,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.web.jersey.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
@@ -44,15 +46,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class ManagementApiConfigurationExtensionTest {
 
+    private final WebServiceConfigurer configurer = mock();
+    private final Monitor monitor = mock();
+    private final WebService webService = mock();
     private ManagementApiConfigurationExtension extension;
-    private final WebServiceConfigurer configurer = mock(WebServiceConfigurer.class);
-    private final Monitor monitor = mock(Monitor.class);
-    private final WebService webService = mock(WebService.class);
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
+        TypeTransformerRegistry typeTransformerRegistry = mock();
+        when(typeTransformerRegistry.forContext(any())).thenReturn(mock());
         context.registerService(WebService.class, webService);
         context.registerService(WebServiceConfigurer.class, configurer);
+        context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
         extension = factory.constructInstance(ManagementApiConfigurationExtension.class);
     }
 
@@ -66,6 +71,7 @@ class ManagementApiConfigurationExtensionTest {
 
         verify(configurer).configure(any(), any(), eq(SETTINGS));
         verify(webService).registerResource(eq("alias"), isA(AuthenticationRequestFilter.class));
+        verify(webService).registerResource(eq("alias"), isA(JerseyJsonLdInterceptor.class));
         verify(webService).registerResource(eq("alias"), isA(ObjectMapperProvider.class));
     }
 

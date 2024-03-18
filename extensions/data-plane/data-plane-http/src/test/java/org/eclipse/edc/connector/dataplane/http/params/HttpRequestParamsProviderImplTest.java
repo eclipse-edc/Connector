@@ -21,7 +21,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -164,8 +164,8 @@ class HttpRequestParamsProviderImplTest {
         return TYPE_MANAGER.writeValueAsString(map);
     }
 
-    private DataFlowRequest createRequest(DataAddress source) {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage createRequest(DataAddress source) {
+        return DataFlowStartMessage.Builder.newInstance()
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
                 .sourceDataAddress(source)
                 .processId(UUID.randomUUID().toString())

@@ -416,6 +416,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
     @Nested
     class QueryNegotiations {
+
         @Test
         void shouldPaginateResults() {
             var querySpec = QuerySpec.Builder.newInstance()
@@ -562,9 +563,8 @@ public abstract class ContractNegotiationStoreTestBase {
                     .assignee("test-assignee")
                     .assigner("test-assigner")
                     .permission(Permission.Builder.newInstance()
-                            .target("")
                             .action(Action.Builder.newInstance()
-                                    .type("USE")
+                                    .type("use")
                                     .build())
                             .constraint(AtomicConstraint.Builder.newInstance()
                                     .leftExpression(new LiteralExpression("foo"))

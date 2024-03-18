@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectToPol
 import org.eclipse.edc.connector.api.management.policy.validation.PolicyDefinitionValidator;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.transformer.OdrlTransformersFactory;
+import org.eclipse.edc.core.transform.transformer.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -38,6 +38,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CREATED_AT;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
+import static org.mockito.Mockito.mock;
 
 class PolicyDefinitionApiTest {
 
@@ -48,7 +49,7 @@ class PolicyDefinitionApiTest {
     @BeforeEach
     void setUp() {
         transformer.register(new JsonObjectToPolicyDefinitionTransformer());
-        OdrlTransformersFactory.jsonObjectToOdrlTransformers().forEach(transformer::register);
+        OdrlTransformersFactory.jsonObjectToOdrlTransformers(mock()).forEach(transformer::register);
     }
 
     @Test

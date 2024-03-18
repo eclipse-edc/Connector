@@ -15,6 +15,7 @@
 package org.eclipse.edc.validator.jsonobject.validators.model;
 
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
@@ -36,17 +37,17 @@ import static org.eclipse.edc.validator.spi.Violation.violation;
 
 public class QuerySpecValidator {
 
-    public static Validator<JsonObject> instance() {
-        return instance(JsonObjectValidator.newValidator()).build();
+    public static Validator<JsonObject> instance(CriterionOperatorRegistry criterionOperatorRegistry) {
+        return instance(JsonObjectValidator.newValidator(), criterionOperatorRegistry).build();
     }
 
-    public static JsonObjectValidator.Builder instance(JsonObjectValidator.Builder builder) {
+    public static JsonObjectValidator.Builder instance(JsonObjectValidator.Builder builder, CriterionOperatorRegistry criterionOperatorRegistry) {
         return builder
                 .verify(EDC_QUERY_SPEC_OFFSET, OptionalValueGreaterEqualZero::new)
                 .verify(EDC_QUERY_SPEC_LIMIT, OptionalValueGreaterZero::new)
                 .verify(EDC_QUERY_SPEC_SORT_ORDER, OptionalValueSortField::new)
                 .verify(EDC_QUERY_SPEC_SORT_FIELD, OptionalValueNotBlank::new)
-                .verifyArrayItem(EDC_QUERY_SPEC_FILTER_EXPRESSION, CriterionValidator::instance);
+                .verifyArrayItem(EDC_QUERY_SPEC_FILTER_EXPRESSION, path -> CriterionValidator.instance(path, criterionOperatorRegistry));
     }
 
     private record OptionalValueGreaterEqualZero(JsonLdPath path) implements Validator<JsonObject> {

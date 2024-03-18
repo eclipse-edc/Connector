@@ -28,7 +28,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -139,8 +139,8 @@ class HttpDataSinkFactoryTest {
                 .satisfies(result -> assertThat(result.succeeded()).isTrue());
     }
 
-    private DataFlowRequest createRequest(DataAddress destination) {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage createRequest(DataAddress destination) {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("test-type").build())

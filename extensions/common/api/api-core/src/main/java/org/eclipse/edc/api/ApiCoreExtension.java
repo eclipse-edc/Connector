@@ -20,6 +20,7 @@ import org.eclipse.edc.api.transformer.JsonObjectFromIdResponseTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -41,6 +42,9 @@ public class ApiCoreExtension implements ServiceExtension {
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
 
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -54,6 +58,6 @@ public class ApiCoreExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromIdResponseTransformer(jsonFactory));
         transformerRegistry.register(new JsonObjectToCallbackAddressTransformer());
 
-        validatorRegistry.register(EDC_QUERY_SPEC_TYPE, QuerySpecValidator.instance());
+        validatorRegistry.register(EDC_QUERY_SPEC_TYPE, QuerySpecValidator.instance(criterionOperatorRegistry));
     }
 }

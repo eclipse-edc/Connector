@@ -19,7 +19,6 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -44,7 +43,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
@@ -86,6 +87,10 @@ public class Participant {
         return managementEndpoint;
     }
 
+    public String getId() {
+        return id;
+    }
+
     /**
      * Create a new {@link org.eclipse.edc.spi.types.domain.asset.Asset}.
      *
@@ -123,7 +128,7 @@ public class Participant {
     public String createPolicyDefinition(JsonObject policy) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(TYPE, "PolicyDefinitionDto")
+                .add(TYPE, "PolicyDefinition")
                 .add("policy", policy)
                 .build();
 
@@ -133,6 +138,7 @@ public class Participant {
                 .when()
                 .post("/v2/policydefinitions")
                 .then()
+                .log().ifError()
                 .statusCode(200)
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);
@@ -194,6 +200,7 @@ public class Participant {
         var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "CatalogRequest")
+                .add("counterPartyId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
                 .add("protocol", protocol);
 
@@ -238,6 +245,7 @@ public class Participant {
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "DatasetRequest")
                 .add(ID, assetId)
+                .add("counterPartyId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
                 .add("protocol", protocol)
                 .build();
@@ -274,12 +282,7 @@ public class Participant {
      * @return id of the contract negotiation.
      */
     public String initContractNegotiation(Participant provider, String assetId) {
-        var dataset = getDatasetForAsset(provider, assetId);
-        assertThat(dataset).withFailMessage("Catalog received from " + provider.getName() + " was empty!").isNotEmpty();
-
-        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-
-        return initContractNegotiation(provider, policy);
+        return initContractNegotiation(provider, getOfferForAsset(provider, assetId));
     }
 
     /**
@@ -292,7 +295,7 @@ public class Participant {
     public String initContractNegotiation(Participant provider, JsonObject policy) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(TYPE, "ContractRequestDto")
+                .add(TYPE, "ContractRequest")
                 .add("providerId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.getUrl().toString())
                 .add("protocol", protocol)
@@ -337,10 +340,11 @@ public class Participant {
      * @param assetId             asset id
      * @param privateProperties   private properties
      * @param destination         data destination address
+     * @param transferType        type of transfer
      * @return id of the transfer process.
      */
-    public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination) {
-        return initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, null);
+    public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
+        return initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType, null);
     }
 
     /**
@@ -352,9 +356,10 @@ public class Participant {
      * @param privateProperties   private properties
      * @param destination         data destination address
      * @param transferType        type of transfer
+     * @param callbacks           callbacks for the transfer process
      * @return id of the transfer process.
      */
-    public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
+    public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination, String transferType, JsonArray callbacks) {
         var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "TransferRequest")
@@ -368,6 +373,10 @@ public class Participant {
 
         if (transferType != null) {
             requestBodyBuilder.add("transferType", transferType);
+        }
+
+        if (callbacks != null) {
+            requestBodyBuilder.add("callbackAddresses", callbacks);
         }
 
         var requestBody = requestBodyBuilder.build();
@@ -444,10 +453,13 @@ public class Participant {
      * @return transfer process id.
      */
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
-        var dataset = getDatasetForAsset(provider, assetId);
-        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-        var contractAgreementId = negotiateContract(provider, policy);
-        var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType);
+        return requestAsset(provider, assetId, privateProperties, destination, transferType, null);
+    }
+
+    public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType, JsonArray callbacks) {
+        var offer = getOfferForAsset(provider, assetId);
+        var contractAgreementId = negotiateContract(provider, offer);
+        var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType, callbacks);
         assertThat(transferProcessId).isNotNull();
         return transferProcessId;
     }
@@ -469,6 +481,28 @@ public class Participant {
     }
 
     /**
+     * Suspend the transfer process
+     *
+     * @param id transfer process id.
+     */
+    public void suspendTransfer(String id, String reason) {
+        var requestBodyBuilder = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(TYPE, "SuspendTransfer")
+                .add(ID, id)
+                .add("reason", reason);
+
+        managementEndpoint.baseRequest()
+                .contentType(JSON)
+                .body(requestBodyBuilder.build())
+                .when()
+                .post("/v2/transferprocesses/{id}/suspend", id)
+                .then()
+                .log().ifError()
+                .statusCode(204);
+    }
+
+    /**
      * Get current state of a contract negotiation.
      *
      * @param id contract negotiation id
@@ -478,11 +512,25 @@ public class Participant {
         return getContractNegotiationField(id, "state");
     }
 
-    private ContractOfferId extractContractDefinitionId(JsonObject dataset) {
-        var contractId = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
-        return ContractOfferId.parseId(contractId).orElseThrow(f -> new RuntimeException(f.getFailureDetail()));
+    protected String getContractNegotiationField(String negotiationId, String fieldName) {
+        return managementEndpoint.baseRequest()
+                .contentType(JSON)
+                .when()
+                .get("/v2/contractnegotiations/{id}", negotiationId)
+                .then()
+                .statusCode(200)
+                .extract().body().jsonPath()
+                .getString(fieldName);
     }
 
+    private JsonObject getOfferForAsset(Participant provider, String assetId) {
+        var dataset = getDatasetForAsset(provider, assetId);
+        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
+        return createObjectBuilder(policy)
+                .add(ODRL_ASSIGNER_ATTRIBUTE, createObjectBuilder().add(ID, provider.id))
+                .add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, dataset.get(ID)))
+                .build();
+    }
 
     private String getContractAgreementId(String negotiationId) {
         var contractAgreementIdAtomic = new AtomicReference<String>();
@@ -497,17 +545,6 @@ public class Participant {
         var contractAgreementId = contractAgreementIdAtomic.get();
         assertThat(id).isNotEmpty();
         return contractAgreementId;
-    }
-
-    protected String getContractNegotiationField(String negotiationId, String fieldName) {
-        return managementEndpoint.baseRequest()
-                .contentType(JSON)
-                .when()
-                .get("/v2/contractnegotiations/{id}", negotiationId)
-                .then()
-                .statusCode(200)
-                .extract().body().jsonPath()
-                .getString(fieldName);
     }
 
     /**

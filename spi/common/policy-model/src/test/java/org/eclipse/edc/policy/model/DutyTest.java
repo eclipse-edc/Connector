@@ -26,32 +26,8 @@ class DutyTest {
     @Test
     void serializeDeserialize() throws JsonProcessingException {
         var mapper = new ObjectMapper();
-        var serialized = mapper.writeValueAsString(Duty.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build());
+        var serialized = mapper.writeValueAsString(Duty.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build());
         assertThat(mapper.readValue(serialized, Duty.class).getAction()).isNotNull();
     }
 
-    @Test
-    void withTarget() {
-        var target = "target-id";
-        var duty = Duty.Builder.newInstance()
-                .assigner("assigner")
-                .assignee("assignee")
-                .action(Action.Builder.newInstance().type("DELETE").build())
-                .constraint(AtomicConstraint.Builder.newInstance()
-                        .leftExpression(new LiteralExpression("left"))
-                        .operator(Operator.EQ)
-                        .rightExpression(new LiteralExpression("right"))
-                        .build())
-                .consequence(Duty.Builder.newInstance().build())
-                .build();
-
-        var copy = duty.withTarget(target);
-
-        assertThat(copy.getAssigner()).isEqualTo(duty.getAssigner());
-        assertThat(copy.getAssignee()).isEqualTo(duty.getAssignee());
-        assertThat(copy.getAction()).isEqualTo(duty.getAction());
-        assertThat(copy.getConstraints()).isEqualTo(duty.getConstraints());
-        assertThat(copy.getConsequence().getTarget()).isEqualTo(target);
-        assertThat(copy.getTarget()).isEqualTo(target);
-    }
 }

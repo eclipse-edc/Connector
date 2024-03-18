@@ -1,0 +1,11 @@
+name: publish openapi ui
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    uses: eclipse-edc/.github/.github/workflows/publish-openapi-ui.yml@main
+    secrets: inherit

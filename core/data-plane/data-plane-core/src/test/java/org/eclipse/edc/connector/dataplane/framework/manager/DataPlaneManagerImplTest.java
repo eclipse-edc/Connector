@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.framework.manager;
 
 import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
@@ -26,8 +27,11 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -41,11 +45,13 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlow.TERMINATION_REASON;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
@@ -70,8 +76,9 @@ class DataPlaneManagerImplTest {
     private final TransferService transferService = mock();
     private final TransferProcessApiClient transferProcessApiClient = mock();
     private final DataPlaneStore store = mock();
-    private final DataFlowRequest request = createRequest();
+    private final DataFlowStartMessage request = createRequest();
     private final TransferServiceRegistry registry = mock();
+    private final DataPlaneAuthorizationService authorizationService = mock();
     private DataPlaneManagerImpl manager;
 
     @BeforeEach
@@ -82,23 +89,24 @@ class DataPlaneManagerImplTest {
                 .transferServiceRegistry(registry)
                 .store(store)
                 .transferProcessClient(transferProcessApiClient)
+                .authorizationService(authorizationService)
                 .monitor(mock())
                 .build();
     }
 
     @Test
     void initiateDataFlow() {
-        var request = DataFlowRequest.Builder.newInstance()
+        var request = DataFlowStartMessage.Builder.newInstance()
                 .id("1")
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .callbackAddress(URI.create("http://any"))
                 .properties(Map.of("key", "value"))
-                .trackable(true)
+                .flowType(FlowType.PUSH)
                 .build();
 
-        manager.initiate(request);
+        manager.start(request);
 
         var captor = ArgumentCaptor.forClass(DataFlow.class);
         verify(store).save(captor.capture());
@@ -108,8 +116,61 @@ class DataPlaneManagerImplTest {
         assertThat(dataFlow.getDestination()).isSameAs(request.getDestinationDataAddress());
         assertThat(dataFlow.getCallbackAddress()).isEqualTo(URI.create("http://any"));
         assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
-        assertThat(dataFlow.isTrackable()).isEqualTo(request.isTrackable());
         assertThat(dataFlow.getState()).isEqualTo(RECEIVED.code());
+
+        verifyNoInteractions(authorizationService);
+    }
+
+    @Test
+    void initiatePullDataFlow() {
+
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        var request = DataFlowStartMessage.Builder.newInstance()
+                .id("1")
+                .processId("1")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .callbackAddress(URI.create("http://any"))
+                .properties(Map.of("key", "value"))
+                .flowType(FlowType.PULL)
+                .build();
+
+        when(authorizationService.createEndpointDataReference(request)).thenReturn(Result.success(dataAddress));
+
+        var result = manager.start(request);
+
+        assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isEqualTo(dataAddress);
+
+        var captor = ArgumentCaptor.forClass(DataFlow.class);
+        verify(store).save(captor.capture());
+        var dataFlow = captor.getValue();
+        assertThat(dataFlow.getId()).isEqualTo(request.getProcessId());
+        assertThat(dataFlow.getSource()).isSameAs(request.getSourceDataAddress());
+        assertThat(dataFlow.getDestination()).isSameAs(request.getDestinationDataAddress());
+        assertThat(dataFlow.getCallbackAddress()).isEqualTo(URI.create("http://any"));
+        assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
+        assertThat(dataFlow.getState()).isEqualTo(STARTED.code());
+    }
+
+    @Test
+    void initiatePullDataFlow_shouldFail_whenEdrCreationFails() {
+        var request = DataFlowStartMessage.Builder.newInstance()
+                .id("1")
+                .processId("1")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .callbackAddress(URI.create("http://any"))
+                .properties(Map.of("key", "value"))
+                .flowType(FlowType.PULL)
+                .build();
+
+        when(authorizationService.createEndpointDataReference(request)).thenReturn(Result.failure("failure"));
+
+        var result = manager.start(request);
+
+        assertThat(result).isFailed().detail().contains("failure");
+
+        verifyNoInteractions(store);
     }
 
     @Test
@@ -123,6 +184,20 @@ class DataPlaneManagerImplTest {
 
         assertThat(result).isSucceeded();
         verify(store).save(argThat(d -> d.getState() == TERMINATED.code()));
+        verify(transferService).terminate(dataFlow);
+    }
+
+    @Test
+    void terminate_shouldTerminateDataFlow_withReason() {
+        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+        when(registry.resolveTransferService(any())).thenReturn(transferService);
+        when(transferService.terminate(any())).thenReturn(StreamResult.success());
+
+        var result = manager.terminate("dataFlowId", "test-reason");
+
+        assertThat(result).isSucceeded();
+        verify(store).save(argThat(d -> d.getState() == TERMINATED.code() && d.getProperties().get(TERMINATION_REASON).equals("test-reason")));
         verify(transferService).terminate(dataFlow);
     }
 
@@ -175,6 +250,111 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
+    void terminate_shouldStillTerminate_whenDataFlowHasNoSource() {
+        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+        when(registry.resolveTransferService(any())).thenReturn(transferService);
+        when(transferService.terminate(any())).thenReturn(StreamResult.notFound());
+
+        var result = manager.terminate("dataFlowId", "test-reason");
+
+        assertThat(result).isSucceeded();
+        verify(store).save(argThat(f -> f.getProperties().containsKey(TERMINATION_REASON)));
+    }
+
+    @Nested
+    class Suspend {
+        @Test
+        void shouldSuspendDataFlow() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.success());
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(d -> d.getState() == SUSPENDED.code()));
+            verify(transferService).terminate(dataFlow);
+        }
+
+        @Test
+        void shouldSuspendDataFlow_withReason() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.success());
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(d -> d.getState() == SUSPENDED.code()));
+            verify(transferService).terminate(dataFlow);
+        }
+
+        @Test
+        void shouldReturnFatalError_whenDataFlowDoesNotExist() {
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.notFound("not found"));
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            verify(store, never()).save(any());
+            verifyNoInteractions(transferService);
+        }
+
+        @Test
+        void shouldReturnRetryError_whenEntityCannotBeLeased() {
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.alreadyLeased("already leased"));
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(ERROR_RETRY);
+            verify(store, never()).save(any());
+            verifyNoInteractions(transferService);
+        }
+
+        @Test
+        void shouldReturnFatalError_whenTransferServiceNotFound() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(null);
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            verify(store, never()).save(any());
+            verifyNoInteractions(transferService);
+        }
+
+        @Test
+        void shouldReturnFatalError_whenDataFlowCannotBeSuspended() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.error("cannot be suspended"));
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            verify(store, never()).save(any());
+        }
+
+        @Test
+        void shouldStillSuspend_whenDataFlowHasNoSource() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.notFound());
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(f -> f.getState() == SUSPENDED.code()));
+        }
+    }
+
+    @Test
     void received_shouldStartTransferTransitionAndTransitionToStarted() {
         var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
         when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
@@ -186,7 +366,7 @@ class DataPlaneManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(transferService).transfer(isA(DataFlowStartMessage.class));
             verify(store).save(argThat(it -> it.getState() == STARTED.code()));
         });
     }
@@ -203,7 +383,7 @@ class DataPlaneManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(transferService).transfer(isA(DataFlowStartMessage.class));
             verify(store, atLeastOnce()).save(argThat(it -> it.getState() == COMPLETED.code()));
         });
     }
@@ -221,7 +401,7 @@ class DataPlaneManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(transferService).transfer(isA(DataFlowStartMessage.class));
             verify(store, never()).save(argThat(it -> it.getState() == COMPLETED.code()));
         });
     }
@@ -238,7 +418,7 @@ class DataPlaneManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(transferService).transfer(isA(DataFlowStartMessage.class));
             verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code() && it.getErrorDetail().equals("an error")));
         });
     }
@@ -255,7 +435,7 @@ class DataPlaneManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(transferService).transfer(isA(DataFlowStartMessage.class));
             verify(store, atLeastOnce()).save(argThat(it -> it.getState() == RECEIVED.code()));
         });
     }
@@ -340,7 +520,7 @@ class DataPlaneManagerImplTest {
                 .source(DataAddress.Builder.newInstance().type("source").build())
                 .destination(DataAddress.Builder.newInstance().type("destination").build())
                 .callbackAddress(URI.create("http://any"))
-                .trackable(true)
+                .flowType(FlowType.PUSH)
                 .properties(Map.of("key", "value"));
     }
 
@@ -348,8 +528,8 @@ class DataPlaneManagerImplTest {
         return aryEq(new Criterion[]{ hasState(state) });
     }
 
-    private DataFlowRequest createRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage createRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id("1")
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())

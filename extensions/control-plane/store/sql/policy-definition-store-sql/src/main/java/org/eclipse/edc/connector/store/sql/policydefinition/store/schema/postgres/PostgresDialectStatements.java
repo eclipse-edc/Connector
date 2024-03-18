@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.store.sql.policydefinition.store.schema.postgr
 import org.eclipse.edc.connector.store.sql.policydefinition.store.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
@@ -34,6 +35,10 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
     private static final String PRIVATE_PROPERTIES = "privateProperties.";
     private static final String SELECT_QUERY = "SELECT * FROM %s";
 
+    public PostgresDialectStatements() {
+        super(new PostgresqlOperatorTranslator());
+    }
+
     @Override
     public String getFormatAsJsonOperator() {
         return PostgresDialect.getJsonCastOperator();
@@ -43,19 +48,19 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         if (querySpec.containsAnyLeftOperand("policy.prohibitions")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getProhibitionsColumn(), PROHIBITIONS_ALIAS);
-            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
+            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this), operatorTranslator);
         } else if (querySpec.containsAnyLeftOperand("policy.permissions")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getPermissionsColumn(), PERMISSIONS_ALIAS);
-            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
+            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this), operatorTranslator);
         } else if (querySpec.containsAnyLeftOperand("policy.obligations")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getDutiesColumn(), OBLIGATIONS_ALIAS);
-            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
+            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this), operatorTranslator);
         } else if (querySpec.containsAnyLeftOperand("policy.extensibleProperties")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getExtensiblePropertiesColumn(), EXT_PROPERTIES_ALIAS);
-            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
+            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this), operatorTranslator);
         } else if (querySpec.containsAnyLeftOperand(PRIVATE_PROPERTIES)) {
             var select = format(SELECT_QUERY, getPolicyTable());
-            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
+            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this), operatorTranslator);
         } else {
             return super.createQuery(querySpec);
         }

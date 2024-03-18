@@ -16,9 +16,13 @@ package org.eclipse.edc.connector.dataplane.store.sql.schema.postgres;
 
 import org.eclipse.edc.connector.dataplane.store.sql.schema.BaseSqlDataPlaneStatements;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 
 public class PostgresDataPlaneStatements extends BaseSqlDataPlaneStatements {
 
+    public PostgresDataPlaneStatements() {
+        super(new PostgresqlOperatorTranslator());
+    }
 
     @Override
     public String getFormatAsJsonOperator() {

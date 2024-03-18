@@ -21,7 +21,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.validator.dataaddress.kafka.KafkaDataAddressValidator;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
@@ -38,27 +38,29 @@ public class KafkaDataSinkFactory implements DataSinkFactory {
     private final Monitor monitor;
     private final KafkaPropertiesFactory propertiesFactory;
     private final Validator<DataAddress> validation;
+    private final int partitionSize;
 
-    public KafkaDataSinkFactory(ExecutorService executorService, Monitor monitor, KafkaPropertiesFactory propertiesFactory) {
+    public KafkaDataSinkFactory(ExecutorService executorService, Monitor monitor, KafkaPropertiesFactory propertiesFactory, int partitionSize) {
         this.executorService = executorService;
         this.monitor = monitor;
         this.propertiesFactory = propertiesFactory;
         this.validation = new KafkaDataAddressValidator();
+        this.partitionSize = partitionSize;
     }
 
     @Override
-    public boolean canHandle(DataFlowRequest dataRequest) {
+    public boolean canHandle(DataFlowStartMessage dataRequest) {
         return KAFKA_TYPE.equalsIgnoreCase(dataRequest.getDestinationDataAddress().getType());
     }
 
     @Override
-    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
+    public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
         var destination = request.getDestinationDataAddress();
         return validation.validate(destination).flatMap(ValidationResult::toResult);
     }
 
     @Override
-    public DataSink createSink(DataFlowRequest request) {
+    public DataSink createSink(DataFlowStartMessage request) {
         var validationResult = validateRequest(request);
         if (validationResult.failed()) {
             throw new EdcException(validationResult.getFailureDetail());
@@ -73,6 +75,7 @@ public class KafkaDataSinkFactory implements DataSinkFactory {
                 .requestId(request.getId())
                 .topic(destination.getStringProperty(TOPIC))
                 .producerProperties(producerProps)
+                .partitionSize(partitionSize)
                 .executorService(executorService)
                 .build();
     }

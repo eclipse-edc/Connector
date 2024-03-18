@@ -181,6 +181,15 @@ public interface TransferProcessListener {
     }
 
     /**
+     * Called after a {@link TransferProcess} was suspended.
+     *
+     * @param process the transfer process that has been suspended.
+     */
+    default void suspended(TransferProcess process) {
+
+    }
+
+    /**
      * Called after an asynchronous deprovisioning for a {@link TransferProcess} was requested.
      *
      * @param process the transfer process that has been requested for deprovisioning.

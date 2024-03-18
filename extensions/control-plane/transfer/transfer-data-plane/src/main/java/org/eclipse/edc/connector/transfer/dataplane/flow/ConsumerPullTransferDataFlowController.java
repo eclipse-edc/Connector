@@ -31,10 +31,11 @@ import java.util.Set;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
-import static org.eclipse.edc.connector.transfer.spi.flow.FlowType.PULL;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.response.StatusResult.failure;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
 
+@Deprecated(since = "0.5.1")
 public class ConsumerPullTransferDataFlowController implements DataFlowController {
 
     private final DataPlaneSelectorService selectorService;
@@ -55,7 +56,7 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     }
 
     @Override
-    public @NotNull StatusResult<DataFlowResponse> initiateFlow(TransferProcess transferProcess, Policy policy) {
+    public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
         var contentAddress = transferProcess.getContentDataAddress();
         var dataRequest = transferProcess.getDataRequest();
 
@@ -67,15 +68,9 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
                 .orElse(failure(FATAL_ERROR, format("Failed to find DataPlaneInstance for source/destination: %s/%s", contentAddress.getType(), HTTP_PROXY)));
     }
 
-    // Shim translation from "Http-PULL" to HttpProxy dataAddress
-    private DataAddress destinationAddress(DataRequest dataRequest) {
-        if (transferTypes.contains(dataRequest.getDestinationType())) {
-            var dadBuilder = DataAddress.Builder.newInstance();
-            dataRequest.getDataDestination().getProperties().forEach(dadBuilder::property);
-            return dadBuilder.type(HTTP_PROXY).build();
-        } else {
-            return dataRequest.getDataDestination();
-        }
+    @Override
+    public StatusResult<Void> suspend(TransferProcess transferProcess) {
+        throw new RuntimeException("not implemented");
     }
 
     @Override
@@ -86,6 +81,17 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     @Override
     public Set<String> transferTypesFor(Asset asset) {
         return transferTypes;
+    }
+
+    // Shim translation from "Http-PULL" to HttpProxy dataAddress
+    private DataAddress destinationAddress(DataRequest dataRequest) {
+        if (transferTypes.contains(dataRequest.getDestinationType())) {
+            var dadBuilder = DataAddress.Builder.newInstance();
+            dataRequest.getDataDestination().getProperties().forEach(dadBuilder::property);
+            return dadBuilder.type(HTTP_PROXY).build();
+        } else {
+            return dataRequest.getDataDestination();
+        }
     }
 
     private DataFlowResponse toResponse(DataAddress address) {

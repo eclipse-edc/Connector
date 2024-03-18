@@ -15,11 +15,18 @@
 package org.eclipse.edc.connector.policy.monitor.store.sql.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
 
 public class BaseSqlPolicyMonitorStatements implements PolicyMonitorStatements {
+
+    protected final SqlOperatorTranslator operatorTranslator;
+
+    public BaseSqlPolicyMonitorStatements(SqlOperatorTranslator operatorTranslator) {
+        this.operatorTranslator = operatorTranslator;
+    }
 
     @Override
     public String getInsertTemplate() {
@@ -56,7 +63,7 @@ public class BaseSqlPolicyMonitorStatements implements PolicyMonitorStatements {
 
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
-        return new SqlQueryStatement(getSelectTemplate(), querySpec, new PolicyMonitorMapping(this));
+        return new SqlQueryStatement(getSelectTemplate(), querySpec, new PolicyMonitorMapping(this), operatorTranslator);
     }
 
     @Override

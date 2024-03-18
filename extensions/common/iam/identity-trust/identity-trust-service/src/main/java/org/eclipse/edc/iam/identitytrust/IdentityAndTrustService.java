@@ -14,16 +14,15 @@
 
 package org.eclipse.edc.iam.identitytrust;
 
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsNotExpired;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsRevoked;
+import org.eclipse.edc.identitytrust.ClaimTokenCreatorFunction;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.CredentialServiceUrlResolver;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
-import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
@@ -38,7 +37,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -50,7 +48,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
@@ -75,13 +73,13 @@ public class IdentityAndTrustService implements IdentityService {
     private static final String SCOPE_STRING_REGEX = "(.+):(.+):(read|write|\\*)";
     private final SecureTokenService secureTokenService;
     private final String myOwnDid;
-    private final String participantId;
     private final PresentationVerifier presentationVerifier;
     private final CredentialServiceClient credentialServiceClient;
     private final Function<TokenRepresentation, Result<ClaimToken>> tokenValidationAction;
     private final TrustedIssuerRegistry trustedIssuerRegistry;
     private final Clock clock;
     private final CredentialServiceUrlResolver credentialServiceUrlResolver;
+    private final ClaimTokenCreatorFunction claimTokenCreatorFunction;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -89,19 +87,19 @@ public class IdentityAndTrustService implements IdentityService {
      * @param secureTokenService Instance of an STS, which can create SI tokens
      * @param myOwnDid           The DID which belongs to "this connector"
      */
-    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, String participantId,
+    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid,
                                    PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
                                    TokenValidationAction tokenValidationAction,
-                                   TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver) {
+                                   TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver, ClaimTokenCreatorFunction claimTokenCreatorFunction) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
-        this.participantId = participantId;
         this.presentationVerifier = presentationVerifier;
         this.credentialServiceClient = credentialServiceClient;
         this.tokenValidationAction = tokenValidationAction;
         this.trustedIssuerRegistry = trustedIssuerRegistry;
         this.clock = clock;
         this.credentialServiceUrlResolver = csUrlResolver;
+        this.claimTokenCreatorFunction = claimTokenCreatorFunction;
     }
 
     @Override
@@ -125,17 +123,15 @@ public class IdentityAndTrustService implements IdentityService {
         parameters.getClaims().forEach((k, v) -> claims.replace(k, v.toString()));
 
         claims.putAll(Map.of(
-                "iss", myOwnDid,
-                "sub", myOwnDid,
-                "aud", parameters.getStringClaim(AUDIENCE),
-                "client_id", participantId));
+                ISSUER, myOwnDid,
+                SUBJECT, myOwnDid,
+                AUDIENCE, parameters.getStringClaim(AUDIENCE)));
 
         return secureTokenService.createToken(claims, scope);
     }
 
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
-
         var claimTokenResult = tokenValidationAction.apply(tokenRepresentation);
 
         if (claimTokenResult.failed()) {
@@ -144,23 +140,12 @@ public class IdentityAndTrustService implements IdentityService {
 
         // create our own SI token, to request the VPs
         var claimToken = claimTokenResult.getContent();
-        var accessToken = claimToken.getStringClaim(PRESENTATION_ACCESS_TOKEN_CLAIM);
+        var accessToken = claimToken.getStringClaim(PRESENTATION_TOKEN_CLAIM);
         var issuer = claimToken.getStringClaim(ISSUER);
-        var intendedAudience = claimToken.getStringClaim("client_id");
 
-        /* TODO: DEMO the scopes should be extracted elsewhere. replace this section!!############################*/
-        var scopes = new ArrayList<String>();
-        try {
-            var scope = SignedJWT.parse(accessToken).getJWTClaimsSet().getStringClaim("scope");
-            scopes.add(scope);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-        /* TODO: END DEMO ########################################################################################*/
-
-        var siTokenClaims = Map.of(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken,
+        var siTokenClaims = Map.of(PRESENTATION_TOKEN_CLAIM, accessToken,
                 ISSUED_AT, Instant.now().toString(),
-                AUDIENCE, intendedAudience,
+                AUDIENCE, issuer,
                 ISSUER, myOwnDid,
                 SUBJECT, myOwnDid,
                 EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).toString());
@@ -172,7 +157,7 @@ public class IdentityAndTrustService implements IdentityService {
 
         // get CS Url, execute VP request
         var vpResponse = credentialServiceUrlResolver.resolve(issuer)
-                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, scopes));
+                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, context.getScopes().stream().toList()));
 
         if (vpResponse.failed()) {
             return vpResponse.mapTo();
@@ -187,9 +172,9 @@ public class IdentityAndTrustService implements IdentityService {
         }).reduce(Result.success(), Result::merge);
         //todo: at this point we have established what the other participant's DID is, and that it's authentic
         // so we need to make sure that `iss == sub == DID`
-        return result.compose(u -> extractClaimToken(presentations.stream().map(p -> p.presentation().getCredentials().stream())
+        return result.compose(u -> claimTokenCreatorFunction.apply(presentations.stream().map(p -> p.presentation().getCredentials().stream())
                 .reduce(Stream.empty(), Stream::concat)
-                .toList(), intendedAudience));
+                .toList()));
     }
 
     @NotNull
@@ -204,21 +189,6 @@ public class IdentityAndTrustService implements IdentityService {
         filters.addAll(getAdditionalValidations());
         var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c)).reduce(Result::merge);
         return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
-    }
-
-
-    @NotNull
-    private Result<ClaimToken> extractClaimToken(List<VerifiableCredential> credentials, String issuer) {
-        if (credentials.isEmpty()) {
-            return failure("No VerifiableCredentials were found on VP");
-        }
-        var b = ClaimToken.Builder.newInstance();
-        credentials.stream().flatMap(vc -> vc.getCredentialSubject().stream())
-                .map(CredentialSubject::getClaims)
-                .forEach(claimSet -> claimSet.forEach(b::claim));
-
-        b.claim("client_id", issuer);
-        return success(b.build());
     }
 
     private Collection<? extends CredentialValidationRule> getAdditionalValidations() {

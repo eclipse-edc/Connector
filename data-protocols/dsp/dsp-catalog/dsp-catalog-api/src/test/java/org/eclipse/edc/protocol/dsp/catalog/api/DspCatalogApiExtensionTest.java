@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.api;
 
+import org.eclipse.edc.connector.spi.protocol.ProtocolVersion;
+import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -24,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -31,10 +34,12 @@ import static org.mockito.Mockito.verify;
 class DspCatalogApiExtensionTest {
 
     private final JsonObjectValidatorRegistry validatorRegistry = mock();
+    private final ProtocolVersionRegistry versionRegistry = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(JsonObjectValidatorRegistry.class, validatorRegistry);
+        context.registerService(ProtocolVersionRegistry.class, versionRegistry);
     }
 
     @Test
@@ -42,5 +47,12 @@ class DspCatalogApiExtensionTest {
         extension.initialize(context);
 
         verify(validatorRegistry).register(eq(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE), any());
+    }
+
+    @Test
+    void shouldRegisterDspVersion(DspCatalogApiExtension extension, ServiceExtensionContext context) {
+        extension.initialize(context);
+
+        verify(versionRegistry).register(isA(ProtocolVersion.class));
     }
 }

@@ -18,9 +18,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,6 +33,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 
 /**
@@ -37,11 +42,13 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
  */
 public class DataFlow extends StatefulEntity<DataFlow> {
 
+    public static final String TERMINATION_REASON = "terminationReason";
     private DataAddress source;
     private DataAddress destination;
     private URI callbackAddress;
-    private boolean trackable;
-    private Map<String, String> properties = Map.of();
+    private Map<String, String> properties = new HashMap<>();
+
+    private FlowType flowType = FlowType.PULL;
 
     @Override
     public DataFlow copy() {
@@ -49,8 +56,8 @@ public class DataFlow extends StatefulEntity<DataFlow> {
                 .source(source)
                 .destination(destination)
                 .callbackAddress(callbackAddress)
-                .trackable(trackable)
-                .properties(properties);
+                .properties(properties)
+                .flowType(flowType);
 
         return copy(builder);
     }
@@ -72,24 +79,24 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         return callbackAddress;
     }
 
-    public boolean isTrackable() {
-        return trackable;
-    }
-
     public Map<String, String> getProperties() {
-        return properties;
+        return Collections.unmodifiableMap(properties);
     }
 
-    public DataFlowRequest toRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    public FlowType getFlowType() {
+        return flowType;
+    }
+
+    public DataFlowStartMessage toRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id(getId())
                 .sourceDataAddress(getSource())
                 .destinationDataAddress(getDestination())
                 .processId(getId())
                 .callbackAddress(getCallbackAddress())
                 .traceContext(traceContext)
-                .trackable(isTrackable())
                 .properties(getProperties())
+                .flowType(getFlowType())
                 .build();
     }
 
@@ -110,12 +117,19 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(NOTIFIED.code());
     }
 
-    public void transitToTerminated() {
+    public void transitToTerminated(@Nullable String reason) {
         transitionTo(TERMINATED.code());
+        if (reason != null) {
+            properties.put(TERMINATION_REASON, reason);
+        }
     }
 
     public void transitionToStarted() {
         transitionTo(STARTED.code());
+    }
+
+    public void transitToSuspended() {
+        transitionTo(SUSPENDED.code());
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -161,13 +175,13 @@ public class DataFlow extends StatefulEntity<DataFlow> {
             return this;
         }
 
-        public Builder trackable(boolean trackable) {
-            entity.trackable = trackable;
+        public Builder flowType(FlowType flowType) {
+            entity.flowType = flowType;
             return this;
         }
 
         public Builder properties(Map<String, String> properties) {
-            entity.properties = properties;
+            entity.properties = new HashMap<>(properties);
             return this;
         }
 

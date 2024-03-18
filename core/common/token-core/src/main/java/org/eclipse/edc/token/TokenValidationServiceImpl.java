@@ -30,10 +30,8 @@ import java.util.List;
 
 public class TokenValidationServiceImpl implements TokenValidationService {
 
-    private final CryptoConverter cryptoConverter;
 
     public TokenValidationServiceImpl() {
-        cryptoConverter = new CryptoConverter();
     }
 
     @Override
@@ -50,7 +48,7 @@ public class TokenValidationServiceImpl implements TokenValidationService {
                 return publicKeyResolutionResult.mapTo();
             }
 
-            var verifierCreationResult = cryptoConverter.createVerifierFor(publicKeyResolutionResult.getContent());
+            var verifierCreationResult = CryptoConverter.createVerifierFor(publicKeyResolutionResult.getContent());
 
             if (!signedJwt.verify(verifierCreationResult)) {
                 return Result.failure("Token verification failed");

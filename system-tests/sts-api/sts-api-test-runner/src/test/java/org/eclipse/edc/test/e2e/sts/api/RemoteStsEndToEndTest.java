@@ -37,8 +37,7 @@ import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
 import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
 import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
@@ -86,22 +85,20 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
                 .extracting(this::parseClaims)
                 .satisfies(claims -> {
                     assertThat(claims)
-                            .containsEntry(ISSUER, client.getId())
-                            .containsEntry(SUBJECT, client.getId())
+                            .containsEntry(ISSUER, client.getDid())
+                            .containsEntry(SUBJECT, client.getDid())
                             .containsEntry(AUDIENCE, List.of(audience))
-                            .containsEntry(CLIENT_ID, client.getClientId())
+                            .doesNotContainKey(CLIENT_ID)
                             .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
                 });
 
     }
 
-
     @Test
-    void requestToken_withBearerScopeAndAlias() {
+    void requestToken_withBearerScope() {
         var audience = "audience";
         var bearerAccessScope = "org.test.Member:read org.test.GoldMember:read";
-        var bearerAccessAlias = "alias";
-        var params = Map.of(AUDIENCE, audience, BEARER_ACCESS_ALIAS, bearerAccessAlias);
+        var params = Map.of(AUDIENCE, audience);
 
         var client = initClient(config.clientId(), config.clientSecret());
 
@@ -111,16 +108,16 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
                 .extracting(this::parseClaims)
                 .satisfies(claims -> {
                     assertThat(claims)
-                            .containsEntry(ISSUER, client.getId())
-                            .containsEntry(SUBJECT, client.getId())
+                            .containsEntry(ISSUER, client.getDid())
+                            .containsEntry(SUBJECT, client.getDid())
                             .containsEntry(AUDIENCE, List.of(audience))
-                            .containsEntry(CLIENT_ID, client.getClientId())
+                            .doesNotContainKey(CLIENT_ID)
                             .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
-                            .hasEntrySatisfying(PRESENTATION_ACCESS_TOKEN_CLAIM, (accessToken) -> {
+                            .hasEntrySatisfying(PRESENTATION_TOKEN_CLAIM, (accessToken) -> {
                                 assertThat(parseClaims((String) accessToken))
-                                        .containsEntry(ISSUER, client.getId())
-                                        .containsEntry(SUBJECT, bearerAccessAlias)
-                                        .containsEntry(AUDIENCE, List.of(client.getClientId()))
+                                        .containsEntry(ISSUER, client.getDid())
+                                        .containsEntry(SUBJECT, audience)
+                                        .containsEntry(AUDIENCE, List.of(client.getDid()))
                                         .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
 
                             });
@@ -134,7 +131,7 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
         var accessToken = "test_token";
         var params = Map.of(
                 AUDIENCE, audience,
-                PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken);
+                PRESENTATION_TOKEN_CLAIM, accessToken);
 
         var client = initClient(config.clientId(), config.clientSecret());
 
@@ -143,11 +140,11 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
                 .extracting(TokenRepresentation::getToken)
                 .extracting(this::parseClaims).satisfies(claims -> {
                     assertThat(claims)
-                            .containsEntry(ISSUER, client.getId())
-                            .containsEntry(SUBJECT, client.getId())
+                            .containsEntry(ISSUER, client.getDid())
+                            .containsEntry(SUBJECT, client.getDid())
                             .containsEntry(AUDIENCE, List.of(audience))
-                            .containsEntry(CLIENT_ID, client.getClientId())
-                            .containsEntry(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken)
+                            .doesNotContainKey(CLIENT_ID)
+                            .containsEntry(PRESENTATION_TOKEN_CLAIM, accessToken)
                             .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
                 });
     }

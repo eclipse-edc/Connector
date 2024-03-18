@@ -16,6 +16,8 @@ package org.eclipse.edc.connector.dataplane.http.params;
 
 import io.netty.handler.codec.http.HttpMethod;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -23,12 +25,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpMethod.POST;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions.formatRequestBodyAsString;
 
 class HttpRequestFactoryTest {
@@ -39,197 +41,197 @@ class HttpRequestFactoryTest {
 
     private final HttpRequestFactory paramsToRequest = new HttpRequestFactory();
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {"\\", "/"})
-    void verifyPathIgnoredWhenNullOrBlank(String p) {
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(HttpMethod.GET.name())
-                .path(p)
-                .build();
+    @Nested
+    class SourceSide {
 
-        var request = paramsToRequest.toRequest(params);
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = {"\\", "/"})
+        void verifyPathIgnoredWhenNullOrBlank(String p) {
+            var params = HttpRequestParams.Builder.newInstance()
+                    .baseUrl(BASE_URL)
+                    .method(HttpMethod.GET.name())
+                    .path(p)
+                    .build();
 
-        assertBaseUrl(request.url().url());
+            var request = paramsToRequest.toRequest(params);
+
+            assertBaseUrl(request.url().url());
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        void verifyQueryParamsIgnoredWhenNullOrBlank(String qp) {
+            var params = HttpRequestParams.Builder.newInstance()
+                    .baseUrl(BASE_URL)
+                    .method(HttpMethod.GET.name())
+                    .queryParams(qp)
+                    .build();
+
+            var request = paramsToRequest.toRequest(params);
+
+            assertBaseUrl(request.url().url());
+        }
+
+        @Test
+        void verifyHeaders() {
+            var headers = Map.of("key1", "value1");
+            var params = HttpRequestParams.Builder.newInstance()
+                    .baseUrl(BASE_URL)
+                    .method(HttpMethod.GET.name())
+                    .headers(headers)
+                    .build();
+
+            var request = paramsToRequest.toRequest(params);
+
+            assertThat(request.headers()).isNotNull();
+            headers.forEach((s, s2) -> assertThat(request.header(s)).isNotNull().isEqualTo(s2));
+        }
+
+        @Test
+        void verifyComplexUrl() {
+            var path = "testpath";
+            var queryParams = "test-queryparams";
+            var params = HttpRequestParams.Builder.newInstance()
+                    .baseUrl(BASE_URL)
+                    .method(HttpMethod.GET.name())
+                    .path(path)
+                    .queryParams(queryParams)
+                    .build();
+
+            var httpRequest = paramsToRequest.toRequest(params);
+
+            var url = httpRequest.url().url();
+            assertBaseUrl(url);
+            assertThat(url.getPath()).isEqualTo("/" + path);
+            assertThat(url.getQuery()).isEqualTo(queryParams);
+            assertThat(httpRequest.method()).isEqualTo(HttpMethod.GET.name());
+        }
+
+        @Test
+        void verifyDefaultContentTypeIsOctetStream() {
+            var body = "Test body";
+            var contentType = "application/octet-stream";
+            var params = HttpRequestParams.Builder.newInstance()
+                    .baseUrl(BASE_URL)
+                    .method(POST.name())
+                    .body(body)
+                    .build();
+
+            var request = paramsToRequest.toRequest(params);
+
+            var requestBody = request.body();
+            assertThat(requestBody).isNotNull();
+            assertThat(requestBody.contentType()).hasToString(contentType);
+        }
+
+        @Test
+        void verifyBodyFromParams() throws IOException {
+            var body = "Test body";
+            var contentType = "text/plain";
+            var params = HttpRequestParams.Builder.newInstance()
+                    .baseUrl(BASE_URL)
+                    .method(POST.name())
+                    .contentType(contentType)
+                    .body(body)
+                    .build();
+
+            var request = paramsToRequest.toRequest(params);
+
+            var requestBody = request.body();
+            assertThat(requestBody).isNotNull();
+            assertThat(requestBody.contentType()).hasToString(contentType);
+            assertThat(formatRequestBodyAsString(requestBody)).isEqualTo(body);
+        }
+
+        @Test
+        void verifyRequestBodyIsNullIfNoContentProvided() {
+            var contentType = "test/content-type";
+            var params = HttpRequestParams.Builder.newInstance()
+                    .baseUrl(BASE_URL)
+                    .method(HttpMethod.GET.name())
+                    .contentType(contentType)
+                    .build();
+
+            var request = paramsToRequest.toRequest(params);
+
+            var requestBody = request.body();
+            assertThat(requestBody).isNull();
+        }
+
+        private void assertBaseUrl(URL url) {
+            assertThat(url.getProtocol()).isEqualTo(SCHEME);
+            assertThat(url.getHost()).isEqualTo(HOST);
+        }
+
     }
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    void verifyQueryParamsIgnoredWhenNullOrBlank(String qp) {
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(HttpMethod.GET.name())
-                .queryParams(qp)
-                .build();
+    @Nested
+    class SinkSide {
 
-        var request = paramsToRequest.toRequest(params);
+        @Test
+        void verifyBodyFromMethodCall() throws IOException {
+            var body = "Test body";
+            var params = HttpRequestParams.Builder.newInstance()
+                    .baseUrl(BASE_URL)
+                    .method(POST.name())
+                    .contentType("application/json")
+                    .build();
 
-        assertBaseUrl(request.url().url());
-    }
+            var request = paramsToRequest.toRequest(params, new TestPart("application/xml", body));
 
-    @Test
-    void verifyHeaders() {
-        var headers = Map.of("key1", "value1");
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(HttpMethod.GET.name())
-                .headers(headers)
-                .build();
+            var requestBody = request.body();
+            assertThat(requestBody).isNotNull();
+            assertThat(requestBody.contentType()).hasToString("application/xml");
+            assertThat(formatRequestBodyAsString(requestBody)).isEqualTo(body);
+        }
 
-        var request = paramsToRequest.toRequest(params);
+        @Test
+        void verifyChunkedRequest() throws IOException {
+            var params = HttpRequestParams.Builder.newInstance()
+                    .baseUrl(BASE_URL)
+                    .method(POST.name())
+                    .nonChunkedTransfer(false)
+                    .build();
 
-        assertThat(request.headers()).isNotNull();
-        headers.forEach((s, s2) -> assertThat(request.header(s)).isNotNull().isEqualTo(s2));
-    }
+            var request = paramsToRequest.toRequest(params, new TestPart("application/octet-stream", "a body"));
 
-    @Test
-    void verifyComplexUrl() {
-        var path = "testpath";
-        var queryParams = "test-queryparams";
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(HttpMethod.GET.name())
-                .path(path)
-                .queryParams(queryParams)
-                .build();
+            var body = request.body();
+            assertThat(body).isNotNull();
+            assertThat(body.contentLength()).isEqualTo(-1);
+        }
 
-        var httpRequest = paramsToRequest.toRequest(params);
+        @Test
+        void verifyNotChunkedRequest() throws IOException {
+            var params = HttpRequestParams.Builder.newInstance()
+                    .baseUrl(BASE_URL)
+                    .method(POST.name())
+                    .nonChunkedTransfer(true)
+                    .build();
 
-        var url = httpRequest.url().url();
-        assertBaseUrl(url);
-        assertThat(url.getPath()).isEqualTo("/" + path);
-        assertThat(url.getQuery()).isEqualTo(queryParams);
-        assertThat(httpRequest.method()).isEqualTo(HttpMethod.GET.name());
-    }
+            var request = paramsToRequest.toRequest(params, new TestPart("application/octet-stream", "a body"));
 
-    @Test
-    void verifyDefaultContentTypeIsOctetStream() {
-        var body = "Test body";
-        var contentType = "application/octet-stream";
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(POST.name())
-                .body(body)
-                .build();
+            var body = request.body();
+            assertThat(body).isNotNull();
+            assertThat(body.contentLength()).isEqualTo(6);
+        }
 
-        var request = paramsToRequest.toRequest(params);
+        private record TestPart(String mediaType, String data) implements DataSource.Part {
 
-        var requestBody = request.body();
-        assertThat(requestBody).isNotNull();
-        assertThat(requestBody.contentType()).hasToString(contentType);
-    }
+            @Override
+            public String name() {
+                return "test";
+            }
 
-    @Test
-    void verifyBodyFromParams() throws IOException {
-        var body = "Test body";
-        var contentType = "text/plain";
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(POST.name())
-                .contentType(contentType)
-                .body(body)
-                .build();
+            @Override
+            public InputStream openStream() {
+                return new ByteArrayInputStream(data.getBytes());
+            }
 
-        var request = paramsToRequest.toRequest(params);
-
-        var requestBody = request.body();
-        assertThat(requestBody).isNotNull();
-        assertThat(requestBody.contentType()).hasToString(contentType);
-        assertThat(formatRequestBodyAsString(requestBody)).isEqualTo(body);
-    }
-
-
-    @Test
-    void verifyBodyFromMethodCall() throws IOException {
-        var body = "Test body";
-        var contentType = "application/json";
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(POST.name())
-                .contentType(contentType)
-                .build();
-
-        var request = paramsToRequest.toRequest(params, () -> new ByteArrayInputStream(body.getBytes()));
-
-        var requestBody = request.body();
-        assertThat(requestBody).isNotNull();
-        assertThat(requestBody.contentType()).hasToString(contentType);
-        assertThat(formatRequestBodyAsString(requestBody)).isEqualTo(body);
-    }
-
-    @Test
-    void verifyRequestBodyIsNullIfNoContentProvided() {
-        var contentType = "test/content-type";
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(HttpMethod.GET.name())
-                .contentType(contentType)
-                .build();
-
-        var request = paramsToRequest.toRequest(params);
-
-        var requestBody = request.body();
-        assertThat(requestBody).isNull();
-    }
-
-    @Test
-    void verifyExceptionThrownIfBaseUrlMissing() {
-        var builder = HttpRequestParams.Builder.newInstance().method(HttpMethod.GET.name());
-
-        assertThatNullPointerException().isThrownBy(builder::build);
-    }
-
-    @Test
-    void verifyExceptionThrownIfMethodMissing() {
-        var builder = HttpRequestParams.Builder.newInstance().baseUrl(BASE_URL);
-
-        assertThatNullPointerException().isThrownBy(builder::build);
-    }
-
-    @Test
-    void verifyExceptionIsRaisedIfContentTypeIsNull() {
-        var builder = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(POST.name())
-                .contentType(null)
-                .body("Test Body");
-
-        assertThatNullPointerException().isThrownBy(builder::build);
-    }
-
-    @Test
-    void verifyChunkedRequest() throws IOException {
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(POST.name())
-                .nonChunkedTransfer(false)
-                .build();
-
-        var request = paramsToRequest.toRequest(params, () -> new ByteArrayInputStream("a body".getBytes()));
-
-        var body = request.body();
-        assertThat(body).isNotNull();
-        assertThat(body.contentLength()).isEqualTo(-1);
-    }
-
-    @Test
-    void verifyNotChunkedRequest() throws IOException {
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(BASE_URL)
-                .method(POST.name())
-                .nonChunkedTransfer(true)
-                .build();
-
-        var request = paramsToRequest.toRequest(params, () -> new ByteArrayInputStream("a body".getBytes()));
-
-        var body = request.body();
-        assertThat(body).isNotNull();
-        assertThat(body.contentLength()).isEqualTo(6);
-    }
-
-    private void assertBaseUrl(URL url) {
-        assertThat(url.getProtocol()).isEqualTo(SCHEME);
-        assertThat(url.getHost()).isEqualTo(HOST);
+            @Override
+            public String mediaType() {
+                return mediaType;
+            }
+        }
     }
 }

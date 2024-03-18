@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.core.transform.TransformerContextImpl;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
+import org.eclipse.edc.core.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -67,7 +67,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
 
         assertThat(vc).isNotNull();
         assertThat(vc.getCredentialSubject()).isNotNull().hasSize(1);
-        assertThat(vc.getTypes()).hasSize(2);
+        assertThat(vc.getType()).hasSize(2);
         assertThat(vc.getDescription()).isNotNull();
         assertThat(vc.getName()).isNotNull();
         assertThat(vc.getCredentialStatus()).isNotNull();
@@ -83,7 +83,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
 
         assertThat(vc).isNotNull();
         assertThat(vc.getCredentialSubject()).isNotNull().hasSize(1);
-        assertThat(vc.getTypes()).hasSize(2);
+        assertThat(vc.getType()).hasSize(2);
         assertThat(vc.getDescription()).isNotNull();
         assertThat(vc.getName()).isNotNull();
         assertThat(vc.getCredentialStatus()).isNotNull();

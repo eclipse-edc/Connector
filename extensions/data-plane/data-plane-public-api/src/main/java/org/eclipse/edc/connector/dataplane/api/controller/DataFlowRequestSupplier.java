@@ -14,9 +14,10 @@
 
 package org.eclipse.edc.connector.dataplane.api.controller;
 
-import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSinkFactory;
+import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,29 +31,7 @@ import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSche
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 
-public class DataFlowRequestSupplier implements BiFunction<ContainerRequestContextApi, DataAddress, DataFlowRequest> {
-
-    /**
-     * Create a {@link DataFlowRequest} based on incoming request and claims decoded from the access token.
-     *
-     * @param contextApi  Api for accessing request properties.
-     * @param dataAddress Source data address.
-     * @return DataFlowRequest
-     */
-    @Override
-    public DataFlowRequest apply(ContainerRequestContextApi contextApi, DataAddress dataAddress) {
-        var props = createProps(contextApi);
-        return DataFlowRequest.Builder.newInstance()
-                .processId(UUID.randomUUID().toString())
-                .sourceDataAddress(dataAddress)
-                .destinationDataAddress(DataAddress.Builder.newInstance()
-                        .type(OutputStreamDataSinkFactory.TYPE)
-                        .build())
-                .trackable(false)
-                .id(UUID.randomUUID().toString())
-                .properties(props)
-                .build();
-    }
+public class DataFlowRequestSupplier implements BiFunction<ContainerRequestContextApi, DataAddress, DataFlowStartMessage> {
 
     /**
      * Put all properties of the incoming request (method, request body, query params...) into a map.
@@ -68,5 +47,27 @@ public class DataFlowRequestSupplier implements BiFunction<ContainerRequestConte
                     props.put(BODY, contextApi.body());
                 });
         return props;
+    }
+
+    /**
+     * Create a {@link DataFlowStartMessage} based on incoming request and claims decoded from the access token.
+     *
+     * @param contextApi  Api for accessing request properties.
+     * @param dataAddress Source data address.
+     * @return DataFlowRequest
+     */
+    @Override
+    public DataFlowStartMessage apply(ContainerRequestContextApi contextApi, DataAddress dataAddress) {
+        var props = createProps(contextApi);
+        return DataFlowStartMessage.Builder.newInstance()
+                .processId(UUID.randomUUID().toString())
+                .sourceDataAddress(dataAddress)
+                .flowType(FlowType.PULL)
+                .destinationDataAddress(DataAddress.Builder.newInstance()
+                        .type(AsyncStreamingDataSink.TYPE)
+                        .build())
+                .id(UUID.randomUUID().toString())
+                .properties(props)
+                .build();
     }
 }

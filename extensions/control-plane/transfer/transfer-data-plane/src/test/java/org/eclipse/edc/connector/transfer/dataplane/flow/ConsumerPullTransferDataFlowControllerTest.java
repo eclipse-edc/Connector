@@ -65,7 +65,7 @@ class ConsumerPullTransferDataFlowControllerTest {
         when(selectorService.select(any(), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
         when(resolver.toDataAddress(any(), any(), any())).thenReturn(Result.success(proxyAddress));
 
-        var result = flowController.initiateFlow(transferProcess, null);
+        var result = flowController.start(transferProcess, null);
 
         assertThat(result).isSucceeded().satisfies(response -> {
             assertThat(response.getDataAddress()).isEqualTo(proxyAddress);
@@ -85,7 +85,7 @@ class ConsumerPullTransferDataFlowControllerTest {
         when(selectorService.select(any(), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
         when(resolver.toDataAddress(any(), any(), any())).thenReturn(Result.success(proxyAddress));
 
-        var result = flowController.initiateFlow(transferProcess, null);
+        var result = flowController.start(transferProcess, null);
 
         assertThat(result).isSucceeded().satisfies(response -> {
             assertThat(response.getDataAddress()).isEqualTo(proxyAddress);
@@ -99,7 +99,7 @@ class ConsumerPullTransferDataFlowControllerTest {
                 .contentDataAddress(dataAddress())
                 .build();
 
-        var result = flowController.initiateFlow(transferProcess, null);
+        var result = flowController.start(transferProcess, null);
 
 
         assertThat(result).isFailed().extracting(Failure::getFailureDetail).asString()
@@ -118,7 +118,7 @@ class ConsumerPullTransferDataFlowControllerTest {
         when(selectorService.select(any(), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
         when(resolver.toDataAddress(any(), any(), any())).thenReturn(Result.failure(errorMsg));
 
-        var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
+        var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
         assertThat(result).isFailed().extracting(Failure::getFailureDetail).asString().contains(errorMsg);
     }

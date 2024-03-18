@@ -15,227 +15,241 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 
-@EndToEndTest
-public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTest {
-    public static final String TEST_ID = "test-id";
-    public static final String TEST_AP_ID = "ap1";
-    public static final String TEST_CP_ID = "cp1";
+public class ContractDefinitionApiEndToEndTest {
 
-    @Test
-    void queryContractDefinitions_noQuerySpec() {
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests implements InMemoryRuntime {
 
-        var contractDefStore = controlPlane.getContext().getService(ContractDefinitionStore.class);
-        contractDefStore.save(createContractDefinition().build());
+        InMemory() {
+            super(RUNTIME);
+        }
 
-        var body = baseRequest()
-                .contentType(JSON)
-                .post("/v2/contractdefinitions/request")
-                .then()
-                .statusCode(200)
-                .body("size()", greaterThan(0))
-                .extract().body().as(JsonArray.class);
-
-        var criteria = body.getJsonObject(0).getJsonArray("assetsSelector");
-        assertThat(criteria).hasSize(2);
     }
 
-    @Test
-    void queryPolicyDefinitionWithSimplePrivateProperties() {
-        var requestJson = createDefinitionBuilderWithPrivateProperties()
-                .build();
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests implements PostgresRuntime {
 
-        baseRequest()
-                .contentType(JSON)
-                .body(requestJson)
-                .post("/v2/contractdefinitions")
-                .then()
-                .statusCode(200)
-                .body("@id", equalTo(TEST_ID));
+        Postgres() {
+            super(RUNTIME);
+        }
 
+        @BeforeAll
+        static void beforeAll() {
+            PostgresqlEndToEndInstance.createDatabase("runtime");
+        }
 
-        var query = createSingleFilterQuery(
-                "privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
-                "=",
-                "newValue");
-
-        baseRequest()
-                .body(query)
-                .contentType(JSON)
-                .post("/v2/contractdefinitions/request")
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .body("size()", is(1));
-
-
-        query = createSingleFilterQuery(
-                "privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
-                "=",
-                "somethingElse");
-
-        baseRequest()
-                .body(query)
-                .contentType(JSON)
-                .post("/v2/contractdefinitions/request")
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .body("size()", is(0));
     }
 
-    @Test
-    void createContractDef() {
-        var defStore = controlPlane.getContext().getService(ContractDefinitionStore.class);
-        var requestJson = createDefinitionBuilder()
-                .build();
+    abstract static class Tests extends ManagementApiEndToEndTestBase {
 
-        baseRequest()
-                .contentType(JSON)
-                .body(requestJson)
-                .post("/v2/contractdefinitions")
-                .then()
-                .statusCode(200)
-                .body("@id", equalTo(TEST_ID));
+        Tests(EdcRuntimeExtension runtime) {
+            super(runtime);
+        }
 
-        assertThat(defStore.findAll(QuerySpec.none())).hasSize(1)
-                .allMatch(cd -> cd.getId().equals(TEST_ID));
-    }
+        @Test
+        void queryContractDefinitions_noQuerySpec() {
+            var contractDefStore = getContractDefinitionStore();
+            var id = UUID.randomUUID().toString();
+            contractDefStore.save(createContractDefinition(id).build());
 
-    @Test
-    void delete() {
-        var store = controlPlane.getContext().getService(ContractDefinitionStore.class);
-        var entity = createContractDefinition().build();
-        store.save(entity);
+            var body = baseRequest()
+                    .contentType(JSON)
+                    .post("/v2/contractdefinitions/request")
+                    .then()
+                    .statusCode(200)
+                    .body("size()", greaterThan(0))
+                    .extract().body().as(JsonArray.class);
 
-        baseRequest()
-                .delete("/v2/contractdefinitions/" + entity.getId())
-                .then()
-                .statusCode(204);
+            var assetsSelector = body.stream().map(JsonValue::asJsonObject)
+                    .filter(it -> it.getString(ID).equals(id))
+                    .map(it -> it.getJsonArray("assetsSelector"))
+                    .findAny();
 
-        assertThat(store.findAll(QuerySpec.none())).isEmpty();
-    }
+            assertThat(assetsSelector).isPresent().get().asInstanceOf(LIST).hasSize(2);
+        }
 
-    @Test
-    void update_whenExists() {
-        var store = controlPlane.getContext().getService(ContractDefinitionStore.class);
-        var entity = createContractDefinition().build();
-        store.save(entity);
+        @Test
+        void queryPolicyDefinitionWithSimplePrivateProperties() {
+            var id = UUID.randomUUID().toString();
+            var requestJson = createDefinitionBuilder(id)
+                    .add("privateProperties", createObjectBuilder()
+                            .add("newKey", createObjectBuilder().add(ID, "newValue"))
+                            .build())
+                    .build();
 
-        var updated = createDefinitionBuilder()
-                .add("accessPolicyId", "new-policy")
-                .build();
+            baseRequest()
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v2/contractdefinitions")
+                    .then()
+                    .statusCode(200)
+                    .body("@id", equalTo(id));
 
-        baseRequest()
-                .contentType(JSON)
-                .body(updated)
-                .put("/v2/contractdefinitions")
-                .then()
-                .statusCode(204);
+            var matchingQuery = query(
+                    criterion("id", "=", id),
+                    criterion("privateProperties.'%snewKey'.@id".formatted(EDC_NAMESPACE), "=", "newValue")
+            );
 
-        var all = store.findAll(QuerySpec.none());
-        assertThat(all).hasSize(1)
-                .allSatisfy(cd -> assertThat(cd.getAccessPolicyId()).isEqualTo("new-policy"));
-    }
+            baseRequest()
+                    .body(matchingQuery)
+                    .contentType(JSON)
+                    .post("/v2/contractdefinitions/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body("size()", is(1));
 
-    @Test
-    void update_whenNotExists() {
-        var store = controlPlane.getContext().getService(ContractDefinitionStore.class);
-        // nothing is saved in the store, so the update will fail
 
-        var updated = createDefinitionBuilder()
-                .add("accessPolicyId", "new-policy")
-                .build();
+            var nonMatchingQuery = query(
+                    criterion("id", "=", id),
+                    criterion("privateProperties.'%snewKey'.@id".formatted(EDC_NAMESPACE), "=", "anything-else")
+            );
 
-        baseRequest()
-                .contentType(JSON)
-                .body(updated)
-                .put("/v2/contractdefinitions")
-                .then()
-                .statusCode(404);
+            baseRequest()
+                    .body(nonMatchingQuery)
+                    .contentType(JSON)
+                    .post("/v2/contractdefinitions/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body("size()", is(0));
+        }
 
-        var all = store.findAll(QuerySpec.none());
-        assertThat(all).isEmpty();
-    }
+        @Test
+        void shouldCreateAndRetrieve() {
+            var id = UUID.randomUUID().toString();
+            var requestJson = createDefinitionBuilder(id)
+                    .build();
 
-    private JsonObjectBuilder createDefinitionBuilder() {
-        return createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
-                .add(ID, TEST_ID)
-                .add("accessPolicyId", TEST_AP_ID)
-                .add("contractPolicyId", TEST_CP_ID)
-                .add("assetsSelector", createArrayBuilder()
-                        .add(createCriterionBuilder("foo", "=", "bar"))
-                        .add(createCriterionBuilder("bar", "=", "baz")).build());
-    }
+            baseRequest()
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v2/contractdefinitions")
+                    .then()
+                    .statusCode(200)
+                    .body("@id", equalTo(id));
 
-    private JsonObjectBuilder createDefinitionBuilderWithPrivateProperties() {
-        return createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
-                .add(ID, TEST_ID)
-                .add("accessPolicyId", TEST_AP_ID)
-                .add("contractPolicyId", TEST_CP_ID)
-                .add("assetsSelector", createArrayBuilder()
-                        .add(createCriterionBuilder("foo", "=", "bar"))
-                        .add(createCriterionBuilder("bar", "=", "baz")).build())
-                .add("edc:privateProperties", createObjectBuilder()
-                        .add("newKey", "newValue")
-                        .build());
-    }
+            var actual = getContractDefinitionStore().findById(id);
 
-    private static JsonObjectBuilder createCriterionBuilder(String left, String operator, String right) {
-        return createObjectBuilder()
-                .add(TYPE, "Criterion")
-                .add("operandLeft", left)
-                .add("operator", operator)
-                .add("operandRight", right);
-    }
+            assertThat(actual.getId()).matches(id);
+        }
 
-    private ContractDefinition.Builder createContractDefinition() {
-        return ContractDefinition.Builder.newInstance()
-                .id(TEST_ID)
-                .accessPolicyId(TEST_AP_ID)
-                .contractPolicyId(TEST_CP_ID)
-                .assetsSelectorCriterion(criterion("foo", "=", "bar"))
-                .assetsSelectorCriterion(criterion("bar", "=", "baz"));
-    }
+        @Test
+        void delete() {
+            var id = UUID.randomUUID().toString();
+            var entity = createContractDefinition(id).build();
+            getContractDefinitionStore().save(entity);
 
-    private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
-        var criteria =
-                (createObjectBuilder()
-                        .add("operandLeft", leftOperand)
-                        .add("operator", operator)
-                        .add("operandRight", rightOperand)
-                );
+            baseRequest()
+                    .delete("/v2/contractdefinitions/" + id)
+                    .then()
+                    .statusCode(204);
 
-        return createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "QuerySpec")
-                .add("filterExpression", criteria)
-                .build();
+            var actual = getContractDefinitionStore().findById(id);
+
+            assertThat(actual).isNull();
+        }
+
+        @Test
+        void update_whenExists() {
+            var store = getContractDefinitionStore();
+            var id = UUID.randomUUID().toString();
+            var entity = createContractDefinition(id).build();
+            store.save(entity);
+
+            var updated = createDefinitionBuilder(id)
+                    .add("accessPolicyId", "new-policy")
+                    .build();
+
+            baseRequest()
+                    .contentType(JSON)
+                    .body(updated)
+                    .put("/v2/contractdefinitions")
+                    .then()
+                    .statusCode(204);
+
+            var actual = store.findById(id);
+
+            assertThat(actual.getAccessPolicyId()).isEqualTo("new-policy");
+        }
+
+        @Test
+        void update_whenNotExists() {
+            var updated = createDefinitionBuilder(UUID.randomUUID().toString())
+                    .add("accessPolicyId", "new-policy")
+                    .build();
+
+            baseRequest()
+                    .contentType(JSON)
+                    .body(updated)
+                    .put("/v2/contractdefinitions")
+                    .then()
+                    .statusCode(404);
+        }
+
+        private ContractDefinitionStore getContractDefinitionStore() {
+            return runtime.getContext().getService(ContractDefinitionStore.class);
+        }
+
+        private JsonObjectBuilder createDefinitionBuilder(String id) {
+            return createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                    .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
+                    .add(ID, id)
+                    .add("accessPolicyId", UUID.randomUUID().toString())
+                    .add("contractPolicyId", UUID.randomUUID().toString())
+                    .add("assetsSelector", createArrayBuilder()
+                            .add(createCriterionBuilder("foo", "=", "bar"))
+                            .add(createCriterionBuilder("bar", "=", "baz")).build());
+        }
+
+        private JsonObjectBuilder createCriterionBuilder(String left, String operator, String right) {
+            return createObjectBuilder()
+                    .add(TYPE, "Criterion")
+                    .add("operandLeft", left)
+                    .add("operator", operator)
+                    .add("operandRight", right);
+        }
+
+        private ContractDefinition.Builder createContractDefinition(String id) {
+            return ContractDefinition.Builder.newInstance()
+                    .id(id)
+                    .accessPolicyId(UUID.randomUUID().toString())
+                    .contractPolicyId(UUID.randomUUID().toString())
+                    .assetsSelectorCriterion(criterion("foo", "=", "bar"))
+                    .assetsSelectorCriterion(criterion("bar", "=", "baz"));
+        }
     }
 
 }

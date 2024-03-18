@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.Base
 import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
@@ -30,16 +31,20 @@ import org.eclipse.edc.sql.translation.TranslationMapping;
  */
 public class PostgresDialectStatements extends BaseSqlDialectStatements {
 
+    public PostgresDialectStatements() {
+        super(new PostgresqlOperatorTranslator());
+    }
+
     @Override
     public SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec) {
         var selectStmt = getSelectNegotiationsTemplate();
-        return new SqlQueryStatement(selectStmt, querySpec, new ContractNegotiationMapping(this));
+        return new SqlQueryStatement(selectStmt, querySpec, new ContractNegotiationMapping(this), operatorTranslator);
     }
 
     @Override
     public SqlQueryStatement createAgreementsQuery(QuerySpec querySpec) {
         var selectStmt = getSelectFromAgreementsTemplate();
-        return new SqlQueryStatement(selectStmt, querySpec, new ContractAgreementMapping(this));
+        return new SqlQueryStatement(selectStmt, querySpec, new ContractAgreementMapping(this), operatorTranslator);
     }
 
     /**

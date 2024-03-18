@@ -15,9 +15,11 @@
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.protocol.dsp.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
@@ -56,6 +58,9 @@ class DspApiConfigurationExtensionTest {
         context.registerService(WebService.class, webService);
         context.registerService(WebServiceConfigurer.class, configurer);
         context.registerService(TypeManager.class, typeManager);
+        TypeTransformerRegistry typeTransformerRegistry = mock();
+        when(typeTransformerRegistry.forContext(any())).thenReturn(mock());
+        context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
 
         var webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
                 .contextAlias(CONTEXT_ALIAS)

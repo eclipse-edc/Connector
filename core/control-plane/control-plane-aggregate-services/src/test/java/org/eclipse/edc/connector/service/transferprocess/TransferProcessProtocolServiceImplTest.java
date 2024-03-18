@@ -17,8 +17,10 @@ package org.eclipse.edc.connector.service.transferprocess;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
@@ -29,12 +31,12 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionM
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.iam.VerificationContext;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -60,7 +62,9 @@ import org.mockito.ArgumentCaptor;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.service.transferprocess.TransferProcessProtocolServiceImpl.TRANSFER_PROCESS_REQUEST_SCOPE;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
@@ -69,12 +73,13 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
@@ -98,7 +103,8 @@ class TransferProcessProtocolServiceImplTest {
     private final ContractValidationService validationService = mock();
     private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final TransferProcessListener listener = mock();
-    private final IdentityService identityService = mock();
+    private final DataFlowManager dataFlowManager = mock();
+    private final ProtocolTokenValidator protocolTokenValidator = mock();
 
     private TransferProcessProtocolService service;
 
@@ -107,12 +113,13 @@ class TransferProcessProtocolServiceImplTest {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         service = new TransferProcessProtocolServiceImpl(store, transactionContext, negotiationStore, validationService,
-                identityService, dataAddressValidator, observable, mock(), mock(), mock());
+                protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock(), dataFlowManager);
+
     }
 
     @Test
     void notifyRequested_validAgreement_shouldInitiateTransfer() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var message = TransferRequestMessage.Builder.newInstance()
                 .consumerPid("consumerPid")
@@ -123,9 +130,9 @@ class TransferProcessProtocolServiceImplTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
+        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
 
         var result = service.notifyRequested(message, tokenRepresentation);
@@ -151,12 +158,12 @@ class TransferProcessProtocolServiceImplTest {
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
+        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
         when(store.findForCorrelationId(any())).thenReturn(transferProcess(REQUESTED, "transferProcessId"));
 
@@ -176,12 +183,12 @@ class TransferProcessProtocolServiceImplTest {
                 .contractId("agreementId")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(Result.failure("error"));
+        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
 
         var result = service.notifyRequested(message, tokenRepresentation);
@@ -193,7 +200,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyRequested_invalidDestination_shouldNotInitiateTransfer() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var message = TransferRequestMessage.Builder.newInstance()
                 .consumerPid("consumerPid")
@@ -203,7 +210,8 @@ class TransferProcessProtocolServiceImplTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
 
         var result = service.notifyRequested(message, tokenRepresentation);
@@ -215,7 +223,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyRequested_missingDestination_shouldInitiateTransfer() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var message = TransferRequestMessage.Builder.newInstance()
                 .consumerPid("consumerPid")
@@ -225,9 +233,9 @@ class TransferProcessProtocolServiceImplTest {
                 .callbackAddress("http://any")
                 .build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
+        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
 
         var result = service.notifyRequested(message, tokenRepresentation);
 
@@ -245,7 +253,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyStarted_shouldTransitionToStarted() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -256,11 +264,13 @@ class TransferProcessProtocolServiceImplTest {
                 .dataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .build();
         var agreement = contractAgreement();
+        var transferProcess = transferProcess(STARTED, "transferProcessId");
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess(REQUESTED, "transferProcessId")));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(store.findById("correlationId")).thenReturn(transferProcess);
+        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.success());
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
 
         var result = service.notifyStarted(message, tokenRepresentation);
 
@@ -272,14 +282,12 @@ class TransferProcessProtocolServiceImplTest {
         verify(store).save(argThat(t -> t.getState() == STARTED.code()));
         verify(listener).started(any(), startedDataCaptor.capture());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
-        var transferProcess = transferProcessCaptor.getValue();
-        assertThat(transferProcess.getCorrelationId()).isEqualTo(message.getProviderPid());
         assertThat(startedDataCaptor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());
     }
 
     @Test
     void notifyStarted_shouldReturnConflict_whenTransferCannotBeStarted() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
         var message = TransferStartMessage.Builder.newInstance()
@@ -291,10 +299,11 @@ class TransferProcessProtocolServiceImplTest {
                 .build();
         var agreement = contractAgreement();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(store.findById("correlationId")).thenReturn(transferProcess);
         when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.success());
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
 
         var result = service.notifyStarted(message, tokenRepresentation);
 
@@ -306,7 +315,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyStarted_shouldReturnBadRequest_whenCounterPartyUnauthorized() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -318,10 +327,12 @@ class TransferProcessProtocolServiceImplTest {
                 .build();
         var agreement = contractAgreement();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess(REQUESTED, "transferProcessId")));
+        var transferProcess = transferProcess(REQUESTED, "transferProcessId");
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(store.findById("correlationId")).thenReturn(transferProcess);
+        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.failure("error"));
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
         var result = service.notifyStarted(message, tokenRepresentation);
 
@@ -336,7 +347,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyCompleted_shouldTransitionToCompleted() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -346,11 +357,13 @@ class TransferProcessProtocolServiceImplTest {
                 .processId("correlationId")
                 .build();
         var agreement = contractAgreement();
+        var transferProcess = transferProcess(STARTED, "transferProcessId");
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess(STARTED, "transferProcessId")));
+        when(store.findById("correlationId")).thenReturn(transferProcess);
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.success());
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
 
         var result = service.notifyCompleted(message, tokenRepresentation);
 
@@ -363,7 +376,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyCompleted_shouldReturnConflict_whenStatusIsNotValid() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var transferProcess = transferProcess(REQUESTED, UUID.randomUUID().toString());
         var message = TransferCompletionMessage.Builder.newInstance()
@@ -375,10 +388,11 @@ class TransferProcessProtocolServiceImplTest {
                 .build();
         var agreement = contractAgreement();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(store.findById("correlationId")).thenReturn(transferProcess);
         when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.success());
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
 
         var result = service.notifyCompleted(message, tokenRepresentation);
 
@@ -390,7 +404,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyCompleted_shouldReturnBadRequest_whenCounterPartyUnauthorized() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -402,10 +416,12 @@ class TransferProcessProtocolServiceImplTest {
 
         var agreement = contractAgreement();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess(STARTED, "transferProcessId")));
+        var transferProcess = transferProcess(STARTED, "transferProcessId");
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(store.findById("correlationId")).thenReturn(transferProcess);
+        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.failure("error"));
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
         var result = service.notifyCompleted(message, tokenRepresentation);
 
@@ -418,9 +434,164 @@ class TransferProcessProtocolServiceImplTest {
 
     }
 
+    @Nested
+    class NotifySuspended {
+        @Test
+        void consumer_shouldTransitionToSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(CONSUMER).build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(t -> t.getState() == SUSPENDED.code()));
+            verify(listener).suspended(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void provider_shouldSuspendDataFlowAndTransitionToSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(PROVIDER).build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(t -> t.getState() == SUSPENDED.code()));
+            verify(listener).suspended(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void provider_shouldReturnConflict_whenDataFlowCannotBeSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(PROVIDER).build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store, times(1)).save(argThat(tp -> tp.getState() == STARTED.code()));
+        }
+
+        @Test
+        void shouldReturnConflict_whenTransferProcessCannotBeSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
+            var agreement = contractAgreement();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            // state didn't change
+            verify(store, times(1)).save(argThat(tp -> tp.getState() == DEPROVISIONING.code()));
+            verifyNoInteractions(listener);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenCounterPartyUnauthorized() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcess(TERMINATED, UUID.randomUUID().toString());
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result)
+                    .isFailed()
+                    .extracting(ServiceFailure::getReason)
+                    .isEqualTo(BAD_REQUEST);
+
+            verify(store, times(1)).save(any());
+
+        }
+    }
+
     @Test
     void notifyTerminated_shouldTransitionToTerminated() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -432,11 +603,13 @@ class TransferProcessProtocolServiceImplTest {
                 .reason("TestReason")
                 .build();
         var agreement = contractAgreement();
+        var transferProcess = transferProcess(STARTED, "transferProcessId");
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess(STARTED, "transferProcessId")));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(store.findById("correlationId")).thenReturn(transferProcess);
+        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.success());
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
         var result = service.notifyTerminated(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
@@ -448,7 +621,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyTerminated_shouldReturnConflict_whenTransferProcessCannotBeTerminated() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
         var agreement = contractAgreement();
@@ -462,10 +635,11 @@ class TransferProcessProtocolServiceImplTest {
                 .reason("TestReason")
                 .build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(store.findById("correlationId")).thenReturn(transferProcess);
         when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.success());
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
 
         var result = service.notifyTerminated(message, tokenRepresentation);
 
@@ -477,7 +651,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyTerminated_shouldReturnBadRequest_whenCounterPartyUnauthorized() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var agreement = contractAgreement();
         var transferProcess = transferProcess(TERMINATED, UUID.randomUUID().toString());
@@ -491,10 +665,11 @@ class TransferProcessProtocolServiceImplTest {
                 .reason("TestReason")
                 .build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(store.findById("correlationId")).thenReturn(transferProcess);
         when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.failure("error"));
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
         var result = service.notifyTerminated(message, tokenRepresentation);
 
@@ -509,16 +684,16 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void findById_shouldReturnTransferProcess_whenValidCounterParty() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var processId = "transferProcessId";
         var transferProcess = transferProcess(INITIAL, processId);
         var agreement = contractAgreement();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(processId)).thenReturn(transferProcess);
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.success());
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
 
         var result = service.findById(processId, tokenRepresentation);
 
@@ -529,10 +704,10 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void findById_shouldReturnNotFound_whenNegotiationNotFound() {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(any())).thenReturn(null);
 
         var result = service.findById("invalidId", tokenRepresentation);
@@ -547,14 +722,14 @@ class TransferProcessProtocolServiceImplTest {
     void findById_shouldReturnBadRequest_whenCounterPartyUnauthorized() {
         var processId = "transferProcessId";
         var transferProcess = transferProcess(INITIAL, processId);
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
         var agreement = contractAgreement();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(processId)).thenReturn(transferProcess);
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(claimToken, agreement)).thenReturn(Result.failure("error"));
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
         var result = service.findById(processId, tokenRepresentation);
 
@@ -567,10 +742,10 @@ class TransferProcessProtocolServiceImplTest {
     @ParameterizedTest
     @ArgumentsSource(NotifyArguments.class)
     <M extends RemoteMessage> void notify_shouldFail_whenTransferProcessNotFound(MethodCall<M> methodCall, M message) {
-        var claimToken = claimToken();
+        var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
         when(store.findByCorrelationIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
 
@@ -586,77 +761,16 @@ class TransferProcessProtocolServiceImplTest {
     <M extends RemoteMessage> void notify_shouldFail_whenTokenValidationFails(MethodCall<M> methodCall, M message) {
         var tokenRepresentation = tokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.failure("unauthorized"));
+        when(store.findById(any())).thenReturn(transferProcessBuilder().build());
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcessBuilder().build()));
+        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
         var result = methodCall.call(service, message, tokenRepresentation);
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         verify(store, never()).save(any());
         verifyNoInteractions(listener);
-    }
-
-
-    @Nested
-    class IdempotencyProcessStateReplication {
-
-        @ParameterizedTest
-        @ArgumentsSource(NotifyArguments.class)
-        <M extends ProcessRemoteMessage> void notify_shouldStoreReceivedMessageId(MethodCall<M> methodCall, M message,
-                                                                                  TransferProcess.Type type,
-                                                                                  TransferProcessStates currentState) {
-            var transferProcess = transferProcessBuilder().state(currentState.code()).type(type).build();
-            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class))).thenReturn(Result.success(claimToken()));
-            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-            when(validationService.validateAgreement(any(), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
-            when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
-
-            var result = methodCall.call(service, message, tokenRepresentation());
-
-            assertThat(result).isSucceeded();
-            var captor = ArgumentCaptor.forClass(TransferProcess.class);
-            verify(store).save(captor.capture());
-            var storedTransferProcess = captor.getValue();
-            assertThat(storedTransferProcess.getProtocolMessages().isAlreadyReceived(message.getId())).isTrue();
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(NotifyArguments.class)
-        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenAlreadyReceived(MethodCall<M> methodCall, M message,
-                                                                                             TransferProcess.Type type,
-                                                                                             TransferProcessStates currentState) {
-            var transferProcess = transferProcessBuilder().state(currentState.code()).type(type).build();
-            transferProcess.protocolMessageReceived(message.getId());
-            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class))).thenReturn(Result.success(claimToken()));
-            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-            when(validationService.validateAgreement(any(), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
-            when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
-
-            var result = methodCall.call(service, message, tokenRepresentation());
-
-            assertThat(result).isSucceeded();
-            verify(store, never()).save(any());
-            verifyNoInteractions(listener);
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(NotifyArguments.class)
-        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenFinalState(MethodCall<M> methodCall, M message,
-                                                                                        TransferProcess.Type type) {
-            var transferProcess = transferProcessBuilder().state(COMPLETED.code()).type(type).build();
-            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class))).thenReturn(Result.success(claimToken()));
-            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-            when(validationService.validateAgreement(any(), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
-            when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
-
-            var result = methodCall.call(service, message, tokenRepresentation());
-
-            assertThat(result).isSucceeded();
-            verify(store, never()).save(any());
-            verifyNoInteractions(listener);
-        }
     }
 
     private TransferProcess transferProcess(TransferProcessStates state, String id) {
@@ -671,10 +785,8 @@ class TransferProcessProtocolServiceImplTest {
                 .dataRequest(dataRequest());
     }
 
-    private ClaimToken claimToken() {
-        return ClaimToken.Builder.newInstance()
-                .claim("key", "value")
-                .build();
+    private ParticipantAgent participantAgent() {
+        return new ParticipantAgent(emptyMap(), emptyMap());
     }
 
     private TokenRepresentation tokenRepresentation() {
@@ -711,6 +823,7 @@ class TransferProcessProtocolServiceImplTest {
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             MethodCall<TransferStartMessage> started = TransferProcessProtocolService::notifyStarted;
             MethodCall<TransferCompletionMessage> completed = TransferProcessProtocolService::notifyCompleted;
+            MethodCall<TransferSuspensionMessage> suspended = TransferProcessProtocolService::notifySuspended;
             MethodCall<TransferTerminationMessage> terminated = TransferProcessProtocolService::notifyTerminated;
             return Stream.of(
                     arguments(started,
@@ -721,6 +834,10 @@ class TransferProcessProtocolServiceImplTest {
                             build(TransferCompletionMessage.Builder.newInstance()),
                             CONSUMER, STARTED
                     ),
+                    arguments(suspended,
+                            build(TransferSuspensionMessage.Builder.newInstance().code("TestCode").reason("TestReason")),
+                            PROVIDER, STARTED
+                    ),
                     arguments(terminated,
                             build(TransferTerminationMessage.Builder.newInstance().code("TestCode").reason("TestReason")),
                             PROVIDER, STARTED
@@ -730,6 +847,73 @@ class TransferProcessProtocolServiceImplTest {
 
         private <M extends TransferRemoteMessage> M build(TransferRemoteMessage.Builder<M, ?> builder) {
             return builder.protocol("protocol").counterPartyAddress("http://any").processId("correlationId").build();
+        }
+    }
+
+    @Nested
+    class IdempotencyProcessStateReplication {
+
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldStoreReceivedMessageId(MethodCall<M> methodCall, M message,
+                                                                                  TransferProcess.Type type,
+                                                                                  TransferProcessStates currentState) {
+            var transferProcess = transferProcessBuilder().state(currentState.code()).type(type).build();
+            when(protocolTokenValidator.verify(any(), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent()));
+            when(store.findById(any())).thenReturn(transferProcess);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
+            when(validationService.validateRequest(any(ParticipantAgent.class), isA(ContractAgreement.class))).thenReturn(Result.success());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+
+            var result = methodCall.call(service, message, tokenRepresentation());
+
+            assertThat(result).isSucceeded();
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
+            verify(store).save(captor.capture());
+            var storedTransferProcess = captor.getValue();
+            assertThat(storedTransferProcess.getProtocolMessages().isAlreadyReceived(message.getId())).isTrue();
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenAlreadyReceived(MethodCall<M> methodCall, M message,
+                                                                                             TransferProcess.Type type,
+                                                                                             TransferProcessStates currentState) {
+            var transferProcess = transferProcessBuilder().state(currentState.code()).type(type).build();
+            transferProcess.protocolMessageReceived(message.getId());
+            when(protocolTokenValidator.verify(any(), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent()));
+            when(store.findById(any())).thenReturn(transferProcess);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
+            when(validationService.validateRequest(any(ParticipantAgent.class), isA(ContractAgreement.class))).thenReturn(Result.success());
+
+            var result = methodCall.call(service, message, tokenRepresentation());
+
+            assertThat(result).isSucceeded();
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenFinalState(MethodCall<M> methodCall, M message,
+                                                                                        TransferProcess.Type type) {
+            var transferProcess = transferProcessBuilder().state(COMPLETED.code()).type(type).build();
+            when(protocolTokenValidator.verify(any(), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent()));
+            when(store.findById(any())).thenReturn(transferProcess);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
+            when(validationService.validateRequest(any(ParticipantAgent.class), isA(ContractAgreement.class))).thenReturn(Result.success());
+
+            var result = methodCall.call(service, message, tokenRepresentation());
+
+            assertThat(result).isSucceeded();
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
         }
     }
 }

@@ -19,7 +19,9 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.entity.StateEntityManager;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Manages the execution of data plane requests.
@@ -30,17 +32,20 @@ public interface DataPlaneManager extends StateEntityManager {
     /**
      * Determines if the data flow request is valid and can be processed by this runtime.
      */
-    Result<Boolean> validate(DataFlowRequest dataRequest);
+    Result<Boolean> validate(DataFlowStartMessage dataRequest);
 
     /**
-     * Initiates a transfer for the data flow request. This method is non-blocking with respect to processing the request.
+     * Starts a transfer for the data flow request. This method is non-blocking with respect to processing the request.
+     *
+     * @param startMessage The {@link DataFlowStartMessage}
+     * @return success with the {@link DataFlowResponseMessage} if the request was correctly processed, failure otherwise
      */
-    void initiate(DataFlowRequest dataRequest);
+    Result<DataFlowResponseMessage> start(DataFlowStartMessage startMessage);
 
     /**
      * Returns the transfer state for the process.
      */
-    DataFlowStates transferState(String processId);
+    DataFlowStates getTransferState(String processId);
 
     /**
      * Terminate the data flow.
@@ -48,5 +53,24 @@ public interface DataPlaneManager extends StateEntityManager {
      * @param dataFlowId the data flow id.
      * @return success if data flow is terminated, failed otherwise.
      */
-    StatusResult<Void> terminate(String dataFlowId);
+    default StatusResult<Void> terminate(String dataFlowId) {
+        return terminate(dataFlowId, null);
+    }
+
+    /**
+     * Suspend the data flow.
+     *
+     * @param dataFlowId the data flow id.
+     * @return success if data flow is terminated, failed otherwise.
+     */
+    StatusResult<Void> suspend(String dataFlowId);
+
+    /**
+     * Terminate the data flow and specifies a reason.
+     *
+     * @param dataFlowId the data flow id.
+     * @param reason     the reason for the termination. May be null.
+     * @return success if data flow is terminated, failed otherwise.
+     */
+    StatusResult<Void> terminate(String dataFlowId, @Nullable String reason);
 }

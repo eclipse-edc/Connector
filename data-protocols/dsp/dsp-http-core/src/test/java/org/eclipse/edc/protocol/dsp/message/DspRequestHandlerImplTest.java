@@ -76,6 +76,20 @@ class DspRequestHandlerImplTest {
         }
 
         @Test
+        void shouldReturnUnauthorized_whenTokenIsNull() {
+            var request = getDspRequestBuilder().token(null).errorType("errorType").serviceCall((m, t) -> ServiceResult.success()).build();
+
+            var result = handler.getResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
+                assertThat(error.getString(TYPE)).isEqualTo("errorType");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
+                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+            });
+        }
+
+        @Test
         void shouldFail_whenTokenIsNotValid() {
             var request = getDspRequestBuilder().errorType("errorType").serviceCall((m, t) -> ServiceResult.unauthorized("unauthorized")).build();
 
@@ -149,6 +163,20 @@ class DspRequestHandlerImplTest {
             verify(transformerRegistry).transform(jsonMessage, TestProcessRemoteMessage.class);
             verify(message).setProtocol(DATASPACE_PROTOCOL_HTTP);
             verify(transformerRegistry).transform(content, JsonObject.class);
+        }
+
+        @Test
+        void shouldReturnUnauthorized_whenTokenIsNull() {
+            var request = postDspRequestBuilder().token(null).errorType("errorType").serviceCall((m, t) -> ServiceResult.success()).build();
+
+            var result = handler.createResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
+                assertThat(error.getString(TYPE)).isEqualTo("errorType");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
+                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+            });
         }
 
         @Test
@@ -268,6 +296,28 @@ class DspRequestHandlerImplTest {
             
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
+
+            var result = handler.updateResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
+                assertThat(error.getString(TYPE)).isEqualTo("errorType");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
+                assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
+                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+            });
+        }
+
+        @Test
+        void shouldReturnUnauthorized_whenTokenIsNull() {
+            var jsonMessage = Json.createObjectBuilder().build();
+            var request = postDspRequestBuilder()
+                    .token(null)
+                    .processId("processId")
+                    .errorType("errorType")
+                    .message(jsonMessage)
+                    .serviceCall((m, t) -> ServiceResult.unauthorized("unauthorized"))
+                    .build();
 
             var result = handler.updateResource(request);
 

@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
 
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
@@ -26,9 +28,12 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress.OCTET_STREAM;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.error;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 
@@ -43,6 +48,10 @@ public class HttpDataSource implements DataSource {
     private Monitor monitor;
     private EdcHttpClient httpClient;
     private HttpRequestFactory requestFactory;
+    private final AtomicReference<ResponseBodyStream> responseBodyStream = new AtomicReference<>();
+
+    private HttpDataSource() {
+    }
 
     @Override
     public StreamResult<Stream<Part>> openPartStream() {
@@ -56,7 +65,10 @@ public class HttpDataSource implements DataSource {
                 if (body == null) {
                     throw new EdcException(format("Received empty response body transferring HTTP data for request %s: %s", requestId, response.code()));
                 }
-                return success(Stream.of(new HttpPart(name, body.byteStream())));
+                var stream = body.byteStream();
+                responseBodyStream.set(new ResponseBodyStream(body, stream));
+                var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(OCTET_STREAM);
+                return success(Stream.of(new HttpPart(name, stream, mediaType)));
             } else {
                 try {
                     if (NOT_AUTHORIZED == response.code() || FORBIDDEN == response.code()) {
@@ -80,11 +92,20 @@ public class HttpDataSource implements DataSource {
 
     }
 
-    private HttpDataSource() {
-    }
-
     @Override
     public void close() {
+        var bodyStream = responseBodyStream.get();
+        if (bodyStream != null) {
+            bodyStream.responseBody().close();
+            try {
+                bodyStream.stream().close();
+            } catch (IOException e) {
+                // do nothing
+            }
+        }
+    }
+
+    private record ResponseBodyStream(ResponseBody responseBody, InputStream stream) {
 
     }
 
@@ -138,29 +159,4 @@ public class HttpDataSource implements DataSource {
         }
     }
 
-    private static class HttpPart implements Part {
-        private final String name;
-        private final InputStream content;
-
-        HttpPart(String name, InputStream content) {
-            this.name = name;
-            this.content = content;
-        }
-
-        @Override
-        public String name() {
-            return name;
-        }
-
-        @Override
-        public long size() {
-            return SIZE_UNKNOWN;
-        }
-
-        @Override
-        public InputStream openStream() {
-            return content;
-        }
-
-    }
 }

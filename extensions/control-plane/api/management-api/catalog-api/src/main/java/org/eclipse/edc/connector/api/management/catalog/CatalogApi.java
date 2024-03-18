@@ -153,8 +153,7 @@ public interface CatalogApi {
                                 }
                             },
                             "odrl:prohibition": [],
-                            "odrl:obligation": [],
-                            "odrl:target": "bcca61be-e82e-4da6-bfec-9716a56cef35"
+                            "odrl:obligation": []
                         },
                         "dcat:distribution": [
                             {
@@ -174,10 +173,10 @@ public interface CatalogApi {
                         "dct:terms": "connector",
                         "dct:endpointUrl": "http://localhost:16806/protocol"
                     },
-                    "participantId": "urn:connector:provider",
+                    "dspace:participantId": "urn:connector:provider",
                     "@context": {
                         "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-                        "dct": "https://purl.org/dc/terms/",
+                        "dct": "http://purl.org/dc/terms/",
                         "edc": "https://w3id.org/edc/v0.0.1/ns/",
                         "dcat": "http://www.w3.org/ns/dcat#",
                         "odrl": "http://www.w3.org/ns/odrl/2/",
@@ -238,7 +237,7 @@ public interface CatalogApi {
                     "id": "bcca61be-e82e-4da6-bfec-9716a56cef35",
                     "@context": {
                         "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-                        "dct": "https://purl.org/dc/terms/",
+                        "dct": "http://purl.org/dc/terms/",
                         "edc": "https://w3id.org/edc/v0.0.1/ns/",
                         "dcat": "http://www.w3.org/ns/dcat#",
                         "odrl": "http://www.w3.org/ns/odrl/2/",

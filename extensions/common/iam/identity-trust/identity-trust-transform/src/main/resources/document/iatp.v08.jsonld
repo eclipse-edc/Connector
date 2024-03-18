@@ -1,0 +1,127 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@protected": true,
+    "iatp": "https://w3id.org/tractusx-trust/v0.8/",
+    "cred": "https://www.w3.org/2018/credentials/",
+    "xsd": "http://www.w3.org/2001/XMLSchema/",
+    "CredentialContainer": {
+      "@id": "iatp:CredentialContainer",
+      "@context": {
+        "payload": {
+          "@id": "iatp:payload",
+          "@type": "xsd:string"
+        }
+      }
+    },
+    "CredentialMessage": {
+      "@id": "iatp:CredentialMessage",
+      "@context": {
+        "credentials": "iatp:credentials"
+      }
+    },
+    "CredentialObject": {
+      "@id": "iatp:CredentialObject",
+      "@context": {
+        "credentialType": {
+          "@id": "iatp:credentialType",
+          "@container": "@set"
+        },
+        "format": "iatp:format",
+        "offerReason": {
+          "@id": "iatp:offerReason",
+          "@type": "xsd:string"
+        },
+        "bindingMethods": {
+          "@id": "iatp:bindingMethods",
+          "@type": "xsd:string",
+          "@container": "@set"
+        },
+        "cryptographicSuites": {
+          "@id": "iatp:cryptographicSuites",
+          "@type": "xsd:string",
+          "@container": "@set"
+        },
+        "issuancePolicy": "iatp:issuancePolicy"
+      }
+    },
+    "CredentialOfferMessage": {
+      "@id": "iatp:CredentialOfferMessage",
+      "@context": {
+        "credentialIssuer": "cred:issuer",
+        "credentials": "iatp:credentials"
+      }
+    },
+    "CredentialRequestMessage": {
+      "@id": "iatp:CredentialRequestMessage",
+      "@context": {
+        "format": "iatp:format",
+        "type": "@type"
+      }
+    },
+    "CredentialService": "iatp:CredentialService",
+    "CredentialStatus": {
+      "@id": "iatp:CredentialStatus",
+      "@context": {
+        "requestId": {
+          "@id": "iatp:requestId",
+          "@type": "@id"
+        },
+        "status": {
+          "@id": "iatp:status",
+          "@type": "xsd:string"
+        }
+      }
+    },
+    "IssuerMetadata": {
+      "@id": "iatp:IssuerMetadata",
+      "@context": {
+        "credentialIssuer": "cred:issuer",
+        "credentialsSupported": {
+          "@id": "iatp:credentialsSupported",
+          "@container": "@set"
+        }
+      }
+    },
+    "PresentationQueryMessage": {
+      "@id": "iatp:PresentationQueryMessage",
+      "@context": {
+        "presentationDefinition": {
+          "@id": "iatp:presentationDefinition",
+          "@type": "@json"
+        },
+        "scope": {
+          "@id": "iatp:scope",
+          "@type": "xsd:string",
+          "@container": "@set"
+        }
+      }
+    },
+    "PresentationResponseMessage": {
+      "@id": "iatp:PresentationResponseMessage",
+      "@context": {
+        "presentation": {
+          "@id": "iatp:presentation",
+          "@type": "@json"
+        },
+        "presentationSubmission": {
+          "@id": "iatp:presentationSubmission",
+          "@type": "@json"
+        }
+      }
+    },
+    "credentials": {
+      "@id": "iatp:credentials",
+      "@container": "@set"
+    },
+    "credentialSubject": {
+      "@id": "iatp:credentialSubject",
+      "@type": "cred:credentialSubject"
+    },
+    "format": {
+      "@id": "iatp:format",
+      "@type": "xsd:string"
+    },
+    "type": "@type"
+  }
+}

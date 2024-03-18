@@ -32,7 +32,7 @@ public interface DataFlowController {
     /**
      * Returns true if the manager can handle the Transfer Process.
      *
-     * @param transferProcess    the TransferProcess
+     * @param transferProcess the TransferProcess
      * @return true if it can handle the TransferProcess, false otherwise.
      */
     boolean canHandle(TransferProcess transferProcess);
@@ -43,11 +43,19 @@ public interface DataFlowController {
      * <p>Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted, set {@link ResponseStatus#ERROR_RETRY} in the
      * response. If an exception occurs and re-tries should not be re-attempted, set {@link ResponseStatus#FATAL_ERROR} in the response. </p>
      *
-     * @param transferProcess    the transfer process
-     * @param policy             the contract agreement usage policy for the asset being transferred
+     * @param transferProcess the transfer process
+     * @param policy          the contract agreement usage policy for the asset being transferred
      */
     @NotNull
-    StatusResult<DataFlowResponse> initiateFlow(TransferProcess transferProcess, Policy policy);
+    StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy);
+
+    /**
+     * Suspend a data flow.
+     *
+     * @param transferProcess the transfer process.
+     * @return success if the flow is suspended correctly, failure otherwise;
+     */
+    StatusResult<Void> suspend(TransferProcess transferProcess);
 
     /**
      * Terminate a data flow.

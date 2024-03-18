@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
@@ -354,8 +355,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .consumerId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
-                .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), new TypeReference<>() {
-                }))
+                .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), Policy.class))
                 .build();
     }
 

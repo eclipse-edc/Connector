@@ -23,7 +23,7 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
@@ -47,14 +47,14 @@ class DataPlaneControlApiControllerTest extends RestControllerTestBase {
 
     @Test
     void should_callDataPlaneManager_if_requestIsValid() {
-        var flowRequest = DataFlowRequest.Builder.newInstance()
+        var flowRequest = DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(testDestAddress())
                 .destinationDataAddress(testDestAddress())
                 .build();
 
-        when(manager.validate(isA(DataFlowRequest.class))).thenReturn(Result.success(Boolean.TRUE));
+        when(manager.validate(isA(DataFlowStartMessage.class))).thenReturn(Result.success(Boolean.TRUE));
 
         baseRequest()
                 .contentType(ContentType.JSON)
@@ -63,20 +63,20 @@ class DataPlaneControlApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode());
 
-        verify(manager).initiate(isA(DataFlowRequest.class));
+        verify(manager).start(isA(DataFlowStartMessage.class));
     }
 
     @Test
     void should_returnBadRequest_if_requestIsInValid() {
         var errorMsg = "test error message";
-        var flowRequest = DataFlowRequest.Builder.newInstance()
+        var flowRequest = DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(testDestAddress())
                 .destinationDataAddress(testDestAddress())
                 .build();
 
-        when(manager.validate(isA(DataFlowRequest.class))).thenReturn(Result.failure(errorMsg));
+        when(manager.validate(isA(DataFlowStartMessage.class))).thenReturn(Result.failure(errorMsg));
 
         baseRequest()
                 .contentType(ContentType.JSON)
@@ -86,7 +86,7 @@ class DataPlaneControlApiControllerTest extends RestControllerTestBase {
                 .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .body("errors", CoreMatchers.equalTo(List.of(errorMsg)));
 
-        verify(manager, never()).initiate(any());
+        verify(manager, never()).start(any());
     }
 
     @Test

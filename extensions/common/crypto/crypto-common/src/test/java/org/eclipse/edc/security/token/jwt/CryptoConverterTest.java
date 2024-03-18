@@ -23,6 +23,7 @@ import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
@@ -95,7 +96,9 @@ class CryptoConverterTest {
     void createSignerFor_ecKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         var pk = createEc();
 
-        assertThat(CryptoConverter.createSignerFor(pk.getPrivate())).isInstanceOf(ECDSASigner.class);
+        var signer = CryptoConverter.createSignerFor(pk.getPrivate());
+        assertThat(signer).isInstanceOf(ECDSASigner.class);
+        assertThat(signer.getJCAContext().getProvider()).isEqualTo(BouncyCastleProviderSingleton.getInstance());
     }
 
     @Test
@@ -119,7 +122,9 @@ class CryptoConverterTest {
     @Test
     void createVerifierFor_ecKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         var pk = createEc().getPublic();
-        assertThat(CryptoConverter.createVerifierFor(pk)).isInstanceOf(ECDSAVerifier.class);
+        var verifier = CryptoConverter.createVerifierFor(pk);
+        assertThat(verifier).isInstanceOf(ECDSAVerifier.class);
+        assertThat(verifier.getJCAContext().getProvider()).isEqualTo(BouncyCastleProviderSingleton.getInstance());
     }
 
     @Test
@@ -135,7 +140,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void convertToJwk_rsaKey() throws NoSuchAlgorithmException {
+    void createJwk_rsaKey() throws NoSuchAlgorithmException {
         var pk = createRsa();
         var jwk = CryptoConverter.createJwk(pk);
         assertThat(jwk).isInstanceOf(RSAKey.class);
@@ -144,7 +149,16 @@ class CryptoConverterTest {
     }
 
     @Test
-    void convertToJwk_ecKey_fromPublic() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    void createJwk_rsaKey_withKeyId() throws NoSuchAlgorithmException {
+        var pk = createRsa();
+        var jwk = CryptoConverter.createJwk(pk, "test-key-id");
+        assertThat(jwk).isInstanceOf(RSAKey.class);
+        assertThat(jwk.isPrivate()).isTrue();
+        assertThat(jwk.getKeyID()).isEqualTo("test-key-id");
+    }
+
+    @Test
+    void createJwk_ecKey_fromPublic() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         var pk = createEc();
         var jwk = CryptoConverter.createJwk(new KeyPair(pk.getPublic(), null));
         assertThat(jwk).isInstanceOf(ECKey.class);
@@ -154,7 +168,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void convertToJwk_ecKey_fromPrivate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
+    void createJwk_ecKey_fromPrivate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
         var pk = createEc();
 
         var jwk2 = CryptoConverter.createJwk(new KeyPair(null, pk.getPrivate()));
@@ -165,7 +179,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void convertToJwk_ecKey_fromKeyPair() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
+    void createJwk_ecKey_fromKeyPair() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
         var pk = createEc();
         var jwk3 = CryptoConverter.createJwk(new KeyPair(pk.getPublic(), pk.getPrivate()));
         assertThat(jwk3).isInstanceOf(ECKey.class);
@@ -176,7 +190,18 @@ class CryptoConverterTest {
     }
 
     @Test
-    void convertToJwk_edDsaKey_fromPrivate_sunProvider() throws NoSuchAlgorithmException {
+    void createJwk_ecKey_fromKeyPair_withKeyId() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
+        var pk = createEc();
+        var jwk3 = CryptoConverter.createJwk(new KeyPair(pk.getPublic(), pk.getPrivate()), "test-kid");
+        assertThat(jwk3).isInstanceOf(ECKey.class);
+        assertThat(jwk3.isPrivate()).isTrue();
+        assertThat(jwk3.getKeyID()).isEqualTo("test-kid");
+        assertThat(KeyConverter.toJavaKeys(List.of(jwk3))).containsExactlyInAnyOrder(pk.getPublic(), pk.getPrivate());
+
+    }
+
+    @Test
+    void createJwk_edDsaKey_fromPrivate_sunProvider() throws NoSuchAlgorithmException {
         var kp = createEd25519(null);
         var jwk = CryptoConverter.createJwk(new KeyPair(null, kp.getPrivate()));
         assertThat(jwk).isInstanceOf(OctetKeyPair.class);
@@ -186,7 +211,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void convertToJwk_edDsaKey_fromPublic_sunProvider() throws NoSuchAlgorithmException {
+    void createJwk_edDsaKey_fromPublic_sunProvider() throws NoSuchAlgorithmException {
         var kp = createEd25519(null);
         var jwk = CryptoConverter.createJwk(new KeyPair(kp.getPublic(), null));
 
@@ -199,7 +224,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void convertToJwk_edDsaKey_sunProvider() throws NoSuchAlgorithmException {
+    void createJwk_edDsaKey_sunProvider() throws NoSuchAlgorithmException {
         var kp = createEd25519(null);
         var jwk = CryptoConverter.createJwk(new KeyPair(kp.getPublic(), kp.getPrivate()));
 
@@ -210,7 +235,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void convertToJwk_edDsaKey_fromPrivate_bouncyCastleProvider() throws NoSuchAlgorithmException {
+    void createJwk_edDsaKey_fromPrivate_bouncyCastleProvider() throws NoSuchAlgorithmException {
         var kp = createEd25519(new BouncyCastleProvider());
         var jwk = CryptoConverter.createJwk(new KeyPair(null, kp.getPrivate()));
         assertThat(jwk).isInstanceOf(OctetKeyPair.class);
@@ -220,7 +245,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void convertToJwk_edDsaKey_fromPublic_bouncyCastleProvider() throws NoSuchAlgorithmException {
+    void createJwk_edDsaKey_fromPublic_bouncyCastleProvider() throws NoSuchAlgorithmException {
         var kp = createEd25519(new BouncyCastleProvider());
         var jwk = CryptoConverter.createJwk(new KeyPair(kp.getPublic(), null));
 
@@ -233,7 +258,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void convertToJwk_edDsaKey_bouncyCastleProvider() throws NoSuchAlgorithmException {
+    void createJwk_edDsaKey_bouncyCastleProvider() throws NoSuchAlgorithmException {
         var kp = createEd25519(new BouncyCastleProvider());
         var jwk = CryptoConverter.createJwk(new KeyPair(kp.getPublic(), kp.getPrivate()));
 
@@ -243,6 +268,16 @@ class CryptoConverterTest {
         assertThat(jwk.getKeyID()).isNull();
     }
 
+    @Test
+    void createJwk_edDsaKey_withKeyId() throws NoSuchAlgorithmException {
+        var kp = createEd25519(null);
+        var jwk = CryptoConverter.createJwk(new KeyPair(kp.getPublic(), kp.getPrivate()), "test-key-id");
+
+        assertThat(jwk).isInstanceOf(OctetKeyPair.class);
+        assertThat(jwk.isPrivate()).isTrue();
+        assertThat(jwk.toPublicJWK()).isNotNull();
+        assertThat(jwk.getKeyID()).isEqualTo("test-key-id");
+    }
 
     @ParameterizedTest
     @ArgumentsSource(KeyProvider.class)

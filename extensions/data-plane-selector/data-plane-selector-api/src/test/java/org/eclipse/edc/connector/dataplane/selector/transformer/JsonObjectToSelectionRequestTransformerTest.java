@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.DEST_ADDRESS;
 import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.SOURCE_ADDRESS;
 import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.STRATEGY;
+import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.TRANSFER_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -59,7 +60,8 @@ class JsonObjectToSelectionRequestTransformerTest {
                         .add(TYPE, DataAddress.EDC_DATA_ADDRESS_TYPE)
                         .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, "test-type")
                         .add(DataAddress.EDC_DATA_ADDRESS_KEY_NAME, "test-key")
-                );
+                )
+                .add(TRANSFER_TYPE, "transfer-type");
         if (strategy != null) {
             builder.add(STRATEGY, strategy);
         }
@@ -70,6 +72,7 @@ class JsonObjectToSelectionRequestTransformerTest {
         assertThat(rq.getStrategy()).isEqualTo(strategy);
         assertThat(rq.getDestination()).isNotNull();
         assertThat(rq.getSource()).isNotNull();
+        assertThat(rq.getTransferType()).isEqualTo("transfer-type");
     }
 
 }

@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.store.sql.transferprocess.store.schema;
 
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgres.TransferProcessMapping;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
@@ -25,6 +26,12 @@ import static java.lang.String.format;
  * Postgres-specific variants and implementations of the statements required for the TransferProcessStore
  */
 public abstract class BaseSqlDialectStatements implements TransferProcessStoreStatements {
+
+    protected final SqlOperatorTranslator operatorTranslator;
+
+    protected BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator) {
+        this.operatorTranslator = operatorTranslator;
+    }
 
     @Override
     public String getDeleteLeaseTemplate() {
@@ -75,6 +82,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .column(getPendingColumn())
                 .column(getTransferTypeColumn())
                 .jsonColumn(getProtocolMessagesColumn())
+                .column(getDataPlaneIdColumn())
                 .insertInto(getTransferProcessTableName());
     }
 
@@ -100,6 +108,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .column(getPendingColumn())
                 .column(getTransferTypeColumn())
                 .jsonColumn(getProtocolMessagesColumn())
+                .column(getDataPlaneIdColumn())
                 .update(getTransferProcessTableName(), getIdColumn());
     }
 
@@ -138,7 +147,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
-        return new SqlQueryStatement(getSelectTemplate(), querySpec, new TransferProcessMapping(this));
+        return new SqlQueryStatement(getSelectTemplate(), querySpec, new TransferProcessMapping(this), operatorTranslator);
     }
 
 }
