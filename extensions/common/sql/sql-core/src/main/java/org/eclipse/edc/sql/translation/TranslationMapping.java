@@ -15,7 +15,7 @@
 package org.eclipse.edc.sql.translation;
 
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.types.PathItem;
+import org.eclipse.edc.util.reflection.PathItem;
 
 import java.util.HashMap;
 import java.util.List;

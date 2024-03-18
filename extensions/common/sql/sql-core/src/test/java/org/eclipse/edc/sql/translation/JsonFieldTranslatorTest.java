@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.sql.translation;
 
-import org.eclipse.edc.spi.types.PathItem;
+import org.eclipse.edc.util.reflection.PathItem;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
