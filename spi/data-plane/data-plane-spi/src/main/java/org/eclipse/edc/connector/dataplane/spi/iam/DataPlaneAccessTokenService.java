@@ -51,4 +51,14 @@ public interface DataPlaneAccessTokenService {
      * @return A {@link AccessTokenData} that contains the original claims and the data resource ({@link DataAddress}. If the token could not be restored, a failure is returned.
      */
     Result<AccessTokenData> resolve(String token);
+
+    /**
+     * Revokes the {@link AccessTokenData} associated with the id
+     *
+     * @param transferProcessId The id of the {@link AccessTokenData}
+     * @param reason            The reason for the revocation
+     * @return Success if revoked, failure otherwise
+     */
+    Result<Void> revoke(String transferProcessId, String reason);
+
 }

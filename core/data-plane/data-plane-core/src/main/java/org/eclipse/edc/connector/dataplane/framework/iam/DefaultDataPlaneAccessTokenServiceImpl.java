@@ -22,6 +22,8 @@ import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.token.spi.KeyIdDecorator;
@@ -132,5 +134,28 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
         return existingAccessToken == null ?
                 Result.failure("AccessTokenData with ID '%s' does not exist.".formatted(tokenId)) :
                 Result.success(existingAccessToken);
+    }
+
+    @Override
+    public Result<Void> revoke(String transferProcessId, String reason) {
+
+        var query = QuerySpec.Builder.newInstance()
+                .filter(new Criterion("additionalProperties.process_id", "=", transferProcessId))
+                .build();
+
+        var tokens = accessTokenDataStore.query(query);
+        return tokens.stream().map(this::deleteTokenData)
+                .reduce(Result::merge)
+                .orElseGet(() -> Result.failure("AccessTokenData associated to the transfer with ID '%s' does not exist.".formatted(transferProcessId)));
+
+    }
+
+    private Result<Void> deleteTokenData(AccessTokenData tokenData) {
+        var result = accessTokenDataStore.deleteById(tokenData.id());
+        if (result.failed()) {
+            return Result.failure(result.getFailureDetail());
+        } else {
+            return Result.success();
+        }
     }
 }

@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.transfer.spi.event.TransferProcessProvisioned;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessProvisioningRequested;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessRequested;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessSuspended;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessTerminated;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
@@ -219,7 +220,8 @@ public class EndpointDataReferenceStoreReceiverTest {
 
             var eventBuilders = Stream.of(
                     TransferProcessTerminated.Builder.newInstance(),
-                    TransferProcessCompleted.Builder.newInstance()
+                    TransferProcessCompleted.Builder.newInstance(),
+                    TransferProcessSuspended.Builder.newInstance()
             );
 
             return eventBuilders

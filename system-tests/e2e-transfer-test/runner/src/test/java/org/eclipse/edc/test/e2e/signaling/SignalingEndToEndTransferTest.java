@@ -163,9 +163,46 @@ class SignalingEndToEndTransferTest {
             await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr.get(), Map.of("message", msg), equalTo(msg)));
 
             // checks that the EDR is gone once the contract expires
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(transferProcessId)));
+
+            // checks that transfer fails
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr.get(), Map.of("message", msg), equalTo(msg))));
+        }
+
+        @Test
+        void suspend_httpPull_dataTransfer_withEdrCache() {
+            var assetId = UUID.randomUUID().toString();
+            createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
+            var dynamicReceiverProps = CONSUMER.dynamicReceiverPrivateProperties();
+
+
+            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, dynamicReceiverProps, syncDataAddress(), "HttpData-PULL");
+
             await().atMost(timeout).untilAsserted(() -> {
-                assertThatThrownBy(() -> CONSUMER.getEdr(transferProcessId));
+                var state = CONSUMER.getTransferProcessState(transferProcessId);
+                assertThat(state).isEqualTo(STARTED.name());
             });
+
+            var edr = new AtomicReference<DataAddress>();
+
+            // fetch the EDR from the cache
+            await().atMost(timeout).untilAsserted(() -> {
+                var returnedEdr = CONSUMER.getEdr(transferProcessId);
+                assertThat(returnedEdr).isNotNull();
+                edr.set(returnedEdr);
+            });
+
+            // Do the transfer
+            var msg = UUID.randomUUID().toString();
+            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr.get(), Map.of("message", msg), equalTo(msg)));
+
+            CONSUMER.suspendTransfer(transferProcessId, "supension");
+
+            // checks that the EDR is gone once the transfer has been suspended
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(transferProcessId)));
+
+            // checks that transfer fails
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr.get(), Map.of("message", msg), equalTo(msg))));
         }
 
         @Test

@@ -93,7 +93,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         var response = DataFlowResponseMessage.Builder.newInstance()
                 .dataAddress(result.getContent().orElse(null))
                 .build();
-        
+
         update(dataFlowBuilder.build());
 
         return Result.success(response);
@@ -106,20 +106,20 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public StatusResult<Void> terminate(String dataFlowId, @Nullable String reason) {
+    public StatusResult<Void> suspend(String dataFlowId) {
         return stop(dataFlowId)
                 .map(dataFlow -> {
-                    dataFlow.transitToTerminated(reason);
+                    dataFlow.transitToSuspended();
                     store.save(dataFlow);
                     return null;
                 });
     }
 
     @Override
-    public StatusResult<Void> suspend(String dataFlowId) {
-        return stop(dataFlowId)
+    public StatusResult<Void> terminate(String dataFlowId, @Nullable String reason) {
+        return stop(dataFlowId, reason)
                 .map(dataFlow -> {
-                    dataFlow.transitToSuspended();
+                    dataFlow.transitToTerminated(reason);
                     store.save(dataFlow);
                     return null;
                 });
@@ -134,6 +134,10 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     private StatusResult<DataFlow> stop(String dataFlowId) {
+        return stop(dataFlowId, null);
+    }
+
+    private StatusResult<DataFlow> stop(String dataFlowId, String reason) {
         var result = store.findByIdAndLease(dataFlowId);
         if (result.failed()) {
             return StatusResult.from(result).map(it -> null);
@@ -155,6 +159,11 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 } else {
                     return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlowId, terminateResult.getFailureDetail()));
                 }
+            }
+        } else {
+            var revokeResult = authorizationService.revokeEndpointDataReference(dataFlowId, reason);
+            if (revokeResult.failed()) {
+                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlowId, revokeResult.getFailureDetail()));
             }
         }
 

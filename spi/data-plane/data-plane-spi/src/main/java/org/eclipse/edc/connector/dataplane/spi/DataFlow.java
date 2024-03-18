@@ -48,7 +48,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     private URI callbackAddress;
     private Map<String, String> properties = new HashMap<>();
 
-    private FlowType flowType = FlowType.PULL;
+    private FlowType flowType = FlowType.PUSH;
 
     @Override
     public DataFlow copy() {
