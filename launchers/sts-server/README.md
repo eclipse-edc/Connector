@@ -11,7 +11,8 @@ To build the STS just run this command in the root of the connector project:
 ./gradlew launchers:sts-server:build
 ```
 
-Once the build end, the STS jar should be available in the build directory `aunchers/sts-server/build/libs/sts-server.jar`
+Once the build end, the STS jar should be available in the build
+directory `aunchers/sts-server/build/libs/sts-server.jar`
 
 ### How to run the STS
 
@@ -39,7 +40,7 @@ The STS will be available on `9292` port.
 
 ### Fetching tokens
 
-The only client configured is `testClient` one via `config.properties` file. The STS for now supports only 
+The only client configured is `testClient` one via `config.properties` file. The STS for now supports only
 OAuth2 client credentials with some custom parameters.
 
 To fetch a token run this curl command:
@@ -54,7 +55,8 @@ curl --request POST \
   --data audience=test10 
 ```
 
-For attaching the `bearer_access_scope` as described in the IATP [spec](https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/identity.protocol.base.md#6-using-the-oauth-2-client-credential-grant-to-obtain-access-tokens-from-an-sts) :
+For attaching the `bearer_access_scope` as described in the
+IATP [spec](https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/identity.protocol.base.md#6-using-the-oauth-2-client-credential-grant-to-obtain-access-tokens-from-an-sts) :
 
 ```shell
 curl --request POST \
@@ -67,4 +69,4 @@ curl --request POST \
   --data bearer_access_scope=test
 ```
 
-It will generate an additional claim `access_token` with the scopes inside.
+It will generate an additional claim `token` with the scopes inside.

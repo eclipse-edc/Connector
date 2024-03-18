@@ -31,7 +31,7 @@ public interface SecureTokenService {
      *
      * @param claims            a set of claims, that are to be included in the SI token. MUST include {@code iss}, {@code sub} and {@code aud}.
      * @param bearerAccessScope if non-null, must be a space-separated list of scopes as per <a href="https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/verifiable.presentation.protocol.md#31-access-scopes">IATP specification</a>
-     *                          if bearerAccessScope != null -> creates an {@code access_token} claim, which is another JWT containing the scope as claims.
+     *                          if bearerAccessScope != null -> creates a {@code token} claim, which is another JWT containing the scope as claims.
      *                          if bearerAccessScope == null -> creates a normal JWT using all the claims in the map
      */
     Result<TokenRepresentation> createToken(Map<String, String> claims, @Nullable String bearerAccessScope);

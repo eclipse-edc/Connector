@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.verifiablecredentials.jwt;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
@@ -102,7 +104,7 @@ class JwtPresentationVerifierTest {
     @Test
     void verifyPresentation_noCredential() {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("")));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(""))));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
@@ -116,11 +118,7 @@ class JwtPresentationVerifierTest {
     @Test
     void verifyPresentation_invalidVpJson() {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", """
-                {
-                    "key": "this is very invalid!"
-                }
-                """));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", Map.of("key", "this is very invalid!")));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
@@ -137,7 +135,7 @@ class JwtPresentationVerifierTest {
         var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\""))));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
@@ -158,7 +156,7 @@ class JwtPresentationVerifierTest {
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpContent = "\"%s\", \"%s\"".formatted(vcJwt1, vcJwt2);
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted(vpContent)));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
@@ -179,7 +177,7 @@ class JwtPresentationVerifierTest {
         var vcJwt1 = JwtCreationUtils.createJwt(spoofedKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\""))));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
@@ -199,7 +197,7 @@ class JwtPresentationVerifierTest {
         var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(spoofedKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
+        var vpJwt = JwtCreationUtils.createJwt(spoofedKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\""))));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
@@ -216,7 +214,7 @@ class JwtPresentationVerifierTest {
         var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, null, MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, null, MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\""))));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
@@ -233,7 +231,7 @@ class JwtPresentationVerifierTest {
         var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "test-cred-sub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "test-pres-sub", "invalid-vp-audience", Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "test-pres-sub", "invalid-vp-audience", Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\""))));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
@@ -241,6 +239,15 @@ class JwtPresentationVerifierTest {
                 .build();
         var result = verifier.verify(vpJwt, context);
         assertThat(result).isFailed().detail().contains("Token audience claim (aud -> [invalid-vp-audience]) did not contain expected audience: did:web:myself");
+    }
+
+    private Map<String, Object> asMap(String rawContent) {
+        try {
+            return mapper.readValue(rawContent, new TypeReference<>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

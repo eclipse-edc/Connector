@@ -23,17 +23,17 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 
 /**
- * Verifies that the "access_token" claim is present (= non-empty)
+ * Verifies that the "token" claim is present (= non-empty)
  */
-public class AccessTokenNotNullRule implements TokenValidationRule {
+public class TokenNotNullRule implements TokenValidationRule {
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
-        return StringUtils.isNullOrEmpty(toVerify.getStringClaim(PRESENTATION_ACCESS_TOKEN_CLAIM)) ?
-                Result.failure("The '%s' claim is mandatory and must not be null.".formatted(PRESENTATION_ACCESS_TOKEN_CLAIM)) :
+        return StringUtils.isNullOrEmpty(toVerify.getStringClaim(PRESENTATION_TOKEN_CLAIM)) ?
+                Result.failure("The '%s' claim is mandatory and must not be null.".formatted(PRESENTATION_TOKEN_CLAIM)) :
                 Result.success();
     }
 }
