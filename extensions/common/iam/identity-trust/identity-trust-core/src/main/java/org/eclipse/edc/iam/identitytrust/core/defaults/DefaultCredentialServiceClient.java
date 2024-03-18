@@ -149,6 +149,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
                         .add(VcConstants.PRESENTATION_EXCHANGE_URL)
                         .add(VcConstants.IATP_CONTEXT_URL))
                 .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TYPE)
+                .add("scope", scopeArray.build())
                 .build();
     }
 }
