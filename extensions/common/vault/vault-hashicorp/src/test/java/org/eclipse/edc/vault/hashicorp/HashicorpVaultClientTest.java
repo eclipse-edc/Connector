@@ -214,7 +214,7 @@ class HashicorpVaultClientTest {
                     .build();
             when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
 
-            var tokenLookUpResult = vaultClient.lookUpToken();
+            var tokenLookUpResult = vaultClient.isTokenRenewable();
 
             verify(httpClient).execute(any(Request.class), argThat((List<FallbackFactory> factories) -> factories.get(0) instanceof HashicorpVaultClientFallbackFactory));
             assertThat(tokenLookUpResult).isSucceeded().satisfies(isRenewable -> assertThat(isRenewable).isTrue());
@@ -231,7 +231,7 @@ class HashicorpVaultClientTest {
                     .build();
             when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
 
-            var tokenLookUpResult = vaultClient.lookUpToken();
+            var tokenLookUpResult = vaultClient.isTokenRenewable();
 
             assertThat(tokenLookUpResult.failed()).isTrue();
             assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status %s".formatted(403));
@@ -241,7 +241,7 @@ class HashicorpVaultClientTest {
         void lookUpToken_whenHttpClientThrowsIoException_shouldFail() throws IOException {
             when(httpClient.execute(any(Request.class), anyList())).thenThrow(new IOException("foo-bar"));
 
-            var tokenLookUpResult = vaultClient.lookUpToken();
+            var tokenLookUpResult = vaultClient.isTokenRenewable();
 
             assertThat(tokenLookUpResult.failed()).isTrue();
             assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Failed to look up token with reason: foo-bar");
@@ -259,7 +259,7 @@ class HashicorpVaultClientTest {
                     .build();
             when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
 
-            var tokenLookUpResult = vaultClient.lookUpToken();
+            var tokenLookUpResult = vaultClient.isTokenRenewable();
 
             assertThat(tokenLookUpResult.failed()).isTrue();
             assertThat(tokenLookUpResult.getFailureDetail()).startsWith("Token look up response could not be parsed: Failed to parse renewable flag");

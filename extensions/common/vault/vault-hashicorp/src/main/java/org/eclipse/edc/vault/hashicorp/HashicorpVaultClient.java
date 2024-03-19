@@ -110,13 +110,14 @@ public class HashicorpVaultClient {
     }
 
     /**
-     * Attempts to look up the Vault token defined in the configurations.
+     * Attempts to look up the Vault token defined in the configurations and returns a boolean indicating if the token
+     * is renewable.
      * <p>
      * Will retry in some error cases.
      *
      * @return boolean indicating if the token is renewable
      */
-    public Result<Boolean> lookUpToken() {
+    public Result<Boolean> isTokenRenewable() {
         var uri = configValues.url()
                 .newBuilder()
                 .addPathSegment(TOKEN_LOOK_UP_SELF_PATH)

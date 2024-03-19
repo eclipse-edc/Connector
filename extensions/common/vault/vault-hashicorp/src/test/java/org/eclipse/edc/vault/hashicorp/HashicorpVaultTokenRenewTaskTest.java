@@ -46,7 +46,7 @@ class HashicorpVaultTokenRenewTaskTest {
 
     @Test
     void start_withValidAndRenewableToken_shouldScheduleNextTokenRenewal() {
-        doReturn(Result.success(Boolean.TRUE)).when(client).lookUpToken();
+        doReturn(Result.success(Boolean.TRUE)).when(client).isTokenRenewable();
         // return a successful renewal result twice
         // first result should be consumed by the initial token renewal
         // second renewal should be consumed by the first renewal iteration
@@ -66,7 +66,7 @@ class HashicorpVaultTokenRenewTaskTest {
                     verify(monitor, never()).warning(matches("Initial token look up failed with reason: *"));
                     verify(monitor, never()).warning(matches("Initial token renewal failed with reason: *"));
                     // initial token look up
-                    verify(client).lookUpToken();
+                    verify(client).isTokenRenewable();
                     // initial renewal + first scheduled renewal + second scheduled renewal
                     verify(client, times(3)).renewToken();
                     verify(monitor).warning("Scheduled token renewal failed: break the loop");
@@ -76,7 +76,7 @@ class HashicorpVaultTokenRenewTaskTest {
 
     @Test
     void start_withFailedTokenLookUp_shouldNotScheduleNextTokenRenewal() {
-        doReturn(Result.failure("Token look up failed with status 403")).when(client).lookUpToken();
+        doReturn(Result.failure("Token look up failed with status 403")).when(client).isTokenRenewable();
 
         tokenRenewTask.start();
 
@@ -90,7 +90,7 @@ class HashicorpVaultTokenRenewTaskTest {
 
     @Test
     void start_withTokenNotRenewable_shouldNotScheduleNextTokenRenewal() {
-        doReturn(Result.success(Boolean.FALSE)).when(client).lookUpToken();
+        doReturn(Result.success(Boolean.FALSE)).when(client).isTokenRenewable();
 
         tokenRenewTask.start();
 
@@ -104,7 +104,7 @@ class HashicorpVaultTokenRenewTaskTest {
 
     @Test
     void start_withFailedTokenRenew_shouldNotScheduleNextTokenRenewal() {
-        doReturn(Result.success(Boolean.TRUE)).when(client).lookUpToken();
+        doReturn(Result.success(Boolean.TRUE)).when(client).isTokenRenewable();
         doReturn(Result.failure("Token renew failed with status: 403")).when(client).renewToken();
 
         tokenRenewTask.start();

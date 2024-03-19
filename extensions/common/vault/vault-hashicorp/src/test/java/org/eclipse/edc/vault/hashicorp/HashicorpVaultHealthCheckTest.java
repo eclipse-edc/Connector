@@ -40,7 +40,7 @@ class HashicorpVaultHealthCheckTest {
 
         @BeforeEach
         void beforeEach() {
-            when(client.lookUpToken()).thenReturn(TOKEN_LOOK_UP_RESULT_200);
+            when(client.isTokenRenewable()).thenReturn(TOKEN_LOOK_UP_RESULT_200);
         }
 
         @Test
@@ -61,7 +61,7 @@ class HashicorpVaultHealthCheckTest {
 
             assertThat(result).isFailed();
             assertThat(result.getFailure()).messages().hasSize(1);
-            verify(monitor).warning("Healthcheck failed with reason(s): %s".formatted(healthCheckErr));
+            verify(monitor).debug("Vault health check failed with reason(s): %s".formatted(healthCheckErr));
         }
     }
 
@@ -75,7 +75,7 @@ class HashicorpVaultHealthCheckTest {
 
         @Test
         void get_whenTokenValid_shouldSucceed() {
-            when(client.lookUpToken()).thenReturn(TOKEN_LOOK_UP_RESULT_200);
+            when(client.isTokenRenewable()).thenReturn(TOKEN_LOOK_UP_RESULT_200);
 
             var result = healthCheck.get();
 
@@ -85,13 +85,13 @@ class HashicorpVaultHealthCheckTest {
         @Test
         void get_whenTokenNotValid_shouldFail() {
             var tokenLookUpErr = "Token look up failed with status 403";
-            when(client.lookUpToken()).thenReturn(Result.failure(tokenLookUpErr));
+            when(client.isTokenRenewable()).thenReturn(Result.failure(tokenLookUpErr));
 
             var result = healthCheck.get();
 
             assertThat(result).isFailed();
             assertThat(result.getFailure()).messages().hasSize(1);
-            verify(monitor).warning("Healthcheck failed with reason(s): %s".formatted(tokenLookUpErr));
+            verify(monitor).debug("Vault health check failed with reason(s): %s".formatted(tokenLookUpErr));
         }
     }
 
@@ -101,12 +101,12 @@ class HashicorpVaultHealthCheckTest {
         var tokenLookUpErr = "Token look up failed with status 403";
 
         when(client.doHealthCheck()).thenReturn(Result.failure(healthCheckErr));
-        when(client.lookUpToken()).thenReturn(Result.failure(tokenLookUpErr));
+        when(client.isTokenRenewable()).thenReturn(Result.failure(tokenLookUpErr));
 
         var result = healthCheck.get();
 
         assertThat(result).isFailed();
         assertThat(result.getFailure()).messages().hasSize(2);
-        verify(monitor).warning("Healthcheck failed with reason(s): %s, %s".formatted(healthCheckErr, tokenLookUpErr));
+        verify(monitor).debug("Vault health check failed with reason(s): %s, %s".formatted(healthCheckErr, tokenLookUpErr));
     }
 }

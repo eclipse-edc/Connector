@@ -51,9 +51,9 @@ public class HashicorpVaultHealthExtension implements ServiceExtension {
             healthCheckService.addLivenessProvider(healthCheck);
             healthCheckService.addReadinessProvider(healthCheck);
             healthCheckService.addStartupStatusProvider(healthCheck);
-            monitor.info("Healthcheck initialization complete");
+            monitor.info("Vault health check initialization complete");
         } else {
-            monitor.info("Healthcheck disabled");
+            monitor.info("Vault health check disabled");
         }
     }
 }

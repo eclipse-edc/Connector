@@ -67,7 +67,7 @@ class HashicorpVaultClientIntegrationTest {
 
     @Test
     void lookUpToken_whenTokenNotExpired_shouldSucceed() {
-        var tokenLookUpResult = client.lookUpToken();
+        var tokenLookUpResult = client.isTokenRenewable();
 
         assertThat(tokenLookUpResult).isSucceeded().isEqualTo(true);
     }
@@ -78,7 +78,7 @@ class HashicorpVaultClientIntegrationTest {
                 .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                 .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    var tokenLookUpResult = client.lookUpToken();
+                    var tokenLookUpResult = client.isTokenRenewable();
                     assertThat(tokenLookUpResult).isFailed();
                     assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
                 });

@@ -95,7 +95,7 @@ public class HashicorpVaultTokenRenewTask {
     }
 
     private void initialize() {
-        var tokenLookUpResult = client.lookUpToken();
+        var tokenLookUpResult = client.isTokenRenewable();
 
         if (tokenLookUpResult.succeeded()) {
             var isRenewable = tokenLookUpResult.getContent();
