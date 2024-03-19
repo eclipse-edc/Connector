@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.iam.LocalPublicKeyService;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -46,11 +47,14 @@ import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.function.Supplier;
 
-import static org.eclipse.edc.connector.dataplane.spi.TransferDataPlaneConfig.TOKEN_SIGNER_PRIVATE_KEY_ALIAS;
-import static org.eclipse.edc.connector.dataplane.spi.TransferDataPlaneConfig.TOKEN_VERIFIER_PUBLIC_KEY_ALIAS;
-
 @Extension(value = TransferDataPlaneCoreExtension.NAME)
 public class TransferDataPlaneCoreExtension implements ServiceExtension {
+
+    @Setting(value = "Alias of private key used for signing tokens, retrieved from private key resolver")
+    public static final String TOKEN_SIGNER_PRIVATE_KEY_ALIAS = "edc.transfer.proxy.token.signer.privatekey.alias";
+
+    @Setting(value = "Alias of public key used for verifying the tokens, retrieved from the vault")
+    public static final String TOKEN_VERIFIER_PUBLIC_KEY_ALIAS = "edc.transfer.proxy.token.verifier.publickey.alias";
 
     public static final String NAME = "Transfer Data Plane Core";
     public static final String TRANSFER_DATAPLANE_TOKEN_CONTEXT = "dataplane-transfer";

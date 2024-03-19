@@ -19,11 +19,11 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
 import java.util.HashMap;
 
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.DRIVER_CLASS;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.DS_TYPE;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.TIMEOUT;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.URL;
 import static org.eclipse.edc.transaction.atomikos.DataSourceConfiguration.DataSourceType.NON_XA;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.DRIVER_CLASS;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.DS_TYPE;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.URL;
-import static org.eclipse.edc.transaction.atomikos.TransactionManagerConfigurationKeys.TIMEOUT;
 
 /**
  * Test fixtures for working with JDBC resources.
@@ -37,7 +37,7 @@ public class JdbcTestFixtures {
         properties.put("default." + URL, url);
         properties.put("default." + DRIVER_CLASS, driverClass);
         properties.put("default." + DS_TYPE, NON_XA.toString().toLowerCase());
-        properties.put("default." + DataSourceConfigurationKeys.POOL_SIZE, "2");
+        properties.put("default." + AtomikosTransactionExtension.POOL_SIZE, "2");
         return ConfigFactory.fromMap(properties);
     }
 

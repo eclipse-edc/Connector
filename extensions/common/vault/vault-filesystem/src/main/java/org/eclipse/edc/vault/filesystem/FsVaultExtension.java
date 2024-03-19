@@ -18,6 +18,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
@@ -28,9 +29,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.eclipse.edc.vault.filesystem.FsConfiguration.PERSISTENT_VAULT;
-import static org.eclipse.edc.vault.filesystem.FsConfiguration.VAULT_LOCATION;
-
 /**
  * Bootstraps the file system-based vault extension.
  */
@@ -38,6 +36,12 @@ import static org.eclipse.edc.vault.filesystem.FsConfiguration.VAULT_LOCATION;
 @Provides({ PrivateKeyResolver.class, CertificateResolver.class })
 @Extension(value = FsVaultExtension.NAME)
 public class FsVaultExtension implements ServiceExtension {
+
+    @Setting
+    static final String VAULT_LOCATION = "edc.vault";
+
+    @Setting
+    static final String PERSISTENT_VAULT = "edc.vault.persistent";
 
     public static final String NAME = "FS Vault";
 

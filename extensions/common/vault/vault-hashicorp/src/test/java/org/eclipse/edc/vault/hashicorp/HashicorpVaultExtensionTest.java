@@ -25,8 +25,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_URL;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_URL;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

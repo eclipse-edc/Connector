@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenE
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -27,14 +28,15 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import java.time.Clock;
 import java.util.Date;
 
-import static org.eclipse.edc.connector.dataplane.spi.TransferDataPlaneConfig.DEFAULT_TOKEN_VALIDITY_SECONDS;
-import static org.eclipse.edc.connector.dataplane.spi.TransferDataPlaneConfig.TOKEN_VALIDITY_SECONDS;
-
 /**
  * Provides default service implementations for fallback
  * Omitted {@link Extension since this module already contains {@link TransferDataPlaneCoreExtension }}
  */
 public class TransferDataPlaneDefaultServicesExtension implements ServiceExtension {
+
+    private static final String DEFAULT_TOKEN_VALIDITY_SECONDS = "600"; // 10min
+    @Setting(value = "Validity (in seconds) of tokens issued by the Control Plane for targeting the Data Plane public API.", type = "long", defaultValue = DEFAULT_TOKEN_VALIDITY_SECONDS)
+    private static final String TOKEN_VALIDITY_SECONDS = "edc.transfer.proxy.token.validity.seconds";
 
     public static final String NAME = "Transfer Data Plane Default Services";
 
@@ -54,7 +56,7 @@ public class TransferDataPlaneDefaultServicesExtension implements ServiceExtensi
 
     @Provider(isDefault = true)
     public ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction(ServiceExtensionContext context) {
-        var validity = context.getSetting(TOKEN_VALIDITY_SECONDS, DEFAULT_TOKEN_VALIDITY_SECONDS);
+        var validity = context.getSetting(TOKEN_VALIDITY_SECONDS, Integer.parseInt(DEFAULT_TOKEN_VALIDITY_SECONDS));
         return (contentAddress, contractId) -> Result.success(Date.from(clock.instant().plusSeconds(validity)));
     }
 }
