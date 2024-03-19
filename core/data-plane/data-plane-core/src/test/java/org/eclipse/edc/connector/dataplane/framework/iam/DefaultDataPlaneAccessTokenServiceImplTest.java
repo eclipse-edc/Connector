@@ -20,6 +20,8 @@ import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -28,6 +30,7 @@ import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -39,6 +42,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -179,5 +183,59 @@ class DefaultDataPlaneAccessTokenServiceImplTest {
                 .detail().isEqualTo("AccessTokenData with ID 'test-id' does not exist.");
         verify(tokenValidationService).validate(eq("some-jwt"), any(), anyList());
         verify(store).getById(eq(tokenId));
+    }
+
+
+    @Test
+    void revoke() {
+        var tokenId = "test-id";
+        var processId = "tp-id";
+
+        var querySpec = QuerySpec.Builder.newInstance().filter(new Criterion("additionalProperties.process_id", "=", processId)).build();
+
+        var tokenData = new AccessTokenData(tokenId, ClaimToken.Builder.newInstance().build(),
+                DataAddress.Builder.newInstance().type("test-type").build());
+
+        when(store.query(querySpec)).thenReturn(List.of(tokenData));
+        when(store.deleteById(tokenId)).thenReturn(StoreResult.success());
+
+        var result = accessTokenService.revoke("tp-id", "reason");
+        assertThat(result).isSucceeded();
+
+        verify(store).deleteById(eq(tokenId));
+
+    }
+
+    @Test
+    void revoke_storeError() {
+        var tokenId = "test-id";
+        var processId = "tp-id";
+
+        var querySpec = QuerySpec.Builder.newInstance().filter(new Criterion("additionalProperties.process_id", "=", processId)).build();
+
+        var tokenData = new AccessTokenData(tokenId, ClaimToken.Builder.newInstance().build(),
+                DataAddress.Builder.newInstance().type("test-type").build());
+
+        when(store.query(querySpec)).thenReturn(List.of(tokenData));
+        when(store.deleteById(tokenId)).thenReturn(StoreResult.generalError("storeError"));
+
+        var result = accessTokenService.revoke("tp-id", "reason");
+        assertThat(result).isFailed().detail().contains("storeError");
+
+        verify(store).deleteById(eq(tokenId));
+    }
+
+    @Test
+    void revoke_notTokensFound() {
+        var processId = "tp-id";
+        var querySpec = QuerySpec.Builder.newInstance().filter(new Criterion("additionalProperties.process_id", "=", processId)).build();
+        
+        when(store.query(querySpec)).thenReturn(List.of());
+
+        var result = accessTokenService.revoke("tp-id", "reason");
+        assertThat(result).isFailed().detail().contains("AccessTokenData associated to the transfer with ID");
+
+        verify(store, never()).deleteById(any());
+
     }
 }

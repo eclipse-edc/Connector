@@ -95,19 +95,17 @@ public class TransferProcessEventListener implements TransferProcessListener {
     }
 
     @Override
-    public void suspended(TransferProcess process) {
-        var event = TransferProcessSuspended.Builder.newInstance()
+    public void terminated(TransferProcess process) {
+        var event = withBaseProperties(TransferProcessTerminated.Builder.newInstance(), process)
                 .reason(process.getErrorDetail())
-                .transferProcessId(process.getId())
-                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);
     }
 
     @Override
-    public void terminated(TransferProcess process) {
-        var event = withBaseProperties(TransferProcessTerminated.Builder.newInstance(), process)
+    public void suspended(TransferProcess process) {
+        var event = withBaseProperties(TransferProcessSuspended.Builder.newInstance(), process)
                 .reason(process.getErrorDetail())
                 .build();
 

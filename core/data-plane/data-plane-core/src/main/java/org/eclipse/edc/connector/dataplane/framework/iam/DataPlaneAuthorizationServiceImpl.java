@@ -83,6 +83,11 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
                 .map(u -> accessTokenDataResult.getContent().dataAddress());
     }
 
+    @Override
+    public Result<Void> revokeEndpointDataReference(String transferProcessId, String reason) {
+        return accessTokenService.revoke(transferProcessId, reason);
+    }
+
     private Result<DataAddress> createDataAddress(TokenRepresentation tokenRepresentation, Endpoint publicEndpoint) {
         var address = DataAddress.Builder.newInstance()
                 .type(publicEndpoint.endpointType())

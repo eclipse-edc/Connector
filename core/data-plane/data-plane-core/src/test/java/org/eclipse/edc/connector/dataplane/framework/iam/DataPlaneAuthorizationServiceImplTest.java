@@ -161,6 +161,27 @@ class DataPlaneAuthorizationServiceImplTest {
         verifyNoMoreInteractions(accessTokenService, accessControlService);
     }
 
+    @Test
+    void revoke() {
+        when(accessTokenService.revoke(eq("id"), eq("reason"))).thenReturn(Result.success());
+
+        assertThat(authorizationService.revokeEndpointDataReference("id", "reason")).isSucceeded();
+
+        verify(accessTokenService).revoke(eq("id"), eq("reason"));
+        verifyNoMoreInteractions(accessTokenService, accessControlService);
+    }
+
+    @Test
+    void revoke_error() {
+        when(accessTokenService.revoke(eq("id"), eq("reason"))).thenReturn(Result.failure("failure"));
+
+        assertThat(authorizationService.revokeEndpointDataReference("id", "reason")).isFailed()
+                .detail().contains("failure");
+
+        verify(accessTokenService).revoke(eq("id"), eq("reason"));
+        verifyNoMoreInteractions(accessTokenService, accessControlService);
+    }
+
     private DataFlowStartMessage.Builder createStartMessage() {
         return DataFlowStartMessage.Builder.newInstance()
                 .processId("test-processid")
