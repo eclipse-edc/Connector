@@ -24,6 +24,7 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +32,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
@@ -54,6 +57,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
 import static org.eclipse.edc.test.system.utils.PolicyFixtures.inForceDatePolicy;
 import static org.eclipse.edc.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -252,5 +256,16 @@ class SignalingEndToEndTransferTest {
     @EndToEndTest
     class EmbeddedDataPlane extends Tests implements EmbeddedDataPlaneSignalingRuntimes {
 
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests implements PostgresSignalingRuntimes {
+
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASES = context -> {
+            createDatabase(CONSUMER.getName());
+            createDatabase(PROVIDER.getName());
+        };
     }
 }
