@@ -17,6 +17,7 @@ package org.eclipse.edc.vault.filesystem;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.KeyParserRegistry;
@@ -30,13 +31,17 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
-import static org.eclipse.edc.vault.filesystem.FsConfiguration.KEYSTORE_LOCATION;
-import static org.eclipse.edc.vault.filesystem.FsConfiguration.KEYSTORE_PASSWORD;
 import static org.eclipse.edc.vault.filesystem.JskPrivateKeyResolverExtension.NAME;
 
 @Extension(NAME)
 public class JskPrivateKeyResolverExtension implements ServiceExtension {
     public static final String NAME = "JKS PrivateKeyResolver Extension";
+
+    @Setting
+    static final String KEYSTORE_LOCATION = "edc.keystore";
+
+    @Setting
+    static final String KEYSTORE_PASSWORD = "edc.keystore.password";
 
     @Inject
     private KeyParserRegistry registry;

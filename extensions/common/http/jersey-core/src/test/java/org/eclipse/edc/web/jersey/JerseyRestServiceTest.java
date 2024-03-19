@@ -231,7 +231,7 @@ public class JerseyRestServiceTest {
         var config = new JettyConfiguration(null, null);
         Arrays.stream(mapping).forEach(config::portMapping);
         jettyService = new JettyService(config, monitor);
-        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), JerseyConfiguration.none(), monitor);
+        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), JerseyConfiguration.Builder.newInstance().build(), monitor);
         jettyService.start();
     }
 

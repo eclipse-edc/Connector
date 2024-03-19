@@ -37,22 +37,22 @@ public class DataSourceConfigurationParser {
                     var keyName = "data source " + dsName;
                     var builder = DataSourceConfiguration.Builder.newInstance()
                             .name(dsName)
-                            .driverClass(config.getString(DataSourceConfigurationKeys.DRIVER_CLASS))
-                            .url(config.getString(DataSourceConfigurationKeys.URL));
+                            .driverClass(config.getString(AtomikosTransactionExtension.DRIVER_CLASS))
+                            .url(config.getString(AtomikosTransactionExtension.URL));
 
-                    setIfProvided(DataSourceConfigurationKeys.DS_TYPE, value -> setDataSourceType(keyName, builder, value), config);
-                    setIfProvided(DataSourceConfigurationKeys.USERNAME, builder::username, config);
-                    setIfProvided(DataSourceConfigurationKeys.PASSWORD, builder::password, config);
-                    setIfProvidedInt(DataSourceConfigurationKeys.POOL_SIZE, builder::poolSize, config);
-                    setIfProvidedInt(DataSourceConfigurationKeys.MAX_POOL_SIZE, builder::maxPoolSize, config);
-                    setIfProvidedInt(DataSourceConfigurationKeys.MIN_POOL_SIZE, builder::minPoolSize, config);
-                    setIfProvidedInt(DataSourceConfigurationKeys.CONNECTION_TIMEOUT, builder::connectionTimeout, config);
-                    setIfProvidedInt(DataSourceConfigurationKeys.LOGIN_TIMEOUT, builder::loginTimeout, config);
-                    setIfProvidedInt(DataSourceConfigurationKeys.MAINTENANCE_INTERVAL, builder::maintenanceInterval, config);
-                    setIfProvidedInt(DataSourceConfigurationKeys.MAX_IDLE, builder::maxIdle, config);
-                    setIfProvided(DataSourceConfigurationKeys.QUERY, builder::query, config);
+                    setIfProvided(AtomikosTransactionExtension.DS_TYPE, value -> setDataSourceType(keyName, builder, value), config);
+                    setIfProvided(AtomikosTransactionExtension.USERNAME, builder::username, config);
+                    setIfProvided(AtomikosTransactionExtension.PASSWORD, builder::password, config);
+                    setIfProvidedInt(AtomikosTransactionExtension.POOL_SIZE, builder::poolSize, config);
+                    setIfProvidedInt(AtomikosTransactionExtension.MAX_POOL_SIZE, builder::maxPoolSize, config);
+                    setIfProvidedInt(AtomikosTransactionExtension.MIN_POOL_SIZE, builder::minPoolSize, config);
+                    setIfProvidedInt(AtomikosTransactionExtension.CONNECTION_TIMEOUT, builder::connectionTimeout, config);
+                    setIfProvidedInt(AtomikosTransactionExtension.LOGIN_TIMEOUT, builder::loginTimeout, config);
+                    setIfProvidedInt(AtomikosTransactionExtension.MAINTENANCE_INTERVAL, builder::maintenanceInterval, config);
+                    setIfProvidedInt(AtomikosTransactionExtension.MAX_IDLE, builder::maxIdle, config);
+                    setIfProvided(AtomikosTransactionExtension.QUERY, builder::query, config);
 
-                    builder.properties(config.getRelativeEntries(DataSourceConfigurationKeys.DRIVER_PROPERTIES));
+                    builder.properties(config.getRelativeEntries(AtomikosTransactionExtension.DRIVER_PROPERTIES));
 
                     return builder.build();
                 })
@@ -64,7 +64,7 @@ public class DataSourceConfigurationParser {
             var type = DataSourceConfiguration.DataSourceType.valueOf(value.toUpperCase(Locale.ROOT));
             builder.dataSourceType(type);
         } catch (IllegalArgumentException e) {
-            throw new EdcException(String.format("Error configuring %s. Value must be XA or NON_XA for for %s: %s", dsName, DataSourceConfigurationKeys.DS_TYPE, value));
+            throw new EdcException(String.format("Error configuring %s. Value must be XA or NON_XA for for %s: %s", dsName, AtomikosTransactionExtension.DS_TYPE, value));
         }
     }
 

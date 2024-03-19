@@ -29,6 +29,12 @@ public class HashicorpVaultHealthExtension implements ServiceExtension {
 
     @Setting(value = "Whether or not the vault health check is enabled", defaultValue = "true", type = "boolean")
     public static final String VAULT_HEALTH_CHECK = "edc.vault.hashicorp.health.check.enabled";
+    public static final String VAULT_API_HEALTH_PATH_DEFAULT = "/v1/sys/health";
+    @Setting(value = "The URL path of the vault's /health endpoint", defaultValue = VAULT_API_HEALTH_PATH_DEFAULT)
+    public static final String VAULT_API_HEALTH_PATH = "edc.vault.hashicorp.api.health.check.path";
+    @Setting(value = "Specifies if being a standby should still return the active status code instead of the standby status code", defaultValue = "false", type = "boolean")
+    public static final String VAULT_HEALTH_CHECK_STANDBY_OK = "edc.vault.hashicorp.health.check.standby.ok";
+    public static final boolean VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT = false;
 
     @Inject
     private HealthCheckService healthCheckService;

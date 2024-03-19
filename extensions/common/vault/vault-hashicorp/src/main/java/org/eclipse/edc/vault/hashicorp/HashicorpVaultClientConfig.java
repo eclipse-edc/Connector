@@ -21,16 +21,16 @@ import java.time.Duration;
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_API_HEALTH_PATH;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_API_HEALTH_PATH_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_API_SECRET_PATH;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_API_SECRET_PATH_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_HEALTH_CHECK_STANDBY_OK;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TIMEOUT_SECONDS;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TIMEOUT_SECONDS_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_URL;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_API_SECRET_PATH;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_API_SECRET_PATH_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TIMEOUT_SECONDS;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TIMEOUT_SECONDS_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_URL;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultHealthExtension.VAULT_API_HEALTH_PATH;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultHealthExtension.VAULT_API_HEALTH_PATH_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultHealthExtension.VAULT_HEALTH_CHECK_STANDBY_OK;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultHealthExtension.VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT;
 
 class HashicorpVaultClientConfig {
 
