@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.types;
+package org.eclipse.edc.util.reflection;
 
 import java.util.ArrayList;
 import java.util.List;

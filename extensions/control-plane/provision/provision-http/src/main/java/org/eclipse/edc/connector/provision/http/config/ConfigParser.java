@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.provision.http.config;
 
 import org.eclipse.edc.connector.provision.http.config.ProvisionerConfiguration.ProvisionerType;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.configuration.Config;
 
@@ -25,6 +24,12 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.connector.provision.http.HttpProvisionerExtension.DATA_ADDRESS_TYPE;
+import static org.eclipse.edc.connector.provision.http.HttpProvisionerExtension.DEFAULT_POLICY_SCOPE;
+import static org.eclipse.edc.connector.provision.http.HttpProvisionerExtension.ENDPOINT_URL;
+import static org.eclipse.edc.connector.provision.http.HttpProvisionerExtension.HTTP_PROVISIONER_ENTRIES;
+import static org.eclipse.edc.connector.provision.http.HttpProvisionerExtension.POLICY_SCOPE;
+import static org.eclipse.edc.connector.provision.http.HttpProvisionerExtension.PROVISIONER_TYPE;
 
 /**
  * Parses provisioner configuration.
@@ -32,23 +37,6 @@ import static java.util.stream.Collectors.toList;
  * Multiple named provisioners can be configured per runtime.
  */
 public class ConfigParser {
-    private static final String DEFAULT_POLICY_SCOPE = "http.provisioner";
-
-    private static final String CONFIG_PREFIX = "provisioner.http";
-
-    private static final String HTTP_PROVISIONER_ENTRIES = CONFIG_PREFIX + ".entries";
-
-    @Setting(required = true)
-    private static final String PROVISIONER_TYPE = "provisioner.type";
-
-    @Setting(required = true)
-    private static final String DATA_ADDRESS_TYPE = "data.address.type";
-
-    @Setting(required = true)
-    private static final String ENDPOINT_URL = "endpoint";
-
-    @Setting
-    private static final String POLICY_SCOPE = "policy.scope";
 
     private ConfigParser() {
     }

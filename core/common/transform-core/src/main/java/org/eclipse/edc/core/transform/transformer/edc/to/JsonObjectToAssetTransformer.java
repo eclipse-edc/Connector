@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.core.transform.transformer.edc.to;
 
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
@@ -24,8 +23,11 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.BiConsumer;
+
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_DATA_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PROPERTIES;
 
 /**
  * Converts from an {@link Asset} as a {@link JsonObject} in JSON-LD expanded form to an {@link Asset}.
@@ -37,29 +39,27 @@ public class JsonObjectToAssetTransformer extends AbstractJsonLdTransformer<Json
 
     @Override
     public @Nullable Asset transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var builder = Asset.Builder.newInstance();
-        builder.id(nodeId(jsonObject));
-        visitProperties(jsonObject, (s, jsonValue) -> transformProperties(s, jsonValue, builder, context, false));
+        var builder = Asset.Builder.newInstance()
+                .id(nodeId(jsonObject));
+
+        visitProperties(jsonObject, key -> switch (key) {
+            case EDC_ASSET_PROPERTIES -> value -> visitProperties(value.asJsonArray().getJsonObject(0), property(context, builder));
+            case EDC_ASSET_PRIVATE_PROPERTIES -> value -> visitProperties(value.asJsonArray().getJsonObject(0), privateProperty(context, builder));
+            case EDC_ASSET_DATA_ADDRESS -> value -> builder.dataAddress(transformObject(value, DataAddress.class, context));
+            default -> doNothing();
+        });
+
         return builderResult(builder::build, context);
     }
 
-    private void transformProperties(String key, JsonValue jsonValue, Asset.Builder builder, TransformerContext context, boolean isPrivate) {
-        if (Asset.EDC_ASSET_PROPERTIES.equals(key) && jsonValue instanceof JsonArray) {
-            var props = jsonValue.asJsonArray().getJsonObject(0);
-            // indirect recursion - parse the properties map and re-engage the visitor
-            visitProperties(props, (k, val) -> transformProperties(k, val, builder, context, false));
-        } else if (EDC_ASSET_PRIVATE_PROPERTIES.equals(key) && jsonValue instanceof JsonArray) {
-            var props = jsonValue.asJsonArray().getJsonObject(0);
-            visitProperties(props, (k, val) -> transformProperties(k, val, builder, context, true));
-        } else if (EDC_ASSET_DATA_ADDRESS.equals(key) && jsonValue instanceof JsonArray) {
-            builder.dataAddress(transformObject(jsonValue, DataAddress.class, context));
-        } else {
-            if (isPrivate) {
-                builder.privateProperty(key, transformGenericProperty(jsonValue, context));
-            } else {
-                builder.property(key, transformGenericProperty(jsonValue, context));
-            }
-        }
-
+    @NotNull
+    private BiConsumer<String, JsonValue> privateProperty(@NotNull TransformerContext context, Asset.Builder builder) {
+        return (k, val) -> builder.privateProperty(k, transformGenericProperty(val, context));
     }
+
+    @NotNull
+    private BiConsumer<String, JsonValue> property(@NotNull TransformerContext context, Asset.Builder builder) {
+        return (k, val) -> builder.property(k, transformGenericProperty(val, context));
+    }
+
 }

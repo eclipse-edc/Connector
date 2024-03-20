@@ -16,17 +16,20 @@ package org.eclipse.edc.sql;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import static java.lang.Integer.parseInt;
-import static org.eclipse.edc.sql.SqlQueryExecutorConfiguration.DEFAULT_EDC_SQL_FETCH_SIZE;
-import static org.eclipse.edc.sql.SqlQueryExecutorConfiguration.EDC_SQL_FETCH_SIZE;
 
 @Extension(value = SqlCoreExtension.NAME)
 public class SqlCoreExtension implements ServiceExtension {
 
     public static final String NAME = "SQL Core";
+
+    public static final String DEFAULT_EDC_SQL_FETCH_SIZE = "5000";
+    @Setting(value = "Fetch size value used in SQL queries", defaultValue = DEFAULT_EDC_SQL_FETCH_SIZE)
+    public static final String EDC_SQL_FETCH_SIZE = "edc.sql.fetch.size";
 
     @Override
     public String name() {

@@ -105,6 +105,19 @@ public abstract class AccessTokenDataTestBase {
     }
 
     @Test
+    void query_byAdditionalProperty() {
+        var ct = ClaimToken.Builder.newInstance().claim("foo", "bar").build();
+        var atd = new AccessTokenData("test-id", ct, DataAddress.Builder.newInstance().type("foo-type").property("qux", "quz").build(), Map.of("participant_id", "participantId"));
+        getStore().store(atd);
+        getStore().store(new AccessTokenData("another-id", ClaimToken.Builder.newInstance().build(), DataAddress.Builder.newInstance().type("foo-type").build()));
+
+        assertThat(getStore().query(QuerySpec.Builder.newInstance().filter(new Criterion("additionalProperties.participant_id", "=", "participantId")).build()))
+                .hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(atd);
+    }
+
+    @Test
     void query_byMultipleCriteria() {
         var ct = ClaimToken.Builder.newInstance().claim("foo", "bar").build();
         var atd = new AccessTokenData("test-id", ct, DataAddress.Builder.newInstance().type("foo-type").property("qux", "quz").build());

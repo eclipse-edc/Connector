@@ -21,21 +21,21 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.CONNECTION_TIMEOUT;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.DRIVER_CLASS;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.DRIVER_PROPERTIES;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.DS_TYPE;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.LOGIN_TIMEOUT;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.MAINTENANCE_INTERVAL;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.MAX_IDLE;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.MAX_POOL_SIZE;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.MIN_POOL_SIZE;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.PASSWORD;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.POOL_SIZE;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.QUERY;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.URL;
+import static org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension.USERNAME;
 import static org.eclipse.edc.transaction.atomikos.DataSourceConfiguration.DataSourceType.XA;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.CONNECTION_TIMEOUT;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.DRIVER_CLASS;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.DRIVER_PROPERTIES;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.DS_TYPE;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.LOGIN_TIMEOUT;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.MAINTENANCE_INTERVAL;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.MAX_IDLE;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.MAX_POOL_SIZE;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.MIN_POOL_SIZE;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.PASSWORD;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.POOL_SIZE;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.QUERY;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.URL;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.USERNAME;
 
 class DataSourceConfigurationParserTest {
 

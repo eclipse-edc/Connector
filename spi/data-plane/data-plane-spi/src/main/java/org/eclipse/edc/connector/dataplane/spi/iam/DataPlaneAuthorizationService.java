@@ -78,4 +78,14 @@ public interface DataPlaneAuthorizationService {
      * @return The {@link DataAddress} that was encapsulated in the original {@link DataFlowStartMessage}
      */
     Result<DataAddress> authorize(String token, Map<String, Object> requestData);
+
+
+    /**
+     * Revokes the {@link DataAddress} created with {@link #createEndpointDataReference(DataFlowStartMessage)}
+     *
+     * @param transferProcessId The id of the transfer process associated to the {@link DataAddress}
+     * @param reason            The reason of the revocation
+     * @return Successful if revoked, fails otherwise
+     */
+    Result<Void> revokeEndpointDataReference(String transferProcessId, String reason);
 }

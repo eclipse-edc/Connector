@@ -16,6 +16,7 @@ package org.eclipse.edc.transaction.atomikos;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -26,11 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationParser.parseDataSourceConfigurations;
 import static org.eclipse.edc.transaction.atomikos.Setters.setIfProvided;
 import static org.eclipse.edc.transaction.atomikos.Setters.setIfProvidedInt;
-import static org.eclipse.edc.transaction.atomikos.TransactionManagerConfigurationKeys.CHECKPOINT_INTERVAL;
-import static org.eclipse.edc.transaction.atomikos.TransactionManagerConfigurationKeys.DATA_DIR;
-import static org.eclipse.edc.transaction.atomikos.TransactionManagerConfigurationKeys.LOGGING;
-import static org.eclipse.edc.transaction.atomikos.TransactionManagerConfigurationKeys.THREADED2PC;
-import static org.eclipse.edc.transaction.atomikos.TransactionManagerConfigurationKeys.TIMEOUT;
 
 
 /**
@@ -40,6 +36,47 @@ import static org.eclipse.edc.transaction.atomikos.TransactionManagerConfigurati
 @Extension(value = AtomikosTransactionExtension.NAME)
 public class AtomikosTransactionExtension implements ServiceExtension {
     public static final String NAME = "Atomikos Transaction";
+
+    @Setting(required = true)
+    public static final String DRIVER_CLASS = "driver.class";
+    @Setting(required = true)
+    public static final String URL = "url";
+    @Setting
+    public static final String DS_TYPE = "type";
+    @Setting
+    public static final String USERNAME = "username";
+    @Setting
+    public static final String PASSWORD = "password";
+    @Setting
+    public static final String POOL_SIZE = "pool.size";
+    @Setting
+    public static final String MAX_POOL_SIZE = "max.pool.size";
+    @Setting
+    public static final String MIN_POOL_SIZE = "min.pool.size";
+    @Setting
+    public static final String CONNECTION_TIMEOUT = "connection.timeout";
+    @Setting
+    public static final String LOGIN_TIMEOUT = "login.timeout";
+    @Setting
+    public static final String MAINTENANCE_INTERVAL = "maintenance.interval";
+    @Setting
+    public static final String MAX_IDLE = "max.idle";
+    @Setting
+    public static final String QUERY = "query";
+    @Setting
+    public static final String DRIVER_PROPERTIES = "properties";
+    @Setting(required = false)
+    public static final String TIMEOUT = "edc.atomikos.timeout";
+    @Setting(required = false)
+    public static final String DATA_DIR = "edc.atomikos.directory";
+    @Setting(required = false)
+    public static final String THREADED2PC = "edc.atomikos.threaded2pc";
+    @Setting(required = false)
+    public static final String LOGGING = "edc.atomikos.logging";
+    @Setting(required = false)
+    public static final String CHECKPOINT_INTERVAL = "edc.atomikos.checkpoint.interval";
+    public static final int DEFAULT_VALUE = -1;
+
     static final String EDC_DATASOURCE_PREFIX = "edc.datasource";
     private AtomikosTransactionPlatform transactionPlatform;
     private AtomikosTransactionContext transactionContext;

@@ -188,6 +188,33 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
+    void terminate_shouldTerminatePullDataFlow() {
+        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").flowType(FlowType.PULL).build();
+        when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
+        when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(Result.success());
+
+        var result = manager.terminate(dataFlow.getId(), null);
+
+        assertThat(result).isSucceeded();
+        verify(store).save(argThat(d -> d.getState() == TERMINATED.code()));
+        verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
+    }
+
+    @Test
+    void terminate_shouldFailToTerminatePullDataFlow_whenRevocationFails() {
+        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").flowType(FlowType.PULL).build();
+        when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
+        when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(Result.failure("failure"));
+
+        var result = manager.terminate(dataFlow.getId(), null);
+
+        assertThat(result).isFailed();
+        verify(store, never()).save(any());
+        verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
+    }
+
+
+    @Test
     void terminate_shouldTerminateDataFlow_withReason() {
         var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
         when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
@@ -260,98 +287,6 @@ class DataPlaneManagerImplTest {
 
         assertThat(result).isSucceeded();
         verify(store).save(argThat(f -> f.getProperties().containsKey(TERMINATION_REASON)));
-    }
-
-    @Nested
-    class Suspend {
-        @Test
-        void shouldSuspendDataFlow() {
-            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
-            when(registry.resolveTransferService(any())).thenReturn(transferService);
-            when(transferService.terminate(any())).thenReturn(StreamResult.success());
-
-            var result = manager.suspend("dataFlowId");
-
-            assertThat(result).isSucceeded();
-            verify(store).save(argThat(d -> d.getState() == SUSPENDED.code()));
-            verify(transferService).terminate(dataFlow);
-        }
-
-        @Test
-        void shouldSuspendDataFlow_withReason() {
-            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
-            when(registry.resolveTransferService(any())).thenReturn(transferService);
-            when(transferService.terminate(any())).thenReturn(StreamResult.success());
-
-            var result = manager.suspend("dataFlowId");
-
-            assertThat(result).isSucceeded();
-            verify(store).save(argThat(d -> d.getState() == SUSPENDED.code()));
-            verify(transferService).terminate(dataFlow);
-        }
-
-        @Test
-        void shouldReturnFatalError_whenDataFlowDoesNotExist() {
-            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.notFound("not found"));
-
-            var result = manager.suspend("dataFlowId");
-
-            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
-            verify(store, never()).save(any());
-            verifyNoInteractions(transferService);
-        }
-
-        @Test
-        void shouldReturnRetryError_whenEntityCannotBeLeased() {
-            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.alreadyLeased("already leased"));
-
-            var result = manager.suspend("dataFlowId");
-
-            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(ERROR_RETRY);
-            verify(store, never()).save(any());
-            verifyNoInteractions(transferService);
-        }
-
-        @Test
-        void shouldReturnFatalError_whenTransferServiceNotFound() {
-            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
-            when(registry.resolveTransferService(any())).thenReturn(null);
-
-            var result = manager.suspend("dataFlowId");
-
-            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
-            verify(store, never()).save(any());
-            verifyNoInteractions(transferService);
-        }
-
-        @Test
-        void shouldReturnFatalError_whenDataFlowCannotBeSuspended() {
-            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
-            when(registry.resolveTransferService(any())).thenReturn(transferService);
-            when(transferService.terminate(any())).thenReturn(StreamResult.error("cannot be suspended"));
-
-            var result = manager.suspend("dataFlowId");
-
-            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
-            verify(store, never()).save(any());
-        }
-
-        @Test
-        void shouldStillSuspend_whenDataFlowHasNoSource() {
-            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
-            when(registry.resolveTransferService(any())).thenReturn(transferService);
-            when(transferService.terminate(any())).thenReturn(StreamResult.notFound());
-
-            var result = manager.suspend("dataFlowId");
-
-            assertThat(result).isSucceeded();
-            verify(store).save(argThat(f -> f.getState() == SUSPENDED.code()));
-        }
     }
 
     @Test
@@ -535,6 +470,98 @@ class DataPlaneManagerImplTest {
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .build();
+    }
+
+    @Nested
+    class Suspend {
+        @Test
+        void shouldSuspendDataFlow() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.success());
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(d -> d.getState() == SUSPENDED.code()));
+            verify(transferService).terminate(dataFlow);
+        }
+
+        @Test
+        void shouldSuspendDataFlow_withReason() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.success());
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(d -> d.getState() == SUSPENDED.code()));
+            verify(transferService).terminate(dataFlow);
+        }
+
+        @Test
+        void shouldReturnFatalError_whenDataFlowDoesNotExist() {
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.notFound("not found"));
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            verify(store, never()).save(any());
+            verifyNoInteractions(transferService);
+        }
+
+        @Test
+        void shouldReturnRetryError_whenEntityCannotBeLeased() {
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.alreadyLeased("already leased"));
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(ERROR_RETRY);
+            verify(store, never()).save(any());
+            verifyNoInteractions(transferService);
+        }
+
+        @Test
+        void shouldReturnFatalError_whenTransferServiceNotFound() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(null);
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            verify(store, never()).save(any());
+            verifyNoInteractions(transferService);
+        }
+
+        @Test
+        void shouldReturnFatalError_whenDataFlowCannotBeSuspended() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.error("cannot be suspended"));
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            verify(store, never()).save(any());
+        }
+
+        @Test
+        void shouldStillSuspend_whenDataFlowHasNoSource() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.notFound());
+
+            var result = manager.suspend("dataFlowId");
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(f -> f.getState() == SUSPENDED.code()));
+        }
     }
 
 }

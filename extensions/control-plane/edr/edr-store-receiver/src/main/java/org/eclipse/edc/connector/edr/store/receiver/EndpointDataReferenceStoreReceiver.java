@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessSuspended;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessTerminated;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
@@ -59,6 +60,7 @@ public class EndpointDataReferenceStoreReceiver implements EventSubscriber {
         this.monitor = monitor;
         registerHandler(TransferProcessStarted.class, this::handleTransferStarted);
         registerHandler(TransferProcessTerminated.class, this::handleTransferTerminated);
+        registerHandler(TransferProcessSuspended.class, this::handleTransferSuspended);
         registerHandler(TransferProcessCompleted.class, this::handleTransferCompleted);
     }
 
@@ -122,6 +124,10 @@ public class EndpointDataReferenceStoreReceiver implements EventSubscriber {
 
     private Result<Void> handleTransferTerminated(TransferProcessTerminated transferProcessTerminated) {
         return removeCachedEdr(transferProcessTerminated.getTransferProcessId());
+    }
+
+    private Result<Void> handleTransferSuspended(TransferProcessSuspended transferProcessSuspended) {
+        return removeCachedEdr(transferProcessSuspended.getTransferProcessId());
     }
 
     private Result<Void> handleTransferCompleted(TransferProcessCompleted transferProcessCompleted) {
