@@ -41,6 +41,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -53,6 +54,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -155,27 +157,15 @@ public class TransferStreamingEndToEndTest {
                 createResourcesOnProvider(assetId, contractExpiresIn("10s"), kafkaSourceProperty());
 
                 var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), kafkaSink(), "Kafka-PUSH");
-                await().atMost(timeout).untilAsserted(() -> {
-                    var records = consumer.poll(ZERO);
-                    assertThat(records.isEmpty()).isFalse();
-                    records.records(SINK_TOPIC).forEach(record -> assertThat(record.value()).isEqualTo(sampleMessage()));
-                });
+                assertMessagesAreSentTo(consumer);
 
-                await().atMost(timeout).untilAsserted(() -> {
-                    var state = CONSUMER.getTransferProcessState(transferProcessId);
-                    assertThat(TransferProcessStates.valueOf(state)).isGreaterThanOrEqualTo(TERMINATED);
-                });
-
-                consumer.poll(ZERO);
-                await().pollDelay(5, SECONDS).atMost(timeout).untilAsserted(() -> {
-                    var recordsFound = consumer.poll(Duration.ofSeconds(1)).records(SINK_TOPIC);
-                    assertThat(recordsFound).isEmpty();
-                });
+                awaitTransferToBeInState(transferProcessId, TERMINATED);
+                assertNoMoreMessagesAreSentTo(consumer);
             }
         }
 
         @Test
-        void shouldSuspendTransfer() {
+        void shouldSuspendAndResumeTransfer() {
             try (var consumer = createKafkaConsumer()) {
                 consumer.subscribe(List.of(SINK_TOPIC));
 
@@ -185,25 +175,39 @@ public class TransferStreamingEndToEndTest {
                 createResourcesOnProvider(assetId, noConstraintPolicy(), kafkaSourceProperty());
 
                 var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), kafkaSink(), "Kafka-PUSH");
-                await().atMost(timeout).untilAsserted(() -> {
-                    var records = consumer.poll(ZERO);
-                    assertThat(records.isEmpty()).isFalse();
-                    records.records(SINK_TOPIC).forEach(record -> assertThat(record.value()).isEqualTo(sampleMessage()));
-                });
+                assertMessagesAreSentTo(consumer);
 
                 CONSUMER.suspendTransfer(transferProcessId, "any kind of reason");
+                awaitTransferToBeInState(transferProcessId, SUSPENDED);
+                assertNoMoreMessagesAreSentTo(consumer);
 
-                await().atMost(timeout).untilAsserted(() -> {
-                    var state = CONSUMER.getTransferProcessState(transferProcessId);
-                    assertThat(TransferProcessStates.valueOf(state)).isGreaterThanOrEqualTo(SUSPENDED);
-                });
-
-                consumer.poll(ZERO);
-                await().pollDelay(5, SECONDS).atMost(timeout).untilAsserted(() -> {
-                    var recordsFound = consumer.poll(Duration.ofSeconds(1)).records(SINK_TOPIC);
-                    assertThat(recordsFound).isEmpty();
-                });
+                CONSUMER.resumeTransfer(transferProcessId);
+                awaitTransferToBeInState(transferProcessId, STARTED);
+                assertMessagesAreSentTo(consumer);
             }
+        }
+
+        private void assertMessagesAreSentTo(Consumer<String, String> consumer) {
+            await().atMost(timeout).untilAsserted(() -> {
+                var records = consumer.poll(ZERO);
+                assertThat(records.isEmpty()).isFalse();
+                records.records(SINK_TOPIC).forEach(record -> assertThat(record.value()).isEqualTo(sampleMessage()));
+            });
+        }
+
+        private void assertNoMoreMessagesAreSentTo(Consumer<String, String> consumer) {
+            consumer.poll(ZERO);
+            await().pollDelay(5, SECONDS).atMost(timeout).untilAsserted(() -> {
+                var recordsFound = consumer.poll(Duration.ofSeconds(1)).records(SINK_TOPIC);
+                assertThat(recordsFound).isEmpty();
+            });
+        }
+
+        private void awaitTransferToBeInState(String transferProcessId, TransferProcessStates state) {
+            await().atMost(timeout).until(
+                    () -> CONSUMER.getTransferProcessState(transferProcessId),
+                    it -> Objects.equals(it, state.name())
+            );
         }
 
         private JsonObject httpSink(Integer port, String path) {

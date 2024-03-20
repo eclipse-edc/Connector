@@ -165,6 +165,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processProviderTransfersInState(STARTING, this::processStarting))
+                .processor(processConsumerTransfersInState(STARTING, this::processResuming))
                 .processor(processTransfersInState(SUSPENDING, this::processSuspending))
                 .processor(processTransfersInState(COMPLETING, this::processCompleting))
                 .processor(processTransfersInState(TERMINATING, this::processTerminating))
@@ -310,6 +311,26 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFailure((t, failure) -> transitionToStarting(t))
                 .onRetryExhausted((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .execute("Initiate data flow");
+    }
+
+    /**
+     * Process STARTING transfer that was SUSPENDED
+     *
+     * @param process the STARTING transfer fetched
+     * @return if the transfer has been processed or not
+     */
+    @WithSpan
+    private boolean processResuming(TransferProcess process) {
+        var policy = policyArchive.findPolicyForContract(process.getContractId());
+
+        var messageBuilder = TransferStartMessage.Builder.newInstance();
+
+        return dispatch(messageBuilder, process, policy, Object.class)
+                .onSuccess((t, content) -> transitionToResumed(t))
+                .onFailure((t, throwable) -> transitionToStarting(t))
+                .onFatalError((n, failure) -> transitionToTerminating(n, failure.getFailureDetail()))
+                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .execute("send transfer start to " + process.getCounterPartyAddress());
     }
 
     /**
@@ -553,6 +574,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         observable.invokeForEach(l -> l.preStarted(process));
         update(process);
         observable.invokeForEach(l -> l.started(process, TransferProcessStartedData.Builder.newInstance().build()));
+    }
+
+    private void transitionToResumed(TransferProcess process) {
+        process.transitionResumed();
+        update(process);
     }
 
     private void transitionToCompleting(TransferProcess process) {

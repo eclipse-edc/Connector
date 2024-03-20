@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResour
 import org.eclipse.edc.connector.transfer.spi.types.command.CompleteTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
@@ -103,6 +104,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @NotNull ServiceResult<Void> suspend(SuspendTransferCommand command) {
+        return execute(command);
+    }
+
+    @Override
+    public @NotNull ServiceResult<Void> resume(ResumeTransferCommand command) {
         return execute(command);
     }
 

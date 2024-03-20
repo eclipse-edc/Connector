@@ -54,6 +54,7 @@ import static java.util.stream.Collectors.joining;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
 
 public class TransferProcessProtocolServiceImpl implements TransferProcessProtocolService {
 
@@ -191,6 +192,11 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                     .dataAddress(message.getDataAddress())
                     .build();
             observable.invokeForEach(l -> l.started(transferProcess, transferStartedData));
+            return ServiceResult.success(transferProcess);
+        } else if (transferProcess.getType() == PROVIDER && transferProcess.currentStateIsOneOf(SUSPENDED)) {
+            transferProcess.protocolMessageReceived(message.getId());
+            transferProcess.transitionStarting();
+            update(transferProcess);
             return ServiceResult.success(transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be started"));

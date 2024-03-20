@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateT
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.junit.annotations.ApiTest;
@@ -527,6 +528,48 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                     .post("/v2/transferprocesses/id/suspend")
                     .then()
                     .statusCode(409);
+        }
+
+    }
+
+    @Nested
+    class Resume {
+
+        @Test
+        void shouldResumeTransfer() {
+            when(service.resume(any())).thenReturn(ServiceResult.success());
+
+            given()
+                    .port(port)
+                    .contentType(JSON)
+                    .post("/v2/transferprocesses/id/resume")
+                    .then()
+                    .statusCode(204);
+            verify(service).resume(isA(ResumeTransferCommand.class));
+        }
+
+        @Test
+        void shouldReturnConflict_whenServiceReturnsConflict() {
+            when(service.resume(any())).thenReturn(ServiceResult.conflict("conflict"));
+
+            given()
+                    .port(port)
+                    .contentType(JSON)
+                    .post("/v2/transferprocesses/id/resume")
+                    .then()
+                    .statusCode(409);
+        }
+
+        @Test
+        void shouldReturnNotFound_whenServiceReturnsNotFound() {
+            when(service.resume(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            given()
+                    .port(port)
+                    .contentType(JSON)
+                    .post("/v2/transferprocesses/id/resume")
+                    .then()
+                    .statusCode(404);
         }
 
     }

@@ -489,7 +489,6 @@ public class Participant {
         var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "SuspendTransfer")
-                .add(ID, id)
                 .add("reason", reason);
 
         managementEndpoint.baseRequest()
@@ -497,6 +496,21 @@ public class Participant {
                 .body(requestBodyBuilder.build())
                 .when()
                 .post("/v2/transferprocesses/{id}/suspend", id)
+                .then()
+                .log().ifError()
+                .statusCode(204);
+    }
+
+    /**
+     * Resume a suspended transfer process
+     *
+     * @param id transfer process id.
+     */
+    public void resumeTransfer(String id) {
+        managementEndpoint.baseRequest()
+                .contentType(JSON)
+                .when()
+                .post("/v2/transferprocesses/{id}/resume", id)
                 .then()
                 .log().ifError()
                 .statusCode(204);

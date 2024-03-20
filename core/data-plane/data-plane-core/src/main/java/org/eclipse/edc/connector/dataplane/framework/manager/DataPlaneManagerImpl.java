@@ -45,7 +45,6 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
@@ -213,7 +212,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return entityRetryProcessFactory.doAsyncProcess(dataFlow, () -> transferService.transfer(request))
                 .entityRetrieve(id -> store.findById(id))
                 .onSuccess((f, r) -> {
-                    if (f.getState() == TERMINATED.code()) {
+                    if (f.getState() != STARTED.code()) {
                         return;
                     }
 
