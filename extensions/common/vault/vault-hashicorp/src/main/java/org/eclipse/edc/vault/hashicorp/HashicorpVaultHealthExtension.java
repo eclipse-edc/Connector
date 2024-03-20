@@ -22,8 +22,8 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_ENABLED;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_ENABLED_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_HEALTH_CHECK_ENABLED;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_HEALTH_CHECK_ENABLED_DEFAULT;
 
 @Requires(HealthCheckService.class)
 @Extension(value = HashicorpVaultHealthExtension.NAME)

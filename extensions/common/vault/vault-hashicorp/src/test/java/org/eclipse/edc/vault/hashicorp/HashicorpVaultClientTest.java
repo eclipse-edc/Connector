@@ -77,7 +77,7 @@ class HashicorpVaultClientTest {
     private static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<>() {
     };
     private static final String INCREMENT_KEY = "increment";
-    private static final HashicorpVaultConfigValues HASHICORP_VAULT_CLIENT_CONFIG_VALUES = HashicorpVaultConfigValues.Builder.newInstance()
+    private static final HashicorpVaultSettings HASHICORP_VAULT_CLIENT_CONFIG_VALUES = HashicorpVaultSettings.Builder.newInstance()
             .url(VAULT_URL)
             .healthCheckPath(HEALTH_PATH)
             .healthStandbyOk(false)

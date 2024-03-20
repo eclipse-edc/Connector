@@ -19,9 +19,9 @@ import okhttp3.HttpUrl;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Value container for {@link HashicorpVaultConfig} configurations.
+ * Value container for {@link HashicorpVaultExtension} settings.
  */
-public class HashicorpVaultConfigValues {
+public class HashicorpVaultSettings {
 
     private HttpUrl url;
     private boolean healthCheckEnabled;
@@ -33,7 +33,7 @@ public class HashicorpVaultConfigValues {
     private long renewBuffer;
     private String secretPath;
 
-    private HashicorpVaultConfigValues() {}
+    private HashicorpVaultSettings() {}
 
     public HttpUrl url() {
         return url;
@@ -72,10 +72,10 @@ public class HashicorpVaultConfigValues {
     }
 
     public static class Builder {
-        private final HashicorpVaultConfigValues values;
+        private final HashicorpVaultSettings values;
 
         private Builder() {
-            values = new HashicorpVaultConfigValues();
+            values = new HashicorpVaultSettings();
         }
 
         public static Builder newInstance() {
@@ -128,7 +128,7 @@ public class HashicorpVaultConfigValues {
             return this;
         }
 
-        public HashicorpVaultConfigValues build() {
+        public HashicorpVaultSettings build() {
             requireNonNull(values.url, "Vault url must be valid");
             requireNonNull(values.healthCheckPath, "Vault health check path must not be null");
             requireNonNull(values.token, "Vault token must not be null");

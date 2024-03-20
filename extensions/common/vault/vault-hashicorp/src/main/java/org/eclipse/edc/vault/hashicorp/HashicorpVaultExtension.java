@@ -18,6 +18,7 @@ package org.eclipse.edc.vault.hashicorp;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
@@ -26,26 +27,44 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_API_HEALTH_PATH;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_API_HEALTH_PATH_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_API_SECRET_PATH;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_API_SECRET_PATH_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_ENABLED;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_ENABLED_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_STANDBY_OK;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
-
 @Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
     public static final String NAME = "Hashicorp Vault";
+
+    public static final boolean VAULT_HEALTH_CHECK_ENABLED_DEFAULT = true;
+    public static final boolean VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT = false;
+    public static final String VAULT_API_HEALTH_PATH_DEFAULT = "/v1/sys/health";
+    public static final boolean VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT = true;
+    public static final long VAULT_TOKEN_RENEW_BUFFER_DEFAULT = 30;
+    public static final long VAULT_TOKEN_TTL_DEFAULT = 300;
+    public static final String VAULT_API_SECRET_PATH_DEFAULT = "/v1/secret";
+
+    @Setting(value = "The URL of the Hashicorp Vault", required = true)
+    public static final String VAULT_URL = "edc.vault.hashicorp.url";
+
+    @Setting(value = "Whether or not the vault health check is enabled", defaultValue = "true", type = "boolean")
+    public static final String VAULT_HEALTH_CHECK_ENABLED = "edc.vault.hashicorp.health.check.enabled";
+
+    @Setting(value = "The URL path of the vault's /health endpoint", defaultValue = VAULT_API_HEALTH_PATH_DEFAULT)
+    public static final String VAULT_API_HEALTH_PATH = "edc.vault.hashicorp.api.health.check.path";
+
+    @Setting(value = "Specifies if being a standby should still return the active status code instead of the standby status code", defaultValue = "false", type = "boolean")
+    public static final String VAULT_HEALTH_CHECK_STANDBY_OK = "edc.vault.hashicorp.health.check.standby.ok";
+
+    @Setting(value = "The token used to access the Hashicorp Vault", required = true)
+    public static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
+
+    @Setting(value = "Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes", defaultValue = "true")
+    public static final String VAULT_TOKEN_SCHEDULED_RENEW_ENABLED = "edc.vault.hashicorp.token.scheduled-renew-enabled";
+
+    @Setting(value = "The time-to-live (ttl) value of the Hashicorp Vault token in seconds", defaultValue = "300", type = "long")
+    public static final String VAULT_TOKEN_TTL = "edc.vault.hashicorp.token.ttl";
+
+    @Setting(value = "The renew buffer of the Hashicorp Vault token in seconds", defaultValue = "30", type = "long")
+    public static final String VAULT_TOKEN_RENEW_BUFFER = "edc.vault.hashicorp.token.renew-buffer";
+
+    @Setting(value = "The URL path of the vault's /secret endpoint", defaultValue = VAULT_API_SECRET_PATH_DEFAULT)
+    public static final String VAULT_API_SECRET_PATH = "edc.vault.hashicorp.api.secret.path";
 
     @Inject
     private EdcHttpClient httpClient;
@@ -59,7 +78,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     private HashicorpVaultClient client;
     private HashicorpVaultTokenRenewTask tokenRenewalTask;
     private Monitor monitor;
-    private HashicorpVaultConfigValues configValues;
+    private HashicorpVaultSettings settings;
 
     @Override
     public String name() {
@@ -73,7 +92,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
                     httpClient,
                     typeManager.getMapper(),
                     monitor,
-                    configValues);
+                    settings);
         }
         return client;
     }
@@ -86,17 +105,17 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor().withPrefix(NAME);
-        configValues = getConfigValues(context);
+        settings = getSettings(context);
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 executorInstrumentation,
                 hashicorpVaultClient(),
-                configValues.renewBuffer(),
+                settings.renewBuffer(),
                 monitor);
     }
 
     @Override
     public void start() {
-        if (configValues.scheduledTokenRenewEnabled()) {
+        if (settings.scheduledTokenRenewEnabled()) {
             tokenRenewalTask.start();
         }
     }
@@ -108,7 +127,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
         }
     }
 
-    private HashicorpVaultConfigValues getConfigValues(ServiceExtensionContext context) {
+    private HashicorpVaultSettings getSettings(ServiceExtensionContext context) {
         var url = context.getSetting(VAULT_URL, null);
         var healthCheckEnabled = context.getSetting(VAULT_HEALTH_CHECK_ENABLED, VAULT_HEALTH_CHECK_ENABLED_DEFAULT);
         var healthCheckPath = context.getSetting(VAULT_API_HEALTH_PATH, VAULT_API_HEALTH_PATH_DEFAULT);
@@ -119,7 +138,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
         var renewBuffer = context.getSetting(VAULT_TOKEN_RENEW_BUFFER, VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
         var secretPath = context.getSetting(VAULT_API_SECRET_PATH, VAULT_API_SECRET_PATH_DEFAULT);
 
-        return HashicorpVaultConfigValues.Builder.newInstance()
+        return HashicorpVaultSettings.Builder.newInstance()
                 .url(url)
                 .healthCheckEnabled(healthCheckEnabled)
                 .healthCheckPath(healthCheckPath)

@@ -66,18 +66,18 @@ public class HashicorpVaultClient {
     private final EdcHttpClient httpClient;
     private final Headers headers;
     private final ObjectMapper objectMapper;
-    private final HashicorpVaultConfigValues configValues;
+    private final HashicorpVaultSettings settings;
     private final HttpUrl healthCheckUrl;
     private final Monitor monitor;
 
     HashicorpVaultClient(@NotNull EdcHttpClient httpClient,
                          @NotNull ObjectMapper objectMapper,
                          @NotNull Monitor monitor,
-                         @NotNull HashicorpVaultConfigValues configValues) {
+                         @NotNull HashicorpVaultSettings settings) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.monitor = monitor;
-        this.configValues = configValues;
+        this.settings = settings;
         this.headers = getHeaders();
         this.healthCheckUrl = getHealthCheckUrl();
     }
@@ -118,7 +118,7 @@ public class HashicorpVaultClient {
      * @return boolean indicating if the token is renewable
      */
     public Result<Boolean> isTokenRenewable() {
-        var uri = configValues.url()
+        var uri = settings.url()
                 .newBuilder()
                 .addPathSegment(TOKEN_LOOK_UP_SELF_PATH)
                 .build();
@@ -155,7 +155,7 @@ public class HashicorpVaultClient {
      * @return long representing the remaining ttl of the token in seconds
      */
     public Result<Long> renewToken() {
-        var uri = configValues.url()
+        var uri = settings.url()
                 .newBuilder()
                 .addPathSegments(TOKEN_RENEW_SELF_PATH)
                 .build();
@@ -253,14 +253,14 @@ public class HashicorpVaultClient {
 
     @NotNull
     private HttpUrl getHealthCheckUrl() {
-        var vaultHealthPath = configValues.healthCheckPath();
-        var isVaultHealthStandbyOk = configValues.healthStandbyOk();
+        var vaultHealthPath = settings.healthCheckPath();
+        var isVaultHealthStandbyOk = settings.healthStandbyOk();
 
         // by setting 'standbyok' and/or 'perfstandbyok' the vault will return an active
         // status
         // code instead of the standby status codes
 
-        return configValues.url()
+        return settings.url()
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultHealthPath))
                 .addQueryParameter("standbyok", isVaultHealthStandbyOk ? "true" : "false")
@@ -274,9 +274,9 @@ public class HashicorpVaultClient {
         // restore '/' characters to allow subdirectories
         key = key.replace("%2F", "/");
 
-        var vaultApiPath = configValues.secretPath();
+        var vaultApiPath = settings.secretPath();
 
-        return configValues.url()
+        return settings.url()
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
                 .addPathSegment(entryType)
@@ -305,7 +305,7 @@ public class HashicorpVaultClient {
     @NotNull
     private Headers getHeaders() {
         var headersBuilder = new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
-        headersBuilder.add(VAULT_TOKEN_HEADER, configValues.token());
+        headersBuilder.add(VAULT_TOKEN_HEADER, settings.token());
         return headersBuilder.build();
     }
 
@@ -320,7 +320,7 @@ public class HashicorpVaultClient {
     }
 
     private Map<String, String> getTokenRenewRequestPayload() {
-        return Map.of(INCREMENT_KEY, INCREMENT_SECONDS_FORMAT.formatted(configValues.ttl()));
+        return Map.of(INCREMENT_KEY, INCREMENT_SECONDS_FORMAT.formatted(settings.ttl()));
     }
 
     private Result<Boolean> parseRenewable(Map<String, Object> map) {

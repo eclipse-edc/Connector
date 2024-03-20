@@ -28,10 +28,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_URL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;

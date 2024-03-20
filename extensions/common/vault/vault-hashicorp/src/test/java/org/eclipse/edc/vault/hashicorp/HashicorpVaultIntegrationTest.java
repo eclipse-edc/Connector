@@ -34,8 +34,8 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_URL;
 
 @ComponentTest
 @Testcontainers

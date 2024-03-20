@@ -20,12 +20,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN_TTL_DEFAULT;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class HashicorpVaultConfigValuesTest {
+class HashicorpVaultSettingsTest {
 
     private static final String TOKEN = "token";
     private static final String URL = "https://test.com/vault";
@@ -34,25 +34,25 @@ class HashicorpVaultConfigValuesTest {
     private static final String SECRET_PATH = "/secret/path";
 
     @Test
-    void createConfigValues_withDefaultValues_shouldSucceed() {
-        var configValues = assertDoesNotThrow(() -> createConfigValues(
+    void createSettings_withDefaultValues_shouldSucceed() {
+        var settings = assertDoesNotThrow(() -> createSettings(
                 URL,
                 TOKEN,
                 HEALTH_CHECK_PATH, VAULT_TOKEN_TTL_DEFAULT,
                 VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
-        assertThat(configValues.url()).isEqualTo(HTTP_URL);
-        assertThat(configValues.healthCheckEnabled()).isEqualTo(true);
-        assertThat(configValues.healthCheckPath()).isEqualTo(HEALTH_CHECK_PATH);
-        assertThat(configValues.healthStandbyOk()).isEqualTo(true);
-        assertThat(configValues.token()).isEqualTo(TOKEN);
-        assertThat(configValues.ttl()).isEqualTo(VAULT_TOKEN_TTL_DEFAULT);
-        assertThat(configValues.renewBuffer()).isEqualTo(VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
-        assertThat(configValues.secretPath()).isEqualTo(SECRET_PATH);
+        assertThat(settings.url()).isEqualTo(HTTP_URL);
+        assertThat(settings.healthCheckEnabled()).isEqualTo(true);
+        assertThat(settings.healthCheckPath()).isEqualTo(HEALTH_CHECK_PATH);
+        assertThat(settings.healthStandbyOk()).isEqualTo(true);
+        assertThat(settings.token()).isEqualTo(TOKEN);
+        assertThat(settings.ttl()).isEqualTo(VAULT_TOKEN_TTL_DEFAULT);
+        assertThat(settings.renewBuffer()).isEqualTo(VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
+        assertThat(settings.secretPath()).isEqualTo(SECRET_PATH);
     }
 
     @Test
-    void createConfigValues_withVaultUrlNull_shouldThrowException() {
-        var throwable = assertThrows(Exception.class, () -> createConfigValues(
+    void createSettings_withVaultUrlNull_shouldThrowException() {
+        var throwable = assertThrows(Exception.class, () -> createSettings(
                 null,
                 TOKEN,
                 HEALTH_CHECK_PATH, VAULT_TOKEN_TTL_DEFAULT,
@@ -61,8 +61,8 @@ class HashicorpVaultConfigValuesTest {
     }
 
     @Test
-    void createConfigValues_withVaultUrlInvalid_shouldThrowException() {
-        var throwable = assertThrows(Exception.class, () -> createConfigValues(
+    void createSettings_withVaultUrlInvalid_shouldThrowException() {
+        var throwable = assertThrows(Exception.class, () -> createSettings(
                 "this is not valid",
                 TOKEN,
                 HEALTH_CHECK_PATH,
@@ -72,8 +72,8 @@ class HashicorpVaultConfigValuesTest {
     }
 
     @Test
-    void createConfigValues_withHealthCheckPathNull_shouldThrowException() {
-        var throwable = assertThrows(Exception.class, () -> createConfigValues(
+    void createSettings_withHealthCheckPathNull_shouldThrowException() {
+        var throwable = assertThrows(Exception.class, () -> createSettings(
                 URL,
                 TOKEN,
                 null,
@@ -83,8 +83,8 @@ class HashicorpVaultConfigValuesTest {
     }
 
     @Test
-    void createConfigValues_withVaultTokenNull_shouldThrowException() {
-        var throwable = assertThrows(Exception.class, () -> createConfigValues(
+    void createSettings_withVaultTokenNull_shouldThrowException() {
+        var throwable = assertThrows(Exception.class, () -> createSettings(
                 URL,
                 null,
                 HEALTH_CHECK_PATH, 
@@ -94,8 +94,8 @@ class HashicorpVaultConfigValuesTest {
     }
 
     @Test
-    void createConfigValues_withVaultTokenTtlLessThan5_shouldThrowException() {
-        var throwable = assertThrows(Exception.class, () -> createConfigValues(
+    void createSettings_withVaultTokenTtlLessThan5_shouldThrowException() {
+        var throwable = assertThrows(Exception.class, () -> createSettings(
                 URL,
                 TOKEN,
                 HEALTH_CHECK_PATH,
@@ -106,8 +106,8 @@ class HashicorpVaultConfigValuesTest {
 
     @ParameterizedTest
     @ValueSource(longs = {VAULT_TOKEN_TTL_DEFAULT, VAULT_TOKEN_TTL_DEFAULT + 1})
-    void createConfigValues_withVaultTokenRenewBufferEqualOrGreaterThanTtl_shouldThrowException(long value) {
-        var throwable = assertThrows(Exception.class, () -> createConfigValues(
+    void createSettings_withVaultTokenRenewBufferEqualOrGreaterThanTtl_shouldThrowException(long value) {
+        var throwable = assertThrows(Exception.class, () -> createSettings(
                 URL,
                 TOKEN,
                 HEALTH_CHECK_PATH, 
@@ -116,12 +116,12 @@ class HashicorpVaultConfigValuesTest {
         assertThat(throwable.getMessage()).isEqualTo("Vault token renew buffer value must be less than ttl value");
     }
 
-    private HashicorpVaultConfigValues createConfigValues(String url,
-                                                          String token,
-                                                          String healthCheckPath,
-                                                          long ttl,
-                                                          long renewBuffer) {
-        return HashicorpVaultConfigValues.Builder.newInstance()
+    private HashicorpVaultSettings createSettings(String url,
+                                                  String token,
+                                                  String healthCheckPath,
+                                                  long ttl,
+                                                  long renewBuffer) {
+        return HashicorpVaultSettings.Builder.newInstance()
                 .url(url)
                 .healthCheckEnabled(true)
                 .healthCheckPath(healthCheckPath)

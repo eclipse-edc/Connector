@@ -61,7 +61,7 @@ class HashicorpVaultClientIntegrationTest {
                 TestUtils.testHttpClient(),
                 OBJECT_MAPPER,
                 MONITOR,
-                getConfigValues()
+                getSettings()
         );
     }
 
@@ -103,7 +103,7 @@ class HashicorpVaultClientIntegrationTest {
                 });
     }
 
-    public static HashicorpVaultConfigValues getConfigValues() throws IOException, InterruptedException {
+    public static HashicorpVaultSettings getSettings() throws IOException, InterruptedException {
         var execResult = VAULT_CONTAINER.execInContainer(
                 "vault",
                 "token",
@@ -121,7 +121,7 @@ class HashicorpVaultClientIntegrationTest {
                 .asJsonObject();
         var clientToken = auth.getString(CLIENT_TOKEN_KEY);
 
-        return HashicorpVaultConfigValues.Builder.newInstance()
+        return HashicorpVaultSettings.Builder.newInstance()
                 .url(HTTP_URL_FORMAT.formatted(VAULT_CONTAINER.getHost(), VAULT_CONTAINER.getFirstMappedPort()))
                 .healthCheckPath(HEALTH_CHECK_PATH)
                 .token(clientToken)
