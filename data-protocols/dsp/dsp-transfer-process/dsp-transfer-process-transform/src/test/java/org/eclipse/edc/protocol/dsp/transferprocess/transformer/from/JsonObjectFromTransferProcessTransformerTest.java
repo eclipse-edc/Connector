@@ -16,7 +16,6 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.from;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferProcessTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -54,15 +53,11 @@ class JsonObjectFromTransferProcessTransformerTest {
                 .property("type", "TestValueProperty")
                 .build();
 
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id("consumerPid")
-                .dataDestination(dataAddress)
-                .build();
-
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id("providerPid")
                 .callbackAddresses(new ArrayList<>())
-                .dataRequest(dataRequest)
+                .correlationId("consumerPid")
+                .dataDestination(dataAddress)
                 .type(TransferProcess.Type.PROVIDER)
                 .contentDataAddress(dataAddress)
                 .build();
@@ -86,15 +81,11 @@ class JsonObjectFromTransferProcessTransformerTest {
                 .property("type", "TestValueProperty")
                 .build();
 
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id("providerPid")
-                .dataDestination(dataAddress)
-                .build();
-
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id("consumerPid")
                 .callbackAddresses(new ArrayList<>())
-                .dataRequest(dataRequest)
+                .correlationId("providerPid")
+                .dataDestination(dataAddress)
                 .type(TransferProcess.Type.CONSUMER)
                 .contentDataAddress(dataAddress)
                 .build();

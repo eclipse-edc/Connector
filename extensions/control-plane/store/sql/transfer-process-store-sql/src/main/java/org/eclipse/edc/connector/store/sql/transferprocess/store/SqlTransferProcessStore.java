@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
@@ -138,15 +137,12 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     @Override
     public void save(TransferProcess entity) {
         Objects.requireNonNull(entity.getId(), "TransferProcesses must have an ID!");
-        if (entity.getDataRequest() == null) {
-            throw new IllegalArgumentException("Cannot store TransferProcess without a DataRequest");
-        }
         transactionContext.execute(() -> {
             try (var conn = getConnection()) {
                 var existing = findByIdInternal(conn, entity.getId());
                 if (existing != null) {
                     leaseContext.by(leaseHolderName).withConnection(conn).breakLease(entity.getId());
-                    update(conn, entity, existing.getDataRequest().getId());
+                    update(conn, entity);
                 } else {
                     insert(conn, entity);
                 }
@@ -211,20 +207,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         });
     }
 
-    private DataRequest mapDataRequest(ResultSet resultSet) throws SQLException {
-        return DataRequest.Builder.newInstance()
-                .id(resultSet.getString("edc_data_request_id"))
-                .assetId(resultSet.getString(statements.getAssetIdColumn()))
-                .protocol(resultSet.getString(statements.getProtocolColumn()))
-                .dataDestination(fromJson(resultSet.getString(statements.getDataDestinationColumn()), DataAddress.class))
-                .connectorAddress(resultSet.getString(statements.getConnectorAddressColumn()))
-                .contractId(resultSet.getString(statements.getContractIdColumn()))
-                .processId(resultSet.getString(statements.getProcessIdColumn()))
-                .build();
-    }
-
     private QuerySpec correlationIdQuerySpec(String correlationId) {
-        var criterion = criterion("dataRequest.id", "=", correlationId);
+        var criterion = criterion("correlationId", "=", correlationId);
         return QuerySpec.Builder.newInstance().filter(criterion).build();
     }
 
@@ -240,7 +224,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         return queryExecutor.query(connection, true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters());
     }
 
-    private void update(Connection conn, TransferProcess process, String existingDataRequestId) {
+    private void update(Connection conn, TransferProcess process) {
         var updateStmt = statements.getUpdateTransferProcessTemplate();
         queryExecutor.execute(conn, updateStmt,
                 process.getState(),
@@ -258,24 +242,13 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 process.getTransferType(),
                 toJson(process.getProtocolMessages()),
                 process.getDataPlaneId(),
+                process.getCorrelationId(),
+                process.getCounterPartyAddress(),
+                process.getProtocol(),
+                process.getAssetId(),
+                process.getContractId(),
+                toJson(process.getDataDestination()),
                 process.getId());
-
-        var newDr = process.getDataRequest();
-        updateDataRequest(conn, newDr, existingDataRequestId);
-    }
-
-    private void updateDataRequest(Connection conn, DataRequest dataRequest, String existingDataRequestId) {
-        var updateDrStmt = statements.getUpdateDataRequestTemplate();
-
-        queryExecutor.execute(conn, updateDrStmt,
-                dataRequest.getId(),
-                dataRequest.getProcessId(),
-                dataRequest.getConnectorAddress(),
-                dataRequest.getProtocol(),
-                dataRequest.getAssetId(),
-                dataRequest.getContractId(),
-                toJson(dataRequest.getDataDestination()),
-                existingDataRequestId);
     }
 
     /**
@@ -295,7 +268,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     private void insert(Connection conn, TransferProcess process) {
-        // insert TransferProcess
         var insertTpStatement = statements.getInsertStatement();
         queryExecutor.execute(conn, insertTpStatement, process.getId(),
                 process.getState(),
@@ -315,26 +287,13 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 process.isPending(),
                 process.getTransferType(),
                 toJson(process.getProtocolMessages()),
-                process.getDataPlaneId());
-
-        //insert DataRequest
-        var dr = process.getDataRequest();
-        if (dr != null) {
-            insertDataRequest(process.getId(), dr, conn);
-        }
-    }
-
-    private void insertDataRequest(String processId, DataRequest dr, Connection conn) {
-        var insertDrStmt = statements.getInsertDataRequestTemplate();
-        queryExecutor.execute(conn, insertDrStmt,
-                dr.getId(),
-                dr.getProcessId(),
-                dr.getConnectorAddress(),
-                dr.getAssetId(),
-                dr.getContractId(),
-                toJson(dr.getDataDestination()),
-                processId,
-                dr.getProtocol());
+                process.getDataPlaneId(),
+                process.getCorrelationId(),
+                process.getCounterPartyAddress(),
+                process.getProtocol(),
+                process.getAssetId(),
+                process.getContractId(),
+                toJson(process.getDataDestination()));
     }
 
     private TransferProcess mapTransferProcess(ResultSet resultSet) throws SQLException {
@@ -350,7 +309,12 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .resourceManifest(fromJson(resultSet.getString(statements.getResourceManifestColumn()), ResourceManifest.class))
                 .provisionedResourceSet(fromJson(resultSet.getString(statements.getProvisionedResourceSetColumn()), ProvisionedResourceSet.class))
                 .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
-                .dataRequest(mapDataRequest(resultSet))
+                .correlationId(resultSet.getString(statements.getCorrelationIdColumn()))
+                .assetId(resultSet.getString(statements.getAssetIdColumn()))
+                .protocol(resultSet.getString(statements.getProtocolColumn()))
+                .dataDestination(fromJson(resultSet.getString(statements.getDataDestinationColumn()), DataAddress.class))
+                .counterPartyAddress(resultSet.getString(statements.getCounterPartyAddressColumn()))
+                .contractId(resultSet.getString(statements.getContractIdColumn()))
                 .contentDataAddress(fromJson(resultSet.getString(statements.getContentDataAddressColumn()), DataAddress.class))
                 .deprovisionedResources(fromJson(resultSet.getString(statements.getDeprovisionedResourcesColumn()), new TypeReference<>() {
                 }))

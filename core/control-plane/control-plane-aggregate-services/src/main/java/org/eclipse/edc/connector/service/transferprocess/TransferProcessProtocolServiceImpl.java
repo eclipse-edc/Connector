@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -154,22 +153,19 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message, String assetId) {
         var destination = message.getDataDestination() != null
                 ? message.getDataDestination() : DataAddress.Builder.newInstance().type(HTTP_PROXY).build();
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(message.getConsumerPid())
-                .protocol(message.getProtocol())
-                .connectorAddress(message.getCallbackAddress())
-                .dataDestination(destination)
-                .assetId(assetId)
-                .contractId(message.getContractId())
-                .build();
 
-        var existingTransferProcess = transferProcessStore.findForCorrelationId(dataRequest.getId());
+        var existingTransferProcess = transferProcessStore.findForCorrelationId(message.getConsumerPid());
         if (existingTransferProcess != null) {
             return ServiceResult.success(existingTransferProcess);
         }
         var process = TransferProcess.Builder.newInstance()
                 .id(randomUUID().toString())
-                .dataRequest(dataRequest)
+                .protocol(message.getProtocol())
+                .correlationId(message.getConsumerPid())
+                .counterPartyAddress(message.getCallbackAddress())
+                .dataDestination(destination)
+                .assetId(assetId)
+                .contractId(message.getContractId())
                 .transferType(message.getTransferType())
                 .type(PROVIDER)
                 .clock(clock)

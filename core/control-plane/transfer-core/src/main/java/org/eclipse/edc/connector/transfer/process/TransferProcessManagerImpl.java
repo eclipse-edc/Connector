@@ -32,7 +32,6 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
@@ -133,20 +132,15 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         if (existingTransferProcess != null) {
             return StatusResult.success(existingTransferProcess);
         }
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(id)
-                .assetId(transferRequest.getAssetId())
-                .dataDestination(transferRequest.getDataDestination())
-                .connectorAddress(transferRequest.getCounterPartyAddress())
-                .contractId(transferRequest.getContractId())
-                .destinationType(transferRequest.getDataDestination().getType())
-                .protocol(transferRequest.getProtocol())
-                .dataDestination(transferRequest.getDataDestination())
-                .build();
 
         var process = TransferProcess.Builder.newInstance()
                 .id(id)
-                .dataRequest(dataRequest)
+                .assetId(transferRequest.getAssetId())
+                .dataDestination(transferRequest.getDataDestination())
+                .counterPartyAddress(transferRequest.getCounterPartyAddress())
+                .contractId(transferRequest.getContractId())
+                .protocol(transferRequest.getProtocol())
+                .dataDestination(transferRequest.getDataDestination())
                 .type(CONSUMER)
                 .clock(clock)
                 .transferType(transferRequest.getTransferType())
@@ -297,7 +291,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onRetryExhausted(this::transitionToTerminated)
                 .onFailure((t, throwable) -> transitionToRequesting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .execute("send transfer request to " + process.getConnectorAddress());
+                .execute("send transfer request to " + process.getCounterPartyAddress());
     }
 
     /**
@@ -338,7 +332,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFailure((t, throwable) -> transitionToCompleting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute("send transfer completion to " + process.getConnectorAddress());
+                .execute("send transfer completion to " + process.getCounterPartyAddress());
     }
 
     /**
@@ -412,7 +406,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFailure((t, throwable) -> transitionToStarting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute("send transfer start to " + process.getConnectorAddress());
+                .execute("send transfer start to " + process.getCounterPartyAddress());
     }
 
     @NotNull
@@ -442,7 +436,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFailure((t, throwable) -> transitionToSuspending(t, throwable.getMessage()))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute("send transfer suspension to " + process.getConnectorAddress());
+                .execute("send transfer suspension to " + process.getCounterPartyAddress());
     }
 
     private boolean sendTransferTerminationMessage(TransferProcess process) {
@@ -459,15 +453,15 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted(this::transitionToTerminated)
-                .execute("send transfer termination to " + process.getConnectorAddress());
+                .execute("send transfer termination to " + process.getCounterPartyAddress());
     }
 
     private <T, M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> AsyncStatusResultRetryProcess<TransferProcess, T, ?>
             dispatch(B messageBuilder, TransferProcess process, Policy policy, Class<T> responseType) {
 
         messageBuilder.protocol(process.getProtocol())
-                .counterPartyAddress(process.getConnectorAddress())
-                .processId(process.getCorrelationId())
+                .counterPartyAddress(process.getCounterPartyAddress())
+                .processId(Optional.ofNullable(process.getCorrelationId()).orElse(process.getId()))
                 .policy(policy);
 
         if (process.lastSentProtocolMessage() != null) {

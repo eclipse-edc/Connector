@@ -20,7 +20,6 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -249,17 +248,14 @@ public class TransferProcessApiEndToEndTest {
             return TransferProcess.Builder.newInstance()
                     .id(id)
                     .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
-                    .dataRequest(DataRequest.Builder.newInstance()
-                            .id(UUID.randomUUID().toString())
-                            .dataDestination(DataAddress.Builder.newInstance()
-                                    .type("type")
-                                    .build())
-                            .protocol("dataspace-protocol-http")
-                            .assetId("asset-id")
-                            .contractId("contractId")
-                            .connectorAddress("http://connector/address")
-                            .processId(id)
-                            .build());
+                    .correlationId(UUID.randomUUID().toString())
+                    .dataDestination(DataAddress.Builder.newInstance()
+                            .type("type")
+                            .build())
+                    .protocol("dataspace-protocol-http")
+                    .assetId("asset-id")
+                    .contractId("contractId")
+                    .counterPartyAddress("http://connector/address");
         }
 
         private JsonArrayBuilder createCallbackAddress() {

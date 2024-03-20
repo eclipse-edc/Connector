@@ -121,7 +121,12 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     public static final String TRANSFER_PROCESS_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_PROCESS_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
     private Type type = CONSUMER;
-    private DataRequest dataRequest;
+    private String protocol;
+    private String correlationId;
+    private String counterPartyAddress;
+    private DataAddress dataDestination;
+    private String assetId;
+    private String contractId;
     private DataAddress contentDataAddress;
     private ResourceManifest resourceManifest;
     private ProvisionedResourceSet provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().build();
@@ -131,7 +136,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private ProtocolMessages protocolMessages = new ProtocolMessages();
 
     private String transferType;
-
     private String dataPlaneId;
 
     private TransferProcess() {
@@ -143,10 +147,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public Type getType() {
         return type;
-    }
-
-    public DataRequest getDataRequest() {
-        return dataRequest;
     }
 
     public ResourceManifest getResourceManifest() {
@@ -385,7 +385,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     @JsonIgnore
     public String getCorrelationId() {
-        return dataRequest.getId();
+        return correlationId;
     }
 
     /**
@@ -395,7 +395,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
      * @param correlationId the correlation id.
      */
     public void setCorrelationId(String correlationId) {
-        dataRequest.setId(correlationId);
+        this.correlationId = correlationId;
     }
 
     @JsonIgnore
@@ -404,8 +404,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     @JsonIgnore
-    public String getConnectorAddress() {
-        return dataRequest.getConnectorAddress();
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     /**
@@ -418,32 +418,32 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     @JsonIgnore
     public String getAssetId() {
-        return dataRequest.getAssetId();
+        return assetId;
     }
 
     @JsonIgnore
     public String getContractId() {
-        return dataRequest.getContractId();
+        return contractId;
     }
 
     @JsonIgnore
     public DataAddress getDataDestination() {
-        return dataRequest.getDataDestination();
+        return dataDestination;
     }
 
     @JsonIgnore
     public String getProtocol() {
-        return dataRequest.getProtocol();
+        return protocol;
     }
 
     @JsonIgnore
     public void updateDestination(DataAddress dataAddress) {
-        dataRequest.updateDestination(dataAddress);
+        this.dataDestination = dataAddress;
     }
 
     @JsonIgnore
     public String getDestinationType() {
-        return dataRequest.getDestinationType();
+        return dataDestination.getType();
     }
 
     public String getDataPlaneId() {
@@ -454,7 +454,12 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     public TransferProcess copy() {
         var builder = Builder.newInstance()
                 .resourceManifest(resourceManifest)
-                .dataRequest(dataRequest)
+                .protocol(protocol)
+                .correlationId(correlationId)
+                .counterPartyAddress(counterPartyAddress)
+                .dataDestination(dataDestination)
+                .assetId(assetId)
+                .contractId(contractId)
                 .provisionedResourceSet(provisionedResourceSet)
                 .contentDataAddress(contentDataAddress)
                 .deprovisionedResources(deprovisionedResources)
@@ -547,11 +552,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             return this;
         }
 
-        public Builder dataRequest(DataRequest request) {
-            entity.dataRequest = request;
-            return this;
-        }
-
         public Builder resourceManifest(ResourceManifest manifest) {
             entity.resourceManifest = manifest;
             return this;
@@ -597,6 +597,36 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             return this;
         }
 
+        public Builder protocol(String protocol) {
+            entity.protocol = protocol;
+            return this;
+        }
+
+        public Builder correlationId(String correlationId) {
+            entity.correlationId = correlationId;
+            return this;
+        }
+
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            entity.counterPartyAddress = counterPartyAddress;
+            return this;
+        }
+
+        public Builder dataDestination(DataAddress dataDestination) {
+            entity.dataDestination = dataDestination;
+            return this;
+        }
+
+        public Builder assetId(String assetId) {
+            entity.assetId = assetId;
+            return this;
+        }
+
+        public Builder contractId(String contractId) {
+            entity.contractId = contractId;
+            return this;
+        }
+
         @Override
         public Builder self() {
             return this;
@@ -605,12 +635,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         @Override
         public TransferProcess build() {
             super.build();
-
-            if (entity.dataRequest == null) {
-                entity.dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
-            }
-
-            entity.dataRequest.associateWithProcessId(entity.id);
 
             if (entity.resourceManifest != null) {
                 entity.resourceManifest.setTransferProcessId(entity.id);

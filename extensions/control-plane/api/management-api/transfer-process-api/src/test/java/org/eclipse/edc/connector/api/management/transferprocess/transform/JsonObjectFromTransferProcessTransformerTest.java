@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.management.transferprocess.transform;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -73,12 +72,10 @@ class JsonObjectFromTransferProcessTransformerTest {
                 .privateProperties(Map.of("foo", "bar"))
                 .transferType("transferType")
                 .type(CONSUMER)
-                .dataRequest(DataRequest.Builder.newInstance()
-                        .id("correlationId")
-                        .assetId("assetId")
-                        .contractId("contractId")
-                        .dataDestination(DataAddress.Builder.newInstance().type("any").properties(Map.of("bar", "foo")).build())
-                        .build())
+                .correlationId("correlationId")
+                .assetId("assetId")
+                .contractId("contractId")
+                .dataDestination(DataAddress.Builder.newInstance().type("any").properties(Map.of("bar", "foo")).build())
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
                 .errorDetail("an error")
                 .build();

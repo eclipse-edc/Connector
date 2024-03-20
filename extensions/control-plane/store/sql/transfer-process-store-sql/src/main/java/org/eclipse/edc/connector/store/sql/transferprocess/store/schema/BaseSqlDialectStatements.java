@@ -83,6 +83,12 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .column(getTransferTypeColumn())
                 .jsonColumn(getProtocolMessagesColumn())
                 .column(getDataPlaneIdColumn())
+                .column(getCorrelationIdColumn())
+                .column(getCounterPartyAddressColumn())
+                .column(getProtocolColumn())
+                .column(getAssetIdColumn())
+                .column(getContractIdColumn())
+                .jsonColumn(getDataDestinationColumn())
                 .insertInto(getTransferProcessTableName());
     }
 
@@ -109,40 +115,18 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .column(getTransferTypeColumn())
                 .jsonColumn(getProtocolMessagesColumn())
                 .column(getDataPlaneIdColumn())
+                .column(getCorrelationIdColumn())
+                .column(getCounterPartyAddressColumn())
+                .column(getProtocolColumn())
+                .column(getAssetIdColumn())
+                .column(getContractIdColumn())
+                .jsonColumn(getDataDestinationColumn())
                 .update(getTransferProcessTableName(), getIdColumn());
     }
 
     @Override
-    public String getInsertDataRequestTemplate() {
-        return executeStatement()
-                .column(getDataRequestIdColumn())
-                .column(getProcessIdColumn())
-                .column(getConnectorAddressColumn())
-                .column(getAssetIdColumn())
-                .column(getContractIdColumn())
-                .jsonColumn(getDataDestinationColumn())
-                .column(getTransferProcessIdFkColumn())
-                .column(getProtocolColumn())
-                .insertInto(getDataRequestTable());
-    }
-
-    @Override
     public String getSelectTemplate() {
-        return format("SELECT *, edr.%s as edc_data_request_id FROM %s LEFT OUTER JOIN %s edr on %s.%s = edr.%s", getDataRequestIdColumn(),
-                getTransferProcessTableName(), getDataRequestTable(), getTransferProcessTableName(), getIdColumn(), getProcessIdColumn());
-    }
-
-    @Override
-    public String getUpdateDataRequestTemplate() {
-        return executeStatement()
-                .column(getDataRequestIdColumn())
-                .column(getProcessIdColumn())
-                .column(getConnectorAddressColumn())
-                .column(getProtocolColumn())
-                .column(getAssetIdColumn())
-                .column(getContractIdColumn())
-                .jsonColumn(getDataDestinationColumn())
-                .update(getDataRequestTable(), getDataRequestIdColumn());
+        return "SELECT * FROM %s".formatted(getTransferProcessTableName());
     }
 
     @Override

@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.transfer.dataplane.flow;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Failure;
@@ -57,8 +56,7 @@ class ConsumerPullTransferDataFlowControllerTest {
     void initiateFlow_success() {
         var proxyAddress = dataAddress();
         var instance = mock(DataPlaneInstance.class);
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(dataRequest())
+        var transferProcess = transferProcessBuilder(HTTP_PROXY)
                 .contentDataAddress(dataAddress())
                 .build();
 
@@ -76,9 +74,8 @@ class ConsumerPullTransferDataFlowControllerTest {
     void initiateFlow_success_withTransferType() {
         var proxyAddress = dataAddress();
         var instance = mock(DataPlaneInstance.class);
-        var transferProcess = TransferProcess.Builder.newInstance()
+        var transferProcess = transferProcessBuilder(HTTP_PROXY)
                 .transferType(HTTP_DATA_PULL)
-                .dataRequest(dataRequest())
                 .contentDataAddress(dataAddress())
                 .build();
 
@@ -94,8 +91,7 @@ class ConsumerPullTransferDataFlowControllerTest {
 
     @Test
     void initiateFlow_returnsFailureIfNoDataPlaneInstance() {
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(dataRequest())
+        var transferProcess = transferProcessBuilder(HTTP_PROXY)
                 .contentDataAddress(dataAddress())
                 .build();
 
@@ -110,8 +106,7 @@ class ConsumerPullTransferDataFlowControllerTest {
     void initiateFlow_returnsFailureIfAddressResolutionFails() {
         var errorMsg = "Test Error Message";
         var instance = mock(DataPlaneInstance.class);
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(dataRequest())
+        var transferProcess = transferProcessBuilder(HTTP_PROXY)
                 .contentDataAddress(dataAddress())
                 .build();
 
@@ -125,8 +120,7 @@ class ConsumerPullTransferDataFlowControllerTest {
 
     @Test
     void terminate_shouldAlwaysReturnSuccess() {
-        var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(dataRequest())
+        var transferProcess = transferProcessBuilder(HTTP_PROXY)
                 .contentDataAddress(dataAddress())
                 .build();
 
@@ -148,10 +142,20 @@ class ConsumerPullTransferDataFlowControllerTest {
         return transferProcess(destinationType, null);
     }
 
-    private TransferProcess transferProcess(String destinationType, String transferType) {
+    private TransferProcess.Builder transferProcessBuilder(String destinationType) {
         return TransferProcess.Builder.newInstance()
+                .correlationId(UUID.randomUUID().toString())
+                .protocol("protocol")
+                .contractId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .counterPartyAddress("test.connector.address")
+                .dataDestination(DataAddress.Builder.newInstance().type(destinationType).build());
+    }
+
+    private TransferProcess transferProcess(String destinationType, String transferType) {
+        return transferProcessBuilder(destinationType)
                 .transferType(transferType)
-                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).build())
+                .dataDestination(DataAddress.Builder.newInstance().type(destinationType).build())
                 .build();
     }
 
@@ -159,15 +163,4 @@ class ConsumerPullTransferDataFlowControllerTest {
         return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
     }
 
-    private DataRequest dataRequest() {
-        return DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .protocol("protocol")
-                .contractId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
-                .connectorAddress("test.connector.address")
-                .processId(UUID.randomUUID().toString())
-                .destinationType(HTTP_PROXY)
-                .build();
-    }
 }

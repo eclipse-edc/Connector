@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.ComponentTest;
@@ -151,12 +150,10 @@ public class TransferProcessHttpClientIntegrationTest {
                 .id(id)
                 .state(TransferProcessStates.STARTED.code())
                 .type(TransferProcess.Type.PROVIDER)
-                .dataRequest(DataRequest.Builder.newInstance()
-                        .id(UUID.randomUUID().toString())
-                        .destinationType("file")
-                        .protocol("any")
-                        .connectorAddress("http://an/address")
-                        .build())
+                .correlationId(UUID.randomUUID().toString())
+                .dataDestination(DataAddress.Builder.newInstance().type("file").build())
+                .protocol("any")
+                .counterPartyAddress("http://an/address")
                 .build();
     }
 

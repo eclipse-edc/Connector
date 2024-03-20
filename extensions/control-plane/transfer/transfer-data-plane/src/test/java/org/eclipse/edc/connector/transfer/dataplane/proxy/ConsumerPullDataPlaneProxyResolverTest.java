@@ -18,7 +18,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -64,27 +64,27 @@ class ConsumerPullDataPlaneProxyResolverTest {
         var expiration = Date.from(Instant.now().plusSeconds(100));
         var proxyUrl = "test.proxy.url";
         var token = "token-test";
-        var request = dataRequest();
         var instance = DataPlaneInstance.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .url("http://some.test.url")
                 .property("publicApiUrl", proxyUrl)
                 .build();
+        var transferProcess = transferProcessBuilder().build();
 
         var captor = ArgumentCaptor.forClass(TokenDecorator[].class);
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn(encryptedAddress);
-        when(tokenExpirationDateFunction.expiresAt(address, request.getContractId())).thenReturn(Result.success(expiration));
+        when(tokenExpirationDateFunction.expiresAt(address, transferProcess.getContractId())).thenReturn(Result.success(expiration));
         when(tokenGenerationService.generate(any(), captor.capture()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(token).build()));
 
-        var result = resolver.toDataAddress(request, address, instance);
+        var result = resolver.toDataAddress(transferProcess, address, instance);
 
         assertThat(result.succeeded()).isTrue();
         var proxyAddress = result.getContent();
         assertThat(proxyAddress.getType()).isEqualTo(EndpointDataReference.EDR_SIMPLE_TYPE);
         assertThat(proxyAddress.getProperties())
-                .containsEntry(EndpointDataReference.ID, request.getId())
-                .containsEntry(EndpointDataReference.CONTRACT_ID, request.getContractId())
+                .containsEntry(EndpointDataReference.ID, transferProcess.getCorrelationId())
+                .containsEntry(EndpointDataReference.CONTRACT_ID, transferProcess.getContractId())
                 .containsEntry(EndpointDataReference.ENDPOINT, proxyUrl)
                 .containsEntry(EndpointDataReference.AUTH_KEY, HttpHeaders.AUTHORIZATION)
                 .containsEntry(EndpointDataReference.AUTH_CODE, token);
@@ -114,8 +114,9 @@ class ConsumerPullDataPlaneProxyResolverTest {
                 .id(UUID.randomUUID().toString())
                 .url("http://some.test.url")
                 .build();
+        var transferProcess = transferProcessBuilder().build();
 
-        var result = resolver.toDataAddress(dataRequest(), dataAddress(), instance);
+        var result = resolver.toDataAddress(transferProcess, dataAddress(), instance);
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureDetail()).isEqualTo("Missing property `https://w3id.org/edc/v0.0.1/ns/publicApiUrl` (deprecated: `publicApiUrl`) in DataPlaneInstance");
@@ -130,11 +131,12 @@ class ConsumerPullDataPlaneProxyResolverTest {
                 .url("http://some.test.url")
                 .property("publicApiUrl", "test.proxy.url")
                 .build();
+        var transferProcess = transferProcessBuilder().build();
 
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn("encryptedAddress");
         when(tokenExpirationDateFunction.expiresAt(any(), any())).thenReturn(Result.failure(errorMsg));
 
-        var result = resolver.toDataAddress(dataRequest(), address, instance);
+        var result = resolver.toDataAddress(transferProcess, address, instance);
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureDetail()).contains(errorMsg);
@@ -144,7 +146,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
     void verifyToDataAddressReturnsFailureIfTokenGenerationFails() {
         var address = dataAddress();
         var errorMsg = "error test";
-        var request = dataRequest();
+        var transferProcess = transferProcessBuilder().build();
         var expiration = Date.from(Instant.now().plusSeconds(100));
         var instance = DataPlaneInstance.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -153,24 +155,22 @@ class ConsumerPullDataPlaneProxyResolverTest {
                 .build();
 
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn("encryptedAddress");
-        when(tokenExpirationDateFunction.expiresAt(address, request.getContractId())).thenReturn(Result.success(expiration));
+        when(tokenExpirationDateFunction.expiresAt(address, transferProcess.getContractId())).thenReturn(Result.success(expiration));
         when(tokenGenerationService.generate(any(), any(TokenDecorator[].class))).thenReturn(Result.failure(errorMsg));
 
-        var result = resolver.toDataAddress(request, address, instance);
+        var result = resolver.toDataAddress(transferProcess, address, instance);
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureDetail()).contains(errorMsg);
     }
 
-    private DataRequest dataRequest() {
-        return DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .protocol("protocol")
+    private TransferProcess.Builder transferProcessBuilder() {
+        return TransferProcess.Builder.newInstance()
+                .correlationId(UUID.randomUUID().toString())
+                .protocol("test-protocol")
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .connectorAddress("test.connector.address")
-                .processId(UUID.randomUUID().toString())
-                .destinationType(HTTP_PROXY)
-                .build();
+                .counterPartyAddress("test.connector.address")
+                .dataDestination(DataAddress.Builder.newInstance().type(HTTP_PROXY).build());
     }
 }

@@ -44,7 +44,7 @@ public class InMemoryTransferProcessStore extends InMemoryStatefulEntityStore<Tr
 
     @Override
     public @Nullable TransferProcess findForCorrelationId(String correlationId) {
-        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("dataRequest.id", "=", correlationId)).build();
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("correlationId", "=", correlationId)).build();
 
         return super.findAll(querySpec).findFirst().orElse(null);
     }

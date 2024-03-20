@@ -30,7 +30,6 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationResource;
@@ -194,7 +193,8 @@ class TransferProcessManagerImplTest {
 
         verify(transferProcessStore, times(RETRY_LIMIT)).save(captor.capture());
         var transferProcess = captor.getValue();
-        assertThat(transferProcess.getId()).isEqualTo("1").isEqualTo(transferProcess.getCorrelationId());
+        assertThat(transferProcess.getId()).isEqualTo("1");
+        assertThat(transferProcess.getCorrelationId()).isNull();
         assertThat(transferProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
         verify(listener).initiated(any());
     }
@@ -288,8 +288,7 @@ class TransferProcessManagerImplTest {
                 .type("type")
                 .property(EDC_DATA_ADDRESS_SECRET, "secret")
                 .build();
-        var dataRequest = createDataRequestBuilder().dataDestination(destinationDataAddress).build();
-        var transferProcess = createTransferProcessBuilder(INITIAL).type(PROVIDER).dataRequest(dataRequest).build();
+        var transferProcess = createTransferProcessBuilder(INITIAL).type(PROVIDER).dataDestination(destinationDataAddress).build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
         when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
@@ -463,7 +462,7 @@ class TransferProcessManagerImplTest {
             var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
             verify(dispatcherRegistry).dispatch(eq(TransferProcessAck.class), captor.capture());
             var message = captor.getValue();
-            assertThat(message.getProcessId()).isEqualTo(null);
+            assertThat(message.getProcessId()).isEqualTo(process.getId());
             assertThat(message.getConsumerPid()).isEqualTo(process.getId());
             assertThat(message.getProviderPid()).isEqualTo(null);
             assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
@@ -474,7 +473,7 @@ class TransferProcessManagerImplTest {
     @Test
     void requesting_shouldAddSecretToDataAddress_whenItExists() {
         var destination = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
-        var process = createTransferProcessBuilder(REQUESTING).dataRequest(createDataRequestBuilder().dataDestination(destination).build()).build();
+        var process = createTransferProcessBuilder(REQUESTING).dataDestination(destination).build();
         var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
@@ -564,7 +563,7 @@ class TransferProcessManagerImplTest {
 
     @Test
     void completing_provider_shouldTransitionToDeprovisioning_whenSendingMessageSucceed() {
-        var process = createTransferProcessBuilder(COMPLETING).type(PROVIDER).dataRequest(createDataRequestBuilder().id("correlationId").build()).build();
+        var process = createTransferProcessBuilder(COMPLETING).type(PROVIDER).correlationId("correlationId").build();
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
         when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
@@ -585,7 +584,7 @@ class TransferProcessManagerImplTest {
 
     @Test
     void completing_consumer_shouldTransitionToCompleted_whenSendingMessageSucceed() {
-        var process = createTransferProcessBuilder(COMPLETING).type(CONSUMER).dataRequest(createDataRequestBuilder().id("correlationId").build()).build();
+        var process = createTransferProcessBuilder(COMPLETING).type(CONSUMER).correlationId("correlationId").build();
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
         when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
@@ -606,8 +605,7 @@ class TransferProcessManagerImplTest {
 
     @Test
     void terminating_provider_shouldTransitionToDeprovisioning_whenMessageSentCorrectly() {
-        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER)
-                .dataRequest(createDataRequestBuilder().id("correlationId").build()).build();
+        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).correlationId("correlationId").build();
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
         when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
@@ -630,8 +628,7 @@ class TransferProcessManagerImplTest {
 
     @Test
     void terminating_consumer_shouldTransitionToTerminated_whenMessageSentCorrectly() {
-        var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER)
-                .dataRequest(createDataRequestBuilder().id("correlationId").build()).build();
+        var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER).correlationId("correlationId").build();
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
         when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
@@ -652,8 +649,7 @@ class TransferProcessManagerImplTest {
 
     @Test
     void terminating_shouldNotTerminateDataTransfer_whenIsConsumer() {
-        var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER)
-                .dataRequest(createDataRequestBuilder().id("correlationId").build()).build();
+        var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER).correlationId("correlationId").build();
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
         when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
@@ -716,8 +712,7 @@ class TransferProcessManagerImplTest {
 
         @Test
         void provider_shouldSuspendDataFlowAndTransitionToSuspended_whenMessageSentCorrectly() {
-            var process = createTransferProcessBuilder(SUSPENDING).type(PROVIDER)
-                    .dataRequest(createDataRequestBuilder().id("counterPartyId").build()).build();
+            var process = createTransferProcessBuilder(SUSPENDING).type(PROVIDER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
@@ -740,8 +735,7 @@ class TransferProcessManagerImplTest {
 
         @Test
         void consumer_shouldTransitionToSuspended_whenMessageSentCorrectly() {
-            var process = createTransferProcessBuilder(SUSPENDING).type(CONSUMER)
-                    .dataRequest(createDataRequestBuilder().id("counterPartyId").build()).build();
+            var process = createTransferProcessBuilder(SUSPENDING).type(CONSUMER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
@@ -890,25 +884,17 @@ class TransferProcessManagerImplTest {
 
     private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates state) {
         var processId = UUID.randomUUID().toString();
-        var dataRequest = createDataRequestBuilder()
-                .processId(processId)
-                .connectorAddress("http://an/address")
-                .build();
 
         return TransferProcess.Builder.newInstance()
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(CONSUMER)
                 .id("test-process-" + processId)
                 .state(state.code())
-                .dataRequest(dataRequest);
-    }
-
-    private DataRequest.Builder createDataRequestBuilder() {
-        return DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .correlationId(UUID.randomUUID().toString())
+                .counterPartyAddress("http://an/address")
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .destinationType(DESTINATION_TYPE)
+                .dataDestination(DataAddress.Builder.newInstance().type(DESTINATION_TYPE).build())
                 .protocol("protocol");
     }
 
