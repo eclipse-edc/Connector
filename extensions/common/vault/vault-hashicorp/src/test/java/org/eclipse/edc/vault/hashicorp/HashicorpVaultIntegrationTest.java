@@ -17,7 +17,6 @@ package org.eclipse.edc.vault.hashicorp;
 
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
-import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,20 +28,14 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.vault.VaultContainer;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultClient.VAULT_DATA_ENTRY_NAME;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_URL;
-import static org.eclipse.edc.vault.hashicorp.util.X509CertificateTestUtil.convertToPem;
-import static org.eclipse.edc.vault.hashicorp.util.X509CertificateTestUtil.generateCertificate;
 
 @ComponentTest
 @Testcontainers
@@ -51,6 +44,7 @@ class HashicorpVaultIntegrationTest {
     static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
     static final String VAULT_ENTRY_KEY = "testing";
     static final String VAULT_ENTRY_VALUE = UUID.randomUUID().toString();
+    static final String VAULT_DATA_ENTRY_NAME = "content";
     static final String TOKEN = UUID.randomUUID().toString();
 
     @Container
@@ -141,29 +135,6 @@ class HashicorpVaultIntegrationTest {
         vault.deleteSecret(key);
         assertThat(vault.resolveSecret(key)).isNull();
     }
-
-    @Test
-    void resolveCertificate_success(Vault vault, CertificateResolver resolver) throws CertificateException, IOException, NoSuchAlgorithmException, org.bouncycastle.operator.OperatorCreationException {
-        var key = UUID.randomUUID().toString();
-        var certificateExpected = generateCertificate(5, "Test");
-        var pem = convertToPem(certificateExpected);
-
-        vault.storeSecret(key, pem);
-        var certificateResult = resolver.resolveCertificate(key);
-
-        assertThat(certificateExpected).isEqualTo(certificateResult);
-    }
-
-    @Test
-    void resolveCertificate_malformed(Vault vault, CertificateResolver resolver) {
-        var key = UUID.randomUUID().toString();
-        var value = UUID.randomUUID().toString();
-        vault.storeSecret(key, value);
-
-        var certificateResult = resolver.resolveCertificate(key);
-        assertThat(certificateResult).isNull();
-    }
-
 
     private Map<String, String> getConfig() {
         return new HashMap<>() {

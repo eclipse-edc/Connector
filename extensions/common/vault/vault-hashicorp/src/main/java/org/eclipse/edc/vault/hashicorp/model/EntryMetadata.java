@@ -15,7 +15,6 @@
 package org.eclipse.edc.vault.hashicorp.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
@@ -24,17 +23,13 @@ import java.util.Map;
 @JsonDeserialize(builder = EntryMetadata.Builder.class)
 public class EntryMetadata {
 
-    @JsonProperty()
     private Map<String, String> customMetadata;
 
-    @JsonProperty()
     private Boolean destroyed;
 
-    @JsonProperty()
     private Integer version;
 
-    EntryMetadata() {
-    }
+    private EntryMetadata() {}
 
     public Map<String, String> getCustomMetadata() {
         return this.customMetadata;

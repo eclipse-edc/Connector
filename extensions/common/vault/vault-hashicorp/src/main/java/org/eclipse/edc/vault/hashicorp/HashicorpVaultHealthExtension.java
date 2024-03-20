@@ -9,67 +9,51 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
+ *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
  *
  */
 
 package org.eclipse.edc.vault.hashicorp;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Requires;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
-import org.eclipse.edc.spi.types.TypeManager;
+
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_HEALTH_CHECK_ENABLED;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_HEALTH_CHECK_ENABLED_DEFAULT;
 
 @Requires(HealthCheckService.class)
+@Extension(value = HashicorpVaultHealthExtension.NAME)
 public class HashicorpVaultHealthExtension implements ServiceExtension {
-    public static final boolean VAULT_HEALTH_CHECK_DEFAULT = true;
 
-    @Setting(value = "Whether or not the vault health check is enabled", defaultValue = "true", type = "boolean")
-    public static final String VAULT_HEALTH_CHECK = "edc.vault.hashicorp.health.check.enabled";
-    public static final String VAULT_API_HEALTH_PATH_DEFAULT = "/v1/sys/health";
-    @Setting(value = "The URL path of the vault's /health endpoint", defaultValue = VAULT_API_HEALTH_PATH_DEFAULT)
-    public static final String VAULT_API_HEALTH_PATH = "edc.vault.hashicorp.api.health.check.path";
-    @Setting(value = "Specifies if being a standby should still return the active status code instead of the standby status code", defaultValue = "false", type = "boolean")
-    public static final String VAULT_HEALTH_CHECK_STANDBY_OK = "edc.vault.hashicorp.health.check.standby.ok";
-    public static final boolean VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT = false;
+    public static final String NAME = "Hashicorp Vault Health";
 
     @Inject
     private HealthCheckService healthCheckService;
 
     @Inject
-    private TypeManager typeManager;
-
-    @Inject
-    private EdcHttpClient httpClient;
+    private HashicorpVaultClient client;
 
     @Override
     public String name() {
-        return "Hashicorp Vault Health Check";
+        return NAME;
     }
-
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = HashicorpVaultClientConfig.create(context);
-        var client = new HashicorpVaultClient(config, httpClient, typeManager.getMapper());
-        configureHealthCheck(client, context);
-
-        context.getMonitor().info("HashicorpVaultExtension: health check initialization complete.");
-    }
-
-    private void configureHealthCheck(HashicorpVaultClient client, ServiceExtensionContext context) {
-        var healthCheckEnabled =
-                context.getSetting(VAULT_HEALTH_CHECK, VAULT_HEALTH_CHECK_DEFAULT);
-        if (!healthCheckEnabled) return;
-
-        var healthCheck =
-                new HashicorpVaultHealthCheck(client, context.getMonitor());
-
-        healthCheckService.addLivenessProvider(healthCheck);
-        healthCheckService.addReadinessProvider(healthCheck);
-        healthCheckService.addStartupStatusProvider(healthCheck);
+        var monitor = context.getMonitor().withPrefix(NAME);
+        var healthCheckEnabled = context.getSetting(VAULT_HEALTH_CHECK_ENABLED, VAULT_HEALTH_CHECK_ENABLED_DEFAULT);
+        if (healthCheckEnabled) {
+            var healthCheck = new HashicorpVaultHealthCheck(client, monitor);
+            healthCheckService.addLivenessProvider(healthCheck);
+            healthCheckService.addReadinessProvider(healthCheck);
+            healthCheckService.addStartupStatusProvider(healthCheck);
+            monitor.info("Vault health check initialization complete");
+        } else {
+            monitor.info("Vault health check disabled");
+        }
     }
 }

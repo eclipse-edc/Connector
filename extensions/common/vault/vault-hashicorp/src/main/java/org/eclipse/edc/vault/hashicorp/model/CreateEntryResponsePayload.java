@@ -20,7 +20,7 @@ public class CreateEntryResponsePayload {
 
     private EntryMetadata data;
 
-    public CreateEntryResponsePayload() {
+    private CreateEntryResponsePayload() {
     }
 
     public EntryMetadata getData() {
