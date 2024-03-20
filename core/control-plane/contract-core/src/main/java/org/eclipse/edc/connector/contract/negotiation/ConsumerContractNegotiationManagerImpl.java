@@ -148,7 +148,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var agreement = ContractAgreement.Builder.newInstance()
                 .contractSigningDate(clock.instant().getEpochSecond())
                 .providerId(negotiation.getCounterPartyId())
-                .consumerId(identityService.getParticipantId())
+                .consumerId(negotiation.getOwnPartyId())
                 .policy(policy)
                 .assetId(lastOffer.getAssetId())
                 .build();

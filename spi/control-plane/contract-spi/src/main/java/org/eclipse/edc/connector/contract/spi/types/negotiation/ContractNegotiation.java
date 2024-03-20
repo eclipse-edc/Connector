@@ -81,6 +81,9 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     private String correlationId;
     private String counterPartyId;
     private String counterPartyAddress;
+
+    private String ownPartyId;
+
     private String protocol;
     private Type type = CONSUMER;
     private ContractAgreement contractAgreement;
@@ -92,6 +95,10 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
 
     public String getCounterPartyId() {
         return counterPartyId;
+    }
+
+    public String getOwnPartyId() {
+        return ownPartyId;
     }
 
     public String getCounterPartyAddress() {
@@ -341,6 +348,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         var builder = Builder.newInstance()
                 .correlationId(correlationId)
                 .counterPartyId(counterPartyId)
+                .ownPartyId(ownPartyId)
                 .counterPartyAddress(counterPartyAddress)
                 .protocol(protocol)
                 .type(type)
@@ -431,6 +439,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
             return this;
         }
 
+        public Builder ownPartyId(String id) {
+            entity.ownPartyId = id;
+            return this;
+        }
+
         public Builder counterPartyAddress(String address) {
             entity.counterPartyAddress = address;
             return this;
@@ -477,6 +490,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
             super.build();
 
             Objects.requireNonNull(entity.counterPartyId);
+            Objects.requireNonNull(entity.ownPartyId);
             Objects.requireNonNull(entity.counterPartyAddress);
             Objects.requireNonNull(entity.protocol);
             if (Type.PROVIDER == entity.type) {

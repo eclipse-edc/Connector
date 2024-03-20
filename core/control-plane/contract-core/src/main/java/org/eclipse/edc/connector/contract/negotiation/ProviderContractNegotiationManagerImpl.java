@@ -25,7 +25,6 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementM
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
 import static java.lang.String.format;
@@ -129,7 +128,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
             agreement = ContractAgreement.Builder.newInstance()
                     .contractSigningDate(clock.instant().getEpochSecond())
-                    .providerId(identityService.getParticipantId())
+                    .providerId(negotiation.getOwnPartyId())
                     .consumerId(negotiation.getCounterPartyId())
                     .policy(lastOffer.getPolicy())
                     .assetId(lastOffer.getAssetId())
@@ -177,7 +176,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol(negotiation.getProtocol())
-                .counterPartyAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyId())
                 .processId(negotiation.getCorrelationId())
                 .policy(negotiation.getContractAgreement().getPolicy())
                 .build();

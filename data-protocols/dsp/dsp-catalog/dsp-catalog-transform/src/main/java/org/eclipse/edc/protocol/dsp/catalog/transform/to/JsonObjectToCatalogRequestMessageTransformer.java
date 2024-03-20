@@ -44,7 +44,7 @@ public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLd
                 .map(it -> transformObject(it, QuerySpec.class, context))
                 .ifPresent(builder::querySpec);
 
-        return builder.build();
+        return builder.ownPartyId("todo").build();
     }
 
 }

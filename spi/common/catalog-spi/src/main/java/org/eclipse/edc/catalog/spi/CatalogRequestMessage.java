@@ -32,6 +32,7 @@ public class CatalogRequestMessage implements RemoteMessage {
     private final Policy policy;
     private String protocol = "unknown";
     private String counterPartyAddress;
+    private String ownPartyId; // maybe instead of message get this somehow out of the audience in jwt and pass it along message
     private QuerySpec querySpec;
 
     private CatalogRequestMessage() {
@@ -53,6 +54,13 @@ public class CatalogRequestMessage implements RemoteMessage {
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+
+    @NotNull
+//    @Override
+    public String getOwnPartyId() {
+        return ownPartyId;
     }
 
     public QuerySpec getQuerySpec() {
@@ -90,6 +98,11 @@ public class CatalogRequestMessage implements RemoteMessage {
             return this;
         }
 
+        public CatalogRequestMessage.Builder ownPartyId(String ownPartyId) {
+            this.message.ownPartyId = ownPartyId;
+            return this;
+        }
+
         public CatalogRequestMessage.Builder querySpec(QuerySpec querySpec) {
             this.message.querySpec = querySpec;
             return this;
@@ -97,6 +110,7 @@ public class CatalogRequestMessage implements RemoteMessage {
 
         public CatalogRequestMessage build() {
             Objects.requireNonNull(message.protocol, "protocol");
+            Objects.requireNonNull(message.ownPartyId, "ownPartyId");
 
             if (message.querySpec == null) {
                 message.querySpec = QuerySpec.none();

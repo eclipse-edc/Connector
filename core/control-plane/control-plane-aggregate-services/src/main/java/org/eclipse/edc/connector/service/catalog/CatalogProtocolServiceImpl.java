@@ -60,7 +60,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
             var catalog = Catalog.Builder.newInstance()
                     .dataServices(dataServices)
                     .datasets(datasets.collect(toList()))
-                    .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, identityService.getParticipantId())
+                    .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, message.getOwnPartyId()) // maybe use audience field of claimtoken instead
                     .build();
 
             return ServiceResult.success(catalog);
