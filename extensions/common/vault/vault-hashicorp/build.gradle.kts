@@ -21,6 +21,7 @@ dependencies {
 
     implementation(project(":core:common:util"))
 
+    testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.jakartaJson)
     testImplementation(libs.testcontainers.junit)
