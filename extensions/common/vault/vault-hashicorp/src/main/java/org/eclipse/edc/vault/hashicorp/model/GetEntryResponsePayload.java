@@ -20,8 +20,7 @@ public class GetEntryResponsePayload {
 
     private GetEntryResponsePayloadGetVaultEntryData data;
 
-    public GetEntryResponsePayload() {
-    }
+    private GetEntryResponsePayload() {}
 
     public GetEntryResponsePayloadGetVaultEntryData getData() {
         return this.data;

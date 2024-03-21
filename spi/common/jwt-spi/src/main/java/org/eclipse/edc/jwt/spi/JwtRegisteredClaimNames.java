@@ -76,7 +76,7 @@ public final class JwtRegisteredClaimNames {
      */
 
     public static final String CLIENT_ID = "client_id";
-    
+
     /**
      * "scope" (Scopes) Claim
      *

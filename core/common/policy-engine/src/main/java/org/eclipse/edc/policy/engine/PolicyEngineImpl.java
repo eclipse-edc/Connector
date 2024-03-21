@@ -15,6 +15,7 @@
 package org.eclipse.edc.policy.engine;
 
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
@@ -47,6 +48,9 @@ public class PolicyEngineImpl implements PolicyEngine {
     private static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + DELIMITER;
 
     private final Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
+
+    private final List<DynamicConstraintFunctionEntry<Rule>> dynamicConstraintFunctions = new ArrayList<>();
+
     private final Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
     private final Map<String, List<BiFunction<Policy, PolicyContext, Boolean>>> preValidators = new HashMap<>();
     private final Map<String, List<BiFunction<Policy, PolicyContext, Boolean>>> postValidators = new HashMap<>();
@@ -94,6 +98,16 @@ public class PolicyEngineImpl implements PolicyEngine {
             }
         });
 
+        dynamicConstraintFunctions.stream().filter(entry -> scopeFilter(entry.scope, delimitedScope)).forEach(entry -> {
+            if (Duty.class.isAssignableFrom(entry.type)) {
+                evalBuilder.dynamicDutyFunction(entry.function::canHandle, (key, operator, value, duty) -> entry.function.evaluate(key, operator, value, duty, context));
+            } else if (Permission.class.isAssignableFrom(entry.type)) {
+                evalBuilder.dynamicPermissionFunction(entry.function::canHandle, (key, operator, value, permission) -> entry.function.evaluate(key, operator, value, permission, context));
+            } else if (Prohibition.class.isAssignableFrom(entry.type)) {
+                evalBuilder.dynamicProhibitionFunction(entry.function::canHandle, (key, operator, value, prohibition) -> entry.function.evaluate(key, operator, value, prohibition, context));
+            }
+        });
+
         var evaluator = evalBuilder.build();
 
         var filteredPolicy = scopeFilter.applyScope(policy, scope);
@@ -116,13 +130,19 @@ public class PolicyEngineImpl implements PolicyEngine {
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <R extends Rule> void registerFunction(String scope, Class<R> type, String key, AtomicConstraintFunction<R> function) {
         constraintFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>()).add(new ConstraintFunctionEntry(type, key, function));
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public <R extends Rule> void registerFunction(String scope, Class<R> type, DynamicAtomicConstraintFunction<R> function) {
+        dynamicConstraintFunctions.add(new DynamicConstraintFunctionEntry(type, scope + DELIMITER, function));
+    }
+
+    @Override
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <R extends Rule> void registerFunction(String scope, Class<R> type, RuleFunction<R> function) {
         ruleFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>()).add(new RuleFunctionEntry(type, function));
     }
@@ -154,6 +174,18 @@ public class PolicyEngineImpl implements PolicyEngine {
         ConstraintFunctionEntry(Class<R> type, String key, AtomicConstraintFunction<R> function) {
             this.type = type;
             this.key = key;
+            this.function = function;
+        }
+    }
+
+    private static class DynamicConstraintFunctionEntry<R extends Rule> {
+        Class<R> type;
+        String scope;
+        DynamicAtomicConstraintFunction<R> function;
+
+        DynamicConstraintFunctionEntry(Class<R> type, String scope, DynamicAtomicConstraintFunction<R> function) {
+            this.type = type;
+            this.scope = scope;
             this.function = function;
         }
     }

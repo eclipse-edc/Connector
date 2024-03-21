@@ -48,23 +48,26 @@ class SecureServiceTokenApiControllerTest extends RestControllerTestBase {
     @Test
     void token() {
         var id = "id";
+        var clientId = "clientId";
         var clientSecret = "client_secret";
         var clientKeyAlias = "secretAlias";
         var privateKeyAlias = "secretAlias";
+        var did = "did:example:subject";
         var audience = "audience";
         var token = "token";
         var expiresIn = 3600;
 
         var client = StsClient.Builder.newInstance()
                 .id(id)
-                .clientId(id)
+                .clientId(clientId)
                 .name("Name")
                 .secretAlias(clientKeyAlias)
                 .privateKeyAlias(privateKeyAlias)
+                .did(did)
                 .build();
 
         when(validator.validate(any())).thenReturn(ValidationResult.success());
-        when(clientService.findById(eq(id))).thenReturn(ServiceResult.success(client));
+        when(clientService.findByClientId(eq(clientId))).thenReturn(ServiceResult.success(client));
         when(clientService.authenticate(client, clientSecret)).thenReturn(ServiceResult.success(client));
         when(tokenService.tokenFor(eq(client), any())).thenReturn(ServiceResult.success(TokenRepresentation.Builder.newInstance()
                 .token(token)
@@ -74,12 +77,12 @@ class SecureServiceTokenApiControllerTest extends RestControllerTestBase {
         baseRequest()
                 .contentType("application/x-www-form-urlencoded")
                 .formParam("grant_type", GRANT_TYPE)
-                .formParam("client_id", id)
+                .formParam("client_id", clientId)
                 .formParam("client_secret", clientSecret)
                 .formParam("audience", audience)
                 .post("/token")
                 .then()
-                .log().all(true)
+                .log().ifValidationFails()
                 .statusCode(200)
                 .contentType(JSON)
                 .body("access_token", is(token))
@@ -89,23 +92,24 @@ class SecureServiceTokenApiControllerTest extends RestControllerTestBase {
     @Test
     void token_invalidClient_whenNotFound() {
         var id = "id";
+        var clientId = "clientId";
         var clientSecret = "client_secret";
         var audience = "audience";
         var errorCode = "invalid_client";
 
 
         when(validator.validate(any())).thenReturn(ValidationResult.success());
-        when(clientService.findById(eq(id))).thenReturn(ServiceResult.notFound("Not found"));
+        when(clientService.findByClientId(eq(clientId))).thenReturn(ServiceResult.notFound("Not found"));
 
         baseRequest()
                 .contentType("application/x-www-form-urlencoded")
                 .formParam("grant_type", GRANT_TYPE)
-                .formParam("client_id", id)
+                .formParam("client_id", clientId)
                 .formParam("client_secret", clientSecret)
                 .formParam("audience", audience)
                 .post("/token")
                 .then()
-                .log().all(true)
+                .log().ifValidationFails()
                 .statusCode(401)
                 .contentType(JSON)
                 .body("error", is(errorCode));
@@ -114,25 +118,26 @@ class SecureServiceTokenApiControllerTest extends RestControllerTestBase {
     @Test
     void token_invalidClient_authenticationFails() {
         var id = "id";
+        var clientId = "clientId";
         var clientSecret = "client_secret";
         var audience = "audience";
         var errorCode = "invalid_client";
         var client = createClient(id);
 
         when(validator.validate(any())).thenReturn(ValidationResult.success());
-        when(clientService.findById(eq(id))).thenReturn(ServiceResult.success(client));
+        when(clientService.findByClientId(eq(clientId))).thenReturn(ServiceResult.success(client));
         when(clientService.authenticate(client, clientSecret)).thenReturn(ServiceResult.unauthorized("failure"));
 
 
         baseRequest()
                 .contentType("application/x-www-form-urlencoded")
                 .formParam("grant_type", GRANT_TYPE)
-                .formParam("client_id", id)
+                .formParam("client_id", clientId)
                 .formParam("client_secret", clientSecret)
                 .formParam("audience", audience)
                 .post("/token")
                 .then()
-                .log().all(true)
+                .log().ifValidationFails()
                 .statusCode(401)
                 .contentType(JSON)
                 .body("error", is(errorCode));

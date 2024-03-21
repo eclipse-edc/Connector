@@ -23,11 +23,13 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
+import org.eclipse.edc.connector.api.management.transferprocess.model.SuspendTransfer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferState;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -44,6 +46,7 @@ import java.util.Optional;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.SuspendTransfer.SUSPEND_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
@@ -158,6 +161,20 @@ public class TransferProcessApiController implements TransferProcessApi {
 
         service.terminate(new TerminateTransferCommand(id, terminateTransfer.reason()))
                 .onSuccess(tp -> monitor.debug(format("Termination requested for TransferProcess with ID %s", id)))
+                .orElseThrow(failure -> mapToException(failure, TransferProcess.class, id));
+    }
+
+    @POST
+    @Path("/{id}/suspend")
+    @Override
+    public void suspendTransferProcess(@PathParam("id") String id, JsonObject requestBody) {
+        validatorRegistry.validate(SUSPEND_TRANSFER_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
+
+        var suspendTransfer = transformerRegistry.transform(requestBody, SuspendTransfer.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        service.suspend(new SuspendTransferCommand(id, suspendTransfer.reason()))
+                .onSuccess(tp -> monitor.debug(format("Suspension requested for TransferProcess with ID %s", id)))
                 .orElseThrow(failure -> mapToException(failure, TransferProcess.class, id));
     }
 }

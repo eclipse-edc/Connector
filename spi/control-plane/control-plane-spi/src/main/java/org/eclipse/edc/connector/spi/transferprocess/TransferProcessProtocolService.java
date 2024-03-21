@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -57,6 +58,16 @@ public interface TransferProcessProtocolService {
      */
     @NotNull
     ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, TokenRepresentation tokenRepresentation);
+
+    /**
+     * Notifies the TransferProcess that it has been suspended by the counter-part.
+     *
+     * @param message             the incoming message
+     * @param tokenRepresentation the counter-party claim token
+     * @return a succeeded result if the operation was successful, a failed one otherwise
+     */
+    @NotNull
+    ServiceResult<TransferProcess> notifySuspended(TransferSuspensionMessage message, TokenRepresentation tokenRepresentation);
 
     /**
      * Notifies the TransferProcess that it has been terminated by the counter-part.

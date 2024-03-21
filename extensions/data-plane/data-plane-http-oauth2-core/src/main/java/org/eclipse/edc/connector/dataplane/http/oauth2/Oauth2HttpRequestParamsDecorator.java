@@ -20,7 +20,7 @@ import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressValidator;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 /**
  * Requests the OAuth2 token if configured in the DataAddress
@@ -37,7 +37,7 @@ public class Oauth2HttpRequestParamsDecorator implements HttpParamsDecorator {
     }
 
     @Override
-    public HttpRequestParams.Builder decorate(DataFlowRequest request, HttpDataAddress address, HttpRequestParams.Builder params) {
+    public HttpRequestParams.Builder decorate(DataFlowStartMessage request, HttpDataAddress address, HttpRequestParams.Builder params) {
         if (validator.test(address)) {
             return requestFactory.create(address)
                     .compose(client::requestToken)

@@ -39,9 +39,11 @@ public class VerifiableCredential {
     public static final String VERIFIABLE_CREDENTIAL_NAME_PROPERTY = SCHEMA_ORG_NAMESPACE + "name";
     public static final String VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY = SCHEMA_ORG_NAMESPACE + "description";
     public static final String VERIFIABLE_CREDENTIAL_PROOF_PROPERTY = "https://w3id.org/security#proof";
+
     private List<CredentialSubject> credentialSubject = new ArrayList<>();
     private String id; // must be URI, but URI is less efficient at runtime
-    private List<String> types = new ArrayList<>();
+
+    private List<String> type = new ArrayList<>();
     private Issuer issuer; // can be URI or an object containing an ID
     private Instant issuanceDate; // v2 of the spec renames this to "validFrom"
     private Instant expirationDate; // v2 of the spec renames this to "validUntil"
@@ -60,8 +62,8 @@ public class VerifiableCredential {
         return id;
     }
 
-    public List<String> getTypes() {
-        return types;
+    public List<String> getType() {
+        return type;
     }
 
     public Issuer getIssuer() {
@@ -116,12 +118,12 @@ public class VerifiableCredential {
         }
 
         public Builder types(List<String> type) {
-            this.instance.types = type;
+            this.instance.type = type;
             return this;
         }
 
         public Builder type(String type) {
-            this.instance.types.add(type);
+            this.instance.type.add(type);
             return this;
         }
 
@@ -159,7 +161,7 @@ public class VerifiableCredential {
         }
 
         public VerifiableCredential build() {
-            if (instance.types.isEmpty()) {
+            if (instance.type.isEmpty()) {
                 throw new IllegalArgumentException("VerifiableCredentials MUST have at least one 'type' value.");
             }
             if (instance.credentialSubject == null || instance.credentialSubject.isEmpty()) {

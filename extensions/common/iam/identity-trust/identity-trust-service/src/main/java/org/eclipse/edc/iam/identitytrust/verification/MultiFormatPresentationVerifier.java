@@ -20,6 +20,8 @@ import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
 import org.eclipse.edc.identitytrust.verification.VerifierContext;
 import org.eclipse.edc.spi.result.Result;
 
+import java.util.List;
+
 public class MultiFormatPresentationVerifier implements PresentationVerifier {
 
     private final VerifierContext context;
@@ -27,7 +29,7 @@ public class MultiFormatPresentationVerifier implements PresentationVerifier {
     public MultiFormatPresentationVerifier(String audience, CredentialVerifier... verifiers) {
 
         this.context = VerifierContext.Builder.newInstance()
-                .verifiers(verifiers)
+                .verifiers(List.of(verifiers))
                 .audience(audience).build();
     }
 

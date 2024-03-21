@@ -24,7 +24,9 @@ import org.jetbrains.annotations.Nullable;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
 
@@ -36,14 +38,38 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
 
     @Override
     public @Nullable TransferTerminationMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
-        var transferTerminationMessageBuilder = TransferTerminationMessage.Builder.newInstance();
+        var builder = TransferTerminationMessage.Builder.newInstance();
 
-        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROCESS_ID), transferTerminationMessageBuilder::processId, context)) {
-            return null;
+        var processId = transformString(messageObject.get(DSPACE_PROPERTY_PROCESS_ID), context);
+
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                        .property(DSPACE_PROPERTY_CONSUMER_PID)
+                        .report();
+                return null;
+            } else {
+                builder.consumerPid(processId);
+            }
+        }
+
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROVIDER_PID), builder::providerPid, context)) {
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                        .property(DSPACE_PROPERTY_PROVIDER_PID)
+                        .report();
+                return null;
+            } else {
+                builder.providerPid(processId);
+            }
         }
 
         if (messageObject.containsKey(DSPACE_PROPERTY_CODE)) {
-            transformString(messageObject.get(DSPACE_PROPERTY_CODE), transferTerminationMessageBuilder::code, context);
+            transformString(messageObject.get(DSPACE_PROPERTY_CODE), builder::code, context);
         }
 
         var reasons = messageObject.get(DSPACE_PROPERTY_REASON);
@@ -59,12 +85,12 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
             } else {
                 var array = (JsonArray) reasons;
                 if (array.size() > 0) {
-                    transferTerminationMessageBuilder.reason(array.toString());
+                    builder.reason(array.toString());
                 }
             }
         }
 
-        return transferTerminationMessageBuilder.build();
+        return builder.build();
 
     }
 }

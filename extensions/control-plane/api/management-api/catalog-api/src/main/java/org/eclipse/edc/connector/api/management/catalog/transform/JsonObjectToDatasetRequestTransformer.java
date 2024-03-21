@@ -21,7 +21,10 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ID;
 import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
 
 public class JsonObjectToDatasetRequestTransformer extends AbstractJsonLdTransformer<JsonObject, DatasetRequest> {
@@ -33,15 +36,19 @@ public class JsonObjectToDatasetRequestTransformer extends AbstractJsonLdTransfo
     @Override
     public @Nullable DatasetRequest transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = DatasetRequest.Builder.newInstance()
-                .id(nodeId(object));
+                .id(nodeId(object))
+                .protocol(transformString(object.get(DATASET_REQUEST_PROTOCOL), context));
 
-        visitProperties(object, key -> switch (key) {
-            case DATASET_REQUEST_PROTOCOL -> v -> builder.protocol(transformString(v, context));
-            case DATASET_REQUEST_COUNTER_PARTY_ADDRESS -> v -> builder.counterPartyAddress(transformString(v, context));
-            default -> doNothing();
-        });
+        var counterPartyAddress = transformString(object.get(DATASET_REQUEST_COUNTER_PARTY_ADDRESS), context);
 
-        return builder.build();
+        var counterPartyId = Optional.ofNullable(object.get(DATASET_REQUEST_COUNTER_PARTY_ID))
+                .map(it -> transformString(it, context))
+                .orElse(counterPartyAddress);
+
+        return builder
+                .counterPartyAddress(counterPartyAddress)
+                .counterPartyId(counterPartyId)
+                .build();
     }
 
 }

@@ -1,0 +1,11 @@
+name: publish autodoc
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    uses: eclipse-edc/.github/.github/workflows/publish-autodoc.yml@main
+    secrets: inherit

@@ -16,10 +16,11 @@ package org.eclipse.edc.connector.defaults.storage.contractdefinition;
 
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.ContractDefinitionStoreTestBase;
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 
 class InMemoryContractDefinitionStoreTest extends ContractDefinitionStoreTestBase {
 
-    private final InMemoryContractDefinitionStore store = new InMemoryContractDefinitionStore();
+    private final InMemoryContractDefinitionStore store = new InMemoryContractDefinitionStore(CriterionOperatorRegistryImpl.ofDefaults());
 
     @Override
     protected ContractDefinitionStore getContractDefinitionStore() {

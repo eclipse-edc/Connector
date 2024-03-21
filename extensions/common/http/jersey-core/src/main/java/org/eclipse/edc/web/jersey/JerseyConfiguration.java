@@ -14,45 +14,17 @@
 
 package org.eclipse.edc.web.jersey;
 
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
-
 /**
  * Jersey extension configuration class
  */
 public class JerseyConfiguration {
-    @Setting
-    public static final String CORS_CONFIG_ORIGINS_SETTING = "edc.web.rest.cors.origins";
-    @Setting
-    public static final String CORS_CONFIG_ENABLED_SETTING = "edc.web.rest.cors.enabled";
-    @Setting
-    public static final String CORS_CONFIG_HEADERS_SETTING = "edc.web.rest.cors.headers";
-    @Setting
-    public static final String CORS_CONFIG_METHODS_SETTING = "edc.web.rest.cors.methods";
+
     private String allowedOrigins;
     private String allowedHeaders;
     private String allowedMethods;
     private boolean corsEnabled;
 
     private JerseyConfiguration() {
-    }
-
-    public static JerseyConfiguration from(ServiceExtensionContext context) {
-        var origins = context.getSetting(CORS_CONFIG_ORIGINS_SETTING, "*");
-        var headers = context.getSetting(CORS_CONFIG_HEADERS_SETTING, "origin, content-type, accept, authorization");
-        var allowedMethods = context.getSetting(CORS_CONFIG_METHODS_SETTING, "GET, POST, DELETE, PUT, OPTIONS");
-        var enabled = context.getSetting(CORS_CONFIG_ENABLED_SETTING, false);
-        var config = new JerseyConfiguration();
-        config.allowedHeaders = headers;
-        config.allowedOrigins = origins;
-        config.allowedMethods = allowedMethods;
-        config.corsEnabled = enabled;
-
-        return config;
-    }
-
-    public static JerseyConfiguration none() {
-        return new JerseyConfiguration();
     }
 
     public String getAllowedOrigins() {
@@ -69,6 +41,43 @@ public class JerseyConfiguration {
 
     public boolean isCorsEnabled() {
         return corsEnabled;
+    }
+
+    public static class Builder {
+
+        private final JerseyConfiguration instance = new JerseyConfiguration();
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        private Builder() {
+        }
+
+        public Builder allowedOrigins(String allowedOrigins) {
+            instance.allowedOrigins = allowedOrigins;
+            return this;
+        }
+
+        public Builder allowedHeaders(String allowedHeaders) {
+            instance.allowedHeaders = allowedHeaders;
+            return this;
+        }
+
+        public Builder allowedMethods(String allowedMethods) {
+            instance.allowedMethods = allowedMethods;
+            return this;
+        }
+
+        public Builder corsEnabled(boolean corsEnabled) {
+            instance.corsEnabled = corsEnabled;
+            return this;
+        }
+
+        public JerseyConfiguration build() {
+            return instance;
+        }
+
     }
 
 }

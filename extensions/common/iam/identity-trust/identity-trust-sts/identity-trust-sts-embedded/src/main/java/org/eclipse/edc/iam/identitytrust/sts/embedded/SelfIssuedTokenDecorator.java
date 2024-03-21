@@ -14,24 +14,24 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
-import org.eclipse.edc.jwt.spi.JwtDecorator;
+import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.time.Clock;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.NOT_BEFORE;
 
 /**
  * Decorator for Self-Issued ID token and Access Token. It appends input claims and
  * generic claims like iat, exp, and jti
  */
-class SelfIssuedTokenDecorator implements JwtDecorator {
+class SelfIssuedTokenDecorator implements TokenDecorator {
     private final Map<String, String> claims;
     private final Clock clock;
     private final long validity;
@@ -43,16 +43,11 @@ class SelfIssuedTokenDecorator implements JwtDecorator {
     }
 
     @Override
-    public Map<String, Object> claims() {
-        var claims = new HashMap<String, Object>(this.claims);
-        claims.put(ISSUED_AT, Date.from(clock.instant()));
-        claims.put(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
-        claims.put(JWT_ID, UUID.randomUUID().toString());
-        return claims;
-    }
-
-    @Override
-    public Map<String, Object> headers() {
-        return emptyMap();
+    public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
+        this.claims.forEach(tokenParameters::claims);
+        return tokenParameters.claims(ISSUED_AT, Date.from(clock.instant()))
+                .claims(NOT_BEFORE, Date.from(clock.instant()))
+                .claims(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)))
+                .claims(JWT_ID, UUID.randomUUID().toString());
     }
 }

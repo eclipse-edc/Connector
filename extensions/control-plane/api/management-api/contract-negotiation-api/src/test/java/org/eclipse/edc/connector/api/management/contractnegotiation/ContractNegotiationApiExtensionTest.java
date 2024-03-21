@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class ContractNegotiationApiExtensionTest {
@@ -35,6 +37,9 @@ class ContractNegotiationApiExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
+        TypeTransformerRegistry typeTransformerRegistry = mock();
+        when(typeTransformerRegistry.forContext(any())).thenReturn(mock());
+        context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
         context.registerService(JsonObjectValidatorRegistry.class, validatorRegistry);
     }
 

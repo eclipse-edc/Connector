@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.web.jetty;
 
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.configuration.Config;
 
 import java.util.AbstractMap;
@@ -30,8 +29,6 @@ public class JettyConfiguration {
     public static final String DEFAULT_PATH = "/api";
     public static final String DEFAULT_CONTEXT_NAME = "default";
     public static final int DEFAULT_PORT = 8181;
-    @Setting
-    private static final String HTTP_PORT = "web.http.port";
     private final String keystorePassword;
     private final String keymanagerPassword;
     private final Set<PortMapping> portMappings;

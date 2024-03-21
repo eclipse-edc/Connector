@@ -14,43 +14,73 @@
 
 package org.eclipse.edc.connector.transfer.process;
 
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.TestProvisionedDataDestinationResource;
 import org.eclipse.edc.connector.transfer.TestResourceDefinition;
 import org.eclipse.edc.connector.transfer.provision.ProvisionResponsesHandler;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferProcessAck;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.comparable;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -61,34 +91,38 @@ import static org.mockito.Mockito.when;
 class TransferProcessManagerImplIntegrationTest {
 
     private static final int TRANSFER_MANAGER_BATCH_SIZE = 10;
-    private final ProvisionManager provisionManager = mock(ProvisionManager.class);
-    private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
+    private static final Duration TIMEOUT = Duration.ofSeconds(5);
+    private final ProvisionManager provisionManager = mock();
+    private final ResourceManifestGenerator manifestGenerator = mock();
     private final Clock clock = Clock.systemUTC();
-    private final TransferProcessStore store = new InMemoryTransferProcessStore(clock);
-    private TransferProcessManagerImpl transferProcessManager;
+    private final TransferProcessStore store = new InMemoryTransferProcessStore(clock, CriterionOperatorRegistryImpl.ofDefaults());
+    private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
+    private final DataFlowManager dataFlowManager = mock();
+    private TransferProcessManagerImpl manager;
 
     @BeforeEach
     void setup() {
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(Result.success(resourceManifest));
+        when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class))).thenReturn(Result.success(resourceManifest));
 
         var policyArchive = mock(PolicyArchive.class);
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
 
         var monitor = mock(Monitor.class);
         var waitStrategy = mock(ExponentialWaitStrategy.class);
-        transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
+        manager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
-                .dataFlowManager(mock())
+                .dataFlowManager(dataFlowManager)
                 .waitStrategy(waitStrategy)
                 .batchSize(TRANSFER_MANAGER_BATCH_SIZE)
-                .dispatcherRegistry(mock())
+                .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)
                 .monitor(monitor)
                 .clock(clock)
                 .observable(mock())
                 .store(store)
                 .policyArchive(policyArchive)
+                .protocolWebhook(() -> "any")
                 .addressResolver(mock())
                 .provisionResponsesHandler(new ProvisionResponsesHandler(mock(), mock(), mock(), mock()))
                 .deprovisionResponsesHandler(mock())
@@ -109,11 +143,11 @@ class TransferProcessManagerImplIntegrationTest {
         var callback = CallbackAddress.Builder.newInstance().uri("local://test").build();
         var processes = IntStream.range(0, numProcesses)
                 .mapToObj(i -> provisionedResourceSet())
-                .map(resourceSet -> createInitialTransferProcess().resourceManifest(manifest).callbackAddresses(List.of(callback)).provisionedResourceSet(resourceSet).build())
+                .map(resourceSet -> transferProcessBuilder().resourceManifest(manifest).callbackAddresses(List.of(callback)).provisionedResourceSet(resourceSet).build())
                 .peek(store::save)
                 .collect(Collectors.toList());
 
-        transferProcessManager.start();
+        manager.start();
 
         await().untilAsserted(() -> {
             assertThat(processes).describedAs("All transfer processes state should be greater than INITIAL")
@@ -138,19 +172,64 @@ class TransferProcessManagerImplIntegrationTest {
                 .build();
     }
 
-    private TransferProcess.Builder createInitialTransferProcess() {
-        var processId = UUID.randomUUID().toString();
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(processId)
-                .destinationType("test-type")
-                .contractId(UUID.randomUUID().toString())
-                .build();
-
+    private TransferProcess.Builder transferProcessBuilder() {
         return TransferProcess.Builder.newInstance()
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
-                .type(TransferProcess.Type.CONSUMER)
-                .id("test-process-" + processId)
-                .dataRequest(dataRequest);
+                .type(CONSUMER)
+                .id("test-process-" + UUID.randomUUID())
+                .correlationId(UUID.randomUUID().toString())
+                .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
+                .contractId(UUID.randomUUID().toString());
+    }
+
+    @Nested
+    class IdempotencyProcessStateReplication {
+
+        @ParameterizedTest
+        @ArgumentsSource(EgressMessages.class)
+        void shouldSentMessageWithTheSameId_whenFirstDispatchFailed(TransferProcess.Type type, TransferProcessStates state,
+                                                                    Class<? extends TransferRemoteMessage> messageType) {
+            when(dispatcherRegistry.dispatch(any(), isA(messageType)))
+                    .thenReturn(completedFuture(StatusResult.failure(ERROR_RETRY)))
+                    .thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
+            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
+
+            var transfer = transferProcessBuilder().type(type).state(state.code()).build();
+            store.save(transfer);
+
+            manager.start();
+
+            var sentMessages = ArgumentCaptor.forClass(messageType);
+            await().atMost(TIMEOUT).untilAsserted(() -> {
+                verify(dispatcherRegistry, times(2)).dispatch(any(), sentMessages.capture());
+                assertThat(sentMessages.getAllValues())
+                        .map(TransferRemoteMessage::getId)
+                        .matches(ids -> ids.stream().distinct().count() == 1);
+            });
+
+            await().atMost(TIMEOUT).untilAsserted(() -> {
+                var actual = store.findById(transfer.getId());
+                assertThat(actual).isNotNull();
+                assertThat(actual.getState()).isNotEqualTo(state.code());
+                assertThat(actual.lastSentProtocolMessage()).isNull();
+            });
+        }
+
+        private static class EgressMessages implements ArgumentsProvider {
+
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+                return Stream.of(
+                        arguments(CONSUMER, REQUESTING, TransferRequestMessage.class),
+                        arguments(CONSUMER, COMPLETING, TransferCompletionMessage.class),
+                        arguments(CONSUMER, TERMINATING, TransferTerminationMessage.class),
+                        arguments(PROVIDER, STARTING, TransferStartMessage.class),
+                        arguments(PROVIDER, COMPLETING, TransferCompletionMessage.class),
+                        arguments(PROVIDER, TERMINATING, TransferTerminationMessage.class)
+                );
+            }
+        }
     }
 }
 

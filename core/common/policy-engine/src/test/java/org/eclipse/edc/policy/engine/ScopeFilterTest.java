@@ -94,9 +94,6 @@ class ScopeFilterTest {
                 .build();
         var permission = Permission.Builder.newInstance()
                 .action(REPORT_ACTION)
-                .assignee("assignee")
-                .assigner("assigner")
-                .target("target")
                 .constraint(BOUND_CONSTRAINT)
                 .constraint(UNBOUND_CONSTRAINT)
                 .duty(childDuty)
@@ -106,9 +103,6 @@ class ScopeFilterTest {
 
         assertThat(filteredPermission).isNotNull();
         assertThat(filteredPermission.getAction()).isNotNull();
-        assertThat(filteredPermission.getAssignee()).isNotNull();
-        assertThat(filteredPermission.getAssigner()).isNotNull();
-        assertThat(filteredPermission.getTarget()).isNotNull();
         assertThat(filteredPermission.getDuties()).isNotEmpty();
         assertThat(filteredPermission.getConstraints().size()).isEqualTo(1);  // verify that the unbound constraint was removed
         assertThat(filteredPermission.getConstraints()).contains(BOUND_CONSTRAINT);
@@ -129,9 +123,6 @@ class ScopeFilterTest {
 
         var prohibition = Prohibition.Builder.newInstance()
                 .action(REPORT_ACTION)
-                .assignee("assignee")
-                .assigner("assigner")
-                .target("target")
                 .constraint(BOUND_CONSTRAINT)
                 .constraint(UNBOUND_CONSTRAINT)
                 .build();
@@ -140,9 +131,6 @@ class ScopeFilterTest {
 
         assertThat(filteredPermission).isNotNull();
         assertThat(filteredPermission.getAction()).isNotNull();
-        assertThat(filteredPermission.getAssignee()).isNotNull();
-        assertThat(filteredPermission.getAssigner()).isNotNull();
-        assertThat(filteredPermission.getTarget()).isNotNull();
         assertThat(filteredPermission.getConstraints().size()).isEqualTo(1);  // verify that the unbound constraint was removed
         assertThat(filteredPermission.getConstraints()).contains(BOUND_CONSTRAINT);
     }
@@ -166,9 +154,6 @@ class ScopeFilterTest {
 
         var duty = Duty.Builder.newInstance()
                 .action(REPORT_ACTION)
-                .assignee("assignee")
-                .assigner("assigner")
-                .target("target")
                 .constraint(BOUND_CONSTRAINT)
                 .constraint(UNBOUND_CONSTRAINT)
                 .consequence(consequence)
@@ -178,9 +163,6 @@ class ScopeFilterTest {
 
         assertThat(filteredDuty).isNotNull();
         assertThat(filteredDuty.getAction()).isNotNull();
-        assertThat(filteredDuty.getAssignee()).isNotNull();
-        assertThat(filteredDuty.getAssigner()).isNotNull();
-        assertThat(filteredDuty.getTarget()).isNotNull();
         assertThat(filteredDuty.getConsequence()).isNotNull();
         assertThat(filteredDuty.getConstraints().size()).isEqualTo(1);  // verify that the unbound constraint was removed
         assertThat(filteredDuty.getConstraints()).contains(BOUND_CONSTRAINT);

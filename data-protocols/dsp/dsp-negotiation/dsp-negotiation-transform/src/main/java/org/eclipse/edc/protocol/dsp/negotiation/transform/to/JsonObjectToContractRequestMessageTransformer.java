@@ -23,16 +23,13 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATA_SET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 /**
  * Creates a {@link ContractRequestMessage} from a {@link JsonObject}.
@@ -46,26 +43,29 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
     @Override
     public @Nullable ContractRequestMessage transform(@NotNull JsonObject requestObject, @NotNull TransformerContext context) {
         var builder = ContractRequestMessage.Builder.newInstance();
-        if (!transformMandatoryString(requestObject.get(DSPACE_PROPERTY_PROCESS_ID), builder::processId, context)) {
-            context.problem()
-                    .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
-                    .property(DSPACE_PROPERTY_PROCESS_ID)
-                    .report();
-            return null;
+
+        if (!transformMandatoryString(requestObject.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
+            var processId = requestObject.get(DSPACE_PROPERTY_PROCESS_ID);
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                        .property(DSPACE_PROPERTY_CONSUMER_PID)
+                        .report();
+                return null;
+            } else {
+                builder.consumerPid(transformString(processId, context));
+            }
+        }
+
+        var providerPid = requestObject.get(DSPACE_PROPERTY_PROVIDER_PID);
+        if (providerPid != null) {
+            builder.providerPid(transformString(providerPid, context));
         }
 
         var callback = requestObject.get(DSPACE_PROPERTY_CALLBACK_ADDRESS);
         if (callback != null) {
             builder.callbackAddress(transformString(callback, context));
-        }
-
-        var dataset = Optional.of(requestObject)
-                .map(it -> it.get(DSPACE_PROPERTY_DATASET))
-                .orElseGet(() -> requestObject.get(DSPACE_PROPERTY_DATA_SET));
-
-        if (dataset != null) {
-            builder.dataset(transformString(dataset, context));
         }
 
         var contractOffer = returnJsonObject(requestObject.get(DSPACE_PROPERTY_OFFER), context, DSPACE_PROPERTY_OFFER, false);
@@ -93,14 +93,12 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
         } else if (context.hasProblems()) {
             return null;
         } else {
-            if (!transformMandatoryString(requestObject.get(DSPACE_PROPERTY_OFFER_ID), builder::contractOfferId, context)) {
-                context.problem()
-                        .missingProperty()
-                        .type(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
-                        .property(DSPACE_PROPERTY_OFFER)
-                        .report();
-                return null;
-            }
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                    .property(DSPACE_PROPERTY_OFFER)
+                    .report();
+            return null;
         }
         return builder.build();
     }

@@ -14,21 +14,20 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.proxy;
 
-import org.eclipse.edc.jwt.spi.JwtDecorator;
+import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.util.Date;
-import java.util.Map;
 
-import static java.util.Collections.emptyMap;
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
 /**
  * Decorator for access token used in input of Data Plane public API. The token is composed of:
  * - a contract id (used to check if contract between consumer and provider is still valid).
  * - the address of the data source formatted as an encrypted string.
  */
-class ConsumerPullDataPlaneProxyTokenDecorator implements JwtDecorator {
+class ConsumerPullDataPlaneProxyTokenDecorator implements TokenDecorator {
 
     private final Date expirationDate;
     private final String encryptedDataAddress;
@@ -39,15 +38,8 @@ class ConsumerPullDataPlaneProxyTokenDecorator implements JwtDecorator {
     }
 
     @Override
-    public Map<String, Object> claims() {
-        return Map.of(
-                EXPIRATION_TIME, expirationDate,
-                DATA_ADDRESS, encryptedDataAddress
-        );
-    }
-
-    @Override
-    public Map<String, Object> headers() {
-        return emptyMap();
+    public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
+        return tokenParameters.claims(EXPIRATION_TIME, expirationDate)
+                .claims(DATA_ADDRESS, encryptedDataAddress);
     }
 }

@@ -29,7 +29,6 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -51,6 +50,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.B
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.CONTRACT_OFFER;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.EVENT;
+import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.INITIAL_CONTRACT_OFFER;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.VERIFICATION;
@@ -69,7 +69,6 @@ import static org.mockito.Mockito.when;
 @ApiTest
 class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
-    private final TypeTransformerRegistry transformerRegistry = mock();
     private final ContractNegotiationProtocolService protocolService = mock();
     private final DspRequestHandler dspRequestHandler = mock();
 
@@ -94,7 +93,7 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void initiateNegotiation_shouldCreateResource() {
+    void initialContractRequest_shouldCreateResource() {
         var requestBody = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
         when(dspRequestHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
 
@@ -116,6 +115,31 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
         assertThat(request.getInputClass()).isEqualTo(ContractRequestMessage.class);
         assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
         assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
+    }
+
+    @Test
+    void initialContractOffer_shouldCreateResource() {
+        var requestBody = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_OFFER_MESSAGE).build();
+        when(dspRequestHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
+
+        var result = baseRequest()
+                .contentType(APPLICATION_JSON)
+                .body(requestBody)
+                .post(BASE_PATH + INITIAL_CONTRACT_OFFER)
+                .then()
+                .statusCode(200)
+                .contentType(APPLICATION_JSON);
+
+        assertThat(result).isNotNull();
+        var captor = ArgumentCaptor.forClass(PostDspRequest.class);
+        verify(dspRequestHandler).createResource(captor.capture());
+        var request = captor.getValue();
+        assertThat(request.getToken()).isEqualTo("auth");
+        assertThat(request.getProcessId()).isEqualTo(null);
+        assertThat(request.getMessage()).isNotNull();
+        assertThat(request.getInputClass()).isEqualTo(ContractOfferMessage.class);
+        assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
+        assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE);
     }
 
     /**
@@ -140,7 +164,7 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
         var captor = ArgumentCaptor.forClass(PostDspRequest.class);
         verify(dspRequestHandler).updateResource(captor.capture());
         var request = captor.getValue();
-        assertThat(request.getExpectedMessageType());
+        assertThat(request.getExpectedMessageType()).isEqualTo(messageType);
         assertThat(request.getToken()).isEqualTo("auth");
         assertThat(request.getProcessId()).isEqualTo("testId");
         assertThat(request.getMessage()).isNotNull();
@@ -151,7 +175,7 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspNegotiationApiController(transformerRegistry, protocolService, mock(), dspRequestHandler);
+        return new DspNegotiationApiController(protocolService, dspRequestHandler);
     }
 
     private RequestSpecification baseRequest() {

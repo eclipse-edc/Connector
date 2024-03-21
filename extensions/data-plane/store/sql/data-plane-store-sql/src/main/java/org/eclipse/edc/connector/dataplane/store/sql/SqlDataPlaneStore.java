@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
@@ -145,10 +146,10 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                 toJson(dataFlow.getTraceContext()),
                 dataFlow.getErrorDetail(),
                 Optional.ofNullable(dataFlow.getCallbackAddress()).map(URI::toString).orElse(null),
-                dataFlow.isTrackable(),
                 toJson(dataFlow.getSource()),
                 toJson(dataFlow.getDestination()),
-                toJson(dataFlow.getProperties())
+                toJson(dataFlow.getProperties()),
+                dataFlow.getFlowType().toString()
         );
     }
 
@@ -162,10 +163,10 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                 toJson(dataFlow.getTraceContext()),
                 dataFlow.getErrorDetail(),
                 Optional.ofNullable(dataFlow.getCallbackAddress()).map(URI::toString).orElse(null),
-                dataFlow.isTrackable(),
                 toJson(dataFlow.getSource()),
                 toJson(dataFlow.getDestination()),
                 toJson(dataFlow.getProperties()),
+                dataFlow.getFlowType().toString(),
                 dataFlow.getId());
     }
 
@@ -180,10 +181,10 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                 .traceContext(fromJson(resultSet.getString(statements.getTraceContextColumn()), getTypeRef()))
                 .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
                 .callbackAddress(Optional.ofNullable(resultSet.getString(statements.getCallbackAddressColumn())).map(URI::create).orElse(null))
-                .trackable(resultSet.getBoolean(statements.getTrackableColumn()))
                 .source(fromJson(resultSet.getString(statements.getSourceColumn()), DataAddress.class))
                 .destination(fromJson(resultSet.getString(statements.getDestinationColumn()), DataAddress.class))
                 .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
+                .flowType(FlowType.valueOf(resultSet.getString(statements.getFlowTypeColumn())))
                 .build();
     }
 

@@ -56,7 +56,7 @@ public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C, SELF 
                     if (throwable == null) {
                         onSuccessHandler.accept(reloadedEntity, result);
                     } else {
-                        if (retriesExhausted(entity)) {
+                        if (retriesExhausted(reloadedEntity)) {
                             var message = format("%s: ID %s. Attempt #%d failed to %s. Retry limit exceeded. Cause: %s",
                                     reloadedEntity.getClass().getSimpleName(),
                                     reloadedEntity.getId(),
@@ -65,7 +65,7 @@ public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C, SELF 
                                     throwable.getMessage());
                             monitor.severe(message, throwable);
 
-                            onRetryExhausted.accept(entity, throwable);
+                            onRetryExhausted.accept(reloadedEntity, throwable);
                         } else {
                             var message = format("%s: ID %s. Attempt #%d failed to %s. Cause: %s",
                                     reloadedEntity.getClass().getSimpleName(),

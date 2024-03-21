@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.management.catalog.validation;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
@@ -32,11 +33,11 @@ import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 
 public class CatalogRequestValidator {
 
-    public static Validator<JsonObject> instance(Monitor monitor) {
+    public static Validator<JsonObject> instance(Monitor monitor, CriterionOperatorRegistry criterionOperatorRegistry) {
         return JsonObjectValidator.newValidator()
                 .verify(path -> new MandatoryCounterPartyAddressOrProviderUrl(path, monitor))
                 .verify(CATALOG_REQUEST_PROTOCOL, MandatoryValue::new)
-                .verifyObject(CATALOG_REQUEST_QUERY_SPEC, QuerySpecValidator::instance)
+                .verifyObject(CATALOG_REQUEST_QUERY_SPEC, path -> QuerySpecValidator.instance(path, criterionOperatorRegistry))
                 .build();
     }
 

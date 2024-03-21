@@ -19,12 +19,13 @@ import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToDa
 import org.eclipse.edc.connector.api.management.catalog.validation.CatalogRequestValidator;
 import org.eclipse.edc.connector.api.management.catalog.validation.DatasetRequestValidator;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -43,13 +44,16 @@ public class CatalogApiExtension implements ServiceExtension {
     private ManagementApiConfiguration config;
 
     @Inject
-    private ManagementApiTypeTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @Inject
     private CatalogService service;
 
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
+
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
 
     @Override
     public String name() {
@@ -61,9 +65,10 @@ public class CatalogApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToCatalogRequestTransformer());
         transformerRegistry.register(new JsonObjectToDatasetRequestTransformer());
 
-        webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry, validatorRegistry));
+        var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
+        webService.registerResource(config.getContextAlias(), new CatalogApiController(service, managementApiTransformerRegistry, validatorRegistry));
 
-        validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance(context.getMonitor()));
+        validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance(context.getMonitor(), criterionOperatorRegistry));
         validatorRegistry.register(DATASET_REQUEST_TYPE, DatasetRequestValidator.instance());
     }
 }

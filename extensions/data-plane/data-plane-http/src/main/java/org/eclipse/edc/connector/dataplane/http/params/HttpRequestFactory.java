@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.dataplane.http.pipeline.ChunkedTransferRequestB
 import org.eclipse.edc.connector.dataplane.http.pipeline.NonChunkedTransferRequestBody;
 import org.eclipse.edc.connector.dataplane.http.pipeline.StringRequestBodySupplier;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,18 +52,22 @@ public class HttpRequestFactory {
                 .map(StringRequestBodySupplier::new)
                 .orElse(null);
 
-        return toRequest(params, bodySupplier);
+        return toRequest(params, createRequestBody(params, bodySupplier, params.getContentType()));
     }
 
     /**
      * Creates HTTP request from the provided set of parameters and the request body supplier.
      *
-     * @param params       the http request parameters
-     * @param bodySupplier the request body supplier.
+     * @param params       the http request parameters.
+     * @param part         the data source part.
      * @return HTTP request.
      */
-    public Request toRequest(HttpRequestParams params, Supplier<InputStream> bodySupplier) {
-        var requestBody = createRequestBody(params, bodySupplier);
+    public Request toRequest(HttpRequestParams params, DataSource.Part part) {
+        return toRequest(params, createRequestBody(params, part::openStream, part.mediaType()));
+    }
+
+    @NotNull
+    private Request toRequest(HttpRequestParams params, RequestBody requestBody) {
         var requestBuilder = new Request.Builder()
                 .url(toUrl(params))
                 .method(params.getMethod(), requestBody);
@@ -71,8 +76,7 @@ public class HttpRequestFactory {
     }
 
     @Nullable
-    private RequestBody createRequestBody(HttpRequestParams params, @Nullable Supplier<InputStream> bodySupplier) {
-        var contentType = params.getContentType();
+    private RequestBody createRequestBody(HttpRequestParams params, @Nullable Supplier<InputStream> bodySupplier, String contentType) {
         if (bodySupplier == null || contentType == null) {
             return null;
         }

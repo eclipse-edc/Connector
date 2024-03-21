@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.transfer.spi.provision;
 
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,19 +27,19 @@ public interface ConsumerResourceDefinitionGenerator {
     /**
      * Generates a ResourceDefinition. If no resource definition is generated, return null.
      *
-     * @param dataRequest the data request associated with transfer process
-     * @param policy      the contract agreement usage policy for the asset being transferred
+     * @param transferProcess the transfer process
+     * @param policy          the contract agreement usage policy for the asset being transferred
      */
     @Nullable
-    ResourceDefinition generate(DataRequest dataRequest, Policy policy);
+    ResourceDefinition generate(TransferProcess transferProcess, Policy policy);
 
     /**
      * checks if a ResourceDefinition can be generated
      *
-     * @param dataRequest the data request associated with transfer process
-     * @param policy      the contract agreement usage policy for the asset being transferred
+     * @param transferProcess the transfer process
+     * @param policy          the contract agreement usage policy for the asset being transferred
      */
 
-    boolean canGenerate(DataRequest dataRequest, Policy policy);
+    boolean canGenerate(TransferProcess transferProcess, Policy policy);
 
 }

@@ -33,11 +33,7 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
 
     String getUpdateTransferProcessTemplate();
 
-    String getInsertDataRequestTemplate();
-
     String getSelectTemplate();
-
-    String getUpdateDataRequestTemplate();
 
     default String getTransferProcessTableName() {
         return "edc_transfer_process";
@@ -71,36 +67,32 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
         return "protocol";
     }
 
-    default String getConnectorAddressColumn() {
-        return "connector_address";
+    default String getCounterPartyAddressColumn() {
+        return "counter_party_address";
+    }
+
+    default String getTransferTypeColumn() {
+        return "transfer_type";
+    }
+
+    default String getDataPlaneIdColumn() {
+        return "data_plane_id";
     }
 
     default String getContractIdColumn() {
         return "contract_id";
     }
 
-    default String getProcessIdColumn() {
-        return "process_id";
-    }
-
     default String getPrivatePropertiesColumn() {
         return "private_properties";
-    }
-
-    default String getDataRequestTable() {
-        return "edc_data_request";
-    }
-
-    default String getTransferProcessIdFkColumn() {
-        return "transfer_process_id";
     }
 
     default String getDataDestinationColumn() {
         return "data_destination";
     }
 
-    default String getDataRequestIdColumn() {
-        return "datarequest_id";
+    default String getCorrelationIdColumn() {
+        return "correlation_id";
     }
 
     default String getDeprovisionedResourcesColumn() {
@@ -113,6 +105,10 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
 
     default String getPendingColumn() {
         return "pending";
+    }
+
+    default String getProtocolMessagesColumn() {
+        return "protocol_messages";
     }
 
     SqlQueryStatement createQuery(QuerySpec querySpec);

@@ -21,7 +21,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -125,8 +125,8 @@ public class TransferProcessHttpClientTest {
         verifyNoInteractions(monitor);
     }
 
-    private DataFlowRequest.Builder createRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage.Builder createRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id("1")
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())

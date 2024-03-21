@@ -16,26 +16,29 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A remote message related to the TransferProcess context
  */
-public interface TransferRemoteMessage extends ProcessRemoteMessage {
+public abstract class TransferRemoteMessage extends ProcessRemoteMessage {
 
-    /**
-     * Returns the process id.
-     *
-     * @return the processId property.
-     */
+    protected Policy policy;
+
     @Override
-    @NotNull
-    String getProcessId();
+    public Policy getPolicy() {
+        return policy;
+    }
 
-    /**
-     * Returns the {@link Policy} associated with the Transfer Process.
-     *
-     * @return the transfer process {@link Policy}.
-     */
-    Policy getPolicy();
+    public static class Builder<M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> extends ProcessRemoteMessage.Builder<M, B> {
+
+        protected Builder(M message) {
+            super(message);
+        }
+
+        public B policy(Policy policy) {
+            message.policy = policy;
+            return (B) this;
+        }
+    }
+
 }

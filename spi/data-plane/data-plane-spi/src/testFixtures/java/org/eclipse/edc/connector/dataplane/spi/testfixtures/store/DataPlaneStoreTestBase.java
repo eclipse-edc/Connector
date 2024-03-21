@@ -22,6 +22,7 @@ import org.eclipse.edc.spi.entity.MutableEntity;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +44,27 @@ import static org.hamcrest.Matchers.hasSize;
 public abstract class DataPlaneStoreTestBase {
 
     protected static final String CONNECTOR_NAME = "test-connector";
+
+    protected abstract DataPlaneStore getStore();
+
+    protected abstract void leaseEntity(String entityId, String owner, Duration duration);
+
+    protected void leaseEntity(String entityId, String owner) {
+        leaseEntity(entityId, owner, Duration.ofSeconds(60));
+    }
+
+    protected abstract boolean isLeasedBy(String entityId, String owner);
+
+    private DataFlow createDataFlow(String id, DataFlowStates state) {
+        return DataFlow.Builder.newInstance()
+                .id(id)
+                .callbackAddress(URI.create("http://any"))
+                .source(DataAddress.Builder.newInstance().type("src-type").build())
+                .destination(DataAddress.Builder.newInstance().type("dest-type").build())
+                .flowType(FlowType.PUSH)
+                .state(state.code())
+                .build();
+    }
 
     @Nested
     class Create {
@@ -189,25 +211,4 @@ public abstract class DataPlaneStoreTestBase {
             assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
         }
     }
-
-    private DataFlow createDataFlow(String id, DataFlowStates state) {
-        return DataFlow.Builder.newInstance()
-                .id(id)
-                .callbackAddress(URI.create("http://any"))
-                .source(DataAddress.Builder.newInstance().type("src-type").build())
-                .destination(DataAddress.Builder.newInstance().type("dest-type").build())
-                .trackable(true)
-                .state(state.code())
-                .build();
-    }
-
-    protected abstract DataPlaneStore getStore();
-
-    protected abstract void leaseEntity(String entityId, String owner, Duration duration);
-
-    protected void leaseEntity(String entityId, String owner) {
-        leaseEntity(entityId, owner, Duration.ofSeconds(60));
-    }
-
-    protected abstract boolean isLeasedBy(String entityId, String owner);
 }

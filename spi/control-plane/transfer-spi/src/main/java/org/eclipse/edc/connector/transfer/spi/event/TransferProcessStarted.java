@@ -24,10 +24,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
  */
 @JsonDeserialize(builder = TransferProcessStarted.Builder.class)
 public class TransferProcessStarted extends TransferProcessEvent {
-
     private DataAddress dataAddress;
-    private String contractId;
-    private String type;
 
     private TransferProcessStarted() {
     }
@@ -39,14 +36,6 @@ public class TransferProcessStarted extends TransferProcessEvent {
     @Override
     public String name() {
         return "transfer.process.started";
-    }
-
-    public String getContractId() {
-        return contractId;
-    }
-
-    public String getType() {
-        return type;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -65,17 +54,7 @@ public class TransferProcessStarted extends TransferProcessEvent {
             event.dataAddress = dataAddress;
             return this;
         }
-
-        public Builder contractId(String contractId) {
-            event.contractId = contractId;
-            return this;
-        }
-
-        public Builder type(String type) {
-            event.type = type;
-            return this;
-        }
-
+        
         @Override
         public Builder self() {
             return this;

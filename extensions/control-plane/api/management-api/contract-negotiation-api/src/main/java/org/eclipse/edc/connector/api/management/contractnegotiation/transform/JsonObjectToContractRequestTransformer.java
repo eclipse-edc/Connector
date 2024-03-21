@@ -30,7 +30,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 
 public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransformer<JsonObject, ContractRequest> {
 
@@ -41,7 +40,6 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
     @Override
     public @Nullable ContractRequest transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var contractRequestBuilder = ContractRequest.Builder.newInstance()
-                .providerId(getProviderId(jsonObject, context))
                 .counterPartyAddress(counterPartyAddressOrConnectorAddress(jsonObject, context))
                 .protocol(transformString(jsonObject.get(PROTOCOL), context));
 
@@ -72,16 +70,6 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
         }
 
         return null;
-    }
-
-    private String getProviderId(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var providerId = jsonObject.get(PROVIDER_ID);
-        if (providerId != null) {
-            return transformString(providerId, context);
-        }
-
-        return counterPartyAddressOrConnectorAddress(jsonObject, context);
-
     }
 
     /**

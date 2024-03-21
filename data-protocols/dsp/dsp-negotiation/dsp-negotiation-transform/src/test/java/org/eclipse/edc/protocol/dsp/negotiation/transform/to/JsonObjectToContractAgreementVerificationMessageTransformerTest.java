@@ -28,7 +28,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
@@ -38,16 +40,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToContractAgreementVerificationMessageTransformerTest {
-    private static final String PROCESS_ID = "processId";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
 
-    private JsonObjectToContractAgreementVerificationMessageTransformer transformer;
+    private final JsonObjectToContractAgreementVerificationMessageTransformer transformer =
+            new JsonObjectToContractAgreementVerificationMessageTransformer();
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectToContractAgreementVerificationMessageTransformer();
         when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
 
@@ -56,7 +57,8 @@ class JsonObjectToContractAgreementVerificationMessageTransformerTest {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "messageId")
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .build();
 
         var result = transformer.transform(getExpanded(message), context);
@@ -64,13 +66,33 @@ class JsonObjectToContractAgreementVerificationMessageTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getClass()).isEqualTo(ContractAgreementVerificationMessage.class);
         assertThat(result.getProtocol()).isNotEmpty();
-        assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
+        assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
+        assertThat(result.getProviderPid()).isEqualTo("providerPid");
 
         verify(context, never()).reportProblem(anyString());
     }
 
     @Test
-    void verify_failTransformWhenProcessIdMissing() {
+    void transform_processId() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, "messageId")
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
+                .build();
+
+        var result = transformer.transform(getExpanded(message), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getClass()).isEqualTo(ContractAgreementVerificationMessage.class);
+        assertThat(result.getProtocol()).isNotEmpty();
+        assertThat(result.getConsumerPid()).isEqualTo("processId");
+        assertThat(result.getProviderPid()).isEqualTo("processId");
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void verify_failTransformWhenConsumerPidMissing() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "messageId")
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
@@ -80,6 +102,6 @@ class JsonObjectToContractAgreementVerificationMessageTransformerTest {
 
         assertThat(result).isNull();
 
-        verify(context, times(1)).reportProblem(contains(DSPACE_PROPERTY_PROCESS_ID));
+        verify(context, times(1)).reportProblem(contains(DSPACE_PROPERTY_CONSUMER_PID));
     }
 }

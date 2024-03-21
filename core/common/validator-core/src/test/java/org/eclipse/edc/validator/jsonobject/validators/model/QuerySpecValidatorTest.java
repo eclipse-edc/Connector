@@ -33,10 +33,11 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_LIMIT;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_OFFSET;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_FIELD;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_ORDER;
+import static org.mockito.Mockito.mock;
 
 class QuerySpecValidatorTest {
 
-    private final Validator<JsonObject> validator = QuerySpecValidator.instance();
+    private final Validator<JsonObject> validator = QuerySpecValidator.instance(mock());
 
     @Test
     void shouldSucceed_whenObjectIsValid() {

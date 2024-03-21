@@ -50,15 +50,34 @@ import static org.eclipse.edc.boot.system.ExtensionLoader.loadMonitor;
 public class EdcRuntimeExtension extends EdcExtension {
     private static final Monitor MONITOR = loadMonitor();
 
-    private final String moduleName;
-    private final String logPrefix;
+    private final String name;
     private final Map<String, String> properties;
+    private final String[] modules;
     private Thread runtimeThread;
 
-    public EdcRuntimeExtension(String moduleName, String logPrefix, Map<String, String> properties) {
-        this.moduleName = moduleName;
-        this.logPrefix = logPrefix;
-        this.properties = Map.copyOf(properties);
+    /**
+     * Initialize an Edc runtime given a base runtime module
+     *
+     * @param baseModulePath the base runtime module path
+     * @param name the name.
+     * @param properties the properties to be used as configuration.
+     * @param additionalModules modules that will be added to the runtime.
+     */
+    public EdcRuntimeExtension(String baseModulePath, String name, Map<String, String> properties, String... additionalModules) {
+        this(name, properties, Stream.concat(Stream.of(baseModulePath), Arrays.stream(additionalModules)).toArray(String[]::new));
+    }
+
+    /**
+     * Initialize an Edc runtime
+     *
+     * @param name the name.
+     * @param properties the properties to be used as configuration.
+     * @param modules the modules that will be used to load the runtime.
+     */
+    public EdcRuntimeExtension(String name, Map<String, String> properties, String... modules) {
+        this.modules = modules;
+        this.name = name;
+        this.properties = properties;
     }
 
     @Override
@@ -67,12 +86,11 @@ public class EdcRuntimeExtension extends EdcExtension {
         var root = TestUtils.findBuildRoot();
 
         // Run a Gradle custom task to determine the runtime classpath of the module to run
-        String[] command = {
-                new File(root, TestUtils.GRADLE_WRAPPER).getCanonicalPath(),
-                "-q",
-                moduleName + ":printClasspath"
-        };
-        Process exec = Runtime.getRuntime().exec(command);
+        var printClasspath = Arrays.stream(modules).map(it -> it + ":printClasspath");
+        var commandStream = Stream.of(new File(root, TestUtils.GRADLE_WRAPPER).getCanonicalPath(), "-q");
+        var command = Stream.concat(commandStream, printClasspath).toArray(String[]::new);
+
+        var exec = Runtime.getRuntime().exec(command);
         var classpathString = new String(exec.getInputStream().readAllBytes());
         var errorOutput = new String(exec.getErrorStream().readAllBytes());
         if (exec.waitFor() != 0) {
@@ -113,7 +131,7 @@ public class EdcRuntimeExtension extends EdcExtension {
             }
         });
 
-        MONITOR.info("Starting module " + moduleName);
+        MONITOR.info("Starting runtime %s with modules: [%s]".formatted(name, String.join(",", modules)));
         // Start thread and wait for EDC to start up.
         runtimeThread.start();
 
@@ -121,7 +139,7 @@ public class EdcRuntimeExtension extends EdcExtension {
             throw new EdcException("Failed to start EDC runtime");
         }
 
-        MONITOR.info("Module " + moduleName + " started");
+        MONITOR.info("Runtime %s started".formatted(name));
         // Restore system properties.
         System.setProperties(savedProperties);
     }
@@ -141,7 +159,7 @@ public class EdcRuntimeExtension extends EdcExtension {
             return new Monitor() {
             };
         } else {
-            return new ConsoleMonitor(logPrefix, ConsoleMonitor.Level.DEBUG);
+            return new ConsoleMonitor(name, ConsoleMonitor.Level.DEBUG);
         }
     }
 
@@ -155,10 +173,10 @@ public class EdcRuntimeExtension extends EdcExtension {
      */
     private Stream<URL> resolveClassPathEntry(File root, String classPathEntry) {
         try {
-            File f = new File(classPathEntry).getCanonicalFile();
+            var f = new File(classPathEntry).getCanonicalFile();
 
             // If class path entry is not a JAR under the root (i.e. a sub-project), do not transform it
-            boolean isUnderRoot = f.getCanonicalPath().startsWith(root.getCanonicalPath() + File.separator);
+            var isUnderRoot = f.getCanonicalPath().startsWith(root.getCanonicalPath() + File.separator);
             if (!classPathEntry.toLowerCase(Locale.ROOT).endsWith(".jar") || !isUnderRoot) {
                 var sanitizedClassPathEntry = classPathEntry.replace("build/resources/main", "src/main/resources");
                 return Stream.of(new File(sanitizedClassPathEntry).toURI().toURL());

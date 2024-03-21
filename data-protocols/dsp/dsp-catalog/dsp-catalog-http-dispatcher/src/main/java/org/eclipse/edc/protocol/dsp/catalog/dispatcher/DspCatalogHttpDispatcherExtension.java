@@ -16,8 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.dispatcher;
 
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.catalog.spi.DatasetRequestMessage;
-import org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate.CatalogRequestHttpRawDelegate;
-import org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate.DatasetRequestHttpRawDelegate;
+import org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate.ByteArrayBodyExtractor;
 import org.eclipse.edc.protocol.dsp.dispatcher.GetDspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.dispatcher.PostDspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
@@ -52,15 +51,17 @@ public class DspCatalogHttpDispatcherExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var byteArrayBodyExtractor = new ByteArrayBodyExtractor();
+
         messageDispatcher.registerMessage(
                 CatalogRequestMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + CATALOG_REQUEST),
-                new CatalogRequestHttpRawDelegate()
+                byteArrayBodyExtractor
         );
         messageDispatcher.registerMessage(
                 DatasetRequestMessage.class,
                 new GetDspHttpRequestFactory<>(m -> BASE_PATH + DATASET_REQUEST + "/" + m.getDatasetId()),
-                new DatasetRequestHttpRawDelegate()
+                byteArrayBodyExtractor
         );
     }
 

@@ -41,7 +41,21 @@ jobs:
     outputs:
       edc-version: ${{ env.EDC_VERSION }}
 
-  # Calls the openapi workflow to publish the api spec
+  publish-autodoc:
+    needs: Prepare-Release
+    uses: eclipse-edc/.github/.github/workflows/publish-autodoc.yml@main
+    secrets: inherit
+    with:
+      version: ${{ needs.Prepare-Release.outputs.edc-version }}
+
+  publish-openapi-ui:
+    needs: Prepare-Release
+    uses: eclipse-edc/.github/.github/workflows/publish-openapi-ui.yml@main
+    secrets: inherit
+    with:
+      version: ${{ needs.Prepare-Release.outputs.edc-version }}
+
+  # DEPRECATED: Calls the openapi workflow to publish the api spec on SwaggerHub
   Publish-OpenApi:
     needs:
       - Prepare-Release
@@ -79,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/bump-version
+      - uses: eclipse-edc/.github/.github/actions/bump-version@main
         with:
           target_branch: "main"
           base_version: ${{ needs.Prepare-Release.outputs.edc-version }}

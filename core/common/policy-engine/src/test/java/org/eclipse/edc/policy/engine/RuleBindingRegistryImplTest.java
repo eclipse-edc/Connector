@@ -18,6 +18,8 @@ import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RuleBindingRegistryImplTest {
@@ -26,6 +28,23 @@ class RuleBindingRegistryImplTest {
     @Test
     void verifyScopeBinding() {
         registry.bind("rule1", "scope1");
+
+        assertThat(registry.isInScope("rule1", "scope1")).isTrue();
+        assertThat(registry.isInScope("rule1", "scope2")).isFalse();
+    }
+
+    @Test
+    void verifyDynamicScopeBinding() {
+        registry.dynamicBind((ruleType) -> Set.of("scope1"));
+
+        assertThat(registry.isInScope("rule1", "scope1")).isTrue();
+        assertThat(registry.isInScope("rule1", "scope2")).isFalse();
+    }
+
+    @Test
+    void verifyDynamicScopeBindingNotApplied() {
+        registry.bind("rule1", "scope1");
+        registry.dynamicBind((ruleType) -> Set.of("scope2"));
 
         assertThat(registry.isInScope("rule1", "scope1")).isTrue();
         assertThat(registry.isInScope("rule1", "scope2")).isFalse();

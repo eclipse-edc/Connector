@@ -22,22 +22,17 @@ import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
-import static java.util.Collections.emptyMap;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.core.base.OkHttpClientFactory.EDC_HTTP_CLIENT_HTTPS_ENFORCE;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -52,9 +47,9 @@ class OkHttpClientFactoryTest {
 
     @Test
     void shouldPrintLogIfHttpsNotEnforced() {
-        var context = createContextWithConfig(emptyMap());
+        var configuration = OkHttpClientConfiguration.Builder.newInstance().build();
 
-        var okHttpClient = OkHttpClientFactory.create(context, eventListener)
+        var okHttpClient = OkHttpClientFactory.create(configuration, eventListener, monitor)
                 .newBuilder().addInterceptor(dummySuccessfulResponse())
                 .build();
 
@@ -65,16 +60,34 @@ class OkHttpClientFactoryTest {
 
     @Test
     void shouldEnforceHttpsCalls() {
-        var config = Map.of(EDC_HTTP_CLIENT_HTTPS_ENFORCE, "true");
-        var context = createContextWithConfig(config);
+        var configuration = OkHttpClientConfiguration.Builder.newInstance().enforceHttps(true).build();
 
-        var okHttpClient = OkHttpClientFactory.create(context, eventListener)
+        var okHttpClient = OkHttpClientFactory.create(configuration, eventListener, monitor)
                 .newBuilder().addInterceptor(dummySuccessfulResponse())
                 .build();
 
         assertThatThrownBy(() -> call(okHttpClient, HTTP_URL)).isInstanceOf(EdcException.class);
         assertThatCode(() -> call(okHttpClient, HTTPS_URL)).doesNotThrowAnyException();
         verify(monitor, never()).info(argThat(messageContains("HTTPS enforcement")));
+    }
+
+    @Test
+    void shouldCreateCustomSocketFactory_whenSendSocketBufferIsSet() {
+        var configuration = OkHttpClientConfiguration.Builder.newInstance()
+                .sendBufferSize(4096)
+                .receiveBufferSize(4096)
+                .build();
+
+        var okHttpClient = OkHttpClientFactory.create(configuration, eventListener, monitor)
+                .newBuilder()
+                .build();
+
+        assertThat(okHttpClient.socketFactory()).isNotNull().satisfies(factory -> {
+            try (var socket = factory.createSocket()) {
+                assertThat(socket.getSendBufferSize()).isEqualTo(4096);
+                assertThat(socket.getReceiveBufferSize()).isEqualTo(4096);
+            }
+        });
     }
 
     @NotNull
@@ -90,13 +103,6 @@ class OkHttpClientFactoryTest {
 
     private void call(OkHttpClient okHttpClient, String url) throws IOException {
         okHttpClient.newCall(new Request.Builder().url(url).build()).execute().close();
-    }
-
-    @NotNull
-    private DefaultServiceExtensionContext createContextWithConfig(Map<String, String> config) {
-        var context = new DefaultServiceExtensionContext(monitor, List.of(() -> ConfigFactory.fromMap(config)));
-        context.initialize();
-        return context;
     }
 
     @NotNull

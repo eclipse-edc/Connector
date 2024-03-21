@@ -37,7 +37,8 @@ public class HasValidSubjectIds implements CredentialValidationRule {
 
     @Override
     public Result<Void> apply(VerifiableCredential credential) {
-        return credential.getCredentialSubject().stream().allMatch(sub -> expectedSubjectId.equals(sub.getId())) ?
+        return credential.getCredentialSubject().stream()
+                .allMatch(sub -> expectedSubjectId.equals(sub.getId())) ?
                 success() : failure("Not all subject IDs match the expected subject ID %s".formatted(expectedSubjectId));
     }
 }

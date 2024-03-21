@@ -43,80 +43,62 @@ class HashicorpVaultTest {
 
     @Test
     void getSecretSuccess() {
-        // prepare
         when(vaultClient.getSecretValue(KEY)).thenReturn(Result.success("test-secret"));
 
-        // invoke
         var returnValue = vault.resolveSecret(KEY);
 
-        // verify
         verify(vaultClient, times(1)).getSecretValue(KEY);
         assertThat(returnValue).isEqualTo("test-secret");
     }
 
     @Test
     void getSecretFailure() {
-        // prepare
         when(vaultClient.getSecretValue(KEY)).thenReturn(Result.failure("test-failure"));
 
-        // invoke
         var returnValue = vault.resolveSecret(KEY);
 
-        // verify
         verify(vaultClient, times(1)).getSecretValue(KEY);
         assertThat(returnValue).isNull();
     }
 
     @Test
     void setSecretSuccess() {
-        // prepare
         var value = UUID.randomUUID().toString();
         when(vaultClient.setSecret(KEY, value)).thenReturn(Result.success(null));
 
-        // invoke
         var returnValue = vault.storeSecret(KEY, value);
 
-        // verify
         verify(vaultClient, times(1)).setSecret(KEY, value);
         assertThat(returnValue.succeeded()).isTrue();
     }
 
     @Test
     void setSecretFailure() {
-        // prepare
         var value = UUID.randomUUID().toString();
         when(vaultClient.setSecret(KEY, value)).thenReturn(Result.failure("test-failure"));
 
-        // invoke
         var returnValue = vault.storeSecret(KEY, value);
 
-        // verify
         verify(vaultClient, times(1)).setSecret(KEY, value);
         assertThat(returnValue.failed()).isTrue();
     }
 
     @Test
     void destroySecretSuccess() {
-        // prepare
         when(vaultClient.destroySecret(KEY)).thenReturn(Result.success());
 
-        // invoke
         var returnValue = vault.deleteSecret(KEY);
 
-        // verify
         verify(vaultClient, times(1)).destroySecret(KEY);
         assertThat(returnValue.succeeded()).isTrue();
     }
 
     @Test
     void destroySecretFailure() {
-        // prepare
         when(vaultClient.destroySecret(KEY)).thenReturn(Result.failure("test-failure"));
 
-        // invoke
         var returnValue = vault.deleteSecret(KEY);
 
-        // verify
         verify(vaultClient, times(1)).destroySecret(KEY);
         assertThat(returnValue.failed()).isTrue();
     }

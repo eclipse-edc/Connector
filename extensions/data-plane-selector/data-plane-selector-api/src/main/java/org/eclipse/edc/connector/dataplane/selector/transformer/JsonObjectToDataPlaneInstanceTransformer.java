@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_TRANSFER_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.Builder;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.PROPERTIES;
@@ -70,6 +71,10 @@ public class JsonObjectToDataPlaneInstanceTransformer extends AbstractJsonLdTran
             case ALLOWED_SOURCE_TYPES -> {
                 var set = jsonValue.asJsonArray().stream().map(jv -> transformString(jv, context)).collect(Collectors.toSet());
                 builder.allowedSourceTypes(set);
+            }
+            case ALLOWED_TRANSFER_TYPES -> {
+                var set = jsonValue.asJsonArray().stream().map(jv -> transformString(jv, context)).collect(Collectors.toSet());
+                builder.allowedTransferType(set);
             }
             case PROPERTIES -> {
                 var props = jsonValue.asJsonArray().getJsonObject(0);

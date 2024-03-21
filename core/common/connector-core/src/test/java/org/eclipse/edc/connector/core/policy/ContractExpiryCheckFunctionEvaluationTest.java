@@ -66,7 +66,7 @@ class ContractExpiryCheckFunctionEvaluationTest {
     @BeforeEach
     void setup() {
         // bind/register rule to evaluate contract expiry
-        bindingRegistry.bind("USE", TRANSFER_SCOPE);
+        bindingRegistry.bind("use", TRANSFER_SCOPE);
         bindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, TRANSFER_SCOPE);
         policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry));
         policyEngine.registerFunction(TRANSFER_SCOPE, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, function);
@@ -152,7 +152,7 @@ class ContractExpiryCheckFunctionEvaluationTest {
                         .build())
                 .build();
         var permission = Permission.Builder.newInstance()
-                .action(Action.Builder.newInstance().type("USE").build())
+                .action(Action.Builder.newInstance().type("use").build())
                 .constraint(fixedInForceTimeConstraint).build();
 
         return Policy.Builder.newInstance()

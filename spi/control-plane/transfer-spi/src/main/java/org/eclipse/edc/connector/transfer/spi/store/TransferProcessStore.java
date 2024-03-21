@@ -54,6 +54,8 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
      *
      * @param correlationId the entity correlation id.
      * @return success if the entity is unleased, failure otherwise.
+     * @deprecated it will be deleted in the future
      */
+    @Deprecated(since = "0.4.1")
     StoreResult<TransferProcess> findByCorrelationIdAndLease(String correlationId);
 }

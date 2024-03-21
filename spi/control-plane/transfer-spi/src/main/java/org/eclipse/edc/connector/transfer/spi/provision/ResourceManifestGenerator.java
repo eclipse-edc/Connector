@@ -15,8 +15,8 @@
 
 package org.eclipse.edc.connector.transfer.spi.provision;
 
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
@@ -47,19 +47,19 @@ public interface ResourceManifestGenerator {
     void registerGenerator(ProviderResourceDefinitionGenerator generator);
 
     /**
-     * Generates a resource manifest for a consumer-side data request. Operations must be idempotent.
+     * Generates a resource manifest for a consumer-side transfer process. Operations must be idempotent.
      *
-     * @param dataRequest the data request associated with transfer process
-     * @param policy      the contract agreement usage policy for the asset being transferred
+     * @param transferProcess the transfer process
+     * @param policy          the contract agreement usage policy for the asset being transferred
      */
-    Result<ResourceManifest> generateConsumerResourceManifest(DataRequest dataRequest, Policy policy);
+    Result<ResourceManifest> generateConsumerResourceManifest(TransferProcess transferProcess, Policy policy);
 
     /**
-     * Generates a resource manifest for a provider-side data request. Operations must be idempotent.
+     * Generates a resource manifest for a provider-side transfer process. Operations must be idempotent.
      *
-     * @param dataRequest  the data request associated with transfer process
-     * @param assetAddress the asset data address
-     * @param policy       the contract agreement usage policy for the asset being transferred
+     * @param transferProcess  the transfer process
+     * @param assetAddress     the asset data address
+     * @param policy           the contract agreement usage policy for the asset being transferred
      */
-    ResourceManifest generateProviderResourceManifest(DataRequest dataRequest, DataAddress assetAddress, Policy policy);
+    ResourceManifest generateProviderResourceManifest(TransferProcess transferProcess, DataAddress assetAddress, Policy policy);
 }

@@ -21,7 +21,6 @@ val javaVersion: String by project
 val edcScmUrl: String by project
 val edcScmConnection: String by project
 val annotationProcessorVersion: String by project
-val metaModelVersion: String by project
 
 buildscript {
     dependencies {
@@ -36,14 +35,10 @@ allprojects {
     // configure which version of the annotation processor to use. defaults to the same version as the plugin
     configure<org.eclipse.edc.plugins.autodoc.AutodocExtension> {
         processorVersion.set(annotationProcessorVersion)
-        outputDirectory.set(project.buildDir)
+        outputDirectory.set(project.layout.buildDirectory.asFile)
     }
 
     configure<org.eclipse.edc.plugins.edcbuild.extensions.BuildExtension> {
-        versions {
-            // override default dependency versions here
-            metaModel.set(metaModelVersion)
-        }
         pom {
             scmUrl.set(edcScmUrl)
             scmConnection.set(edcScmConnection)
@@ -64,6 +59,7 @@ allprojects {
 
     // EdcRuntimeExtension uses this to determine the runtime classpath of the module to run.
     tasks.register("printClasspath") {
+        dependsOn(tasks.compileJava)
         doLast {
             println(sourceSets["main"].runtimeClasspath.asPath)
         }

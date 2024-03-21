@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -91,6 +92,15 @@ public interface TransferProcessService {
      */
     @NotNull
     ServiceResult<Void> terminate(TerminateTransferCommand command);
+
+    /**
+     * Suspend Transfer Process.
+     *
+     * @param command the Command
+     * @return success if the Transfer has been suspended, failure otherwise
+     */
+    @NotNull
+    ServiceResult<Void> suspend(SuspendTransferCommand command);
 
     /**
      * Asynchronously requests deprovisioning of the transfer process.

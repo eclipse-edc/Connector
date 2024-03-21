@@ -28,23 +28,23 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.oauth2.Oauth2ServiceConfiguration;
-import org.eclipse.edc.iam.oauth2.rule.Oauth2ValidationRulesRegistryImpl;
-import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
-import org.eclipse.edc.jwt.JwtDecoratorRegistryImpl;
-import org.eclipse.edc.jwt.TokenValidationServiceImpl;
-import org.eclipse.edc.jwt.spi.JwtDecorator;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.CertificateResolver;
-import org.eclipse.edc.spi.security.PrivateKeyResolver;
+import org.eclipse.edc.token.TokenDecoratorRegistryImpl;
+import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.rules.AudienceValidationRule;
+import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
+import org.eclipse.edc.token.rules.NotBeforeValidationRule;
+import org.eclipse.edc.token.spi.TokenDecorator;
+import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -55,12 +55,12 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.time.ZoneOffset.UTC;
-import static java.util.Collections.emptyMap;
+import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.NOT_BEFORE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.NOT_BEFORE;
+import static org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension.OAUTH2_TOKEN_CONTEXT;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -76,7 +76,6 @@ class Oauth2ServiceImplTest {
     private static final String ENDPOINT_AUDIENCE = "endpoint-audience-test";
 
     private static final VerificationContext VERIFICATION_CONTEXT = VerificationContext.Builder.newInstance()
-            .audience(ENDPOINT_AUDIENCE)
             .policy(Policy.Builder.newInstance().build())
             .build();
     private static final String OAUTH2_SERVER_URL = "http://oauth2-server.com";
@@ -84,20 +83,18 @@ class Oauth2ServiceImplTest {
     private final Instant now = Instant.now();
     private final Oauth2Client client = mock(Oauth2Client.class);
     private final TokenGenerationService tokenGenerationService = mock(TokenGenerationService.class);
-    private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider = mock(CredentialsRequestAdditionalParametersProvider.class);
-    private final JwtDecorator jwtDecorator = mock(JwtDecorator.class);
+    private final TokenDecorator jwtDecorator = mock(TokenDecorator.class);
     private Oauth2ServiceImpl authService;
     private JWSSigner jwsSigner;
 
     @BeforeEach
     void setUp() throws JOSEException {
         var testKey = testKey();
+        var privateKey = testKey.toPrivateKey();
 
         jwsSigner = new RSASSASigner(testKey.toPrivateKey());
         var publicKeyResolverMock = mock(PublicKeyResolver.class);
-        var privateKeyResolverMock = mock(PrivateKeyResolver.class);
-        var certificateResolverMock = mock(CertificateResolver.class);
-        when(publicKeyResolverMock.resolveKey(anyString())).thenReturn(testKey.toPublicKey());
+        when(publicKeyResolverMock.resolveKey(anyString())).thenReturn(Result.success(testKey.toPublicKey()));
         var configuration = Oauth2ServiceConfiguration.Builder.newInstance()
                 .tokenUrl(OAUTH2_SERVER_URL)
                 .clientId(CLIENT_ID)
@@ -105,29 +102,30 @@ class Oauth2ServiceImplTest {
                 .publicCertificateAlias(PUBLIC_CERTIFICATE_ALIAS)
                 .providerAudience(PROVIDER_AUDIENCE)
                 .endpointAudience(ENDPOINT_AUDIENCE)
-                .privateKeyResolver(privateKeyResolverMock)
-                .certificateResolver(certificateResolverMock)
-                .identityProviderKeyResolver(publicKeyResolverMock)
                 .build();
 
-        var clock = Clock.fixed(now, UTC);
-        var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
-        var tokenValidationService = new TokenValidationServiceImpl(publicKeyResolverMock, validationRulesRegistry);
+        var tokenValidationService = new TokenValidationServiceImpl();
 
-        var jwtDecoratorRegistry = new JwtDecoratorRegistryImpl();
-        jwtDecoratorRegistry.register(jwtDecorator);
+        var jwtDecoratorRegistry = new TokenDecoratorRegistryImpl();
+        jwtDecoratorRegistry.register(OAUTH2_TOKEN_CONTEXT, jwtDecorator);
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, client, jwtDecoratorRegistry, tokenValidationService, credentialsRequestAdditionalParametersProvider);
+        var registry = new TokenValidationRulesRegistryImpl();
+        registry.addRule(OAUTH2_TOKEN_CONTEXT, new AudienceValidationRule(configuration.getEndpointAudience()));
+        registry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(Clock.systemUTC(), configuration.getNotBeforeValidationLeeway()));
+        registry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(Clock.systemUTC(), configuration.getIssuedAtLeeway()));
+
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> privateKey, client, jwtDecoratorRegistry, registry,
+                tokenValidationService, publicKeyResolverMock);
+
     }
 
     @Test
     void obtainClientCredentials() {
-        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(emptyMap());
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
+        when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
         var tokenParameters = TokenParameters.Builder.newInstance()
-                .audience("audience")
-                .scope("scope")
+                .claims(AUDIENCE, "audience")
+                .claims(SCOPE, "scope")
                 .build();
 
         when(client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("accessToken").build()));
@@ -148,42 +146,14 @@ class Oauth2ServiceImplTest {
         assertThat(capturedRequest.getClientAssertionType()).isEqualTo("urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
     }
 
-    @Test
-    void obtainClientCredentials_addsAdditionalFormParameters() {
-        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(Map.of("parameterKey", "parameterValue"));
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
-
-        var tokenParameters = TokenParameters.Builder.newInstance()
-                .audience("audience")
-                .scope("scope")
-                .build();
-
-        when(client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("accessToken").build()));
-
-        var result = authService.obtainClientCredentials(tokenParameters);
-
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent().getToken()).isEqualTo("accessToken");
-        var captor = ArgumentCaptor.forClass(Oauth2CredentialsRequest.class);
-        verify(client).requestToken(captor.capture());
-        var captured = captor.getValue();
-        assertThat(captured).isNotNull()
-                .isInstanceOf(PrivateKeyOauth2CredentialsRequest.class);
-        var capturedRequest = (PrivateKeyOauth2CredentialsRequest) captured;
-        assertThat(capturedRequest.getGrantType()).isEqualTo("client_credentials");
-        assertThat(capturedRequest.getScope()).isEqualTo("scope");
-        assertThat(capturedRequest.getClientAssertion()).isEqualTo("assertionToken");
-        assertThat(capturedRequest.getParams()).containsEntry("parameterKey", "parameterValue");
-    }
 
     @Test
     void obtainClientCredentials_verifyReturnsFailureIfOauth2ClientFails() {
-        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(emptyMap());
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
+        when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
         var tokenParameters = TokenParameters.Builder.newInstance()
-                .audience("audience")
-                .scope("scope")
+                .claims(AUDIENCE, "audience")
+                .claims(SCOPE, "scope")
                 .build();
 
         when(client.requestToken(any())).thenReturn(Result.failure("test error"));

@@ -27,9 +27,8 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.sts.remote.RemoteSecureTokenService.AUDIENCE_PARAM;
 import static org.eclipse.edc.iam.identitytrust.sts.remote.RemoteSecureTokenService.GRANT_TYPE;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_SCOPE;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.mockito.ArgumentMatchers.any;
@@ -93,7 +92,7 @@ public class RemoteSecureTokenServiceTest {
         var audience = "aud";
         var accessToken = "accessToken";
         when(oauth2Client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().build()));
-        assertThat(secureTokenService.createToken(Map.of(AUDIENCE, audience, PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken), null)).isSucceeded();
+        assertThat(secureTokenService.createToken(Map.of(AUDIENCE, audience, PRESENTATION_TOKEN_CLAIM, accessToken), null)).isSucceeded();
 
         var captor = ArgumentCaptor.forClass(SharedSecretOauth2CredentialsRequest.class);
         verify(oauth2Client).requestToken(captor.capture());
@@ -105,36 +104,8 @@ public class RemoteSecureTokenServiceTest {
             assertThat(request.getClientSecret()).isEqualTo(configuration.clientSecret());
             assertThat(request.getParams())
                     .containsEntry(AUDIENCE_PARAM, audience)
-                    .containsEntry(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken);
+                    .containsEntry(PRESENTATION_TOKEN_CLAIM, accessToken);
         });
     }
 
-    @Test
-    void createToken_withBearerAccessTokenAlias() {
-        var audience = "aud";
-        var bearerAccessScope = "scope";
-        var bearerAccessAlias = "alias";
-
-        when(oauth2Client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().build()));
-
-        var claims = Map.of(
-                AUDIENCE, audience,
-                BEARER_ACCESS_ALIAS, bearerAccessAlias);
-
-        assertThat(secureTokenService.createToken(claims, bearerAccessScope)).isSucceeded();
-
-        var captor = ArgumentCaptor.forClass(SharedSecretOauth2CredentialsRequest.class);
-        verify(oauth2Client).requestToken(captor.capture());
-
-        assertThat(captor.getValue()).satisfies(request -> {
-            assertThat(request.getUrl()).isEqualTo(configuration.tokenUrl());
-            assertThat(request.getClientId()).isEqualTo(configuration.clientId());
-            assertThat(request.getGrantType()).isEqualTo(GRANT_TYPE);
-            assertThat(request.getClientSecret()).isEqualTo(configuration.clientSecret());
-            assertThat(request.getParams())
-                    .containsEntry(AUDIENCE_PARAM, audience)
-                    .containsEntry(BEARER_ACCESS_ALIAS, bearerAccessAlias)
-                    .containsEntry(BEARER_ACCESS_SCOPE, bearerAccessScope);
-        });
-    }
 }

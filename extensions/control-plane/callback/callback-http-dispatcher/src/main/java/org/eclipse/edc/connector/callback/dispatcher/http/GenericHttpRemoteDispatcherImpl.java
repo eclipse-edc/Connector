@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 
 /**
  * Default implementation for {@link GenericHttpRemoteDispatcher}
@@ -50,7 +51,13 @@ public class GenericHttpRemoteDispatcherImpl implements GenericHttpRemoteDispatc
             throw new EdcException(format("No %s message dispatcher found for message type %s", protocol(), message.getClass()));
         }
         var request = delegate.buildRequest(message);
-        return httpClient.executeAsync(request, delegate.parseResponse()).thenApply(StatusResult::success);
+        return httpClient.executeAsync(request, emptyList())
+                .thenApply(response -> {
+                    try (response) {
+                        return delegate.parseResponse().apply(response);
+                    }
+                })
+                .thenApply(StatusResult::success);
     }
 
     @Override

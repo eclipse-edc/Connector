@@ -14,29 +14,10 @@
 
 package org.eclipse.edc.transaction.atomikos;
 
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-
 /**
  * Atomikos configuration keys. For details, see https://www.atomikos.com/Documentation/JtaProperties.
  */
 public interface TransactionManagerConfigurationKeys {
-
-    @Setting(required = false)
-    String TIMEOUT = "edc.atomikos.timeout";
-
-    @Setting(required = false)
-    String DATA_DIR = "edc.atomikos.directory";
-
-    @Setting(required = false)
-    String THREADED2PC = "edc.atomikos.threaded2pc";
-
-    @Setting(required = false)
-    String LOGGING = "edc.atomikos.logging";
-
-    @Setting(required = false)
-    String CHECKPOINT_INTERVAL = "edc.atomikos.checkpoint.interval";
-
-    int DEFAULT_VALUE = -1;
 
     String ATOMIKOS_TM_NAME = "com.atomikos.icatch.tm_unique_name";
 

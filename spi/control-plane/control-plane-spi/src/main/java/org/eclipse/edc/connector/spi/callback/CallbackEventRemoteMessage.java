@@ -56,6 +56,9 @@ public class CallbackEventRemoteMessage<T extends Event> implements RemoteMessag
     public EventEnvelope<T> getEventEnvelope() {
         return envelope;
     }
-
-
+    
+    @Override
+    public String getCounterPartyId() {
+        return null;
+    }
 }

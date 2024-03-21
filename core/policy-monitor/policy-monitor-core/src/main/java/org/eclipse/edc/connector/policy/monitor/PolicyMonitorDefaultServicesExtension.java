@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.policy.monitor.store.sql.InMemoryPolicyMonitorS
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 import java.time.Clock;
@@ -38,8 +39,11 @@ public class PolicyMonitorDefaultServicesExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
-    @Provider
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
+
+    @Provider(isDefault = true)
     public PolicyMonitorStore policyMonitorStore() {
-        return new InMemoryPolicyMonitorStore(clock);
+        return new InMemoryPolicyMonitorStore(clock, criterionOperatorRegistry);
     }
 }

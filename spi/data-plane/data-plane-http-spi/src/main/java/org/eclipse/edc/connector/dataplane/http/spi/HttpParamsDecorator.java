@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.http.spi;
 
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 /**
  * Define how to decorate the {@link HttpRequestParams} builder.
@@ -25,5 +25,5 @@ public interface HttpParamsDecorator {
     /**
      * Decorate params with information coming from the request and the data address. Return the param object.
      */
-    HttpRequestParams.Builder decorate(DataFlowRequest request, HttpDataAddress address, HttpRequestParams.Builder params);
+    HttpRequestParams.Builder decorate(DataFlowStartMessage request, HttpDataAddress address, HttpRequestParams.Builder params);
 }

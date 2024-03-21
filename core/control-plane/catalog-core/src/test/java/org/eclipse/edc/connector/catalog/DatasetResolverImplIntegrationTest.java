@@ -15,9 +15,9 @@
 package org.eclipse.edc.connector.catalog;
 
 import org.eclipse.edc.catalog.spi.DatasetResolver;
-import org.eclipse.edc.connector.asset.CriterionToAssetPredicateConverterImpl;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.defaults.storage.assetindex.InMemoryAssetIndex;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -61,10 +62,11 @@ class DatasetResolverImplIntegrationTest {
 
     private final ContractDefinitionResolver contractDefinitionResolver = mock();
     private final PolicyDefinitionStore policyStore = mock();
-    private final AssetIndex assetIndex = new InMemoryAssetIndex();
+    private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
+    private final AssetIndex assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry);
 
     private final DatasetResolver resolver = new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyStore,
-            mock(), new CriterionToAssetPredicateConverterImpl());
+            mock(), criterionOperatorRegistry);
 
     @BeforeEach
     void setUp() {

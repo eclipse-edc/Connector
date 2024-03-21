@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -43,10 +45,13 @@ public class DataPlaneInstance {
     public static final String LAST_ACTIVE = EDC_NAMESPACE + "lastActive";
     public static final String URL = EDC_NAMESPACE + "url";
     public static final String PROPERTIES = EDC_NAMESPACE + "properties";
+    public static final String ALLOWED_TRANSFER_TYPES = EDC_NAMESPACE + "allowedTransferTypes";
+
     public static final String ALLOWED_SOURCE_TYPES = EDC_NAMESPACE + "allowedSourceTypes";
     public static final String ALLOWED_DEST_TYPES = EDC_NAMESPACE + "allowedDestTypes";
 
     private Map<String, Object> properties = new HashMap<>();
+    private Set<String> allowedTransferTypes = new HashSet<>();
     private Set<String> allowedSourceTypes = new HashSet<>();
     private Set<String> allowedDestTypes = new HashSet<>();
     private int turnCount = 0;
@@ -63,16 +68,29 @@ public class DataPlaneInstance {
 
     /**
      * Determines whether this instance can handle a particular source and data address, by evaluating {@link DataAddress#getType()}
+     * against an internal list of allowed source and dest types and if present that the transferType is handled
+     *
+     * @param sourceAddress      The location where the data is located
+     * @param destinationAddress The destination address of the data
+     * @return true if it can handle, false otherwise.
+     */
+    public boolean canHandle(DataAddress sourceAddress, DataAddress destinationAddress, @Nullable String transferType) {
+        Objects.requireNonNull(sourceAddress, "source cannot be null!");
+        Objects.requireNonNull(destinationAddress, "destination cannot be null");
+        return allowedSourceTypes.contains(sourceAddress.getType()) && allowedDestTypes.contains(destinationAddress.getType()) &&
+                Optional.ofNullable(transferType).map(t -> allowedTransferTypes.contains(t)).orElse(true);
+    }
+
+    /**
+     * Determines whether this instance can handle a particular source and data address, by evaluating {@link DataAddress#getType()}
      * against an internal list of allowed source and dest types.
      *
      * @param sourceAddress      The location where the data is located
      * @param destinationAddress The destination address of the data
-     * @return true if can handle, false otherwise.
+     * @return true if it can handle, false otherwise.
      */
     public boolean canHandle(DataAddress sourceAddress, DataAddress destinationAddress) {
-        Objects.requireNonNull(sourceAddress, "source cannot be null!");
-        Objects.requireNonNull(destinationAddress, "destination cannot be null");
-        return allowedSourceTypes.contains(sourceAddress.getType()) && allowedDestTypes.contains(destinationAddress.getType());
+        return canHandle(sourceAddress, destinationAddress, null);
     }
 
     public URL getUrl() {
@@ -97,6 +115,10 @@ public class DataPlaneInstance {
 
     public Set<String> getAllowedDestTypes() {
         return Collections.unmodifiableSet(allowedDestTypes);
+    }
+
+    public Set<String> getAllowedTransferTypes() {
+        return Collections.unmodifiableSet(allowedTransferTypes);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -137,6 +159,11 @@ public class DataPlaneInstance {
             return this;
         }
 
+        public Builder allowedTransferType(String type) {
+            instance.allowedTransferTypes.add(type);
+            return this;
+        }
+
         public Builder url(URL url) {
             instance.url = url;
             return this;
@@ -164,6 +191,13 @@ public class DataPlaneInstance {
         public Builder allowedSourceTypes(Set<String> types) {
             if (types != null) {
                 instance.allowedSourceTypes = types;
+            }
+            return this;
+        }
+
+        public Builder allowedTransferType(Set<String> types) {
+            if (types != null) {
+                instance.allowedTransferTypes = types;
             }
             return this;
         }

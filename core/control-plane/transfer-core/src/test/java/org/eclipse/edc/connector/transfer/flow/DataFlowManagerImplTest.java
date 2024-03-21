@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.transfer.flow;
 
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
@@ -46,16 +45,17 @@ class DataFlowManagerImplTest {
         @Test
         void shouldInitiateFlowOnCorrectController() {
             var controller = mock(DataFlowController.class);
-            var dataRequest = DataRequest.Builder.newInstance().destinationType("test-dest-type").build();
             var policy = Policy.Builder.newInstance().build();
             var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
-            var transferProcess = TransferProcess.Builder.newInstance().dataRequest(dataRequest).contentDataAddress(dataAddress).build();
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .dataDestination(DataAddress.Builder.newInstance().type("test-dest-type").build())
+                    .contentDataAddress(dataAddress).build();
 
             when(controller.canHandle(any())).thenReturn(true);
-            when(controller.initiateFlow(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+            when(controller.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
             manager.register(controller);
 
-            var response = manager.initiate(transferProcess, policy);
+            var response = manager.start(transferProcess, policy);
 
             assertThat(response.succeeded()).isTrue();
         }
@@ -63,15 +63,15 @@ class DataFlowManagerImplTest {
         @Test
         void shouldReturnFatalError_whenNoControllerCanHandleTheRequest() {
             var controller = mock(DataFlowController.class);
-            var dataRequest = DataRequest.Builder.newInstance().destinationType("test-dest-type").build();
+            var dataDestination = DataAddress.Builder.newInstance().type("test-dest-type").build();
             var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
             var policy = Policy.Builder.newInstance().build();
-            var transferProcess = TransferProcess.Builder.newInstance().dataRequest(dataRequest).contentDataAddress(dataAddress).build();
+            var transferProcess = TransferProcess.Builder.newInstance().dataDestination(dataDestination).contentDataAddress(dataAddress).build();
 
             when(controller.canHandle(any())).thenReturn(false);
             manager.register(controller);
 
-            var response = manager.initiate(transferProcess, policy);
+            var response = manager.start(transferProcess, policy);
 
             assertThat(response.succeeded()).isFalse();
             assertThat(response.getFailure().status()).isEqualTo(FATAL_ERROR);
@@ -80,17 +80,17 @@ class DataFlowManagerImplTest {
         @Test
         void shouldCatchExceptionsAndReturnFatalError() {
             var controller = mock(DataFlowController.class);
-            var dataRequest = DataRequest.Builder.newInstance().destinationType("test-dest-type").build();
+            var dataDestination = DataAddress.Builder.newInstance().type("test-dest-type").build();
             var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
             var policy = Policy.Builder.newInstance().build();
-            var transferProcess = TransferProcess.Builder.newInstance().dataRequest(dataRequest).contentDataAddress(dataAddress).build();
+            var transferProcess = TransferProcess.Builder.newInstance().dataDestination(dataDestination).contentDataAddress(dataAddress).build();
 
             var errorMsg = "Test Error Message";
             when(controller.canHandle(any())).thenReturn(true);
-            when(controller.initiateFlow(any(), any())).thenThrow(new EdcException(errorMsg));
+            when(controller.start(any(), any())).thenThrow(new EdcException(errorMsg));
             manager.register(controller);
 
-            var response = manager.initiate(transferProcess, policy);
+            var response = manager.start(transferProcess, policy);
 
             assertThat(response.succeeded()).isFalse();
             assertThat(response.getFailure().status()).isEqualTo(FATAL_ERROR);
@@ -104,17 +104,37 @@ class DataFlowManagerImplTest {
             manager.register(1, lowPriority);
             manager.register(2, highPriority);
 
-            manager.initiate(TransferProcess.Builder.newInstance().build(), Policy.Builder.newInstance().build());
+            manager.start(TransferProcess.Builder.newInstance().build(), Policy.Builder.newInstance().build());
 
-            verify(highPriority).initiateFlow(any(), any());
+            verify(highPriority).start(any(), any());
             verifyNoInteractions(lowPriority);
         }
 
         private DataFlowController createDataFlowController() {
             var dataFlowController = mock(DataFlowController.class);
             when(dataFlowController.canHandle(any())).thenReturn(true);
-            when(dataFlowController.initiateFlow(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
             return dataFlowController;
+        }
+    }
+
+    @Nested
+    class Suspend {
+        @Test
+        void shouldChooseControllerAndSuspend() {
+            var controller = mock(DataFlowController.class);
+            var dataDestination = DataAddress.Builder.newInstance().type("test-dest-type").build();
+            var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
+            var transferProcess = TransferProcess.Builder.newInstance().dataDestination(dataDestination).contentDataAddress(dataAddress).build();
+
+            when(controller.canHandle(any())).thenReturn(true);
+            when(controller.suspend(any())).thenReturn(StatusResult.success());
+            manager.register(controller);
+
+            var result = manager.suspend(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verify(controller).suspend(transferProcess);
         }
     }
 
@@ -123,9 +143,9 @@ class DataFlowManagerImplTest {
         @Test
         void shouldChooseControllerAndTerminate() {
             var controller = mock(DataFlowController.class);
-            var dataRequest = DataRequest.Builder.newInstance().destinationType("test-dest-type").build();
+            var dataDestination = DataAddress.Builder.newInstance().type("test-dest-type").build();
             var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
-            var transferProcess = TransferProcess.Builder.newInstance().dataRequest(dataRequest).contentDataAddress(dataAddress).build();
+            var transferProcess = TransferProcess.Builder.newInstance().dataDestination(dataDestination).contentDataAddress(dataAddress).build();
 
             when(controller.canHandle(any())).thenReturn(true);
             when(controller.terminate(any())).thenReturn(StatusResult.success());

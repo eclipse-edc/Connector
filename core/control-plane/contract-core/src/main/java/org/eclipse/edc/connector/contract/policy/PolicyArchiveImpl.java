@@ -32,8 +32,27 @@ public class PolicyArchiveImpl implements PolicyArchive {
     public Policy findPolicyForContract(String contractId) {
         return Optional.ofNullable(contractId)
                 .map(contractNegotiationStore::findContractAgreement)
-                .map(ContractAgreement::getPolicy)
+                .map(this::mapAgreementPolicy)
                 .orElse(null);
+    }
+
+    // TODO assignee and assigner should end up stored in the Agreement's policy as outlined here
+    //  https://github.com/International-Data-Spaces-Association/ids-specification/issues/195
+    //  As fallback we fill the assignee and the assigner from the consumer and provider id in
+    //  the contract agreement
+
+    private Policy mapAgreementPolicy(ContractAgreement contractAgreement) {
+        var policy = contractAgreement.getPolicy();
+        var assignee = Optional.ofNullable(policy.getAssignee())
+                .orElseGet(contractAgreement::getConsumerId);
+
+        var assigner = Optional.ofNullable(policy.getAssigner())
+                .orElseGet(contractAgreement::getProviderId);
+
+        return policy.toBuilder()
+                .assignee(assignee)
+                .assigner(assigner)
+                .build();
     }
 
 }

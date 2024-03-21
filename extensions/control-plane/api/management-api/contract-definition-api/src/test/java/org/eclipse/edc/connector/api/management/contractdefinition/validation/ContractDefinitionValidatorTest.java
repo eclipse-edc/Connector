@@ -32,10 +32,11 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
+import static org.mockito.Mockito.mock;
 
 class ContractDefinitionValidatorTest {
 
-    private final JsonObjectValidator validator = ContractDefinitionValidator.instance();
+    private final JsonObjectValidator validator = ContractDefinitionValidator.instance(mock());
 
     @Test
     void shouldSucceed_whenObjectIsValid() {

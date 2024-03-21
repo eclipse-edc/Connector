@@ -22,6 +22,7 @@ import org.eclipse.edc.iam.identitytrust.sts.service.StsTokenGenerationProvider;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 
+import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,38 +30,38 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGeneratorService {
 
     private static final Map<String, Function<StsClientTokenAdditionalParams, String>> CLAIM_MAPPERS = Map.of(
-            PRESENTATION_ACCESS_TOKEN_CLAIM, StsClientTokenAdditionalParams::getAccessToken,
-            BEARER_ACCESS_ALIAS, StsClientTokenAdditionalParams::getBearerAccessAlias);
+            PRESENTATION_TOKEN_CLAIM, StsClientTokenAdditionalParams::getAccessToken);
 
     private final long tokenExpiration;
     private final StsTokenGenerationProvider tokenGenerationProvider;
+    private final Function<StsClient, PrivateKey> keyFunction;
     private final Clock clock;
 
-    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Clock clock, long tokenExpiration) {
+    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Function<StsClient, PrivateKey> keyFunction, Clock clock, long tokenExpiration) {
         this.tokenGenerationProvider = tokenGenerationProvider;
+        this.keyFunction = keyFunction;
         this.clock = clock;
         this.tokenExpiration = tokenExpiration;
     }
 
     @Override
     public ServiceResult<TokenRepresentation> tokenFor(StsClient client, StsClientTokenAdditionalParams additionalParams) {
-        var embeddedTokenGenerator = new EmbeddedSecureTokenService(tokenGenerationProvider.tokenGeneratorFor(client), clock, tokenExpiration);
+
+        var embeddedTokenGenerator = new EmbeddedSecureTokenService(tokenGenerationProvider.tokenGeneratorFor(client), () -> keyFunction.apply(client), client::getPublicKeyReference,
+                clock, tokenExpiration);
 
         var initialClaims = Map.of(
-                ISSUER, client.getId(),
-                SUBJECT, client.getId(),
-                AUDIENCE, additionalParams.getAudience(),
-                CLIENT_ID, client.getClientId());
+                ISSUER, client.getDid(),
+                SUBJECT, client.getDid(),
+                AUDIENCE, additionalParams.getAudience());
 
         var claims = CLAIM_MAPPERS.entrySet().stream()
                 .filter(entry -> entry.getValue().apply(additionalParams) != null)

@@ -40,9 +40,13 @@ public class AsyncStatusResultRetryProcess<E extends StatefulEntity<E>, C, SELF 
 
     @Override
     public SELF onSuccess(BiConsumer<E, StatusResult<C>> onSuccessHandler) {
+        return onSuccessResult((entity, result) -> onSuccessHandler.accept(entity, StatusResult.success(result)));
+    }
+
+    public SELF onSuccessResult(BiConsumer<E, C> onSuccessHandler) {
         this.onSuccessHandler = (entity, result) -> {
             new StatusResultRetryProcess<>(entity, () -> result, monitor, clock, configuration)
-                    .onSuccess((e, c) -> onSuccessHandler.accept(e, StatusResult.success(c)))
+                    .onSuccess(onSuccessHandler)
                     .onFatalError(onFatalError)
                     .onRetryExhausted((e, failure) -> onRetryExhausted.accept(e, new EdcException(failure.getFailureDetail())))
                     .onFailure((e, failure) -> onFailureHandler.accept(e, new EdcException(failure.getFailureDetail())))

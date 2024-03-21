@@ -78,7 +78,6 @@ public class DspRequest<I, R> {
         }
 
         public M build() {
-            requireNonNull(message.token);
             requireNonNull(message.serviceCall);
             requireNonNull(message.errorType);
             return message;

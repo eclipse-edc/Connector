@@ -9,15 +9,13 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       sovity GmbH - added issuedAt leeway
  *
  */
 
 package org.eclipse.edc.iam.oauth2;
 
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
-import org.eclipse.edc.spi.iam.PublicKeyResolver;
-import org.eclipse.edc.spi.security.CertificateResolver;
-import org.eclipse.edc.spi.security.PrivateKeyResolver;
 
 /**
  * Configuration values and dependencies for {@link Oauth2ServiceImpl}.
@@ -26,13 +24,11 @@ public class Oauth2ServiceConfiguration {
 
     private String tokenUrl;
     private String clientId;
-    private PrivateKeyResolver privateKeyResolver;
-    private CertificateResolver certificateResolver;
-    private PublicKeyResolver identityProviderKeyResolver;
     private String privateKeyAlias;
     private String publicCertificateAlias;
     private String providerAudience;
     private int notBeforeValidationLeeway;
+    private int issuedAtLeeway;
     private String endpointAudience;
 
     private Long tokenExpiration;
@@ -61,20 +57,12 @@ public class Oauth2ServiceConfiguration {
         return providerAudience;
     }
 
-    public PrivateKeyResolver getPrivateKeyResolver() {
-        return privateKeyResolver;
-    }
-
-    public CertificateResolver getCertificateResolver() {
-        return certificateResolver;
-    }
-
-    public PublicKeyResolver getIdentityProviderKeyResolver() {
-        return identityProviderKeyResolver;
-    }
-
     public int getNotBeforeValidationLeeway() {
         return notBeforeValidationLeeway;
+    }
+
+    public int getIssuedAtLeeway() {
+        return issuedAtLeeway;
     }
 
     public String getEndpointAudience() {
@@ -105,26 +93,6 @@ public class Oauth2ServiceConfiguration {
             return this;
         }
 
-        public Builder privateKeyResolver(PrivateKeyResolver privateKeyResolver) {
-            configuration.privateKeyResolver = privateKeyResolver;
-            return this;
-        }
-
-        /**
-         * Resolves this runtime's certificate containing its public key.
-         */
-        public Builder certificateResolver(CertificateResolver certificateResolver) {
-            configuration.certificateResolver = certificateResolver;
-            return this;
-        }
-
-        /**
-         * Resolves the certificate containing the identity provider's public key.
-         */
-        public Builder identityProviderKeyResolver(PublicKeyResolver identityProviderKeyResolver) {
-            configuration.identityProviderKeyResolver = identityProviderKeyResolver;
-            return this;
-        }
 
         public Builder privateKeyAlias(String privateKeyAlias) {
             configuration.privateKeyAlias = privateKeyAlias;
@@ -143,6 +111,11 @@ public class Oauth2ServiceConfiguration {
 
         public Builder notBeforeValidationLeeway(int notBeforeValidationLeeway) {
             configuration.notBeforeValidationLeeway = notBeforeValidationLeeway;
+            return this;
+        }
+
+        public Builder issuedAtLeeway(int issuedAtLeeway) {
+            configuration.issuedAtLeeway = issuedAtLeeway;
             return this;
         }
 

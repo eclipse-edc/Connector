@@ -21,7 +21,7 @@ dependencies {
     implementation(project(":spi:common:json-ld-spi"))
     implementation(project(":extensions:common:json-ld"))
     implementation(project(":core:common:util"))
-    implementation(project(":extensions:common:crypto:crypto-core"))
+    implementation(project(":extensions:common:crypto:crypto-common"))
     implementation(libs.nimbus.jwt)
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)

@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.core.store.ReflectionBasedQueryResolver;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -37,10 +38,11 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
 
     private final LockManager lockManager;
     private final Map<String, PolicyDefinition> policiesById = new HashMap<>();
-    private final QueryResolver<PolicyDefinition> queryResolver = new ReflectionBasedQueryResolver<>(PolicyDefinition.class);
+    private final QueryResolver<PolicyDefinition> queryResolver;
 
-    public InMemoryPolicyDefinitionStore(LockManager lockManager) {
+    public InMemoryPolicyDefinitionStore(LockManager lockManager, CriterionOperatorRegistry criterionToPredicateConverter) {
         this.lockManager = lockManager;
+        queryResolver = new ReflectionBasedQueryResolver<>(PolicyDefinition.class, criterionToPredicateConverter);
     }
 
     @Override

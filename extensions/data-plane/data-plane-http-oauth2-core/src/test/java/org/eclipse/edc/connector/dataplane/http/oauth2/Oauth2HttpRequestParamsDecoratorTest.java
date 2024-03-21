@@ -21,7 +21,7 @@ import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsReques
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -102,8 +102,8 @@ class Oauth2HttpRequestParamsDecoratorTest {
                 .build();
     }
 
-    private DataFlowRequest dummyDataFlowRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage dummyDataFlowRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(dummyAddress())
                 .destinationDataAddress(dummyAddress())

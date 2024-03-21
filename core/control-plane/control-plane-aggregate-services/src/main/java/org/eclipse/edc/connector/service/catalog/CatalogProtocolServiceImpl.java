@@ -19,12 +19,10 @@ import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
-import org.eclipse.edc.connector.service.protocol.BaseProtocolService;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
-import org.eclipse.edc.spi.agent.ParticipantAgentService;
-import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -32,27 +30,29 @@ import org.jetbrains.annotations.NotNull;
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
-public class CatalogProtocolServiceImpl extends BaseProtocolService implements CatalogProtocolService {
+public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
-    private static final String PARTICIPANT_ID_PROPERTY_KEY = "participantId";
+    @PolicyScope
+    public static final String CATALOGING_REQUEST_SCOPE = "request.catalog";
+
+    @Deprecated(since = "0.5.1")
+    private static final String EDC_PROPERTY_PARTICIPANT_ID = EDC_NAMESPACE + "participantId";
 
     private final DatasetResolver datasetResolver;
-    private final ParticipantAgentService participantAgentService;
     private final DataServiceRegistry dataServiceRegistry;
     private final String participantId;
     private final TransactionContext transactionContext;
 
+    private final ProtocolTokenValidator protocolTokenValidator;
+
     public CatalogProtocolServiceImpl(DatasetResolver datasetResolver,
-                                      ParticipantAgentService participantAgentService,
                                       DataServiceRegistry dataServiceRegistry,
-                                      IdentityService identityService,
-                                      Monitor monitor,
+                                      ProtocolTokenValidator protocolTokenValidator,
                                       String participantId,
                                       TransactionContext transactionContext) {
-        super(identityService, monitor);
         this.datasetResolver = datasetResolver;
-        this.participantAgentService = participantAgentService;
         this.dataServiceRegistry = dataServiceRegistry;
+        this.protocolTokenValidator = protocolTokenValidator;
         this.participantId = participantId;
         this.transactionContext = transactionContext;
     }
@@ -60,8 +60,7 @@ public class CatalogProtocolServiceImpl extends BaseProtocolService implements C
     @Override
     @NotNull
     public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
-                .map(participantAgentService::createFor)
+        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, CATALOGING_REQUEST_SCOPE)
                 .map(agent -> {
                     try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
                         var dataServices = dataServiceRegistry.getDataServices();
@@ -69,7 +68,8 @@ public class CatalogProtocolServiceImpl extends BaseProtocolService implements C
                         return Catalog.Builder.newInstance()
                                 .dataServices(dataServices)
                                 .datasets(datasets.toList())
-                                .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, participantId)
+                                .participantId(participantId)
+                                .property(EDC_PROPERTY_PARTICIPANT_ID, participantId)
                                 .build();
                     }
                 })
@@ -78,8 +78,7 @@ public class CatalogProtocolServiceImpl extends BaseProtocolService implements C
 
     @Override
     public @NotNull ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
-                .map(participantAgentService::createFor)
+        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, CATALOGING_REQUEST_SCOPE)
                 .map(agent -> datasetResolver.getById(agent, datasetId))
                 .compose(dataset -> {
                     if (dataset == null) {
@@ -89,4 +88,6 @@ public class CatalogProtocolServiceImpl extends BaseProtocolService implements C
                     return ServiceResult.success(dataset);
                 }));
     }
+
 }
+

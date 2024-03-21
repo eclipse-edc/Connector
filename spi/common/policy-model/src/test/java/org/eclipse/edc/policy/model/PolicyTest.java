@@ -29,7 +29,7 @@ class PolicyTest {
     void serializeDeserialize() throws JsonProcessingException {
         var mapper = new ObjectMapper();
 
-        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build();
+        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build();
         var policy = Policy.Builder.newInstance().permission(permission).build();
 
         var serialized = mapper.writeValueAsString(policy);
@@ -39,7 +39,7 @@ class PolicyTest {
     @Test
     void withTarget() {
         var target = "target-id";
-        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build();
+        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build();
         var prohibition = Prohibition.Builder.newInstance().action(Action.Builder.newInstance().type("MODIFY").build()).build();
         var duty = Duty.Builder.newInstance().action(Action.Builder.newInstance().type("DELETE").build()).build();
         var policy = Policy.Builder.newInstance()
@@ -56,9 +56,6 @@ class PolicyTest {
         var copy = policy.withTarget(target);
 
         assertThat(copy.getPermissions().size()).isEqualTo(policy.getPermissions().size());
-        copy.getPermissions().forEach(p -> assertThat(p.getTarget()).isEqualTo(target));
-        copy.getProhibitions().forEach(p -> assertThat(p.getTarget()).isEqualTo(target));
-        copy.getObligations().forEach(o -> assertThat(o.getTarget()).isEqualTo(target));
         assertThat(copy.getAssigner()).isEqualTo(policy.getAssigner());
         assertThat(copy.getAssignee()).isEqualTo(policy.getAssignee());
         assertThat(copy.getInheritsFrom()).isEqualTo(policy.getInheritsFrom());

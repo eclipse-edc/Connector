@@ -18,15 +18,10 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 
 /**
- * A remote message related to the ContractNegotiation context
+ * A remote message related to the ContractNegotiation context.
  */
-public interface ContractRemoteMessage extends ProcessRemoteMessage {
+public abstract class ContractRemoteMessage extends ProcessRemoteMessage {
 
-    /**
-     * Returns the {@link Policy} associated with the Contract.
-     *
-     * @return the contract {@link Policy}.
-     */
-    Policy getPolicy();
+    public abstract Policy getPolicy();
 
 }

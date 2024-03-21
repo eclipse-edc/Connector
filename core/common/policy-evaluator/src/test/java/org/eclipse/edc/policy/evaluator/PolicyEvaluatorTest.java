@@ -83,6 +83,35 @@ class PolicyEvaluatorTest {
     }
 
     @Test
+    void verifyDynamicPermissionFunctions() {
+        var constraint = createLiteralAtomicConstraint("toResolve", "foo");
+        var permission = Permission.Builder.newInstance().constraint(constraint).build();
+
+        var policy = Policy.Builder.newInstance().permission(permission).build();
+
+        var evaluator = PolicyEvaluator.Builder.newInstance().dynamicPermissionFunction((key) -> true, (key, operator, value, p) -> true).build();
+        assertTrue(evaluator.evaluate(policy).valid());
+
+        evaluator = PolicyEvaluator.Builder.newInstance().dynamicPermissionFunction((key) -> true, (key, operator, value, p) -> false).build();
+        assertFalse(evaluator.evaluate(policy).valid());
+
+    }
+
+    @Test
+    void verifyDynamicPermissionFunctionsHierarchy() {
+        var constraint = createLiteralAtomicConstraint("toResolve", "foo");
+        var permission = Permission.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
+
+        var evaluator = PolicyEvaluator.Builder.newInstance()
+                .permissionFunction("toResolve", (operator, value, p) -> false)
+                .dynamicPermissionFunction((key) -> true, (key, operator, value, p) -> true).build();
+
+        assertFalse(evaluator.evaluate(policy).valid());
+
+    }
+
+    @Test
     void verifyDutyFunctions() {
         var constraint = createLiteralAtomicConstraint("toResolve", "foo");
 
@@ -91,6 +120,34 @@ class PolicyEvaluatorTest {
 
         var evaluator = PolicyEvaluator.Builder.newInstance().dutyFunction("toResolve", (operator, value, d) -> "foo".equals(value)).build();
         assertTrue(evaluator.evaluate(policy).valid());
+    }
+
+    @Test
+    void verifyDynamicDutyFunctions() {
+        var constraint = createLiteralAtomicConstraint("toResolve", "foo");
+        var duty = Duty.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().duty(duty).build();
+
+        var evaluator = PolicyEvaluator.Builder.newInstance().dynamicDutyFunction((key) -> true, (key, operator, value, p) -> true).build();
+        assertTrue(evaluator.evaluate(policy).valid());
+
+        evaluator = PolicyEvaluator.Builder.newInstance().dynamicDutyFunction((key) -> true, (key, operator, value, p) -> false).build();
+        assertFalse(evaluator.evaluate(policy).valid());
+
+    }
+
+    @Test
+    void verifyDynamicDutyFunctionsHierarchy() {
+        var constraint = createLiteralAtomicConstraint("toResolve", "foo");
+        var duty = Duty.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().duty(duty).build();
+
+        var evaluator = PolicyEvaluator.Builder.newInstance()
+                .dutyFunction("toResolve", (operator, value, p) -> false)
+                .dynamicDutyFunction((key) -> true, (key, operator, value, p) -> true).build();
+
+        assertFalse(evaluator.evaluate(policy).valid());
+
     }
 
     @Test
@@ -105,8 +162,36 @@ class PolicyEvaluatorTest {
     }
 
     @Test
+    void verifyDynamicProhibitionFunctions() {
+        var constraint = createLiteralAtomicConstraint("toResolve", "foo");
+        var prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
+
+        var evaluator = PolicyEvaluator.Builder.newInstance().dynamicProhibitionFunction((key) -> true, (key, operator, value, p) -> false).build();
+        assertTrue(evaluator.evaluate(policy).valid());
+
+        evaluator = PolicyEvaluator.Builder.newInstance().dynamicProhibitionFunction((key) -> true, (key, operator, value, p) -> true).build();
+        assertFalse(evaluator.evaluate(policy).valid());
+
+    }
+
+    @Test
+    void verifyDynamicProhibitionFunctionsHierarchy() {
+        var constraint = createLiteralAtomicConstraint("toResolve", "foo");
+        var prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
+
+        var evaluator = PolicyEvaluator.Builder.newInstance()
+                .prohibitionFunction("toResolve", (operator, value, p) -> false)
+                .dynamicProhibitionFunction((key) -> true, (key, operator, value, p) -> true).build();
+
+        assertTrue(evaluator.evaluate(policy).valid());
+
+    }
+
+    @Test
     void verifyPermissionRuleFunctions() {
-        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build();
+        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build();
         var policy = Policy.Builder.newInstance().permission(permission).build();
 
         var evaluator = PolicyEvaluator.Builder.newInstance().permissionRuleFunction((p) -> true).build();
@@ -160,6 +245,5 @@ class PolicyEvaluatorTest {
 
         verify(mock).evaluate(eq(Operator.EQ), isA(List.class), isA(Duty.class));
     }
-
 
 }

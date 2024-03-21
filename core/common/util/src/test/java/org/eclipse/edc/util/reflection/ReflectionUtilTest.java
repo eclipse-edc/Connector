@@ -135,6 +135,14 @@ class ReflectionUtilTest {
             assertThat(value).isInstanceOf(String.class).isEqualTo("value");
         }
 
+        @Test
+        void shouldMapValueFromList() {
+            var object = Map.of("http://namespace.domain/property", List.of(Map.of("@value", "value")));
+
+            var value = ReflectionUtil.getFieldValue("'http://namespace.domain/property'[0].@value", object);
+
+            assertThat(value).isInstanceOf(String.class).isEqualTo("value");
+        }
     }
 
     @Nested

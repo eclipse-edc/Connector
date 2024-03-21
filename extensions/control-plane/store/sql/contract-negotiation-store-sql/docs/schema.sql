@@ -58,11 +58,11 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     callback_addresses   JSON,
     trace_context        JSON,
     pending              BOOLEAN DEFAULT FALSE,
+    protocol_messages    JSON,
     lease_id             VARCHAR
         CONSTRAINT contract_negotiation_lease_lease_id_fk
             REFERENCES edc_lease
-            ON DELETE SET NULL,
-    CONSTRAINT provider_correlation_id CHECK (type = '0' OR correlation_id IS NOT NULL)
+            ON DELETE SET NULL
 );
 
 COMMENT ON COLUMN edc_contract_negotiation.agreement_id IS 'ContractAgreement serialized as JSON';

@@ -15,16 +15,12 @@
 
 package org.eclipse.edc.spi.system;
 
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 /**
  * Context provided to extensions when they are initialized.
  */
 public interface ServiceExtensionContext extends SettingResolver {
-
-    @Setting(value = "Configures the participant id this runtime is operating on behalf of")
-    String PARTICIPANT_ID = "edc.participant.id";
 
     String ANONYMOUS_PARTICIPANT = "anonymous";
 

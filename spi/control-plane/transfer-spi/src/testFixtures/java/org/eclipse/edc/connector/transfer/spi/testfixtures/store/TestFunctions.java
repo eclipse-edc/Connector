@@ -19,14 +19,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,38 +39,12 @@ public class TestFunctions {
                 .build();
     }
 
-    public static DataRequest createDataRequest() {
-        return createDataRequest("test-process-id");
-    }
-
-    public static DataRequest.Builder createDataRequestBuilder() {
-        return DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .dataDestination(createDataAddressBuilder("Test Address Type")
-                        .keyName("Test Key Name")
-                        .build())
-                .connectorAddress("http://some-connector.com")
-                .protocol("protocol")
-                .contractId("some-contract")
-                .assetId(Asset.Builder.newInstance().id("asset-id").build().getId())
-                .processId("test-process-id");
-    }
-
-    public static DataRequest createDataRequest(String transferProcessId) {
-        return createDataRequestBuilder().processId(transferProcessId)
-                .build();
-    }
-
     public static TransferProcess createTransferProcess() {
         return createTransferProcess("test-process");
     }
 
     public static TransferProcess createTransferProcess(String processId, TransferProcessStates state) {
         return createTransferProcessBuilder(processId).state(state.code()).build();
-    }
-
-    public static TransferProcess createTransferProcess(String processId, DataRequest dataRequest) {
-        return createTransferProcessBuilder(processId).dataRequest(dataRequest).build();
     }
 
     public static TransferProcess createTransferProcess(String processId) {
@@ -87,7 +59,6 @@ public class TestFunctions {
                 .createdAt(Clock.systemUTC().millis())
                 .state(TransferProcessStates.INITIAL.code())
                 .type(TransferProcess.Type.CONSUMER)
-                .dataRequest(createDataRequest())
                 .contentDataAddress(createDataAddressBuilder("any").build())
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
                 .resourceManifest(createManifest());
@@ -100,12 +71,7 @@ public class TestFunctions {
 
     @NotNull
     public static TransferProcess initialTransferProcess() {
-        return initialTransferProcess(UUID.randomUUID().toString(), "clientid");
-    }
-
-    @NotNull
-    public static TransferProcess initialTransferProcess(String processId, String dataRequestId) {
-        return createTransferProcess(processId, createDataRequestBuilder().id(dataRequestId).build());
+        return createTransferProcessBuilder(UUID.randomUUID().toString()).correlationId("clientid").build();
     }
 
     @JsonTypeName("dataspaceconnector:testresourcedef")

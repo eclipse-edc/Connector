@@ -23,3 +23,29 @@ implemented for CosmosDB, and create an equivalent set of clauses for SQL. Thus,
 
 That way, dialect-dependent variants can be implemented should the need arise, because the actual SQL statement is
 encoded in those clauses, offering a fluent Java API.
+
+## Migrate from 0.5.1 to 0.6.0
+
+The schema has changed, the columns contained in `edc_data_request` have been moved to `edc_transfer_process` with this 
+mapping:
+- `datarequest_id` -> `correlation_id`
+- `connector_address` -> `counter_party_address`
+- `protocol` -> `protocol`
+- `asset_id` -> `asset_id`
+- `contract_id` -> `contract_id`
+- `data_destination` -> `data_destination`
+
+These columns need to be added to `edc_transfer_process`:
+```sql
+correlation_id             VARCHAR,
+counter_party_address      VARCHAR,
+protocol                   VARCHAR,
+asset_id                   VARCHAR,
+contract_id                VARCHAR,
+data_destination           JSON,
+```
+
+then they should be filled with the corresponding value in the `edc_data_request` table, they can be joined by:
+```edc_data_request.transfer_process_id = edc_transfer_process.transferprocess_id```
+
+after that and after upgrading all the connector instance, the `edc_data_request` can be deleted.

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.policy.engine;
 
+import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
@@ -24,16 +25,31 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
+import org.eclipse.edc.policy.model.Rule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.engine.spi.PolicyEngine.ALL_SCOPES;
 import static org.eclipse.edc.policy.model.Operator.EQ;
+import static org.junit.jupiter.params.provider.Arguments.of;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class PolicyEngineImplTest {
 
@@ -183,7 +199,7 @@ class PolicyEngineImplTest {
     void validateRuleFunctionOutOfScope() {
         bindingRegistry.bind("foo", ALL_SCOPES);
 
-        var action = Action.Builder.newInstance().type("USE").build();
+        var action = Action.Builder.newInstance().type("use").build();
 
         var permission = Permission.Builder.newInstance().action(action).build();
 
@@ -215,7 +231,7 @@ class PolicyEngineImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void validateScopedPrePostValidator(boolean preValidation) {
         bindingRegistry.bind("foo", TEST_SCOPE);
 
@@ -234,7 +250,7 @@ class PolicyEngineImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void validateOutOfScopedPrePostValidator(boolean preValidation) {
         bindingRegistry.bind("foo", TEST_SCOPE);
 
@@ -254,7 +270,7 @@ class PolicyEngineImplTest {
 
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void validateHierarchicalScopedNotFiredPrePostValidator(boolean preValidation) {
         bindingRegistry.bind("foo", TEST_SCOPE);
 
@@ -274,7 +290,7 @@ class PolicyEngineImplTest {
 
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void validateHierarchicalScopedFiredPrePostValidator(boolean preValidation) {
         bindingRegistry.bind("foo", TEST_SCOPE);
 
@@ -292,12 +308,108 @@ class PolicyEngineImplTest {
         assertThat(result).isFailed();
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(PolicyProvider.class)
+    void shouldTriggerDynamicFunction_whenWildcardScope(Policy policy, Class<Rule> ruleClass, boolean evaluateReturn) {
+        bindingRegistry.dynamicBind((key) -> Set.of(TEST_SCOPE));
+
+        var context = PolicyContextImpl.Builder.newInstance().build();
+        DynamicAtomicConstraintFunction<Rule> function = mock(DynamicAtomicConstraintFunction.class);
+        policyEngine.registerFunction(ALL_SCOPES, ruleClass, function);
+
+        when(function.canHandle(any())).thenReturn(true);
+        when(function.evaluate(any(), any(), any(), any(), eq(context))).thenReturn(evaluateReturn);
+
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+
+        assertThat(result.succeeded()).isTrue();
+
+        verify(function).canHandle(any());
+        verify(function).evaluate(any(), any(), any(), any(), eq(context));
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(PolicyProvider.class)
+    void shouldTriggerDynamicFunction_whenExplicitScope(Policy policy, Class<Rule> ruleClass, boolean evaluateReturn) {
+        bindingRegistry.dynamicBind((key) -> Set.of(TEST_SCOPE));
+
+        var context = PolicyContextImpl.Builder.newInstance().build();
+        DynamicAtomicConstraintFunction<Rule> function = mock(DynamicAtomicConstraintFunction.class);
+        policyEngine.registerFunction(TEST_SCOPE, ruleClass, function);
+
+        when(function.canHandle(any())).thenReturn(true);
+        when(function.evaluate(any(), any(), any(), any(), eq(context))).thenReturn(evaluateReturn);
+
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+
+        assertThat(result.succeeded()).isTrue();
+
+        verify(function).canHandle(any());
+        verify(function).evaluate(any(), any(), any(), any(), eq(context));
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(PolicyProvider.class)
+    void shouldNotTriggerDynamicFunction_whenBindAlreadyAvailable(Policy policy, Class<Rule> ruleClass) {
+        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.registerFunction(ALL_SCOPES, ruleClass, "foo", (op, rv, duty, context) -> !ruleClass.isAssignableFrom(Prohibition.class));
+        bindingRegistry.dynamicBind((key) -> Set.of(TEST_SCOPE));
+
+        var context = PolicyContextImpl.Builder.newInstance().build();
+        DynamicAtomicConstraintFunction<Rule> function = mock(DynamicAtomicConstraintFunction.class);
+        policyEngine.registerFunction(ALL_SCOPES, ruleClass, function);
+
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+
+        assertThat(result.succeeded()).isTrue();
+
+        verifyNoInteractions(function);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(PolicyProvider.class)
+    void shouldNotTriggerDynamicFunction_whenDifferentScope(Policy policy, Class<Rule> ruleClass, boolean evaluateReturn) {
+        bindingRegistry.dynamicBind((key) -> Set.of(TEST_SCOPE));
+
+        var context = PolicyContextImpl.Builder.newInstance().build();
+        DynamicAtomicConstraintFunction<Rule> function = mock(DynamicAtomicConstraintFunction.class);
+        policyEngine.registerFunction(TEST_SCOPE, ruleClass, function);
+
+        when(function.canHandle(any())).thenReturn(true);
+        when(function.evaluate(any(), any(), any(), any(), eq(context))).thenReturn(evaluateReturn);
+
+        var result = policyEngine.evaluate("randomScope", policy, context);
+
+        assertThat(result.succeeded()).isTrue();
+
+        verifyNoInteractions(function);
+    }
+
     private Policy createTestPolicy() {
         var left = new LiteralExpression("foo");
         var right = new LiteralExpression("bar");
         var constraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(EQ).rightExpression(right).build();
         var prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
         return Policy.Builder.newInstance().prohibition(prohibition).build();
+    }
+
+    private static class PolicyProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+
+            var left = new LiteralExpression("foo");
+            var right = new LiteralExpression("bar");
+            var constraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(EQ).rightExpression(right).build();
+            var prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
+            var permission = Permission.Builder.newInstance().constraint(constraint).build();
+            var duty = Duty.Builder.newInstance().constraint(constraint).build();
+
+            return Stream.of(
+                    of(Policy.Builder.newInstance().permission(permission).build(), Permission.class, true),
+                    of(Policy.Builder.newInstance().duty(duty).build(), Duty.class, true),
+                    of(Policy.Builder.newInstance().prohibition(prohibition).build(), Prohibition.class, false)
+            );
+        }
     }
 
 }

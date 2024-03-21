@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.transfer.TestResourceDefinition;
 import org.eclipse.edc.connector.transfer.TestToken;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
@@ -206,23 +205,15 @@ class ProvisionResponsesHandlerTest {
 
     private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates inState) {
         var processId = UUID.randomUUID().toString();
-        var dataRequest = createDataRequestBuilder()
-                .processId(processId)
-                .protocol("protocol")
-                .connectorAddress("http://an/address")
-                .build();
 
         return TransferProcess.Builder.newInstance()
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(CONSUMER)
                 .id("test-process-" + processId)
                 .state(inState.code())
-                .dataRequest(dataRequest);
-    }
-
-    private DataRequest.Builder createDataRequestBuilder() {
-        return DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .protocol("protocol")
+                .counterPartyAddress("http://an/address")
+                .correlationId(UUID.randomUUID().toString())
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .dataDestination(DataAddress.Builder.newInstance().type("type")

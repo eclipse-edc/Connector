@@ -17,8 +17,9 @@ package org.eclipse.edc.connector.dataplane.http.params;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -31,10 +32,11 @@ import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSche
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
+import static org.mockito.Mockito.mock;
 
 class HttpRequestParamsProviderImplSourceTest {
 
-    private final HttpRequestParamsProvider provider = new HttpRequestParamsProviderImpl(null, new TypeManager());
+    private final HttpRequestParamsProvider provider = new HttpRequestParamsProviderImpl(mock(), mock());
 
     @Test
     void shouldMapDataFlowRequestToHttpRequest() {
@@ -46,10 +48,10 @@ class HttpRequestParamsProviderImplSourceTest {
                 .contentType("test/content-type")
                 .nonChunkedTransfer(true)
                 .build();
-        var dataFlowRequest = DataFlowRequest.Builder.newInstance()
+        var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(source)
-                .destinationDataAddress(dummyAddress())
+                .destinationDataAddress(dummyHttpDataAddress())
                 .build();
 
         var params = provider.provideSourceParams(dataFlowRequest);
@@ -75,10 +77,11 @@ class HttpRequestParamsProviderImplSourceTest {
                 .contentType("test/content-type")
                 .nonChunkedTransfer(true)
                 .build();
-        var dataFlowRequest = DataFlowRequest.Builder.newInstance()
+        var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
+                .flowType(FlowType.PULL)
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(source)
-                .destinationDataAddress(dummyAddress())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("HttpProxy").build())
                 .properties(Map.of(
                         METHOD, "proxy-method",
                         PATH, "proxy-path",
@@ -104,10 +107,10 @@ class HttpRequestParamsProviderImplSourceTest {
         var source = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://source")
                 .build();
-        var dataFlowRequest = DataFlowRequest.Builder.newInstance()
+        var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(source)
-                .destinationDataAddress(dummyAddress())
+                .destinationDataAddress(dummyHttpDataAddress())
                 .build();
 
         var params = provider.provideSourceParams(dataFlowRequest);
@@ -121,7 +124,7 @@ class HttpRequestParamsProviderImplSourceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenProxyMethodIsMissing() {
+    void shouldThrowException_whenProxyMethodIsMissingAndDestinationIsHttpProxy() {
         var source = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://source")
                 .proxyMethod("true")
@@ -130,16 +133,39 @@ class HttpRequestParamsProviderImplSourceTest {
                 .contentType("test/content-type")
                 .nonChunkedTransfer(true)
                 .build();
-        var dataFlowRequest = DataFlowRequest.Builder.newInstance()
+        var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
+                .flowType(FlowType.PULL)
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(source)
-                .destinationDataAddress(dummyAddress())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("HttpProxy").build())
                 .build();
 
         assertThatExceptionOfType(EdcException.class).isThrownBy(() -> provider.provideSourceParams(dataFlowRequest));
     }
 
-    private HttpDataAddress dummyAddress() {
+    @Test
+    void shouldUseSourceMethod_whenProxyMethodIsMissingAndDestinationIsNotHttpProxy() {
+        var source = HttpDataAddress.Builder.newInstance()
+                .baseUrl("http://source")
+                .proxyMethod("true")
+                .path("test-path")
+                .queryParams("foo=bar")
+                .contentType("test/content-type")
+                .nonChunkedTransfer(true)
+                .method("POST")
+                .build();
+        var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
+                .processId(UUID.randomUUID().toString())
+                .sourceDataAddress(source)
+                .destinationDataAddress(dummyHttpDataAddress())
+                .build();
+
+        var params = provider.provideSourceParams(dataFlowRequest);
+
+        assertThat(params.getMethod()).isEqualTo("POST");
+    }
+
+    private HttpDataAddress dummyHttpDataAddress() {
         return HttpDataAddress.Builder.newInstance().baseUrl("http://dummy").build();
     }
 }

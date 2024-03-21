@@ -23,10 +23,8 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage.Type.INITIAL;
 
 class ContractRequestMessageTest {
+
     public static final String CALLBACK_ADDRESS = "http://test.com";
-    public static final String OFFER_ID = "offerId";
-    public static final String PROCESS_ID = "123";
-    public static final String DATASET = "dataset1";
     public static final String ID = "id1";
     public static final String ASSET_ID = "asset1";
     public static final String PROTOCOL = "DPS";
@@ -34,65 +32,54 @@ class ContractRequestMessageTest {
     @Test
     void verify_noCallbackNeededForCounterOffer() {
         ContractRequestMessage.Builder.newInstance()
+                .callbackAddress("http://any")
                 .type(COUNTER_OFFER)
-                .processId(PROCESS_ID)
-                .protocol(PROTOCOL)
-                .contractOfferId(OFFER_ID)
-                .dataset(DATASET)
-                .build();
-    }
-
-    @Test
-    void verify_noProcessIdSet() {
-        assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
-                .type(INITIAL)
-                .protocol(PROTOCOL)
-                .dataset(DATASET)
-                .counterPartyAddress(CALLBACK_ADDRESS)
-                .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("processId");
-
-        // verify process id must be included if type is counter offer
-        assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
-                .type(COUNTER_OFFER)
-                .protocol(PROTOCOL)
-                .contractOfferId(OFFER_ID)
-                .dataset(DATASET)
-                .counterPartyAddress(CALLBACK_ADDRESS)
-                .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("processId");
-    }
-
-    @Test
-    void verify_contractOfferIdOrContractOffer() {
-        ContractRequestMessage.Builder.newInstance()
-                .type(INITIAL)
-                .processId(PROCESS_ID)
-                .protocol(PROTOCOL)
-                .contractOfferId(OFFER_ID)
-                .dataset(DATASET)
-                .counterPartyAddress(CALLBACK_ADDRESS)
-                .build();
-
-        ContractRequestMessage.Builder.newInstance()
-                .type(INITIAL)
-                .processId(PROCESS_ID)
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .protocol(PROTOCOL)
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id(ID)
                         .assetId(ASSET_ID)
                         .policy(Policy.Builder.newInstance().build())
                         .build())
-                .dataset(DATASET)
+                .build();
+    }
+
+    @Test
+    void verify_contractOfferIdOrContractOffer() {
+        ContractRequestMessage.Builder.newInstance()
+                .callbackAddress("http://any")
+                .type(INITIAL)
+                .callbackAddress("any")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
+                .protocol(PROTOCOL)
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id(ID)
+                        .assetId(ASSET_ID)
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build();
 
-        // verify no contract offer or contract offer id set
+        // verify no contract offer is set
         assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
+                .callbackAddress("http://any")
                 .type(INITIAL)
-                .processId(PROCESS_ID)
+                .callbackAddress("any")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .protocol(PROTOCOL)
-                .dataset(DATASET)
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("contractOffer");
 
+    }
+
+    private ContractOffer contractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(ID)
+                .assetId(ASSET_ID)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
     }
 }

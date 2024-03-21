@@ -15,8 +15,8 @@
 package org.eclipse.edc.verifiablecredentials.jwt;
 
 public interface TestConstants {
-    String CENTRAL_ISSUER_KEY_ID = "#central-issuer-key1";
-    String PRESENTER_KEY_ID = "#my-key1";
+    String CENTRAL_ISSUER_KEY_ID = "central-issuer-key1";
+    String PRESENTER_KEY_ID = "my-key1";
     String VP_HOLDER_ID = "did:web:test-issuer";
     String MY_OWN_DID = "did:web:myself";
     String CENTRAL_ISSUER_DID = "did:web:some-official-issuer";

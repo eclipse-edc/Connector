@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategy;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
+import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.stream.IntStream;
@@ -35,7 +36,7 @@ public class EmbeddedDataPlaneSelectorServiceTest {
 
     private final DataPlaneInstanceStore store = mock();
     private final SelectionStrategyRegistry selectionStrategyRegistry = mock();
-    private final DataPlaneSelectorService selector = new EmbeddedDataPlaneSelectorService(store, selectionStrategyRegistry, mock());
+    private final DataPlaneSelectorService selector = new EmbeddedDataPlaneSelectorService(store, selectionStrategyRegistry, new NoopTransactionContext());
 
     @Test
     void select_shouldUseChosenSelector() {

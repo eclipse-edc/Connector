@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.framework.store;
 import org.eclipse.edc.connector.core.store.InMemoryStatefulEntityStore;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 
 import java.time.Clock;
 import java.util.UUID;
@@ -26,11 +27,11 @@ import java.util.UUID;
  */
 public class InMemoryDataPlaneStore extends InMemoryStatefulEntityStore<DataFlow> implements DataPlaneStore {
 
-    public InMemoryDataPlaneStore(Clock clock) {
-        this(UUID.randomUUID().toString(), clock);
+    public InMemoryDataPlaneStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        this(UUID.randomUUID().toString(), clock, criterionOperatorRegistry);
     }
 
-    public InMemoryDataPlaneStore(String connectorName, Clock clock) {
-        super(DataFlow.class, connectorName, clock);
+    public InMemoryDataPlaneStore(String connectorName, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        super(DataFlow.class, connectorName, clock, criterionOperatorRegistry);
     }
 }

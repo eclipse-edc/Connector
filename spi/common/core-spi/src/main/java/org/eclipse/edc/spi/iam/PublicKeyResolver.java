@@ -14,21 +14,19 @@
 
 package org.eclipse.edc.spi.iam;
 
-import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.jetbrains.annotations.Nullable;
+import org.eclipse.edc.spi.result.Result;
 
 import java.security.PublicKey;
 
 /**
- * Resolves an RSA public key.
+ * Resolves a public key given an ID. This resolver it's not intended to be used as injectable
+ * since multiple {@link PublicKeyResolver} could be needed in the runtime at the same time.
  */
 @FunctionalInterface
-@ExtensionPoint
 public interface PublicKeyResolver {
 
     /**
      * Resolves the key or return null if not found.
      */
-    @Nullable
-    PublicKey resolveKey(String id);
+    Result<PublicKey> resolveKey(String id);
 }

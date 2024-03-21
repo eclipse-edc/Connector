@@ -18,6 +18,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
@@ -25,16 +26,8 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-
-import static org.eclipse.edc.vault.filesystem.FsConfiguration.KEYSTORE_LOCATION;
-import static org.eclipse.edc.vault.filesystem.FsConfiguration.KEYSTORE_PASSWORD;
-import static org.eclipse.edc.vault.filesystem.FsConfiguration.PERSISTENT_VAULT;
-import static org.eclipse.edc.vault.filesystem.FsConfiguration.VAULT_LOCATION;
 
 /**
  * Bootstraps the file system-based vault extension.
@@ -44,23 +37,20 @@ import static org.eclipse.edc.vault.filesystem.FsConfiguration.VAULT_LOCATION;
 @Extension(value = FsVaultExtension.NAME)
 public class FsVaultExtension implements ServiceExtension {
 
+    @Setting
+    static final String VAULT_LOCATION = "edc.vault";
+
+    @Setting
+    static final String PERSISTENT_VAULT = "edc.vault.persistent";
+
     public static final String NAME = "FS Vault";
+
 
     @Override
     public String name() {
         return NAME;
     }
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        var keyStore = loadKeyStore(context);
-        var keystorePassword = context.getSetting(KEYSTORE_PASSWORD, null);
-        var privateKeyResolver = new FsPrivateKeyResolver(keystorePassword, keyStore);
-        context.registerService(PrivateKeyResolver.class, privateKeyResolver);
-
-        var certificateResolver = new FsCertificateResolver(keyStore);
-        context.registerService(CertificateResolver.class, certificateResolver);
-    }
 
     @Provider
     public Vault vault(ServiceExtensionContext context) {
@@ -73,25 +63,5 @@ public class FsVaultExtension implements ServiceExtension {
         return new FsVault(vaultPath, persistentVault);
     }
 
-    private KeyStore loadKeyStore(ServiceExtensionContext context) {
-        var keyStoreLocation = context.getSetting(KEYSTORE_LOCATION, "dataspaceconnector-keystore.jks");
-        var keyStorePath = Paths.get(keyStoreLocation);
-        if (!Files.exists(keyStorePath)) {
-            throw new EdcException("Key store does not exist: " + keyStoreLocation);
-        }
-
-        var keystorePassword = context.getSetting(KEYSTORE_PASSWORD, null);
-        if (keystorePassword == null) {
-            throw new EdcException("Key store password was not specified");
-        }
-
-        try (var stream = Files.newInputStream(keyStorePath)) {
-            var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(stream, keystorePassword.toCharArray());
-            return keyStore;
-        } catch (IOException | GeneralSecurityException e) {
-            throw new EdcException(e);
-        }
-    }
 
 }

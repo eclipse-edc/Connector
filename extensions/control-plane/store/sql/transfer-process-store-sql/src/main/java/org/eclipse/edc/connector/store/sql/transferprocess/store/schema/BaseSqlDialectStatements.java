@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.store.sql.transferprocess.store.schema;
 
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgres.TransferProcessMapping;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
@@ -25,6 +26,12 @@ import static java.lang.String.format;
  * Postgres-specific variants and implementations of the statements required for the TransferProcessStore
  */
 public abstract class BaseSqlDialectStatements implements TransferProcessStoreStatements {
+
+    protected final SqlOperatorTranslator operatorTranslator;
+
+    protected BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator) {
+        this.operatorTranslator = operatorTranslator;
+    }
 
     @Override
     public String getDeleteLeaseTemplate() {
@@ -73,6 +80,15 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .jsonColumn(getPrivatePropertiesColumn())
                 .jsonColumn(getCallbackAddressesColumn())
                 .column(getPendingColumn())
+                .column(getTransferTypeColumn())
+                .jsonColumn(getProtocolMessagesColumn())
+                .column(getDataPlaneIdColumn())
+                .column(getCorrelationIdColumn())
+                .column(getCounterPartyAddressColumn())
+                .column(getProtocolColumn())
+                .column(getAssetIdColumn())
+                .column(getContractIdColumn())
+                .jsonColumn(getDataDestinationColumn())
                 .insertInto(getTransferProcessTableName());
     }
 
@@ -96,45 +112,26 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .jsonColumn(getDeprovisionedResourcesColumn())
                 .jsonColumn(getCallbackAddressesColumn())
                 .column(getPendingColumn())
+                .column(getTransferTypeColumn())
+                .jsonColumn(getProtocolMessagesColumn())
+                .column(getDataPlaneIdColumn())
+                .column(getCorrelationIdColumn())
+                .column(getCounterPartyAddressColumn())
+                .column(getProtocolColumn())
+                .column(getAssetIdColumn())
+                .column(getContractIdColumn())
+                .jsonColumn(getDataDestinationColumn())
                 .update(getTransferProcessTableName(), getIdColumn());
     }
 
     @Override
-    public String getInsertDataRequestTemplate() {
-        return executeStatement()
-                .column(getDataRequestIdColumn())
-                .column(getProcessIdColumn())
-                .column(getConnectorAddressColumn())
-                .column(getAssetIdColumn())
-                .column(getContractIdColumn())
-                .jsonColumn(getDataDestinationColumn())
-                .column(getTransferProcessIdFkColumn())
-                .column(getProtocolColumn())
-                .insertInto(getDataRequestTable());
-    }
-
-    @Override
     public String getSelectTemplate() {
-        return format("SELECT *, edr.%s as edc_data_request_id FROM %s LEFT OUTER JOIN %s edr on %s.%s = edr.%s", getDataRequestIdColumn(),
-                getTransferProcessTableName(), getDataRequestTable(), getTransferProcessTableName(), getIdColumn(), getProcessIdColumn());
-    }
-
-    @Override
-    public String getUpdateDataRequestTemplate() {
-        return executeStatement()
-                .column(getDataRequestIdColumn())
-                .column(getProcessIdColumn())
-                .column(getConnectorAddressColumn())
-                .column(getProtocolColumn())
-                .column(getAssetIdColumn())
-                .column(getContractIdColumn())
-                .jsonColumn(getDataDestinationColumn())
-                .update(getDataRequestTable(), getDataRequestIdColumn());
+        return "SELECT * FROM %s".formatted(getTransferProcessTableName());
     }
 
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
-        return new SqlQueryStatement(getSelectTemplate(), querySpec, new TransferProcessMapping(this));
+        return new SqlQueryStatement(getSelectTemplate(), querySpec, new TransferProcessMapping(this), operatorTranslator);
     }
 
 }

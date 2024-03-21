@@ -40,7 +40,7 @@ public interface DataFlowManager {
     /**
      * Register the controller with a specific priority.
      *
-     * @param priority the priority.
+     * @param priority   the priority.
      * @param controller the controller.
      */
     void register(int priority, DataFlowController controller);
@@ -53,7 +53,7 @@ public interface DataFlowManager {
      * @return succeeded StatusResult if flow has been initiated correctly, failed one otherwise.
      */
     @NotNull
-    StatusResult<DataFlowResponse> initiate(TransferProcess transferProcess, Policy policy);
+    StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy);
 
     /**
      * Terminates a data flow.
@@ -63,6 +63,15 @@ public interface DataFlowManager {
      */
     @NotNull
     StatusResult<Void> terminate(TransferProcess transferProcess);
+
+    /**
+     * Suspend a transfer
+     *
+     * @param transferProcess the transfer process.
+     * @return success if the transfer has been suspended correctly, failed otherwise.
+     */
+    @NotNull
+    StatusResult<Void> suspend(TransferProcess transferProcess);
 
     /**
      * Returns the transfer types available for a specific asset.

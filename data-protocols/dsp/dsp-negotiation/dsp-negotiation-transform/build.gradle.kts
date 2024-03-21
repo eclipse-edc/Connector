@@ -20,6 +20,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":extensions:common:json-ld"))
+    api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:transform-spi"))
     api(project(":spi:control-plane:contract-spi"))
 }

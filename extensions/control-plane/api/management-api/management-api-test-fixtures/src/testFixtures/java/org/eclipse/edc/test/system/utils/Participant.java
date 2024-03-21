@@ -19,7 +19,6 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -44,16 +43,15 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Essentially a wrapper around the management API enabling to test interactions with other participants, eg. catalog, transfer...
  */
 public class Participant {
-
-    private static final String DSP_PROTOCOL = "dataspace-protocol-http";
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
     protected String id;
     protected String name;
@@ -62,11 +60,35 @@ public class Participant {
     protected JsonLd jsonLd;
     protected ObjectMapper objectMapper;
 
+    protected Duration timeout = Duration.ofSeconds(30);
+
+    protected String protocol = "dataspace-protocol-http";
+
     protected Participant() {
     }
 
     public String getName() {
         return name;
+    }
+
+    public Duration getTimeout() {
+        return timeout;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public Endpoint getProtocolEndpoint() {
+        return protocolEndpoint;
+    }
+
+    public Endpoint getManagementEndpoint() {
+        return managementEndpoint;
+    }
+
+    public String getId() {
+        return id;
     }
 
     /**
@@ -106,7 +128,7 @@ public class Participant {
     public String createPolicyDefinition(JsonObject policy) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(TYPE, "PolicyDefinitionDto")
+                .add(TYPE, "PolicyDefinition")
                 .add("policy", policy)
                 .build();
 
@@ -116,6 +138,7 @@ public class Participant {
                 .when()
                 .post("/v2/policydefinitions")
                 .then()
+                .log().ifError()
                 .statusCode(200)
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);
@@ -163,19 +186,33 @@ public class Participant {
      * @return list of {@link org.eclipse.edc.catalog.spi.Dataset}.
      */
     public JsonArray getCatalogDatasets(Participant provider) {
+        return getCatalogDatasets(provider, null);
+    }
+
+    /**
+     * Request provider catalog.
+     *
+     * @param provider data provider
+     * @return list of {@link org.eclipse.edc.catalog.spi.Dataset}.
+     */
+    public JsonArray getCatalogDatasets(Participant provider, JsonObject querySpec) {
         var datasetReference = new AtomicReference<JsonArray>();
-        var requestBody = createObjectBuilder()
+        var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "CatalogRequest")
+                .add("counterPartyId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
-                .add("protocol", DSP_PROTOCOL)
-                .build();
+                .add("protocol", protocol);
 
-        await().atMost(TIMEOUT).untilAsserted(() -> {
+        if (querySpec != null) {
+            requestBodyBuilder.add("querySpec", querySpec);
+        }
+
+        await().atMost(timeout).untilAsserted(() -> {
             var response = managementEndpoint.baseRequest()
                     .contentType(JSON)
                     .when()
-                    .body(requestBody)
+                    .body(requestBodyBuilder.build())
                     .post("/v2/catalog/request")
                     .then()
                     .log().ifError()
@@ -208,11 +245,12 @@ public class Participant {
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "DatasetRequest")
                 .add(ID, assetId)
+                .add("counterPartyId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
-                .add("protocol", DSP_PROTOCOL)
+                .add("protocol", protocol)
                 .build();
 
-        await().atMost(TIMEOUT).untilAsserted(() -> {
+        await().atMost(timeout).untilAsserted(() -> {
             var response = managementEndpoint.baseRequest()
                     .contentType(JSON)
                     .when()
@@ -234,23 +272,37 @@ public class Participant {
     }
 
     /**
-     * Initiate negotiation with a provider.
+     * Initiate negotiation with a provider for an asset.
+     * - Fetches the dataset for the ID
+     * - Extracts the first policy
+     * - Starts the contract negotiation
+     *
+     * @param provider data provider
+     * @param assetId  asset id
+     * @return id of the contract negotiation.
+     */
+    public String initContractNegotiation(Participant provider, String assetId) {
+        return initContractNegotiation(provider, getOfferForAsset(provider, assetId));
+    }
+
+    /**
+     * Initiate negotiation with a provider given an input policy.
      *
      * @param provider data provider
      * @param policy   policy
-     * @return id of the contract agreement.
+     * @return id of the contract negotiation.
      */
-    public String negotiateContract(Participant provider, JsonObject policy) {
+    public String initContractNegotiation(Participant provider, JsonObject policy) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(TYPE, "ContractRequestDto")
+                .add(TYPE, "ContractRequest")
                 .add("providerId", provider.id)
-                .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
-                .add("protocol", DSP_PROTOCOL)
+                .add("counterPartyAddress", provider.protocolEndpoint.getUrl().toString())
+                .add("protocol", protocol)
                 .add("policy", jsonLd.compact(policy).getContent())
                 .build();
 
-        var negotiationId = managementEndpoint.baseRequest()
+        return managementEndpoint.baseRequest()
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
@@ -259,8 +311,20 @@ public class Participant {
                 .log().ifError()
                 .statusCode(200)
                 .extract().body().jsonPath().getString(ID);
+    }
 
-        await().atMost(TIMEOUT).untilAsserted(() -> {
+    /**
+     * Initiate negotiation with a provider.
+     *
+     * @param provider data provider
+     * @param policy   policy
+     * @return id of the contract agreement.
+     */
+    public String negotiateContract(Participant provider, JsonObject policy) {
+
+        var negotiationId = initContractNegotiation(provider, policy);
+
+        await().atMost(timeout).untilAsserted(() -> {
             var state = getContractNegotiationState(negotiationId);
             assertThat(state).isEqualTo(FINALIZED.name());
         });
@@ -276,21 +340,46 @@ public class Participant {
      * @param assetId             asset id
      * @param privateProperties   private properties
      * @param destination         data destination address
+     * @param transferType        type of transfer
      * @return id of the transfer process.
      */
-    public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination) {
-        var requestBody = createObjectBuilder()
+    public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
+        return initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType, null);
+    }
+
+    /**
+     * Initiate data transfer.
+     *
+     * @param provider            data provider
+     * @param contractAgreementId contract agreement id
+     * @param assetId             asset id
+     * @param privateProperties   private properties
+     * @param destination         data destination address
+     * @param transferType        type of transfer
+     * @param callbacks           callbacks for the transfer process
+     * @return id of the transfer process.
+     */
+    public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination, String transferType, JsonArray callbacks) {
+        var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "TransferRequest")
                 .add("dataDestination", destination)
-                .add("protocol", DSP_PROTOCOL)
+                .add("protocol", protocol)
                 .add("assetId", assetId)
                 .add("contractId", contractAgreementId)
                 .add("connectorId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
-                .add("privateProperties", privateProperties)
-                .build();
+                .add("privateProperties", privateProperties);
 
+        if (transferType != null) {
+            requestBodyBuilder.add("transferType", transferType);
+        }
+
+        if (callbacks != null) {
+            requestBodyBuilder.add("callbackAddresses", callbacks);
+        }
+
+        var requestBody = requestBodyBuilder.build();
         return managementEndpoint.baseRequest()
                 .contentType(JSON)
                 .body(requestBody)
@@ -300,6 +389,38 @@ public class Participant {
                 .log().ifError()
                 .statusCode(200)
                 .extract().body().jsonPath().getString(ID);
+    }
+
+    /**
+     * Returns all the transfer processes with empty query
+     *
+     * @return The transfer processes
+     */
+    public JsonArray getTransferProcesses() {
+        var query = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(TYPE, "QuerySpec")
+                .build();
+        return getTransferProcesses(query);
+    }
+
+    /**
+     * Returns all the transfer processes matching the input query
+     *
+     * @param query The input query
+     * @return The transfer processes
+     */
+    public JsonArray getTransferProcesses(JsonObject query) {
+        return managementEndpoint.baseRequest()
+                .contentType(JSON)
+                .body(query)
+                .when()
+                .post("/v2/transferprocesses/request")
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .as(JsonArray.class);
     }
 
     /**
@@ -315,10 +436,30 @@ public class Participant {
      * @return transfer process id.
      */
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination) {
-        var dataset = getDatasetForAsset(provider, assetId);
-        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-        var contractAgreementId = negotiateContract(provider, policy);
-        var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination);
+        return requestAsset(provider, assetId, privateProperties, destination, null);
+    }
+
+    /**
+     * Request a provider asset:
+     * - retrieves the contract definition associated with the asset,
+     * - handles the contract negotiation,
+     * - initiate the data transfer.
+     *
+     * @param provider          data provider
+     * @param assetId           asset id
+     * @param privateProperties private properties of the data request
+     * @param destination       data destination
+     * @param transferType      transfer type
+     * @return transfer process id.
+     */
+    public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
+        return requestAsset(provider, assetId, privateProperties, destination, transferType, null);
+    }
+
+    public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType, JsonArray callbacks) {
+        var offer = getOfferForAsset(provider, assetId);
+        var contractAgreementId = negotiateContract(provider, offer);
+        var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType, callbacks);
         assertThat(transferProcessId).isNotNull();
         return transferProcessId;
     }
@@ -339,26 +480,62 @@ public class Participant {
                 .extract().body().jsonPath().getString("state");
     }
 
-    private ContractOfferId extractContractDefinitionId(JsonObject dataset) {
-        var contractId = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
-        return ContractOfferId.parseId(contractId).orElseThrow(f -> new RuntimeException(f.getFailureDetail()));
+    /**
+     * Suspend the transfer process
+     *
+     * @param id transfer process id.
+     */
+    public void suspendTransfer(String id, String reason) {
+        var requestBodyBuilder = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(TYPE, "SuspendTransfer")
+                .add(ID, id)
+                .add("reason", reason);
+
+        managementEndpoint.baseRequest()
+                .contentType(JSON)
+                .body(requestBodyBuilder.build())
+                .when()
+                .post("/v2/transferprocesses/{id}/suspend", id)
+                .then()
+                .log().ifError()
+                .statusCode(204);
     }
 
-    private String getContractNegotiationState(String id) {
+    /**
+     * Get current state of a contract negotiation.
+     *
+     * @param id contract negotiation id
+     * @return state of a contract negotiation.
+     */
+    public String getContractNegotiationState(String id) {
+        return getContractNegotiationField(id, "state");
+    }
+
+    protected String getContractNegotiationField(String negotiationId, String fieldName) {
         return managementEndpoint.baseRequest()
                 .contentType(JSON)
                 .when()
-                .get("/v2/contractnegotiations/{id}/state", id)
+                .get("/v2/contractnegotiations/{id}", negotiationId)
                 .then()
                 .statusCode(200)
-                .extract().body().jsonPath().getString("state");
+                .extract().body().jsonPath()
+                .getString(fieldName);
     }
 
+    private JsonObject getOfferForAsset(Participant provider, String assetId) {
+        var dataset = getDatasetForAsset(provider, assetId);
+        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
+        return createObjectBuilder(policy)
+                .add(ODRL_ASSIGNER_ATTRIBUTE, createObjectBuilder().add(ID, provider.id))
+                .add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, dataset.get(ID)))
+                .build();
+    }
 
     private String getContractAgreementId(String negotiationId) {
         var contractAgreementIdAtomic = new AtomicReference<String>();
 
-        await().atMost(TIMEOUT).untilAsserted(() -> {
+        await().atMost(timeout).untilAsserted(() -> {
             var agreementId = getContractNegotiationField(negotiationId, "contractAgreementId");
             assertThat(agreementId).isNotNull().isInstanceOf(String.class);
 
@@ -368,17 +545,6 @@ public class Participant {
         var contractAgreementId = contractAgreementIdAtomic.get();
         assertThat(id).isNotEmpty();
         return contractAgreementId;
-    }
-
-    private String getContractNegotiationField(String negotiationId, String fieldName) {
-        return managementEndpoint.baseRequest()
-                .contentType(JSON)
-                .when()
-                .get("/v2/contractnegotiations/{id}", negotiationId)
-                .then()
-                .statusCode(200)
-                .extract().body().jsonPath()
-                .getString(fieldName);
     }
 
     /**
@@ -425,6 +591,16 @@ public class Participant {
 
         public B name(String name) {
             participant.name = name;
+            return self();
+        }
+
+        public B protocol(String protocol) {
+            participant.protocol = protocol;
+            return self();
+        }
+
+        public B timeout(Duration timeout) {
+            participant.timeout = timeout;
             return self();
         }
 

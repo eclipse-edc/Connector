@@ -35,7 +35,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 class ReflectionBasedQueryResolverTest {
 
-    private final QueryResolver<FakeItem> queryResolver = new ReflectionBasedQueryResolver<>(FakeItem.class);
+    private final QueryResolver<FakeItem> queryResolver = new ReflectionBasedQueryResolver<>(FakeItem.class, CriterionOperatorRegistryImpl.ofDefaults());
 
     @Test
     void verifyQuery_noFilters() {
@@ -124,8 +124,10 @@ class ReflectionBasedQueryResolverTest {
                 IntStream.range(0, 5).mapToObj(i -> new FakeItem(i, "Alice")),
                 IntStream.range(5, 10).mapToObj(i -> new FakeItem(i, "Bob")));
         var criterion = new Criterion("name", "GREATER_THAN", "(Bob, Alice)");
-        assertThatThrownBy(() -> queryResolver.query(stream, QuerySpec.Builder.newInstance().filter(List.of(criterion)).build())).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Operator [GREATER_THAN] is not supported by this converter!");
+
+        assertThatThrownBy(() -> queryResolver.query(stream, QuerySpec.Builder.newInstance().filter(List.of(criterion)).build()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Operator [GREATER_THAN] is not supported.");
     }
 
     private static class FakeItem {

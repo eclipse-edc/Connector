@@ -41,6 +41,7 @@ public class JsonObjectToSelectionRequestTransformer extends AbstractJsonLdTrans
                 case SelectionRequest.SOURCE_ADDRESS ->
                         builder.source(transformObject(jsonValue, DataAddress.class, context));
                 case SelectionRequest.STRATEGY -> builder.strategy(transformString(jsonValue, context));
+                case SelectionRequest.TRANSFER_TYPE -> builder.transferType(transformString(jsonValue, context));
                 default -> throw new IllegalStateException("Unexpected value: " + key);
             }
         });

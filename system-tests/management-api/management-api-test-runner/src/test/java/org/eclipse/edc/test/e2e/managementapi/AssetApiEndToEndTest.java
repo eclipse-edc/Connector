@@ -15,286 +15,321 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.http.ContentType;
-import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
-import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * Asset V3 endpoints end-to-end tests
  */
-@EndToEndTest
-public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
+public class AssetApiEndToEndTest {
 
-    private static final String TEST_ASSET_ID = "test-asset-id";
-    private static final String TEST_ASSET_CONTENTTYPE = "application/json";
-    private static final String TEST_ASSET_DESCRIPTION = "test description";
-    private static final String TEST_ASSET_VERSION = "0.4.2";
-    private static final String TEST_ASSET_NAME = "test-asset";
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests implements InMemoryRuntime {
 
-    @Test
-    void getAssetById() {
-        getAssetIndex().create(createAsset().dataAddress(createDataAddress().type("addressType").build()).build());
-
-        var body = baseRequest()
-                .get("/v3/assets/" + TEST_ASSET_ID)
-                .then()
-                .statusCode(200)
-                .extract().body().jsonPath();
-
-        assertThat(body).isNotNull();
-        assertThat(body.getString(ID)).isEqualTo(TEST_ASSET_ID);
-        assertThat(body.getMap("properties"))
-                .hasSize(5)
-                .containsEntry("name", TEST_ASSET_NAME)
-                .containsEntry("description", TEST_ASSET_DESCRIPTION)
-                .containsEntry("contenttype", TEST_ASSET_CONTENTTYPE)
-                .containsEntry("version", TEST_ASSET_VERSION);
-        assertThat(body.getMap("'dataAddress'"))
-                .containsEntry("type", "addressType");
+        InMemory() {
+            super(RUNTIME);
+        }
     }
 
-    @Test
-    void createAsset_shouldBeStored() {
-        var assetJson = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "Asset")
-                .add(ID, TEST_ASSET_ID)
-                .add("properties", createPropertiesBuilder().build())
-                .add("dataAddress", createObjectBuilder()
-                        .add(TYPE, "DataAddress")
-                        .add("type", "test-type")
-                        .build())
-                .build();
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests implements PostgresRuntime {
 
-        baseRequest()
-                .contentType(ContentType.JSON)
-                .body(assetJson)
-                .post("/v3/assets")
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .body(ID, is("test-asset-id"));
+        Postgres() {
+            super(RUNTIME);
+        }
 
-        assertThat(getAssetIndex().countAssets(List.of())).isEqualTo(1);
-        assertThat(getAssetIndex().findById("test-asset-id")).isNotNull();
+        @BeforeAll
+        static void beforeAll() {
+            PostgresqlEndToEndInstance.createDatabase("runtime");
+        }
     }
 
-    @Test
-    void createAsset_shouldFail_whenBodyIsNotValid() {
-        var assetJson = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "Asset")
-                .add(ID, " ")
-                .add("properties", createPropertiesBuilder().build())
-                .build();
+    abstract static class Tests extends ManagementApiEndToEndTestBase {
 
-        baseRequest()
-                .contentType(ContentType.JSON)
-                .body(assetJson)
-                .post("/v3/assets")
-                .then()
-                .log().ifError()
-                .statusCode(400);
+        Tests(EdcRuntimeExtension runtime) {
+            super(runtime);
+        }
 
-        assertThat(getAssetIndex().countAssets(emptyList())).isEqualTo(0);
-    }
+        @Test
+        void getAssetById() {
+            var id = UUID.randomUUID().toString();
+            var asset = createAsset().id(id)
+                    .dataAddress(createDataAddress().type("addressType").build())
+                    .build();
+            getAssetIndex().create(asset);
 
-    @Test
-    void createAsset_withoutPrefix_shouldAddEdcNamespace() {
-        var assetJson = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "Asset")
-                .add(ID, TEST_ASSET_ID)
-                .add("properties", createPropertiesBuilder()
-                        .add("unprefixed-key", "test-value").build())
-                .add("dataAddress", createObjectBuilder()
-                        .add(TYPE, "DataAddress")
-                        .add("type", "test-type")
-                        .add("unprefixed-key", "test-value")
-                        .build())
-                .build();
+            var body = baseRequest()
+                    .get("/v3/assets/" + id)
+                    .then()
+                    .statusCode(200)
+                    .extract().body().jsonPath();
 
-        baseRequest()
-                .contentType(ContentType.JSON)
-                .body(assetJson)
-                .post("/v3/assets")
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .body(ID, is("test-asset-id"));
+            assertThat(body).isNotNull();
+            assertThat(body.getString(ID)).isEqualTo(id);
+            assertThat(body.getMap("properties"))
+                    .hasSize(5)
+                    .containsEntry("name", "test-asset")
+                    .containsEntry("description", "test description")
+                    .containsEntry("contenttype", "application/json")
+                    .containsEntry("version", "0.4.2");
+            assertThat(body.getMap("'dataAddress'"))
+                    .containsEntry("type", "addressType");
+        }
 
-        assertThat(getAssetIndex().countAssets(List.of())).isEqualTo(1);
-        var asset = getAssetIndex().findById("test-asset-id");
-        assertThat(asset).isNotNull();
-        //make sure unprefixed keys are caught and prefixed with the EDC_NAMESPACE ns.
-        assertThat(asset.getProperties().keySet())
-                .hasSize(6)
-                .allMatch(key -> key.startsWith(EDC_NAMESPACE));
+        @Test
+        void createAsset_shouldBeStored() {
+            var id = UUID.randomUUID().toString();
+            var assetJson = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "Asset")
+                    .add(ID, id)
+                    .add("properties", createPropertiesBuilder().build())
+                    .add("dataAddress", createObjectBuilder()
+                            .add(TYPE, "DataAddress")
+                            .add("type", "test-type")
+                            .build())
+                    .build();
 
-        var dataAddress = getAssetIndex().resolveForAsset(asset.getId());
-        assertThat(dataAddress).isNotNull();
-        assertThat(dataAddress.getProperties().keySet())
-                .hasSize(2)
-                .allMatch(key -> key.startsWith(EDC_NAMESPACE));
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v3/assets")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body(ID, is(id));
 
-    }
+            assertThat(getAssetIndex().findById(id)).isNotNull();
+        }
 
-    @Test
-    void queryAsset_byContentType() {
-        //insert one asset into the index
-        var asset = Asset.Builder.newInstance().id("test-asset").contentType("application/octet-stream").dataAddress(createDataAddress().build()).build();
-        getAssetIndex().create(asset);
+        @Test
+        void createAsset_shouldFail_whenBodyIsNotValid() {
+            var assetJson = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "Asset")
+                    .add(ID, " ")
+                    .add("properties", createPropertiesBuilder().build())
+                    .build();
 
-        var query = createObjectBuilder()
-                        .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                        .add("filterExpression", createArrayBuilder()
-                                .add(createObjectBuilder()
-                                        .add("operandLeft", EDC_NAMESPACE + "contenttype")
-                                        .add("operator", "=")
-                                        .add("operandRight", "application/octet-stream"))
-                        ).build();
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v3/assets")
+                    .then()
+                    .log().ifError()
+                    .statusCode(400);
+        }
 
-        baseRequest()
-                .contentType(ContentType.JSON)
-                .body(query)
-                .post("/v3/assets/request")
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .body("size()", is(1));
-    }
+        @Test
+        void createAsset_withoutPrefix_shouldAddEdcNamespace() {
+            var id = UUID.randomUUID().toString();
+            var assetJson = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "Asset")
+                    .add(ID, id)
+                    .add("properties", createPropertiesBuilder()
+                            .add("unprefixed-key", "test-value").build())
+                    .add("dataAddress", createObjectBuilder()
+                            .add(TYPE, "DataAddress")
+                            .add("type", "test-type")
+                            .add("unprefixed-key", "test-value")
+                            .build())
+                    .build();
 
-    @Test
-    void queryAsset_byCustomStringProperty() {
-        getAssetIndex().create(Asset.Builder.newInstance()
-                .id("test-asset")
-                .contentType("application/octet-stream")
-                .property("myProp", "myVal")
-                .dataAddress(createDataAddress().build())
-                .build());
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v3/assets")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body(ID, is(id));
 
-        var query = createSingleFilterQuery("myProp", "=", "myVal");
+            var asset = getAssetIndex().findById(id);
+            assertThat(asset).isNotNull();
+            //make sure unprefixed keys are caught and prefixed with the EDC_NAMESPACE ns.
+            assertThat(asset.getProperties().keySet())
+                    .hasSize(6)
+                    .allMatch(key -> key.startsWith(EDC_NAMESPACE));
 
-        baseRequest()
-                .contentType(ContentType.JSON)
-                .body(query)
-                .post("/v3/assets/request")
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .body("size()", is(1));
-    }
+            var dataAddress = getAssetIndex().resolveForAsset(asset.getId());
+            assertThat(dataAddress).isNotNull();
+            assertThat(dataAddress.getProperties().keySet())
+                    .hasSize(2)
+                    .allMatch(key -> key.startsWith(EDC_NAMESPACE));
+        }
 
-    @Test
-    void queryAsset_byCustomComplexProperty() {
-        getAssetIndex().create(Asset.Builder.newInstance()
-                .id("test-asset")
-                .contentType("application/octet-stream")
-                .property("myProp", Map.of("description", "test desc", "number", 42))
-                .dataAddress(createDataAddress().build())
-                .build());
+        @Test
+        void queryAsset_byContentType() {
+            //insert one asset into the index
+            var id = UUID.randomUUID().toString();
+            var asset = Asset.Builder.newInstance().id(id).contentType("application/octet-stream").dataAddress(createDataAddress().build()).build();
+            getAssetIndex().create(asset);
 
-        var query = createSingleFilterQuery("myProp.description", "=", "test desc");
+            var query = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add("filterExpression", createArrayBuilder()
+                            .add(createObjectBuilder()
+                                    .add("operandLeft", EDC_NAMESPACE + "id")
+                                    .add("operator", "=")
+                                    .add("operandRight", id))
+                            .add(createObjectBuilder()
+                                    .add("operandLeft", EDC_NAMESPACE + "contenttype")
+                                    .add("operator", "=")
+                                    .add("operandRight", "application/octet-stream"))
+                    ).build();
 
-        baseRequest()
-                .contentType(ContentType.JSON)
-                .body(query)
-                .post("/v3/assets/request")
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .body("size()", is(1));
-    }
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(query)
+                    .post("/v3/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body("size()", is(1));
+        }
 
-    @Test
-    void updateAsset() {
-        var asset = createAsset();
-        getAssetIndex().create(asset.build());
+        @Test
+        void queryAsset_byCustomStringProperty() {
+            getAssetIndex().create(Asset.Builder.newInstance()
+                    .id("test-asset")
+                    .contentType("application/octet-stream")
+                    .property("myProp", "myVal")
+                    .dataAddress(createDataAddress().build())
+                    .build());
 
-        var assetJson = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "Asset")
-                .add(ID, TEST_ASSET_ID)
-                .add("properties", createPropertiesBuilder()
-                        .add("some-new-property", "some-new-value").build())
-                .add("dataAddress", createObjectBuilder()
-                        .add("type", "addressType"))
-                .build();
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(query(criterion("myProp", "=", "myVal")))
+                    .post("/v3/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body("size()", is(1));
+        }
 
-        baseRequest()
-                .contentType(ContentType.JSON)
-                .body(assetJson)
-                .put("/v3/assets")
-                .then()
-                .log().all()
-                .statusCode(204)
-                .body(notNullValue());
+        @Test
+        void queryAsset_byCustomComplexProperty() {
+            var id = UUID.randomUUID().toString();
+            var assetJson = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "Asset")
+                    .add(ID, id)
+                    .add("properties", createPropertiesBuilder()
+                            .add("nested", createPropertiesBuilder()
+                                    .add("@id", "test-nested-id")))
+                    .add("dataAddress", createObjectBuilder()
+                            .add(TYPE, "DataAddress")
+                            .add("type", "test-type")
+                            .add("unprefixed-key", "test-value")
+                            .build())
+                    .build();
 
-        var dbAsset = getAssetIndex().findById(TEST_ASSET_ID);
-        assertThat(dbAsset).isNotNull();
-        assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
-        assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
-    }
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v3/assets")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body(ID, is(id));
 
-    private AssetIndex getAssetIndex() {
-        return controlPlane.getContext().getService(AssetIndex.class);
-    }
+            var query = query(
+                    criterion("'%sid".formatted(EDC_NAMESPACE), "=", id),
+                    criterion("'%snested'.@id".formatted(EDC_NAMESPACE), "=", "test-nested-id")
+            );
 
-    private DataAddress.Builder createDataAddress() {
-        return DataAddress.Builder.newInstance().type("test-type");
-    }
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(query)
+                    .post("/v3/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body("size()", is(1));
+        }
 
-    private Asset.Builder createAsset() {
-        return Asset.Builder.newInstance()
-                .id(TEST_ASSET_ID)
-                .name(TEST_ASSET_NAME)
-                .description(TEST_ASSET_DESCRIPTION)
-                .contentType(TEST_ASSET_CONTENTTYPE)
-                .version(TEST_ASSET_VERSION)
-                .dataAddress(createDataAddress().build());
-    }
+        @Test
+        void updateAsset() {
+            var asset = createAsset().build();
+            getAssetIndex().create(asset);
 
-    private JsonObjectBuilder createPropertiesBuilder() {
-        return createObjectBuilder()
-                .add("name", TEST_ASSET_NAME)
-                .add("description", TEST_ASSET_DESCRIPTION)
-                .add("version", TEST_ASSET_VERSION)
-                .add("contentType", TEST_ASSET_CONTENTTYPE);
-    }
+            var assetJson = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "Asset")
+                    .add(ID, asset.getId())
+                    .add("properties", createPropertiesBuilder()
+                            .add("some-new-property", "some-new-value").build())
+                    .add("dataAddress", createObjectBuilder()
+                            .add("type", "addressType"))
+                    .build();
 
-    private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
-        var criteria = createArrayBuilder()
-                .add(createObjectBuilder()
-                        .add(TYPE, "Criterion")
-                        .add("operandLeft", leftOperand)
-                        .add("operator", operator)
-                        .add("operandRight", rightOperand)
-                );
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .put("/v3/assets")
+                    .then()
+                    .log().all()
+                    .statusCode(204)
+                    .body(notNullValue());
 
-        return createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "QuerySpec")
-                .add("filterExpression", criteria)
-                .build();
+            var dbAsset = getAssetIndex().findById(asset.getId());
+            assertThat(dbAsset).isNotNull();
+            assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
+            assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
+        }
+
+        private AssetIndex getAssetIndex() {
+            return runtime.getContext().getService(AssetIndex.class);
+        }
+
+        private DataAddress.Builder createDataAddress() {
+            return DataAddress.Builder.newInstance().type("test-type");
+        }
+
+        private Asset.Builder createAsset() {
+            return Asset.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .name("test-asset")
+                    .description("test description")
+                    .contentType("application/json")
+                    .version("0.4.2")
+                    .dataAddress(createDataAddress().build());
+        }
+
+        private JsonObjectBuilder createPropertiesBuilder() {
+            return createObjectBuilder()
+                    .add("name", "test-asset")
+                    .add("description", "test description")
+                    .add("version", "0.4.2")
+                    .add("contentType", "application/json");
+        }
+
     }
 
 }

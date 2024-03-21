@@ -27,7 +27,7 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.validation.T
 import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.transformer.OdrlTransformersFactory;
+import org.eclipse.edc.core.transform.transformer.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -62,7 +62,7 @@ class ContractNegotiationApiTest {
         transformer.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformer.register(new JsonObjectToCallbackAddressTransformer());
         transformer.register(new JsonObjectToTerminateNegotiationCommandTransformer());
-        OdrlTransformersFactory.jsonObjectToOdrlTransformers().forEach(transformer::register);
+        OdrlTransformersFactory.jsonObjectToOdrlTransformers(mock()).forEach(transformer::register);
     }
 
     @Test
@@ -77,7 +77,7 @@ class ContractNegotiationApiTest {
                 .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
                 .extracting(e -> transformer.transform(e, ContractRequest.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
-                        .satisfies(transformed -> assertThat(transformed.getProviderId()).isNotBlank()));
+                        .satisfies(transformed -> assertThat(transformed.getProtocol()).isNotBlank()));
     }
 
     @Test
