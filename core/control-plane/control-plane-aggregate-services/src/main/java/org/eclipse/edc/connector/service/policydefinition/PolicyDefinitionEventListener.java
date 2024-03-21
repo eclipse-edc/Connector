@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionBeforeCreate;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionBeforeUpdate;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionCreated;
-import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionDeleted;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionEvent;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionUpdated;
 import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionListener;
