@@ -25,6 +25,8 @@ dependencies {
     implementation(libs.failsafe.core)
 
     testImplementation(testFixtures(project(":core:common:junit")))
+    testImplementation(project(":core:common:connector-core"))
+
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.awaitility)
 }

@@ -17,7 +17,7 @@ package org.eclipse.edc.test.e2e.protocol;
 import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
-import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -38,7 +38,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 @EndToEndTest
 public class DspCatalogApiEndToEndTest {
 
-    private static final int PROTOCOL_PORT = TestUtils.getFreePort();
+    private static final int PROTOCOL_PORT = Ports.getFreePort();
 
     @RegisterExtension
     static EdcRuntimeExtension runtime = new EdcRuntimeExtension(

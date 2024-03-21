@@ -22,5 +22,7 @@ dependencies {
     implementation(project(":core:common:connector-core"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:lib:boot-lib"))
+
     testImplementation(testFixtures(project(":spi:common:edr-store-spi")))
 }

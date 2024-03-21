@@ -12,8 +12,9 @@
  *
  */
 
-package org.eclipse.edc.connector.core.vault;
+package org.eclipse.edc.core.vault;
 
+import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

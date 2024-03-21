@@ -66,8 +66,8 @@ import static org.eclipse.edc.connector.provision.http.HttpProvisionerFixtures.T
 import static org.eclipse.edc.connector.provision.http.HttpProvisionerFixtures.createResponse;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING_REQUESTED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;

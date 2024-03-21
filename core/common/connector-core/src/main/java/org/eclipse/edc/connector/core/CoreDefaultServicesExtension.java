@@ -17,14 +17,13 @@ package org.eclipse.edc.connector.core;
 import dev.failsafe.RetryPolicy;
 import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
-import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
+import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.connector.core.base.OkHttpClientConfiguration;
 import org.eclipse.edc.connector.core.base.OkHttpClientFactory;
 import org.eclipse.edc.connector.core.base.RetryPolicyConfiguration;
 import org.eclipse.edc.connector.core.base.RetryPolicyFactory;
 import org.eclipse.edc.connector.core.base.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
-import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -39,6 +38,7 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.datasource.spi.DefaultDataSourceRegistry;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.eclipse.http.client.EdcHttpClientImpl;
 
 import java.util.concurrent.Executors;
 

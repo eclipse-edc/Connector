@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.junit.extension;
 
-import org.eclipse.edc.connector.core.vault.InMemoryVault;
+import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;

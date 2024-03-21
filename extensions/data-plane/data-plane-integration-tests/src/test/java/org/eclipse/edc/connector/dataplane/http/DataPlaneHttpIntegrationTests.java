@@ -57,7 +57,7 @@ import static java.util.Collections.emptyMap;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions.createRequest;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;

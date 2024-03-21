@@ -27,7 +27,7 @@ import org.eclipse.edc.web.jetty.PortMapping;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.Mockito.mock;
 
 /**

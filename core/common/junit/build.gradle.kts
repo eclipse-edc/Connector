@@ -21,16 +21,23 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":core:common:boot"))
-    api(project(":core:common:connector-core"))
     api(project(":core:common:util"))
+    api(project(":core:common:lib:http-lib"))
 
+    implementation(project(":spi:common:http-spi"))
+    implementation(libs.okhttp)
     implementation(libs.mockito.core)
     implementation(libs.assertj)
     implementation(libs.junit.jupiter.api)
+
     runtimeOnly(libs.junit.jupiter.engine)
 
     implementation(libs.junit.pioneer)
     implementation(libs.testcontainers.junit)
+    testImplementation(project(":core:common:connector-core"))
+
+
+    testImplementation(project(":core:common:lib:boot-lib"))
 }
 
 
