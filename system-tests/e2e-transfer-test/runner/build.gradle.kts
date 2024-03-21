@@ -21,10 +21,11 @@ dependencies {
     testImplementation(project(":spi:data-plane:data-plane-spi"))
     testImplementation(project(":extensions:common:sql:sql-core"))
 
+    testImplementation(project(":spi:common:web-spi"))
+    testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
-    testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.jakartaJson)
 
