@@ -76,7 +76,7 @@ public class AssetServiceImpl implements AssetService {
         if (validDataAddress.failed()) {
             return ServiceResult.badRequest(validDataAddress.getFailureMessages());
         }
-
+        observable.invokeForEach(l -> l.beforeCreate(asset));
         return transactionContext.execute(() -> {
             var createResult = index.create(asset);
             if (createResult.succeeded()) {
@@ -100,7 +100,6 @@ public class AssetServiceImpl implements AssetService {
                     return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId));
                 }
             }
-
             var deleted = index.deleteById(assetId);
             deleted.onSuccess(a -> observable.invokeForEach(l -> l.deleted(a)));
             return ServiceResult.from(deleted);
@@ -117,7 +116,7 @@ public class AssetServiceImpl implements AssetService {
         if (validDataAddress.failed()) {
             return ServiceResult.badRequest(validDataAddress.getFailureMessages());
         }
-
+        observable.invokeForEach(l -> l.beforeUpdate(asset));
         return transactionContext.execute(() -> {
             var updatedAsset = index.updateAsset(asset);
             updatedAsset.onSuccess(a -> observable.invokeForEach(l -> l.updated(a)));

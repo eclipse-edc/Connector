@@ -50,4 +50,23 @@ public interface PolicyDefinitionListener {
     default void updated(PolicyDefinition policyDefinition) {
 
     }
+
+
+    /**
+     * Called after a {@link PolicyDefinition} was created.
+     *
+     * @param policyDefinition the policyDefinition that going to be created.
+     */
+    default void beforeCreate(PolicyDefinition policyDefinition) {
+
+    }
+
+    /**
+     * Called after a {@link PolicyDefinition} was updated.
+     *
+     * @param policyDefinition the policyDefinition that going to be updated.
+     */
+    default void beforeUpdate(PolicyDefinition policyDefinition) {
+
+    }
 }

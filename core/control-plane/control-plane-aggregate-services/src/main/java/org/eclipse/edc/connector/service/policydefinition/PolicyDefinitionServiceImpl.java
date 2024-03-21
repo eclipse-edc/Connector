@@ -100,6 +100,7 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
 
     @Override
     public @NotNull ServiceResult<PolicyDefinition> create(PolicyDefinition policyDefinition) {
+        observable.invokeForEach(l -> l.beforeCreate(policyDefinition));
         return transactionContext.execute(() -> {
             var saveResult = policyStore.create(policyDefinition);
             saveResult.onSuccess(v -> observable.invokeForEach(l -> l.created(policyDefinition)));

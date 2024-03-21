@@ -50,4 +50,23 @@ public interface AssetListener {
 
     }
 
+
+    /**
+     * Called after a {@link Asset} was created.
+     *
+     * @param asset the asset that has been created.
+     */
+    default void beforeCreate(Asset asset) {
+
+    }
+
+    /**
+     * Called after a {@link Asset} was updated
+     *
+     * @param asset The new (already updated) asset.
+     */
+    default void beforeUpdate(Asset asset) {
+
+    }
+
 }

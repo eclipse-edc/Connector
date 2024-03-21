@@ -50,4 +50,23 @@ public interface ContractDefinitionListener {
     default void updated(ContractDefinition contractDefinition) {
 
     }
+
+    /**
+     * Called after a {@link ContractDefinition} was before create.
+     *
+     * @param contractDefinition the contractDefinition that has been created.
+     */
+    default void beforeCreate(ContractDefinition contractDefinition) {
+
+    }
+
+    /**
+     * Called after a {@link ContractDefinition} was before update.
+     *
+     * @param contractDefinition the contractDefinition that going to be updated.
+     */
+    default void beforeUpdate(ContractDefinition contractDefinition) {
+
+    }
+
 }

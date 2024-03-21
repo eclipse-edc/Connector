@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.service.policydefinition;
 
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionBeforeCreate;
+import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionBeforeUpdate;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionCreated;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionDeleted;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionEvent;
@@ -37,6 +39,7 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
         this.eventRouter = eventRouter;
     }
 
+
     @Override
     public void created(PolicyDefinition policyDefinition) {
         var event = PolicyDefinitionCreated.Builder.newInstance()
@@ -47,8 +50,8 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
     }
 
     @Override
-    public void deleted(PolicyDefinition policyDefinition) {
-        var event = PolicyDefinitionDeleted.Builder.newInstance()
+    public void updated(PolicyDefinition policyDefinition) {
+        var event = PolicyDefinitionUpdated.Builder.newInstance()
                 .policyDefinitionId(policyDefinition.getUid())
                 .build();
 
@@ -56,8 +59,17 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
     }
 
     @Override
-    public void updated(PolicyDefinition policyDefinition) {
-        var event = PolicyDefinitionUpdated.Builder.newInstance()
+    public void beforeCreate(PolicyDefinition policyDefinition) {
+        var event = PolicyDefinitionBeforeCreate.Builder.newInstance()
+                .policyDefinitionId(policyDefinition.getUid())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void beforeUpdate(PolicyDefinition policyDefinition) {
+        var event = PolicyDefinitionBeforeUpdate.Builder.newInstance()
                 .policyDefinitionId(policyDefinition.getUid())
                 .build();
 

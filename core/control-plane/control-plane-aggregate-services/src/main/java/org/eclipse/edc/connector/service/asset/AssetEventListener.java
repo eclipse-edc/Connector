@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.service.asset;
 
+import org.eclipse.edc.connector.asset.spi.event.AssetBeforeCreate;
+import org.eclipse.edc.connector.asset.spi.event.AssetBeforeUpdate;
 import org.eclipse.edc.connector.asset.spi.event.AssetCreated;
 import org.eclipse.edc.connector.asset.spi.event.AssetDeleted;
 import org.eclipse.edc.connector.asset.spi.event.AssetEvent;
@@ -58,6 +60,25 @@ public class AssetEventListener implements AssetListener {
     @Override
     public void updated(Asset asset) {
         var event = AssetUpdated.Builder.newInstance()
+                .assetId(asset.getId())
+                .build();
+
+        publish(event);
+    }
+
+
+    @Override
+    public void beforeCreate(Asset asset) {
+        var event = AssetBeforeCreate.Builder.newInstance()
+                .assetId(asset.getId())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void beforeUpdate(Asset asset) {
+        var event = AssetBeforeUpdate.Builder.newInstance()
                 .assetId(asset.getId())
                 .build();
 
