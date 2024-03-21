@@ -16,6 +16,8 @@ package org.eclipse.edc.connector.service.policydefinition;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionBeforeCreate;
+import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionBeforeUpdate;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionCreated;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionDeleted;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionEvent;
@@ -63,11 +65,13 @@ public class PolicyDefinitionEventDispatchTest {
 
         service.create(policyDefinition);
         await().untilAsserted(() -> {
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionBeforeCreate.class)));
             verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionCreated.class)));
         });
 
         service.update(policyDefinition);
         await().untilAsserted(() -> {
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionBeforeUpdate.class)));
             verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionUpdated.class)));
         });
 
