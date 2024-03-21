@@ -94,7 +94,7 @@ public class PolicyDefinitionEventDispatchTest {
 
         service.deleteById(policyDefinition.getUid());
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionDeleted.class)));
+            verify(eventSubscriber, times(4)).on(argThat(isEnvelopeOf(PolicyDefinitionDeleted.class)));
 
         });
     }
