@@ -22,7 +22,7 @@ import java.util.UUID;
 
 public class TestFunctions {
 
-    public static EndpointDataReferenceEntry edrEntry(String assetId, String agreementId, String transferProcessId, String contractNegotiationId) {
+    public static EndpointDataReferenceEntry edrEntry(String assetId, String agreementId, String transferProcessId, String contractNegotiationId, String providerId) {
         return EndpointDataReferenceEntry.Builder.newInstance()
                 .assetId(assetId)
                 .agreementId(agreementId)
@@ -30,6 +30,10 @@ public class TestFunctions {
                 .providerId(UUID.randomUUID().toString())
                 .contractNegotiationId(contractNegotiationId)
                 .build();
+    }
+
+    public static EndpointDataReferenceEntry edrEntry(String assetId, String agreementId, String transferProcessId, String contractNegotiationId) {
+        return edrEntry(assetId, agreementId, transferProcessId, contractNegotiationId, UUID.randomUUID().toString());
     }
 
     public static EndpointDataReferenceEntry edrEntry() {

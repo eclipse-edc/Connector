@@ -48,7 +48,8 @@ public interface PostgresqlEndToEndInstance {
                         "control-plane/store/sql/policy-definition-store-sql",
                         "control-plane/store/sql/transfer-process-store-sql",
                         "data-plane/store/sql/data-plane-store-sql",
-                        "policy-monitor/store/sql/policy-monitor-store-sql"
+                        "policy-monitor/store/sql/policy-monitor-store-sql",
+                        "common/store/sql/edr-index-sql"
                 )
                 .map(extensionsFolder::resolve)
                 .map(it -> it.resolve("docs"))

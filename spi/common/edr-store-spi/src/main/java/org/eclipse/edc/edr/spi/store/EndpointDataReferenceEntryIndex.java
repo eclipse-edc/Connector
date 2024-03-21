@@ -28,6 +28,8 @@ import java.util.List;
  */
 @ExtensionPoint
 public interface EndpointDataReferenceEntryIndex {
+    
+    String ENDPOINT_DATA_REFERENCE_ENTRY_FOUND = "Endpoint DataReference Entry with ID %s not found";
 
     /**
      * Return a {@link EndpointDataReferenceEntry} associated with the transferProcessId in input

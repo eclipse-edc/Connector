@@ -139,9 +139,11 @@ include(":extensions:common:validator:validator-data-address-http-data")
 include(":extensions:common:validator:validator-data-address-kafka")
 include(":extensions:common:vault:vault-filesystem")
 include(":extensions:common:vault:vault-hashicorp")
+include(":extensions:common:store:sql:edr-index-sql")
 
 include(":extensions:common:api:control-api-configuration")
 include(":extensions:common:api:management-api-configuration")
+
 
 include(":extensions:control-plane:api:control-plane-api")
 include(":extensions:control-plane:api:control-plane-api-client")

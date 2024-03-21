@@ -21,9 +21,16 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,15 +51,35 @@ public abstract class EndpointDataReferenceEntryIndexTestBase {
 
         getStore().save(entry);
 
+        var results = getStore().findById(entry.getTransferProcessId());
+
+        assertThat(results).isNotNull().usingRecursiveComparison().isEqualTo(entry);
+
+    }
+
+    @Test
+    void update() {
+
+        var tpId = "tp1";
+        var assetId = "asset1";
+
+        var entry = edrEntry(assetId, randomUUID().toString(), tpId, randomUUID().toString());
+
+        getStore().save(entry);
+
+        var dbEntry = getStore().findById(entry.getTransferProcessId());
+        assertThat(dbEntry).isNotNull().usingRecursiveComparison().isEqualTo(entry);
+
+        entry = edrEntry(assetId, randomUUID().toString(), tpId, randomUUID().toString());
+        getStore().save(entry);
+
+        dbEntry = getStore().findById(entry.getTransferProcessId());
+        assertThat(dbEntry).isNotNull().usingRecursiveComparison().isEqualTo(entry);
+
         var results = getStore().query(QuerySpec.max());
 
         assertThat(results.succeeded()).isTrue();
-        assertThat(results.getContent()).hasSize(1)
-                .first()
-                .isNotNull()
-                .extracting(EndpointDataReferenceEntry::getTransferProcessId)
-                .isEqualTo(tpId);
-
+        assertThat(results.getContent()).usingRecursiveFieldByFieldElementComparator().containsOnly(entry);
     }
 
     @Test
@@ -65,34 +92,13 @@ public abstract class EndpointDataReferenceEntryIndexTestBase {
         var results = getStore().query(QuerySpec.max());
 
         assertThat(results.succeeded()).isTrue();
-        assertThat(results.getContent()).containsExactlyInAnyOrderElementsOf(all);
+        assertThat(results.getContent()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrderElementsOf(all);
 
     }
 
-    @Test
-    void query_assetIdQuerySpec() {
-        IntStream.range(0, 10)
-                .mapToObj(i -> edrEntry("assetId" + i, "agreementId" + i, "tpId" + i, "cnId" + i))
-                .forEach(entry -> getStore().save(entry));
-
-        var entry = edrEntry("assetId", "agreementId", "tpId", "cnId");
-        getStore().save(entry);
-
-        var filter = Criterion.Builder.newInstance()
-                .operandLeft("assetId")
-                .operator("=")
-                .operandRight(entry.getAssetId())
-                .build();
-
-        var results = getStore().query(QuerySpec.Builder.newInstance().filter(filter).build());
-
-        assertThat(results.succeeded()).isTrue();
-        assertThat(results.getContent()).containsOnly(entry);
-
-    }
-
-    @Test
-    void query_agreementIdQuerySpec() {
+    @ParameterizedTest
+    @ArgumentsSource(FilterArgumentProvider.class)
+    void query_withQuerySpec(String field, Function<EndpointDataReferenceEntry, String> mapping) {
         IntStream.range(0, 10)
                 .mapToObj(i -> edrEntry("assetId" + i, "agreementId" + i, "tpId" + i, "cnId" + i))
                 .forEach(entry -> getStore().save(entry));
@@ -102,18 +108,18 @@ public abstract class EndpointDataReferenceEntryIndexTestBase {
         getStore().save(entry);
 
         var filter = Criterion.Builder.newInstance()
-                .operandLeft("agreementId")
+                .operandLeft(field)
                 .operator("=")
-                .operandRight(entry.getAgreementId())
+                .operandRight(mapping.apply(entry))
                 .build();
 
         var results = getStore().query(QuerySpec.Builder.newInstance().filter(filter).build());
 
         assertThat(results.succeeded()).isTrue();
-        assertThat(results.getContent()).containsOnly(entry);
+        assertThat(results.getContent()).usingRecursiveFieldByFieldElementComparator().containsOnly(entry);
 
     }
-    
+
     @Test
     void delete_shouldDelete_WhenFound() {
 
@@ -122,6 +128,7 @@ public abstract class EndpointDataReferenceEntryIndexTestBase {
 
         assertThat(getStore().delete(entry.getTransferProcessId()))
                 .extracting(StoreResult::getContent)
+                .usingRecursiveComparison()
                 .isEqualTo(entry);
 
         var results = getStore().query(QuerySpec.max());
@@ -140,4 +147,18 @@ public abstract class EndpointDataReferenceEntryIndexTestBase {
 
     protected abstract EndpointDataReferenceEntryIndex getStore();
 
+
+    static class FilterArgumentProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+
+            return Stream.of(
+                    Arguments.of("agreementId", (Function<EndpointDataReferenceEntry, String>) EndpointDataReferenceEntry::getAgreementId),
+                    Arguments.of("transferProcessId", (Function<EndpointDataReferenceEntry, String>) EndpointDataReferenceEntry::getTransferProcessId),
+                    Arguments.of("assetId", (Function<EndpointDataReferenceEntry, String>) EndpointDataReferenceEntry::getAssetId),
+                    Arguments.of("contractNegotiationId", (Function<EndpointDataReferenceEntry, String>) EndpointDataReferenceEntry::getContractNegotiationId),
+                    Arguments.of("providerId", (Function<EndpointDataReferenceEntry, String>) EndpointDataReferenceEntry::getProviderId)
+            );
+        }
+    }
 }
