@@ -82,12 +82,13 @@ public class PolicyDefinitionEventDispatchTest {
         service.update(policyDefinition);
         ArgumentCaptor<EventEnvelope<PolicyDefinitionEvent>> argumentCaptorForUpdate = ArgumentCaptor.forClass(EventEnvelope.class);
         await().untilAsserted(() -> {
-            verify(eventSubscriber, times(2)).on(argumentCaptorForUpdate.capture());
+            verify(eventSubscriber, times(4)).on(argumentCaptorForUpdate.capture());
             var events = argumentCaptorForUpdate.getAllValues();
             events.forEach(event -> {
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionBeforeCreate.class)));
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionCreated.class)));
                 verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionBeforeUpdate.class)));
                 verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionUpdated.class)));
-
             });
         });
 

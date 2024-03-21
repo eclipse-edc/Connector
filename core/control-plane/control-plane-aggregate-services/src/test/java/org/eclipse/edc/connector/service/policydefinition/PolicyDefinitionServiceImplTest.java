@@ -46,6 +46,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -224,7 +225,7 @@ class PolicyDefinitionServiceImplTest {
         assertThat(updated.succeeded()).isTrue();
         verify(policyStore).update(eq(policy));
         verifyNoMoreInteractions(policyStore);
-        verify(observable).invokeForEach(any());
+        verify(observable, times(2)).invokeForEach(any());
     }
 
     @Test
@@ -239,7 +240,7 @@ class PolicyDefinitionServiceImplTest {
         assertThat(updated.reason()).isEqualTo(NOT_FOUND);
         verify(policyStore).update(policy);
         verifyNoMoreInteractions(policyStore);
-        verify(observable, never()).invokeForEach(any());
+        verify(observable, times(1)).invokeForEach(any());
     }
 
     private static class InvalidFilters implements ArgumentsProvider {
