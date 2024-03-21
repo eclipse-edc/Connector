@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionUpdated;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -32,6 +33,7 @@ import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
 
@@ -40,6 +42,7 @@ import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(EdcExtension.class)
@@ -63,16 +66,29 @@ public class PolicyDefinitionEventDispatchTest {
         eventRouter.register(PolicyDefinitionEvent.class, eventSubscriber);
         var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
 
+        ArgumentCaptor<EventEnvelope<PolicyDefinitionEvent>> argumentCaptor = ArgumentCaptor.forClass(EventEnvelope.class);
         service.create(policyDefinition);
+
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionBeforeCreate.class)));
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionCreated.class)));
+            verify(eventSubscriber, times(2)).on(argumentCaptor.capture());
+            var events = argumentCaptor.getAllValues();
+            events.forEach(event -> {
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionBeforeCreate.class)));
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionCreated.class)));
+
+            });
         });
 
         service.update(policyDefinition);
+        ArgumentCaptor<EventEnvelope<PolicyDefinitionEvent>> argumentCaptorForUpdate = ArgumentCaptor.forClass(EventEnvelope.class);
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionBeforeUpdate.class)));
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionUpdated.class)));
+            verify(eventSubscriber, times(2)).on(argumentCaptorForUpdate.capture());
+            var events = argumentCaptorForUpdate.getAllValues();
+            events.forEach(event -> {
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionBeforeUpdate.class)));
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionUpdated.class)));
+
+            });
         });
 
         service.deleteById(policyDefinition.getUid());
