@@ -92,7 +92,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         receiverEndpointServer.when(request).respond(successfulResponse());
 
-        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
+        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP, "TODO add ownIdentity"));
 
         assertThat(future).succeedsWithin(5, TimeUnit.SECONDS);
         verify(httpClient, atMostOnce()).execute(any());
@@ -124,7 +124,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         receiverEndpointServer.when(request).respond(successfulResponse());
 
-        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
+        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP, "TODO add ownIdentity"));
 
         assertThat(future).succeedsWithin(5, TimeUnit.SECONDS);
         verify(httpClient, atMostOnce()).execute(any());
@@ -147,7 +147,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         receiverEndpointServer.when(request).respond(failedResponse());
 
-        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
+        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP, "TODO add ownIdentity"));
 
         assertThat(future).failsWithin(5, TimeUnit.SECONDS).withThrowableThat().havingCause().isInstanceOf(EdcException.class);
         verify(httpClient, atMostOnce()).execute(any());

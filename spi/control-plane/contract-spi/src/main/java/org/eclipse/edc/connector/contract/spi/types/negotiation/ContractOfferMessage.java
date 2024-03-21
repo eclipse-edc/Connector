@@ -33,6 +33,7 @@ public class ContractOfferMessage implements ContractRemoteMessage {
     private String id;
     private String protocol = "unknown";
     private String counterPartyAddress;
+    private String ownIdentity;
     private String callbackAddress;
     private String processId;
     private ContractOffer contractOffer;
@@ -65,6 +66,11 @@ public class ContractOfferMessage implements ContractRemoteMessage {
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    @Override
+    public String getOwnIdentity() {
+        return ownIdentity;
     }
     
     public ContractOffer getContractOffer() {
@@ -106,6 +112,11 @@ public class ContractOfferMessage implements ContractRemoteMessage {
             message.counterPartyAddress = counterPartyAddress;
             return this;
         }
+
+        public Builder ownIdentity(String ownIdentity) {
+            message.ownIdentity = ownIdentity;
+            return this;
+        }
     
         public Builder processId(String processId) {
             message.processId = processId;
@@ -123,6 +134,7 @@ public class ContractOfferMessage implements ContractRemoteMessage {
             }
             requireNonNull(message.processId, "processId");
             requireNonNull(message.contractOffer, "contractOffer");
+            requireNonNull(message.ownIdentity, "owndIdentity must be set");
             return message;
         }
     }

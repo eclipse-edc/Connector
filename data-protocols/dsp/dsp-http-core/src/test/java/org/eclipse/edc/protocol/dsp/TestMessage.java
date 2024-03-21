@@ -16,7 +16,7 @@ package org.eclipse.edc.protocol.dsp;
 
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
-public record TestMessage(String protocol, String counterPartyAddress) implements RemoteMessage {
+public record TestMessage(String protocol, String counterPartyAddress, String ownIdentity) implements RemoteMessage {
     @Override
     public String getProtocol() {
         return protocol;
@@ -25,5 +25,10 @@ public record TestMessage(String protocol, String counterPartyAddress) implement
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    @Override
+    public String getOwnIdentity() {
+        return ownIdentity;
     }
 }

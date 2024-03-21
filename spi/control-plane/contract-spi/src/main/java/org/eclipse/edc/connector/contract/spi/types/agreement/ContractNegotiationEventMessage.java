@@ -26,6 +26,7 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
     private String id;
     private String protocol = "unknown";
     private String counterPartyAddress;
+    private String ownIdentity;
     private String processId;
     private Type type;
     private Policy policy;
@@ -50,6 +51,11 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    @Override
+    public String getOwnIdentity() {
+        return ownIdentity;
     }
 
     @Override
@@ -94,6 +100,11 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
             return this;
         }
 
+        public Builder ownIdentity(String ownIdentity) {
+            message.ownIdentity = ownIdentity;
+            return this;
+        }
+
         public Builder processId(String processId) {
             message.processId = processId;
             return this;
@@ -115,6 +126,8 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
             }
             Objects.requireNonNull(message.processId, "processId");
             Objects.requireNonNull(message.type, "type");
+
+            Objects.requireNonNull(message.ownIdentity, "The ownIdentity must be specified");
             return message;
         }
     }

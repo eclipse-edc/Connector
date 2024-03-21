@@ -28,6 +28,7 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
     private String id;
     private String protocol = "unknown";
     private String counterPartyAddress;
+    private String ownIdentity;
     private String processId;
     private String rejectionReason; // TODO change to list https://github.com/eclipse-edc/Connector/issues/2729
     private String code;
@@ -53,6 +54,11 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    @Override
+    public String getOwnIdentity() {
+        return ownIdentity;
     }
 
     @Override
@@ -102,6 +108,11 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
             return this;
         }
 
+        public Builder ownIdentity(String ownIdentity) {
+            message.ownIdentity = ownIdentity;
+            return this;
+        }
+
         public Builder processId(String processId) {
             message.processId = processId;
             return this;
@@ -128,6 +139,7 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
             }
 
             Objects.requireNonNull(message.processId, "processId");
+            Objects.requireNonNull(message.ownIdentity, "ownIdentity must be set");
             return message;
         }
     }

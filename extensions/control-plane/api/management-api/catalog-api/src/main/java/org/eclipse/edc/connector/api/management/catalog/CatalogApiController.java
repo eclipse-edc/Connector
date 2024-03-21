@@ -21,6 +21,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.UriInfo;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
@@ -55,8 +57,13 @@ public class CatalogApiController implements CatalogApi {
     @Override
     @POST
     @Path("/request")
-    public void requestCatalog(JsonObject requestBody, @Suspended AsyncResponse response) {
+    public void requestCatalog(JsonObject requestBody, @Suspended AsyncResponse response, @Context UriInfo uriInfo) {
         validatorRegistry.validate(CATALOG_REQUEST_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
+
+        uriInfo.getBaseUri().getHost();
+
+
+
 
         var request = transformerRegistry.transform(requestBody, CatalogRequest.class)
                 .orElseThrow(InvalidRequestException::new);

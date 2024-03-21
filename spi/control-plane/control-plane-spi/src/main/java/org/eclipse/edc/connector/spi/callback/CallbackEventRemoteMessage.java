@@ -29,10 +29,13 @@ public class CallbackEventRemoteMessage<T extends Event> implements RemoteMessag
     private final EventEnvelope<T> envelope;
     private final CallbackAddress callbackAddress;
 
-    public CallbackEventRemoteMessage(CallbackAddress callbackAddress, EventEnvelope<T> envelope, String protocol) {
+    private final String ownIdentity;
+
+    public CallbackEventRemoteMessage(CallbackAddress callbackAddress, EventEnvelope<T> envelope, String protocol, String ownIdentity) {
         this.callbackAddress = callbackAddress;
         this.protocol = protocol;
         this.envelope = envelope;
+        this.ownIdentity = ownIdentity;
     }
 
     @Override
@@ -45,6 +48,9 @@ public class CallbackEventRemoteMessage<T extends Event> implements RemoteMessag
         return callbackAddress.getUri();
     }
 
+    @Override
+    public String getOwnIdentity() { return ownIdentity; }
+
     public String getAuthKey() {
         return callbackAddress.getAuthKey();
     }
@@ -56,6 +62,4 @@ public class CallbackEventRemoteMessage<T extends Event> implements RemoteMessag
     public EventEnvelope<T> getEventEnvelope() {
         return envelope;
     }
-
-
 }

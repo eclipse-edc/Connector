@@ -29,4 +29,8 @@ public interface RemoteMessage {
      */
     String getCounterPartyAddress();
 
+    /**
+     * Returns the identity the connector is currently acting on behalf of.
+     */
+    String getOwnIdentity();
 }

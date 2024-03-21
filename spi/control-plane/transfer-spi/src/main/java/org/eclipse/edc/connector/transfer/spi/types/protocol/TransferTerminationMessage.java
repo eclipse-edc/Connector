@@ -32,6 +32,7 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
 
     private String id;
     private String counterPartyAddress;
+    private String ownIdentity;
     private String protocol = "unknown";
     private String processId;
     private String code;
@@ -58,6 +59,11 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    @Override
+    public String getOwnIdentity() {
+        return ownIdentity;
     }
 
     @Override
@@ -102,6 +108,11 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
             return this;
         }
 
+        public Builder ownIdentity(String ownIdentity) {
+            message.ownIdentity = ownIdentity;
+            return this;
+        }
+
         public Builder policy(Policy policy) {
             message.policy = policy;
             return this;
@@ -133,6 +144,7 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
             }
 
             Objects.requireNonNull(message.processId, "The processId must be specified");
+            Objects.requireNonNull(message.ownIdentity, "The ownIdentity must be specified");
             //TODO add Nullcheck for message.code Issue https://github.com/eclipse-edc/Connector/issues/2810
             return message;
         }

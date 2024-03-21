@@ -31,6 +31,7 @@ public class TransferStartMessage implements TransferRemoteMessage {
 
     private String id;
     private String counterPartyAddress;
+    private String ownIdentity;
     private String protocol = "unknown";
     private String processId;
     private Policy policy;
@@ -57,6 +58,11 @@ public class TransferStartMessage implements TransferRemoteMessage {
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    @Override
+    public String getOwnIdentity() {
+        return ownIdentity;
     }
 
     @Override
@@ -94,6 +100,11 @@ public class TransferStartMessage implements TransferRemoteMessage {
 
         public Builder counterPartyAddress(String counterPartyAddress) {
             message.counterPartyAddress = counterPartyAddress;
+            return this;
+        }
+
+        public Builder ownIdentity(String ownIdentity) {
+            message.ownIdentity = ownIdentity;
             return this;
         }
 

@@ -31,6 +31,7 @@ import static java.util.UUID.randomUUID;
 public class TransferCompletionMessage implements TransferRemoteMessage {
     private String id;
     private String counterPartyAddress;
+    private String ownIdentity;
     private String protocol = "unknown";
     private String processId;
     private Policy policy;
@@ -55,6 +56,11 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    @Override
+    public String getOwnIdentity() {
+        return ownIdentity;
     }
 
     @Override
@@ -91,6 +97,11 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
             return this;
         }
 
+        public Builder ownIdentity(String ownIdentity) {
+            message.ownIdentity = ownIdentity;
+            return this;
+        }
+
         public Builder policy(Policy policy) {
             message.policy = policy;
             return this;
@@ -113,6 +124,8 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
 
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.processId, "The processId must be specified");
+
+            Objects.requireNonNull(message.ownIdentity, "The ownIdentity must be specified");
             return message;
         }
 

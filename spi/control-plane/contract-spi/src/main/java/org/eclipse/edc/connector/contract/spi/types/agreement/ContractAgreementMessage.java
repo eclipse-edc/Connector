@@ -27,6 +27,7 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
     private String id;
     private String protocol = "unknown";
     private String counterPartyAddress;
+    private String ownIdentity;
     private String processId;
     private ContractAgreement contractAgreement;
 
@@ -50,6 +51,11 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    @Override
+    public String getOwnIdentity() {
+        return ownIdentity;
     }
 
     @Override
@@ -107,6 +113,7 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
             }
             Objects.requireNonNull(contractAgreementMessage.contractAgreement, "contractAgreement");
             Objects.requireNonNull(contractAgreementMessage.processId, "processId");
+            Objects.requireNonNull(contractAgreementMessage.ownIdentity, "The ownIdentity must be specified");
             return contractAgreementMessage;
         }
     }

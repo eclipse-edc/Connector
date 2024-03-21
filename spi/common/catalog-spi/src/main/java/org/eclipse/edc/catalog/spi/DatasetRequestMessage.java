@@ -29,6 +29,7 @@ public class DatasetRequestMessage implements RemoteMessage {
     private String datasetId;
     private String protocol;
     private String counterPartyAddress;
+    private String ownIdentity;
     private final Policy policy;
 
     private DatasetRequestMessage() {
@@ -54,6 +55,12 @@ public class DatasetRequestMessage implements RemoteMessage {
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    @NotNull
+    @Override
+    public String getOwnIdentity() {
+        return ownIdentity;
     }
 
     /**
@@ -93,8 +100,14 @@ public class DatasetRequestMessage implements RemoteMessage {
             return this;
         }
 
+        public DatasetRequestMessage.Builder ownIdentity(String ownIdentity) {
+            this.message.ownIdentity = ownIdentity;
+            return this;
+        }
+
         public DatasetRequestMessage build() {
             Objects.requireNonNull(message.protocol, "protocol");
+            Objects.requireNonNull(message.ownIdentity, "ownIdentity must be set");
 
             return message;
         }

@@ -24,6 +24,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.UriInfo;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
@@ -42,7 +44,7 @@ public interface CatalogApi {
                     ),
                     description = "Gets contract offers (=catalog) of a single connector") }
     )
-    void requestCatalog(JsonObject request, @Suspended AsyncResponse response);
+    void requestCatalog(JsonObject request, @Suspended AsyncResponse response, @Context UriInfo uriInfo);
 
     @Operation(
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DatasetRequestSchema.class))),

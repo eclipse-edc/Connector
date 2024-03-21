@@ -37,7 +37,7 @@ public class CatalogServiceImpl implements CatalogService {
         var request = CatalogRequestMessage.Builder.newInstance()
                 .protocol(protocol)
                 .counterPartyAddress(providerUrl)
-                .ownPartyId("edc") // TODO change
+                .ownPartyId(ownPartyId) // TODO change
                 .querySpec(querySpec)
                 .build();
 

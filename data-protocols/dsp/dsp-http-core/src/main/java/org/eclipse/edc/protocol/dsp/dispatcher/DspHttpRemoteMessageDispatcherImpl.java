@@ -111,6 +111,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
         var tokenParameters = tokenParametersBuilder
                 .audience(message.getCounterPartyAddress()) // enforce the audience, ignore anything a decorator might have set
+                .additional("ownIdentity", message.getOwnIdentity())
                 .build();
 
         return identityService.obtainClientCredentials(tokenParameters)
