@@ -133,6 +133,7 @@ class ContractDefinitionServiceImplTest {
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(definition.getId()));
         verify(store).save(argThat(it -> definition.getId().equals(it.getId())));
+        verify(listener).beforeCreate(any());
         verify(listener).created(any());
     }
 
@@ -184,6 +185,7 @@ class ContractDefinitionServiceImplTest {
         assertThat(updated.succeeded()).isTrue();
         verify(store).update(eq(definition));
         verify(listener).updated(any());
+        verify(listener).beforeUpdate(any());
     }
 
     @Test
