@@ -12,9 +12,11 @@
  *
  */
 
-package org.eclipse.edc.connector.core.base;
+package org.eclipse.http.client;
 
 import dev.failsafe.RetryPolicy;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -35,11 +37,10 @@ import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNot;
 import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNotIn;
 import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusNot2xxOr4xx;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.matchers.Times.once;
 import static org.mockserver.matchers.Times.unlimited;
@@ -283,5 +284,18 @@ class EdcHttpClientImplTest {
                 throw new RuntimeException(e);
             }
         };
+    }
+
+    public static OkHttpClient testOkHttpClient(Interceptor... interceptors) {
+        var builder = new OkHttpClient.Builder()
+                .connectTimeout(1, TimeUnit.MINUTES)
+                .writeTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(1, TimeUnit.MINUTES);
+
+        for (Interceptor interceptor : interceptors) {
+            builder.addInterceptor(interceptor);
+        }
+
+        return builder.build();
     }
 }

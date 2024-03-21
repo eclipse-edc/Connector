@@ -32,8 +32,9 @@ dependencies {
     implementation(project(":core:common:transform-core"))
     implementation(project(":core:common:util"))
     implementation(project(":core:common:validator-core"))
+    implementation(project(":core:common:lib:boot-lib"))
+    implementation(project(":core:common:lib:http-lib"))
 
-    implementation(libs.dnsOverHttps)
     implementation(libs.bouncyCastle.bcpkixJdk18on)
     implementation(libs.nimbus.jwt)
     implementation(libs.tink)

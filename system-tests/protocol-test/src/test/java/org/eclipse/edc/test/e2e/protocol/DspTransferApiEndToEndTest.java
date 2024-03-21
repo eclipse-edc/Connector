@@ -22,11 +22,11 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
-import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
+import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -42,7 +42,7 @@ import static org.eclipse.edc.protocol.dsp.version.DspVersions.V_2024_1;
 @EndToEndTest
 public class DspTransferApiEndToEndTest {
 
-    private static final int PROTOCOL_PORT = TestUtils.getFreePort();
+    private static final int PROTOCOL_PORT = Ports.getFreePort();
 
     @RegisterExtension
     static EdcRuntimeExtension runtime = new EdcRuntimeExtension(

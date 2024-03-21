@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core.base;
+package org.eclipse.http.client;
 
 import dev.failsafe.RetryPolicy;
 import okhttp3.HttpUrl;
@@ -35,7 +35,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
 public class EdcHttpClientImpl implements EdcHttpClient {
-    
+
     private final OkHttpClient okHttpClient;
     private final RetryPolicy<Response> retryPolicy;
     private final Monitor monitor;

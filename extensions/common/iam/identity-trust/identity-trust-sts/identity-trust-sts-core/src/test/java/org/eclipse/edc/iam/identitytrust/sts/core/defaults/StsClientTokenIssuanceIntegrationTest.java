@@ -16,10 +16,10 @@ package org.eclipse.edc.iam.identitytrust.sts.core.defaults;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.connector.core.security.KeyParserRegistryImpl;
 import org.eclipse.edc.connector.core.security.keyparsers.JwkParser;
 import org.eclipse.edc.connector.core.security.keyparsers.PemParser;
-import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.iam.identitytrust.sts.core.defaults.service.StsClientServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.core.defaults.service.StsClientTokenGeneratorServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.core.defaults.store.InMemoryStsClientStore;

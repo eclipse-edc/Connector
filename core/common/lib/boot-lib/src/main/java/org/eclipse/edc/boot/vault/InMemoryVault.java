@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core.vault;
+package org.eclipse.edc.boot.vault;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -32,7 +32,7 @@ public class InMemoryVault implements Vault {
 
     @Override
     public @Nullable String resolveSecret(String s) {
-        monitor.debug("resolving secret " + s);
+        monitor.debug("Resolving secret " + s);
         if (s == null) {
             monitor.warning("Secret name is null - skipping");
             return null;
@@ -42,14 +42,14 @@ public class InMemoryVault implements Vault {
 
     @Override
     public Result<Void> storeSecret(String s, String s1) {
-        monitor.debug("storing secret " + s);
+        monitor.debug("Storing secret " + s);
         secrets.put(s, s1);
         return Result.success();
     }
 
     @Override
     public Result<Void> deleteSecret(String s) {
-        monitor.debug("deleting secret " + s);
+        monitor.debug("Deleting secret " + s);
         return secrets.remove(s) == null ?
                 Result.failure("Secret with key " + s + " does not exist") :
                 Result.success();

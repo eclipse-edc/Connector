@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:control-plane:control-plane-core"))
 }
 

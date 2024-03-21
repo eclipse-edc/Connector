@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.io.File.separator;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public class DataPlaneParticipant extends Participant {
 

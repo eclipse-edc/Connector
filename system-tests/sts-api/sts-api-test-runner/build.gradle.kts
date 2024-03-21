@@ -31,7 +31,7 @@ dependencies {
     testCompileOnly(project(":system-tests:sts-api:sts-api-test-runtime"))
     testImplementation(testFixtures(project(":spi:common:identity-trust-sts-spi")))
     testImplementation(libs.nimbus.jwt)
-
+    testImplementation(libs.bouncyCastle.bcpkixJdk18on)
 }
 
 edcBuild {

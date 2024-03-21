@@ -54,6 +54,9 @@ include(":core:common:validator-core")
 include(":core:common:util")
 include(":core:common:edr-store-core")
 
+include(":core:common:lib:boot-lib")
+include(":core:common:lib:http-lib")
+
 include(":core:control-plane:catalog-core")
 include(":core:control-plane:contract-core")
 include(":core:control-plane:control-plane-core")

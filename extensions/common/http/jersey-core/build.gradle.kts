@@ -26,6 +26,8 @@ dependencies {
     implementation(libs.jetty.jakarta.servlet.api)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:connector-core"))
+
     testImplementation(libs.restAssured)
 
     testFixturesApi(project(":core:common:junit"))
