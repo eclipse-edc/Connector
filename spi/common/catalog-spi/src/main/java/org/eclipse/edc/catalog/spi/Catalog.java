@@ -17,7 +17,6 @@ package org.eclipse.edc.catalog.spi;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,17 +31,13 @@ import static java.util.UUID.randomUUID;
 @JsonDeserialize(builder = Catalog.Builder.class)
 public class Catalog {
     private String id;
-    private List<ContractOffer> contractOffers;
     private List<Dataset> datasets;
     private List<DataService> dataServices;
     private Map<String, Object> properties;
+    private String participantId;
 
     public String getId() {
         return id;
-    }
-
-    public List<ContractOffer> getContractOffers() {
-        return contractOffers;
     }
 
     public List<Dataset> getDatasets() {
@@ -57,9 +52,13 @@ public class Catalog {
         return properties;
     }
 
+    public String getParticipantId() {
+        return participantId;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private Catalog catalog;
+        private final Catalog catalog;
 
         private Builder() {
             catalog = new Catalog();
@@ -71,11 +70,6 @@ public class Catalog {
 
         public Builder id(String id) {
             catalog.id = id;
-            return this;
-        }
-
-        public Builder contractOffers(List<ContractOffer> contractOffers) {
-            catalog.contractOffers = contractOffers;
             return this;
         }
 
@@ -118,6 +112,11 @@ public class Catalog {
             return this;
         }
 
+        public Builder participantId(String participantId) {
+            catalog.participantId = participantId;
+            return this;
+        }
+
         public Catalog build() {
             if (catalog.id == null) {
                 catalog.id = randomUUID().toString();
@@ -125,6 +124,5 @@ public class Catalog {
 
             return catalog;
         }
-
     }
 }

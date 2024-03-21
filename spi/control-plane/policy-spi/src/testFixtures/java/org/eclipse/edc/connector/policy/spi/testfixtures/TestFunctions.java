@@ -95,13 +95,13 @@ public class TestFunctions {
         return Permission.Builder.newInstance();
     }
 
-    public static Action createAction() {
+    public static Action createAction(String type) {
         return Action.Builder.newInstance().constraint(AtomicConstraint.Builder.newInstance()
                         .leftExpression(new LiteralExpression("foo"))
                         .operator(Operator.EQ)
                         .rightExpression(new LiteralExpression("bar"))
                         .build())
-                .type("test-action-type")
+                .type(type)
                 .build();
     }
 

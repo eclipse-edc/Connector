@@ -22,4 +22,6 @@ dependencies {
     api(project(":extensions:common:json-ld"))
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
+
+    implementation(project(":core:common:transform-core"))
 }

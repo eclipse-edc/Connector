@@ -27,41 +27,37 @@ import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenE
 import org.eclipse.edc.connector.transfer.dataplane.validation.ExpirationDateValidationRule;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
-import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
-import org.eclipse.edc.jwt.TokenValidationRulesRegistryImpl;
-import org.eclipse.edc.jwt.TokenValidationServiceImpl;
-import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.security.KeyPairFactory;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.iam.LocalPublicKeyService;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.token.JwtGenerationService;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.spi.WebService;
+import org.jetbrains.annotations.NotNull;
 
-import java.security.KeyPair;
-import java.security.PublicKey;
+import java.security.PrivateKey;
 import java.time.Clock;
-import java.util.Objects;
-
-import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_SIGNER_PRIVATE_KEY_ALIAS;
-import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_VERIFIER_PUBLIC_KEY_ALIAS;
+import java.util.function.Supplier;
 
 @Extension(value = TransferDataPlaneCoreExtension.NAME)
 public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
+    @Setting(value = "Alias of private key used for signing tokens, retrieved from private key resolver")
+    public static final String TOKEN_SIGNER_PRIVATE_KEY_ALIAS = "edc.transfer.proxy.token.signer.privatekey.alias";
+
+    @Setting(value = "Alias of public key used for verifying the tokens, retrieved from the vault")
+    public static final String TOKEN_VERIFIER_PUBLIC_KEY_ALIAS = "edc.transfer.proxy.token.verifier.publickey.alias";
+
     public static final String NAME = "Transfer Data Plane Core";
-
-    @Inject
-    private Vault vault;
-
-    @Inject
-    private PrivateKeyResolver privateKeyResolver;
+    public static final String TRANSFER_DATAPLANE_TOKEN_CONTEXT = "dataplane-transfer";
 
     @Inject
     private WebService webService;
@@ -94,10 +90,19 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     private TypeManager typeManager;
 
     @Inject
-    private KeyPairFactory keyPairFactory;
+    private LocalPublicKeyService publicKeyService;
+
+    @Inject
+    private PrivateKeyResolver privateKeyResolver;
 
     @Inject
     private DataAddressValidatorRegistry dataAddressValidatorRegistry;
+
+    @Inject
+    private TokenValidationRulesRegistry tokenValidationRulesRegistry;
+
+    @Inject
+    private TokenValidationService tokenValidationService;
 
     @Override
     public String name() {
@@ -106,34 +111,33 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var keyPair = keyPairFromConfig(context);
-        var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService(keyPair.getPublic()), dataEncrypter, typeManager);
-        webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
+        var publicKeyAlias = context.getSetting(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, null);
+        var privateKeyAlias = context.getSetting(TOKEN_SIGNER_PRIVATE_KEY_ALIAS, null);
 
-        var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new TokenGenerationServiceImpl(keyPair.getPrivate()), tokenExpirationDateFunction);
-        dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorService, resolver));
+        if (publicKeyAlias != null && privateKeyAlias != null) {
+            var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager, (i) -> publicKeyService.resolveKey(publicKeyAlias));
+            webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
+
+            var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), getPrivateKeySupplier(context, privateKeyAlias), () -> publicKeyAlias, tokenExpirationDateFunction);
+            dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorService, resolver));
+        } else {
+            context.getMonitor().info("One of these settings is not configured, so the connector won't be able to provide 'consumer-pull' transfers: [%s, %s]"
+                    .formatted(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, TOKEN_SIGNER_PRIVATE_KEY_ALIAS));
+        }
+
+        tokenValidationRulesRegistry.addRule(TRANSFER_DATAPLANE_TOKEN_CONTEXT, new ExpirationDateValidationRule(clock));
+
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, selectorService, clientFactory));
-
         dataAddressValidatorRegistry.registerDestinationValidator("HttpProxy", dataAddress -> ValidationResult.success());
     }
 
-    private KeyPair keyPairFromConfig(ServiceExtensionContext context) {
-        var pubKeyAlias = context.getSetting(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, null);
-        var privKeyAlias = context.getSetting(TOKEN_SIGNER_PRIVATE_KEY_ALIAS, null);
-        if (pubKeyAlias == null && privKeyAlias == null) {
-            context.getMonitor().info(() -> "No public or private key provided for 'Consumer Pull' transfers -> a key pair will be generated (DO NOT USE IN PRODUCTION)");
-            return keyPairFactory.defaultKeyPair();
-        }
-        Objects.requireNonNull(pubKeyAlias, "public key alias");
-        Objects.requireNonNull(privKeyAlias, "private key alias");
-        return keyPairFactory.fromConfig(pubKeyAlias, privKeyAlias)
-                .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
-    }
-
-    private TokenValidationService tokenValidationService(PublicKey publicKey) {
-        var registry = new TokenValidationRulesRegistryImpl();
-        registry.addRule(new ExpirationDateValidationRule(clock));
-        return new TokenValidationServiceImpl(id -> publicKey, registry);
+    @NotNull
+    private Supplier<PrivateKey> getPrivateKeySupplier(ServiceExtensionContext context, String privateKeyAlias) {
+        return () -> privateKeyResolver.resolvePrivateKey(privateKeyAlias)
+                .orElse(f -> {
+                    context.getMonitor().warning("Cannot resolve private key: " + f.getFailureDetail());
+                    return null;
+                });
     }
 
 }

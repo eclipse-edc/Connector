@@ -34,11 +34,11 @@ public interface StsClientStore {
     StoreResult<StsClient> create(StsClient client);
 
     /**
-     * Returns an {@link StsClient} by its id
+     * Returns an {@link StsClient} by its clientId
      *
-     * @param id id of the client
+     * @param clientId clientId of the client
      * @return the client successful if found, failure otherwise
      */
-    StoreResult<StsClient> findById(String id);
+    StoreResult<StsClient> findByClientId(String clientId);
 
 }

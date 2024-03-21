@@ -23,10 +23,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DEPRECATED_DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
 
 public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
 
@@ -36,37 +39,28 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
 
     @Override
     public @Nullable TransferRequestMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
-        var transferRequestMessageBuilder = TransferRequestMessage.Builder.newInstance();
+        var builder = TransferRequestMessage.Builder.newInstance();
 
-        visitProperties(messageObject, k -> {
-            switch (k) {
-                case DSPACE_PROPERTY_PROCESS_ID:
-                    return v -> transferRequestMessageBuilder.processId(transformString(v, context));
-                case DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID:
-                    return v -> transferRequestMessageBuilder.contractId(transformString(v, context));
-                case DSPACE_PROPERTY_CALLBACK_ADDRESS:
-                    return v -> transferRequestMessageBuilder.callbackAddress(transformString(v, context));
-                default:
-                    return doNothing();
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
+            if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROCESS_ID), builder::consumerPid, context)) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+                        .property(DSPACE_PROPERTY_CONSUMER_PID)
+                        .report();
+                return null;
             }
-        });
-
-        transferRequestMessageBuilder.dataDestination(createDataAddress(messageObject, context));
-
-        return transferRequestMessageBuilder.build();
-    }
-
-    // TODO replace with JsonObjectToDataAddressTransformer
-    private DataAddress createDataAddress(@NotNull JsonObject requestObject, @NotNull TransformerContext context) {
-        var dataAddressBuilder = DataAddress.Builder.newInstance();
-
-        transformString(requestObject.get(DCT_FORMAT_ATTRIBUTE), dataAddressBuilder::type, context);
-
-        var dataAddressObject = returnJsonObject(requestObject.get(DSPACE_PROPERTY_DATA_ADDRESS), context, DSPACE_PROPERTY_DATA_ADDRESS, false);
-        if (dataAddressObject != null) {
-            dataAddressObject.forEach((key, value) -> transformString(value, v -> dataAddressBuilder.property(key, v), context));
         }
 
-        return dataAddressBuilder.build();
+        visitProperties(messageObject, k -> switch (k) {
+            case DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID -> v -> builder.contractId(transformString(v, context));
+            case DSPACE_PROPERTY_CALLBACK_ADDRESS -> v -> builder.callbackAddress(transformString(v, context));
+            case DSPACE_PROPERTY_DATA_ADDRESS -> v -> builder.dataDestination(transformObject(v, DataAddress.class, context));
+            case DCT_FORMAT_ATTRIBUTE, DEPRECATED_DCT_FORMAT_ATTRIBUTE -> v -> builder.transferType(transformString(v, context));
+            default -> doNothing();
+        });
+
+        return builder.build();
     }
+
 }

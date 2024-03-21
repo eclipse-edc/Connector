@@ -18,17 +18,23 @@ import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessA
 import org.eclipse.edc.connector.core.entity.AbstractStateEntityManager;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -38,6 +44,7 @@ import static java.lang.String.format;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
@@ -47,11 +54,75 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  */
 public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, DataPlaneStore> implements DataPlaneManager {
 
+    private DataPlaneAuthorizationService authorizationService;
     private TransferServiceRegistry transferServiceRegistry;
     private TransferProcessApiClient transferProcessClient;
 
     private DataPlaneManagerImpl() {
 
+    }
+
+    @Override
+    public Result<Boolean> validate(DataFlowStartMessage dataRequest) {
+        // TODO for now no validation for pull scenario, since the transfer service registry
+        //  is not applicable here. Probably validation only on the source part required.
+        if (FlowType.PULL.equals(dataRequest.getFlowType())) {
+            return Result.success(true);
+        } else {
+            var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
+            return transferService != null ?
+                    transferService.validate(dataRequest) :
+                    Result.failure(format("Cannot find a transfer Service that can handle %s source and %s destination",
+                            dataRequest.getSourceDataAddress().getType(), dataRequest.getDestinationDataAddress().getType()));
+        }
+    }
+
+    @Override
+    public Result<DataFlowResponseMessage> start(DataFlowStartMessage startMessage) {
+        var dataFlowBuilder = dataFlowRequestBuilder(startMessage);
+
+        var result = switch (startMessage.getFlowType()) {
+            case PULL -> handleStartPull(startMessage, dataFlowBuilder);
+            case PUSH -> handleStartPush(dataFlowBuilder);
+        };
+
+        if (result.failed()) {
+            return result.mapTo();
+        }
+
+        var response = DataFlowResponseMessage.Builder.newInstance()
+                .dataAddress(result.getContent().orElse(null))
+                .build();
+
+        update(dataFlowBuilder.build());
+
+        return Result.success(response);
+    }
+
+    @Override
+    public DataFlowStates getTransferState(String processId) {
+        return Optional.ofNullable(store.findById(processId)).map(StatefulEntity::getState)
+                .map(DataFlowStates::from).orElse(null);
+    }
+
+    @Override
+    public StatusResult<Void> suspend(String dataFlowId) {
+        return stop(dataFlowId)
+                .map(dataFlow -> {
+                    dataFlow.transitToSuspended();
+                    store.save(dataFlow);
+                    return null;
+                });
+    }
+
+    @Override
+    public StatusResult<Void> terminate(String dataFlowId, @Nullable String reason) {
+        return stop(dataFlowId, reason)
+                .map(dataFlow -> {
+                    dataFlow.transitToTerminated(reason);
+                    store.save(dataFlow);
+                    return null;
+                });
     }
 
     @Override
@@ -62,42 +133,19 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .processor(processDataFlowInState(FAILED, this::processFailed));
     }
 
-    @Override
-    public Result<Boolean> validate(DataFlowRequest dataRequest) {
-        var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
-        return transferService != null ?
-                transferService.validate(dataRequest) :
-                Result.failure(format("Cannot find a transfer Service that can handle %s source and %s destination",
-                        dataRequest.getSourceDataAddress().getType(), dataRequest.getDestinationDataAddress().getType()));
+    private StatusResult<DataFlow> stop(String dataFlowId) {
+        return stop(dataFlowId, null);
     }
 
-    @Override
-    public void initiate(DataFlowRequest dataRequest) {
-        var dataFlow = DataFlow.Builder.newInstance()
-                .id(dataRequest.getProcessId())
-                .source(dataRequest.getSourceDataAddress())
-                .destination(dataRequest.getDestinationDataAddress())
-                .callbackAddress(dataRequest.getCallbackAddress())
-                .traceContext(telemetry.getCurrentTraceContext())
-                .trackable(dataRequest.isTrackable())
-                .properties(dataRequest.getProperties())
-                .state(RECEIVED.code())
-                .build();
-
-        update(dataFlow);
-    }
-
-    @Override
-    public DataFlowStates transferState(String processId) {
-        return Optional.ofNullable(store.findById(processId)).map(StatefulEntity::getState)
-                .map(DataFlowStates::from).orElse(null);
-    }
-
-    @Override
-    public StatusResult<Void> terminate(String dataFlowId) {
+    private StatusResult<DataFlow> stop(String dataFlowId, String reason) {
         var result = store.findByIdAndLease(dataFlowId);
-        if (result.succeeded()) {
-            var dataFlow = result.getContent();
+        if (result.failed()) {
+            return StatusResult.from(result).map(it -> null);
+        }
+
+        var dataFlow = result.getContent();
+
+        if (FlowType.PUSH.equals(dataFlow.getFlowType())) {
             var transferService = transferServiceRegistry.resolveTransferService(dataFlow.toRequest());
 
             if (transferService == null) {
@@ -106,14 +154,47 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
             var terminateResult = transferService.terminate(dataFlow);
             if (terminateResult.failed()) {
-                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlowId, terminateResult.getFailureDetail()));
+                if (terminateResult.reason().equals(StreamFailure.Reason.NOT_FOUND)) {
+                    monitor.warning("No source was found for DataFlow '%s'. This may indicate an inconsistent state.".formatted(dataFlowId));
+                } else {
+                    return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlowId, terminateResult.getFailureDetail()));
+                }
             }
-            dataFlow.transitToTerminated();
-            store.save(dataFlow);
-            return StatusResult.success();
         } else {
-            return StatusResult.from(result).map(it -> null);
+            var revokeResult = authorizationService.revokeEndpointDataReference(dataFlowId, reason);
+            if (revokeResult.failed()) {
+                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlowId, revokeResult.getFailureDetail()));
+            }
         }
+
+        return StatusResult.success(dataFlow);
+    }
+
+    private Result<Optional<DataAddress>> handleStartPush(DataFlow.Builder dataFlowBuilder) {
+        dataFlowBuilder.state(RECEIVED.code());
+        return Result.success(Optional.empty());
+    }
+
+    private Result<Optional<DataAddress>> handleStartPull(DataFlowStartMessage startMessage, DataFlow.Builder dataFlowBuilder) {
+        var dataAddressResult = authorizationService.createEndpointDataReference(startMessage)
+                .onFailure(f -> monitor.warning("Error obtaining EDR DataAddress: %s".formatted(f.getFailureDetail())));
+
+        if (dataAddressResult.failed()) {
+            return dataAddressResult.mapTo();
+        }
+        dataFlowBuilder.state(STARTED.code());
+        return Result.success(Optional.of(dataAddressResult.getContent()));
+    }
+
+    private DataFlow.Builder dataFlowRequestBuilder(DataFlowStartMessage startMessage) {
+        return DataFlow.Builder.newInstance()
+                .id(startMessage.getProcessId())
+                .source(startMessage.getSourceDataAddress())
+                .destination(startMessage.getDestinationDataAddress())
+                .callbackAddress(startMessage.getCallbackAddress())
+                .traceContext(telemetry.getCurrentTraceContext())
+                .properties(startMessage.getProperties())
+                .flowType(startMessage.getFlowType());
     }
 
     private boolean processReceived(DataFlow dataFlow) {
@@ -188,17 +269,22 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     public static class Builder extends AbstractStateEntityManager.Builder<DataFlow, DataPlaneStore, DataPlaneManagerImpl, Builder> {
 
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
         private Builder() {
             super(new DataPlaneManagerImpl());
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         @Override
         public Builder self() {
             return this;
+        }
+
+        public DataPlaneManagerImpl build() {
+            Objects.requireNonNull(manager.transferProcessClient);
+            return manager;
         }
 
         public Builder transferServiceRegistry(TransferServiceRegistry transferServiceRegistry) {
@@ -211,9 +297,9 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             return this;
         }
 
-        public DataPlaneManagerImpl build() {
-            Objects.requireNonNull(manager.transferProcessClient);
-            return manager;
+        public Builder authorizationService(DataPlaneAuthorizationService authorizationService) {
+            manager.authorizationService = authorizationService;
+            return this;
         }
     }
 

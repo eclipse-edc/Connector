@@ -15,10 +15,12 @@
 package org.eclipse.edc.iam.identitytrust;
 
 import org.eclipse.edc.iam.identitytrust.transform.from.JsonObjectFromPresentationQueryTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.from.JsonObjectFromPresentationResponseMessageTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToCredentialStatusTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToCredentialSubjectTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToIssuerTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToPresentationQueryTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToPresentationResponseMessageTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToVerifiableCredentialTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToVerifiablePresentationTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JwtToVerifiableCredentialTransformer;
@@ -38,9 +40,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.identitytrust.VcConstants.IATP_CONTEXT_URL;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
-@Extension(value = IdentityTrustTransformExtension.NAME, categories = { "iam", "transform", "jsonld" })
+@Extension(value = IdentityTrustTransformExtension.NAME, categories = {"iam", "transform", "jsonld"})
 public class IdentityTrustTransformExtension implements ServiceExtension {
     public static final String NAME = "Identity And Trust Transform Extension";
 
@@ -62,8 +65,14 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
                 .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v1", uri))
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
+        getResourceUri("document" + File.separator + "iatp.v08.jsonld")
+                .onSuccess(uri -> jsonLdService.registerCachedDocument(IATP_CONTEXT_URL, uri))
+                .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
+
         typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager.getMapper(JSON_LD)));
+        typeTransformerRegistry.register(new JsonObjectToPresentationResponseMessageTransformer(typeManager.getMapper(JSON_LD)));
         typeTransformerRegistry.register(new JsonObjectFromPresentationQueryTransformer());
+        typeTransformerRegistry.register(new JsonObjectFromPresentationResponseMessageTransformer());
         typeTransformerRegistry.register(new JsonObjectToVerifiablePresentationTransformer());
         typeTransformerRegistry.register(new JsonObjectToVerifiableCredentialTransformer());
         typeTransformerRegistry.register(new JsonObjectToIssuerTransformer());

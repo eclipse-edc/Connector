@@ -33,6 +33,8 @@ public class StsClientConfigurationExtension implements ServiceExtension {
     public static final String ID = "id";
     public static final String CLIENT_NAME = "name";
     public static final String CLIENT_SECRET_ALIAS = "secret.alias";
+    public static final String CLIENT_DID = "did";
+    public static final String CLIENT_PUBLIC_KEY_REFERENCE = "public-key.reference";
     public static final String CLIENT_PRIVATE_KEY_ALIAS = "private-key.alias";
 
     public static final String NAME = "STS Client Configuration extension";
@@ -61,15 +63,19 @@ public class StsClientConfigurationExtension implements ServiceExtension {
         var id = config.getString(ID);
         var name = config.getString(CLIENT_NAME);
         var clientId = config.getString(CLIENT_ID);
+        var clientDid = config.getString(CLIENT_DID);
         var clientSecretAlias = config.getString(CLIENT_SECRET_ALIAS);
         var clientPrivateKeyAlias = config.getString(CLIENT_PRIVATE_KEY_ALIAS);
+        var publicKeyRef = config.getString(CLIENT_PUBLIC_KEY_REFERENCE, null);
 
         var client = StsClient.Builder.newInstance()
                 .id(id)
                 .clientId(clientId)
                 .secretAlias(clientSecretAlias)
                 .privateKeyAlias(clientPrivateKeyAlias)
+                .publicKeyReference(publicKeyRef)
                 .name(name)
+                .did(clientDid)
                 .build();
 
         monitor.debug(format("Configuring STS client with id:%s and name:%s", client.getId(), client.getName()));

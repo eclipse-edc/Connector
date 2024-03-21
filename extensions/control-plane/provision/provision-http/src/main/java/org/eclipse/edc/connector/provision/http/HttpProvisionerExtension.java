@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerato
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -42,6 +43,22 @@ import static java.lang.String.format;
 public class HttpProvisionerExtension implements ServiceExtension {
 
     public static final String NAME = "HTTP Provisioning";
+
+    public static final String DEFAULT_POLICY_SCOPE = "http.provisioner";
+    public static final String HTTP_PROVISIONER_ENTRIES = "provisioner.http.entries";
+
+    @Setting(required = true)
+    public static final String PROVISIONER_TYPE = "provisioner.type";
+
+    @Setting(required = true)
+    public static final String DATA_ADDRESS_TYPE = "data.address.type";
+
+    @Setting(required = true)
+    public static final String ENDPOINT_URL = "endpoint";
+
+    @Setting(defaultValue = DEFAULT_POLICY_SCOPE)
+    public static final String POLICY_SCOPE = "policy.scope";
+
     @Inject
     protected ProvisionManager provisionManager;
     @Inject

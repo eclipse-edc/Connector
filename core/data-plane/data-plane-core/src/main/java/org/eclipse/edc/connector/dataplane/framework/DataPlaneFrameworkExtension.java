@@ -15,18 +15,22 @@
 package org.eclipse.edc.connector.dataplane.framework;
 
 import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
+import org.eclipse.edc.connector.dataplane.framework.iam.DataPlaneAuthorizationServiceImpl;
 import org.eclipse.edc.connector.dataplane.framework.manager.DataPlaneManagerImpl;
-import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceRegistryImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
+import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
-import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSinkFactory;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -48,7 +52,7 @@ import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.D
 /**
  * Provides core services for the Data Plane Framework.
  */
-@Provides({ DataPlaneManager.class, PipelineService.class, DataTransferExecutorServiceContainer.class, TransferServiceRegistry.class })
+@Provides({ DataPlaneManager.class, DataTransferExecutorServiceContainer.class, TransferServiceRegistry.class })
 @Extension(value = DataPlaneFrameworkExtension.NAME)
 public class DataPlaneFrameworkExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Framework";
@@ -88,6 +92,17 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject
+    private PipelineService pipelineService;
+    @Inject
+    private DataPlaneAccessTokenService accessTokenService;
+    @Inject
+    private DataPlaneAccessControlService accessControlService;
+    @Inject
+    private PublicEndpointGeneratorService endpointGenerator;
+
+    private DataPlaneAuthorizationService authorizationService;
+
     @Override
     public String name() {
         return NAME;
@@ -102,10 +117,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         var executorContainer = new DataTransferExecutorServiceContainer(
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
         context.registerService(DataTransferExecutorServiceContainer.class, executorContainer);
-
-        var pipelineService = new PipelineServiceImpl(monitor);
-        pipelineService.registerFactory(new OutputStreamDataSinkFactory(monitor, executorContainer.getExecutorService())); // Added by default to support synchronous data transfer, i.e. pull data
-        context.registerService(PipelineService.class, pipelineService);
 
         var transferServiceRegistry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
         transferServiceRegistry.registerTransferService(pipelineService);
@@ -123,6 +134,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .transferServiceRegistry(transferServiceRegistry)
                 .store(store)
                 .transferProcessClient(transferProcessApiClient)
+                .authorizationService(authorizationService(context))
                 .monitor(monitor)
                 .telemetry(telemetry)
                 .build();
@@ -140,6 +152,14 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         if (dataPlaneManager != null) {
             dataPlaneManager.stop();
         }
+    }
+
+    @Provider
+    public DataPlaneAuthorizationService authorizationService(ServiceExtensionContext context) {
+        if (authorizationService == null) {
+            authorizationService = new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, context.getParticipantId(), clock);
+        }
+        return authorizationService;
     }
 
     @NotNull

@@ -54,7 +54,7 @@ public class SecureTokenServiceApiController implements SecureTokenServiceApi {
     @Override
     public StsTokenResponse token(@BeanParam StsTokenRequest request) {
         tokenRequestValidator.validate(request).orElseThrow(validationException(request.getClientId()));
-        return clientService.findById(request.getClientId())
+        return clientService.findByClientId(request.getClientId())
                 .compose(client -> clientService.authenticate(client, request.getClientSecret()))
                 .compose(client -> tokenService.tokenFor(client, additionalParams(request)))
                 .map(this::mapToken)
@@ -65,9 +65,8 @@ public class SecureTokenServiceApiController implements SecureTokenServiceApi {
     private StsClientTokenAdditionalParams additionalParams(StsTokenRequest request) {
         return StsClientTokenAdditionalParams.Builder.newInstance()
                 .audience(request.getAudience())
-                .accessToken(request.getAccessToken())
+                .accessToken(request.getToken())
                 .bearerAccessScope(request.getBearerAccessScope())
-                .bearerAccessAlias(request.getBearerAccessAlias())
                 .build();
     }
 

@@ -19,8 +19,8 @@ import org.eclipse.edc.connector.transfer.spi.provision.ConsumerResourceDefiniti
 import org.eclipse.edc.connector.transfer.spi.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestContext;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
  * Default implementation.
  */
 public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator {
+
     private final List<ConsumerResourceDefinitionGenerator> consumerGenerators = new ArrayList<>();
     private final List<ProviderResourceDefinitionGenerator> providerGenerators = new ArrayList<>();
     private final PolicyEngine policyEngine;
@@ -56,10 +57,10 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
     }
 
     @Override
-    public Result<ResourceManifest> generateConsumerResourceManifest(DataRequest dataRequest, Policy policy) {
+    public Result<ResourceManifest> generateConsumerResourceManifest(TransferProcess transferProcess, Policy policy) {
         var definitions = consumerGenerators.stream()
-                .filter(generator -> generator.canGenerate(dataRequest, policy))
-                .map(generator -> generator.generate(dataRequest, policy))
+                .filter(generator -> generator.canGenerate(transferProcess, policy))
+                .map(generator -> generator.generate(transferProcess, policy))
                 .filter(Objects::nonNull).collect(Collectors.toList());
 
         var manifest = ResourceManifest.Builder.newInstance().definitions(definitions).build();
@@ -77,10 +78,10 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
     }
 
     @Override
-    public ResourceManifest generateProviderResourceManifest(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
+    public ResourceManifest generateProviderResourceManifest(TransferProcess transferProcess, DataAddress assetAddress, Policy policy) {
         var definitions = providerGenerators.stream()
-                .filter(generator -> generator.canGenerate(dataRequest, assetAddress, policy))
-                .map(generator -> generator.generate(dataRequest, assetAddress, policy))
+                .filter(generator -> generator.canGenerate(transferProcess, assetAddress, policy))
+                .map(generator -> generator.generate(transferProcess, assetAddress, policy))
                 .filter(Objects::nonNull).collect(Collectors.toList());
 
         return ResourceManifest.Builder.newInstance().definitions(definitions).build();

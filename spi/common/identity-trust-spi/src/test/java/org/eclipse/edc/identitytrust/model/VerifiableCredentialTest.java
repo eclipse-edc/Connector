@@ -14,20 +14,36 @@
 
 package org.eclipse.edc.identitytrust.model;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Map;
 
 import static java.time.Instant.now;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class VerifiableCredentialTest {
 
-    @BeforeEach
-    void setUp() {
+    @Test
+    void serDeser() {
+        var typeManager = new TypeManager();
+        var vc = VerifiableCredential.Builder.newInstance()
+                .credentialSubject(new CredentialSubject())
+                .issuer(new Issuer("http://test.issuer", Map.of()))
+                .issuanceDate(now())
+                .type("test-type")
+                .build();
+
+        var serialized = typeManager.writeValueAsString(vc);
+        assertThat(serialized).contains("\"type\"");
+        assertThat(serialized).contains("\"credentialSubject\"");
+
+        var deserialized = typeManager.readValue(serialized, VerifiableCredential.class);
+
+        assertThat(deserialized).usingRecursiveComparison().isEqualTo(vc);
     }
 
     @Test
@@ -38,16 +54,6 @@ class VerifiableCredentialTest {
                 .issuanceDate(now())
                 .type("test-type")
                 .build());
-    }
-
-    @Test
-    void assertDefaultValues() {
-        var vc = VerifiableCredential.Builder.newInstance()
-                .credentialSubject(new CredentialSubject())
-                .issuer(new Issuer("http://test.issuer", Map.of()))
-                .issuanceDate(now())
-                .type("test-type")
-                .build();
     }
 
     @Test

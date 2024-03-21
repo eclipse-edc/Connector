@@ -16,12 +16,12 @@ package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * A service that can satisfy a {@link DataFlowRequest} by transferring data from a source to a destination.
+ * A service that can satisfy a {@link DataFlowStartMessage} by transferring data from a source to a destination.
  * This could be done in the Data-Plane internally, or it could leverage on external and more performant systems.
  */
 public interface TransferService {
@@ -29,12 +29,12 @@ public interface TransferService {
     /**
      * Returns true if this service can transfer the request.
      */
-    boolean canHandle(DataFlowRequest request);
+    boolean canHandle(DataFlowStartMessage request);
 
     /**
      * Returns a true result if the request is valid.
      */
-    Result<Boolean> validate(DataFlowRequest request);
+    Result<Boolean> validate(DataFlowStartMessage request);
 
     /**
      * Transfers data from a source to a destination using the provided data flow request.
@@ -42,7 +42,7 @@ public interface TransferService {
      * @param request The data flow request containing the necessary information for the transfer.
      * @return A CompletableFuture wrapping a StreamResult indicating the success or failure of the transfer.
      */
-    CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request);
+    CompletableFuture<StreamResult<Object>> transfer(DataFlowStartMessage request);
 
     /**
      * Transfers data from a source to a destination using the provided data flow request and data sink.
@@ -51,7 +51,7 @@ public interface TransferService {
      * @param sink    The data sink that will receive the transferred data.
      * @return A CompletableFuture wrapping a StreamResult indicating the success or failure of the transfer.
      */
-    CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request, DataSink sink);
+    CompletableFuture<StreamResult<Object>> transfer(DataFlowStartMessage request, DataSink sink);
 
     /**
      * Terminate a data flow.

@@ -11,3 +11,4 @@
 #       Mercedes-Benz Tech Innovation GmbH - Initial ServiceExtension file
 #
 org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension
+org.eclipse.edc.vault.hashicorp.HashicorpVaultHealthExtension

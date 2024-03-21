@@ -31,7 +31,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Clock;
 import java.time.Duration;
 
 @ComponentTest
@@ -44,7 +43,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
-        var clock = Clock.systemUTC();
         var typeManager = new TypeManager();
         typeManager.registerTypes(TestFunctions.TestResourceDef.class, TestFunctions.TestProvisionedResource.class);
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
@@ -61,7 +59,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     @AfterEach
     void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getTransferProcessTableName() + " CASCADE");
-        extension.runQuery("DROP TABLE " + statements.getDataRequestTable() + " CASCADE");
         extension.runQuery("DROP TABLE " + statements.getLeaseTableName() + " CASCADE");
     }
 
@@ -72,16 +69,12 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
     @Override
     protected void leaseEntity(String negotiationId, String owner, Duration duration) {
-        getLeaseUtil().leaseEntity(negotiationId, owner, duration);
+        leaseUtil.leaseEntity(negotiationId, owner, duration);
     }
 
     @Override
     protected boolean isLeasedBy(String negotiationId, String owner) {
-        return getLeaseUtil().isLeased(negotiationId, owner);
-    }
-
-    protected LeaseUtil getLeaseUtil() {
-        return leaseUtil;
+        return leaseUtil.isLeased(negotiationId, owner);
     }
 
 }

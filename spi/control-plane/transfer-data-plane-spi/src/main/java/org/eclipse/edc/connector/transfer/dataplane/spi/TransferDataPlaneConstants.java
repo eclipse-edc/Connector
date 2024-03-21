@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.spi;
 
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 /**
  * Type of Data Plane transfer.
  */
 public interface TransferDataPlaneConstants {
     /**
-     * {@link DataFlowRequest} type that triggers client-pull data transfer.
+     * {@link DataFlowStartMessage} type that triggers client-pull data transfer.
      */
     String HTTP_PROXY = "HttpProxy";
 

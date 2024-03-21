@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * A collection of permissions, prohibitions, and obligations. Subtypes are defined by
@@ -107,7 +106,6 @@ public class Policy {
                 Objects.equals(inheritsFrom, policy.inheritsFrom) && Objects.equals(assigner, policy.assigner) && Objects.equals(assignee, policy.assignee) && Objects.equals(target, policy.target) && type == policy.type;
     }
 
-
     /**
      * Returns a copy of this policy with the specified target.
      *
@@ -116,9 +114,9 @@ public class Policy {
      */
     public Policy withTarget(String target) {
         return Builder.newInstance()
-                .prohibitions(prohibitions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
-                .permissions(permissions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
-                .duties(obligations.stream().map(o -> o.withTarget(target)).collect(Collectors.toList()))
+                .prohibitions(prohibitions)
+                .permissions(permissions)
+                .duties(obligations)
                 .assigner(assigner)
                 .assignee(assignee)
                 .inheritsFrom(inheritsFrom)
@@ -126,6 +124,22 @@ public class Policy {
                 .extensibleProperties(extensibleProperties)
                 .target(target)
                 .build();
+    }
+
+    /**
+     * A {@link Builder} initialized with the current policy.
+     */
+    public Builder toBuilder() {
+        return Builder.newInstance()
+                .prohibitions(prohibitions)
+                .permissions(permissions)
+                .duties(obligations)
+                .assigner(assigner)
+                .assignee(assignee)
+                .inheritsFrom(inheritsFrom)
+                .type(type)
+                .extensibleProperties(extensibleProperties)
+                .target(target);
     }
 
     public interface Visitor<R> {
@@ -172,11 +186,6 @@ public class Policy {
         @JsonProperty("obligations")
         public Builder duties(List<Duty> duties) {
             policy.obligations.addAll(duties);
-            return this;
-        }
-
-        public Builder duty(String inheritsFrom) {
-            policy.inheritsFrom = inheritsFrom;
             return this;
         }
 

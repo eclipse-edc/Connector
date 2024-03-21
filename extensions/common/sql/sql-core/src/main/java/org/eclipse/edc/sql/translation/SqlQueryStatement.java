@@ -14,15 +14,12 @@
 
 package org.eclipse.edc.sql.translation;
 
-import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
@@ -44,33 +41,37 @@ public class SqlQueryStatement {
     private final List<Object> parameters = new ArrayList<>();
     private final int limit;
     private final int offset;
+    private CriterionToWhereClauseConverter criterionToWhereConditionConverter;
+    private SortFieldConverter sortFieldConverter;
     private String orderByClause = "";
 
     /**
-     * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec} and a translation mapping.
+     * Initializes this SQL Query Statement.
      *
-     * @param selectStatement The SELECT clause, e.g. {@code SELECT * FROM your_table}
-     * @param query           a {@link QuerySpec} that contains a query in the canonical format
-     * @param rootModel       A {@link TranslationMapping} that enables mapping from canonical to the SQL-specific
-     *                        model/format
+     * @param selectStatement    The SELECT clause, e.g. {@code SELECT * FROM your_table}
+     * @param query              a {@link QuerySpec} that contains a query in the canonical format
+     * @param rootModel          A {@link TranslationMapping} that enables mapping from canonical to the SQL-specific
+     *                           model/format
+     * @param operatorTranslator the {@link SqlOperatorTranslator} instance.
      */
-    public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel) {
-        this(selectStatement, query, rootModel, true);
+    public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel, SqlOperatorTranslator operatorTranslator) {
+        this(selectStatement, query, rootModel, new CriterionToWhereClauseConverterImpl(rootModel, operatorTranslator));
     }
 
     /**
-     * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec} and a translation mapping.
+     * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec}, a translation mapping and a criterion converter
      *
-     * @param selectStatement  The SELECT clause, e.g. {@code SELECT * FROM your_table}
-     * @param query            a {@link QuerySpec} that contains a query in the canonical format
-     * @param rootModel        A {@link TranslationMapping} that enables mapping from canonical to the SQL-specific
-     *                         model/format
-     * @param validateOperator Determines whether the operator should be validated, and an {@link IllegalArgumentException}
-     *                         raised when an unknown/unsupported operator is found.
+     * @param selectStatement                    The SELECT clause, e.g. {@code SELECT * FROM your_table}
+     * @param query                              a {@link QuerySpec} that contains a query in the canonical format
+     * @param rootModel                          A {@link TranslationMapping} that enables mapping from canonical to the
+     *                                           SQL-specific model/format
+     * @param criterionToWhereClauseConverter Converts criterion to where condition clauses
      */
-    public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel, boolean validateOperator) {
+    public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel, CriterionToWhereClauseConverter criterionToWhereClauseConverter) {
         this(selectStatement, query.getLimit(), query.getOffset());
-        initialize(query, rootModel, validateOperator);
+        this.criterionToWhereConditionConverter = criterionToWhereClauseConverter;
+        this.sortFieldConverter = new SortFieldConverterImpl(rootModel);
+        initialize(query);
     }
 
     /**
@@ -149,48 +150,28 @@ public class SqlQueryStatement {
         parameters.add(parameter);
     }
 
-    private void initialize(QuerySpec query, TranslationMapping rootModel, boolean strictOperator) {
+    private void initialize(QuerySpec query) {
         query.getFilterExpression().stream()
-                .map(criterion -> parseExpression(criterion, rootModel, strictOperator))
-                .forEach(conditionExpression -> {
-                    whereClauses.add(conditionExpression.toSql());
-
-                    var params = conditionExpression.toStatementParameter().skip(1).toList();
-                    parameters.addAll(params);
+                .map(criterion -> criterionToWhereConditionConverter.convert(criterion))
+                .forEach(whereClause -> {
+                    whereClauses.add(whereClause.sql());
+                    parameters.addAll(whereClause.parameters());
                 });
 
-        orderByClause = parseSortField(query, rootModel);
+        orderByClause = parseSortField(query);
     }
 
-    private String parseSortField(QuerySpec query, TranslationMapping rootModel) {
+    private String parseSortField(QuerySpec query) {
         if (query.getSortField() == null) {
             return orderByClause;
         } else {
             var order = query.getSortOrder() == SortOrder.ASC ? "ASC" : "DESC";
-            var sortField = rootModel.getStatement(query.getSortField(), String.class);
+            var sortField = sortFieldConverter.convert(query.getSortField());
             if (sortField == null) {
                 throw new IllegalArgumentException(format("Cannot sort by %s because the field does not exist", query.getSortField()));
             }
             return String.format(ORDER_BY_TOKEN + " ", sortField, order);
         }
-    }
-
-    @NotNull
-    private SqlConditionExpression parseExpression(Criterion criterion, TranslationMapping rootModel, boolean validateOperator) {
-        var newCriterion = Optional.ofNullable(criterion.getOperandLeft())
-                .map(Object::toString)
-                .map(it -> rootModel.getStatement(it, criterion.getOperandRight().getClass()))
-                .map(criterion::withLeftOperand)
-                .orElseGet(() -> Criterion.criterion("0", "=", 1));
-
-        var conditionExpression = new SqlConditionExpression(newCriterion);
-
-        if (validateOperator) {
-            conditionExpression.isValidExpression()
-                    .orElseThrow(f -> new IllegalArgumentException("This expression is not valid: " + f.getFailureDetail()));
-        }
-
-        return conditionExpression;
     }
 
 }

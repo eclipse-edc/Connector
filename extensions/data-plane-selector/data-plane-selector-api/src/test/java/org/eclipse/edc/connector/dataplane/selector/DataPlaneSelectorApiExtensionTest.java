@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.service.EmbeddedDataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
@@ -33,6 +32,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +54,7 @@ class DataPlaneSelectorApiExtensionTest {
     private final WebService webService = mock(WebService.class);
     private final ManagementApiConfiguration managementApiConfiguration = mock(ManagementApiConfiguration.class);
     private final Monitor monitor = mock(Monitor.class);
-    private final ManagementApiTypeTransformerRegistry transformerRegistry = mock();
+    private final TypeTransformerRegistry transformerRegistry = mock();
     private DataPlaneSelectorApiExtension extension;
 
     @BeforeEach
@@ -65,7 +65,9 @@ class DataPlaneSelectorApiExtensionTest {
         context.registerService(DataPlaneSelectorService.class, new EmbeddedDataPlaneSelectorService(
                 mock(DataPlaneInstanceStore.class), mock(SelectionStrategyRegistry.class), new NoopTransactionContext()));
 
-        context.registerService(ManagementApiTypeTransformerRegistry.class, transformerRegistry);
+        TypeTransformerRegistry parentTransformerRegistry = mock();
+        when(parentTransformerRegistry.forContext("management-api")).thenReturn(transformerRegistry);
+        context.registerService(TypeTransformerRegistry.class, parentTransformerRegistry);
         extension = factory.constructInstance(DataPlaneSelectorApiExtension.class);
     }
 

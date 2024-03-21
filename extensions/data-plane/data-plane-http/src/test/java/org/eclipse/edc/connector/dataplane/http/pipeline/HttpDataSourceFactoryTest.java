@@ -27,7 +27,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -100,7 +100,7 @@ class HttpDataSourceFactoryTest {
         assertThat(source).usingRecursiveComparison().isEqualTo(expected);
     }
 
-    private DataFlowRequest createRequest(DataAddress source) {
+    private DataFlowStartMessage createRequest(DataAddress source) {
         return TestFunctions.createRequest(emptyMap(), source, DataAddress.Builder.newInstance().type("Test type").build()).build();
     }
 }

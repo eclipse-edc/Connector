@@ -24,7 +24,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorService {
 
@@ -40,18 +39,28 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
 
     @Override
     public List<DataPlaneInstance> getAll() {
-        return store.getAll().collect(Collectors.toList());
+        return transactionContext.execute(() -> {
+            try (var stream = store.getAll()) {
+                return stream.toList();
+            }
+        });
     }
 
     @Override
-    public DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy) {
+    public DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy, String transferType) {
         var strategy = selectionStrategyRegistry.find(selectionStrategy);
         if (strategy == null) {
             throw new IllegalArgumentException("Strategy " + selectionStrategy + " was not found");
         }
-        var dataPlanes = store.getAll().filter(dataPlane -> dataPlane.canHandle(source, destination)).toList();
-        return strategy.apply(dataPlanes);
+
+        return transactionContext.execute(() -> {
+            try (var stream = store.getAll()) {
+                var dataPlanes = stream.filter(dataPlane -> dataPlane.canHandle(source, destination, transferType)).toList();
+                return strategy.apply(dataPlanes);
+            }
+        });
     }
+
 
     @Override
     public ServiceResult<Void> addInstance(DataPlaneInstance instance) {

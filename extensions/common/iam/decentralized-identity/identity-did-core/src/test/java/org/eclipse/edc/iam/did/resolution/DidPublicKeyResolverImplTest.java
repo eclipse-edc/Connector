@@ -15,13 +15,16 @@
 package org.eclipse.edc.iam.did.resolution;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.eclipse.edc.iam.did.spi.document.DidConstants;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,18 +35,20 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DidPublicKeyResolverImplTest {
 
-    public static final String KEYID = "#my-key1";
+    public static final String KEYID = "my-key1";
     private static final String DID_URL = "did:web:example.com";
-    private final DidResolverRegistry resolverRegistry = mock(DidResolverRegistry.class);
-    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(resolverRegistry);
-    private DidDocument didDocument;
+    private final DidResolverRegistry resolverRegistry = mock();
+    private final KeyParserRegistry keyParserRegistry = mock();
+    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(keyParserRegistry, resolverRegistry);
 
     public static String readFile(String filename) throws IOException {
         try (var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename)) {
@@ -53,26 +58,78 @@ class DidPublicKeyResolverImplTest {
     }
 
     @BeforeEach
-    public void setUp() throws JOSEException, IOException {
-        var eckey = (ECKey) ECKey.parseFromPEMEncodedObjects(readFile("public_secp256k1.pem"));
+    public void setUp() throws JOSEException {
 
-        var vm = VerificationMethod.Builder.newInstance()
-                .id(KEYID)
+        when(keyParserRegistry.parse(anyString())).thenReturn(Result.success(new ECKeyGenerator(Curve.P_256).generate().toPublicKey()));
+    }
+
+    private DidDocument createDidDocument(String verificationMethodId) {
+        return createDidDocumentBuilder(verificationMethodId).build();
+    }
+
+    private DidDocument createDidDocument() {
+        return createDidDocumentBuilder(KEYID).build();
+    }
+
+    private VerificationMethod createVerificationMethod(String verificationMethodId, ECKey eckey) {
+        return VerificationMethod.Builder.newInstance()
+                .id(verificationMethodId)
                 .type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019)
                 .publicKeyJwk(eckey.toPublicJWK().toJSONObject())
                 .build();
+    }
 
-        didDocument = DidDocument.Builder.newInstance()
+    private VerificationMethod createVerificationMethod(String verificationMethodId) {
+        try {
+            var eckey = (ECKey) ECKey.parseFromPEMEncodedObjects(readFile("public_secp256k1.pem"));
+            return createVerificationMethod(verificationMethodId, eckey);
+        } catch (JOSEException | IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private DidDocument.Builder createDidDocumentBuilder(String verificationMethodId) {
+        var vm = createVerificationMethod(verificationMethodId);
+        return DidDocument.Builder.newInstance()
                 .verificationMethod(List.of(vm))
-                .service(Collections.singletonList(new Service("#my-service1", "MyService", "http://doesnotexi.st")))
-                .build();
+                .service(Collections.singletonList(new Service("#my-service1", "MyService", "http://doesnotexi.st")));
     }
 
     @Test
     void resolve() {
+        var didDocument = createDidDocument();
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, KEYID);
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
+
+        assertThat(result).isSucceeded().isNotNull();
+        verify(resolverRegistry).resolve(DID_URL);
+    }
+
+    @Test
+    void resolve_noValidVerificationMethod() {
+        var didDocument = DidDocument.Builder.newInstance()
+                .verificationMethod(List.of(VerificationMethod.Builder.newInstance()
+                        .type("unknown")
+                        .publicKeyJwk(Map.of())
+                        .build()))
+                .build();
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
+
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
+
+        assertThat(result).isFailed().isNotNull()
+                .detail().contains(format("DID document with id %s does not contain any supported Verification Method", didDocument.getId()));
+        verify(resolverRegistry).resolve(DID_URL);
+    }
+
+    @Test
+    void resolve_withVerificationMethodUrlAsId() {
+        var didDocument = createDidDocument(DID_URL + "#" + KEYID);
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
+
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isSucceeded().isNotNull();
         verify(resolverRegistry).resolve(DID_URL);
@@ -82,7 +139,7 @@ class DidPublicKeyResolverImplTest {
     void resolve_didNotFound() {
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.failure("Not found"));
 
-        var result = resolver.resolvePublicKey(DID_URL, KEYID);
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isFailed();
         verify(resolverRegistry).resolve(DID_URL);
@@ -90,42 +147,58 @@ class DidPublicKeyResolverImplTest {
 
     @Test
     void resolve_didDoesNotContainPublicKey() {
+        var didDocument = createDidDocument();
         didDocument.getVerificationMethod().clear();
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, KEYID);
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isFailed();
         verify(resolverRegistry).resolve(DID_URL);
     }
 
     @Test
-    void resolve_didContainsMultipleKeysWithSameKeyId() throws JOSEException, IOException {
-        var publicKey = (ECKey) ECKey.parseFromPEMEncodedObjects(readFile("public_secp256k1.pem"));
-        var vm = VerificationMethod.Builder.newInstance().id(KEYID).type(DidConstants.JSON_WEB_KEY_2020).controller("")
-                .publicKeyJwk(publicKey.toJSONObject())
-                .build();
-        didDocument.getVerificationMethod().add(vm);
+    void resolve_didContainsMultipleKeysWithSameKeyId() {
+        var vm = createVerificationMethod(KEYID);
+        var vm1 = createVerificationMethod(KEYID);
+        var didDocument = createDidDocumentBuilder(KEYID).verificationMethod(List.of(vm, vm1)).build();
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, KEYID);
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
 
         assertThat(result).isFailed()
-                .detail().isEqualTo("Every verification method must have a unique ID");
+                .detail().contains("Every verification method must have a unique ID");
+        verify(resolverRegistry).resolve(DID_URL);
+    }
+
+    @Test
+    void resolve_didContainsMultipleKeysWithSameKeyId_withRelativeAndFullUrl() {
+        var vm = createVerificationMethod(DID_URL + "#" + KEYID);
+        var vm1 = createVerificationMethod(KEYID);
+
+        var didDocument = createDidDocumentBuilder(KEYID).verificationMethod(List.of(vm, vm1)).build();
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
+
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
+
+        assertThat(result).isFailed()
+                .detail().contains("Every verification method must have a unique ID");
         verify(resolverRegistry).resolve(DID_URL);
     }
 
     @Test
     void resolve_publicKeyNotInPemFormat() {
-        didDocument.getVerificationMethod().clear();
-        var vm = VerificationMethod.Builder.newInstance().id("second-key").type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019).controller("")
+        var secondKeyId = "#second-key";
+        var vm = VerificationMethod.Builder.newInstance().id(secondKeyId).type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019).controller("")
                 .publicKeyJwk(Map.of("kty", "EC"))
                 .build();
-        didDocument.getVerificationMethod().add(vm);
+        var vm1 = createVerificationMethod(KEYID);
+
+        var didDocument = createDidDocumentBuilder(KEYID).verificationMethod(List.of(vm, vm1)).build();
 
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, KEYID);
+        var result = resolver.resolveKey(DID_URL + secondKeyId);
 
         assertThat(result).isFailed();
         verify(resolverRegistry).resolve(DID_URL);
@@ -133,6 +206,7 @@ class DidPublicKeyResolverImplTest {
 
     @Test
     void resolve_keyIdNullMultipleKeys() throws JOSEException, IOException {
+        var didDocument = createDidDocument();
         var publicKey = (ECKey) ECKey.parseFromPEMEncodedObjects(readFile("public_secp256k1.pem"));
         var vm = VerificationMethod.Builder.newInstance().id("#my-key2").type(DidConstants.JSON_WEB_KEY_2020).controller("")
                 .publicKeyJwk(publicKey.toJSONObject())
@@ -140,16 +214,17 @@ class DidPublicKeyResolverImplTest {
         didDocument.getVerificationMethod().add(vm);
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, null);
+        var result = resolver.resolveKey(DID_URL);
         assertThat(result).isFailed()
-                .detail().isEqualTo("The key ID ('kid') is mandatory if DID contains >1 verification methods.");
+                .detail().contains("The key ID ('kid') is mandatory if DID contains >1 verification methods.");
     }
 
     @Test
     void resolve_keyIdIsNull_onlyOneVerificationMethod() {
+        var didDocument = createDidDocument();
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, null);
+        var result = resolver.resolveKey(DID_URL);
 
         assertThat(result).isSucceeded().isNotNull();
         verify(resolverRegistry).resolve(DID_URL);

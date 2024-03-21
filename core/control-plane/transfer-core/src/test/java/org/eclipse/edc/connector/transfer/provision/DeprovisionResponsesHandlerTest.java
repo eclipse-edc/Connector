@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.transfer.TestResourceDefinition;
 import org.eclipse.edc.connector.transfer.TokenTestProvisionResource;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
@@ -27,7 +26,6 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -170,27 +168,14 @@ class DeprovisionResponsesHandlerTest {
 
     private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates inState) {
         var processId = UUID.randomUUID().toString();
-        var dataRequest = createDataRequestBuilder()
-                .processId(processId)
-                .protocol("protocol")
-                .connectorAddress("http://an/address")
-                .build();
 
         return TransferProcess.Builder.newInstance()
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(CONSUMER)
                 .id("test-process-" + processId)
                 .state(inState.code())
-                .dataRequest(dataRequest);
-    }
-
-    private DataRequest.Builder createDataRequestBuilder() {
-        return DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .contractId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
-                .dataDestination(DataAddress.Builder.newInstance().type("type")
-                        .build());
+                .protocol("protocol")
+                .counterPartyAddress("http://an/address");
     }
 
 }

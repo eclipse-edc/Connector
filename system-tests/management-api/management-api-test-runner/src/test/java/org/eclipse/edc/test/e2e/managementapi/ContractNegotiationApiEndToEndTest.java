@@ -21,17 +21,24 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +46,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
@@ -46,220 +54,269 @@ import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANS
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
 import static org.hamcrest.Matchers.is;
 
-@EndToEndTest
-public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEndTest {
+public class ContractNegotiationApiEndToEndTest {
 
-    private final String protocolUrl = "http://localhost:" + PROTOCOL_PORT + "/protocol";
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests implements InMemoryRuntime {
 
-    @Test
-    void getAll() {
-        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
-        store.save(createContractNegotiation("cn1"));
-        store.save(createContractNegotiation("cn2"));
+        InMemory() {
+            super(RUNTIME);
+        }
 
-        var jsonPath = baseRequest()
-                .contentType(JSON)
-                .post("/v2/contractnegotiations/request")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("size()", is(2))
-                .extract().jsonPath();
-
-        assertThat(jsonPath.getString("[0].counterPartyAddress")).isEqualTo(protocolUrl);
-        assertThat(jsonPath.getString("[0].@id")).isIn("cn1", "cn2");
-        assertThat(jsonPath.getString("[1].@id")).isIn("cn1", "cn2");
-        assertThat(jsonPath.getString("[0].protocol")).isEqualTo("dataspace-protocol-http");
-        assertThat(jsonPath.getString("[1].protocol")).isEqualTo("dataspace-protocol-http");
     }
 
-    @Test
-    void getById() {
-        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
-        store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests implements PostgresRuntime {
 
-        var json = baseRequest()
-                .contentType(JSON)
-                .get("/v2/contractnegotiations/cn1")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .extract().jsonPath();
+        Postgres() {
+            super(RUNTIME);
+        }
 
-        assertThat((String) json.get("@id")).isEqualTo("cn1");
-        assertThat(json.getString("protocol")).isEqualTo("dataspace-protocol-http");
+        @BeforeAll
+        static void beforeAll() {
+            PostgresqlEndToEndInstance.createDatabase("runtime");
+        }
+
     }
 
-    @Test
-    void getState() {
-        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
-        var state = ContractNegotiationStates.FINALIZED.code(); // all other states could be modified by the state machine
-        store.save(createContractNegotiationBuilder("cn1").state(state).build());
+    abstract static class Tests extends ManagementApiEndToEndTestBase {
 
-        baseRequest()
-                .contentType(JSON)
-                .get("/v2/contractnegotiations/cn1/state")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("state", is("FINALIZED"));
-    }
+        private final String protocolUrl = "http://localhost:" + PROTOCOL_PORT + "/protocol";
 
-    @Test
-    void getAgreementForNegotiation() {
-        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
-        var agreement = createContractAgreement("cn1");
-        store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
+        Tests(EdcRuntimeExtension runtime) {
+            super(runtime);
+        }
 
-        var json = baseRequest()
-                .contentType(JSON)
-                .get("/v2/contractnegotiations/cn1/agreement")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .extract().jsonPath();
+        @Test
+        void getAll() {
+            var store = getContractNegotiationStore();
+            var id1 = UUID.randomUUID().toString();
+            var id2 = UUID.randomUUID().toString();
+            store.save(createContractNegotiation(id1));
+            store.save(createContractNegotiation(id2));
 
-        assertThat(json.getString("@id")).isEqualTo("cn1");
-        assertThat((Object) json.get("policy")).isNotNull().isInstanceOf(Map.class);
-        assertThat(json.getString("assetId")).isEqualTo(agreement.getAssetId());
-    }
+            var jsonPath = baseRequest()
+                    .contentType(JSON)
+                    .body(createObjectBuilder()
+                            .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                            .add("filterExpression", createArrayBuilder()
+                                    .add(createObjectBuilder()
+                                            .add("operandLeft", "id")
+                                            .add("operator", "in")
+                                            .add("operandRight", createArrayBuilder().add(id1).add(id2))
+                                    )
+                            )
+                            .build()
+                    )
+                    .post("/v2/contractnegotiations/request")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body("size()", is(2))
+                    .extract().jsonPath();
 
-    @Test
-    void initiateNegotiation() {
+            assertThat(jsonPath.getString("[0].counterPartyAddress")).isEqualTo(protocolUrl);
+            assertThat(jsonPath.getString("[0].@id")).isIn(id1, id2);
+            assertThat(jsonPath.getString("[1].@id")).isIn(id1, id2);
+            assertThat(jsonPath.getString("[0].protocol")).isEqualTo("dataspace-protocol-http");
+            assertThat(jsonPath.getString("[1].protocol")).isEqualTo("dataspace-protocol-http");
+        }
 
-        var requestJson = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "ContractRequest")
-                .add("counterPartyAddress", "test-address")
-                .add("protocol", "test-protocol")
-                .add("providerId", "test-provider-id")
-                .add("callbackAddresses", createCallbackAddress())
-                .add("policy", createPolicy())
-                .build();
+        @Test
+        void getById() {
+            var store = getContractNegotiationStore();
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
 
-        var id = baseRequest()
-                .contentType(JSON)
-                .body(requestJson)
-                .post("/v2/contractnegotiations")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .extract().jsonPath().getString(ID);
+            var json = baseRequest()
+                    .contentType(JSON)
+                    .get("/v2/contractnegotiations/cn1")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .extract().jsonPath();
 
-        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
+            assertThat((String) json.get("@id")).isEqualTo("cn1");
+            assertThat(json.getString("protocol")).isEqualTo("dataspace-protocol-http");
+        }
 
-        assertThat(store.findById(id)).isNotNull();
-    }
+        @Test
+        void getState() {
+            var store = getContractNegotiationStore();
+            var state = ContractNegotiationStates.FINALIZED.code(); // all other states could be modified by the state machine
+            store.save(createContractNegotiationBuilder("cn1").state(state).build());
 
-    @Deprecated(since = "0.3.2")
-    @Test
-    void deprecated_initiateNegotiation() {
+            baseRequest()
+                    .contentType(JSON)
+                    .get("/v2/contractnegotiations/cn1/state")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body("state", is("FINALIZED"));
+        }
 
-        var requestJson = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "ContractRequest")
-                .add("counterPartyAddress", "test-address")
-                .add("protocol", "test-protocol")
-                .add("providerId", "test-provider-id")
-                .add("callbackAddresses", createCallbackAddress())
-                .add("offer", createObjectBuilder()
-                        .add("offerId", "offer-id")
-                        .add("assetId", "assetId")
-                        .add("policy", createPolicy()))
-                .build();
+        @Test
+        void getAgreementForNegotiation() {
+            var store = getContractNegotiationStore();
+            var agreement = createContractAgreement("cn1");
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
-        var id = baseRequest()
-                .contentType(JSON)
-                .body(requestJson)
-                .post("/v2/contractnegotiations")
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .contentType(JSON)
-                .extract().jsonPath().getString(ID);
+            var json = baseRequest()
+                    .contentType(JSON)
+                    .get("/v2/contractnegotiations/cn1/agreement")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .extract().jsonPath();
 
-        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
+            assertThat(json.getString("@id")).isEqualTo("cn1");
+            assertThat((Object) json.get("policy")).isNotNull().isInstanceOf(Map.class);
+            assertThat(json.getString("assetId")).isEqualTo(agreement.getAssetId());
+        }
 
-        assertThat(store.findById(id)).isNotNull();
-    }
+        @Test
+        void initiateNegotiation() {
 
-    @Test
-    void terminate() {
-        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
-        store.save(createContractNegotiationBuilder("cn1").build());
-        var requestBody = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE).build())
-                .add(ID, "cn1")
-                .add("reason", "any good reason")
-                .build();
+            var requestJson = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "ContractRequest")
+                    .add("counterPartyAddress", "test-address")
+                    .add("protocol", "test-protocol")
+                    .add("providerId", "test-provider-id")
+                    .add("callbackAddresses", createCallbackAddress())
+                    .add("policy", createPolicy())
+                    .build();
 
-        baseRequest()
-                .body(requestBody)
-                .contentType(JSON)
-                .post("/v2/contractnegotiations/cn1/terminate")
-                .then()
-                .log().ifError()
-                .statusCode(204);
-    }
+            var id = baseRequest()
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v2/contractnegotiations")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .extract().jsonPath().getString(ID);
 
-    private ContractNegotiation createContractNegotiation(String negotiationId) {
-        return createContractNegotiationBuilder(negotiationId)
-                .build();
-    }
+            var store = getContractNegotiationStore();
 
-    private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
-        return ContractNegotiation.Builder.newInstance()
-                .id(negotiationId)
-                .correlationId(negotiationId)
-                .counterPartyId(randomUUID().toString())
-                .counterPartyAddress(protocolUrl)
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .events(Set.of("test-event1", "test-event2"))
-                        .build()))
-                .protocol("dataspace-protocol-http")
-                .state(REQUESTED.code())
-                .contractOffer(contractOfferBuilder().build());
-    }
+            assertThat(store.findById(id)).isNotNull();
+        }
 
-    private ContractOffer.Builder contractOfferBuilder() {
-        return ContractOffer.Builder.newInstance()
-                .id("test-offer-id")
-                .assetId(randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build());
-    }
+        @Deprecated(since = "0.3.2")
+        @Test
+        void deprecated_initiateNegotiation() {
 
-    private ContractAgreement createContractAgreement(String negotiationId) {
-        return ContractAgreement.Builder.newInstance()
-                .id(negotiationId)
-                .assetId(randomUUID().toString())
-                .consumerId(randomUUID() + "-consumer")
-                .providerId(randomUUID() + "-provider")
-                .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
+            var requestJson = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "ContractRequest")
+                    .add("counterPartyAddress", "test-address")
+                    .add("protocol", "test-protocol")
+                    .add("providerId", "test-provider-id")
+                    .add("callbackAddresses", createCallbackAddress())
+                    .add("offer", createObjectBuilder()
+                            .add("offerId", "offer-id")
+                            .add("assetId", "assetId")
+                            .add("policy", createPolicy()))
+                    .build();
 
-    private JsonArrayBuilder createCallbackAddress() {
-        var builder = Json.createArrayBuilder();
-        return builder.add(createObjectBuilder()
-                .add(IS_TRANSACTIONAL, false)
-                .add(URI, "http://test.local/")
-                .add(EVENTS, Json.createArrayBuilder().build()));
-    }
+            var id = baseRequest()
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v2/contractnegotiations")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .extract().jsonPath().getString(ID);
 
-    private JsonObject createPolicy() {
-        var permissionJson = createObjectBuilder().add(TYPE, "permission").build();
-        var prohibitionJson = createObjectBuilder().add(TYPE, "prohibition").build();
-        var dutyJson = createObjectBuilder().add(TYPE, "duty").build();
-        return createObjectBuilder()
-                .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
-                .add(TYPE, "Offer")
-                .add(ID, "offer-id")
-                .add("permission", permissionJson)
-                .add("prohibition", prohibitionJson)
-                .add("obligation", dutyJson)
-                .add("target", "asset-id")
-                .build();
+            var store = getContractNegotiationStore();
+
+            assertThat(store.findById(id)).isNotNull();
+        }
+
+        @Test
+        void terminate() {
+            var store = getContractNegotiationStore();
+            store.save(createContractNegotiationBuilder("cn1").build());
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE).build())
+                    .add(ID, "cn1")
+                    .add("reason", "any good reason")
+                    .build();
+
+            baseRequest()
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .post("/v2/contractnegotiations/cn1/terminate")
+                    .then()
+                    .log().ifError()
+                    .statusCode(204);
+        }
+
+        private ContractNegotiation createContractNegotiation(String negotiationId) {
+            return createContractNegotiationBuilder(negotiationId)
+                    .build();
+        }
+
+        private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
+            return ContractNegotiation.Builder.newInstance()
+                    .id(negotiationId)
+                    .correlationId(negotiationId)
+                    .counterPartyId(randomUUID().toString())
+                    .counterPartyAddress(protocolUrl)
+                    .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                            .uri("local://test")
+                            .events(Set.of("test-event1", "test-event2"))
+                            .build()))
+                    .protocol("dataspace-protocol-http")
+                    .state(REQUESTED.code())
+                    .contractOffer(contractOfferBuilder().build());
+        }
+
+        private ContractOffer.Builder contractOfferBuilder() {
+            return ContractOffer.Builder.newInstance()
+                    .id("test-offer-id")
+                    .assetId(randomUUID().toString())
+                    .policy(Policy.Builder.newInstance().build());
+        }
+
+        private ContractAgreement createContractAgreement(String negotiationId) {
+            return ContractAgreement.Builder.newInstance()
+                    .id(negotiationId)
+                    .assetId(randomUUID().toString())
+                    .consumerId(randomUUID() + "-consumer")
+                    .providerId(randomUUID() + "-provider")
+                    .policy(Policy.Builder.newInstance().build())
+                    .build();
+        }
+
+        private JsonArrayBuilder createCallbackAddress() {
+            var builder = Json.createArrayBuilder();
+            return builder.add(createObjectBuilder()
+                    .add(IS_TRANSACTIONAL, false)
+                    .add(URI, "http://test.local/")
+                    .add(EVENTS, Json.createArrayBuilder().build()));
+        }
+
+        private JsonObject createPolicy() {
+            var permissionJson = createObjectBuilder().add(TYPE, "permission").build();
+            var prohibitionJson = createObjectBuilder().add(TYPE, "prohibition").build();
+            var dutyJson = createObjectBuilder().add(TYPE, "duty").build();
+            return createObjectBuilder()
+                    .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
+                    .add(TYPE, "Offer")
+                    .add(ID, "offer-id")
+                    .add("permission", permissionJson)
+                    .add("prohibition", prohibitionJson)
+                    .add("obligation", dutyJson)
+                    .add("assigner", "provider-id")
+                    .add("target", "asset-id")
+                    .build();
+        }
+
+        private ContractNegotiationStore getContractNegotiationStore() {
+            return runtime.getContext().getService(ContractNegotiationStore.class);
+        }
     }
 
 }

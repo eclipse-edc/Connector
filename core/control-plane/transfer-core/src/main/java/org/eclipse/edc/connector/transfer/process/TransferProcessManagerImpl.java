@@ -32,14 +32,16 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferProcessAck;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -53,6 +55,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
+import org.eclipse.edc.statemachine.retry.AsyncStatusResultRetryProcess;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -72,6 +75,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
@@ -128,22 +132,18 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         if (existingTransferProcess != null) {
             return StatusResult.success(existingTransferProcess);
         }
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(id)
-                .assetId(transferRequest.getAssetId())
-                .dataDestination(transferRequest.getDataDestination())
-                .connectorAddress(transferRequest.getCounterPartyAddress())
-                .contractId(transferRequest.getContractId())
-                .destinationType(transferRequest.getDataDestination().getType())
-                .protocol(transferRequest.getProtocol())
-                .dataDestination(transferRequest.getDataDestination())
-                .build();
 
         var process = TransferProcess.Builder.newInstance()
                 .id(id)
-                .dataRequest(dataRequest)
+                .assetId(transferRequest.getAssetId())
+                .dataDestination(transferRequest.getDataDestination())
+                .counterPartyAddress(transferRequest.getCounterPartyAddress())
+                .contractId(transferRequest.getContractId())
+                .protocol(transferRequest.getProtocol())
+                .dataDestination(transferRequest.getDataDestination())
                 .type(CONSUMER)
                 .clock(clock)
+                .transferType(transferRequest.getTransferType())
                 .privateProperties(transferRequest.getPrivateProperties())
                 .callbackAddresses(transferRequest.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
@@ -165,6 +165,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processProviderTransfersInState(STARTING, this::processStarting))
+                .processor(processTransfersInState(SUSPENDING, this::processSuspending))
                 .processor(processTransfersInState(COMPLETING, this::processCompleting))
                 .processor(processTransfersInState(TERMINATING, this::processTerminating))
                 .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning));
@@ -188,7 +189,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         ResourceManifest manifest;
         if (process.getType() == CONSUMER) {
-            var manifestResult = manifestGenerator.generateConsumerResourceManifest(process.getDataRequest(), policy);
+            var manifestResult = manifestGenerator.generateConsumerResourceManifest(process, policy);
             if (manifestResult.failed()) {
                 transitionToTerminated(process, format("Resource manifest for process %s cannot be modified to fulfil policy. %s", process.getId(), manifestResult.getFailureMessages()));
                 return true;
@@ -210,7 +211,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 vault.storeSecret(dataDestination.getKeyName(), secret);
             }
 
-            manifest = manifestGenerator.generateProviderResourceManifest(process.getDataRequest(), dataAddress, policy);
+            manifest = manifestGenerator.generateProviderResourceManifest(process, dataAddress, policy);
         }
 
         process.transitionProvisioning(manifest);
@@ -237,7 +238,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         var resources = process.getResourcesToProvision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.provision(resources, policy))
-                .entityRetrieve(store::findById)
                 .onSuccess((transferProcess, responses) -> handleResult(transferProcess, responses, provisionResponsesHandler))
                 .onFailure((t, throwable) -> transitionToProvisioning(t))
                 .onRetryExhausted((t, throwable) -> {
@@ -280,24 +280,18 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .map(secret -> DataAddress.Builder.newInstance().properties(originalDestination.getProperties()).property(EDC_DATA_ADDRESS_SECRET, secret).build())
                 .orElse(originalDestination);
 
-        var message = TransferRequestMessage.Builder.newInstance()
-                .processId(process.getCorrelationId())
-                .protocol(process.getProtocol())
-                .counterPartyAddress(process.getConnectorAddress())
+        var messageBuilder = TransferRequestMessage.Builder.newInstance()
                 .callbackAddress(protocolWebhook.url())
                 .dataDestination(dataDestination)
-                .contractId(process.getContractId())
-                .policy(policyArchive.findPolicyForContract(process.getContractId()))
-                .build();
+                .transferType(process.getTransferType())
+                .contractId(process.getContractId());
 
-        var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getCounterPartyAddress());
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(id -> store.findById(id))
-                .onSuccess((t, content) -> transitionToRequested(t))
+        return dispatch(messageBuilder, process, policyArchive.findPolicyForContract(process.getContractId()), TransferProcessAck.class)
+                .onSuccessResult(this::transitionToRequested)
                 .onRetryExhausted(this::transitionToTerminated)
                 .onFailure((t, throwable) -> transitionToRequesting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .execute(description);
+                .execute("send transfer request to " + process.getCounterPartyAddress());
     }
 
     /**
@@ -310,7 +304,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private boolean processStarting(TransferProcess process) {
         var policy = policyArchive.findPolicyForContract(process.getContractId());
 
-        return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.initiate(process, policy))
+        return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.start(process, policy))
                 .onSuccess((p, dataFlowResponse) -> sendTransferStartMessage(p, dataFlowResponse, policy))
                 .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .onFailure((t, failure) -> transitionToStarting(t))
@@ -326,16 +320,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      */
     @WithSpan
     private boolean processCompleting(TransferProcess process) {
-        var message = TransferCompletionMessage.Builder.newInstance()
-                .protocol(process.getProtocol())
-                .counterPartyAddress(process.getConnectorAddress())
-                .processId(process.getCorrelationId())
-                .policy(policyArchive.findPolicyForContract(process.getContractId()))
-                .build();
+        var builder = TransferCompletionMessage.Builder.newInstance();
 
-        var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(id -> store.findById(id))
+        return dispatch(builder, process, policyArchive.findPolicyForContract(process.getContractId()), Object.class)
                 .onSuccess((t, content) -> {
                     transitionToCompleted(t);
                     if (t.getType() == PROVIDER) {
@@ -345,7 +332,24 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFailure((t, throwable) -> transitionToCompleting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute(description);
+                .execute("send transfer completion to " + process.getCounterPartyAddress());
+    }
+
+    /**
+     * Process SUSPENDING transfer<p>
+     * Suspend data flow unless it's CONSUMER and send SUSPENDED message to counter-part.
+     *
+     * @param process the SUSPENDING transfer fetched
+     * @return if the transfer has been processed or not
+     */
+    @WithSpan
+    private boolean processSuspending(TransferProcess process) {
+        return entityRetryProcessFactory.doSyncProcess(process, () -> suspendDataFlow(process))
+                .onSuccess((p, dataFlowResponse) -> sendTransferSuspensionMessage(p))
+                .onFailure((t, failure) -> transitionToSuspending(t, failure.getFailureDetail()))
+                .onFatalError((p, failure) -> transitionToTerminated(p, failure.getFailureDetail()))
+                .onRetryExhausted((p, failure) -> transitionToTerminated(p, failure.getFailureDetail()))
+                .execute("Suspend data flow");
     }
 
     /**
@@ -386,7 +390,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.deprovision(resourcesToDeprovision, policy))
-                .entityRetrieve(store::findById)
                 .onSuccess((transferProcess, responses) -> handleResult(transferProcess, responses, deprovisionResponsesHandler))
                 .onFailure((t, throwable) -> transitionToDeprovisioning(t))
                 .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
@@ -395,23 +398,24 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     @WithSpan
     private void sendTransferStartMessage(TransferProcess process, DataFlowResponse dataFlowResponse, Policy policy) {
-        var message = TransferStartMessage.Builder.newInstance()
-                .processId(process.getCorrelationId())
-                .protocol(process.getProtocol())
-                .dataAddress(dataFlowResponse.getDataAddress())
-                .counterPartyAddress(process.getConnectorAddress())
-                .policy(policy)
-                .build();
+        var messageBuilder = TransferStartMessage.Builder.newInstance()
+                .dataAddress(dataFlowResponse.getDataAddress());
 
-        var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
-
-        entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(id -> store.findById(id))
-                .onSuccess((t, content) -> transitionToStarted(t))
+        dispatch(messageBuilder, process, policy, Object.class)
+                .onSuccess((t, content) -> transitionToStarted(t, dataFlowResponse.getDataPlaneId()))
                 .onFailure((t, throwable) -> transitionToStarting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute(description);
+                .execute("send transfer start to " + process.getCounterPartyAddress());
+    }
+
+    @NotNull
+    private StatusResult<Void> suspendDataFlow(TransferProcess process) {
+        if (process.getType() == PROVIDER) {
+            return dataFlowManager.suspend(process);
+        } else {
+            return StatusResult.success();
+        }
     }
 
     @NotNull
@@ -423,18 +427,23 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         }
     }
 
-    private boolean sendTransferTerminationMessage(TransferProcess process) {
-        var message = TransferTerminationMessage.Builder.newInstance()
-                .counterPartyAddress(process.getConnectorAddress())
-                .protocol(process.getProtocol())
-                .processId(process.getCorrelationId())
-                .reason(process.getErrorDetail())
-                .policy(policyArchive.findPolicyForContract(process.getContractId()))
-                .build();
+    private boolean sendTransferSuspensionMessage(TransferProcess process) {
+        var builder = TransferSuspensionMessage.Builder.newInstance()
+                .reason(process.getErrorDetail());
 
-        var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(id -> store.findById(id))
+        return dispatch(builder, process, policyArchive.findPolicyForContract(process.getContractId()), Object.class)
+                .onSuccess((t, content) -> transitionToSuspended(t))
+                .onFailure((t, throwable) -> transitionToSuspending(t, throwable.getMessage()))
+                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
+                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .execute("send transfer suspension to " + process.getCounterPartyAddress());
+    }
+
+    private boolean sendTransferTerminationMessage(TransferProcess process) {
+        var builder = TransferTerminationMessage.Builder.newInstance()
+                .reason(process.getErrorDetail());
+
+        return dispatch(builder, process, policyArchive.findPolicyForContract(process.getContractId()), Object.class)
                 .onSuccess((t, content) -> {
                     transitionToTerminated(t);
                     if (t.getType() == PROVIDER) {
@@ -444,7 +453,36 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted(this::transitionToTerminated)
-                .execute(description);
+                .execute("send transfer termination to " + process.getCounterPartyAddress());
+    }
+
+    private <T, M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> AsyncStatusResultRetryProcess<TransferProcess, T, ?>
+            dispatch(B messageBuilder, TransferProcess process, Policy policy, Class<T> responseType) {
+
+        messageBuilder.protocol(process.getProtocol())
+                .counterPartyAddress(process.getCounterPartyAddress())
+                .processId(Optional.ofNullable(process.getCorrelationId()).orElse(process.getId()))
+                .policy(policy);
+
+        if (process.lastSentProtocolMessage() != null) {
+            messageBuilder.id(process.lastSentProtocolMessage());
+        }
+
+        if (process.getType() == PROVIDER) {
+            messageBuilder.consumerPid(process.getCorrelationId())
+                    .providerPid(process.getId())
+                    .counterPartyId(policy.getAssignee());
+        } else {
+            messageBuilder.consumerPid(process.getId())
+                    .providerPid(process.getCorrelationId())
+                    .counterPartyId(policy.getAssigner());
+        }
+
+        var message = messageBuilder.build();
+
+        process.lastSentProtocolMessage(message.getId());
+
+        return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(responseType, message));
     }
 
     private <T> void handleResult(TransferProcess transferProcess, List<StatusResult<T>> responses, ResponsesHandler<StatusResult<T>> handler) {
@@ -457,17 +495,17 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name())};
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
         return createProcessor(function, filter);
     }
 
     private Processor processProviderTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name())};
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name()) };
         return createProcessor(function, filter);
     }
 
     private Processor processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{hasState(state.code()), isNotPending()};
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending() };
         return createProcessor(function, filter);
     }
 
@@ -497,8 +535,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         update(process);
     }
 
-    private void transitionToRequested(TransferProcess transferProcess) {
+    private void transitionToRequested(TransferProcess transferProcess, TransferProcessAck ack) {
         transferProcess.transitionRequested();
+        transferProcess.setCorrelationId(ack.getProviderPid());
         observable.invokeForEach(l -> l.preRequested(transferProcess));
         update(transferProcess);
         observable.invokeForEach(l -> l.requested(transferProcess));
@@ -509,8 +548,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         update(transferProcess);
     }
 
-    private void transitionToStarted(TransferProcess process) {
-        process.transitionStarted();
+    private void transitionToStarted(TransferProcess process, String dataPlaneId) {
+        process.transitionStarted(dataPlaneId);
         observable.invokeForEach(l -> l.preStarted(process));
         update(process);
         observable.invokeForEach(l -> l.started(process, TransferProcessStartedData.Builder.newInstance().build()));
@@ -526,6 +565,17 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         observable.invokeForEach(l -> l.preCompleted(transferProcess));
         update(transferProcess);
         observable.invokeForEach(l -> l.completed(transferProcess));
+    }
+
+    private void transitionToSuspending(TransferProcess process, String message) {
+        process.transitionSuspending(message);
+        update(process);
+    }
+
+    private void transitionToSuspended(TransferProcess process) {
+        process.transitionSuspended();
+        update(process);
+        observable.invokeForEach(l -> l.suspended(process));
     }
 
     private void transitionToTerminating(TransferProcess process, String message, Throwable... errors) {

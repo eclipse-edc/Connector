@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.dataplane.http.spi;
 
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 /**
  * Permit to register {@link HttpRequestParams} decorators, that are used to enrich the HTTP request with
- * information taken from {@link DataFlowRequest}
+ * information taken from {@link DataFlowStartMessage}
  */
 public interface HttpRequestParamsProvider {
 
@@ -35,10 +35,10 @@ public interface HttpRequestParamsProvider {
     /**
      * Provide HTTP request params for HttpDataSource
      */
-    HttpRequestParams provideSourceParams(DataFlowRequest request);
+    HttpRequestParams provideSourceParams(DataFlowStartMessage request);
 
     /**
      * Provide HTTP request params for HttpDataSink
      */
-    HttpRequestParams provideSinkParams(DataFlowRequest request);
+    HttpRequestParams provideSinkParams(DataFlowStartMessage request);
 }

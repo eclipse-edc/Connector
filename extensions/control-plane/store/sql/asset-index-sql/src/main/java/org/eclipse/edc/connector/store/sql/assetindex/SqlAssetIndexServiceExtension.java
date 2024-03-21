@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.store.sql.assetindex.schema.postgres.PostgresDi
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -32,6 +33,12 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 @Provides({ AssetIndex.class, DataAddressResolver.class })
 @Extension(value = "SQL asset index")
 public class SqlAssetIndexServiceExtension implements ServiceExtension {
+
+    /**
+     * Name of the datasource to use for accessing assets.
+     */
+    @Setting(required = true)
+    public static final String DATASOURCE_SETTING_NAME = "edc.datasource.asset.name";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -50,7 +57,7 @@ public class SqlAssetIndexServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
+        var dataSourceName = context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
 
         var sqlAssetLoader = new SqlAssetIndex(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(), getDialect(), queryExecutor);
 

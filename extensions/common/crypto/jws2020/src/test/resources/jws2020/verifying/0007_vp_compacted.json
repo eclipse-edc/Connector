@@ -28,7 +28,7 @@
     "created": "2022-12-31T23:00:00Z",
     "proofPurpose": "assertionMethod",
     "verificationMethod": "https://org.eclipse.edc/verification-method",
-    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..eadcijhno0JUZ2yl2QrlQBD_1rrGFS1qjYeGYV8O-XN1P-28HneLnHkvUH9IDTiTTAwnCQjdr0Tq3NEgpbz-sji0X9fT-chM86OQfqylm0Dt6_jLIj-32JHtetFU3QXS"
+    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..kfTedAzvjguntyvun_puf_I46-I8YT--JI8XIxoRkKodU-oVK15bh_KXUlX4A8znjwGEz6MVSCH2jx21q13lXOOiuloGgfqRA31RY6r4ZBpzSw4dc9-dgsRlICJjUdmK"
   },
   "@context": [
     "https://www.w3.org/ns/did/v1",

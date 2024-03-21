@@ -23,6 +23,7 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":core:common:util"))
+    implementation(project(":extensions:data-plane:data-plane-client-embedded"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 

@@ -17,6 +17,7 @@ package org.eclipse.edc.web.jersey;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -29,6 +30,15 @@ import org.eclipse.edc.web.spi.validation.InterceptorFunctionRegistry;
 @Provides(WebService.class)
 public class JerseyExtension implements ServiceExtension {
     private JerseyRestService jerseyRestService;
+
+    @Setting
+    public static final String CORS_CONFIG_ORIGINS_SETTING = "edc.web.rest.cors.origins";
+    @Setting
+    public static final String CORS_CONFIG_ENABLED_SETTING = "edc.web.rest.cors.enabled";
+    @Setting
+    public static final String CORS_CONFIG_HEADERS_SETTING = "edc.web.rest.cors.headers";
+    @Setting
+    public static final String CORS_CONFIG_METHODS_SETTING = "edc.web.rest.cors.methods";
 
     @Inject
     private JettyService jettyService;
@@ -47,7 +57,12 @@ public class JerseyExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        var configuration = JerseyConfiguration.from(context);
+        var configuration = JerseyConfiguration.Builder.newInstance()
+                .allowedHeaders(context.getSetting(CORS_CONFIG_HEADERS_SETTING, "origin, content-type, accept, authorization"))
+                .allowedOrigins(context.getSetting(CORS_CONFIG_ORIGINS_SETTING, "*"))
+                .allowedMethods(context.getSetting(CORS_CONFIG_METHODS_SETTING, "GET, POST, DELETE, PUT, OPTIONS"))
+                .corsEnabled(context.getSetting(CORS_CONFIG_ENABLED_SETTING, false))
+                .build();
 
         jerseyRestService = new JerseyRestService(jettyService, typeManager, configuration, monitor);
 

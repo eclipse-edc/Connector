@@ -25,6 +25,7 @@ public record SelectionRequestSchema(
         @Schema(name = TYPE, example = SELECTION_REQUEST_TYPE)
         String type,
         String strategy,
+        String transferType,
         ManagementApiSchema.DataAddressSchema source,
         ManagementApiSchema.DataAddressSchema destination
 ) {
@@ -41,7 +42,8 @@ public record SelectionRequestSchema(
                     "@type": "https://w3id.org/edc/v0.0.1/ns/DataAddress",
                     "type": "test-dst2"
                 },
-                "strategy": "you_custom_strategy"
+                "strategy": "you_custom_strategy",
+                "transferType": "you_custom_transfer_type"
             }
             """;
 }

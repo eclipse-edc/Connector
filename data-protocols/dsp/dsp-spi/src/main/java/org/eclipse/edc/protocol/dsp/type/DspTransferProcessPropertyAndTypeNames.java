@@ -24,11 +24,11 @@ public interface DspTransferProcessPropertyAndTypeNames {
     String DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE = DSPACE_SCHEMA + "TransferRequestMessage";
     String DSPACE_TYPE_TRANSFER_START_MESSAGE = DSPACE_SCHEMA + "TransferStartMessage";
     String DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE = DSPACE_SCHEMA + "TransferCompletionMessage";
+    String DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE = DSPACE_SCHEMA + "TransferSuspensionMessage";
     String DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE = DSPACE_SCHEMA + "TransferTerminationMessage";
     String DSPACE_TYPE_TRANSFER_PROCESS = DSPACE_SCHEMA + "TransferProcess";
     String DSPACE_TYPE_TRANSFER_ERROR = DSPACE_SCHEMA + "TransferError";
 
     String DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID = DSPACE_SCHEMA + "agreementId";
     String DSPACE_PROPERTY_DATA_ADDRESS = DSPACE_SCHEMA + "dataAddress";
-    String DSPACE_PROPERTY_CORRELATION_ID = DSPACE_SCHEMA + "correlationId";
 }

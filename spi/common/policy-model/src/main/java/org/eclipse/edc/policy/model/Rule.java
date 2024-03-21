@@ -33,17 +33,9 @@ public abstract class Rule {
         R visitDuty(Duty policy);
     }
 
-    protected String target;
     protected Action action;
 
-    protected String assignee;
-    protected String assigner;
-
     protected List<Constraint> constraints = new ArrayList<>();
-
-    public String getTarget() {
-        return target;
-    }
 
     public Action getAction() {
         return action;
@@ -53,34 +45,11 @@ public abstract class Rule {
         return constraints;
     }
 
-    public String getAssigner() {
-        return assigner;
-    }
-
-    public String getAssignee() {
-        return assignee;
-    }
-
     public abstract <R> R accept(Visitor<R> visitor);
 
     @SuppressWarnings("unchecked")
     protected abstract static class Builder<T extends Rule, B extends Builder<T, B>> {
         protected T rule;
-
-        public B target(String target) {
-            rule.target = target;
-            return (B) this;
-        }
-
-        public B assigner(String assigner) {
-            rule.assigner = assigner;
-            return (B) this;
-        }
-
-        public B assignee(String assignee) {
-            rule.assignee = assignee;
-            return (B) this;
-        }
 
         public B action(Action action) {
             rule.action = action;

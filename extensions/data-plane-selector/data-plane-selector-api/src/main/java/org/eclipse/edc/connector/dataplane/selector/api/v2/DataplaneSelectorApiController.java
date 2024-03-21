@@ -68,7 +68,7 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
                 .orElseThrow(InvalidRequestException::new);
 
         var dpi = ofNullable(request.getStrategy())
-                .map(strategy -> catchException(() -> selectionService.select(request.getSource(), request.getDestination(), strategy)))
+                .map(strategy -> catchException(() -> selectionService.select(request.getSource(), request.getDestination(), strategy, request.getTransferType())))
                 .orElseGet(() -> catchException(() -> selectionService.select(request.getSource(), request.getDestination())));
 
         if (dpi == null) {

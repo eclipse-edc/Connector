@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -40,9 +41,9 @@ public class QueryValidator {
     /**
      * Constructs a new QueryValidator instance.
      *
-     * @param canonicalType The Java class of the object to validate against.
+     * @param canonicalType    The Java class of the object to validate against.
      * @param typeHierarchyMap Contains mapping from superclass to list of subclasses. Every superclass must be
-     *         represented as separate entry in the map, even if it is also a subclass of another.
+     *                         represented as separate entry in the map, even if it is also a subclass of another.
      */
     public QueryValidator(Class<?> canonicalType, Map<Class<?>, List<Class<?>>> typeHierarchyMap) {
         this.canonicalType = canonicalType;
@@ -83,13 +84,16 @@ public class QueryValidator {
 
             // cannot query on extensible (=Map) types
             if (type == Map.class) {
-                return Result.failure("Querying Map types is not yet supported");
+                var pattern = Pattern.compile("^[0-9A-Za-z.':/@]*$");
+                var matcher = pattern.matcher(path);
+                return matcher.find() ? Result.success() :
+                        Result.failure("Querying Map types is not yet supported");
             }
             var field = getFieldIncludingSubtypes(type, token);
             if (field != null) {
                 type = field.getType();
                 if (Collection.class.isAssignableFrom(type)) {
-                    ParameterizedType genericType = (ParameterizedType) field.getGenericType();
+                    var genericType = (ParameterizedType) field.getGenericType();
                     type = (Class<?>) genericType.getActualTypeArguments()[0];
                 }
             } else {

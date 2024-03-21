@@ -24,9 +24,11 @@ public class DatasetRequest {
     public static final String DATASET_REQUEST_TYPE = EDC_NAMESPACE + "DatasetRequest";
     public static final String DATASET_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String DATASET_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
+    public static final String DATASET_REQUEST_COUNTER_PARTY_ID = EDC_NAMESPACE + "counterPartyId";
 
     private String id;
     private String counterPartyAddress;
+    private String counterPartyId;
     private String protocol;
 
     private DatasetRequest() {
@@ -38,6 +40,10 @@ public class DatasetRequest {
 
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    public String getCounterPartyId() {
+        return counterPartyId;
     }
 
     public String getProtocol() {
@@ -64,6 +70,11 @@ public class DatasetRequest {
 
         public Builder counterPartyAddress(String counterPartyAddress) {
             instance.counterPartyAddress = counterPartyAddress;
+            return this;
+        }
+
+        public Builder counterPartyId(String counterPartyId) {
+            instance.counterPartyId = counterPartyId;
             return this;
         }
 

@@ -83,6 +83,8 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
      *
      * @param correlationId the entity correlation id.
      * @return success if the entity is unleased, failure otherwise.
+     * @deprecated it will be deleted in the future
      */
+    @Deprecated(since = "0.4.1")
     StoreResult<ContractNegotiation> findByCorrelationIdAndLease(String correlationId);
 }

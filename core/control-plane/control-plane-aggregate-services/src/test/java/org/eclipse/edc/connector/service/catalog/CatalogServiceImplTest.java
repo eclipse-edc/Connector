@@ -42,7 +42,7 @@ class CatalogServiceImplTest {
     void requestCatalog_shouldDispatchRequestAndReturnResult() {
         when(dispatcher.dispatch(eq(byte[].class), any())).thenReturn(completedFuture(StatusResult.success("content".getBytes())));
 
-        var result = service.requestCatalog("http://provider/url", "protocol", QuerySpec.none());
+        var result = service.requestCatalog("counterPartyId", "http://provider/url", "protocol", QuerySpec.none());
 
         assertThat(result).succeedsWithin(5, SECONDS).satisfies(statusResult -> {
             assertThat(statusResult).isSucceeded().isEqualTo("content".getBytes());
@@ -54,7 +54,7 @@ class CatalogServiceImplTest {
     void requestDataset_shouldDispatchRequestAndReturnResult() {
         when(dispatcher.dispatch(eq(byte[].class), any())).thenReturn(completedFuture(StatusResult.success("content".getBytes())));
 
-        var result = service.requestDataset("datasetId", "http://provider/url", "protocol");
+        var result = service.requestDataset("datasetId", "counterPartyId", "http://provider/url", "protocol");
 
         assertThat(result).succeedsWithin(5, SECONDS).satisfies(statusResult -> {
             assertThat(statusResult).isSucceeded().isEqualTo("content".getBytes());

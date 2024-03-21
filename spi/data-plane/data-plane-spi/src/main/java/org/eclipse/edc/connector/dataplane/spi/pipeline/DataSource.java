@@ -54,17 +54,12 @@ public interface DataSource extends AutoCloseable {
         InputStream openStream();
 
         /**
-         * Returns true if the part supports random access of its contents. If random access is supported, {@link #read(long, long)} may be invoked.
+         * Content media type.
+         *
+         * @return the part media type.
          */
-        default boolean supportsRandomAccess() {
-            return false;
-        }
-
-        /**
-         * Reads a segment of the underlying data. Implementations must throw {@link UnsupportedOperationException} if random access is not supported.
-         */
-        default byte[] read(long offset, long bytes) {
-            throw new UnsupportedOperationException("Random access not supported");
+        default String mediaType() {
+            return "application/octet-stream";
         }
 
         @Override

@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.service.transferprocess;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
@@ -33,6 +32,7 @@ import org.eclipse.edc.connector.transfer.spi.event.TransferProcessTerminated;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
@@ -93,7 +93,8 @@ public class TransferProcessEventDispatchTest {
     private static RemoteMessageDispatcher getTestDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        var ack = TransferProcessAck.Builder.newInstance().build();
+        when(testDispatcher.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         return testDispatcher;
     }
 
@@ -111,7 +112,6 @@ public class TransferProcessEventDispatchTest {
         extension.registerServiceMock(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(newSingleThreadExecutor()));
         extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(ProtocolWebhook.class, () -> "http://dummy");
-        extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
         extension.registerServiceMock(PolicyArchive.class, mock(PolicyArchive.class));
         extension.registerServiceMock(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
         extension.registerServiceMock(ParticipantAgentService.class, mock(ParticipantAgentService.class));
@@ -140,8 +140,8 @@ public class TransferProcessEventDispatchTest {
         var providerId = "ProviderId";
 
         when(agreement.getProviderId()).thenReturn(providerId);
+        when(agreement.getPolicy()).thenReturn(Policy.Builder.newInstance().build());
         when(agent.getIdentity()).thenReturn(providerId);
-
 
         dispatcherRegistry.register(getTestDispatcher());
         when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(mock(Policy.class));
@@ -208,12 +208,23 @@ public class TransferProcessEventDispatchTest {
     }
 
     @Test
-    void shouldDispatchEventOnTransferProcessTerminated(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+    void shouldDispatchEventOnTransferProcessTerminated(TransferProcessService service,
+                                                        EventRouter eventRouter,
+                                                        RemoteMessageDispatcherRegistry dispatcherRegistry,
+                                                        PolicyArchive policyArchive) {
+
+        when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(mock(Policy.class));
         dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
         var transferRequest = createTransferRequest();
 
         var initiateResult = service.initiateTransfer(transferRequest);
+
+        await().atMost(TIMEOUT).untilAsserted(() -> {
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessProvisioned.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
+        });
 
         service.terminate(new TerminateTransferCommand(initiateResult.getContent().getId(), "any reason"));
 

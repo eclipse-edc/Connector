@@ -19,11 +19,11 @@ import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
@@ -37,6 +37,7 @@ import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -182,6 +183,32 @@ class TransferProcessServiceImplTest {
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
     }
 
+    @Nested
+    class Suspend {
+
+        @Test
+        void shouldExecuteCommandAndReturnResult() {
+            when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
+            var command = new SuspendTransferCommand("id", "reason");
+
+            var result = service.suspend(command);
+
+            assertThat(result).isSucceeded();
+            verify(commandHandlerRegistry).execute(command);
+        }
+
+        @Test
+        void shouldFailWhenCommandHandlerFails() {
+            when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notFound("not found"));
+            var command = new SuspendTransferCommand("id", "reason");
+
+            var result = service.suspend(command);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
+
+    }
+
     @Test
     void deprovision() {
         when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
@@ -209,7 +236,7 @@ class TransferProcessServiceImplTest {
             return Stream.of(
                     arguments(criterion("provisionedResourceSet.resources.hastoken", "=", "true")), // wrong case
                     arguments(criterion("resourceManifest.definitions.notexist", "=", "foobar")), // property not exist
-                    arguments(criterion("contentDataAddress.properties.someKey", "=", "someval")) // map types not supported
+                    arguments(criterion("contentDataAddress.properties[*].someKey", "=", "someval")) // map types not supported
             );
         }
     }
@@ -234,7 +261,7 @@ class TransferProcessServiceImplTest {
         return TransferProcess.Builder.newInstance()
                 .state(state.code())
                 .id(id)
-                .dataRequest(DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().type("any").build()).build())
+                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
     }
 

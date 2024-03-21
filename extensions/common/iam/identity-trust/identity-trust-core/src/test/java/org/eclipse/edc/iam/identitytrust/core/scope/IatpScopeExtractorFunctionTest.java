@@ -18,7 +18,7 @@ import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,15 +47,14 @@ public class IatpScopeExtractorFunctionTest {
     @Test
     void apply() {
         var policy = Policy.Builder.newInstance().build();
-        var tokenParamBuilder = TokenParameters.Builder.newInstance().audience("testAud");
+        var scopeBuilder = RequestScope.Builder.newInstance();
 
-        when(policyContext.getContextData(TokenParameters.Builder.class)).thenReturn(tokenParamBuilder);
+        when(policyContext.getContextData(RequestScope.Builder.class)).thenReturn(scopeBuilder);
         when(registry.extractScopes(eq(policy), any())).thenReturn(Result.success(Set.of("scope1", "scope2")));
 
         assertThat(function.apply(policy, policyContext)).isTrue();
-        assertThat(tokenParamBuilder.build())
-                .extracting(TokenParameters::getScope)
-                .extracting(scope -> scope.split(" "))
+        assertThat(scopeBuilder.build())
+                .extracting(RequestScope::getScopes)
                 .satisfies(scopes -> assertThat(scopes).contains("scope1", "scope2"));
     }
 
@@ -71,8 +70,8 @@ public class IatpScopeExtractorFunctionTest {
     @Test
     void apply_fail_whenScopeExtractorFails() {
         var policy = Policy.Builder.newInstance().build();
-        var tokenParamBuilder = TokenParameters.Builder.newInstance().audience("testAud");
-        when(policyContext.getContextData(TokenParameters.Builder.class)).thenReturn(tokenParamBuilder);
+        var scopeBuilder = RequestScope.Builder.newInstance();
+        when(policyContext.getContextData(RequestScope.Builder.class)).thenReturn(scopeBuilder);
 
         when(registry.extractScopes(eq(policy), any())).thenReturn(Result.failure("failure"));
 

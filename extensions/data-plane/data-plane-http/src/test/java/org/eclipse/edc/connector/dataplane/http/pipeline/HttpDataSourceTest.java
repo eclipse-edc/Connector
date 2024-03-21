@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -22,96 +21,108 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailureArgument;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.GENERAL_ERROR;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.NOT_AUTHORIZED;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HttpDataSourceTest {
 
-    private static final ObjectMapper MAPPER = new TypeManager().getMapper();
-
-    private String requestId;
-    private String url;
-    private final HttpRequestFactory requestFactory = mock(HttpRequestFactory.class);
-
-    @BeforeEach
-    public void setUp() {
-        requestId = UUID.randomUUID().toString();
-        url = "http://some.test.url/";
-    }
+    private final HttpRequestFactory requestFactory = mock();
 
     @Test
-    void verifyCallSuccess() throws IOException {
-        var json = MAPPER.writeValueAsString(Map.of("key1", "Value1"));
-        var responseBody = ResponseBody.create(json, MediaType.parse("application/json"));
+    void verifyCallSuccess() {
+        var responseBody = ResponseBody.create("{}", MediaType.parse("application/json"));
 
         var interceptor = new CustomInterceptor(200, responseBody, "Test message");
         var params = mock(HttpRequestParams.class);
-        var request = new Request.Builder().url(url).get().build();
+        var request = dummyRequest();
         var source = defaultBuilder(interceptor).params(params).requestFactory(requestFactory).build();
-
         when(requestFactory.toRequest(any())).thenReturn(request);
 
-        var parts = source.openPartStream().getContent().collect(Collectors.toList());
+        var parts = source.openPartStream().getContent().toList();
 
         var interceptedRequest = interceptor.getInterceptedRequest();
         assertThat(interceptedRequest).isEqualTo(request);
-        assertThat(parts).hasSize(1);
-        var part = parts.get(0);
-        try (var is = part.openStream()) {
-            assertThat(new String(is.readAllBytes())).isEqualTo(json);
-        }
+        assertThat(parts).hasSize(1).first().satisfies(part -> {
+            assertThat(part.mediaType()).startsWith("application/json");
+            assertThat(part.openStream()).hasContent("{}");
+        });
 
         verify(requestFactory).toRequest(any());
     }
 
     @ParameterizedTest
-    @MethodSource
-    void verifyCallFailed(StreamFailureArgument argument) {
-        var message = "Test message";
-        var body = "Test body";
-        var interceptor = new CustomInterceptor(argument.getCode(), ResponseBody.create(body, MediaType.parse("text/plain")), message);
-        var params = mock(HttpRequestParams.class);
-        var request = new Request.Builder().url(url).get().build();
-        var source = defaultBuilder(interceptor).params(params).requestFactory(requestFactory).build();
-
-        when(requestFactory.toRequest(any())).thenReturn(request);
+    @ArgumentsSource(StreamFailureArguments.class)
+    void verifyCallFailed(int code, StreamFailure.Reason reason) {
+        var responseBody = ResponseBody.create("Test body", MediaType.parse("text/plain"));
+        var interceptor = new CustomInterceptor(code, responseBody, "Test message");
+        var source = defaultBuilder(interceptor).params(mock()).requestFactory(requestFactory).build();
+        when(requestFactory.toRequest(any())).thenReturn(dummyRequest());
 
         var result = source.openPartStream();
-        assertThat(result.failed()).isTrue();
-        assertThat(result.reason()).isEqualTo(argument.getReason());
+
+        assertThat(result).isFailed().extracting(StreamFailure::getReason).isEqualTo(reason);
         verify(requestFactory).toRequest(any());
     }
 
-    static Stream<StreamFailureArgument> verifyCallFailed() {
-        return Stream.of(
-                new StreamFailureArgument(400, GENERAL_ERROR),
-                new StreamFailureArgument(401, NOT_AUTHORIZED),
-                new StreamFailureArgument(403, NOT_AUTHORIZED),
-                new StreamFailureArgument(500, GENERAL_ERROR));
+    @Test
+    void close_shouldCloseResponseBodyAndStream() throws IOException {
+        InputStream stream = mock();
+        var responseBody = spy(ResponseBody.create("{}", MediaType.parse("application/json")));
+        when(responseBody.byteStream()).thenReturn(stream);
+        var interceptor = new CustomInterceptor(200, responseBody, "Test message");
+        var source = defaultBuilder(interceptor).params(mock()).requestFactory(requestFactory).build();
+        when(requestFactory.toRequest(any())).thenReturn(dummyRequest());
+
+        source.openPartStream();
+        source.close();
+
+        verify(responseBody).close();
+        verify(stream).close();
+    }
+
+    @NotNull
+    private Request dummyRequest() {
+        return new Request.Builder().url("http://some.test.url/").get().build();
+    }
+
+    private static class StreamFailureArguments implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            return Stream.of(
+                    arguments(400, GENERAL_ERROR),
+                    arguments(401, NOT_AUTHORIZED),
+                    arguments(403, NOT_AUTHORIZED),
+                    arguments(500, GENERAL_ERROR)
+            );
+        }
     }
 
     private HttpDataSource.Builder defaultBuilder(Interceptor interceptor) {
@@ -120,7 +131,7 @@ class HttpDataSourceTest {
                 .httpClient(httpClient)
                 .name("test-name")
                 .monitor(mock(Monitor.class))
-                .requestId(requestId);
+                .requestId(UUID.randomUUID().toString());
     }
 
     static final class CustomInterceptor implements Interceptor {

@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.junit.extensions.EdcExtension;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -68,7 +68,7 @@ public class DataPlaneHttpExtensionTest {
         sourceServer.when(request()).respond(HttpResponse.response().withStatusCode(200));
         destinationServer.when(request()).respond(HttpResponse.response().withStatusCode(200));
 
-        var request = DataFlowRequest.Builder.newInstance()
+        var request = DataFlowStartMessage.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(source)
                 .destinationDataAddress(destination)
@@ -96,7 +96,7 @@ public class DataPlaneHttpExtensionTest {
         sourceServer.when(request()).respond(HttpResponse.response().withStatusCode(200));
         destinationServer.when(request()).respond(HttpResponse.response().withStatusCode(200));
 
-        var request = DataFlowRequest.Builder.newInstance()
+        var request = DataFlowStartMessage.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(source)
                 .destinationDataAddress(destination)

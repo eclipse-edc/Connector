@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionM
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
@@ -40,13 +41,14 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
@@ -99,6 +101,8 @@ public class DspHttpCoreExtension implements ServiceExtension {
     private PolicyEngine policyEngine;
 
     @Inject
+    private AudienceResolver audienceResolver;
+    @Inject
     private Monitor monitor;
 
     @Inject
@@ -119,7 +123,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
             td = bldr -> bldr;
         }
 
-        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, td, policyEngine);
+        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, td, policyEngine, audienceResolver);
         registerNegotiationPolicyScopes(dispatcher);
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);
@@ -129,12 +133,12 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public DspRequestHandler dspRequestHandler() {
-        return new DspRequestHandlerImpl(monitor, validatorRegistry, transformerRegistry);
+        return new DspRequestHandlerImpl(monitor, validatorRegistry, transformerRegistry.forContext("dsp-api"));
     }
 
     @Provider
     public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
-        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry, typeManager.getMapper(JSON_LD), jsonLdService, DSP_SCOPE);
+        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry.forContext("dsp-api"), typeManager.getMapper(JSON_LD), jsonLdService, DSP_SCOPE);
     }
 
     private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
@@ -147,6 +151,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     private void registerTransferProcessPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
         dispatcher.registerPolicyScope(TransferCompletionMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(TransferSuspensionMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
         dispatcher.registerPolicyScope(TransferTerminationMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
         dispatcher.registerPolicyScope(TransferStartMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
         dispatcher.registerPolicyScope(TransferRequestMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);

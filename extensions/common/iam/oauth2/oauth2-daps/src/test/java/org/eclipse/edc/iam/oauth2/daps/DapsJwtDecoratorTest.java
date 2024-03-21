@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.daps;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,18 +24,16 @@ class DapsJwtDecoratorTest {
     private final DapsJwtDecorator decorator = new DapsJwtDecorator();
 
     @Test
-    void claims() {
-        var result = decorator.claims();
+    void verifyDecorate() {
 
-        assertThat(result)
+        var builder = TokenParameters.Builder.newInstance();
+        decorator.decorate(builder);
+
+        var tokenParams = builder.build();
+        assertThat(tokenParams.getHeaders()).isEmpty();
+        assertThat(tokenParams.getClaims())
                 .hasFieldOrPropertyWithValue("@context", "https://w3id.org/idsa/contexts/context.jsonld")
                 .hasFieldOrPropertyWithValue("@type", "ids:DatRequestToken");
     }
 
-    @Test
-    void headers() {
-        var result = decorator.headers();
-
-        assertThat(result).isNotNull().isEmpty();
-    }
 }

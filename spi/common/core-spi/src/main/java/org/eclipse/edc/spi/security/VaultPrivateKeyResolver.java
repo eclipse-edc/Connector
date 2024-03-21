@@ -14,41 +14,33 @@
 
 package org.eclipse.edc.spi.security;
 
-import org.jetbrains.annotations.Nullable;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 
 /**
- * Implementation that returns private keys stored in a vault.
+ * Implementation that returns private keys stored in a vault. If the key is not found in the vault, this implementation
+ * falls back to the {@link Config} attempting to get the private key from there.
+ * <p>
+ * Note that storing private key material in the config is <strong>NOT SECURE</strong> and should be avoided in production scenarios!
  */
 public class VaultPrivateKeyResolver extends AbstractPrivateKeyResolver {
 
     private final Vault vault;
-    private final List<KeyParser<?>> parsers;
 
-    public VaultPrivateKeyResolver(Vault vault, KeyParser<?>... parsers) {
-        super(parsers);
+    public VaultPrivateKeyResolver(KeyParserRegistry registry, Vault vault, Monitor monitor, Config config) {
+        super(registry, config, monitor);
         this.vault = vault;
-        this.parsers = Arrays.asList(parsers);
     }
 
-    public VaultPrivateKeyResolver(Vault vault) {
-        // can't use this(vault) here because properties are final
-        this.vault = vault;
-        parsers = new ArrayList<>();
-    }
-
+    @NotNull
     @Override
-    public @Nullable <T> T resolvePrivateKey(String id, Class<T> keyType) {
-        var encodedKey = vault.resolveSecret(id);
-
-        if (encodedKey == null) {
-            return null;
-        }
-
-        return keyType.cast(getParser(keyType).parse(encodedKey));
+    protected Result<String> resolveInternal(String keyId) {
+        return Optional.ofNullable(vault.resolveSecret(keyId))
+                .map(Result::success)
+                .orElseGet(() -> Result.failure("Private key with ID '%s' not found in Vault".formatted(keyId)));
     }
-
 }

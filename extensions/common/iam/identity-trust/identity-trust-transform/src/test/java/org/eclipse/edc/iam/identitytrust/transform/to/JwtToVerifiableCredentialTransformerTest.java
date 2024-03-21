@@ -33,9 +33,10 @@ class JwtToVerifiableCredentialTransformerTest {
         var vc = transformer.transform(EXAMPLE_JWT_VC, context);
 
         assertThat(vc).isNotNull();
-        assertThat(vc.getTypes()).doesNotContainNull().isNotEmpty();
+        assertThat(vc.getType()).doesNotContainNull().isNotEmpty();
         assertThat(vc.getCredentialStatus()).isNotNull();
         assertThat(vc.getCredentialSubject()).doesNotContainNull().isNotEmpty();
+        assertThat(vc.getCredentialSubject().stream().findFirst().orElseThrow().getId()).isNotNull();
 
         verifyNoInteractions(context);
     }

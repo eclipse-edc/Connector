@@ -16,26 +16,31 @@ package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher;
 
 
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.dispatcher.PostDspHttpRequestFactory;
+import org.eclipse.edc.protocol.dsp.serialization.JsonLdResponseBodyDeserializer;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
-import org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate.TransferCompletionDelegate;
-import org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate.TransferRequestDelegate;
-import org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate.TransferStartDelegate;
-import org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate.TransferTerminationDelegate;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
+import static org.eclipse.edc.protocol.dsp.spi.dispatcher.response.DspHttpResponseBodyExtractor.NOOP;
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_COMPLETION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_START;
+import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_SUSPENSION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_TERMINATION;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 
 /**
@@ -48,8 +53,18 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
 
     @Inject
     private DspHttpRemoteMessageDispatcher messageDispatcher;
+
     @Inject
     private JsonLdRemoteMessageSerializer remoteMessageSerializer;
+
+    @Inject
+    private TypeManager typeManager;
+
+    @Inject
+    private TypeTransformerRegistry transformerRegistry;
+
+    @Inject
+    private JsonLd jsonLd;
 
     @Override
     public String name() {
@@ -61,22 +76,27 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
         messageDispatcher.registerMessage(
                 TransferRequestMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + TRANSFER_INITIAL_REQUEST),
-                new TransferRequestDelegate()
+                new JsonLdResponseBodyDeserializer<>(TransferProcessAck.class, typeManager.getMapper(JSON_LD), jsonLd, transformerRegistry.forContext("dsp-api"))
         );
         messageDispatcher.registerMessage(
                 TransferCompletionMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TRANSFER_COMPLETION),
-                new TransferCompletionDelegate(remoteMessageSerializer)
+                NOOP
         );
         messageDispatcher.registerMessage(
                 TransferStartMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TRANSFER_START),
-                new TransferStartDelegate()
+                NOOP
+        );
+        messageDispatcher.registerMessage(
+                TransferSuspensionMessage.class,
+                new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TRANSFER_SUSPENSION),
+                NOOP
         );
         messageDispatcher.registerMessage(
                 TransferTerminationMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TRANSFER_TERMINATION),
-                new TransferTerminationDelegate()
+                NOOP
         );
     }
 }

@@ -28,10 +28,13 @@ public class TestFunctions {
     }
 
     public static DataPlaneInstance createInstance(String id) {
+        return createInstanceBuilder(id).build();
+    }
+
+    public static DataPlaneInstance.Builder createInstanceBuilder(String id) {
         return DataPlaneInstance.Builder.newInstance()
                 .id(id)
-                .url("http://somewhere.com:1234/api/v1")
-                .build();
+                .url("http://somewhere.com:1234/api/v1");
     }
 
     public static DataPlaneInstance createCustomInstance(String id, String name) {

@@ -62,24 +62,6 @@ public class Duty extends Rule {
         return "Duty constraint: [" + getConstraints().stream().map(Object::toString).collect(joining(",")) + "]";
     }
 
-    /**
-     * Returns a copy of this duty with the specified target.
-     *
-     * @param target the target.
-     * @return a copy with the specified target.
-     */
-    public Duty withTarget(String target) {
-        return Builder.newInstance()
-                .assigner(this.assigner)
-                .assignee(this.assignee)
-                .action(this.action)
-                .constraints(this.constraints)
-                .parentPermission(this.parentPermission)
-                .consequence(this.consequence == null ? null : this.consequence.withTarget(target))
-                .target(target)
-                .build();
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends Rule.Builder<Duty, Duty.Builder> {
 

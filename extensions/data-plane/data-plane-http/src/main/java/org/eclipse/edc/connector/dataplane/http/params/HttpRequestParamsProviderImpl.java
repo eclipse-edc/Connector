@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +52,7 @@ public class HttpRequestParamsProviderImpl implements HttpRequestParamsProvider 
     }
 
     @Override
-    public HttpRequestParams provideSourceParams(DataFlowRequest request) {
+    public HttpRequestParams provideSourceParams(DataFlowStartMessage request) {
         var params = HttpRequestParams.Builder.newInstance();
         var address = HttpDataAddress.Builder.newInstance().copyFrom(request.getSourceDataAddress()).build();
         sourceDecorators.forEach(decorator -> decorator.decorate(request, address, params));
@@ -60,7 +60,7 @@ public class HttpRequestParamsProviderImpl implements HttpRequestParamsProvider 
     }
 
     @Override
-    public HttpRequestParams provideSinkParams(DataFlowRequest request) {
+    public HttpRequestParams provideSinkParams(DataFlowStartMessage request) {
         var params = HttpRequestParams.Builder.newInstance();
         var address = HttpDataAddress.Builder.newInstance().copyFrom(request.getDestinationDataAddress()).build();
         sinkDecorators.forEach(decorator -> decorator.decorate(request, address, params));

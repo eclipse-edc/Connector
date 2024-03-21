@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.store.sql.assetindex.ConfigurationKeys.DATASOURCE_SETTING_NAME;
+import static org.eclipse.edc.connector.store.sql.assetindex.SqlAssetIndexServiceExtension.DATASOURCE_SETTING_NAME;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.boot.system;
 
+import org.eclipse.edc.boot.BootServicesExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
@@ -107,7 +108,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         });
         config = loadConfig();
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
-        participantId = getSetting(PARTICIPANT_ID, ANONYMOUS_PARTICIPANT);
+        participantId = getSetting(BootServicesExtension.PARTICIPANT_ID, ANONYMOUS_PARTICIPANT);
         if (ANONYMOUS_PARTICIPANT.equals(participantId)) {
             getMonitor().warning("The runtime is configured as an anonymous participant. DO NOT DO THIS IN PRODUCTION.");
         }

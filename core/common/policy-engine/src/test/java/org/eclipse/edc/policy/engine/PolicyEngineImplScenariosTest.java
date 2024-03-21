@@ -42,7 +42,7 @@ public class PolicyEngineImplScenariosTest {
     private static final String TEST_SCOPE = "test";
     private static final String ABS_SPATIAL_CONSTRAINT = "absoluteSpatialPosition";
     private static final String CONNECTOR_CONSTRAINT = "connector";
-    private static final Action USE_ACTION = Action.Builder.newInstance().type("USE").build();
+    private static final Action USE_ACTION = Action.Builder.newInstance().type("use").build();
 
     private final RuleBindingRegistry bindingRegistry = new RuleBindingRegistryImpl();
     private PolicyEngineImpl policyEngine;
@@ -141,5 +141,5 @@ public class PolicyEngineImplScenariosTest {
 
         assertThat(result.succeeded()).isTrue();
     }
-
+    
 }

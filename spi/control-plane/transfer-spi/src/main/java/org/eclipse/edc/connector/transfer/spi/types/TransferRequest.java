@@ -33,6 +33,7 @@ public class TransferRequest {
     public static final String TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String TRANSFER_REQUEST_CONTRACT_ID = EDC_NAMESPACE + "contractId";
     public static final String TRANSFER_REQUEST_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
+    public static final String TRANSFER_REQUEST_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     @Deprecated(since = "0.2.0")
     public static final String TRANSFER_REQUEST_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
@@ -47,6 +48,7 @@ public class TransferRequest {
     private String counterPartyAddress;
     private String contractId;
     private String assetId;
+    private String transferType;
     private DataAddress dataDestination;
     @Deprecated(since = "0.2.0")
     private Map<String, String> properties = new HashMap<>();
@@ -90,6 +92,10 @@ public class TransferRequest {
         return callbackAddresses;
     }
 
+    public String getTransferType() {
+        return transferType;
+    }
+
     public static final class Builder {
         private final TransferRequest request;
 
@@ -113,6 +119,11 @@ public class TransferRequest {
 
         public Builder contractId(String contractId) {
             request.contractId = contractId;
+            return this;
+        }
+
+        public Builder transferType(String transferType) {
+            request.transferType = transferType;
             return this;
         }
 

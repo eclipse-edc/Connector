@@ -17,18 +17,22 @@ package org.eclipse.edc.protocol.dsp.catalog.api;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
-import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
+import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.protocol.dsp.catalog.api.controller.DspCatalogApiController;
+import org.eclipse.edc.protocol.dsp.catalog.api.controller.DspCatalogApiController20241;
 import org.eclipse.edc.protocol.dsp.catalog.api.validation.CatalogRequestMessageValidator;
+import org.eclipse.edc.protocol.dsp.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.version.DspVersions.V_2024_1;
 
 /**
  * Creates and registers the controller for dataspace protocol catalog requests.
@@ -50,6 +54,10 @@ public class DspCatalogApiExtension implements ServiceExtension {
     private JsonObjectValidatorRegistry validatorRegistry;
     @Inject
     private DspRequestHandler dspRequestHandler;
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
+    @Inject
+    private ProtocolVersionRegistry versionRegistry;
 
     @Override
     public String name() {
@@ -58,14 +66,16 @@ public class DspCatalogApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        validatorRegistry.register(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE, CatalogRequestMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE, CatalogRequestMessageValidator.instance(criterionOperatorRegistry));
 
-        var catalogController = new DspCatalogApiController(service, dspRequestHandler);
-        webService.registerResource(apiConfiguration.getContextAlias(), catalogController);
+        webService.registerResource(apiConfiguration.getContextAlias(), new DspCatalogApiController(service, dspRequestHandler));
+        webService.registerResource(apiConfiguration.getContextAlias(), new DspCatalogApiController20241(service, dspRequestHandler));
 
         dataServiceRegistry.register(DataService.Builder.newInstance()
                 .terms("connector")
                 .endpointUrl(apiConfiguration.getDspCallbackAddress())
                 .build());
+
+        versionRegistry.register(V_2024_1);
     }
 }

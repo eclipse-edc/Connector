@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.contractnegotiation;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractOfferDescriptionTransformer;
@@ -31,6 +30,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -51,7 +51,7 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     private ManagementApiConfiguration config;
 
     @Inject
-    private ManagementApiTypeTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @Inject
     private ContractNegotiationService service;
@@ -69,17 +69,19 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         var factory = Json.createBuilderFactory(Map.of());
         var monitor = context.getMonitor();
 
-        transformerRegistry.register(new JsonObjectToContractRequestTransformer());
-        transformerRegistry.register(new JsonObjectToContractOfferTransformer());
-        transformerRegistry.register(new JsonObjectToContractOfferDescriptionTransformer());
-        transformerRegistry.register(new JsonObjectToTerminateNegotiationCommandTransformer());
-        transformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
-        transformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
+        var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
+
+        managementApiTransformerRegistry.register(new JsonObjectToContractRequestTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToContractOfferTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToContractOfferDescriptionTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToTerminateNegotiationCommandTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
+        managementApiTransformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
 
         validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance(monitor));
         validatorRegistry.register(TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instance());
 
-        var controller = new ContractNegotiationApiController(service, transformerRegistry, monitor, validatorRegistry);
+        var controller = new ContractNegotiationApiController(service, managementApiTransformerRegistry, monitor, validatorRegistry);
         webService.registerResource(config.getContextAlias(), controller);
     }
 }

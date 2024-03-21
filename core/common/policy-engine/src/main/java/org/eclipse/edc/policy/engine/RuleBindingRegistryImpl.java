@@ -16,16 +16,21 @@ package org.eclipse.edc.policy.engine;
 
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class RuleBindingRegistryImpl implements RuleBindingRegistry {
     private static final String DELIMITER = ".";
     private static final String DELIMITED_ALL = "*" + DELIMITER;
 
     private final Map<String, Set<String>> ruleBindings = new HashMap<>();
+    private final List<Function<String, Set<String>>> dynamicBinders = new ArrayList<>();
 
     @Override
     public void bind(String ruleType, String scope) {
@@ -33,10 +38,17 @@ public class RuleBindingRegistryImpl implements RuleBindingRegistry {
     }
 
     @Override
+    public void dynamicBind(Function<String, Set<String>> binder) {
+        dynamicBinders.add(binder);
+    }
+
+    @Override
     public boolean isInScope(String ruleType, String scope) {
         var boundScopes = ruleBindings.get(ruleType);
         if (boundScopes == null) {
-            return false;
+            boundScopes = dynamicBinders.stream()
+                    .flatMap(binder -> binder.apply(ruleType).stream())
+                    .collect(Collectors.toSet());
         }
         if (boundScopes.contains(DELIMITED_ALL)) {
             return true;

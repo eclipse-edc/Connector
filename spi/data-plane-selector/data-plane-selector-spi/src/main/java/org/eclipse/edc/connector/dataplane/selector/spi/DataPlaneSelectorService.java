@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -44,7 +45,16 @@ public interface DataPlaneSelectorService {
      * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the passed
      * strategy.
      */
-    DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy);
+    default DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy) {
+        return select(source, destination, selectionStrategy, null);
+    }
+
+    /**
+     * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the passed
+     * strategy and the optional transferType.
+     */
+    DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy, @Nullable String transferType);
+    
 
     /**
      * Add a data plane instance

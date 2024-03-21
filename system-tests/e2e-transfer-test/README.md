@@ -6,7 +6,6 @@ This tests verifies some complete scenarios of contract negotiation and data tra
 
 * [backend-service](./backend-service): it represents an external application that interacts with the EDC.
 * [control-plane](./control-plane): it's responsible for handling the contract negotiation phase using in-memory persistence
-* [control-plane-postgresql](./control-plane-postgresql): it's responsible for handling the contract negotiation phase using postgresql persistence
 * [data-plane](./data-plane): it handles the data transfer phase acting as a proxy
 * [runner](./runner): it contains the test implementation
 

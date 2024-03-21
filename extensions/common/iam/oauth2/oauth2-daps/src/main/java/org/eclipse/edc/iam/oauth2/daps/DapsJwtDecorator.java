@@ -14,24 +14,14 @@
 
 package org.eclipse.edc.iam.oauth2.daps;
 
-import org.eclipse.edc.jwt.spi.JwtDecorator;
+import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
-import java.util.Map;
-
-import static java.util.Collections.emptyMap;
-
-public class DapsJwtDecorator implements JwtDecorator {
+public class DapsJwtDecorator implements TokenDecorator {
 
     @Override
-    public Map<String, Object> claims() {
-        return Map.of(
-                "@context", "https://w3id.org/idsa/contexts/context.jsonld",
-                "@type", "ids:DatRequestToken"
-        );
-    }
-
-    @Override
-    public Map<String, Object> headers() {
-        return emptyMap();
+    public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
+        return tokenParameters.claims("@context", "https://w3id.org/idsa/contexts/context.jsonld")
+                .claims("@type", "ids:DatRequestToken");
     }
 }

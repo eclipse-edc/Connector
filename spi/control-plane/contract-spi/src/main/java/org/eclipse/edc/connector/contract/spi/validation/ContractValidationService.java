@@ -18,7 +18,7 @@ package org.eclipse.edc.connector.contract.spi.validation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
@@ -37,69 +37,55 @@ public interface ContractValidationService {
     String TRANSFER_SCOPE = "transfer.process";
 
     /**
-     * Validates and sanitizes the contract offer for the consumer represented by the given claims.
-     * <p>
-     * The original offer must be validated and sanitized to avoid policy and asset injection attacks by malicious consumers.
-     *
-     * @param token The {@link ClaimToken} of the consumer
-     * @param offer The initial {@link ContractOffer} to validate
-     * @return The sanitized version {@link ContractOffer}. The input {@link ContractOffer} could contain some fields or value on policy or asset that differs from the original
-     *     policy and asset defined by the provider, which could cause injection attacks. The provider validation should return a new {@link ContractOffer} that contains the
-     *     original policy and asset defined by the provider.
-     */
-    @NotNull
-    Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, ContractOffer offer);
-
-    /**
      * Validates the contract offer for the consumer represented by the given claims.
      *
-     * @param token   The {@link ClaimToken} of the consumer
-     * @param offerId The initial {@link ContractOffer} id to validate
-     * @return The referenced {@link ContractOffer}.
+     * @param agent         The {@link ParticipantAgent} of the consumer
+     * @param consumerOffer The initial {@link ValidatableConsumerOffer} id to validate
+     * @return The referenced {@link ValidatedConsumerOffer}.
      */
     @NotNull
-    Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, String offerId);
+    Result<ValidatedConsumerOffer> validateInitialOffer(ParticipantAgent agent, ValidatableConsumerOffer consumerOffer);
 
     /**
      * Validates the contract agreement that the consumer referenced in its transfer request.
-     * The {@code ClaimToken} must represent the counter-party that is referenced in the contract agreement.
+     * The {@code ParticipantAgent} must represent the counter-party that is referenced in the contract agreement.
      *
-     * @param token     The {@link ClaimToken} of the consumer
+     * @param agent     The {@link ParticipantAgent} of the consumer
      * @param agreement The {@link ContractAgreement} between consumer and provider to validate
      * @return The result of the validation
      */
     @NotNull
-    Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement);
+    Result<ContractAgreement> validateAgreement(ParticipantAgent agent, ContractAgreement agreement);
 
     /**
      * Validates the request for a contract agreement. Verifies that the requesting party is involved
      * in the contract agreement, but does not perform policy evaluation.
      *
-     * @param token     The {@link ClaimToken} of the counter-party
+     * @param agent     The {@link ParticipantAgent} of the counter-party
      * @param agreement The agreement
      * @return The result of the validation
      */
     @NotNull
-    Result<Void> validateRequest(ClaimToken token, ContractAgreement agreement);
+    Result<Void> validateRequest(ParticipantAgent agent, ContractAgreement agreement);
 
     /**
      * Validates the request for a contract negotiation.
      *
-     * @param token       The {@link ClaimToken} of the consumer
+     * @param agent       The {@link ParticipantAgent} of the consumer
      * @param negotiation The negotiation
      * @return The result of the validation
      */
     @NotNull
-    Result<Void> validateRequest(ClaimToken token, ContractNegotiation negotiation);
+    Result<Void> validateRequest(ParticipantAgent agent, ContractNegotiation negotiation);
 
     /**
      * When the negotiation has been confirmed by the provider, the consumer must validate it ensuring that it is the same that was sent in the last offer.
      *
-     * @param token       The {@link ClaimToken} the provider token
+     * @param agent       The {@link ParticipantAgent} the provider agent
      * @param agreement   The {@link ContractAgreement} between consumer and provider
      * @param latestOffer The last {@link ContractOffer}
      */
     @NotNull
-    Result<Void> validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer);
+    Result<Void> validateConfirmed(ParticipantAgent agent, ContractAgreement agreement, ContractOffer latestOffer);
 
 }

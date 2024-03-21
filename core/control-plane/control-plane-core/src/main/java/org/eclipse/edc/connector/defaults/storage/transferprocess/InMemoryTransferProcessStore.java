@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.defaults.storage.transferprocess;
 import org.eclipse.edc.connector.core.store.InMemoryStatefulEntityStore;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.Nullable;
@@ -33,17 +34,17 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
  */
 public class InMemoryTransferProcessStore extends InMemoryStatefulEntityStore<TransferProcess> implements TransferProcessStore {
 
-    public InMemoryTransferProcessStore(Clock clock) {
-        this(UUID.randomUUID().toString(), clock);
+    public InMemoryTransferProcessStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        this(UUID.randomUUID().toString(), clock, criterionOperatorRegistry);
     }
 
-    public InMemoryTransferProcessStore(String leaserId, Clock clock) {
-        super(TransferProcess.class, leaserId, clock);
+    public InMemoryTransferProcessStore(String leaserId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        super(TransferProcess.class, leaserId, clock, criterionOperatorRegistry);
     }
 
     @Override
     public @Nullable TransferProcess findForCorrelationId(String correlationId) {
-        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("dataRequest.id", "=", correlationId)).build();
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("correlationId", "=", correlationId)).build();
 
         return super.findAll(querySpec).findFirst().orElse(null);
     }

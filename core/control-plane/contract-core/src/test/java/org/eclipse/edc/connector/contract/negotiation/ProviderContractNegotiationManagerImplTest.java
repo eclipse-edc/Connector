@@ -25,12 +25,13 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiatio
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -69,6 +70,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
+import static org.eclipse.edc.policy.model.PolicyType.CONTRACT;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
@@ -88,11 +90,12 @@ class ProviderContractNegotiationManagerImplTest {
 
     private static final String PROVIDER_ID = "provider";
     private static final int RETRY_LIMIT = 1;
-    private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
-    private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
-    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
-    private final ContractNegotiationListener listener = mock(ContractNegotiationListener.class);
+    private final ContractNegotiationStore store = mock();
+    private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
+    private final PolicyDefinitionStore policyStore = mock();
+    private final ContractNegotiationListener listener = mock();
     private final ContractNegotiationPendingGuard pendingGuard = mock();
+    private final ProtocolWebhook protocolWebhook = mock();
     private ProviderContractNegotiationManagerImpl manager;
 
     @BeforeEach
@@ -102,12 +105,13 @@ class ProviderContractNegotiationManagerImplTest {
         manager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .participantId(PROVIDER_ID)
                 .dispatcherRegistry(dispatcherRegistry)
-                .monitor(mock(Monitor.class))
+                .monitor(mock())
                 .observable(observable)
                 .store(store)
                 .policyStore(policyStore)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .pendingGuard(pendingGuard)
+                .protocolWebhook(protocolWebhook)
                 .build();
     }
 
@@ -115,14 +119,23 @@ class ProviderContractNegotiationManagerImplTest {
     void offering_shouldSendOfferAndTransitionToOffered() {
         var negotiation = contractNegotiationBuilder().state(OFFERING.code()).contractOffer(contractOffer()).build();
         when(store.nextNotLeased(anyInt(), stateIs(OFFERING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        var ack = ContractNegotiationAck.Builder.newInstance().consumerPid("consumerPid").build();
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
+        when(protocolWebhook.url()).thenReturn("http://callback.address");
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == OFFERED.code()));
-            verify(dispatcherRegistry, only()).dispatch(any(), isA(ContractOfferMessage.class));
+            var captor = ArgumentCaptor.forClass(ContractNegotiation.class);
+            verify(store).save(captor.capture());
+            var storedNegotiation = captor.getValue();
+            assertThat(storedNegotiation.getState()).isEqualTo(OFFERED.code());
+            assertThat(storedNegotiation.getCorrelationId()).isEqualTo("consumerPid");
+            var messageCaptor = ArgumentCaptor.forClass(ContractOfferMessage.class);
+            verify(dispatcherRegistry, only()).dispatch(any(), messageCaptor.capture());
+            var message = messageCaptor.getValue();
+            assertThat(message.getCallbackAddress()).isEqualTo("http://callback.address");
             verify(listener).offered(any());
         });
     }
@@ -174,7 +187,6 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder()
                 .state(AGREEING.code())
                 .contractOffer(contractOffer())
-                .contractAgreement(contractAgreementBuilder().policy(Policy.Builder.newInstance().build()).build())
                 .build();
         when(store.nextNotLeased(anyInt(), stateIs(AGREEING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
@@ -184,8 +196,14 @@ class ProviderContractNegotiationManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == AGREED.code()));
-            verify(dispatcherRegistry, only()).dispatch(any(), isA(ContractAgreementMessage.class));
+            var messageCaptor = ArgumentCaptor.forClass(ContractAgreementMessage.class);
+            verify(dispatcherRegistry, only()).dispatch(any(), messageCaptor.capture());
+            assertThat(messageCaptor.getValue().getPolicy().getType()).isEqualTo(CONTRACT);
+            var storedCaptor = ArgumentCaptor.forClass(ContractNegotiation.class);
+            verify(store).save(storedCaptor.capture());
+            var stored = storedCaptor.getValue();
+            assertThat(stored.getState()).isEqualTo(AGREED.code());
+            assertThat(stored.getContractAgreement().getPolicy().getType()).isEqualTo(CONTRACT);
             verify(listener).agreed(any());
         });
     }
@@ -247,6 +265,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(starting.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
+        when(protocolWebhook.url()).thenReturn("http://callback.address");
 
         manager.start();
 

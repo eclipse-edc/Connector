@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.core;
 
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
-import org.eclipse.edc.connector.core.security.DefaultPrivateKeyParseFunction;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
@@ -27,11 +26,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.security.PrivateKey;
 import java.util.concurrent.Executors;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -63,9 +59,4 @@ class CoreServicesExtensionTest {
         PolicyRegistrationTypes.TYPES.forEach(t -> verify(typeManager).registerTypes(t));
     }
 
-    @Test
-    void verifyDefaultPrivateKeyParserIsRegistered() {
-        extension.initialize(context);
-        verify(privateKeyResolverMock).addParser(eq(PrivateKey.class), any(DefaultPrivateKeyParseFunction.class));
-    }
 }

@@ -18,15 +18,16 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
+import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
@@ -37,7 +38,8 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,6 +67,8 @@ public class TransferProcessHttpClientIntegrationTest {
     private final int port = getFreePort();
     private final TransferService service = mock();
 
+    private final PolicyArchive policyArchive = mock();
+
     @BeforeEach
     void setUp(EdcExtension extension) {
         when(service.canHandle(any())).thenReturn(true);
@@ -81,9 +85,12 @@ public class TransferProcessHttpClientIntegrationTest {
         extension.registerSystemExtension(ServiceExtension.class, new TransferServiceMockExtension(service));
         extension.registerServiceMock(ProtocolWebhook.class, mock());
         extension.registerServiceMock(IdentityService.class, mock());
+        extension.registerServiceMock(PolicyArchive.class, policyArchive);
         var registry = mock(RemoteMessageDispatcherRegistry.class);
         when(registry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);
+
+        when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
     }
 
     @Test
@@ -93,7 +100,7 @@ public class TransferProcessHttpClientIntegrationTest {
         store.save(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
-        manager.initiate(dataFlowRequest);
+        manager.start(dataFlowRequest);
 
         await().untilAsserted(() -> {
             var transferProcess = store.findById("tp-id");
@@ -109,7 +116,7 @@ public class TransferProcessHttpClientIntegrationTest {
         store.save(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
-        manager.initiate(dataFlowRequest);
+        manager.start(dataFlowRequest);
 
         await().untilAsserted(() -> {
             var transferProcess = store.findById("tp-id");
@@ -127,7 +134,7 @@ public class TransferProcessHttpClientIntegrationTest {
         store.save(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
-        manager.initiate(dataFlowRequest);
+        manager.start(dataFlowRequest);
 
         await().untilAsserted(() -> {
             var transferProcess = store.findById("tp-id");
@@ -143,22 +150,21 @@ public class TransferProcessHttpClientIntegrationTest {
                 .id(id)
                 .state(TransferProcessStates.STARTED.code())
                 .type(TransferProcess.Type.PROVIDER)
-                .dataRequest(DataRequest.Builder.newInstance()
-                        .id(UUID.randomUUID().toString())
-                        .destinationType("file")
-                        .protocol("any")
-                        .connectorAddress("http://an/address")
-                        .build())
+                .correlationId(UUID.randomUUID().toString())
+                .dataDestination(DataAddress.Builder.newInstance().type("file").build())
+                .protocol("any")
+                .counterPartyAddress("http://an/address")
                 .build();
     }
 
-    private DataFlowRequest createDataFlowRequest(String processId, URI callbackAddress) {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage createDataFlowRequest(String processId, URI callbackAddress) {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(processId)
                 .callbackAddress(callbackAddress)
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("file").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("file").build())
+                .flowType(FlowType.PUSH)
                 .build();
     }
 

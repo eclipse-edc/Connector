@@ -59,6 +59,10 @@ public class DspErrorResponse {
         return internalBuild(Response.Status.INTERNAL_SERVER_ERROR, Collections.emptyList());
     }
 
+    public Response unauthorized() {
+        return internalBuild(Response.Status.UNAUTHORIZED, List.of("Unauthorized."));
+    }
+
     public DspErrorResponse processId(String processId) {
         this.processId = processId;
         return this;

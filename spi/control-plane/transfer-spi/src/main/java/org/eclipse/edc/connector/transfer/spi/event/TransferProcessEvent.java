@@ -28,11 +28,25 @@ import java.util.Objects;
 public abstract class TransferProcessEvent extends Event {
 
     protected String transferProcessId;
-
     protected List<CallbackAddress> callbackAddresses = new ArrayList<>();
+    protected String assetId;
+    protected String type;
+    protected String contractId;
 
     public String getTransferProcessId() {
         return transferProcessId;
+    }
+
+    public String getAssetId() {
+        return assetId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getContractId() {
+        return contractId;
     }
 
     @Override
@@ -53,15 +67,30 @@ public abstract class TransferProcessEvent extends Event {
             return (B) this;
         }
 
+        public B assetId(String assetId) {
+            event.assetId = assetId;
+            return (B) this;
+        }
+
         public B callbackAddresses(List<CallbackAddress> callbackAddresses) {
             event.callbackAddresses = callbackAddresses;
+            return self();
+        }
+
+        public B type(String type) {
+            event.type = type;
+            return self();
+        }
+
+        public B contractId(String contractId) {
+            event.contractId = contractId;
             return self();
         }
 
         public abstract B self();
 
         public T build() {
-            Objects.requireNonNull(event.transferProcessId);
+            Objects.requireNonNull(event.transferProcessId, "transferProcess id can't be null");
             return event;
         }
 

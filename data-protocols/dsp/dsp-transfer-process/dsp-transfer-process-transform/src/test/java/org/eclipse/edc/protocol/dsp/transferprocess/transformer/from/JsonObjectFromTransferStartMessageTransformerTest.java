@@ -22,13 +22,14 @@ import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferStartMessageTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -40,26 +41,20 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromTransferStartMessageTransformerTest {
 
-    private final String processId = "testId";
-
-    private final String protocol = "testProtocol";
-
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
 
-    private JsonObjectFromTransferStartMessageTransformer transformer;
-
-    @BeforeEach
-    void setUp() {
-        transformer = new JsonObjectFromTransferStartMessageTransformer(jsonFactory);
-    }
+    private final JsonObjectFromTransferStartMessageTransformer transformer =
+            new JsonObjectFromTransferStartMessageTransformer(jsonFactory);
 
     @Test
     void transformTransferStartMessage() {
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
         var message = TransferStartMessage.Builder.newInstance()
-                .processId(processId)
-                .protocol(protocol)
+                .processId("processId")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
+                .protocol("testProtocol")
                 .dataAddress(dataAddress)
                 .build();
 
@@ -69,8 +64,10 @@ class JsonObjectFromTransferStartMessageTransformerTest {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_START_MESSAGE);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(processId);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_TRANSFER_START_MESSAGE);
+        assertThat(result.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
+        assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID)).isEqualTo("providerPid");
+        assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID)).isEqualTo("consumerPid");
         assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS)).isEqualTo(dataAddressJson);
 
         verify(context, times(1)).transform(dataAddress, JsonObject.class);

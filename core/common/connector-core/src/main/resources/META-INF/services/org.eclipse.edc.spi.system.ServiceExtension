@@ -14,3 +14,5 @@
 
 org.eclipse.edc.connector.core.CoreServicesExtension
 org.eclipse.edc.connector.core.CoreDefaultServicesExtension
+org.eclipse.edc.connector.core.SecurityDefaultServicesExtension
+org.eclipse.edc.connector.core.LocalPublicKeyDefaultExtension

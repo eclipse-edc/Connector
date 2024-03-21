@@ -132,7 +132,7 @@ class ContractNegotiationEventDispatchTest {
                 .counterPartyAddress("counterPartyAddress")
                 .callbackAddress("callbackAddress")
                 .contractOffer(contractOffer)
-                .processId("processId")
+                .consumerPid("consumerPid")
                 .build();
     }
 

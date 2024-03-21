@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.dataplane.spi.schema;
 
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 /**
- * Schema of {@link DataFlowRequest} properties.
+ * Schema of {@link DataFlowStartMessage} properties.
  */
 public interface DataFlowRequestSchema {
 

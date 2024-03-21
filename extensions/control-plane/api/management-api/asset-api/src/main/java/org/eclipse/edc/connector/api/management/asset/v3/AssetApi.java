@@ -80,7 +80,7 @@ public interface AssetApi {
             "by a contract agreement, in which case an error is returned. " +
             "DANGER ZONE: Note that deleting assets can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Asset was deleted successfully"),
+                    @ApiResponse(responseCode = "204", description = "Asset was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An asset with the given ID does not exist",

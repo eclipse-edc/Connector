@@ -28,7 +28,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 /**
- * Verify that the @value node has a certain value
+ * Verify that the @type node has a certain value
  */
 public class TypeIs implements Validator<JsonObject> {
 
@@ -42,24 +42,23 @@ public class TypeIs implements Validator<JsonObject> {
 
     @Override
     public ValidationResult validate(JsonObject input) {
-        var newPath = path.append(TYPE);
-        var typeStream = Optional.of(input)
+        var types = Optional.of(input)
                 .map(it -> it.getJsonArray(TYPE))
-                .stream().flatMap(Collection::stream);
-
-        var result = typeStream
+                .stream().flatMap(Collection::stream)
                 .filter(it -> it.getValueType() == JsonValue.ValueType.STRING)
                 .map(JsonString.class::cast)
                 .map(JsonString::getString)
-                .filter(it -> it.equals(expectedType))
-                .findFirst();
+                .toList();
 
-        if (result.isPresent()) {
+
+        if (types.contains(expectedType)) {
             return ValidationResult.success();
         } else {
+            var newPath = path.append(TYPE);
+
             var violation = violation(
                     "%s was expected to be %s but it was not".formatted(newPath, expectedType),
-                    newPath.toString(), typeStream
+                    newPath.toString(), types
             );
             return ValidationResult.failure(violation);
         }

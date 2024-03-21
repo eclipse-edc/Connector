@@ -66,13 +66,14 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
-        transformerRegistry.register(new JsonObjectToPolicyDefinitionTransformer());
+        var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
         var mapper = typeManager.getMapper(JSON_LD);
-        transformerRegistry.register(new JsonObjectFromPolicyDefinitionTransformer(jsonBuilderFactory, mapper));
+        managementApiTransformerRegistry.register(new JsonObjectToPolicyDefinitionTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectFromPolicyDefinitionTransformer(jsonBuilderFactory, mapper));
 
         validatorRegistry.register(EDC_POLICY_DEFINITION_TYPE, PolicyDefinitionValidator.instance());
 
         var monitor = context.getMonitor();
-        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, transformerRegistry, service, validatorRegistry));
+        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, managementApiTransformerRegistry, service, validatorRegistry));
     }
 }

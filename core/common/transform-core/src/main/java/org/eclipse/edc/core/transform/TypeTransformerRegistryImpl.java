@@ -31,10 +31,16 @@ import static java.lang.String.format;
 public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
     private final Map<String, Class<?>> aliases = new HashMap<>();
     private final List<TypeTransformer<?, ?>> transformers = new ArrayList<>();
+    private final Map<String, TypeTransformerRegistry> contextRegistries = new HashMap<>();
 
     @Override
     public void register(TypeTransformer<?, ?> transformer) {
         this.transformers.add(transformer);
+    }
+
+    @Override
+    public @NotNull TypeTransformerRegistry forContext(String context) {
+        return contextRegistries.computeIfAbsent(context, k -> new ContextTransformerRegistry(this));
     }
 
     @Override
@@ -60,7 +66,6 @@ public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
         }
     }
 
-
     @Override
     public Class<?> typeAlias(String type) {
         return aliases.get(type);
@@ -74,5 +79,28 @@ public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
     @Override
     public void registerTypeAlias(String alias, Class<?> type) {
         aliases.put(alias, type);
+    }
+
+    private static class ContextTransformerRegistry extends TypeTransformerRegistryImpl {
+
+        private final TypeTransformerRegistry parent;
+
+        ContextTransformerRegistry(TypeTransformerRegistry parent) {
+            this.parent = parent;
+        }
+
+        @Override
+        public @NotNull TypeTransformerRegistry forContext(String context) {
+            throw new EdcException("'forContext' cannot be called on ContextTransformerRegistry, please refer to the generic TypeTransformerRegistry");
+        }
+
+        @Override
+        public @NotNull <INPUT, OUTPUT> TypeTransformer<INPUT, OUTPUT> transformerFor(@NotNull INPUT input, @NotNull Class<OUTPUT> outputType) {
+            try {
+                return super.transformerFor(input, outputType);
+            } catch (EdcException e) {
+                return parent.transformerFor(input, outputType);
+            }
+        }
     }
 }

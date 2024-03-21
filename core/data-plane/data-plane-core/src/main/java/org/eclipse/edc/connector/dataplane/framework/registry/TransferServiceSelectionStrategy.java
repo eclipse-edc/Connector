@@ -15,26 +15,26 @@
 package org.eclipse.edc.connector.dataplane.framework.registry;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
 /**
  * Functional interface for selecting which of (potentially) multiple {@link TransferService}s to use
- * for serving a particular {@link DataFlowRequest}.
+ * for serving a particular {@link DataFlowStartMessage}.
  */
 public interface TransferServiceSelectionStrategy {
     /**
      * Selects which of (potentially) multiple {@link TransferService}s to use
-     * for serving a particular {@link DataFlowRequest}.
+     * for serving a particular {@link DataFlowStartMessage}.
      *
      * @param request          the request.
      * @param transferServices any number of services which are able to handle the request. May be an empty {@link Stream}.
      * @return the service to be used to serve the request, selected among the input {@code transferServices}, or {@code null} if the stream is empty or no service should be used.
      */
     @Nullable
-    TransferService chooseTransferService(DataFlowRequest request, Stream<TransferService> transferServices);
+    TransferService chooseTransferService(DataFlowStartMessage request, Stream<TransferService> transferServices);
 
     /**
      * Default strategy: use first matching service. This allows integrators to select

@@ -14,55 +14,108 @@
 
 package org.eclipse.edc.sql.translation;
 
-import org.eclipse.edc.spi.types.PathItem;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.util.reflection.PathItem;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.lang.String.format;
+import java.util.function.Function;
 
 /**
- * A {@linkplain TranslationMapping} maps canonical information about business objects to SQL, i.e. it contains field
- * names of an object and maps them to their SQL schema column name.
+ * A {@linkplain TranslationMapping} keeps a tree of {@link FieldTranslator}s that can be obtained using canonical
+ * information about business objects to SQL, i.e. it contains field names of an object and maps them to their SQL schema
+ * column name.
  * <p>
  * Essentially, it contains a map that links field name to column name. In case the field is a complex object, it in
- * turn must be represented by another {@link TranslationMapping} in order to recursively resolve field name.
+ * turn must be represented by another {@link TranslationMapping} in order to recursively resolve the field translator.
  */
 public abstract class TranslationMapping {
-    protected final Map<String, Object> fieldMap = new HashMap<>();
+
+    private final Map<String, Object> fieldMap = new HashMap<>();
 
     /**
-     * Converts a field/property from the canonical model into its SQL column equivalent. If the canonical property name
-     * is nested, e.g. {@code something.other.thing} then the mapper attempts to descend recursively into the tree until
-     * the correct mapping is found, or throws an exception if not found.
+     * Returns the {@link FieldTranslator} for the specified path.
      *
-     * @throws IllegalArgumentException if the canonical property name was not found.
+     * @param fieldPath the path name.
+     * @return the {@link FieldTranslator}, or null if it does not exist.
      */
-    public String getStatement(String canonicalPropertyName, Class<?> type) {
-        if (canonicalPropertyName == null) {
-            throw new IllegalArgumentException(format("Translation failed for Model '%s' input path is null", getClass().getName()));
-        }
-
-        return getStatement(PathItem.parse(canonicalPropertyName), type);
+    public Function<Class<?>, String> getFieldTranslator(String fieldPath) {
+        return getFieldTranslator(PathItem.parse(fieldPath));
     }
 
-    public String getStatement(List<PathItem> path, Class<?> type) {
-        var key = path.get(0);
-        var entry = fieldMap.get(key.toString());
+    /**
+     * Returns the {@link WhereClause} for the specified criterion and operator.
+     *
+     * @param criterion the criterion.
+     * @param operator the operator.
+     * @return the {@link WhereClause}.
+     */
+    public WhereClause getWhereClause(Criterion criterion, SqlOperator operator) {
+        var path = PathItem.parse(criterion.getOperandLeft().toString());
+        return getWhereClause(path, criterion, operator);
+    }
+
+    /**
+     * Add a simple column field translator.
+     *
+     * @param fieldPath the field path.
+     * @param columnName the column name.
+     */
+    protected void add(String fieldPath, String columnName) {
+        fieldMap.put(fieldPath, new PlainColumnFieldTranslator(columnName));
+    }
+
+    /**
+     * Add a {@link FieldTranslator}.
+     *
+     * @param fieldPath the field path.
+     * @param fieldTranslator the field translator.
+     */
+    protected void add(String fieldPath, FieldTranslator fieldTranslator) {
+        fieldMap.put(fieldPath, fieldTranslator);
+    }
+
+    /**
+     * Add a nested {@link TranslationMapping}.
+     *
+     * @param fieldPath the field path.
+     * @param translationMapping the {@link TranslationMapping}.
+     */
+    protected void add(String fieldPath, TranslationMapping translationMapping) {
+        fieldMap.put(fieldPath, translationMapping);
+    }
+
+    private Function<Class<?>, String> getFieldTranslator(List<PathItem> path) {
+        var entry = fieldMap.get(path.get(0).toString());
         if (entry == null) {
             return null;
         }
 
-        if (entry instanceof TranslationMapping mappingEntry) {
-            var remainingPath = path.stream().skip(1).toList();
-            return mappingEntry.getStatement(remainingPath, type);
+        var nestedPath = path.stream().skip(1).toList();
+        if (entry instanceof FieldTranslator fieldTranslator) {
+            return clazz -> fieldTranslator.getLeftOperand(nestedPath, clazz);
+        } else if (entry instanceof TranslationMapping mappingEntry) {
+            return mappingEntry.getFieldTranslator(nestedPath);
+        } else {
+            throw new IllegalArgumentException("unexpected mapping");
+        }
+    }
+
+    private WhereClause getWhereClause(List<PathItem> path, Criterion criterion, SqlOperator operator) {
+        var entry = fieldMap.get(path.get(0).toString());
+        if (entry == null) {
+            return null;
         }
 
-        return entry.toString();
+        var nestedPath = path.stream().skip(1).toList();
+        if (entry instanceof FieldTranslator fieldTranslator) {
+            return fieldTranslator.toWhereClause(nestedPath, criterion, operator);
+        } else if (entry instanceof TranslationMapping mappingEntry) {
+            return mappingEntry.getWhereClause(nestedPath, criterion, operator);
+        } else {
+            throw new IllegalArgumentException("unexpected mapping");
+        }
     }
 
-    protected void add(String fieldId, Object value) {
-        fieldMap.put(fieldId, value);
-    }
 }

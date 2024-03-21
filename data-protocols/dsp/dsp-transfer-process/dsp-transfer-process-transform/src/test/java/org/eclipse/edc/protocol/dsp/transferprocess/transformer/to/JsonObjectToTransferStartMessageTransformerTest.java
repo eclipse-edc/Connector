@@ -18,14 +18,16 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferStartMessageTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.to.TestInput.getExpanded;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -39,31 +41,56 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToTransferStartMessageTransformerTest {
 
-    private final String processId = "TestProcessId";
+    private final TransformerContext context = mock();
 
-    private TransformerContext context = mock(TransformerContext.class);
-
-    private JsonObjectToTransferStartMessageTransformer transformer;
-
-    @BeforeEach
-    void setUp() {
-        transformer = new JsonObjectToTransferStartMessageTransformer();
-    }
+    private final JsonObjectToTransferStartMessageTransformer transformer =
+            new JsonObjectToTransferStartMessageTransformer();
 
     @Test
     void jsonObjectToTransferStartMessage() {
         var json = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, processId)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);
 
         assertThat(result).isNotNull();
-
-        assertThat(result.getProcessId()).isEqualTo(processId);
+        assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
+        assertThat(result.getProviderPid()).isEqualTo("providerPid");
 
         verify(context, never()).reportProblem(anyString());
+    }
+
+    @Deprecated(since = "0.4.1")
+    @Test
+    void transform_processId() {
+        var json = Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, "processPid")
+                .build();
+
+        var result = transformer.transform(getExpanded(json), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getConsumerPid()).isEqualTo("processPid");
+        assertThat(result.getProviderPid()).isEqualTo("processPid");
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void shouldReturnNullAndReportError_whenConsumerAndProviderPidNotValid() {
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
+        var json = Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .build();
+
+        var result = transformer.transform(getExpanded(json), context);
+
+        assertThat(result).isNull();
+        verify(context).reportProblem(anyString());
     }
 
     @Test
@@ -71,7 +98,8 @@ class JsonObjectToTransferStartMessageTransformerTest {
         var dataAddressObject = Json.createObjectBuilder().add(EDC_NAMESPACE + "type", "AWS").build();
         var json = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, processId)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_DATA_ADDRESS, dataAddressObject)
                 .build();
 
@@ -82,8 +110,6 @@ class JsonObjectToTransferStartMessageTransformerTest {
         var result = transformer.transform(getExpanded(json), context);
 
         assertThat(result).isNotNull();
-
-        assertThat(result.getProcessId()).isEqualTo(processId);
         assertThat(result.getDataAddress()).isSameAs(dataAddress);
 
         verify(context, never()).reportProblem(anyString());
@@ -93,15 +119,14 @@ class JsonObjectToTransferStartMessageTransformerTest {
     void jsonObjectToTransferStartMessageWithEmptyDataAddress() {
         var json = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, processId)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_DATA_ADDRESS, Json.createObjectBuilder().build())
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);
 
         assertThat(result).isNotNull();
-
-        assertThat(result.getProcessId()).isEqualTo(processId);
         assertThat(result.getDataAddress()).isNull();
 
         verify(context, never()).reportProblem(anyString());

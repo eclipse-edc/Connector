@@ -20,6 +20,8 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.policy.model.PolicyType.CONTRACT;
+import static org.eclipse.edc.policy.model.PolicyType.OFFER;
 
 class PolicyEqualityTest {
 
@@ -46,9 +48,19 @@ class PolicyEqualityTest {
     }
 
     @Test
-    void targetIsExcludedFromTheComparison() {
-        var one = Policy.Builder.newInstance().target("a").build();
-        var two = Policy.Builder.newInstance().target("b").build();
+    void policyTypeIsExcludedFromTheComparison() {
+        var one = Policy.Builder.newInstance().type(OFFER).build();
+        var two = Policy.Builder.newInstance().type(CONTRACT).build();
+
+        var result = comparator.test(one, two);
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void assigneeIsExcludedFromTheComparison() {
+        var one = Policy.Builder.newInstance().assignee("one").build();
+        var two = Policy.Builder.newInstance().assignee("other").build();
 
         var result = comparator.test(one, two);
 

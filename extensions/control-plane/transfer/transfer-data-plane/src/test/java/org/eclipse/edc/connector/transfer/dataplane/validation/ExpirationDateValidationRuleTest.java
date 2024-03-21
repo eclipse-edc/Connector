@@ -22,10 +22,10 @@ import java.sql.Date;
 import java.time.Clock;
 import java.time.Instant;
 
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
 class ExpirationDateValidationRuleTest {
 

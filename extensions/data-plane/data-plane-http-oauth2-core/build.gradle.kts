@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(project(":spi:data-plane:data-plane-http-spi"))
     api(project(":spi:common:oauth2-spi"))
-    api(project(":core:common:jwt-core"))
+    api(project(":core:common:token-core"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.restAssured)

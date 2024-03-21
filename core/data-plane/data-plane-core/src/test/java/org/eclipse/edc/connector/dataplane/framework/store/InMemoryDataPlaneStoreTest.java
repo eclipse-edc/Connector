@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.framework.store;
 
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.spi.testfixtures.store.DataPlaneStoreTestBase;
 
@@ -22,7 +23,7 @@ import java.time.Duration;
 
 class InMemoryDataPlaneStoreTest extends DataPlaneStoreTestBase {
 
-    private final InMemoryDataPlaneStore store = new InMemoryDataPlaneStore(CONNECTOR_NAME, Clock.systemUTC());
+    private final InMemoryDataPlaneStore store = new InMemoryDataPlaneStore(CONNECTOR_NAME, Clock.systemUTC(), CriterionOperatorRegistryImpl.ofDefaults());
 
     @Override
     protected DataPlaneStore getStore() {

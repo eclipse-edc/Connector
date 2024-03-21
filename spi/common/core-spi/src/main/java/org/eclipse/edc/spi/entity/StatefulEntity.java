@@ -169,4 +169,5 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
             return entity;
         }
     }
+
 }

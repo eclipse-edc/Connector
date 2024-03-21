@@ -14,38 +14,41 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.core.defaults;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.connector.core.security.DefaultPrivateKeyParseFunction;
+import org.eclipse.edc.connector.core.security.KeyParserRegistryImpl;
+import org.eclipse.edc.connector.core.security.keyparsers.JwkParser;
+import org.eclipse.edc.connector.core.security.keyparsers.PemParser;
 import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.iam.identitytrust.sts.core.defaults.service.StsClientServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.core.defaults.service.StsClientTokenGeneratorServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.core.defaults.store.InMemoryStsClientStore;
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.jwt.LazyTokenGenerationService;
+import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.security.VaultPrivateKeyResolver;
+import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
 
+import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
+import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
+import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.sts.store.fixtures.TestFunctions.createClientBuilder;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 import static org.mockito.Mockito.mock;
 
 @ComponentTest
@@ -53,18 +56,22 @@ public class StsClientTokenIssuanceIntegrationTest {
 
     private final InMemoryStsClientStore clientStore = new InMemoryStsClientStore();
     private final Vault vault = new InMemoryVault(mock());
+    private final KeyParserRegistry keyParserRegistry = new KeyParserRegistryImpl();
     private StsClientServiceImpl clientService;
     private StsClientTokenGeneratorServiceImpl tokenGeneratorService;
-
     private PrivateKeyResolver privateKeyResolver;
 
     @BeforeEach
     void setup() {
         clientService = new StsClientServiceImpl(clientStore, vault, new NoopTransactionContext());
-        privateKeyResolver = new VaultPrivateKeyResolver(vault);
-        privateKeyResolver.addParser(PrivateKey.class, new DefaultPrivateKeyParseFunction());
+
+        keyParserRegistry.register(new PemParser(mock()));
+        keyParserRegistry.register(new JwkParser(new ObjectMapper(), mock()));
+        privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry, vault, mock(), mock());
+
         tokenGeneratorService = new StsClientTokenGeneratorServiceImpl(
-                (client) -> new LazyTokenGenerationService(privateKeyResolver, client.getPrivateKeyAlias()),
+                client -> new JwtGenerationService(),
+                stsClient -> privateKeyResolver.resolvePrivateKey(stsClient.getPrivateKeyAlias()).orElse(null),
                 Clock.systemUTC(), 60 * 5);
 
     }
@@ -76,10 +83,13 @@ public class StsClientTokenIssuanceIntegrationTest {
         var secretAlias = "client_id";
         var privateKeyAlis = "client_id";
         var audience = "aud";
+        var did = "did:example:subject";
         var client = createClientBuilder(id)
                 .clientId(clientId)
                 .privateKeyAlias(privateKeyAlis)
                 .secretAlias(secretAlias)
+                .publicKeyReference("public-key")
+                .did(did)
                 .build();
 
         var additional = StsClientTokenAdditionalParams.Builder.newInstance().audience(audience).build();
@@ -93,11 +103,11 @@ public class StsClientTokenIssuanceIntegrationTest {
         var jwt = SignedJWT.parse(tokenResult.getContent().getToken());
 
         assertThat(jwt.getJWTClaimsSet().getClaims())
-                .containsEntry(ISSUER, id)
-                .containsEntry(SUBJECT, id)
+                .containsEntry(ISSUER, did)
+                .containsEntry(SUBJECT, did)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, clientId)
-                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
+                .doesNotContainKey(CLIENT_ID);
 
     }
 
@@ -107,12 +117,15 @@ public class StsClientTokenIssuanceIntegrationTest {
         var clientId = "client_id";
         var secretAlias = "client_id";
         var privateKeyAlis = "client_id";
+        var did = "did:example:subject";
         var audience = "aud";
         var scope = "scope:test";
         var client = createClientBuilder(id)
                 .clientId(clientId)
                 .privateKeyAlias(privateKeyAlis)
                 .secretAlias(secretAlias)
+                .did(did)
+                .publicKeyReference("public-key")
                 .build();
 
         var additional = StsClientTokenAdditionalParams.Builder.newInstance().audience(audience).bearerAccessScope(scope).build();
@@ -126,11 +139,11 @@ public class StsClientTokenIssuanceIntegrationTest {
         var jwt = SignedJWT.parse(tokenResult.getContent().getToken());
 
         assertThat(jwt.getJWTClaimsSet().getClaims())
-                .containsEntry(ISSUER, id)
-                .containsEntry(SUBJECT, id)
+                .containsEntry(ISSUER, did)
+                .containsEntry(SUBJECT, did)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, clientId)
-                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT, "access_token");
+                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT, PRESENTATION_TOKEN_CLAIM)
+                .doesNotContainKey(CLIENT_ID);
 
     }
 
@@ -142,10 +155,14 @@ public class StsClientTokenIssuanceIntegrationTest {
         var privateKeyAlis = "client_id";
         var audience = "aud";
         var accessToken = "tokenTest";
+        var did = "did:example:subject";
+
         var client = createClientBuilder(id)
                 .clientId(clientId)
                 .privateKeyAlias(privateKeyAlis)
                 .secretAlias(secretAlias)
+                .publicKeyReference("public-key")
+                .did(did)
                 .build();
 
         var additional = StsClientTokenAdditionalParams.Builder.newInstance().audience(audience).accessToken(accessToken).build();
@@ -159,12 +176,12 @@ public class StsClientTokenIssuanceIntegrationTest {
         var jwt = SignedJWT.parse(tokenResult.getContent().getToken());
 
         assertThat(jwt.getJWTClaimsSet().getClaims())
-                .containsEntry(ISSUER, id)
-                .containsEntry(SUBJECT, id)
+                .containsEntry(ISSUER, did)
+                .containsEntry(SUBJECT, did)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, clientId)
-                .containsEntry(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken)
-                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+                .containsEntry(PRESENTATION_TOKEN_CLAIM, accessToken)
+                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
+                .doesNotContainKey(CLIENT_ID);
 
     }
 

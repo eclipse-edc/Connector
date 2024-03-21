@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 class AsyncStatusResultRetryProcessTest {
 
     private final BiConsumer<TestEntity, StatusResult<String>> onSuccess = mock();
+    private final BiConsumer<TestEntity, String> onSuccessResult = mock();
     private final BiConsumer<TestEntity, Throwable> onRetryExhausted = mock();
     private final BiConsumer<TestEntity, ResponseFailure> onFatalError = mock();
     private final BiConsumer<TestEntity, Throwable> onFailure = mock();
@@ -60,6 +61,19 @@ class AsyncStatusResultRetryProcessTest {
         assertThat(result).isTrue();
         verify(process).get();
         verify(onSuccess).accept(eq(entity), argThat(it -> it.succeeded() && it.getContent().equals("content")));
+    }
+
+    @Test
+    void shouldExecuteOnSuccessResult() {
+        when(process.get()).thenReturn(CompletableFuture.completedFuture(StatusResult.success("content")));
+        var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).clock(clock).build();
+        var retryProcess = new AsyncStatusResultRetryProcess<>(entity, process, mock(Monitor.class), clock, configuration);
+
+        var result = retryProcess.onSuccessResult(onSuccessResult).execute("any");
+
+        assertThat(result).isTrue();
+        verify(process).get();
+        verify(onSuccessResult).accept(eq(entity), argThat(it -> it.equals("content")));
     }
 
     @Test

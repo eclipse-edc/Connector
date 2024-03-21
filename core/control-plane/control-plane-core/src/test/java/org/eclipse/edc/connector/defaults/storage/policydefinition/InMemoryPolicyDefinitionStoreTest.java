@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.defaults.storage.policydefinition;
 
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.testfixtures.store.PolicyDefinitionStoreTestBase;
 import org.eclipse.edc.util.concurrency.LockManager;
@@ -26,7 +27,7 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryPolicyDefinitionStore(new LockManager(new ReentrantReadWriteLock(true)));
+        store = new InMemoryPolicyDefinitionStore(new LockManager(new ReentrantReadWriteLock(true)), CriterionOperatorRegistryImpl.ofDefaults());
     }
 
     @Override

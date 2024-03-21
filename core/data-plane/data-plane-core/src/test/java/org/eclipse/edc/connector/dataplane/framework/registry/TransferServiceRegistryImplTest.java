@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.framework.registry;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -33,7 +33,7 @@ class TransferServiceRegistryImplTest {
     TransferService transferService = mock(TransferService.class);
     TransferService transferService2 = mock(TransferService.class);
 
-    DataFlowRequest request = createRequest().build();
+    DataFlowStartMessage request = createRequest().build();
     TransferServiceSelectionStrategy transferServiceSelectionStrategy = mock(TransferServiceSelectionStrategy.class);
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Stream<TransferService>> streamCaptor = ArgumentCaptor.forClass(Stream.class);
@@ -89,8 +89,8 @@ class TransferServiceRegistryImplTest {
         verify(transferServiceSelectionStrategy).chooseTransferService(eq(request), streamCaptor.capture());
     }
 
-    private DataFlowRequest.Builder createRequest() {
-        return DataFlowRequest.Builder.newInstance()
+    private DataFlowStartMessage.Builder createRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
                 .id("1")
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("any").build())

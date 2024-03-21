@@ -24,7 +24,7 @@ import org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.HTTP_DATA_TYPE;
@@ -47,12 +47,12 @@ public class HttpDataSourceFactory implements DataSourceFactory {
     }
 
     @Override
-    public boolean canHandle(DataFlowRequest request) {
+    public boolean canHandle(DataFlowStartMessage request) {
         return HTTP_DATA_TYPE.equals(request.getSourceDataAddress().getType());
     }
 
     @Override
-    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
+    public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
         try {
             createSource(request);
         } catch (Exception e) {
@@ -62,7 +62,7 @@ public class HttpDataSourceFactory implements DataSourceFactory {
     }
 
     @Override
-    public DataSource createSource(DataFlowRequest request) {
+    public DataSource createSource(DataFlowStartMessage request) {
         var dataAddress = HttpDataAddress.Builder.newInstance()
                 .copyFrom(request.getSourceDataAddress())
                 .build();

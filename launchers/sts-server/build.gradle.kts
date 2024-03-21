@@ -22,7 +22,7 @@ plugins {
 dependencies {
     implementation(project(":core:common:boot"))
     implementation(project(":core:common:connector-core"))
-    implementation(project(":core:common:jwt-core"))
+    implementation(project(":core:common:token-core"))
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-core"))
     implementation(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api"))

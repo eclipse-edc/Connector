@@ -233,7 +233,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             var store = getPolicyDefinitionStore();
             store.create(policy);
 
-            var action = Action.Builder.newInstance().type("UPDATED_USE").build();
+            var action = Action.Builder.newInstance().type("play").build();
             var updatedPermission = Permission.Builder.newInstance().action(action).build();
             var updatedDuty = Duty.Builder.newInstance().action(action).build();
             var updatedProhibition = Prohibition.Builder.newInstance().action(action).build();
@@ -408,8 +408,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByProhibitions() {
             var p = createPolicyBuilder("test-policy")
                     .prohibition(createProhibitionBuilder("prohibition1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -417,7 +416,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             getPolicyDefinitionStore().create(policyDef);
 
             // query by prohibition assignee
-            var query = createQuery(Criterion.criterion("policy.prohibitions.assignee", "=", "test-assignee"));
+            var query = createQuery(Criterion.criterion("policy.prohibitions.action.type", "=", "test-action-type"));
             var result = getPolicyDefinitionStore().findAll(query);
             assertThat(result).hasSize(1)
                     .usingRecursiveFieldByFieldElementComparator()
@@ -435,8 +434,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByProhibitions_valueNotExist() {
             var p = createPolicyBuilder("test-policy")
                     .prohibition(createProhibitionBuilder("prohibition1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -453,8 +451,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByPermissions() {
             var p = createPolicyBuilder("test-policy")
                     .permission(createPermissionBuilder("permission1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -462,7 +459,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             getPolicyDefinitionStore().create(policyDef);
 
             // query by prohibition assignee
-            var query = createQuery(Criterion.criterion("policy.permissions.assignee", "=", "test-assignee"));
+            var query = createQuery(Criterion.criterion("policy.permissions.action.type", "=", "test-action-type"));
             var result = getPolicyDefinitionStore().findAll(query);
             assertThat(result).hasSize(1)
                     .usingRecursiveFieldByFieldElementComparator()
@@ -480,8 +477,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByPermissions_valueNotExist() {
             var p = createPolicyBuilder("test-policy")
                     .permission(createPermissionBuilder("permission1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -498,8 +494,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByDuties() {
             var p = createPolicyBuilder("test-policy")
                     .duty(createDutyBuilder("prohibition1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -508,7 +503,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             getPolicyDefinitionStore().create(createPolicy("another-policy"));
 
             // query by prohibition assignee
-            var query = createQuery(Criterion.criterion("policy.obligations.assignee", "=", "test-assignee"));
+            var query = createQuery(Criterion.criterion("policy.obligations.action.type", "=", "test-action-type"));
             var result = getPolicyDefinitionStore().findAll(query);
             assertThat(result).hasSize(1)
                     .usingRecursiveFieldByFieldElementComparator()
@@ -526,8 +521,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         void queryByDuties_valueNotExist() {
             var p = createPolicyBuilder("test-policy")
                     .duty(createDutyBuilder("prohibition1")
-                            .assignee("test-assignee")
-                            .action(createAction())
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -604,6 +598,85 @@ public abstract class PolicyDefinitionStoreTestBase {
 
             var list = getPolicyDefinitionStore().findAll(QuerySpec.Builder.newInstance().limit(3).offset(0).build()).collect(Collectors.toList());
             assertThat(list).hasSize(2).usingRecursiveFieldByFieldElementComparator().isSubsetOf(policy1, policy2);
+        }
+
+
+        @Test
+        void shouldReturn_with_private_propertiesFilter() {
+            var policy1 = createPolicy(getRandomId(), null, Map.of("key1", "value1", "key2", "value2"));
+            var policy2 = createPolicy(getRandomId(), null, Map.of("key3", "value3", "key4", "value4"));
+
+
+            getPolicyDefinitionStore().create(policy1);
+            getPolicyDefinitionStore().create(policy2);
+            var spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.key1", "=", "value1"))
+                    .build();
+
+            var definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(policy1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.key2", "=", "value2"))
+                    .build();
+
+            definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(policy1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.key3", "=", "value3"))
+                    .build();
+
+            definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(policy2);
+
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.key3", "=", "value4"))
+                    .build();
+
+            definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(0);
+        }
+
+        @Test
+        void shouldReturn_with_complex_private_propertiesFilter() {
+            var policy1 = createPolicy(getRandomId(), null, Map.of("myProp", Map.of("description", "test desc 1", "number", 42)));
+            var policy2 = createPolicy(getRandomId(), null, Map.of("myProp", Map.of("description", "test desc 2", "number", 42)));
+
+            getPolicyDefinitionStore().create(policy1);
+            getPolicyDefinitionStore().create(policy2);
+
+            var spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 1"))
+                    .build();
+
+            var definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(policy1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 2"))
+                    .build();
+
+            definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(policy2);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 3"))
+                    .build();
+
+            definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(0);
         }
 
         @Test

@@ -17,5 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:common:json-ld"))
+    api(project(":spi:control-plane:control-plane-spi"))
+
+    implementation(project(":extensions:common:json-ld"))
 }

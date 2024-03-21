@@ -14,13 +14,20 @@
 
 package org.eclipse.edc.connector.dataplane.framework;
 
+import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
+import org.eclipse.edc.connector.dataplane.framework.store.InMemoryAccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryDataPlaneStore;
+import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.time.Clock;
 
@@ -28,14 +35,15 @@ import java.time.Clock;
 public class DataPlaneDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Framework Default Services";
+    @Inject
+    private Clock clock;
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
 
     @Override
     public String name() {
         return NAME;
     }
-
-    @Inject
-    private Clock clock;
 
     @Provider(isDefault = true)
     public TransferServiceSelectionStrategy transferServiceSelectionStrategy() {
@@ -44,6 +52,22 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DataPlaneStore dataPlaneStore() {
-        return new InMemoryDataPlaneStore(clock);
+        return new InMemoryDataPlaneStore(clock, criterionOperatorRegistry);
+    }
+
+    @Provider(isDefault = true)
+    public AccessTokenDataStore defaultAccessTokenDataStore() {
+        return new InMemoryAccessTokenDataStore(criterionOperatorRegistry);
+    }
+
+    @Provider(isDefault = true)
+    public PipelineService pipelineService(ServiceExtensionContext context) {
+        return new PipelineServiceImpl(context.getMonitor());
+    }
+
+    // todo: should this be a default service?
+    @Provider(isDefault = true)
+    public PublicEndpointGeneratorService publicEndpointGenerator() {
+        return new PublicEndpointGeneratorServiceImpl();
     }
 }
