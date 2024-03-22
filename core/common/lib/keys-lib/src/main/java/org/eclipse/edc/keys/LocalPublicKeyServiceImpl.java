@@ -15,7 +15,7 @@
 package org.eclipse.edc.keys;
 
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
-import org.eclipse.edc.spi.iam.LocalPublicKeyService;
+import org.eclipse.edc.keys.spi.LocalPublicKeyService;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 

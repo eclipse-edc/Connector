@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.iam;
+package org.eclipse.edc.keys.spi;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
@@ -23,5 +23,5 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 @ExtensionPoint
 @FunctionalInterface
 public interface LocalPublicKeyService extends PublicKeyResolver {
-    
+
 }

@@ -18,6 +18,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:keys-spi"))
     api(project(":spi:common:token-spi"))
     api(project(":spi:common:jwt-spi"))
 

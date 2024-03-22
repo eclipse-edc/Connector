@@ -16,9 +16,9 @@ package org.eclipse.edc.token;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
@@ -29,7 +29,6 @@ import java.text.ParseException;
 import java.util.List;
 
 public class TokenValidationServiceImpl implements TokenValidationService {
-
 
     public TokenValidationServiceImpl() {
     }

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.iam;
+package org.eclipse.edc.keys.spi;
 
 import org.eclipse.edc.spi.result.Result;
 

@@ -24,7 +24,7 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.eclipse.edc.identitytrust.verification.VerifierContext;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.spi.iam.PublicKeyResolver;
+import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;

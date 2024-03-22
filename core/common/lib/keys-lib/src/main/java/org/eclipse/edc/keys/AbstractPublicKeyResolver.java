@@ -15,7 +15,7 @@
 package org.eclipse.edc.keys;
 
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
-import org.eclipse.edc.spi.iam.PublicKeyResolver;
+import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
 
 import java.security.PublicKey;
