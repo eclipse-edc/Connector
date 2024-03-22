@@ -25,6 +25,7 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:lib:keys-lib"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.jakartaJson)
 

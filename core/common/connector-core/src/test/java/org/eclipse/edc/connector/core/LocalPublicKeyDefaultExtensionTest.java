@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.connector.core;
 
-import org.eclipse.edc.connector.core.security.LocalPublicKeyServiceImpl;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.keys.LocalPublicKeyServiceImpl;
+import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,7 +92,7 @@ class LocalPublicKeyDefaultExtensionTest {
         when(context.getConfig(EDC_PUBLIC_KEYS_PREFIX)).thenReturn(ConfigFactory.fromMap(keys));
         extension.initialize(context);
 
-        assertThatThrownBy(() -> extension.prepare()).isInstanceOf(EdcException.class);
+        assertThatThrownBy(extension::prepare).isInstanceOf(EdcException.class);
     }
 
 }
