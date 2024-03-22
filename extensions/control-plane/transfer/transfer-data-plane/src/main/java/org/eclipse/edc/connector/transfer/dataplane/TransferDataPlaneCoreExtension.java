@@ -27,11 +27,11 @@ import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenE
 import org.eclipse.edc.connector.transfer.dataplane.validation.ExpirationDateValidationRule;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.keys.spi.LocalPublicKeyService;
+import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.iam.LocalPublicKeyService;
-import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;

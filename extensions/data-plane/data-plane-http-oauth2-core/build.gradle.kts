@@ -21,6 +21,8 @@ dependencies {
     api(project(":spi:common:oauth2-spi"))
     api(project(":core:common:token-core"))
 
+    implementation(project(":spi:common:keys-spi"))
+
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.restAssured)
     testImplementation(libs.mockserver.netty)

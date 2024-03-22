@@ -20,9 +20,9 @@ import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.keys.AbstractPublicKeyResolver;
+import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.AbstractPublicKeyResolver;
-import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;

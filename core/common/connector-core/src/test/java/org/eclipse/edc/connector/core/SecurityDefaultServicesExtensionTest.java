@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.core;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.spi.security.CertificateResolver;
-import org.eclipse.edc.spi.security.VaultPrivateKeyResolver;
+import org.eclipse.edc.keys.VaultPrivateKeyResolver;
+import org.eclipse.edc.keys.spi.CertificateResolver;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

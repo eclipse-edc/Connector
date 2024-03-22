@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.vault.filesystem;
 
+import org.eclipse.edc.keys.spi.CertificateResolver;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.security.CertificateResolver;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;

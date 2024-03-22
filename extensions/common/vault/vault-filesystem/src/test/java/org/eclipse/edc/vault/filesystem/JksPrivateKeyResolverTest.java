@@ -16,9 +16,9 @@
 package org.eclipse.edc.vault.filesystem;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.eclipse.edc.connector.core.security.keyparsers.PemParser;
+import org.eclipse.edc.keys.keyparsers.PemParser;
+import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
