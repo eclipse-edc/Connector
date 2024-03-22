@@ -180,6 +180,7 @@ class DataPlaneSignalingClientTest {
                 );
     }
 
+
     @Test
     void start_verifyReturnFatalError_whenBadResponse() throws JsonProcessingException {
         var flowRequest = createDataFlowRequest();
@@ -201,6 +202,19 @@ class DataPlaneSignalingClientTest {
                 .anySatisfy(s -> assertThat(s)
                         .contains("Error expanding JSON-LD structure")
                 );
+    }
+
+    @Test
+    void start_verifyReturnFatalErrorWhenDataPlaneInstanceIsNull() {
+        var flowRequest = createDataFlowRequest();
+        TypeTransformerRegistry registry = mock();
+        var dataPlaneClient = new DataPlaneSignalingClient(testHttpClient(), registry, JSON_LD, MAPPER, null);
+
+        var result = dataPlaneClient.start(flowRequest);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+        assertThat(result.getFailureDetail()).contains("No data plane found for");
     }
 
     @Test
@@ -250,48 +264,6 @@ class DataPlaneSignalingClientTest {
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getDataAddress()).isNull();
-    }
-
-    @Nested
-    class Suspend {
-
-        @Test
-        void shouldCallSuspendOnAllTheAvailableDataPlanes() {
-            var httpRequest = new HttpRequest().withMethod("POST").withPath(DATA_PLANE_PATH + "/processId/suspend()");
-            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(NO_CONTENT_204.code()));
-
-            var result = dataPlaneClient.suspend("processId");
-
-            assertThat(result).isSucceeded();
-            dataPlane.verify(httpRequest, VerificationTimes.once());
-        }
-
-        @Test
-        void shouldFail_whenConflictResponse() {
-            var httpRequest = new HttpRequest().withMethod("POST").withPath(DATA_PLANE_PATH + "/processId/suspend()");
-            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(CONFLICT_409.code()));
-
-            var result = dataPlaneClient.suspend("processId");
-
-            assertThat(result).isFailed();
-        }
-
-        @Test
-        void verifyReturnFatalErrorIfTransformFails() {
-            TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(testHttpClient(), registry, JSON_LD, MAPPER, instance);
-
-            when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
-
-            var result = dataPlaneClient.suspend("processId");
-
-            assertThat(result.failed()).isTrue();
-            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
-            assertThat(result.getFailureMessages())
-                    .anySatisfy(s -> assertThat(s)
-                            .isEqualTo("Transform Failure")
-                    );
-        }
     }
 
     @Test
@@ -349,5 +321,47 @@ class DataPlaneSignalingClientTest {
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .build();
+    }
+
+    @Nested
+    class Suspend {
+
+        @Test
+        void shouldCallSuspendOnAllTheAvailableDataPlanes() {
+            var httpRequest = new HttpRequest().withMethod("POST").withPath(DATA_PLANE_PATH + "/processId/suspend()");
+            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(NO_CONTENT_204.code()));
+
+            var result = dataPlaneClient.suspend("processId");
+
+            assertThat(result).isSucceeded();
+            dataPlane.verify(httpRequest, VerificationTimes.once());
+        }
+
+        @Test
+        void shouldFail_whenConflictResponse() {
+            var httpRequest = new HttpRequest().withMethod("POST").withPath(DATA_PLANE_PATH + "/processId/suspend()");
+            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(CONFLICT_409.code()));
+
+            var result = dataPlaneClient.suspend("processId");
+
+            assertThat(result).isFailed();
+        }
+
+        @Test
+        void verifyReturnFatalErrorIfTransformFails() {
+            TypeTransformerRegistry registry = mock();
+            var dataPlaneClient = new DataPlaneSignalingClient(testHttpClient(), registry, JSON_LD, MAPPER, instance);
+
+            when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
+
+            var result = dataPlaneClient.suspend("processId");
+
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+            assertThat(result.getFailureMessages())
+                    .anySatisfy(s -> assertThat(s)
+                            .isEqualTo("Transform Failure")
+                    );
+        }
     }
 }
