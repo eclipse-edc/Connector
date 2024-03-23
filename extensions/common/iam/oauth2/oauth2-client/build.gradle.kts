@@ -20,8 +20,8 @@ dependencies {
     api(project(":spi:common:http-spi"))
     api(project(":spi:common:oauth2-spi"))
 
-    testImplementation(project(":core:common:junit"))
-
+    testImplementation(project(":core:common:util"))
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
 }

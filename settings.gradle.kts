@@ -248,6 +248,9 @@ include(":spi:data-plane:data-plane-http-spi")
 include(":spi:data-plane-selector:data-plane-selector-spi")
 include(":spi:policy-monitor:policy-monitor-spi")
 
+// modules for tests ------------------------------------------------------------------------
+include(":tests:junit-base")
+
 // modules for system tests ------------------------------------------------------------------------
 include(":system-tests:e2e-transfer-test:backend-service")
 include(":system-tests:e2e-transfer-test:control-plane")

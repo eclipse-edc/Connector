@@ -24,7 +24,9 @@ dependencies {
 
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
-    testImplementation(project(":core:common:junit"))
+
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
+
 }
 
 

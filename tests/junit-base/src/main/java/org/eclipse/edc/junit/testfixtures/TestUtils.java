@@ -14,12 +14,6 @@
 
 package org.eclipse.edc.junit.testfixtures;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
-import org.eclipse.edc.spi.http.EdcHttpClient;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.http.client.EdcHttpClientImpl;
 import org.opentest4j.AssertionFailedError;
 
 import java.io.File;
@@ -29,9 +23,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Objects;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
-
-import static org.mockito.Mockito.mock;
 
 public class TestUtils {
     public static final String GRADLE_WRAPPER;
@@ -79,35 +70,6 @@ public class TestUtils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * Create an {@link OkHttpClient} suitable for using in unit tests. The client configured with long timeouts
-     * suitable for high-contention scenarios in CI.
-     *
-     * @return an {@link OkHttpClient.Builder}.
-     */
-    public static OkHttpClient testOkHttpClient(Interceptor... interceptors) {
-        var builder = new OkHttpClient.Builder()
-                .connectTimeout(1, TimeUnit.MINUTES)
-                .writeTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(1, TimeUnit.MINUTES);
-
-        for (Interceptor interceptor : interceptors) {
-            builder.addInterceptor(interceptor);
-        }
-
-        return builder.build();
-    }
-
-    /**
-     * Create an {@link org.eclipse.edc.spi.http.EdcHttpClient} suitable for using in unit tests. The client configured with long timeouts
-     * suitable for high-contention scenarios in CI.
-     *
-     * @return an {@link OkHttpClient.Builder}.
-     */
-    public static EdcHttpClient testHttpClient(Interceptor... interceptors) {
-        return new EdcHttpClientImpl(testOkHttpClient(interceptors), RetryPolicy.ofDefaults(), mock(Monitor.class));
     }
 
     /**

@@ -26,6 +26,7 @@ dependencies {
     implementation(libs.nimbus.jwt)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
 
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)

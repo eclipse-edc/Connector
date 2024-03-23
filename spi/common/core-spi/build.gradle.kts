@@ -26,7 +26,7 @@ dependencies {
 
     implementation(libs.opentelemetry.api)
 
-    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":tests:junit-base"));
 
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.mockito.core)

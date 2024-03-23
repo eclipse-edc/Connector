@@ -24,5 +24,6 @@ dependencies {
 
     api(libs.jakartaJson)
 
-    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":tests:junit-base"));
+
 }

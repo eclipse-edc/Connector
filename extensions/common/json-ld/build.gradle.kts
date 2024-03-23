@@ -26,7 +26,8 @@ dependencies {
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:transform-spi"))
 
-    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:junit"));
+
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
 }

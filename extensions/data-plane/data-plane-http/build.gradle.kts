@@ -29,6 +29,7 @@ dependencies {
     testImplementation(libs.restAssured)
     testImplementation(libs.mockserver.netty)
 
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(testFixtures(project(":spi:data-plane:data-plane-spi")))
 }
 

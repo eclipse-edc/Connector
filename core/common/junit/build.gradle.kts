@@ -19,6 +19,8 @@ plugins {
 }
 
 dependencies {
+    api(project(":tests:junit-base"))
+
     api(project(":spi:common:core-spi"))
     api(project(":core:common:boot"))
     api(project(":core:common:util"))
@@ -35,7 +37,6 @@ dependencies {
     implementation(libs.junit.pioneer)
     implementation(libs.testcontainers.junit)
     testImplementation(project(":core:common:connector-core"))
-
 
     testImplementation(project(":core:common:lib:boot-lib"))
 }

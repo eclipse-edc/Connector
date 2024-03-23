@@ -32,6 +32,8 @@ dependencies {
     testImplementation(testFixtures(project(":spi:common:identity-trust-sts-spi")))
     testImplementation(libs.nimbus.jwt)
     testImplementation(libs.bouncyCastle.bcpkixJdk18on)
+
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
 }
 
 edcBuild {
