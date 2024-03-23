@@ -12,9 +12,8 @@
  *
  */
 
-package org.eclipse.edc.spi.types;
+package org.eclipse.edc.util.reflection;
 
-import org.eclipse.edc.util.reflection.PathItem;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
