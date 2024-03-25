@@ -79,8 +79,8 @@ public class PolicyDefinitionEventDispatchTest {
             });
         });
 
-        service.update(policyDefinition);
         ArgumentCaptor<EventEnvelope<PolicyDefinitionEvent>> argumentCaptorForUpdate = ArgumentCaptor.forClass(EventEnvelope.class);
+        service.update(policyDefinition);
         await().untilAsserted(() -> {
             verify(eventSubscriber, times(4)).on(argumentCaptorForUpdate.capture());
             var events = argumentCaptorForUpdate.getAllValues();
@@ -92,10 +92,18 @@ public class PolicyDefinitionEventDispatchTest {
             });
         });
 
+        ArgumentCaptor<EventEnvelope<PolicyDefinitionEvent>> argumentCaptorForDelete = ArgumentCaptor.forClass(EventEnvelope.class);
         service.deleteById(policyDefinition.getUid());
         await().untilAsserted(() -> {
-            verify(eventSubscriber, times(4)).on(argThat(isEnvelopeOf(PolicyDefinitionDeleted.class)));
-
+            verify(eventSubscriber, times(5)).on(argumentCaptorForDelete.capture());
+            var events = argumentCaptorForDelete.getAllValues();
+            events.forEach(event -> {
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionBeforeCreate.class)));
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionCreated.class)));
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionBeforeUpdate.class)));
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionUpdated.class)));
+                verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionDeleted.class)));
+            });
         });
     }
 

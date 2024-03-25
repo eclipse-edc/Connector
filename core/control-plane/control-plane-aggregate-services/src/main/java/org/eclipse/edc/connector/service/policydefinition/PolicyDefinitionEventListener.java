@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionBeforeCreate;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionBeforeUpdate;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionCreated;
+import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionDeleted;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionEvent;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionUpdated;
 import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionListener;
@@ -42,6 +43,15 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
     @Override
     public void created(PolicyDefinition policyDefinition) {
         var event = PolicyDefinitionCreated.Builder.newInstance()
+                .policyDefinitionId(policyDefinition.getUid())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void deleted(PolicyDefinition policyDefinition) {
+        var event = PolicyDefinitionDeleted.Builder.newInstance()
                 .policyDefinitionId(policyDefinition.getUid())
                 .build();
 
