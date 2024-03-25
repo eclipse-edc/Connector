@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFa
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
@@ -52,11 +53,13 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     private final DataPlaneSelectorService selectorClient;
     private final DataPlaneClientFactory clientFactory;
 
+    private final DataFlowPropertiesProvider propertiesProvider;
     private final String selectionStrategy;
 
-    public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, DataPlaneClientFactory clientFactory, String selectionStrategy) {
+    public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, DataFlowPropertiesProvider propertiesProvider, DataPlaneClientFactory clientFactory, String selectionStrategy) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
+        this.propertiesProvider = propertiesProvider;
         this.clientFactory = clientFactory;
         this.selectionStrategy = selectionStrategy;
     }
@@ -73,6 +76,11 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, flowType.getFailureDetail());
         }
 
+        var propertiesResult = propertiesProvider.propertiesFor(transferProcess, policy);
+        if (propertiesResult.failed()) {
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, propertiesResult.getFailureDetail());
+        }
+
         var dataPlaneInstance = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getDataDestination(), selectionStrategy, transferProcess.getTransferType());
         var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -84,6 +92,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .assetId(transferProcess.getAssetId())
                 .flowType(flowType.getContent())
                 .callbackAddress(callbackUrl != null ? callbackUrl.get() : null)
+                .properties(propertiesResult.getContent())
                 .build();
 
         var dataPlaneInstanceId = dataPlaneInstance != null ? dataPlaneInstance.getId() : null;
