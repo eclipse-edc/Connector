@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -14,17 +14,17 @@
 
 plugins {
     `java-library`
+    `java-test-fixtures`
     `maven-publish`
 }
 
 dependencies {
-    api(project(":spi:common:catalog-spi"))
+
     api(project(":spi:common:core-spi"))
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:transform-spi"))
 
-    api(libs.jakartaJson)
-
-    testImplementation(project(":tests:junit-base"));
-    testImplementation(project(":extensions:common:json-ld"))
+    implementation(libs.assertj)
+    implementation(libs.junit.jupiter.api)
+    implementation(libs.testcontainers.junit)
 }
+
+

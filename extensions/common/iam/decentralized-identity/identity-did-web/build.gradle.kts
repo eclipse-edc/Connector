@@ -8,7 +8,7 @@ dependencies {
     api(project(":spi:common:http-spi"))
     api(project(":core:common:util"))
 
-    testImplementation(project(":core:common:junit"))
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
 }
 
 

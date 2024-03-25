@@ -26,6 +26,8 @@ dependencies {
 
     testImplementation(project(":core:common:util"))
 
+    testFixturesImplementation(libs.mockito.core)
+
     testImplementation(libs.mockserver.netty)
 }
 
