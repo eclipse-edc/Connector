@@ -16,10 +16,10 @@
 package org.eclipse.edc.vault.filesystem;
 
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.eclipse.edc.keys.AbstractPrivateKeyResolver;
+import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.AbstractPrivateKeyResolver;
-import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.jetbrains.annotations.NotNull;
 

@@ -17,7 +17,6 @@ package org.eclipse.edc.vault.hashicorp;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @ComponentTest
@@ -58,7 +58,7 @@ class HashicorpVaultClientIntegrationTest {
     void beforeEach() throws IOException, InterruptedException {
         assertThat(CREATION_TTL).isGreaterThan(TTL);
         client = new HashicorpVaultClient(
-                TestUtils.testHttpClient(),
+                testHttpClient(),
                 OBJECT_MAPPER,
                 MONITOR,
                 getSettings()

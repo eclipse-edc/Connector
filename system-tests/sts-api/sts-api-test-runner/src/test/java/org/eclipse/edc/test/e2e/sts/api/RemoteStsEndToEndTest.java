@@ -39,9 +39,9 @@ import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.eclipse.http.client.testfixtures.HttpTestUtils.testHttpClient;
 
 @EndToEndTest
 public class RemoteStsEndToEndTest extends StsEndToEndTestBase {

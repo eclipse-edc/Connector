@@ -29,7 +29,7 @@ import org.mockserver.model.JsonBody;
 import java.util.Map;
 
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 
 @ExtendWith(EdcExtension.class)
@@ -53,7 +53,7 @@ public class CloudEventsHttpExtensionTest {
     @Test
     void shouldSendEventAccordingToCloudEventSpec(EventRouter eventRouter, TypeManager typeManager) {
         var event = TestEvent.Builder.newInstance().data("useful information").build();
-        
+
         var envelope = EventEnvelope.Builder.newInstance()
                 .id("event-id")
                 .payload(event)

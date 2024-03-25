@@ -21,6 +21,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:http-spi"))
+    api(project(":spi:common:keys-spi"))
     api(project(":spi:common:policy-engine-spi"))
     api(project(":spi:common:transaction-spi"))
     api(project(":spi:common:transaction-datasource-spi"))
@@ -32,8 +33,10 @@ dependencies {
     implementation(project(":core:common:transform-core"))
     implementation(project(":core:common:util"))
     implementation(project(":core:common:validator-core"))
+    implementation(project(":core:common:lib:boot-lib"))
+    implementation(project(":core:common:lib:http-lib"))
+    implementation(project(":core:common:lib:keys-lib"))
 
-    implementation(libs.dnsOverHttps)
     implementation(libs.bouncyCastle.bcpkixJdk18on)
     implementation(libs.nimbus.jwt)
     implementation(libs.tink)

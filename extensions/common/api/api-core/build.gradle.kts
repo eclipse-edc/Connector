@@ -32,6 +32,7 @@ dependencies {
     testImplementation(libs.jersey.server)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":extensions:common:json-ld"))
 }
 

@@ -23,7 +23,8 @@ dependencies {
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 
-    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":tests:junit-base"));
+
 }
 
 

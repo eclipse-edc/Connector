@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:identity-trust-spi"))
+    implementation(project(":spi:common:keys-spi"))
     implementation(project(":spi:common:http-spi"))
     implementation(project(":spi:common:json-ld-spi"))
     implementation(project(":core:common:util"))

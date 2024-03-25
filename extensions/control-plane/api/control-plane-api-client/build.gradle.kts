@@ -30,6 +30,8 @@ dependencies {
     testImplementation(project(":extensions:common:auth:auth-tokenbased"))
     testImplementation(libs.awaitility)
 
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
+
 }
 
 

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.did.spi.resolution;
 
+import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.iam.PublicKeyResolver;
 
 /**
  * Specialized version of {@link PublicKeyResolver} which can be injected in the runtime

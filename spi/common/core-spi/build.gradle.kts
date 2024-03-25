@@ -26,10 +26,8 @@ dependencies {
 
     implementation(libs.opentelemetry.api)
 
-    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":tests:junit-base"));
 
-    // needed by the abstract test spec located in testFixtures
-    testFixturesImplementation(project(":core:common:junit"))
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.mockito.core)
     testFixturesImplementation(libs.assertj)

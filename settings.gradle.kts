@@ -54,6 +54,10 @@ include(":core:common:validator-core")
 include(":core:common:util")
 include(":core:common:edr-store-core")
 
+include(":core:common:lib:boot-lib")
+include(":core:common:lib:http-lib")
+include(":core:common:lib:keys-lib")
+
 include(":core:control-plane:catalog-core")
 include(":core:control-plane:contract-core")
 include(":core:control-plane:control-plane-core")
@@ -212,6 +216,7 @@ include(":spi:common:core-spi")
 include(":spi:common:data-address:data-address-http-data-spi")
 include(":spi:common:data-address:data-address-kafka-spi")
 include(":spi:common:http-spi")
+include(":spi:common:keys-spi")
 include(":spi:common:identity-did-spi")
 include(":spi:common:json-ld-spi")
 include(":spi:common:jwt-spi")
@@ -242,6 +247,9 @@ include(":spi:data-plane:data-plane-http-spi")
 
 include(":spi:data-plane-selector:data-plane-selector-spi")
 include(":spi:policy-monitor:policy-monitor-spi")
+
+// modules for tests ------------------------------------------------------------------------
+include(":tests:junit-base")
 
 // modules for system tests ------------------------------------------------------------------------
 include(":system-tests:e2e-transfer-test:backend-service")

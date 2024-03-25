@@ -25,7 +25,8 @@ dependencies {
     api(project(":spi:common:web-spi"))
 
     testImplementation(libs.restAssured)
-    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":tests:junit-base"));
+
 }
 
 

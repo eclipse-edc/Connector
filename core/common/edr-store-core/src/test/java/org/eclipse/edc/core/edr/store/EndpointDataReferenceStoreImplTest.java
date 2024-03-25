@@ -15,8 +15,8 @@
 package org.eclipse.edc.core.edr.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
-import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.core.edr.defaults.InMemoryEndpointDataReferenceEntryIndex;
 import org.eclipse.edc.core.edr.defaults.VaultEndpointDataReferenceCache;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
@@ -30,7 +30,7 @@ public class EndpointDataReferenceStoreImplTest extends EndpointDataReferenceSto
     private final InMemoryEndpointDataReferenceEntryIndex store = new InMemoryEndpointDataReferenceEntryIndex(CriterionOperatorRegistryImpl.ofDefaults());
     private final VaultEndpointDataReferenceCache cache = new VaultEndpointDataReferenceCache(new InMemoryVault(mock()), "", new ObjectMapper());
     private final EndpointDataReferenceStoreImpl endpointDataReferenceService = new EndpointDataReferenceStoreImpl(store, cache, new NoopTransactionContext());
-    
+
     @Override
     protected EndpointDataReferenceStore getStore() {
         return endpointDataReferenceService;

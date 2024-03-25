@@ -639,7 +639,7 @@ public class Participant {
         }
 
         @SuppressWarnings("unchecked")
-        private B self() {
+        protected B self() {
             return (B) this;
         }
     }

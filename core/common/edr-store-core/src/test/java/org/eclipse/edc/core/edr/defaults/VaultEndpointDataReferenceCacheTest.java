@@ -15,7 +15,7 @@
 package org.eclipse.edc.core.edr.defaults;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.connector.core.vault.InMemoryVault;
+import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceCache;
 import org.eclipse.tractusx.edc.edr.spi.store.EndpointDataReferenceCacheTestBase;
 

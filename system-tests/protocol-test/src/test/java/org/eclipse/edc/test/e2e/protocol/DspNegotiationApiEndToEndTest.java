@@ -19,9 +19,9 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
-import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
+import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -37,7 +37,7 @@ import static org.eclipse.edc.protocol.dsp.version.DspVersions.V_2024_1;
 @EndToEndTest
 public class DspNegotiationApiEndToEndTest {
 
-    private static final int PROTOCOL_PORT = TestUtils.getFreePort();
+    private static final int PROTOCOL_PORT = Ports.getFreePort();
 
     @RegisterExtension
     static EdcRuntimeExtension runtime = new EdcRuntimeExtension(

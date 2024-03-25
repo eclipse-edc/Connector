@@ -31,6 +31,8 @@ dependencies {
     testImplementation(libs.restAssured)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
+
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
 }
 
 

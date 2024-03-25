@@ -35,6 +35,8 @@ dependencies {
     testImplementation(libs.restAssured)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
+
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
 }
 edcBuild {

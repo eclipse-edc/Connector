@@ -14,18 +14,18 @@
 
 package org.eclipse.edc.connector.core;
 
-import org.eclipse.edc.connector.core.security.KeyParserRegistryImpl;
-import org.eclipse.edc.connector.core.security.keyparsers.JwkParser;
-import org.eclipse.edc.connector.core.security.keyparsers.PemParser;
+import org.eclipse.edc.keys.KeyParserRegistryImpl;
+import org.eclipse.edc.keys.VaultCertificateResolver;
+import org.eclipse.edc.keys.VaultPrivateKeyResolver;
+import org.eclipse.edc.keys.keyparsers.JwkParser;
+import org.eclipse.edc.keys.keyparsers.PemParser;
+import org.eclipse.edc.keys.spi.CertificateResolver;
+import org.eclipse.edc.keys.spi.KeyParserRegistry;
+import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.security.CertificateResolver;
-import org.eclipse.edc.spi.security.KeyParserRegistry;
-import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.security.VaultCertificateResolver;
-import org.eclipse.edc.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
