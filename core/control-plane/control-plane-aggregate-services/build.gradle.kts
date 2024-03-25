@@ -19,7 +19,9 @@ plugins {
 dependencies {
     implementation(project(":spi:common:validator-spi"))
     implementation(project(":spi:control-plane:control-plane-spi"))
+    implementation(project(":spi:control-plane:secret-spi"))
     implementation(project(":core:common:lib:util-lib"))
+
     implementation(project(":spi:common:transaction-spi"))
     implementation(project(":spi:control-plane:asset-spi"))
     implementation(project(":spi:control-plane:transfer-data-plane-spi"))
