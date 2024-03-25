@@ -67,7 +67,9 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
     @WithSpan
     @Override
     public StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage message) {
-        return send(message, dataPlane.getUrl().toString(), message.getProcessId(), this::handleStartResponse);
+        return Optional.ofNullable(dataPlane)
+                .map(instance -> send(message, instance.getUrl().toString(), message.getProcessId(), this::handleStartResponse))
+                .orElseGet(() -> StatusResult.failure(FATAL_ERROR, noDataPlaneInstanceFound(message)));
     }
 
     @Override
@@ -82,6 +84,13 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
         var url = "%s/%s/terminate".formatted(dataPlane.getUrl(), transferProcessId);
         var message = DataFlowTerminateMessage.Builder.newInstance().build();
         return send(message, url, transferProcessId, r -> StatusResult.success());
+    }
+
+    private String noDataPlaneInstanceFound(DataFlowStartMessage message) {
+        var source = message.getSourceDataAddress().getType();
+        var destination = message.getDestinationDataAddress().getType();
+        var processId = message.getProcessId();
+        return "Unable to process transfer %s: No data plane found for source: %s and destination: %s".formatted(processId, source, destination);
     }
 
     private <T> StatusResult<T> send(Object message, String url, String processId, Function<Response, StatusResult<T>> handleStartResponse) {
