@@ -19,11 +19,15 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFa
 import org.eclipse.edc.connector.transfer.dataplane.flow.DataPlaneSignalingFlowController;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import java.util.Map;
 
 import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneSignalingExtension.NAME;
 
@@ -47,10 +51,17 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
     @Inject
     private DataPlaneClientFactory clientFactory;
 
+    @Inject(required = false)
+    private DataFlowPropertiesProvider propertiesProvider;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var selectionStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, DEFAULT_DATAPLANE_SELECTOR_STRATEGY);
-        dataFlowManager.register(new DataPlaneSignalingFlowController(callbackUrl, selectorService, clientFactory, selectionStrategy));
+        dataFlowManager.register(new DataPlaneSignalingFlowController(callbackUrl, selectorService, getPropertiesProvider(), clientFactory, selectionStrategy));
     }
+
+    private DataFlowPropertiesProvider getPropertiesProvider() {
+        return propertiesProvider == null ? (tp, p) -> StatusResult.success(Map.of()) : propertiesProvider;
+    }
+
 }
