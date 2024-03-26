@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.defaults.storage.contractdefinition;
 
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.ContractDefinitionStoreTestBase;
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 
 class InMemoryContractDefinitionStoreTest extends ContractDefinitionStoreTestBase {
 

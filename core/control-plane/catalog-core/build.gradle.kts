@@ -25,6 +25,7 @@ dependencies {
 
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:control-plane:control-plane-core"))
+    testImplementation(project(":core:common:lib:query-lib"))
 }
 
 

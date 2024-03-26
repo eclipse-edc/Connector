@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.framework.store;
 
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataTestBase;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 
 class InMemoryAccessTokenDataStoreTest extends AccessTokenDataTestBase {
     private final InMemoryAccessTokenDataStore store = new InMemoryAccessTokenDataStore(CriterionOperatorRegistryImpl.ofDefaults());

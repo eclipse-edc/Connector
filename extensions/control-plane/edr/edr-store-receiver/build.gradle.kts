@@ -23,6 +23,8 @@ dependencies {
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:common:edr-store-spi"))
 
+    implementation(project(":spi:common:transaction-spi"))
+
     testImplementation(project(":core:common:junit"))
 
 }

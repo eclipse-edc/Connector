@@ -18,8 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:token-spi"))
+    implementation(libs.edc.runtime.metamodel)
 }
 
 

@@ -20,12 +20,13 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:common:transform-spi"))
 
-    implementation(project(":core:common:connector-core"))
-    implementation(project(":core:common:state-machine"))
+    implementation(project(":core:common:lib:state-machine-lib"))
     implementation(project(":core:common:util"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 
+    testImplementation(project(":core:common:lib:query-lib"))
+    testImplementation(project(":core:common:lib:store-lib"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(libs.awaitility)

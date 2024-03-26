@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.defaults.storage.transferprocess;
 
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.testfixtures.store.TransferProcessStoreTestBase;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 
 import java.time.Duration;
 

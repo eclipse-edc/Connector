@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.core.edr.defaults;
 
-import org.eclipse.edc.connector.core.store.ReflectionBasedQueryResolver;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.store.ReflectionBasedQueryResolver;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;

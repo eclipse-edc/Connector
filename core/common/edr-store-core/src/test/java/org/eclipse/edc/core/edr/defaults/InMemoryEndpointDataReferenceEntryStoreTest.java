@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.core.edr.defaults;
 
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.tractusx.edc.edr.spi.store.EndpointDataReferenceEntryIndexTestBase;
 
 public class InMemoryEndpointDataReferenceEntryStoreTest extends EndpointDataReferenceEntryIndexTestBase {

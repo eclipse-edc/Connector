@@ -7,14 +7,16 @@ dependencies {
     api(project(":spi:common:identity-trust-spi"))
     api(project(":spi:common:identity-did-spi"))
     api(project(":spi:common:jwt-spi"))
+    api(project(":spi:common:token-spi"))
 
     implementation(project(":core:common:util"))
     implementation(libs.nimbus.jwt)
     implementation(libs.iron.ed25519)
     testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":extensions:common:json-ld"))
-    testImplementation(project(":extensions:common:crypto:crypto-common"))
+    testImplementation(project(":spi:common:json-ld-spi"))
+    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(project(":core:common:lib:crypto-common-lib"))
 
     testImplementation(testFixtures(project(":extensions:common:crypto:ldp-verifiable-credentials")))
     testImplementation(testFixtures(project(":extensions:common:crypto:jwt-verifiable-credentials")))

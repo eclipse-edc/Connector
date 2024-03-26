@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.dataplane.framework.store;
 
-import org.eclipse.edc.connector.core.store.InMemoryStatefulEntityStore;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
+import org.eclipse.edc.store.InMemoryStatefulEntityStore;
 
 import java.time.Clock;
 import java.util.UUID;

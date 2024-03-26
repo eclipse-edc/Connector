@@ -16,10 +16,10 @@ package org.eclipse.edc.core.edr.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.boot.vault.InMemoryVault;
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.core.edr.defaults.InMemoryEndpointDataReferenceEntryIndex;
 import org.eclipse.edc.core.edr.defaults.VaultEndpointDataReferenceCache;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.tractusx.edc.edr.spi.store.EndpointDataReferenceStoreTestBase;
 

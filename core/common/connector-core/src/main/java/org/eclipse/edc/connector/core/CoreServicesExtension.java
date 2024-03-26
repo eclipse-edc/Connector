@@ -14,14 +14,13 @@
 
 package org.eclipse.edc.connector.core;
 
+import org.eclipse.edc.boot.health.HealthCheckServiceConfiguration;
+import org.eclipse.edc.boot.health.HealthCheckServiceImpl;
 import org.eclipse.edc.connector.core.base.CommandHandlerRegistryImpl;
 import org.eclipse.edc.connector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.edc.connector.core.base.agent.ParticipantAgentServiceImpl;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.core.event.EventRouterImpl;
-import org.eclipse.edc.connector.core.health.HealthCheckServiceConfiguration;
-import org.eclipse.edc.connector.core.health.HealthCheckServiceImpl;
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.DataAddressValidatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
@@ -31,6 +30,7 @@ import org.eclipse.edc.policy.engine.ScopeFilter;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -96,7 +96,6 @@ public class CoreServicesExtension implements ServiceExtension {
 
     private HealthCheckServiceImpl healthCheckService;
     private RuleBindingRegistry ruleBindingRegistry;
-
 
     @Override
     public String name() {
@@ -166,7 +165,6 @@ public class CoreServicesExtension implements ServiceExtension {
     public EventRouter eventRouter(ServiceExtensionContext context) {
         return new EventRouterImpl(context.getMonitor(), eventExecutorServiceContainer.getExecutorService());
     }
-
 
     @Provider
     public HealthCheckService healthCheckService() {

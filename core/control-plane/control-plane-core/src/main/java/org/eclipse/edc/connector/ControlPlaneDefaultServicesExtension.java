@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryCo
 import org.eclipse.edc.connector.defaults.storage.policydefinition.InMemoryPolicyDefinitionStore;
 import org.eclipse.edc.connector.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
 import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
@@ -34,6 +35,7 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.util.concurrency.LockManager;
 
 import java.time.Clock;
@@ -59,6 +61,11 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     @Inject
     private CriterionOperatorRegistry criterionOperatorRegistry;
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        criterionOperatorRegistry.registerPropertyLookup(new AssetPropertyLookup());
+    }
 
     @Provider(isDefault = true)
     public AssetIndex defaultAssetIndex() {

@@ -15,6 +15,7 @@
 package org.eclipse.edc.jsonld;
 
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformer;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
@@ -34,7 +35,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
@@ -85,7 +85,7 @@ public class JsonLdExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var service = new TitaniumJsonLd(monitor, configuration);
         if (!config.getBoolean(AVOID_VOCAB_CONTEXT, Boolean.valueOf(DEFAULT_AVOID_VOCAB_CONTEXT))) {
-            service.registerNamespace(VOCAB, EDC_NAMESPACE);
+            service.registerNamespace(JsonLdKeywords.VOCAB, EDC_NAMESPACE);
         }
         service.registerNamespace(EDC_PREFIX, EDC_NAMESPACE);
 

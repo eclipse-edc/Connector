@@ -23,11 +23,11 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
 
     implementation(project(":core:common:transform-core"))
-    implementation(project(":core:common:jersey-providers"))
+    implementation(project(":extensions:common:lib:jersey-providers-lib"))
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(project(":core:common:lib:json-ld-lib"))
 }
 edcBuild {
     swagger {

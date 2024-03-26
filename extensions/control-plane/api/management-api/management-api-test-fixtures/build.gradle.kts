@@ -19,10 +19,11 @@ plugins {
 
 dependencies {
     testFixturesApi(project(":core:common:junit"))
+    testFixturesApi(project(":spi:common:json-ld-spi"))
     testFixturesApi(project(":spi:control-plane:control-plane-spi"))
     testFixturesApi(project(":spi:control-plane:contract-spi"))
     testFixturesApi(project(":core:common:util"))
-    testFixturesApi(project(":extensions:common:json-ld"))
+    testFixturesApi(project(":core:common:lib:json-ld-lib"))
 
     testFixturesApi(libs.junit.jupiter.api)
 

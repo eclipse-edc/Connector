@@ -28,6 +28,7 @@ dependencies {
 
     implementation(libs.jakarta.rsApi)
 
+    testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))

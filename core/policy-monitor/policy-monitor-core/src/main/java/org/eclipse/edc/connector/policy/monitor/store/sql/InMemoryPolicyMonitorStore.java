@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.policy.monitor.store.sql;
 
-import org.eclipse.edc.connector.core.store.InMemoryStatefulEntityStore;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
+import org.eclipse.edc.store.InMemoryStatefulEntityStore;
 
 import java.time.Clock;
 import java.util.UUID;

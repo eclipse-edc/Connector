@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    implementation(project(":spi:common:transaction-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:json-ld"))
     implementation(project(":extensions:common:api:management-api-configuration"))
@@ -27,9 +28,11 @@ dependencies {
     implementation(project(":core:common:validator-core"))
     implementation(libs.jakarta.rsApi)
 
+    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(project(":core:common:connector-core"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:http"))
-    testImplementation(project(":core:common:junit"))
     // for the TypeTransformerRegistryImpl
     testImplementation(project(":core:common:transform-core"))
     // for the JsonObject-To-DataAddress transformer
