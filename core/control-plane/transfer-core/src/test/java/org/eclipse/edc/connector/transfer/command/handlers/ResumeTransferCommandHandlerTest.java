@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.mockito.Mockito.mock;
 
@@ -43,7 +43,7 @@ class ResumeTransferCommandHandlerTest {
         var result = handler.modify(entity, command);
 
         assertThat(result).isTrue();
-        assertThat(entity.getState()).isEqualTo(STARTING.code());
+        assertThat(entity.getState()).isEqualTo(RESUMING.code());
     }
 
     @Test
