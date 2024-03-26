@@ -22,9 +22,12 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:control-plane:transfer-spi"))
-    implementation(project(":core:common:state-machine"))
-    implementation(project(":core:common:connector-core"))
 
+    implementation(project(":core:common:lib:state-machine-lib"))
+    implementation(project(":core:common:lib:store-lib"))
+    implementation(project(":core:control-plane:lib:control-plane-policies-lib"))
+
+    testImplementation(project(":core:common:lib:query-lib"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
     testImplementation(testFixtures(project(":spi:policy-monitor:policy-monitor-spi")))

@@ -30,6 +30,7 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:transform-core"))
+    testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.restAssured)
     testImplementation(libs.mockserver.netty)

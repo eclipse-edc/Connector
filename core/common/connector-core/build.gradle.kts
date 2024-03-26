@@ -28,12 +28,13 @@ dependencies {
     api(project(":spi:common:transform-spi"))
     api(project(":spi:common:validator-spi"))
 
-    implementation(project(":core:common:policy-engine"))
-    implementation(project(":core:common:state-machine"))
-    implementation(project(":core:common:transform-core"))
+    implementation(project(":core:common:lib:policy-engine-lib"))
     implementation(project(":core:common:util"))
+    implementation(project(":core:common:transform-core"))
     implementation(project(":core:common:validator-core"))
+    implementation(project(":core:common:lib:state-machine-lib"))
     implementation(project(":core:common:lib:boot-lib"))
+    implementation(project(":core:common:lib:query-lib"))
     implementation(project(":core:common:lib:http-lib"))
     implementation(project(":core:common:lib:keys-lib"))
 

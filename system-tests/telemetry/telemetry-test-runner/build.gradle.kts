@@ -17,8 +17,9 @@ plugins {
 }
 
 dependencies {
-    testImplementation(project(":core:common:junit"))
     testImplementation(project(":spi:common:json-ld-spi"))
+    testImplementation(project(":spi:common:catalog-spi"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:json-ld"))
 
     testImplementation(libs.restAssured)

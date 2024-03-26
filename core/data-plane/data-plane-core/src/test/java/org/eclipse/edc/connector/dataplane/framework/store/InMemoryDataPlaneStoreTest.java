@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.framework.store;
 
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.spi.testfixtures.store.DataPlaneStoreTestBase;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 
 import java.time.Clock;
 import java.time.Duration;

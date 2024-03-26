@@ -24,6 +24,7 @@ dependencies {
     api(project(":spi:common:transform-spi"))
     api(libs.nimbus.jwt)
 
+    testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(project(":core:common:transform-core")) //for the TransformerContextImpl
     testImplementation(project(":core:common:junit")) //for the TestUtils

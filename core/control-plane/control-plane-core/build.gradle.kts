@@ -20,14 +20,15 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
 
-    implementation(project(":core:common:connector-core"))
+    implementation(project(":core:common:lib:store-lib"))
     implementation(project(":core:common:boot"))
-    implementation(project(":core:common:policy-engine"))
     implementation(project(":core:control-plane:catalog-core"))
     implementation(project(":core:control-plane:contract-core"))
     implementation(project(":core:control-plane:transfer-core"))
     implementation(project(":core:control-plane:control-plane-aggregate-services"))
     implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:policy-engine-lib"))
+    implementation(project(":core:common:lib:query-lib"))
 
     testImplementation(testFixtures(project(":spi:common:core-spi")))
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))

@@ -17,11 +17,12 @@ package org.eclipse.edc.connector.catalog;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.defaults.storage.assetindex.InMemoryAssetIndex;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.message.Range;
@@ -60,17 +61,26 @@ import static org.mockito.Mockito.when;
  */
 class DatasetResolverImplIntegrationTest {
 
-    private final ContractDefinitionResolver contractDefinitionResolver = mock();
-    private final PolicyDefinitionStore policyStore = mock();
-    private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
-    private final AssetIndex assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry);
+    private ContractDefinitionResolver contractDefinitionResolver;
+    private AssetIndex assetIndex;
 
-    private final DatasetResolver resolver = new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyStore,
-            mock(), criterionOperatorRegistry);
+    private DatasetResolver resolver;
 
     @BeforeEach
     void setUp() {
-        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
+        contractDefinitionResolver = mock();
+        PolicyDefinitionStore policyStore = mock();
+        CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
+        criterionOperatorRegistry.registerPropertyLookup(new AssetPropertyLookup());
+        assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry);
+        resolver = new DatasetResolverImpl(
+                contractDefinitionResolver,
+                assetIndex,
+                policyStore,
+                mock(),
+                criterionOperatorRegistry);
+        var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+        when(policyStore.findById(any())).thenReturn(policyDefinition);
     }
 
     @Test

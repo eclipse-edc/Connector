@@ -18,6 +18,7 @@ import com.apicatalog.jsonld.loader.DocumentLoader;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.util.reflection.ReflectionUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -27,7 +28,6 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.util.reflection.ReflectionUtil.getFieldValue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -49,8 +49,8 @@ class JsonLdExtensionTest {
         when(context.getConfig()).thenReturn(config);
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
-        DocumentLoader documentLoader = getFieldValue("documentLoader", service);
-        Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
+        var documentLoader = ReflectionUtil.getFieldValue("documentLoader", service);
+        Map<String, URI> cache = ReflectionUtil.getFieldValue("uriCache", documentLoader);
 
         assertThat(cache).containsEntry("http://foo.org/doc.json", new File("/tmp/foo/doc.json").toURI());
     }
@@ -65,8 +65,8 @@ class JsonLdExtensionTest {
         when(context.getConfig()).thenReturn(config);
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
-        DocumentLoader documentLoader = getFieldValue("documentLoader", service);
-        Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
+        DocumentLoader documentLoader = ReflectionUtil.getFieldValue("documentLoader", service);
+        Map<String, URI> cache = ReflectionUtil.getFieldValue("uriCache", documentLoader);
 
         assertThat(cache).containsEntry("http://foo.org/doc.json", new File("/tmp/foo/doc.json").toURI());
     }
@@ -82,8 +82,8 @@ class JsonLdExtensionTest {
         when(context.getConfig()).thenReturn(config);
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
-        DocumentLoader documentLoader = getFieldValue("documentLoader", service);
-        Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
+        DocumentLoader documentLoader = ReflectionUtil.getFieldValue("documentLoader", service);
+        Map<String, URI> cache = ReflectionUtil.getFieldValue("uriCache", documentLoader);
 
         assertThat(cache).containsEntry("http://foo.org/doc.json", new File("/tmp/foo/doc.json").toURI());
         assertThat(cache).containsEntry("http://bar.org/doc.json", new File("/tmp/bar/doc.json").toURI());
@@ -99,8 +99,8 @@ class JsonLdExtensionTest {
         when(context.getConfig()).thenReturn(config);
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
-        DocumentLoader documentLoader = getFieldValue("documentLoader", service);
-        Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
+        DocumentLoader documentLoader = ReflectionUtil.getFieldValue("documentLoader", service);
+        Map<String, URI> cache = ReflectionUtil.getFieldValue("uriCache", documentLoader);
 
         assertThat(cache).containsEntry("http://foo.org/doc.json", new File("/tmp/foo/doc.json").toURI())
                 .noneSatisfy((s, uri) -> assertThat(s).isEqualTo("http://bar.org/doc.json"));
@@ -117,8 +117,8 @@ class JsonLdExtensionTest {
         when(context.getConfig()).thenReturn(config);
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
-        DocumentLoader documentLoader = getFieldValue("documentLoader", service);
-        Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
+        DocumentLoader documentLoader = ReflectionUtil.getFieldValue("documentLoader", service);
+        Map<String, URI> cache = ReflectionUtil.getFieldValue("uriCache", documentLoader);
 
         assertThat(cache).containsEntry("http://foo.org/doc.json", new File("/tmp/foo/doc.json").toURI())
                 .noneSatisfy((s, uri) -> assertThat(s).isEqualTo("http://bar.org/doc.json"));

@@ -21,6 +21,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:jwt-spi"))
+    api(project(":spi:common:token-spi"))
 
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.assertj)

@@ -22,13 +22,14 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:contract-spi"))
 
-    implementation(project(":core:common:jersey-providers"))
-    implementation(project(":core:common:transform-core"))
+    implementation(project(":extensions:common:lib:jersey-providers-lib"))
     implementation(project(":extensions:common:api:api-core"))
+    implementation(project(":core:common:transform-core"))
 
     implementation(libs.swagger.annotations.jakarta)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":extensions:common:json-ld"))
 }
 

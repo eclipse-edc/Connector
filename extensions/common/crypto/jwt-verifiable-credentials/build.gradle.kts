@@ -26,9 +26,9 @@ dependencies {
     implementation(project(":core:common:token-core")) // for the token rules
 
 
-    testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":extensions:common:crypto:crypto-common"))
+    testImplementation(project(":core:common:lib:crypto-common-lib"))
     testFixturesImplementation(libs.nimbus.jwt)
     testFixturesImplementation(project(":spi:common:identity-did-spi"))
 }

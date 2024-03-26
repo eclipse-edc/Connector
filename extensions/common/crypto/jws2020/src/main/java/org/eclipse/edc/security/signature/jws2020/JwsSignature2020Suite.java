@@ -19,7 +19,6 @@ import com.apicatalog.ld.schema.LdTerm;
 import com.apicatalog.ld.signature.CryptoSuite;
 import com.apicatalog.ld.signature.SignatureSuite;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 
 import java.net.URI;
 
@@ -34,7 +33,7 @@ public final class JwsSignature2020Suite implements SignatureSuite {
     /**
      * Creates a new {@link JwsSignature2020Suite} using an object mapper. That mapper is needed because parts of the schema are plain JSON.
      *
-     * @param mapper a JSON-aware {@link ObjectMapper}, e.g. using {@link  JacksonJsonLd#createObjectMapper()}
+     * @param mapper a JSON-aware {@link ObjectMapper}
      * @see Jws2020Schema
      */
     public JwsSignature2020Suite(ObjectMapper mapper) {

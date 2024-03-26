@@ -15,7 +15,8 @@
 package org.eclipse.edc.connector.defaults.storage.assetindex;
 
 
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
+import org.eclipse.edc.connector.query.asset.AssetPropertyLookup;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.testfixtures.asset.AssetIndexTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,9 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
 
     @BeforeEach
     void setUp() {
-        index = new InMemoryAssetIndex(CriterionOperatorRegistryImpl.ofDefaults());
+        var registry = CriterionOperatorRegistryImpl.ofDefaults();
+        registry.registerPropertyLookup(new AssetPropertyLookup());
+        index = new InMemoryAssetIndex(registry);
     }
 
     @Override

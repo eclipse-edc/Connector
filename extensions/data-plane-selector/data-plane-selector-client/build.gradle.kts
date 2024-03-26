@@ -28,7 +28,7 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:transform-core"))
-    testImplementation(project(":core:common:jersey-providers"))
+    testImplementation(project(":extensions:common:lib:jersey-providers-lib"))
 
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))

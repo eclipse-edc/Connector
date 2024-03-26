@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.defaults.storage.policydefinition;
 
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.testfixtures.store.PolicyDefinitionStoreTestBase;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.util.concurrency.LockManager;
 import org.junit.jupiter.api.BeforeEach;
 

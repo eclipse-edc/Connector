@@ -14,7 +14,8 @@
 
 package org.eclipse.edc.connector.defaults.storage.assetindex;
 
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
+import org.eclipse.edc.connector.query.asset.AssetPropertyLookup;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,9 @@ class InMemoryDataAddressResolverTest {
 
     @BeforeEach
     void setUp() {
-        resolver = new InMemoryAssetIndex(CriterionOperatorRegistryImpl.ofDefaults());
+        var registry = CriterionOperatorRegistryImpl.ofDefaults();
+        registry.registerPropertyLookup(new AssetPropertyLookup());
+        resolver = new InMemoryAssetIndex(registry);
     }
 
     @Test

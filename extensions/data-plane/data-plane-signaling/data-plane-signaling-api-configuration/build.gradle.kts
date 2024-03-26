@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
 
     implementation(project(":core:common:transform-core"))
-    implementation(project(":core:common:jersey-providers"))
+    implementation(project(":extensions:common:lib:jersey-providers-lib"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
     implementation(libs.jakarta.rsApi)
 

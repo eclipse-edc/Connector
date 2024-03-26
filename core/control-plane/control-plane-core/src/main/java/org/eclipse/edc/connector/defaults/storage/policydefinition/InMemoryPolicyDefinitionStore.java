@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.defaults.storage.policydefinition;
 
-import org.eclipse.edc.connector.core.store.ReflectionBasedQueryResolver;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
@@ -22,6 +21,7 @@ import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.store.ReflectionBasedQueryResolver;
 import org.eclipse.edc.util.concurrency.LockManager;
 
 import java.util.HashMap;

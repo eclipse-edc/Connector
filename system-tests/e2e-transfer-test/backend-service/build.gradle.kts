@@ -17,9 +17,9 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":spi:common:http-spi"))
     implementation(project(":extensions:common:http"))
     implementation(project(":core:common:boot"))
-    implementation(project(":core:common:connector-core"))
 
     implementation(libs.nimbus.jwt)
     implementation(libs.jakarta.rsApi)

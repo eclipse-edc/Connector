@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.defaults.storage.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.ContractNegotiationStoreTestBase;
-import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 
 import java.time.Duration;
 

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.policy.monitor;
 
-import org.eclipse.edc.connector.core.policy.ContractExpiryCheckFunction;
+import org.eclipse.edc.connector.policy.contract.ContractExpiryCheckFunction;
 import org.eclipse.edc.connector.policy.monitor.manager.PolicyMonitorManagerImpl;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
@@ -39,11 +39,11 @@ import org.eclipse.edc.spi.telemetry.Telemetry;
 
 import java.time.Clock;
 
-import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_BATCH_SIZE;
-import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_ITERATION_WAIT;
-import static org.eclipse.edc.connector.core.policy.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
+import static org.eclipse.edc.connector.policy.contract.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
 import static org.eclipse.edc.connector.policy.monitor.PolicyMonitorExtension.NAME;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
+import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_BATCH_SIZE;
+import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_ITERATION_WAIT;
 
 @Extension(value = NAME)
 @Provides({ PolicyMonitorManager.class })
