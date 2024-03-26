@@ -21,6 +21,7 @@ dependencies {
     testImplementation(project(":spi:common:catalog-spi"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(project(":core:common:connector-core"))
 
     testImplementation(libs.restAssured)
     testImplementation(libs.assertj)
