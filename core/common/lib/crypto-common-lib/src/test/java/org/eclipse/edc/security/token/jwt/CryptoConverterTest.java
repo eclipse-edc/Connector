@@ -149,6 +149,33 @@ class CryptoConverterTest {
     }
 
     @Test
+    void createJwk_rsaKey_onlyPrivate() throws NoSuchAlgorithmException {
+        var pk = createRsa();
+        var keypair = new KeyPair(null, pk.getPrivate());
+        var jwk = CryptoConverter.createJwk(keypair);
+        assertThat(jwk).isInstanceOf(RSAKey.class);
+        assertThat(jwk.isPrivate()).isTrue();
+        assertThat(jwk.getKeyID()).isNull();
+    }
+
+    @Test
+    void createJwk_rsaKey_whenEmptyKeypair() throws NoSuchAlgorithmException {
+        var keypair = new KeyPair(null, null);
+        assertThatThrownBy(() -> CryptoConverter.createJwk(keypair))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void createJwk_rsaKey_onlyPublic() throws NoSuchAlgorithmException {
+        var pk = createRsa();
+        var keypair = new KeyPair(pk.getPublic(), null);
+        var jwk = CryptoConverter.createJwk(keypair);
+        assertThat(jwk).isInstanceOf(RSAKey.class);
+        assertThat(jwk.isPrivate()).isFalse();
+        assertThat(jwk.getKeyID()).isNull();
+    }
+
+    @Test
     void createJwk_rsaKey_withKeyId() throws NoSuchAlgorithmException {
         var pk = createRsa();
         var jwk = CryptoConverter.createJwk(pk, "test-key-id");

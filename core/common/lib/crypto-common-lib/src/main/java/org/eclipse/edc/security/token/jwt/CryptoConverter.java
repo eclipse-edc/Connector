@@ -50,6 +50,7 @@ import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.EdECKey;
 import java.security.interfaces.EdECPrivateKey;
 import java.security.interfaces.EdECPublicKey;
+import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECPoint;
@@ -302,8 +303,24 @@ public class CryptoConverter {
     }
 
     private static RSAKey convertRsaKey(KeyPair keypair, @Nullable String kid) {
-        return new RSAKey.Builder((RSAPublicKey) keypair.getPublic())
-                .privateKey(keypair.getPrivate())
+
+        if (keypair.getPublic() == null && keypair.getPrivate() == null) {
+            throw new IllegalArgumentException("Either the public or the private key of a keypair must be non-null when converting RSA -> JWK");
+        }
+        var key = Optional.ofNullable(keypair.getPublic()).orElseGet(() -> {
+            var keySpec = new java.security.spec.RSAPublicKeySpec(((RSAPrivateCrtKey) keypair.getPrivate()).getModulus(), ((RSAPrivateCrtKey) keypair.getPrivate()).getPublicExponent());
+            try {
+                var gen = KeyFactory.getInstance("RSA");
+                return gen.generatePublic(keySpec);
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        var builder = new RSAKey.Builder((RSAPublicKey) key);
+        if (keypair.getPrivate() != null) {
+            builder.privateKey(keypair.getPrivate());
+        }
+        return builder
                 .keyID(kid)
                 .keyUse(KeyUse.SIGNATURE).build();
     }
