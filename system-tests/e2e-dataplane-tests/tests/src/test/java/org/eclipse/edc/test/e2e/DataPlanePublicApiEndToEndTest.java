@@ -49,6 +49,7 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.JsonBody.json;
 import static org.mockserver.verify.VerificationTimes.exactly;
 
 public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
@@ -120,13 +121,19 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
     @ValueSource(strings = { "POST", "PUT", "PATCH" })
     void request_withBody_expect200(String method) {
         backendDataAddress.getProperties().put(EDC_NAMESPACE + "proxyBody", "true");
-        backendDataAddress.getProperties().put(EDC_NAMESPACE + "MEDIA_TYPE", "application/json");
+        backendDataAddress.getProperties().put(EDC_NAMESPACE + "mediaType", "application/json");
 
         var token = createEdr();
+        var jsonBody = """
+                { 
+                   "quizz": "quzz"
+                }
+                """;
         var body = DATAPLANE.getDataPlanePublicEndpoint()
                 .baseRequest()
                 .contentType(ContentType.JSON)
                 .header(HttpHeaders.AUTHORIZATION, token)
+                .body(jsonBody)
                 .request(method, "/v2/bar/baz")
                 .then()
                 .log().ifError()
@@ -134,7 +141,10 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
                 .extract().body().asString();
         assertThat(body).isNotNull();
 
-        backendServer.verify(request().withMethod(method).withPath("/foo/v2/bar/baz"), exactly(1));
+        backendServer.verify(request()
+                .withMethod(method)
+                .withPath("/foo/v2/bar/baz")
+                .withBody(json(jsonBody)), exactly(1));
     }
 
     @DisplayName("Test methods without request body")
