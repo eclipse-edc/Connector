@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.SelectionRequ
 public interface DataplaneSelectorApi {
 
     @Operation(method = "POST",
+            operationId = "selectDataPlaneInstance",
             description = "Finds the best fitting data plane instance for a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SelectionRequestSchema.class))),
             responses = {
@@ -45,9 +46,10 @@ public interface DataplaneSelectorApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     @POST
-    JsonObject find(JsonObject request);
+    JsonObject selectDataPlaneInstance(JsonObject request);
 
     @Operation(method = "POST",
+            operationId = "addDataPlaneInstance",
             description = "Adds one dataplane instance to the internal database of the selector",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataPlaneInstanceSchema.class))),
             responses = {
@@ -56,9 +58,10 @@ public interface DataplaneSelectorApi {
             }
     )
     @POST
-    JsonObject addEntry(JsonObject instance);
+    JsonObject addDataPlaneInstance(JsonObject instance);
 
     @Operation(method = "GET",
+            operationId = "getAllDataPlaneInstances",
             description = "Returns a list of all currently registered data plane instances",
             responses = {
                     @ApiResponse(responseCode = "200", description = "A (potentially empty) list of currently registered data plane instances",
@@ -66,6 +69,6 @@ public interface DataplaneSelectorApi {
             }
     )
     @GET
-    JsonArray getAll();
+    JsonArray getAllDataPlaneInstances();
 
 }

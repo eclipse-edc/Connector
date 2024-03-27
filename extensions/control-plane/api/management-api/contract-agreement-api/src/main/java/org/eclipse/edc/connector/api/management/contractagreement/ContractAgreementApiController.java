@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.management.contractagreement;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -41,6 +42,7 @@ import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
+@Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/v2/contractagreements")
 public class ContractAgreementApiController implements ContractAgreementApi {
@@ -60,7 +62,7 @@ public class ContractAgreementApiController implements ContractAgreementApi {
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryAllAgreements(JsonObject querySpecJson) {
+    public JsonArray queryAgreements(JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();

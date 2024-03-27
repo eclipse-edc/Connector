@@ -40,7 +40,7 @@ public interface ContractAgreementApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonArray queryAllAgreements(JsonObject querySpecJson);
+    JsonArray queryAgreements(JsonObject querySpecJson);
 
     @Operation(description = "Gets an contract agreement with the given ID",
             responses = {
