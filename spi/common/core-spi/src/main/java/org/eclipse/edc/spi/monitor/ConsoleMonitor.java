@@ -20,8 +20,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.function.Supplier;
 
-import static java.lang.String.format;
-
 /**
  * Default monitor implementation. Outputs messages to the console.
  */
@@ -32,17 +30,27 @@ public class ConsoleMonitor implements Monitor {
     private static final String INFO = "INFO";
     private static final String DEBUG = "DEBUG";
 
+    private final boolean useColor;
+
     private final Level level;
     private final String prefix;
 
     public ConsoleMonitor() {
-        this.prefix = "";
-        this.level = Level.DEBUG;
+        this(true);
+    }
+
+    public ConsoleMonitor(boolean useColor) {
+        this(null, Level.DEBUG, useColor);
     }
 
     public ConsoleMonitor(@Nullable String runtimeName, Level level) {
-        this.prefix = format("[%s] ", runtimeName);
+        this(runtimeName, level, true);
+    }
+
+    public ConsoleMonitor(@Nullable String runtimeName, Level level, boolean useColor) {
+        this.prefix = runtimeName == null ? "" : "[%s] ".formatted(runtimeName);
         this.level = level;
+        this.useColor = useColor;
     }
 
     @Override
@@ -76,14 +84,33 @@ public class ConsoleMonitor implements Monitor {
 
     private void output(String level, Supplier<String> supplier, Throwable... errors) {
         var time = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        System.out.println(prefix + level + " " + time + " " + sanitizeMessage(supplier));
+        var colorCode = getColorCode(level);
+        var resetCode = useColor ? ConsoleColor.RESET : "";
+
+        System.out.println(colorCode + prefix + level + " " + time + " " + sanitizeMessage(supplier) + resetCode);
         if (errors != null) {
             for (Throwable error : errors) {
                 if (error != null) {
+                    System.out.print(colorCode);
                     error.printStackTrace(System.out);
+                    System.out.print(resetCode);
                 }
             }
         }
+    }
+
+    private String getColorCode(String level) {
+        if (!useColor) {
+            return "";
+        }
+
+        return switch (level) {
+            case SEVERE -> ConsoleColor.RED;
+            case WARNING -> ConsoleColor.YELLOW;
+            case INFO -> ConsoleColor.GREEN;
+            case DEBUG -> ConsoleColor.BLUE;
+            default -> "";
+        };
     }
 
     public enum Level {
