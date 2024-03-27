@@ -90,6 +90,8 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.RESUMED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
@@ -493,72 +495,92 @@ class TransferProcessManagerImplTest {
         });
     }
 
-    @Test
-    void starting_shouldStartDataTransferAndSendMessageToConsumer() {
-        var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
-        var dataFlowResponse = createDataFlowResponse();
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.findById(process.getId())).thenReturn(process);
-        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
-        when(dispatcherRegistry.dispatch(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+    @Nested
+    class StartingProvider {
 
-        manager.start();
+        @Test
+        void shouldStartDataTransferAndSendMessageToConsumer() {
+            var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
+            var dataFlowResponse = createDataFlowResponse();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process);
+            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dispatcherRegistry.dispatch(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
-        await().untilAsserted(() -> {
-            var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
-            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(dispatcherRegistry).dispatch(any(), captor.capture());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
-            verify(listener).started(eq(process), any());
-            var message = captor.getValue();
-            assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
-            assertThat(message.getConsumerPid()).isEqualTo(process.getCorrelationId());
-            assertThat(message.getProviderPid()).isEqualTo(process.getId());
-            assertThat(message.getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
-        });
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
+                verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                verify(dispatcherRegistry).dispatch(any(), captor.capture());
+                verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
+                verify(listener).started(eq(process), any());
+                var message = captor.getValue();
+                assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
+                assertThat(message.getConsumerPid()).isEqualTo(process.getCorrelationId());
+                assertThat(message.getProviderPid()).isEqualTo(process.getId());
+                assertThat(message.getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
+            });
+        }
     }
 
-    @Test
-    void starting_onFailureAndRetriesNotExhausted_updatesStateCountForRetry() {
-        var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
-        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.failure(ERROR_RETRY));
-        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
+    @Nested
+    class ResumingProvider {
 
-        manager.start();
+        @Test
+        void shouldStartDataTransferAndSendMessageToConsumer() {
+            var process = createTransferProcess(RESUMING).toBuilder().type(PROVIDER).build();
+            var dataFlowResponse = createDataFlowResponse();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process);
+            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dispatcherRegistry.dispatch(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
-        await().untilAsserted(() -> {
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == STARTING.code()));
-        });
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
+                verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                verify(dispatcherRegistry).dispatch(any(), captor.capture());
+                var transferCaptor = ArgumentCaptor.forClass(TransferProcess.class);
+                verify(transferProcessStore).save(transferCaptor.capture());
+                assertThat(transferCaptor.getValue().getState()).isEqualTo(STARTED.code());
+                verify(listener).started(eq(process), any());
+                var message = captor.getValue();
+                assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
+                assertThat(message.getConsumerPid()).isEqualTo(process.getCorrelationId());
+                assertThat(message.getProviderPid()).isEqualTo(process.getId());
+                assertThat(message.getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
+            });
+        }
     }
 
-    @Test
-    void starting_shouldTransitionToTerminatingIfFatalFailure() {
-        var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+    @Nested
+    class ResumingConsumer {
 
-        manager.start();
+        @Test
+        void shouldSendMessageToProviderAndTransitionToResumed() {
+            var process = createTransferProcess(RESUMING).toBuilder().type(CONSUMER).build();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process);
+            when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
 
-        await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATING.code()));
-        });
-    }
+            manager.start();
 
-    @Test
-    void starting_onFailureAndRetriesExhausted_transitToTerminating() {
-        var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(RETRY_EXHAUSTED).build();
-        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.failure(ERROR_RETRY));
-        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.findById(process.getId())).thenReturn(process);
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATING.code()));
-        });
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
+                verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                verify(dispatcherRegistry).dispatch(any(), captor.capture());
+                verify(transferProcessStore).save(argThat(p -> p.getState() == RESUMED.code()));
+                var message = captor.getValue();
+                assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
+                assertThat(message.getProviderPid()).isEqualTo(process.getCorrelationId());
+                assertThat(message.getConsumerPid()).isEqualTo(process.getId());
+            });
+        }
     }
 
     @Test
@@ -909,25 +931,33 @@ class TransferProcessManagerImplTest {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            CompletableFuture<StatusResult<Object>> genericError = failedFuture(new EdcException("error"));
+            var fatalError = completedFuture(StatusResult.failure(FATAL_ERROR));
             return Stream.of(
                     // retries not exhausted
-                    new DispatchFailure(REQUESTING, REQUESTING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(STARTING, STARTING, failedFuture(new EdcException("error")), b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, COMPLETING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(SUSPENDING, SUSPENDING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(REQUESTING, REQUESTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(STARTING, STARTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(COMPLETING, COMPLETING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(SUSPENDING, SUSPENDING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
+                    new DispatchFailure(TERMINATING, TERMINATING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
                     // retries exhausted
-                    new DispatchFailure(REQUESTING, TERMINATED, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(STARTING, TERMINATING, failedFuture(new EdcException("error")), b -> b.type(PROVIDER).stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, TERMINATING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(SUSPENDING, TERMINATING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATED, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(REQUESTING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(STARTING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(COMPLETING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(SUSPENDING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(CONSUMER)),
+                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(TERMINATING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
                     // fatal error, in this case retry should never be done
-                    new DispatchFailure(REQUESTING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(STARTING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(SUSPENDING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED))
+                    new DispatchFailure(REQUESTING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(STARTING, TERMINATED, fatalError, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(COMPLETING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(SUSPENDING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(RESUMING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
+                    new DispatchFailure(RESUMING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(TERMINATING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED))
             );
         }
     }

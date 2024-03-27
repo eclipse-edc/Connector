@@ -213,7 +213,6 @@ class DataPlaneManagerImplTest {
         verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
     }
 
-
     @Test
     void terminate_shouldTerminateDataFlow_withReason() {
         var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
@@ -289,105 +288,126 @@ class DataPlaneManagerImplTest {
         verify(store).save(argThat(f -> f.getProperties().containsKey(TERMINATION_REASON)));
     }
 
-    @Test
-    void received_shouldStartTransferTransitionAndTransitionToStarted() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(dataFlow);
-        when(registry.resolveTransferService(any())).thenReturn(transferService);
-        when(transferService.canHandle(any())).thenReturn(true);
-        when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
+    @Nested
+    class Received {
+        @Test
+        void shouldStartTransferTransitionAndTransitionToStarted() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(store.findById(any())).thenReturn(dataFlow);
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.canHandle(any())).thenReturn(true);
+            when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowStartMessage.class));
-            verify(store).save(argThat(it -> it.getState() == STARTED.code()));
-        });
-    }
+            await().untilAsserted(() -> {
+                verify(transferService).transfer(isA(DataFlowStartMessage.class));
+                verify(store).save(argThat(it -> it.getState() == STARTED.code()));
+            });
+        }
 
-    @Test
-    void received_shouldStarTransitionToCompleted_whenTransferSucceeds() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(dataFlow);
-        when(registry.resolveTransferService(any())).thenReturn(transferService);
-        when(transferService.canHandle(any())).thenReturn(true);
-        when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
+        @Test
+        void shouldStarTransitionToCompleted_whenTransferSucceeds() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(store.findById(any())).thenReturn(dataFlow);
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.canHandle(any())).thenReturn(true);
+            when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowStartMessage.class));
-            verify(store, atLeastOnce()).save(argThat(it -> it.getState() == COMPLETED.code()));
-        });
-    }
+            await().untilAsserted(() -> {
+                verify(transferService).transfer(isA(DataFlowStartMessage.class));
+                verify(store, atLeastOnce()).save(argThat(it -> it.getState() == COMPLETED.code()));
+            });
+        }
 
-    @Test
-    void received_shouldStartTransferAndNotTransitionToCompleted_whenTransferSucceedsBecauseItsTermination() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        var terminatedDataFlow = dataFlowBuilder().state(TERMINATED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(terminatedDataFlow);
-        when(registry.resolveTransferService(any())).thenReturn(transferService);
-        when(transferService.canHandle(any())).thenReturn(true);
-        when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
+        @Test
+        void shouldStartTransferAndNotTransitionToCompleted_whenTransferSucceedsBecauseItsTermination() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            var terminatedDataFlow = dataFlowBuilder().state(TERMINATED.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(store.findById(any())).thenReturn(terminatedDataFlow);
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.canHandle(any())).thenReturn(true);
+            when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowStartMessage.class));
-            verify(store, never()).save(argThat(it -> it.getState() == COMPLETED.code()));
-        });
-    }
+            await().untilAsserted(() -> {
+                verify(transferService).transfer(isA(DataFlowStartMessage.class));
+                verify(store, never()).save(argThat(it -> it.getState() == COMPLETED.code()));
+            });
+        }
 
-    @Test
-    void received_shouldStartTransferAndTransitionToFailed_whenTransferFails() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(dataFlow);
-        when(registry.resolveTransferService(any())).thenReturn(transferService);
-        when(transferService.canHandle(any())).thenReturn(true);
-        when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.error("an error")));
+        @Test
+        void shouldNotChangeState_whenTransferGetsSuspended() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            var terminatedDataFlow = dataFlowBuilder().state(SUSPENDED.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(store.findById(any())).thenReturn(terminatedDataFlow);
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.canHandle(any())).thenReturn(true);
+            when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowStartMessage.class));
-            verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code() && it.getErrorDetail().equals("an error")));
-        });
-    }
+            await().untilAsserted(() -> {
+                verify(transferService).transfer(isA(DataFlowStartMessage.class));
+                verify(store, never()).save(argThat(it -> it.getState() == COMPLETED.code()));
+            });
+        }
 
-    @Test
-    void received_shouldStartTransferAndTransitionToReceivedForRetrying_whenTransferFutureIsFailed() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(dataFlow);
-        when(registry.resolveTransferService(any())).thenReturn(transferService);
-        when(transferService.canHandle(any())).thenReturn(true);
-        when(transferService.transfer(any())).thenReturn(failedFuture(new RuntimeException("an error")));
+        @Test
+        void shouldStartTransferAndTransitionToFailed_whenTransferFails() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(store.findById(any())).thenReturn(dataFlow);
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.canHandle(any())).thenReturn(true);
+            when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.error("an error")));
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            verify(transferService).transfer(isA(DataFlowStartMessage.class));
-            verify(store, atLeastOnce()).save(argThat(it -> it.getState() == RECEIVED.code()));
-        });
-    }
+            await().untilAsserted(() -> {
+                verify(transferService).transfer(isA(DataFlowStartMessage.class));
+                verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code() && it.getErrorDetail().equals("an error")));
+            });
+        }
 
-    @Test
-    void received_shouldTransitToFailedIfNoTransferServiceCanHandleStarted() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(dataFlow);
-        when(registry.resolveTransferService(any())).thenReturn(null);
+        @Test
+        void shouldStartTransferAndTransitionToReceivedForRetrying_whenTransferFutureIsFailed() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(store.findById(any())).thenReturn(dataFlow);
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.canHandle(any())).thenReturn(true);
+            when(transferService.transfer(any())).thenReturn(failedFuture(new RuntimeException("an error")));
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            verifyNoInteractions(transferService);
-            verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code()));
-        });
+            await().untilAsserted(() -> {
+                verify(transferService).transfer(isA(DataFlowStartMessage.class));
+                verify(store, atLeastOnce()).save(argThat(it -> it.getState() == RECEIVED.code()));
+            });
+        }
+
+        @Test
+        void shouldTransitToFailedIfNoTransferServiceCanHandleStarted() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(store.findById(any())).thenReturn(dataFlow);
+            when(registry.resolveTransferService(any())).thenReturn(null);
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verifyNoInteractions(transferService);
+                verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code()));
+            });
+        }
     }
 
     @Test
@@ -474,6 +494,7 @@ class DataPlaneManagerImplTest {
 
     @Nested
     class Suspend {
+
         @Test
         void shouldSuspendDataFlow() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();

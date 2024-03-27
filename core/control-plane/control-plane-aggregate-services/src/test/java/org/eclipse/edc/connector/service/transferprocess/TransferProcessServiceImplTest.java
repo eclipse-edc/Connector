@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
@@ -207,6 +208,31 @@ class TransferProcessServiceImplTest {
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         }
 
+    }
+
+    @Nested
+    class Resume {
+
+        @Test
+        void shouldExecuteCommandAndReturnResult() {
+            when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
+            var command = new ResumeTransferCommand("id");
+
+            var result = service.resume(command);
+
+            assertThat(result).isSucceeded();
+            verify(commandHandlerRegistry).execute(command);
+        }
+
+        @Test
+        void shouldFailWhenCommandHandlerFails() {
+            when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notFound("not found"));
+            var command = new ResumeTransferCommand("id");
+
+            var result = service.resume(command);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
     }
 
     @Test

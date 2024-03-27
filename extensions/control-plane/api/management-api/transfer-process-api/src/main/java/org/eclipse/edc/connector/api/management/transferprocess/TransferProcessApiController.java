@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.api.management.transferprocess.model.TransferSt
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.EdcException;
@@ -161,7 +162,7 @@ public class TransferProcessApiController implements TransferProcessApi {
 
         service.terminate(new TerminateTransferCommand(id, terminateTransfer.reason()))
                 .onSuccess(tp -> monitor.debug(format("Termination requested for TransferProcess with ID %s", id)))
-                .orElseThrow(failure -> mapToException(failure, TransferProcess.class, id));
+                .orElseThrow(exceptionMapper(TransferProcess.class, id));
     }
 
     @POST
@@ -175,6 +176,15 @@ public class TransferProcessApiController implements TransferProcessApi {
 
         service.suspend(new SuspendTransferCommand(id, suspendTransfer.reason()))
                 .onSuccess(tp -> monitor.debug(format("Suspension requested for TransferProcess with ID %s", id)))
-                .orElseThrow(failure -> mapToException(failure, TransferProcess.class, id));
+                .orElseThrow(exceptionMapper(TransferProcess.class, id));
+    }
+
+    @POST
+    @Path("/{id}/resume")
+    @Override
+    public void resumeTransferProcess(@PathParam("id") String id) {
+        service.resume(new ResumeTransferCommand(id))
+                .onSuccess(tp -> monitor.debug(format("Resumption requested for TransferProcess with ID %s", id)))
+                .orElseThrow(exceptionMapper(TransferProcess.class, id));
     }
 }

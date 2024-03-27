@@ -132,7 +132,11 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "TERMINATED", "DEPROVISIONING", "DEPROVISIONING_REQUESTED", "DEPROVISIONED" })
+    @EnumSource(
+            value = TransferProcessStates.class,
+            mode = EXCLUDE,
+            names = { "COMPLETED", "TERMINATED", "DEPROVISIONING", "DEPROVISIONING_REQUESTED", "DEPROVISIONED", "RESUMED" }
+    )
     void verifyTerminating_validStates(TransferProcessStates state) {
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())

@@ -101,11 +101,11 @@ public interface TransferProcessApi {
 
     @Operation(description = "Requests the deprovisioning of resources associated with a transfer process. " + ASYNC_WARNING,
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Request to deprovision the transfer process was successfully received",
+                    @ApiResponse(responseCode = "204", description = "Request to deprovision the transfer process was successfully received",
                             links = @Link(name = "poll-state", operationId = "deprovisionTransferProcess")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
-                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                    @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     void deprovisionTransferProcess(String id);
@@ -113,11 +113,11 @@ public interface TransferProcessApi {
     @Operation(description = "Requests the termination of a transfer process. " + ASYNC_WARNING,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = TerminateTransferSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Request to terminate the transfer process was successfully received",
+                    @ApiResponse(responseCode = "204", description = "Request to terminate the transfer process was successfully received",
                             links = @Link(name = "poll-state", operationId = "terminateTransferProcess")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
-                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                    @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not terminate transfer process, because it is already completed or terminated.",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
@@ -127,16 +127,27 @@ public interface TransferProcessApi {
     @Operation(description = "Requests the suspension of a transfer process. " + ASYNC_WARNING,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SuspendTransferSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Request to suspend the transfer process was successfully received",
+                    @ApiResponse(responseCode = "204", description = "Request to suspend the transfer process was successfully received",
                             links = @Link(name = "poll-state", operationId = "suspendTransferProcess")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
-                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                    @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not suspend the transfer process, because it is already completed or terminated.",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     void suspendTransferProcess(String id, JsonObject suspendTransfer);
+
+    @Operation(description = "Requests the resumption of a suspended transfer process. " + ASYNC_WARNING,
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Request to resume the transfer process was successfully received",
+                            links = @Link(name = "poll-state", operationId = "resumeTransferProcess")),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+            })
+    void resumeTransferProcess(String id);
 
     @Schema(name = "TransferRequest", example = TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE)
     record TransferRequestSchema(
