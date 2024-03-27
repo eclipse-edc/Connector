@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - handle HEAD requests
  *
  */
 
@@ -16,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.api.controller;
 
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HEAD;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -71,6 +73,12 @@ public class DataPlanePublicApiV2Controller implements DataPlanePublicApiV2 {
     @GET
     @Override
     public void get(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
+    }
+
+    @HEAD
+    @Override
+    public void head(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
         handle(requestContext, response);
     }
 

@@ -29,9 +29,15 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.model.HttpResponse;
+import org.mockserver.model.Parameter;
+import org.mockserver.verify.VerificationTimes;
 
 import java.security.Key;
 import java.security.PrivateKey;
@@ -40,17 +46,39 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.Mockito.mock;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.JsonBody.json;
+import static org.mockserver.verify.VerificationTimes.exactly;
 
 public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
 
     public static final String PUBLIC_KEY_ALIAS = "public-key";
     public static final String PRIVATE_KEY_ALIAS = "1";
     // this is a data address representing the private backend for an HTTP pull transfer
-    public static final DataAddress BACKEND_API_DATAADDRESS = DataAddress.Builder.newInstance()
-            .type("HttpData")
-            .property(EDC_NAMESPACE + "baseUrl", "https://jsonplaceholder.typicode.com/todos")
-            .build();
+    public static DataAddress backendDataAddress;
+
+    private ClientAndServer backendServer;
+
+    @BeforeEach
+    void setup() {
+        backendServer = ClientAndServer.startClientAndServer(getFreePort());
+        backendDataAddress = DataAddress.Builder.newInstance()
+                .type("HttpData")
+                .property(EDC_NAMESPACE + "baseUrl", "http://localhost:%d/foo".formatted(backendServer.getPort()))
+                .property(EDC_NAMESPACE + "proxyQueryParams", "true")
+                .property(EDC_NAMESPACE + "proxyPath", "true")
+                .property(EDC_NAMESPACE + "proxyMethod", "true")
+                .build();
+
+        backendServer.when(request()).respond(HttpResponse.response().withBody("""
+                {
+                   "foo": "bar",
+                   "fizz": "buzz",
+                }
+                """).withStatusCode(200));
+    }
 
     @Test
     void httpPull_missingToken_expect401() {
@@ -67,6 +95,8 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
                 .then()
                 .statusCode(401)
                 .body(Matchers.containsString("Missing Authorization Header"));
+
+        backendServer.verify(request().withMethod("POST"), VerificationTimes.never());
     }
 
     @Test
@@ -86,9 +116,41 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
                 .statusCode(403);
     }
 
+    @DisplayName("Test methods with request body")
     @ParameterizedTest(name = "Method = {0}")
-    @ValueSource(strings = { "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD" })
-    void request_expect200(String method) {
+    @ValueSource(strings = { "POST", "PUT", "PATCH" })
+    void request_withBody_expect200(String method) {
+        backendDataAddress.getProperties().put(EDC_NAMESPACE + "proxyBody", "true");
+        backendDataAddress.getProperties().put(EDC_NAMESPACE + "mediaType", "application/json");
+
+        var token = createEdr();
+        var jsonBody = """
+                { 
+                   "quizz": "quzz"
+                }
+                """;
+        var body = DATAPLANE.getDataPlanePublicEndpoint()
+                .baseRequest()
+                .contentType(ContentType.JSON)
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .body(jsonBody)
+                .request(method, "/v2/bar/baz")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .extract().body().asString();
+        assertThat(body).isNotNull();
+
+        backendServer.verify(request()
+                .withMethod(method)
+                .withPath("/foo/v2/bar/baz")
+                .withBody(json(jsonBody)), exactly(1));
+    }
+
+    @DisplayName("Test methods without request body")
+    @ParameterizedTest(name = "Method = {0}")
+    @ValueSource(strings = { "GET", "DELETE", "HEAD" })
+    void request_noBody_expect200(String method) {
         var token = createEdr();
         var body = DATAPLANE.getDataPlanePublicEndpoint()
                 .baseRequest()
@@ -100,6 +162,30 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
                 .statusCode(200)
                 .extract().body().asString();
         assertThat(body).isNotNull();
+
+        backendServer.verify(request().withMethod(method).withPath("/foo/v2/bar/baz"), exactly(1));
+    }
+
+    @Test
+    void request_getMultipleIdenticalQuery() {
+        var token = createEdr();
+        var body = DATAPLANE.getDataPlanePublicEndpoint()
+                .baseRequest()
+                .contentType(ContentType.JSON)
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .request("GET", "/v2/bar/baz?foo=bar&foo=fizz&foo=buzz")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .extract().body().asString();
+        assertThat(body).isNotNull();
+
+        backendServer.verify(request()
+                .withPath("/foo/v2/bar/baz")
+                .withQueryStringParameters(new Parameter("foo", "bar"),
+                        new Parameter("foo", "fizz"),
+                        new Parameter("foo", "buzz")
+                ), exactly(1));
     }
 
     private Key resolvePrivateKey() {
@@ -120,7 +206,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
 
         // store the EDR
         var accessTokenStore = runtime.getService(AccessTokenDataStore.class);
-        accessTokenStore.store(new AccessTokenData(tokenId, ClaimToken.Builder.newInstance().build(), BACKEND_API_DATAADDRESS));
+        accessTokenStore.store(new AccessTokenData(tokenId, ClaimToken.Builder.newInstance().build(), backendDataAddress));
         return jwt;
     }
 
