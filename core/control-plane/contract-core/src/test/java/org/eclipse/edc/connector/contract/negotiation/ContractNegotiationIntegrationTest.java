@@ -153,7 +153,7 @@ class ContractNegotiationIntegrationTest {
                 .protocolWebhook(protocolWebhook)
                 .build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
         consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, offerResolver, protocolTokenValidator, new ContractNegotiationObservableImpl(), monitor, mock());
         providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, offerResolver, protocolTokenValidator, new ContractNegotiationObservableImpl(), monitor, mock());
     }

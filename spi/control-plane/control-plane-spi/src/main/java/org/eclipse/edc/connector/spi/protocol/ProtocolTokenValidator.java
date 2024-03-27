@@ -19,6 +19,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Token validator to be used in protocol layer for verifying the token according the
@@ -35,7 +36,19 @@ public interface ProtocolTokenValidator {
      * @return Returns the extracted {@link ParticipantAgent} if successful, failure otherwise
      */
     default ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, String policyScope) {
-        return verify(tokenRepresentation, policyScope, Policy.Builder.newInstance().build());
+        return verify(tokenRepresentation, policyScope, Policy.Builder.newInstance().build(), null);
+    }
+    
+    /**
+     * Verify the {@link TokenRepresentation}
+     *
+     * @param tokenRepresentation The token
+     * @param policyScope         The policy scope
+     * @param message             The {@link RemoteMessage}
+     * @return Returns the extracted {@link ParticipantAgent} if successful, failure otherwise
+     */
+    default ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, String policyScope, RemoteMessage message) {
+        return verify(tokenRepresentation, policyScope, Policy.Builder.newInstance().build(), message);
     }
 
     /**
@@ -44,7 +57,8 @@ public interface ProtocolTokenValidator {
      * @param tokenRepresentation The token
      * @param policyScope         The policy scope
      * @param policy              The policy
+     * @param message             The {@link RemoteMessage}
      * @return Returns the extracted {@link ParticipantAgent} if successful, failure otherwise
      */
-    ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, String policyScope, Policy policy);
+    ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, String policyScope, Policy policy, RemoteMessage message);
 }
