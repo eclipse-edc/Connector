@@ -1110,7 +1110,7 @@ paths:
           type: string
           example: null
       responses:
-        "200":
+        "204":
           description: Request to deprovision the transfer process was successfully
             received
           links:
@@ -1126,7 +1126,49 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
-          description: A contract negotiation with the given ID does not exist
+          description: A transfer process with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/transferprocesses/{id}/resume:
+    post:
+      tags:
+      - Transfer Process
+      description: "Requests the resumption of a suspended transfer process. Due to\
+        \ the asynchronous nature of transfers, a successful response only indicates\
+        \ that the request was successfully received. This may take a long time, so\
+        \ clients must poll the /{id}/state endpoint to track the state."
+      operationId: resumeTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "204":
+          description: Request to resume the transfer process was successfully received
+          links:
+            poll-state:
+              operationId: resumeTransferProcess
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: A transfer process with the given ID does not exist
           content:
             application/json:
               schema:
@@ -1198,7 +1240,7 @@ paths:
             schema:
               $ref: '#/components/schemas/SuspendTransfer'
       responses:
-        "200":
+        "204":
           description: Request to suspend the transfer process was successfully received
           links:
             poll-state:
@@ -1213,7 +1255,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
-          description: A contract negotiation with the given ID does not exist
+          description: A transfer process with the given ID does not exist
           content:
             application/json:
               schema:
@@ -1255,7 +1297,7 @@ paths:
             schema:
               $ref: '#/components/schemas/TerminateTransfer'
       responses:
-        "200":
+        "204":
           description: Request to terminate the transfer process was successfully
             received
           links:
@@ -1271,7 +1313,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
-          description: A contract negotiation with the given ID does not exist
+          description: A transfer process with the given ID does not exist
           content:
             application/json:
               schema:
