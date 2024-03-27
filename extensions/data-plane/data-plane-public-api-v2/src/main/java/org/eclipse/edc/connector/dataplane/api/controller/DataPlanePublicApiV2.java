@@ -10,6 +10,7 @@
  *  Contributors:
  *       Amadeus - Initial implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - handle HEAD requests
+ *
  */
 
 package org.eclipse.edc.connector.dataplane.api.controller;

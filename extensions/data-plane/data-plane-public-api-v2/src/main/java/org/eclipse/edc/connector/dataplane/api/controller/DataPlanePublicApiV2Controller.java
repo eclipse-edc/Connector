@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - handle HEAD requests
+ *
  */
 
 package org.eclipse.edc.connector.dataplane.api.controller;
