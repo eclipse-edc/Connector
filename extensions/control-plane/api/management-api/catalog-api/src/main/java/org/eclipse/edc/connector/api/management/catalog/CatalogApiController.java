@@ -36,9 +36,9 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
 
-@Path("/v2/catalog")
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
+@Path("/v2/catalog")
 public class CatalogApiController implements CatalogApi {
 
     private final CatalogService service;

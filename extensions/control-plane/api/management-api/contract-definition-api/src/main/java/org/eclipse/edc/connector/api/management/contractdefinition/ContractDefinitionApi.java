@@ -49,7 +49,7 @@ public interface ContractDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonArray queryAllContractDefinitions(JsonObject querySpecJson);
+    JsonArray queryContractDefinitions(JsonObject querySpecJson);
 
     @Operation(description = "Gets an contract definition with the given ID",
             responses = {
@@ -71,7 +71,7 @@ public interface ContractDefinitionApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not create contract definition, because a contract definition with that ID already exists",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))}
     )
     JsonObject createContractDefinition(JsonObject createObject);
 

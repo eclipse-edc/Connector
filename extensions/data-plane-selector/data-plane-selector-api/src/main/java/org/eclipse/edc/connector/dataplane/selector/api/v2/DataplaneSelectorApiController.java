@@ -41,8 +41,8 @@ import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
 @Path("/v2/dataplanes")
 public class DataplaneSelectorApiController implements DataplaneSelectorApi {
 
@@ -63,7 +63,7 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
     @Override
     @POST
     @Path("select")
-    public JsonObject find(JsonObject requestObject) {
+    public JsonObject selectDataPlaneInstance(JsonObject requestObject) {
         var request = transformerRegistry.transform(requestObject, SelectionRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
@@ -80,7 +80,7 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
 
     @Override
     @POST
-    public JsonObject addEntry(JsonObject jsonObject) {
+    public JsonObject addDataPlaneInstance(JsonObject jsonObject) {
         validatorRegistry.validate(DATAPLANE_INSTANCE_TYPE, jsonObject).orElseThrow(ValidationFailureException::new);
 
         var instance = transformerRegistry.transform(jsonObject, DataPlaneInstance.class)
@@ -100,7 +100,7 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
 
     @Override
     @GET
-    public JsonArray getAll() {
+    public JsonArray getAllDataPlaneInstances() {
         var instances = selectionService.getAll();
         return instances.stream()
                 .map(i -> transformerRegistry.transform(i, JsonObject.class))

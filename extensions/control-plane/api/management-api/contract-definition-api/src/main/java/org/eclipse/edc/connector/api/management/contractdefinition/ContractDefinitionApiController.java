@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.management.contractdefinition;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -44,7 +45,8 @@ import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinit
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
 @Path("/v2/contractdefinitions")
 public class ContractDefinitionApiController implements ContractDefinitionApi {
     private final TypeTransformerRegistry transformerRegistry;
@@ -63,7 +65,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryAllContractDefinitions(JsonObject querySpecJson) {
+    public JsonArray queryContractDefinitions(JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();
