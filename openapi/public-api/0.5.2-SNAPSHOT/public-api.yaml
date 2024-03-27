@@ -67,6 +67,18 @@ paths:
           description: Access token is expired or invalid
         "500":
           description: Failed to transfer data
+    head:
+      tags:
+      - Data Plane public API
+      description: Send `HEAD` data query to the Data Plane.
+      operationId: head
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
     patch:
       tags:
       - Data Plane public API
