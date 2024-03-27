@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -89,9 +90,13 @@ public class JsonLdExtension implements ServiceExtension {
         }
         service.registerNamespace(EDC_PREFIX, EDC_NAMESPACE);
 
-        getResourceUri("document" + File.separator + "odrl.jsonld")
-                .onSuccess(uri -> service.registerCachedDocument("http://www.w3.org/ns/odrl.jsonld", uri))
-                .onFailure(failure -> monitor.warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
+        Stream.of(
+                new JsonLdContext("odrl.jsonld", "http://www.w3.org/ns/odrl.jsonld"),
+                new JsonLdContext("dspace.jsonld", "https://w3id.org/dspace/2024/1/context.json")
+        ).forEach(jsonLdContext -> getResourceUri("document" + File.separator + jsonLdContext.fileName())
+                .onSuccess(uri -> service.registerCachedDocument(jsonLdContext.url(), uri))
+                .onFailure(failure -> monitor.warning("Failed to register cached json-ld document: " + failure.getFailureDetail()))
+        );
 
         registerCachedDocumentsFromConfig(context, service);
 
@@ -126,5 +131,6 @@ public class JsonLdExtension implements ServiceExtension {
         }
     }
 
+    record JsonLdContext(String fileName, String url) { }
 
 }
