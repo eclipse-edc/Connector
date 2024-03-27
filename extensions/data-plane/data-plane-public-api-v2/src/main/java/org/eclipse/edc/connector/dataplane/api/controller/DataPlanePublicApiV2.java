@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - Initial implementation
- *
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - handle HEAD requests
  */
 
 package org.eclipse.edc.connector.dataplane.api.controller;
@@ -42,6 +42,15 @@ public interface DataPlanePublicApiV2 {
             }
     )
     void get(ContainerRequestContext context, AsyncResponse response);
+
+    @Operation(description = "Send `HEAD` data query to the Data Plane.",
+            responses = {
+                    @ApiResponse(responseCode = "400", description = "Missing access token"),
+                    @ApiResponse(responseCode = "403", description = "Access token is expired or invalid"),
+                    @ApiResponse(responseCode = "500", description = "Failed to transfer data")
+            }
+    )
+    void head(ContainerRequestContext context, AsyncResponse response);
 
     @Operation(description = "Send `POST` data query to the Data Plane.",
             responses = {

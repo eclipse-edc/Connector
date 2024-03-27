@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - allow multiple identical query params #4022
  *
  */
 
@@ -21,7 +22,6 @@ import org.eclipse.edc.spi.EdcException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -51,8 +51,7 @@ public class ContainerRequestContextApiImpl implements ContainerRequestContextAp
     public String queryParams() {
         return context.getUriInfo().getQueryParameters().entrySet()
                 .stream()
-                .map(entry -> new QueryParam(entry.getKey(), entry.getValue()))
-                .filter(QueryParam::isValid)
+                .flatMap(entry -> entry.getValue().stream().map(val -> new QueryParam(entry.getKey(), val)))
                 .map(QueryParam::toString)
                 .collect(Collectors.joining(QUERY_PARAM_SEPARATOR));
     }
@@ -67,16 +66,16 @@ public class ContainerRequestContextApiImpl implements ContainerRequestContextAp
     }
 
     @Override
-    public String path() {
-        var pathInfo = context.getUriInfo().getPath();
-        return pathInfo.startsWith("/") ? pathInfo.substring(1) : pathInfo;
-    }
-
-    @Override
     public String mediaType() {
         return Optional.ofNullable(context.getMediaType())
                 .map(MediaType::toString)
                 .orElse(null);
+    }
+
+    @Override
+    public String path() {
+        var pathInfo = context.getUriInfo().getPath();
+        return pathInfo.startsWith("/") ? pathInfo.substring(1) : pathInfo;
     }
 
     @Override
@@ -87,10 +86,10 @@ public class ContainerRequestContextApiImpl implements ContainerRequestContextAp
     private static final class QueryParam {
 
         private final String key;
-        private final List<String> values;
+        private final String values;
         private final boolean valid;
 
-        private QueryParam(String key, List<String> values) {
+        private QueryParam(String key, String values) {
             this.key = key;
             this.values = values;
             this.valid = key != null && values != null && !values.isEmpty();
@@ -102,7 +101,7 @@ public class ContainerRequestContextApiImpl implements ContainerRequestContextAp
 
         @Override
         public String toString() {
-            return valid ? key + "=" + values.get(0) : "";
+            return valid ? key + "=" + values : "";
         }
     }
 }
