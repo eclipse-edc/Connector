@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.RequestContext;
 import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -95,8 +96,14 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
         var policyScope = policyScopes.get(message.getClass());
         if (policyScope != null) {
             var requestScopeBuilder = RequestScope.Builder.newInstance();
+            var requestContext = RequestContext.Builder.newInstance()
+                    .message(message)
+                    .direction(RequestContext.Direction.Egress)
+                    .build();
+            
             var context = PolicyContextImpl.Builder.newInstance()
                     .additional(RequestScope.Builder.class, requestScopeBuilder)
+                    .additional(RequestContext.class, requestContext)
                     .build();
             var policyProvider = (Function<M, Policy>) policyScope.policyProvider;
             policyEngine.evaluate(policyScope.scope, policyProvider.apply(message), context);

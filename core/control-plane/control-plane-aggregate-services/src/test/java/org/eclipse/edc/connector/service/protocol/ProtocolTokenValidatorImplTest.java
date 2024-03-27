@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.RequestContext;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -29,6 +30,7 @@ import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
@@ -51,11 +53,14 @@ class ProtocolTokenValidatorImplTest {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
         when(agentService.createFor(any())).thenReturn(participantAgent);
 
-        var result = validator.verify(tokenRepresentation, "scope", policy);
+        var result = validator.verify(tokenRepresentation, "scope", policy, mock());
 
         assertThat(result).isSucceeded().isSameAs(participantAgent);
         verify(agentService).createFor(claimToken);
-        verify(policyEngine).evaluate(eq("scope"), same(policy), any());
+        verify(policyEngine).evaluate(eq("scope"), same(policy), argThat(ctx -> {
+            var reqContext = ctx.getContextData(RequestContext.class);
+            return reqContext.getMessage() != null && reqContext.getDirection().equals(RequestContext.Direction.Ingress);
+        }));
         verify(identityService).verifyJwtToken(same(tokenRepresentation), any());
     }
 
@@ -63,7 +68,7 @@ class ProtocolTokenValidatorImplTest {
     void shouldReturnUnauthorized_whenTokenIsNotValid() {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("failure"));
 
-        var result = validator.verify(TokenRepresentation.Builder.newInstance().build(), "scope", Policy.Builder.newInstance().build());
+        var result = validator.verify(TokenRepresentation.Builder.newInstance().build(), "scope", Policy.Builder.newInstance().build(), mock());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
     }

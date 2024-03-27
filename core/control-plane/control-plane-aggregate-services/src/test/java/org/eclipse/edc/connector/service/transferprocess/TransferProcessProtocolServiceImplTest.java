@@ -87,6 +87,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -131,7 +132,7 @@ class TransferProcessProtocolServiceImplTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
@@ -162,7 +163,7 @@ class TransferProcessProtocolServiceImplTest {
         var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
@@ -187,7 +188,7 @@ class TransferProcessProtocolServiceImplTest {
         var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
@@ -212,7 +213,7 @@ class TransferProcessProtocolServiceImplTest {
                 .build();
 
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
 
         var result = service.notifyRequested(message, tokenRepresentation);
@@ -234,7 +235,7 @@ class TransferProcessProtocolServiceImplTest {
                 .callbackAddress("http://any")
                 .build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
 
@@ -252,168 +253,6 @@ class TransferProcessProtocolServiceImplTest {
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
-    @Nested
-    class NotifyStarted {
-        @Test
-        void shouldTransitionToStarted() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var message = TransferStartMessage.Builder.newInstance()
-                    .protocol("protocol")
-                    .consumerPid("consumerPid")
-                    .providerPid("providerPid")
-                    .counterPartyAddress("http://any")
-                    .processId("correlationId")
-                    .dataAddress(DataAddress.Builder.newInstance().type("test").build())
-                    .build();
-            var agreement = contractAgreement();
-            var transferProcess = transferProcess(STARTED, "transferProcessId");
-
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
-
-            var result = service.notifyStarted(message, tokenRepresentation);
-
-            var startedDataCaptor = ArgumentCaptor.forClass(TransferProcessStartedData.class);
-            var transferProcessCaptor = ArgumentCaptor.forClass(TransferProcess.class);
-            assertThat(result).isSucceeded();
-            verify(listener).preStarted(any());
-            verify(store).save(transferProcessCaptor.capture());
-            verify(store).save(argThat(t -> t.getState() == STARTED.code()));
-            verify(listener).started(any(), startedDataCaptor.capture());
-            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
-            assertThat(startedDataCaptor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());
-        }
-
-        @Test
-        void shouldReturnConflict_whenTransferCannotBeStarted() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
-            var message = TransferStartMessage.Builder.newInstance()
-                    .protocol("protocol")
-                    .consumerPid("consumerPid")
-                    .providerPid("providerPid")
-                    .counterPartyAddress("http://any")
-                    .processId("correlationId")
-                    .build();
-            var agreement = contractAgreement();
-
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
-
-            var result = service.notifyStarted(message, tokenRepresentation);
-
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-            // state didn't change
-            verify(store, times(1)).save(argThat(tp -> tp.getState() == DEPROVISIONING.code()));
-            verifyNoInteractions(listener);
-        }
-
-        @Test
-        void shouldReturnBadRequest_whenCounterPartyUnauthorized() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var message = TransferStartMessage.Builder.newInstance()
-                    .protocol("protocol")
-                    .consumerPid("consumerPid")
-                    .providerPid("providerPid")
-                    .counterPartyAddress("http://any")
-                    .processId("correlationId")
-                    .dataAddress(DataAddress.Builder.newInstance().type("test").build())
-                    .build();
-            var agreement = contractAgreement();
-
-            var transferProcess = transferProcess(REQUESTED, "transferProcessId");
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
-
-            var result = service.notifyStarted(message, tokenRepresentation);
-
-            assertThat(result)
-                    .isFailed()
-                    .extracting(ServiceFailure::getReason)
-                    .isEqualTo(BAD_REQUEST);
-
-            verify(store, times(1)).save(any());
-
-        }
-    }
-
-    @Nested
-    class NotifyStartedResumed {
-
-        @Test
-        void shouldTransitionToStartedAndStartDataFlow_whenProvider() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var message = TransferStartMessage.Builder.newInstance()
-                    .protocol("protocol")
-                    .consumerPid("consumerPid")
-                    .providerPid("providerPid")
-                    .counterPartyAddress("http://any")
-                    .processId("correlationId")
-                    .dataAddress(DataAddress.Builder.newInstance().type("test").build())
-                    .build();
-            var agreement = contractAgreement();
-            var transferProcess = transferProcessBuilder().id("transferProcessId")
-                    .state(SUSPENDED.code()).type(PROVIDER).build();
-
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
-
-            var result = service.notifyStarted(message, tokenRepresentation);
-
-            var transferProcessCaptor = ArgumentCaptor.forClass(TransferProcess.class);
-            assertThat(result).isSucceeded();
-            verify(store).save(transferProcessCaptor.capture());
-            var storedTransferProcess = transferProcessCaptor.getValue();
-            assertThat(storedTransferProcess.getState()).isEqualTo(STARTING.code());
-            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
-        }
-
-        @Test
-        void shouldReturnError_whenStatusIsNotSuspendedAndTypeProvider() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var message = TransferStartMessage.Builder.newInstance()
-                    .protocol("protocol")
-                    .consumerPid("consumerPid")
-                    .providerPid("providerPid")
-                    .counterPartyAddress("http://any")
-                    .processId("correlationId")
-                    .dataAddress(DataAddress.Builder.newInstance().type("test").build())
-                    .build();
-            var agreement = contractAgreement();
-            var transferProcess = transferProcessBuilder().id("transferProcessId")
-                    .state(REQUESTED.code()).type(PROVIDER).build();
-            var dataFlowResponse = DataFlowResponse.Builder.newInstance().dataPlaneId("dataPlaneId").build();
-            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
-
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
-
-            var result = service.notifyStarted(message, tokenRepresentation);
-
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        }
-    }
-
     @Test
     void notifyCompleted_shouldTransitionToCompleted() {
         var participantAgent = participantAgent();
@@ -429,7 +268,7 @@ class TransferProcessProtocolServiceImplTest {
         var transferProcess = transferProcess(STARTED, "transferProcessId");
 
         when(store.findById("correlationId")).thenReturn(transferProcess);
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
         when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
@@ -457,7 +296,7 @@ class TransferProcessProtocolServiceImplTest {
                 .build();
         var agreement = contractAgreement();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById("correlationId")).thenReturn(transferProcess);
         when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
@@ -486,7 +325,7 @@ class TransferProcessProtocolServiceImplTest {
         var agreement = contractAgreement();
 
         var transferProcess = transferProcess(STARTED, "transferProcessId");
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById("correlationId")).thenReturn(transferProcess);
         when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
@@ -501,161 +340,6 @@ class TransferProcessProtocolServiceImplTest {
 
         verify(store, times(1)).save(any());
 
-    }
-
-    @Nested
-    class NotifySuspended {
-        @Test
-        void consumer_shouldTransitionToSuspended() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var message = TransferSuspensionMessage.Builder.newInstance()
-                    .protocol("protocol")
-                    .consumerPid("consumerPid")
-                    .providerPid("providerPid")
-                    .counterPartyAddress("http://any")
-                    .processId("correlationId")
-                    .code("TestCode")
-                    .reason("TestReason")
-                    .build();
-            var agreement = contractAgreement();
-            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(CONSUMER).build();
-
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
-            var result = service.notifySuspended(message, tokenRepresentation);
-
-            assertThat(result).isSucceeded();
-            verify(store).save(argThat(t -> t.getState() == SUSPENDED.code()));
-            verify(listener).suspended(any());
-            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
-        }
-
-        @Test
-        void provider_shouldSuspendDataFlowAndTransitionToSuspended() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var message = TransferSuspensionMessage.Builder.newInstance()
-                    .protocol("protocol")
-                    .consumerPid("consumerPid")
-                    .providerPid("providerPid")
-                    .counterPartyAddress("http://any")
-                    .processId("correlationId")
-                    .code("TestCode")
-                    .reason("TestReason")
-                    .build();
-            var agreement = contractAgreement();
-            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(PROVIDER).build();
-
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
-            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
-
-            var result = service.notifySuspended(message, tokenRepresentation);
-
-            assertThat(result).isSucceeded();
-            verify(store).save(argThat(t -> t.getState() == SUSPENDED.code()));
-            verify(listener).suspended(any());
-            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
-        }
-
-        @Test
-        void provider_shouldReturnConflict_whenDataFlowCannotBeSuspended() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var message = TransferSuspensionMessage.Builder.newInstance()
-                    .protocol("protocol")
-                    .consumerPid("consumerPid")
-                    .providerPid("providerPid")
-                    .counterPartyAddress("http://any")
-                    .processId("correlationId")
-                    .code("TestCode")
-                    .reason("TestReason")
-                    .build();
-            var agreement = contractAgreement();
-            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(PROVIDER).build();
-
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
-            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
-
-            var result = service.notifySuspended(message, tokenRepresentation);
-
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-            verify(store, times(1)).save(argThat(tp -> tp.getState() == STARTED.code()));
-        }
-
-        @Test
-        void shouldReturnConflict_whenTransferProcessCannotBeSuspended() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
-            var agreement = contractAgreement();
-            var message = TransferSuspensionMessage.Builder.newInstance()
-                    .protocol("protocol")
-                    .consumerPid("consumerPid")
-                    .providerPid("providerPid")
-                    .counterPartyAddress("http://any")
-                    .processId("correlationId")
-                    .code("TestCode")
-                    .reason("TestReason")
-                    .build();
-
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
-
-            var result = service.notifySuspended(message, tokenRepresentation);
-
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-            // state didn't change
-            verify(store, times(1)).save(argThat(tp -> tp.getState() == DEPROVISIONING.code()));
-            verifyNoInteractions(listener);
-        }
-
-        @Test
-        void shouldReturnBadRequest_whenCounterPartyUnauthorized() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var agreement = contractAgreement();
-            var transferProcess = transferProcess(TERMINATED, UUID.randomUUID().toString());
-            var message = TransferSuspensionMessage.Builder.newInstance()
-                    .protocol("protocol")
-                    .consumerPid("consumerPid")
-                    .providerPid("providerPid")
-                    .counterPartyAddress("http://any")
-                    .processId("correlationId")
-                    .code("TestCode")
-                    .reason("TestReason")
-                    .build();
-
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
-
-            var result = service.notifySuspended(message, tokenRepresentation);
-
-            assertThat(result)
-                    .isFailed()
-                    .extracting(ServiceFailure::getReason)
-                    .isEqualTo(BAD_REQUEST);
-
-            verify(store, times(1)).save(any());
-
-        }
     }
 
     @Test
@@ -674,7 +358,7 @@ class TransferProcessProtocolServiceImplTest {
         var agreement = contractAgreement();
         var transferProcess = transferProcess(STARTED, "transferProcessId");
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById("correlationId")).thenReturn(transferProcess);
         when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
@@ -704,7 +388,7 @@ class TransferProcessProtocolServiceImplTest {
                 .reason("TestReason")
                 .build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById("correlationId")).thenReturn(transferProcess);
         when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
@@ -734,7 +418,7 @@ class TransferProcessProtocolServiceImplTest {
                 .reason("TestReason")
                 .build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById("correlationId")).thenReturn(transferProcess);
         when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
@@ -759,7 +443,7 @@ class TransferProcessProtocolServiceImplTest {
         var transferProcess = transferProcess(INITIAL, processId);
         var agreement = contractAgreement();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), isNull())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(processId)).thenReturn(transferProcess);
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
         when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
@@ -795,7 +479,7 @@ class TransferProcessProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
         var agreement = contractAgreement();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), isNull())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(processId)).thenReturn(transferProcess);
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
         when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
@@ -833,7 +517,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.findById(any())).thenReturn(transferProcessBuilder().build());
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcessBuilder().build()));
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
         var result = methodCall.call(service, message, tokenRepresentation);
 
@@ -914,6 +598,323 @@ class TransferProcessProtocolServiceImplTest {
     }
 
     @Nested
+    class NotifyStarted {
+        @Test
+        void shouldTransitionToStarted() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferStartMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .dataAddress(DataAddress.Builder.newInstance().type("test").build())
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcess(STARTED, "transferProcessId");
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifyStarted(message, tokenRepresentation);
+
+            var startedDataCaptor = ArgumentCaptor.forClass(TransferProcessStartedData.class);
+            var transferProcessCaptor = ArgumentCaptor.forClass(TransferProcess.class);
+            assertThat(result).isSucceeded();
+            verify(listener).preStarted(any());
+            verify(store).save(transferProcessCaptor.capture());
+            verify(store).save(argThat(t -> t.getState() == STARTED.code()));
+            verify(listener).started(any(), startedDataCaptor.capture());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+            assertThat(startedDataCaptor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());
+        }
+
+        @Test
+        void shouldReturnConflict_whenTransferCannotBeStarted() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
+            var message = TransferStartMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .build();
+            var agreement = contractAgreement();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifyStarted(message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            // state didn't change
+            verify(store, times(1)).save(argThat(tp -> tp.getState() == DEPROVISIONING.code()));
+            verifyNoInteractions(listener);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenCounterPartyUnauthorized() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferStartMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .dataAddress(DataAddress.Builder.newInstance().type("test").build())
+                    .build();
+            var agreement = contractAgreement();
+
+            var transferProcess = transferProcess(REQUESTED, "transferProcessId");
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
+
+            var result = service.notifyStarted(message, tokenRepresentation);
+
+            assertThat(result)
+                    .isFailed()
+                    .extracting(ServiceFailure::getReason)
+                    .isEqualTo(BAD_REQUEST);
+
+            verify(store, times(1)).save(any());
+
+        }
+    }
+
+    @Nested
+    class NotifyStartedResumed {
+
+        @Test
+        void shouldTransitionToStartedAndStartDataFlow_whenProvider() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferStartMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .dataAddress(DataAddress.Builder.newInstance().type("test").build())
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().id("transferProcessId")
+                    .state(SUSPENDED.code()).type(PROVIDER).build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifyStarted(message, tokenRepresentation);
+
+            var transferProcessCaptor = ArgumentCaptor.forClass(TransferProcess.class);
+            assertThat(result).isSucceeded();
+            verify(store).save(transferProcessCaptor.capture());
+            var storedTransferProcess = transferProcessCaptor.getValue();
+            assertThat(storedTransferProcess.getState()).isEqualTo(STARTING.code());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void shouldReturnError_whenStatusIsNotSuspendedAndTypeProvider() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferStartMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .dataAddress(DataAddress.Builder.newInstance().type("test").build())
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().id("transferProcessId")
+                    .state(REQUESTED.code()).type(PROVIDER).build();
+            var dataFlowResponse = DataFlowResponse.Builder.newInstance().dataPlaneId("dataPlaneId").build();
+            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifyStarted(message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+        }
+    }
+
+    @Nested
+    class NotifySuspended {
+        @Test
+        void consumer_shouldTransitionToSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(CONSUMER).build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(t -> t.getState() == SUSPENDED.code()));
+            verify(listener).suspended(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void provider_shouldSuspendDataFlowAndTransitionToSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(PROVIDER).build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(t -> t.getState() == SUSPENDED.code()));
+            verify(listener).suspended(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void provider_shouldReturnConflict_whenDataFlowCannotBeSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().state(STARTED.code()).type(PROVIDER).build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store, times(1)).save(argThat(tp -> tp.getState() == STARTED.code()));
+        }
+
+        @Test
+        void shouldReturnConflict_whenTransferProcessCannotBeSuspended() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
+            var agreement = contractAgreement();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            // state didn't change
+            verify(store, times(1)).save(argThat(tp -> tp.getState() == DEPROVISIONING.code()));
+            verifyNoInteractions(listener);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenCounterPartyUnauthorized() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcess(TERMINATED, UUID.randomUUID().toString());
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
+
+            var result = service.notifySuspended(message, tokenRepresentation);
+
+            assertThat(result)
+                    .isFailed()
+                    .extracting(ServiceFailure::getReason)
+                    .isEqualTo(BAD_REQUEST);
+
+            verify(store, times(1)).save(any());
+
+        }
+    }
+
+    @Nested
     class IdempotencyProcessStateReplication {
 
         @ParameterizedTest
@@ -922,7 +923,7 @@ class TransferProcessProtocolServiceImplTest {
                                                                                   TransferProcess.Type type,
                                                                                   TransferProcessStates currentState) {
             var transferProcess = transferProcessBuilder().state(currentState.code()).type(type).build();
-            when(protocolTokenValidator.verify(any(), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent()));
+            when(protocolTokenValidator.verify(any(), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
@@ -946,7 +947,7 @@ class TransferProcessProtocolServiceImplTest {
                                                                                              TransferProcessStates currentState) {
             var transferProcess = transferProcessBuilder().state(currentState.code()).type(type).build();
             transferProcess.protocolMessageReceived(message.getId());
-            when(protocolTokenValidator.verify(any(), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent()));
+            when(protocolTokenValidator.verify(any(), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
@@ -965,7 +966,7 @@ class TransferProcessProtocolServiceImplTest {
         <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenFinalState(MethodCall<M> methodCall, M message,
                                                                                         TransferProcess.Type type) {
             var transferProcess = transferProcessBuilder().state(COMPLETED.code()).type(type).build();
-            when(protocolTokenValidator.verify(any(), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any())).thenReturn(ServiceResult.success(participantAgent()));
+            when(protocolTokenValidator.verify(any(), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());

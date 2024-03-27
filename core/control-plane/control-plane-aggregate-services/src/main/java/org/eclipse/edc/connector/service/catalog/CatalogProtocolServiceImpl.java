@@ -60,7 +60,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     @Override
     @NotNull
     public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, CATALOGING_REQUEST_SCOPE)
+        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, CATALOGING_REQUEST_SCOPE, message)
                 .map(agent -> {
                     try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
                         var dataServices = dataServiceRegistry.getDataServices();

@@ -21,11 +21,13 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.RequestContext;
 import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Implementation of {@link ProtocolTokenValidator} which uses the {@link PolicyEngine} for extracting
@@ -48,8 +50,8 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
     }
 
     @Override
-    public ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, String policyScope, Policy policy) {
-        var tokenValidation = identityService.verifyJwtToken(tokenRepresentation, createVerificationContext(policyScope, policy));
+    public ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, String policyScope, Policy policy, RemoteMessage message) {
+        var tokenValidation = identityService.verifyJwtToken(tokenRepresentation, createVerificationContext(policyScope, policy, message));
         if (tokenValidation.failed()) {
             monitor.debug(() -> "Unauthorized: %s".formatted(tokenValidation.getFailureDetail()));
             return ServiceResult.unauthorized("Unauthorized");
@@ -60,9 +62,11 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
         return ServiceResult.success(participantAgent);
     }
 
-    private VerificationContext createVerificationContext(String scope, Policy policy) {
+    private VerificationContext createVerificationContext(String scope, Policy policy, RemoteMessage message) {
         var requestScopeBuilder = RequestScope.Builder.newInstance();
+        var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).build();
         var policyContext = PolicyContextImpl.Builder.newInstance()
+                .additional(RequestContext.class, requestContext)
                 .additional(RequestScope.Builder.class, requestScopeBuilder)
                 .build();
         policyEngine.evaluate(scope, policy, policyContext);

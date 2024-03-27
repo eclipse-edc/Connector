@@ -59,6 +59,23 @@ class CatalogProtocolServiceImplTest {
     private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver,
             dataServiceRegistry, protocolTokenValidator, "participantId", transactionContext);
 
+    private ParticipantAgent createParticipantAgent() {
+        return new ParticipantAgent(emptyMap(), emptyMap());
+    }
+
+    private Dataset createDataset() {
+        var dataService = DataService.Builder.newInstance().build();
+        var distribution = Distribution.Builder.newInstance().dataService(dataService).format("any").build();
+        return Dataset.Builder.newInstance()
+                .offer(UUID.randomUUID().toString(), Policy.Builder.newInstance().build())
+                .distribution(distribution)
+                .build();
+    }
+
+    private TokenRepresentation createTokenRepresentation() {
+        return TokenRepresentation.Builder.newInstance().build();
+    }
+
     @Nested
     class GetCatalog {
 
@@ -70,7 +87,7 @@ class CatalogProtocolServiceImplTest {
             var participantAgent = createParticipantAgent();
             var dataService = DataService.Builder.newInstance().build();
 
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(dataServiceRegistry.getDataServices()).thenReturn(List.of(dataService));
             when(datasetResolver.query(any(), any())).thenReturn(Stream.of(createDataset()));
 
@@ -91,7 +108,7 @@ class CatalogProtocolServiceImplTest {
             var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
             var tokenRepresentation = createTokenRepresentation();
 
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE))).thenReturn(ServiceResult.unauthorized("unauthorized"));
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(CATALOGING_REQUEST_SCOPE), eq(message))).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
             var result = service.getCatalog(message, tokenRepresentation);
 
@@ -141,23 +158,5 @@ class CatalogProtocolServiceImplTest {
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
         }
-    }
-
-
-    private ParticipantAgent createParticipantAgent() {
-        return new ParticipantAgent(emptyMap(), emptyMap());
-    }
-
-    private Dataset createDataset() {
-        var dataService = DataService.Builder.newInstance().build();
-        var distribution = Distribution.Builder.newInstance().dataService(dataService).format("any").build();
-        return Dataset.Builder.newInstance()
-                .offer(UUID.randomUUID().toString(), Policy.Builder.newInstance().build())
-                .distribution(distribution)
-                .build();
-    }
-
-    private TokenRepresentation createTokenRepresentation() {
-        return TokenRepresentation.Builder.newInstance().build();
     }
 }
