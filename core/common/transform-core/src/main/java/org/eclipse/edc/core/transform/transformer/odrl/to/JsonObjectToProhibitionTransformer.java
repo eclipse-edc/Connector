@@ -18,6 +18,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Constraint;
+import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REMEDY_ATTRIBUTE;
 
 /**
  * Converts from an ODRL prohibition as a {@link JsonObject} in JSON-LD expanded form to a {@link Prohibition}.
@@ -39,15 +41,11 @@ public class JsonObjectToProhibitionTransformer extends AbstractJsonLdTransforme
     public @Nullable Prohibition transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Prohibition.Builder.newInstance();
 
-        visitProperties(object, key -> {
-            switch (key) {
-                case ODRL_ACTION_ATTRIBUTE:
-                    return value -> builder.action(transformObject(value, Action.class, context));
-                case ODRL_CONSTRAINT_ATTRIBUTE:
-                    return value -> builder.constraints(transformArray(value, Constraint.class, context));
-                default:
-                    return doNothing();
-            }
+        visitProperties(object, key -> switch (key) {
+            case ODRL_ACTION_ATTRIBUTE -> value -> builder.action(transformObject(value, Action.class, context));
+            case ODRL_CONSTRAINT_ATTRIBUTE -> value -> builder.constraints(transformArray(value, Constraint.class, context));
+            case ODRL_REMEDY_ATTRIBUTE -> value -> builder.remedies(transformArray(value, Duty.class, context));
+            default -> doNothing();
         });
 
         return builderResult(builder::build, context);

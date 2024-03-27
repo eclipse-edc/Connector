@@ -42,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
+import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -65,6 +66,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_O
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REMEDY_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAINT_ATTRIBUTE;
@@ -194,6 +196,12 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         @Override
         public JsonObject visitProhibition(Prohibition prohibition) {
             var prohibitionBuilder = visitRule(prohibition);
+
+            var remedies = prohibition.getRemedies();
+            if (remedies != null && !remedies.isEmpty()) {
+                var remediesJson = remedies.stream().map(this::visitDuty).collect(toJsonArray());
+                prohibitionBuilder.add(ODRL_REMEDY_ATTRIBUTE, remediesJson);
+            }
 
             return prohibitionBuilder.build();
         }
