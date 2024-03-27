@@ -200,10 +200,10 @@ paths:
       tags:
       - Contract Agreement
       description: Gets all contract agreements according to a particular query
-      operationId: queryAllAgreements
+      operationId: queryAgreements
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
               $ref: '#/components/schemas/QuerySpec'
       responses:
@@ -314,7 +314,7 @@ paths:
       operationId: updateContractDefinition
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
               $ref: '#/components/schemas/ContractDefinitionInput'
       responses:
@@ -345,7 +345,7 @@ paths:
       operationId: createContractDefinition
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
               $ref: '#/components/schemas/ContractDefinitionInput'
       responses:
@@ -380,10 +380,10 @@ paths:
       tags:
       - Contract Definition
       description: Returns all contract definitions according to a query
-      operationId: queryAllContractDefinitions
+      operationId: queryContractDefinitions
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
               $ref: '#/components/schemas/QuerySpec'
       responses:
@@ -720,7 +720,7 @@ paths:
       tags:
       - Dataplane Selector
       description: Returns a list of all currently registered data plane instances
-      operationId: getAll
+      operationId: getAllDataPlaneInstances
       responses:
         "200":
           description: A (potentially empty) list of currently registered data plane
@@ -736,7 +736,7 @@ paths:
       tags:
       - Dataplane Selector
       description: Adds one dataplane instance to the internal database of the selector
-      operationId: addEntry
+      operationId: addDataPlaneInstance
       requestBody:
         content:
           application/json:
@@ -763,7 +763,7 @@ paths:
       tags:
       - Dataplane Selector
       description: Finds the best fitting data plane instance for a particular query
-      operationId: find
+      operationId: selectDataPlaneInstance
       requestBody:
         content:
           application/json:
