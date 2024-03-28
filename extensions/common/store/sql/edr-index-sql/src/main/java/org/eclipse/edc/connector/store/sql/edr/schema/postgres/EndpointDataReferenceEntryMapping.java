@@ -24,6 +24,8 @@ import org.eclipse.edc.sql.translation.TranslationMapping;
  */
 public class EndpointDataReferenceEntryMapping extends TranslationMapping {
     public EndpointDataReferenceEntryMapping(EndpointDataReferenceEntryStatements statements) {
+        add("id", statements.getAssetIdColumn());
+        add("createdAt", statements.getCreatedAtColumn());
         add("assetId", statements.getAssetIdColumn());
         add("agreementId", statements.getAgreementIdColumn());
         add("transferProcessId", statements.getTransferProcessIdColumn());
