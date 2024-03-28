@@ -58,9 +58,9 @@ public class EdcRuntimeExtension extends EdcExtension {
     /**
      * Initialize an Edc runtime given a base runtime module
      *
-     * @param baseModulePath the base runtime module path
-     * @param name the name.
-     * @param properties the properties to be used as configuration.
+     * @param baseModulePath    the base runtime module path
+     * @param name              the name.
+     * @param properties        the properties to be used as configuration.
      * @param additionalModules modules that will be added to the runtime.
      */
     public EdcRuntimeExtension(String baseModulePath, String name, Map<String, String> properties, String... additionalModules) {
@@ -70,9 +70,9 @@ public class EdcRuntimeExtension extends EdcExtension {
     /**
      * Initialize an Edc runtime
      *
-     * @param name the name.
+     * @param name       the name.
      * @param properties the properties to be used as configuration.
-     * @param modules the modules that will be used to load the runtime.
+     * @param modules    the modules that will be used to load the runtime.
      */
     public EdcRuntimeExtension(String name, Map<String, String> properties, String... modules) {
         this.modules = modules;
@@ -159,7 +159,7 @@ public class EdcRuntimeExtension extends EdcExtension {
             return new Monitor() {
             };
         } else {
-            return new ConsoleMonitor(name, ConsoleMonitor.Level.DEBUG);
+            return new ConsoleMonitor(name, ConsoleMonitor.Level.DEBUG, true);
         }
     }
 
