@@ -79,7 +79,7 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
         var accessTokenDataResult = accessTokenService.resolve(token);
 
         return accessTokenDataResult
-                .compose(atd -> accessControlService.checkAccess(atd.claimToken(), atd.dataAddress(), atd.additionalProperties(), requestData))
+                .compose(atd -> accessControlService.checkAccess(atd.claimToken(), atd.dataAddress(), requestData, atd.additionalProperties()))
                 .map(u -> accessTokenDataResult.getContent().dataAddress());
     }
 
