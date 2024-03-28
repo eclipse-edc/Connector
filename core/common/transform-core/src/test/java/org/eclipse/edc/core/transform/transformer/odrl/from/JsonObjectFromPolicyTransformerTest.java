@@ -69,6 +69,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_O
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REMEDY_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAINT_ATTRIBUTE;
@@ -237,14 +238,17 @@ class JsonObjectFromPolicyTransformerTest {
     void transform_prohibitionWithConstraint_returnJsonObject() {
         var constraint = getConstraint();
         var action = getAction();
+        var remedy = Duty.Builder.newInstance().action(Action.Builder.newInstance().type("remedyAction").build()).build();
         var prohibition = Prohibition.Builder.newInstance()
                 .action(action)
                 .constraint(constraint)
+                .remedy(remedy)
                 .build();
         var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
         
         var result = transformer.transform(policy, context);
-        
+
+        assertThat(result).isNotNull();
         var prohibitionJson = result.get(ODRL_PROHIBITION_ATTRIBUTE).asJsonArray().get(0).asJsonObject();
         assertThat(prohibitionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE)).hasSize(1);
         
@@ -255,6 +259,12 @@ class JsonObjectFromPolicyTransformerTest {
                 .isEqualTo(constraint.getOperator().getOdrlRepresentation());
         assertThat(constraintJson.getJsonObject(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getRightExpression()).getValue());
+
+        assertThat(prohibitionJson.getJsonArray(ODRL_REMEDY_ATTRIBUTE)).hasSize(1).first()
+                .extracting(JsonValue::asJsonObject).satisfies(remedyJson -> {
+                    assertThat(remedyJson.getJsonObject(ODRL_ACTION_ATTRIBUTE).getString(ODRL_ACTION_TYPE_ATTRIBUTE))
+                            .isEqualTo("remedyAction");
+                });
     
         verify(context, never()).reportProblem(anyString());
     }

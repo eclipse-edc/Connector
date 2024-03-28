@@ -15,6 +15,9 @@
 
 package org.eclipse.edc.policy.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.util.stream.Collectors.joining;
 
 /**
@@ -22,9 +25,15 @@ import static java.util.stream.Collectors.joining;
  */
 public class Prohibition extends Rule {
 
+    private final List<Duty> remedies = new ArrayList<>();
+
     @Override
     public <R> R accept(Visitor<R> visitor) {
         return visitor.visitProhibition(this);
+    }
+
+    public List<Duty> getRemedies() {
+        return remedies;
     }
 
     @Override
@@ -40,6 +49,16 @@ public class Prohibition extends Rule {
 
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder remedy(Duty remedy) {
+            rule.remedies.add(remedy);
+            return this;
+        }
+
+        public Builder remedies(List<Duty> remedies) {
+            rule.remedies.addAll(remedies);
+            return this;
         }
 
         public Prohibition build() {

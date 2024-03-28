@@ -20,11 +20,15 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
-import org.junit.jupiter.api.BeforeAll;
+import org.eclipse.edc.policy.model.Prohibition;
+import org.eclipse.edc.policy.model.Rule;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +38,7 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -43,6 +48,9 @@ import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
+import static org.eclipse.edc.test.e2e.managementapi.Runtimes.inMemoryRuntime;
+import static org.eclipse.edc.test.e2e.managementapi.Runtimes.postgresRuntime;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 
@@ -50,7 +58,10 @@ public class PolicyDefinitionApiEndToEndTest {
 
     @Nested
     @EndToEndTest
-    class InMemory extends Tests implements InMemoryRuntime {
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
 
         InMemory() {
             super(RUNTIME);
@@ -60,17 +71,17 @@ public class PolicyDefinitionApiEndToEndTest {
 
     @Nested
     @PostgresqlIntegrationTest
-    class Postgres extends Tests implements PostgresRuntime {
+    class Postgres extends Tests {
+
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
 
         Postgres() {
             super(RUNTIME);
         }
-
-        @BeforeAll
-        static void beforeAll() {
-            PostgresqlEndToEndInstance.createDatabase("runtime");
-        }
-
     }
 
     abstract static class Tests extends ManagementApiEndToEndTestBase {
@@ -98,19 +109,24 @@ public class PolicyDefinitionApiEndToEndTest {
                     .extract().jsonPath().getString(ID);
 
             assertThat(store().findById(id)).isNotNull()
-                    .extracting(PolicyDefinition::getPolicy).isNotNull()
-                    .extracting(Policy::getPermissions).asList().hasSize(1);
+                    .extracting(PolicyDefinition::getPolicy).isNotNull().satisfies(policy -> {
+                        assertThat(policy.getPermissions()).hasSize(1);
+                        assertThat(policy.getProhibitions()).hasSize(1).first()
+                                .extracting(Prohibition::getRemedies).asInstanceOf(list(Duty.class)).first()
+                                .extracting(Rule::getAction).extracting(Action::getType).isEqualTo(ODRL_SCHEMA + "anonymize");
+                    });
 
             baseRequest()
                     .get("/v2/policydefinitions/" + id)
                     .then()
+                    .log().ifValidationFails()
                     .statusCode(200)
                     .contentType(JSON)
                     .body(ID, is(id))
                     .body(CONTEXT, hasEntry(EDC_PREFIX, EDC_NAMESPACE))
                     .body(CONTEXT, hasEntry(ODRL_PREFIX, ODRL_SCHEMA))
-                    .log().all()
-                    .body("policy.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"));
+                    .body("policy.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"))
+                    .body("policy.'odrl:prohibition'.'odrl:remedy'.'odrl:action'.'odrl:type'", is(ODRL_SCHEMA + "anonymize"));
         }
 
         @Test
@@ -323,6 +339,13 @@ public class PolicyDefinitionApiEndToEndTest {
                                             .add("rightOperand", "value"))
                                     .build())
                             .build())
+                    .add("prohibition", createArrayBuilder()
+                            .add(createObjectBuilder()
+                                    .add("target", "http://example.com/data:77")
+                                    .add("action", "index")
+                                    .add("remedy", createObjectBuilder()
+                                            .add("action", "anonymize"))
+                            ))
                     .build();
         }
 
