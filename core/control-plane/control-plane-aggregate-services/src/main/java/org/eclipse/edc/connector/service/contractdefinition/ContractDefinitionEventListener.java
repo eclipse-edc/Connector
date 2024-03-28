@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.service.contractdefinition;
 
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionListener;
+import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionBeforeCreate;
+import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionBeforeUpdate;
 import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
 import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionEvent;
@@ -58,6 +60,25 @@ public class ContractDefinitionEventListener implements ContractDefinitionListen
     @Override
     public void updated(ContractDefinition contractDefinition) {
         var event = ContractDefinitionUpdated.Builder.newInstance()
+                .contractDefinitionId(contractDefinition.getId())
+                .build();
+
+        publish(event);
+    }
+
+
+    @Override
+    public void beforeCreate(ContractDefinition contractDefinition) {
+        var event = ContractDefinitionBeforeCreate.Builder.newInstance()
+                .contractDefinitionId(contractDefinition.getId())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void beforeUpdate(ContractDefinition contractDefinition) {
+        var event = ContractDefinitionBeforeUpdate.Builder.newInstance()
                 .contractDefinitionId(contractDefinition.getId())
                 .build();
 

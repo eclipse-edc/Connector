@@ -56,6 +56,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
 
     @Override
     public ServiceResult<ContractDefinition> create(ContractDefinition contractDefinition) {
+        observable.invokeForEach(l -> l.beforeCreate(contractDefinition));
         return transactionContext.execute(() -> {
             var saveResult = store.save(contractDefinition);
             if (saveResult.succeeded()) {
@@ -69,6 +70,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
 
     @Override
     public ServiceResult<Void> update(ContractDefinition contractDefinition) {
+        observable.invokeForEach(l -> l.beforeUpdate(contractDefinition));
         return transactionContext.execute(() -> {
             var updateResult = store.update(contractDefinition);
             var serviceResult = ServiceResult.from(updateResult);

@@ -62,7 +62,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -133,7 +132,7 @@ class AssetServiceImplTest {
         assertThat(inserted.getContent()).matches(hasId(assetId));
         verify(index).create(and(isA(Asset.class), argThat(it -> assetId.equals(it.getId()))));
         verifyNoMoreInteractions(index);
-        verify(observable).invokeForEach(any());
+        verify(observable, times(2)).invokeForEach(any());
     }
 
     @Test
@@ -238,7 +237,7 @@ class AssetServiceImplTest {
         assertThat(updated.succeeded()).isTrue();
         verify(index).updateAsset(eq(asset));
         verifyNoMoreInteractions(index);
-        verify(observable).invokeForEach(any());
+        verify(observable, times(2)).invokeForEach(any());
     }
 
     @Test
@@ -253,7 +252,7 @@ class AssetServiceImplTest {
         assertThat(updated.reason()).isEqualTo(NOT_FOUND);
         verify(index, times(1)).updateAsset(asset);
         verifyNoMoreInteractions(index);
-        verify(observable, never()).invokeForEach(any());
+        verify(observable, times(1)).invokeForEach(any());
     }
 
     @Test

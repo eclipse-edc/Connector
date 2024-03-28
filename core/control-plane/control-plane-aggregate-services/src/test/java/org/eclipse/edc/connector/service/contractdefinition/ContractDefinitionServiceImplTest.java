@@ -50,8 +50,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class ContractDefinitionServiceImplTest {
@@ -133,6 +133,7 @@ class ContractDefinitionServiceImplTest {
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(definition.getId()));
         verify(store).save(argThat(it -> definition.getId().equals(it.getId())));
+        verify(listener).beforeCreate(any());
         verify(listener).created(any());
     }
 
@@ -145,7 +146,8 @@ class ContractDefinitionServiceImplTest {
 
         assertThat(inserted.failed()).isTrue();
         assertThat(inserted.reason()).isEqualTo(CONFLICT);
-        verifyNoInteractions(listener);
+        verify(listener).beforeCreate(any());
+        verify(listener, times(0)).updated(any());
     }
 
     @Test
@@ -158,7 +160,9 @@ class ContractDefinitionServiceImplTest {
 
         assertThat(inserted.failed()).isTrue();
         assertThat(inserted.reason()).isEqualTo(CONFLICT);
-        verifyNoInteractions(listener);
+        verify(listener).beforeCreate(any());
+        verify(listener, times(0)).created(any());
+
     }
 
     @Test
@@ -184,6 +188,7 @@ class ContractDefinitionServiceImplTest {
         assertThat(updated.succeeded()).isTrue();
         verify(store).update(eq(definition));
         verify(listener).updated(any());
+        verify(listener).beforeUpdate(any());
     }
 
     @Test
