@@ -84,12 +84,12 @@ public class ConsoleMonitor implements Monitor {
 
     private void output(String level, Supplier<String> supplier, Throwable... errors) {
         var time = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        var colorCode = getColorCode(level);
+        var colorCode = useColor ? getColorCode(level) : "";
         var resetCode = useColor ? ConsoleColor.RESET : "";
 
         System.out.println(colorCode + prefix + level + " " + time + " " + sanitizeMessage(supplier) + resetCode);
         if (errors != null) {
-            for (Throwable error : errors) {
+            for (var error : errors) {
                 if (error != null) {
                     System.out.print(colorCode);
                     error.printStackTrace(System.out);
@@ -100,10 +100,6 @@ public class ConsoleMonitor implements Monitor {
     }
 
     private String getColorCode(String level) {
-        if (!useColor) {
-            return "";
-        }
-
         return switch (level) {
             case SEVERE -> ConsoleColor.RED;
             case WARNING -> ConsoleColor.YELLOW;
