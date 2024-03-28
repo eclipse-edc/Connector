@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2024 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,34 +9,24 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
 package org.eclipse.edc.boot.system.testextensions;
 
-import org.eclipse.edc.boot.system.DependencyGraph;
+import org.eclipse.edc.boot.system.ServiceLocator;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.health.HealthCheckService;
-import org.eclipse.edc.spi.system.injection.InjectionContainer;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static org.mockito.Mockito.mock;
 
 public class BaseRuntimeFixture extends BaseRuntime {
 
     private final Monitor monitor;
-    private final List<ServiceExtension> extensions;
 
-    private final HealthCheckService healthCheckService = mock(HealthCheckService.class);
-
-    public BaseRuntimeFixture(Monitor monitor, List<ServiceExtension> extensions) {
+    public BaseRuntimeFixture(Monitor monitor, ServiceLocator serviceLocator) {
+        super(serviceLocator);
         this.monitor = monitor;
-        this.extensions = extensions;
     }
 
     public void start() {
@@ -45,28 +35,6 @@ public class BaseRuntimeFixture extends BaseRuntime {
 
     public void stop() {
         super.shutdown();
-    }
-
-    @Override
-    protected void exit() {
-        // do nothing
-    }
-
-    @Override
-    protected List<InjectionContainer<ServiceExtension>> createExtensions(ServiceExtensionContext context) {
-
-        if (extensions != null && !extensions.isEmpty()) {
-            return new DependencyGraph(context).of(extensions);
-        } else {
-            return super.createExtensions(context);
-        }
-    }
-
-    @Override
-    protected @NotNull ServiceExtensionContext createContext(Monitor monitor) {
-        var ctx = super.createContext(monitor);
-        ctx.registerService(HealthCheckService.class, healthCheckService);
-        return ctx;
     }
 
     @Override
