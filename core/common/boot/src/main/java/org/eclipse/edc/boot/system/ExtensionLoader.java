@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -81,14 +82,14 @@ public class ExtensionLoader {
         };
     }
 
-    public static @NotNull Monitor loadMonitor() {
+    public static @NotNull Monitor loadMonitor(String... programArgs) {
         var loader = ServiceLoader.load(MonitorExtension.class);
-        return loadMonitor(loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()));
+        return loadMonitor(loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()), programArgs);
     }
 
-    static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors) {
+    static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors, String... programArgs) {
         if (availableMonitors.isEmpty()) {
-            return new ConsoleMonitor();
+            return new ConsoleMonitor(!Set.of(programArgs).contains("--no-color"));
         }
 
         if (availableMonitors.size() > 1) {

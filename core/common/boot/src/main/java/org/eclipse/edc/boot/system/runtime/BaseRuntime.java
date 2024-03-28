@@ -51,6 +51,7 @@ import static java.lang.String.format;
  */
 public class BaseRuntime {
 
+    private static String[] programArgs = new String[0];
     protected final ServiceLocator serviceLocator;
     private final AtomicReference<HealthCheckResult> startupStatus = new AtomicReference<>(HealthCheckResult.failed("Startup not complete"));
     private final ExtensionLoader extensionLoader;
@@ -68,6 +69,7 @@ public class BaseRuntime {
 
     public static void main(String[] args) {
         BaseRuntime runtime = new BaseRuntime();
+        programArgs = args;
         runtime.boot();
     }
 
@@ -153,7 +155,7 @@ public class BaseRuntime {
      * Create a {@link ServiceExtensionContext} that will be used in this runtime. If e.g. a third-party dependency-injection framework were to be used,
      * this would likely need to be overridden.
      *
-     * @param monitor     a Monitor
+     * @param monitor a Monitor
      * @return a {@code ServiceExtensionContext}
      */
     @NotNull
@@ -181,14 +183,14 @@ public class BaseRuntime {
     }
 
     /**
-     * Hook point to instantiate a {@link Monitor}. By default, the runtime instantiates a {@code Monitor} using the Service Loader mechanism, i.e. by calling the {@link ExtensionLoader#loadMonitor()} method.
+     * Hook point to instantiate a {@link Monitor}. By default, the runtime instantiates a {@code Monitor} using the Service Loader mechanism, i.e. by calling the {@link ExtensionLoader#loadMonitor(String...)} method.
      * <p>
      * Please consider using the extension mechanism (i.e. {@link MonitorExtension}) rather than supplying a custom monitor by overriding this method.
      * However, for development/testing scenarios it might be an easy solution to just override this method.
      */
     @NotNull
     protected Monitor createMonitor() {
-        return ExtensionLoader.loadMonitor();
+        return ExtensionLoader.loadMonitor(programArgs);
     }
 
     private void boot(boolean addShutdownHook) {
