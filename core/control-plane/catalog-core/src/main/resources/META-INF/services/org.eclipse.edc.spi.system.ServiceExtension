@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.edc.connector.catalog.CatalogCoreExtension
-org.eclipse.edc.connector.catalog.CatalogDefaultServicesExtension
+org.eclipse.edc.connector.controlplane.catalog.CatalogCoreExtension
+org.eclipse.edc.connector.controlplane.catalog.CatalogDefaultServicesExtension

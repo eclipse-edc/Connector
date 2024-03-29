@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.connector.controlplane.services.catalog;
 
-import org.eclipse.edc.connector.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.connector.catalog.spi.DataService;
-import org.eclipse.edc.connector.catalog.spi.DataServiceRegistry;
-import org.eclipse.edc.connector.catalog.spi.Dataset;
-import org.eclipse.edc.connector.catalog.spi.DatasetResolver;
-import org.eclipse.edc.connector.catalog.spi.Distribution;
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;

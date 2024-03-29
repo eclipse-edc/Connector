@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.asset;
 
-import org.eclipse.edc.connector.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.params.ParameterizedTest;

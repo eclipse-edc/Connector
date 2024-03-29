@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.defaults.storage.assetindex;
 
-import org.eclipse.edc.connector.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;

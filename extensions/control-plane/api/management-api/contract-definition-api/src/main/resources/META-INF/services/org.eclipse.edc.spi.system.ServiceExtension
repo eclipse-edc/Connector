@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApiExtension
+org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApiExtension

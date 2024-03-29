@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.services.contractdefinition;
 
-import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionCreated;
-import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
-import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionEvent;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionCreated;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionEvent;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.extensions.EdcExtension;

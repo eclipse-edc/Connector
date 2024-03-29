@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.connector.controlplane.services.contractdefinition;
 
-import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionListener;
-import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionCreated;
-import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
-import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionEvent;
-import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionUpdated;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.contract.spi.definition.observe.ContractDefinitionListener;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionCreated;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionEvent;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionUpdated;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 

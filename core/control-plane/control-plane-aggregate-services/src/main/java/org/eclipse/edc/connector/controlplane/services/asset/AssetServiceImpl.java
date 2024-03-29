@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.services.asset;
 
-import org.eclipse.edc.connector.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
-import org.eclipse.edc.connector.asset.spi.observe.AssetObservable;
-import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.asset.spi.observe.AssetObservable;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.spi.query.Criterion;

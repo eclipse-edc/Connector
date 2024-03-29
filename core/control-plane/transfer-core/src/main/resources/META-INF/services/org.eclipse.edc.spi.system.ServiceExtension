@@ -12,7 +12,7 @@
 #
 #
 
-org.eclipse.edc.connector.transfer.TransferCoreExtension
-org.eclipse.edc.connector.transfer.TransferProcessCommandExtension
-org.eclipse.edc.connector.transfer.TransferProcessDefaultServicesExtension
+org.eclipse.edc.connector.controlplane.transfer.TransferCoreExtension
+org.eclipse.edc.connector.controlplane.transfer.TransferProcessCommandExtension
+org.eclipse.edc.connector.controlplane.transfer.TransferProcessDefaultServicesExtension
 

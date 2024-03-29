@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.connector.controlplane.services.policydefinition;
 
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
-import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionCreated;
-import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionDeleted;
-import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionEvent;
-import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionUpdated;
-import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionListener;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionCreated;
+import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionDeleted;
+import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionEvent;
+import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionUpdated;
+import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitionListener;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 

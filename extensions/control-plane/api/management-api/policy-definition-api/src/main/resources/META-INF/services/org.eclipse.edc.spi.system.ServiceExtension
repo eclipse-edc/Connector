@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.connector.api.management.policy.PolicyDefinitionApiExtension
+org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApiExtension

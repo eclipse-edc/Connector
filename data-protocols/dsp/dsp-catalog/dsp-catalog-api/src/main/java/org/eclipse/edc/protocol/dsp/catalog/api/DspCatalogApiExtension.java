@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.api;
 
-import org.eclipse.edc.connector.catalog.spi.DataService;
-import org.eclipse.edc.connector.catalog.spi.DataServiceRegistry;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.protocol.dsp.catalog.api.controller.DspCatalogApiController;

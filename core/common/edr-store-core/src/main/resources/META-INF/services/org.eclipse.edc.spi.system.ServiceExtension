@@ -13,5 +13,5 @@
 #
 
 
-org.eclipse.edc.edr.EndpointDataReferenceStoreExtension
-org.eclipse.edc.edr.EndpointDataReferenceStoreDefaultServicesExtension
+org.eclipse.edc.edr.store.EndpointDataReferenceStoreExtension
+org.eclipse.edc.edr.store.EndpointDataReferenceStoreDefaultServicesExtension

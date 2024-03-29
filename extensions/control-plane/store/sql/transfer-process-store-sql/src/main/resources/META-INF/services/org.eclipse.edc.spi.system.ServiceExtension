@@ -11,4 +11,4 @@
 #       Microsoft Corporation - initial API and implementation
 #
 #
-org.eclipse.edc.connector.store.sql.transferprocess.SqlTransferProcessStoreExtension
+org.eclipse.edc.connector.controlplane.store.sql.transferprocess.SqlTransferProcessStoreExtension

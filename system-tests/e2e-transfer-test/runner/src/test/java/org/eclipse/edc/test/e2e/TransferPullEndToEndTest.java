@@ -34,8 +34,8 @@ import static jakarta.json.Json.createObjectBuilder;
 import static java.time.Duration.ofDays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
@@ -44,8 +44,8 @@ import static org.eclipse.edc.test.e2e.Runtimes.controlPlane;
 import static org.eclipse.edc.test.e2e.Runtimes.dataPlane;
 import static org.eclipse.edc.test.e2e.Runtimes.postgresControlPlane;
 import static org.eclipse.edc.test.e2e.Runtimes.postgresDataPlane;
-import static org.eclipse.edc.test.system.utils.PolicyFixtures.inForceDatePolicy;
-import static org.eclipse.edc.test.system.utils.PolicyFixtures.noConstraintPolicy;
+import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePolicy;
+import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 public class TransferPullEndToEndTest {

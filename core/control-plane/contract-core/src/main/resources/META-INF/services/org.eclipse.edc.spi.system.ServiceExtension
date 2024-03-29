@@ -13,6 +13,6 @@
 #
 #
 
-org.eclipse.edc.connector.contract.ContractCoreExtension
-org.eclipse.edc.connector.contract.ContractNegotiationCommandExtension
-org.eclipse.edc.connector.contract.ContractNegotiationDefaultServicesExtension
+org.eclipse.edc.connector.controlplane.contract.ContractCoreExtension
+org.eclipse.edc.connector.controlplane.contract.ContractNegotiationCommandExtension
+org.eclipse.edc.connector.controlplane.contract.ContractNegotiationDefaultServicesExtension

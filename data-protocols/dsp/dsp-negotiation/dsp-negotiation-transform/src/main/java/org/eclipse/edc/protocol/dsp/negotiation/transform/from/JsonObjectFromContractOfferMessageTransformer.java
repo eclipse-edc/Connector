@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -36,14 +36,14 @@ import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_P
  * Creates a {@link JsonObject} from a {@link ContractOfferMessage}.
  */
 public class JsonObjectFromContractOfferMessageTransformer extends AbstractJsonLdTransformer<ContractOfferMessage, JsonObject> {
-    
+
     private final JsonBuilderFactory jsonFactory;
-    
+
     public JsonObjectFromContractOfferMessageTransformer(JsonBuilderFactory jsonFactory) {
         super(ContractOfferMessage.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
     }
-    
+
     @Override
     public @Nullable JsonObject transform(@NotNull ContractOfferMessage message, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder()
@@ -69,7 +69,7 @@ public class JsonObjectFromContractOfferMessageTransformer extends AbstractJsonL
                 .add(ID, offer.getId())
                 .build();
         builder.add(DSPACE_PROPERTY_OFFER, enrichedPolicy);
-        
+
         return builder.build();
     }
 }

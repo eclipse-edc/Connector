@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.connector.api.management.asset.AssetApiExtension
+org.eclipse.edc.connector.controlplane.api.management.asset.AssetApiExtension

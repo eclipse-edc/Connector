@@ -16,8 +16,8 @@ package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.http.ContentType;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.connector.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;

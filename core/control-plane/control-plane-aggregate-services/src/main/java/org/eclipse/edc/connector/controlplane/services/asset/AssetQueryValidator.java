@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.asset;
 
-import org.eclipse.edc.connector.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.spi.result.Result;
 

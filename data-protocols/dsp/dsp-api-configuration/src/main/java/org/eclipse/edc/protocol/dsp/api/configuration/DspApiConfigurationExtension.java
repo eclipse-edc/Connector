@@ -15,10 +15,10 @@
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
 import jakarta.json.Json;
-import org.eclipse.edc.connector.transform.edc.from.JsonObjectFromAssetTransformer;
-import org.eclipse.edc.connector.transform.edc.to.JsonObjectToAssetTransformer;
-import org.eclipse.edc.connector.transform.odrl.OdrlTransformersFactory;
-import org.eclipse.edc.connector.transform.odrl.from.JsonObjectFromPolicyTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToAssetTransformer;
+import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
+import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;

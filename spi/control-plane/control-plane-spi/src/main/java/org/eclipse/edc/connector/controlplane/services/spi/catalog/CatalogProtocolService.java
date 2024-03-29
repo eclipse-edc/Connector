@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.services.spi.catalog;
 
-import org.eclipse.edc.connector.catalog.spi.Catalog;
-import org.eclipse.edc.connector.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.connector.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
