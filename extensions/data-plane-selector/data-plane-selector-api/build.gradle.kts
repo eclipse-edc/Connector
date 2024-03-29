@@ -25,7 +25,7 @@ dependencies {
     implementation(project(":extensions:common:json-ld"))
     implementation(project(":extensions:common:api:management-api-configuration"))
     implementation(project(":extensions:common:api:api-core")) //for the exception mapper
-    implementation(project(":core:common:validator-core"))
+    implementation(project(":core:common:validator-lib"))
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:lib:json-ld-lib"))
@@ -34,7 +34,7 @@ dependencies {
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:http"))
     // for the TypeTransformerRegistryImpl
-    testImplementation(project(":core:common:transform-core"))
+    testImplementation(project(":core:common:transform-lib"))
     // for the JsonObject-To-DataAddress transformer
     testImplementation(project(":extensions:common:api:management-api-configuration"))
 

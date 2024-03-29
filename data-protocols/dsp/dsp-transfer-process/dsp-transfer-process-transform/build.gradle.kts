@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:common:transform-spi"))
-    api(project(":core:common:transform-core"))
+    api(project(":core:common:transform-lib"))
     api(project(":extensions:common:json-ld"))
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))

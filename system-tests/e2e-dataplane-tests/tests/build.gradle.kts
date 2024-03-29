@@ -35,7 +35,7 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
-    testImplementation(project(":core:common:transform-core")) // for the transformer registry impl
+    testImplementation(project(":core:common:transform-lib")) // for the transformer registry impl
     testImplementation(project(":core:common:lib:crypto-common-lib"))
 
     testCompileOnly(project(":system-tests:e2e-dataplane-tests:runtimes:data-plane"))

@@ -25,7 +25,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-http-spi"))
 
     implementation(project(":spi:common:json-ld-spi"))
-    implementation(project(":core:common:validator-core"))
+    implementation(project(":core:common:validator-lib"))
 
     implementation(libs.jakarta.rsApi)
 

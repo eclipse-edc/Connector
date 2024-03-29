@@ -22,14 +22,14 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":core:common:util"))
-    implementation(project(":core:common:transform-core"))
+    implementation(project(":core:common:transform-lib"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
     implementation(project(":extensions:data-plane:data-plane-client-embedded"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:transform-core"))
+    testImplementation(project(":core:common:transform-lib"))
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.restAssured)

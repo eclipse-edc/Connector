@@ -23,7 +23,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-http-spi"))
 
     implementation(project(":extensions:common:lib:jersey-providers-lib"))
-    implementation(project(":core:common:transform-core"))
+    implementation(project(":core:common:transform-lib"))
     implementation(project(":core:control-plane:control-plane-transform"))
 
     testImplementation(project(":core:common:junit"))

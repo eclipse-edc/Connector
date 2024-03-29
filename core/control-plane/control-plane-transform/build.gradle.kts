@@ -26,5 +26,5 @@ dependencies {
 
     testImplementation(project(":tests:junit-base"));
     testImplementation(project(":core:common:lib:json-ld-lib"))
-    testImplementation(project(":core:common:transform-core"))
+    testImplementation(project(":core:common:transform-lib"))
 }
