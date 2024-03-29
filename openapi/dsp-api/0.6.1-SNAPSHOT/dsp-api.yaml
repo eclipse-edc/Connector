@@ -81,7 +81,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -121,7 +121,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -161,7 +161,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -234,7 +234,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -282,7 +282,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -330,7 +330,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -378,7 +378,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -426,7 +426,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -474,7 +474,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -514,7 +514,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -587,7 +587,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -635,7 +635,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -683,7 +683,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -731,7 +731,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -796,7 +796,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -836,7 +836,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -876,7 +876,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -949,7 +949,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -997,7 +997,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -1045,7 +1045,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -1093,7 +1093,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -1141,7 +1141,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -1189,7 +1189,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -1229,7 +1229,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -1302,7 +1302,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -1350,7 +1350,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -1398,7 +1398,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -1446,7 +1446,7 @@ paths:
                   - "FALSE"
                   - "NULL"
               additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
+                $ref: "#/components/schemas/JsonValue"
               example: null
       responses:
         default:
@@ -1473,7 +1473,7 @@ components:
           - "FALSE"
           - "NULL"
       additionalProperties:
-        $ref: '#/components/schemas/JsonValue'
+        $ref: "#/components/schemas/JsonValue"
       example: null
     JsonValue:
       type: object

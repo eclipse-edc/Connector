@@ -50,7 +50,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DataFlowStartMessage'
+              $ref: "#/components/schemas/DataFlowStartMessage"
       responses:
         "200":
           description: Data transfer initiated
@@ -121,7 +121,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /transferprocess/{processId}/fail:
     post:
       tags:
@@ -143,7 +143,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TransferProcessFailStateDto'
+              $ref: "#/components/schemas/TransferProcessFailStateDto"
       responses:
         "400":
           description: "Request was malformed, e.g. id was null"
@@ -153,7 +153,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v1/dataflows:
     post:
       tags:
@@ -166,14 +166,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DataFlowStartMessage'
+              $ref: "#/components/schemas/DataFlowStartMessage"
       responses:
         "200":
           description: Data transfer initiated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataFlowResponseMessage'
+                $ref: "#/components/schemas/DataFlowResponseMessage"
         "400":
           description: Failed to validate request
   /v1/dataflows/{id}/state:
@@ -197,7 +197,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataFlowState'
+                $ref: "#/components/schemas/DataFlowState"
         "404":
           description: Data transfer not found in the data plane
   /v1/dataflows/{id}/suspend:
@@ -219,7 +219,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DataFlowSuspendMessage'
+              $ref: "#/components/schemas/DataFlowSuspendMessage"
       responses:
         "204":
           description: Data transfer suspended
@@ -246,7 +246,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DataFlowTerminateMessage'
+              $ref: "#/components/schemas/DataFlowTerminateMessage"
       responses:
         "204":
           description: Data transfer terminated
@@ -292,7 +292,7 @@ components:
           type: string
           example: DataFlowResponseMessage
         dataAddress:
-          $ref: '#/components/schemas/DataAddress'
+          $ref: "#/components/schemas/DataAddress"
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -314,7 +314,7 @@ components:
           format: uri
           example: null
         destinationDataAddress:
-          $ref: '#/components/schemas/DataAddress'
+          $ref: "#/components/schemas/DataAddress"
         flowType:
           type: string
           example: null
@@ -337,7 +337,7 @@ components:
             example: null
           example: null
         sourceDataAddress:
-          $ref: '#/components/schemas/DataAddress'
+          $ref: "#/components/schemas/DataAddress"
         traceContext:
           type: object
           additionalProperties:
@@ -408,7 +408,7 @@ components:
           - "FALSE"
           - "NULL"
       additionalProperties:
-        $ref: '#/components/schemas/JsonValue'
+        $ref: "#/components/schemas/JsonValue"
       example: null
     JsonValue:
       type: object

@@ -24,7 +24,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DeprovisionedResource'
+              $ref: "#/components/schemas/DeprovisionedResource"
       responses:
         default:
           description: default response
@@ -48,7 +48,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProvisionerWebhookRequest'
+              $ref: "#/components/schemas/ProvisionerWebhookRequest"
       responses:
         default:
           description: default response
@@ -64,7 +64,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpec'
+              $ref: "#/components/schemas/QuerySpec"
       responses:
         "200":
           description: The edr entries matching the query
@@ -74,7 +74,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/EndpointDataReferenceEntry'
+                  $ref: "#/components/schemas/EndpointDataReferenceEntry"
         "400":
           description: Request body was malformed
           content:
@@ -83,7 +83,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v1/edrs/{transferProcessId}:
     delete:
       tags:
@@ -110,7 +110,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An EDR entry with the given ID does not exist
           content:
@@ -119,7 +119,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v1/edrs/{transferProcessId}/dataaddress:
     get:
       tags:
@@ -141,7 +141,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataAddress'
+                $ref: "#/components/schemas/DataAddress"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -150,7 +150,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An EDR data address with the given transfer process ID does
             not exist
@@ -160,7 +160,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/catalog/dataset/request:
     post:
       tags:
@@ -170,14 +170,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DatasetRequest'
+              $ref: "#/components/schemas/DatasetRequest"
       responses:
         default:
           description: Gets single dataset from a connector
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Dataset'
+                $ref: "#/components/schemas/Dataset"
   /v2/catalog/request:
     post:
       tags:
@@ -187,14 +187,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CatalogRequest'
+              $ref: "#/components/schemas/CatalogRequest"
       responses:
         default:
           description: Gets contract offers (=catalog) of a single connector
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Catalog'
+                $ref: "#/components/schemas/Catalog"
   /v2/contractagreements/request:
     post:
       tags:
@@ -205,7 +205,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpec'
+              $ref: "#/components/schemas/QuerySpec"
       responses:
         "200":
           description: The contract agreements matching the query
@@ -215,7 +215,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ContractAgreement'
+                  $ref: "#/components/schemas/ContractAgreement"
         "400":
           description: Request body was malformed
           content:
@@ -224,7 +224,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractagreements/{id}:
     get:
       tags:
@@ -246,7 +246,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractAgreement'
+                $ref: "#/components/schemas/ContractAgreement"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -255,7 +255,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An contract agreement with the given ID does not exist
           content:
@@ -264,7 +264,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractagreements/{id}/negotiation:
     get:
       tags:
@@ -286,7 +286,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractNegotiation'
+                $ref: "#/components/schemas/ContractNegotiation"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -295,7 +295,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An contract agreement with the given ID does not exist
           content:
@@ -304,7 +304,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractdefinitions:
     put:
       tags:
@@ -316,7 +316,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ContractDefinitionInput'
+              $ref: "#/components/schemas/ContractDefinitionInput"
       responses:
         "204":
           description: Contract definition was updated successfully
@@ -328,7 +328,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: A contract definition with the given ID does not exist
           content:
@@ -337,7 +337,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
     post:
       tags:
       - Contract Definition
@@ -347,7 +347,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ContractDefinitionInput'
+              $ref: "#/components/schemas/ContractDefinitionInput"
       responses:
         "200":
           description: contract definition was created successfully. Returns the Contract
@@ -355,7 +355,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponse'
+                $ref: "#/components/schemas/IdResponse"
         "400":
           description: Request body was malformed
           content:
@@ -364,7 +364,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "409":
           description: "Could not create contract definition, because a contract definition\
             \ with that ID already exists"
@@ -374,7 +374,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractdefinitions/request:
     post:
       tags:
@@ -385,7 +385,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpec'
+              $ref: "#/components/schemas/QuerySpec"
       responses:
         "200":
           description: The contract definitions matching the query
@@ -395,7 +395,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ContractDefinitionOutput'
+                  $ref: "#/components/schemas/ContractDefinitionOutput"
         "400":
           description: Request was malformed
           content:
@@ -404,7 +404,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractdefinitions/{id}:
     get:
       tags:
@@ -426,7 +426,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractDefinitionOutput'
+                $ref: "#/components/schemas/ContractDefinitionOutput"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -435,7 +435,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An contract agreement with the given ID does not exist
           content:
@@ -444,7 +444,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
     delete:
       tags:
       - Contract Definition
@@ -473,7 +473,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: A contract definition with the given ID does not exist
           content:
@@ -482,7 +482,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractnegotiations:
     post:
       tags:
@@ -496,7 +496,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ContractRequest'
+              $ref: "#/components/schemas/ContractRequest"
       responses:
         "200":
           description: The negotiation was successfully initiated. Returns the contract
@@ -504,7 +504,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponse'
+                $ref: "#/components/schemas/IdResponse"
           links:
             poll-state:
               operationId: getNegotiationState
@@ -518,7 +518,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractnegotiations/request:
     post:
       tags:
@@ -529,7 +529,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpec'
+              $ref: "#/components/schemas/QuerySpec"
       responses:
         "200":
           description: The contract negotiations that match the query
@@ -539,7 +539,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ContractNegotiation'
+                  $ref: "#/components/schemas/ContractNegotiation"
         "400":
           description: Request was malformed
           content:
@@ -548,7 +548,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractnegotiations/{id}:
     get:
       tags:
@@ -570,7 +570,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractNegotiation'
+                $ref: "#/components/schemas/ContractNegotiation"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -579,7 +579,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An contract negotiation with the given ID does not exist
           content:
@@ -588,7 +588,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractnegotiations/{id}/agreement:
     get:
       tags:
@@ -612,7 +612,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractAgreement'
+                $ref: "#/components/schemas/ContractAgreement"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -621,7 +621,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An contract negotiation with the given ID does not exist
           content:
@@ -630,7 +630,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractnegotiations/{id}/state:
     get:
       tags:
@@ -652,7 +652,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NegotiationState'
+                $ref: "#/components/schemas/NegotiationState"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -661,7 +661,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An contract negotiation with the given ID does not exist
           content:
@@ -670,7 +670,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractnegotiations/{id}/terminate:
     post:
       tags:
@@ -690,7 +690,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TerminateNegotiationSchema'
+              $ref: "#/components/schemas/TerminateNegotiationSchema"
       responses:
         "200":
           description: ContractNegotiation is terminating
@@ -705,7 +705,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: A contract negotiation with the given ID does not exist
           content:
@@ -714,7 +714,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/dataplanes:
     get:
       tags:
@@ -731,7 +731,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/DataPlaneInstanceSchema'
+                  $ref: "#/components/schemas/DataPlaneInstanceSchema"
     post:
       tags:
       - Dataplane Selector
@@ -741,14 +741,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DataPlaneInstanceSchema'
+              $ref: "#/components/schemas/DataPlaneInstanceSchema"
       responses:
         "200":
           description: Entry was added successfully to the database
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponse'
+                $ref: "#/components/schemas/IdResponse"
         "400":
           description: Request body was malformed
           content:
@@ -757,7 +757,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/dataplanes/select:
     post:
       tags:
@@ -768,7 +768,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SelectionRequestSchema'
+              $ref: "#/components/schemas/SelectionRequestSchema"
       responses:
         "200":
           description: The DataPlane instance that fits best for the given selection
@@ -776,7 +776,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataPlaneInstanceSchema'
+                $ref: "#/components/schemas/DataPlaneInstanceSchema"
         "204":
           description: No suitable DataPlane instance was found
         "400":
@@ -787,7 +787,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/policydefinitions:
     post:
       tags:
@@ -798,7 +798,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionInput'
+              $ref: "#/components/schemas/PolicyDefinitionInput"
       responses:
         "200":
           description: policy definition was created successfully. Returns the Policy
@@ -806,7 +806,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponse'
+                $ref: "#/components/schemas/IdResponse"
         "400":
           description: Request body was malformed
           content:
@@ -815,7 +815,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "409":
           description: "Could not create policy definition, because a contract definition\
             \ with that ID already exists"
@@ -825,7 +825,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/policydefinitions/request:
     post:
       tags:
@@ -836,7 +836,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpec'
+              $ref: "#/components/schemas/QuerySpec"
       responses:
         "200":
           description: The policy definitions matching the query
@@ -846,7 +846,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/PolicyDefinitionOutput'
+                  $ref: "#/components/schemas/PolicyDefinitionOutput"
         "400":
           description: Request was malformed
           content:
@@ -855,7 +855,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/policydefinitions/{id}:
     get:
       tags:
@@ -877,7 +877,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyDefinitionOutput'
+                $ref: "#/components/schemas/PolicyDefinitionOutput"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -886,7 +886,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An  policy definition with the given ID does not exist
           content:
@@ -895,7 +895,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
     put:
       tags:
       - Policy Definition
@@ -915,7 +915,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionInput'
+              $ref: "#/components/schemas/PolicyDefinitionInput"
       responses:
         "204":
           description: policy definition was updated successfully.
@@ -927,14 +927,14 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: "policy definition could not be updated, because it does not\
             \ exists"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiErrorDetail'
+                $ref: "#/components/schemas/ApiErrorDetail"
     delete:
       tags:
       - Policy Definition
@@ -964,7 +964,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An policy definition with the given ID does not exist
           content:
@@ -973,7 +973,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "409":
           description: "The policy definition cannot be deleted, because it is referenced\
             \ by a contract definition"
@@ -983,7 +983,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses:
     post:
       tags:
@@ -997,7 +997,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TransferRequest'
+              $ref: "#/components/schemas/TransferRequest"
       responses:
         "200":
           description: The transfer was successfully initiated. Returns the transfer
@@ -1005,7 +1005,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponse'
+                $ref: "#/components/schemas/IdResponse"
           links:
             poll-state:
               operationId: getTransferProcessState
@@ -1019,7 +1019,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses/request:
     post:
       tags:
@@ -1030,7 +1030,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpec'
+              $ref: "#/components/schemas/QuerySpec"
       responses:
         "200":
           description: The transfer processes matching the query
@@ -1040,7 +1040,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/TransferProcess'
+                  $ref: "#/components/schemas/TransferProcess"
         "400":
           description: Request was malformed
           content:
@@ -1049,7 +1049,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses/{id}:
     get:
       tags:
@@ -1071,7 +1071,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransferProcess'
+                $ref: "#/components/schemas/TransferProcess"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1080,7 +1080,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: A transfer process with the given ID does not exist
           content:
@@ -1089,7 +1089,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses/{id}/deprovision:
     post:
       tags:
@@ -1124,7 +1124,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: A transfer process with the given ID does not exist
           content:
@@ -1133,7 +1133,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses/{id}/resume:
     post:
       tags:
@@ -1166,7 +1166,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: A transfer process with the given ID does not exist
           content:
@@ -1175,7 +1175,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses/{id}/state:
     get:
       tags:
@@ -1197,7 +1197,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransferState'
+                $ref: "#/components/schemas/TransferState"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1206,7 +1206,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An  transfer process with the given ID does not exist
           content:
@@ -1215,7 +1215,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses/{id}/suspend:
     post:
       tags:
@@ -1238,7 +1238,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SuspendTransfer'
+              $ref: "#/components/schemas/SuspendTransfer"
       responses:
         "204":
           description: Request to suspend the transfer process was successfully received
@@ -1253,7 +1253,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: A transfer process with the given ID does not exist
           content:
@@ -1262,7 +1262,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "409":
           description: "Could not suspend the transfer process, because it is already\
             \ completed or terminated."
@@ -1272,7 +1272,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses/{id}/terminate:
     post:
       tags:
@@ -1295,7 +1295,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TerminateTransfer'
+              $ref: "#/components/schemas/TerminateTransfer"
       responses:
         "204":
           description: Request to terminate the transfer process was successfully
@@ -1311,7 +1311,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: A transfer process with the given ID does not exist
           content:
@@ -1320,7 +1320,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "409":
           description: "Could not terminate transfer process, because it is already\
             \ completed or terminated."
@@ -1330,7 +1330,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/assets:
     put:
       tags:
@@ -1344,7 +1344,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetInput'
+              $ref: "#/components/schemas/AssetInput"
       responses:
         "204":
           description: Asset was updated successfully
@@ -1356,7 +1356,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: "Asset could not be updated, because it does not exist."
     post:
@@ -1368,7 +1368,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetInput'
+              $ref: "#/components/schemas/AssetInput"
       responses:
         "200":
           description: Asset was created successfully. Returns the asset Id and created
@@ -1376,7 +1376,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponse'
+                $ref: "#/components/schemas/IdResponse"
         "400":
           description: Request body was malformed
           content:
@@ -1385,7 +1385,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "409":
           description: "Could not create asset, because an asset with that ID already\
             \ exists"
@@ -1395,7 +1395,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/assets/request:
     post:
       tags:
@@ -1406,7 +1406,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpec'
+              $ref: "#/components/schemas/QuerySpec"
       responses:
         "200":
           description: The assets matching the query
@@ -1416,7 +1416,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/AssetOutput'
+                  $ref: "#/components/schemas/AssetOutput"
         "400":
           description: Request body was malformed
           content:
@@ -1425,7 +1425,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/assets/{id}:
     get:
       tags:
@@ -1447,7 +1447,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssetOutput'
+                $ref: "#/components/schemas/AssetOutput"
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1456,7 +1456,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An asset with the given ID does not exist
           content:
@@ -1465,7 +1465,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
     delete:
       tags:
       - Asset
@@ -1495,7 +1495,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: An asset with the given ID does not exist
           content:
@@ -1504,7 +1504,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
         "409":
           description: "The asset cannot be deleted, because it is referenced by a\
             \ contract agreement"
@@ -1514,7 +1514,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
+                  $ref: "#/components/schemas/ApiErrorDetail"
 components:
   schemas:
     ApiErrorDetail:
@@ -1554,11 +1554,11 @@ components:
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/Asset
         dataAddress:
-          $ref: '#/components/schemas/DataAddress'
+          $ref: "#/components/schemas/DataAddress"
         privateProperties:
-          $ref: '#/components/schemas/Properties'
+          $ref: "#/components/schemas/Properties"
         properties:
-          $ref: '#/components/schemas/Properties'
+          $ref: "#/components/schemas/Properties"
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -1584,11 +1584,11 @@ components:
           format: int64
           example: null
         dataAddress:
-          $ref: '#/components/schemas/DataAddress'
+          $ref: "#/components/schemas/DataAddress"
         privateProperties:
-          $ref: '#/components/schemas/Properties'
+          $ref: "#/components/schemas/Properties"
         properties:
-          $ref: '#/components/schemas/Properties'
+          $ref: "#/components/schemas/Properties"
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -1703,7 +1703,7 @@ components:
           example: null
           deprecated: true
         querySpec:
-          $ref: '#/components/schemas/QuerySpec'
+          $ref: "#/components/schemas/QuerySpec"
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -1737,7 +1737,7 @@ components:
           format: int64
           example: null
         policy:
-          $ref: '#/components/schemas/Policy'
+          $ref: "#/components/schemas/Policy"
         providerId:
           type: string
           example: null
@@ -1781,7 +1781,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/Criterion'
+            $ref: "#/components/schemas/Criterion"
         contractPolicyId:
           type: string
           example: null
@@ -1808,7 +1808,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/Criterion'
+            $ref: "#/components/schemas/Criterion"
         contractPolicyId:
           type: string
           example: null
@@ -1837,7 +1837,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddress'
+            $ref: "#/components/schemas/CallbackAddress"
         contractAgreementId:
           type: string
           example: null
@@ -1896,7 +1896,7 @@ components:
           type: string
           example: null
         policy:
-          $ref: '#/components/schemas/Policy'
+          $ref: "#/components/schemas/Policy"
       description: please use policy instead of offer
       example: null
       deprecated: true
@@ -1917,7 +1917,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddress'
+            $ref: "#/components/schemas/CallbackAddress"
         connectorAddress:
           type: string
           description: please use counterPartyAddress instead
@@ -1927,9 +1927,9 @@ components:
           type: string
           example: null
         offer:
-          $ref: '#/components/schemas/ContractOfferDescription'
+          $ref: "#/components/schemas/ContractOfferDescription"
         policy:
-          $ref: '#/components/schemas/Policy'
+          $ref: "#/components/schemas/Policy"
         protocol:
           type: string
           example: null
@@ -2108,7 +2108,7 @@ components:
           type: string
           example: null
         querySpec:
-          $ref: '#/components/schemas/QuerySpec'
+          $ref: "#/components/schemas/QuerySpec"
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -2186,7 +2186,7 @@ components:
           - "NULL"
       example: null
       items:
-        $ref: '#/components/schemas/JsonValue'
+        $ref: "#/components/schemas/JsonValue"
     JsonObject:
       type: object
       properties:
@@ -2205,7 +2205,7 @@ components:
           - "FALSE"
           - "NULL"
       additionalProperties:
-        $ref: '#/components/schemas/JsonValue'
+        $ref: "#/components/schemas/JsonValue"
       example: null
     JsonValue:
       type: object
@@ -2262,7 +2262,7 @@ components:
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
         policy:
-          $ref: '#/components/schemas/Policy'
+          $ref: "#/components/schemas/Policy"
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -2289,7 +2289,7 @@ components:
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
         policy:
-          $ref: '#/components/schemas/Policy'
+          $ref: "#/components/schemas/Policy"
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -2320,7 +2320,7 @@ components:
           type: string
           example: null
         contentDataAddress:
-          $ref: '#/components/schemas/DataAddress'
+          $ref: "#/components/schemas/DataAddress"
         hasToken:
           type: boolean
           example: null
@@ -2341,7 +2341,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/Criterion'
+            $ref: "#/components/schemas/Criterion"
         limit:
           type: integer
           format: int32
@@ -2375,9 +2375,9 @@ components:
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/SelectionRequest
         destination:
-          $ref: '#/components/schemas/DataAddress'
+          $ref: "#/components/schemas/DataAddress"
         source:
-          $ref: '#/components/schemas/DataAddress'
+          $ref: "#/components/schemas/DataAddress"
         strategy:
           type: string
           example: null
@@ -2454,7 +2454,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddress'
+            $ref: "#/components/schemas/CallbackAddress"
         contractAgreementId:
           type: string
           example: null
@@ -2465,14 +2465,14 @@ components:
           type: string
           example: null
         dataDestination:
-          $ref: '#/components/schemas/DataAddress'
+          $ref: "#/components/schemas/DataAddress"
         errorDetail:
           type: string
           example: null
         privateProperties:
-          $ref: '#/components/schemas/Properties'
+          $ref: "#/components/schemas/Properties"
         properties:
-          $ref: '#/components/schemas/Properties'
+          $ref: "#/components/schemas/Properties"
         protocol:
           type: string
           example: null
@@ -2533,7 +2533,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddress'
+            $ref: "#/components/schemas/CallbackAddress"
         connectorAddress:
           type: string
           description: please use counterPartyAddress instead
@@ -2551,11 +2551,11 @@ components:
           type: string
           example: null
         dataDestination:
-          $ref: '#/components/schemas/DataAddress'
+          $ref: "#/components/schemas/DataAddress"
         privateProperties:
-          $ref: '#/components/schemas/Properties'
+          $ref: "#/components/schemas/Properties"
         properties:
-          $ref: '#/components/schemas/Properties'
+          $ref: "#/components/schemas/Properties"
         protocol:
           type: string
           example: null

@@ -19,7 +19,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthStatus'
+                $ref: "#/components/schemas/HealthStatus"
   /check/liveness:
     get:
       tags:
@@ -33,7 +33,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthStatus'
+                $ref: "#/components/schemas/HealthStatus"
   /check/readiness:
     get:
       tags:
@@ -47,7 +47,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthStatus'
+                $ref: "#/components/schemas/HealthStatus"
   /check/startup:
     get:
       tags:
@@ -61,7 +61,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthStatus'
+                $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
     Failure:
@@ -84,7 +84,7 @@ components:
           type: string
           example: null
         failure:
-          $ref: '#/components/schemas/Failure'
+          $ref: "#/components/schemas/Failure"
         isHealthy:
           type: boolean
           example: null
@@ -96,7 +96,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/HealthCheckResult'
+            $ref: "#/components/schemas/HealthCheckResult"
         isSystemHealthy:
           type: boolean
           example: null
