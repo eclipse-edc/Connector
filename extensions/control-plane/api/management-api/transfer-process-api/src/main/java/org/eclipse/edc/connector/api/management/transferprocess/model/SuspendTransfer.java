@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.transferprocess.model;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public record SuspendTransfer(String reason) {
 

@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.api.management.catalog.transform;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.catalog.spi.DatasetRequest;
+import org.eclipse.edc.connector.catalog.spi.DatasetRequest;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -23,9 +23,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ID;
-import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
+import static org.eclipse.edc.connector.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ID;
+import static org.eclipse.edc.connector.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
 
 public class JsonObjectToDatasetRequestTransformer extends AbstractJsonLdTransformer<JsonObject, DatasetRequest> {
 

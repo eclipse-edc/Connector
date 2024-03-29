@@ -15,11 +15,11 @@
 package org.eclipse.edc.api.transformer;
 
 import jakarta.json.Json;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

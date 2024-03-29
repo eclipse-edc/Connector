@@ -23,7 +23,7 @@ import okhttp3.RequestBody;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.types.TypeManager;

@@ -25,11 +25,11 @@ import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 
 public class CatalogRequestValidator {
 
@@ -44,7 +44,8 @@ public class CatalogRequestValidator {
     /**
      * This custom validator can be removed once `providerUrl` is deleted and exists only for legacy reasons
      */
-    private record MandatoryCounterPartyAddressOrProviderUrl(JsonLdPath path, Monitor monitor) implements Validator<JsonObject> {
+    private record MandatoryCounterPartyAddressOrProviderUrl(JsonLdPath path,
+                                                             Monitor monitor) implements Validator<JsonObject> {
         @Override
         public ValidationResult validate(JsonObject input) {
             var counterPartyAddress = new MandatoryValue(path.append(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS));

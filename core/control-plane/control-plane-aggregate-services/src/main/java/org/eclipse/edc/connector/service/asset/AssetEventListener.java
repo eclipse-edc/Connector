@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.service.asset;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.asset.spi.event.AssetCreated;
 import org.eclipse.edc.connector.asset.spi.event.AssetDeleted;
 import org.eclipse.edc.connector.asset.spi.event.AssetEvent;
@@ -21,7 +22,6 @@ import org.eclipse.edc.connector.asset.spi.event.AssetUpdated;
 import org.eclipse.edc.connector.asset.spi.observe.AssetListener;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.time.Clock;
 

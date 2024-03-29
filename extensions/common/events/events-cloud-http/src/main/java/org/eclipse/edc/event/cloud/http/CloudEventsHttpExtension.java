@@ -19,7 +19,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

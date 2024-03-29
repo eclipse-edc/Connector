@@ -25,12 +25,12 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
-import org.eclipse.edc.connector.spi.asset.AssetService;
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.spi.asset.AssetService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
@@ -40,8 +40,8 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.util.Optional.of;
+import static org.eclipse.edc.connector.asset.spi.domain.Asset.EDC_ASSET_TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(APPLICATION_JSON)

@@ -18,17 +18,10 @@ import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.api.management.configuration.transform.JsonObjectFromContractAgreementTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromAssetTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToAssetTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
-import org.eclipse.edc.core.transform.transformer.odrl.OdrlTransformersFactory;
-import org.eclipse.edc.core.transform.transformer.odrl.from.JsonObjectFromPolicyTransformer;
+import org.eclipse.edc.connector.transform.edc.from.JsonObjectFromAssetTransformer;
+import org.eclipse.edc.connector.transform.edc.to.JsonObjectToAssetTransformer;
+import org.eclipse.edc.connector.transform.odrl.OdrlTransformersFactory;
+import org.eclipse.edc.connector.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -38,6 +31,13 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.web.jersey.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
@@ -49,7 +49,7 @@ import java.util.Map;
 
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
  * Tells all the Management API controllers under which context alias they need to register their resources: either `default` or `management`

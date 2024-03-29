@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.defaults.protocol;
 
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersion;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersion;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

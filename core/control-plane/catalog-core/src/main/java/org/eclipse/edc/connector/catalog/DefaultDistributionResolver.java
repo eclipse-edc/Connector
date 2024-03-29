@@ -15,11 +15,11 @@
 
 package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.DataServiceRegistry;
-import org.eclipse.edc.catalog.spi.Distribution;
-import org.eclipse.edc.catalog.spi.DistributionResolver;
+import org.eclipse.edc.connector.catalog.spi.DataServiceRegistry;
+import org.eclipse.edc.connector.catalog.spi.Distribution;
+import org.eclipse.edc.connector.catalog.spi.DistributionResolver;
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ public class DefaultDistributionResolver implements DistributionResolver {
     public List<Distribution> getDistributions(Asset asset) {
         return dataFlowManager.transferTypesFor(asset).stream().map(this::createDistribution).toList();
     }
-    
+
     private Distribution createDistribution(String format) {
         var builder = Distribution.Builder.newInstance().format(format);
         dataServiceRegistry.getDataServices().forEach(builder::dataService);

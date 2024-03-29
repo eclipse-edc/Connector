@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.api;
 
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersion;
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersion;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;

@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 
 import org.eclipse.edc.policy.model.Policy;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 @Deprecated(since = "0.3.2")
 public class ContractOfferDescription {

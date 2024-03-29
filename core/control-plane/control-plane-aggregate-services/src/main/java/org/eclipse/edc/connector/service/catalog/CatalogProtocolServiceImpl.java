@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.connector.service.catalog;
 
-import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.catalog.spi.DataServiceRegistry;
-import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.catalog.spi.DatasetResolver;
-import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
-import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.connector.catalog.spi.Catalog;
+import org.eclipse.edc.connector.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.catalog.spi.DataServiceRegistry;
+import org.eclipse.edc.connector.catalog.spi.Dataset;
+import org.eclipse.edc.connector.catalog.spi.DatasetResolver;
+import org.eclipse.edc.connector.controlplane.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -28,7 +28,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 

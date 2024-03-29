@@ -14,19 +14,19 @@
 
 package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.catalog.spi.DatasetResolver;
-import org.eclipse.edc.catalog.spi.DistributionResolver;
+import org.eclipse.edc.connector.catalog.spi.Dataset;
+import org.eclipse.edc.connector.catalog.spi.DatasetResolver;
+import org.eclipse.edc.connector.catalog.spi.DistributionResolver;
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

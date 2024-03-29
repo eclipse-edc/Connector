@@ -27,7 +27,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.connector.controlplane.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;

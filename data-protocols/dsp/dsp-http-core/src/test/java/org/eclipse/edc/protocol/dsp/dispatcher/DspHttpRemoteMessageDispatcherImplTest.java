@@ -25,7 +25,7 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatche
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.RequestContext;

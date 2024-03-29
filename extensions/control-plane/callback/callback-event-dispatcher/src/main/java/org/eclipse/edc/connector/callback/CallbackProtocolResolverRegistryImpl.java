@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.callback;
 
 
-import org.eclipse.edc.connector.spi.callback.CallbackProtocolResolver;
-import org.eclipse.edc.connector.spi.callback.CallbackProtocolResolverRegistry;
+import org.eclipse.edc.connector.controlplane.spi.callback.CallbackProtocolResolver;
+import org.eclipse.edc.connector.controlplane.spi.callback.CallbackProtocolResolverRegistry;
 
 import java.util.ArrayList;
 import java.util.List;

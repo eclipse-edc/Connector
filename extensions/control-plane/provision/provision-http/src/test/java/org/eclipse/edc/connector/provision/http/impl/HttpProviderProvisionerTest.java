@@ -33,7 +33,7 @@ import java.net.URL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.provision.http.HttpProvisionerFixtures.createResponse;
 import static org.eclipse.edc.connector.provision.http.config.ProvisionerConfiguration.ProvisionerType.PROVIDER;
-import static org.eclipse.http.client.testfixtures.HttpTestUtils.testHttpClient;
+import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

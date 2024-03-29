@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.api;
 
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.protocol.dsp.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.transferprocess.api.controller.DspTransferProcessApiController;

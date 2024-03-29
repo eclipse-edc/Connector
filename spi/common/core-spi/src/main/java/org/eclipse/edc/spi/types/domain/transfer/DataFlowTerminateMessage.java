@@ -17,7 +17,7 @@ package org.eclipse.edc.spi.types.domain.transfer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * A message for terminating an in progress transfer in the data plane
@@ -58,7 +58,7 @@ public class DataFlowTerminateMessage {
             message.reason = reason;
             return this;
         }
-        
+
         public DataFlowTerminateMessage build() {
 
             return message;

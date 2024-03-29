@@ -18,6 +18,7 @@
 package org.eclipse.edc.connector.transfer.process;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import org.eclipse.edc.connector.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.provision.DeprovisionResponsesHandler;
 import org.eclipse.edc.connector.transfer.provision.ProvisionResponsesHandler;
@@ -43,7 +44,6 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessag
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;

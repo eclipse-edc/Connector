@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.store.sql.assetindex.schema.postgres;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.store.sql.assetindex.schema.AssetStatements;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.sql.translation.JsonFieldTranslator;
@@ -26,7 +27,7 @@ import java.util.function.Function;
 import static java.util.Objects.requireNonNullElse;
 
 /**
- * Maps fields of a {@link org.eclipse.edc.spi.types.domain.asset.Asset} onto the
+ * Maps fields of a {@link Asset} onto the
  * corresponding SQL schema (= column names) enabling access through Postgres JSON operators where applicable
  */
 public class AssetMapping extends TranslationMapping {

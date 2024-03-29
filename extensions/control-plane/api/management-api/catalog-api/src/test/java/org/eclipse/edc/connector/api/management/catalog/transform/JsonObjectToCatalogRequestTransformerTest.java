@@ -16,18 +16,18 @@ package org.eclipse.edc.connector.api.management.catalog.transform;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.connector.catalog.spi.CatalogRequest;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ID;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ID;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

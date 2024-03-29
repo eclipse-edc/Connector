@@ -19,6 +19,7 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.catalog.spi.Dataset;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -46,7 +47,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRI
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Essentially a wrapper around the management API enabling to test interactions with other participants, eg. catalog, transfer...
@@ -183,7 +184,7 @@ public class Participant {
      * Request provider catalog.
      *
      * @param provider data provider
-     * @return list of {@link org.eclipse.edc.catalog.spi.Dataset}.
+     * @return list of {@link Dataset}.
      */
     public JsonArray getCatalogDatasets(Participant provider) {
         return getCatalogDatasets(provider, null);
@@ -193,7 +194,7 @@ public class Participant {
      * Request provider catalog.
      *
      * @param provider data provider
-     * @return list of {@link org.eclipse.edc.catalog.spi.Dataset}.
+     * @return list of {@link Dataset}.
      */
     public JsonArray getCatalogDatasets(Participant provider, JsonObject querySpec) {
         var datasetReference = new AtomicReference<JsonArray>();
@@ -233,7 +234,7 @@ public class Participant {
     }
 
     /**
-     * Get first {@link org.eclipse.edc.catalog.spi.Dataset} from provider matching the given asset id.
+     * Get first {@link Dataset} from provider matching the given asset id.
      *
      * @param provider data provider
      * @param assetId  asset id

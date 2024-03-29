@@ -15,13 +15,13 @@
 package org.eclipse.edc.connector.transfer.flow;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

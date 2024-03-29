@@ -24,7 +24,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.connector.controlplane.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;

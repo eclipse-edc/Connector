@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.callback.staticendpoint;
 
-import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
+import org.eclipse.edc.connector.controlplane.spi.callback.CallbackRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

@@ -18,14 +18,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.validation.DataAddressValidator;
-import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +35,12 @@ import static org.eclipse.edc.connector.api.management.configuration.ManagementA
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema.ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema.DataAddressSchema.DATA_ADDRESS_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema.PolicySchema.POLICY_EXAMPLE;
+import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ASSET_ID;
+import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_CONSUMER_ID;
+import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;
+import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_PROVIDER_ID;
+import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_SIGNING_DATE;
+import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_AGREEMENT_ID;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CALLBACK_ADDR;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_COUNTERPARTY_ADDR;
@@ -51,12 +57,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_ASSET_ID;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_CONSUMER_ID;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_PROVIDER_ID;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_SIGNING_DATE;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_TYPE;
 
 class ManagementApiSchemaTest {
 

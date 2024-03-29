@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -22,13 +24,11 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.UUID;
 
@@ -38,11 +38,8 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
-import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
-import static org.eclipse.edc.test.e2e.managementapi.Runtimes.inMemoryRuntime;
-import static org.eclipse.edc.test.e2e.managementapi.Runtimes.postgresRuntime;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.Matchers.is;
 
 public class CatalogApiEndToEndTest {

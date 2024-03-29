@@ -19,8 +19,8 @@ import org.eclipse.edc.connector.policy.monitor.manager.PolicyMonitorManagerImpl
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.policy.monitor.subscriber.StartMonitoring;
-import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.spi.contractagreement.ContractAgreementService;
+import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;

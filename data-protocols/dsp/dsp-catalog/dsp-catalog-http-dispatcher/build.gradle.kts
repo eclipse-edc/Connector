@@ -21,7 +21,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-http-core"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":extensions:common:json-ld"))
-    api(project(":spi:common:catalog-spi"))
+    api(project(":spi:control-plane:catalog-spi"))
 
     api(libs.jakartaJson)
 

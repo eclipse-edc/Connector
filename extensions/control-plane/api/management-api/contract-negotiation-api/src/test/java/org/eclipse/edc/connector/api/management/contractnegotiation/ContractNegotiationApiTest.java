@@ -26,12 +26,12 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.validation.C
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
 import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.transformer.odrl.OdrlTransformersFactory;
+import org.eclipse.edc.connector.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -15,9 +15,9 @@
 package org.eclipse.edc.connector.defaults.storage.assetindex;
 
 
+import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
-import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.testfixtures.asset.AssetIndexTestBase;
 import org.junit.jupiter.api.BeforeEach;
 

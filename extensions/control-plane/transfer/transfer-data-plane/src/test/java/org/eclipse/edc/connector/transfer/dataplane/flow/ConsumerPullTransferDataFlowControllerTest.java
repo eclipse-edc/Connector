@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
@@ -22,7 +23,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

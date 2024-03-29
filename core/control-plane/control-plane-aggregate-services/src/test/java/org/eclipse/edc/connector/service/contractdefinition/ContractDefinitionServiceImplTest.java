@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinit
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.connector.controlplane.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;

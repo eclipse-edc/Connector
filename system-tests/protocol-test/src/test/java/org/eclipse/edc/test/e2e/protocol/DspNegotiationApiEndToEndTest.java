@@ -16,11 +16,11 @@ package org.eclipse.edc.test.e2e.protocol;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;

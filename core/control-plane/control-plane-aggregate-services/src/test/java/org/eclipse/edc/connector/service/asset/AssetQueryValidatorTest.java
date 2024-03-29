@@ -14,16 +14,16 @@
 
 package org.eclipse.edc.connector.service.asset;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 class AssetQueryValidatorTest {
 

@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.edr.store.receiver;
 
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
-import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
+import org.eclipse.edc.connector.controlplane.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;

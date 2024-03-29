@@ -18,15 +18,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.asset.validation.AssetValidator;
-import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToAssetTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.transform.edc.to.JsonObjectToAssetTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,11 +34,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.map;
 import static org.eclipse.edc.connector.api.management.asset.v3.AssetApi.AssetInputSchema.ASSET_INPUT_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.asset.v3.AssetApi.AssetOutputSchema.ASSET_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.asset.spi.domain.Asset.EDC_ASSET_DATA_ADDRESS;
+import static org.eclipse.edc.connector.asset.spi.domain.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
+import static org.eclipse.edc.connector.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_DATA_ADDRESS;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PROPERTIES;
 import static org.mockito.Mockito.mock;
 
 class AssetApiTest {

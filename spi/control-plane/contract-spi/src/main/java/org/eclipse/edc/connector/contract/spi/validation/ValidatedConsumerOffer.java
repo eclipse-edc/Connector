@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.contract.spi.validation;
 
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 
 import static java.util.Objects.requireNonNull;
 

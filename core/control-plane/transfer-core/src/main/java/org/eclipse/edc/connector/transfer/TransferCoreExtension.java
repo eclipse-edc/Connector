@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.transfer;
 
+import org.eclipse.edc.connector.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.command.handlers.AddProvisionedResourceCommandHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.DeprovisionCompleteCommandHandler;
@@ -41,7 +42,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;

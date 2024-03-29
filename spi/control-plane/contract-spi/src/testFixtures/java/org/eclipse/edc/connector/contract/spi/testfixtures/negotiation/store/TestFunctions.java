@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store;
 
 import org.eclipse.edc.connector.contract.spi.ContractOfferId;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.policy.model.Action;
@@ -25,7 +26,6 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.time.Instant;

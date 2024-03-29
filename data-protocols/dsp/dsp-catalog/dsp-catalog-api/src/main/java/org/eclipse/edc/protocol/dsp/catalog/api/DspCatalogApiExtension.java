@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.api;
 
-import org.eclipse.edc.catalog.spi.DataService;
-import org.eclipse.edc.catalog.spi.DataServiceRegistry;
-import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.catalog.spi.DataService;
+import org.eclipse.edc.connector.catalog.spi.DataServiceRegistry;
+import org.eclipse.edc.connector.controlplane.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.protocol.dsp.catalog.api.controller.DspCatalogApiController;
 import org.eclipse.edc.protocol.dsp.catalog.api.controller.DspCatalogApiController20241;
 import org.eclipse.edc.protocol.dsp.catalog.api.validation.CatalogRequestMessageValidator;

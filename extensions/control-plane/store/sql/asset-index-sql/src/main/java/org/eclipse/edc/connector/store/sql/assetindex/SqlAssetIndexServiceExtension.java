@@ -15,14 +15,14 @@
 
 package org.eclipse.edc.connector.store.sql.assetindex;
 
+import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.store.sql.assetindex.schema.AssetStatements;
 import org.eclipse.edc.connector.store.sql.assetindex.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.version.api;
 
-import org.eclipse.edc.connector.spi.protocol.VersionProtocolService;
+import org.eclipse.edc.connector.controlplane.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.protocol.dsp.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.version.api.transformer.JsonObjectFromProtocolVersionsTransformer;

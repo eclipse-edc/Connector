@@ -30,7 +30,7 @@ import org.eclipse.edc.identitytrust.model.credentialservice.PresentationQueryMe
 import org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;

@@ -16,9 +16,13 @@
 
 package org.eclipse.edc.connector.contract.validation;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.contract.policy.PolicyEquality;
 import org.eclipse.edc.connector.contract.spi.ContractOfferId;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
@@ -26,12 +30,8 @@ import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;

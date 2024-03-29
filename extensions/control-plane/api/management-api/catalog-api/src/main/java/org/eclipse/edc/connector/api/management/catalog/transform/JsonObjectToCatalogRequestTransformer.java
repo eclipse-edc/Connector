@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.api.management.catalog.transform;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.connector.catalog.spi.CatalogRequest;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -24,11 +24,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ID;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ID;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
 
 public class JsonObjectToCatalogRequestTransformer extends AbstractJsonLdTransformer<JsonObject, CatalogRequest> {
 

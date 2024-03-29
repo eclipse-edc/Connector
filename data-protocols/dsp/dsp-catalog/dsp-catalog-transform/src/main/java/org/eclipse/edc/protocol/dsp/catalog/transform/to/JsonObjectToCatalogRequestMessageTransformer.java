@@ -15,7 +15,7 @@
 package org.eclipse.edc.protocol.dsp.catalog.transform.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;

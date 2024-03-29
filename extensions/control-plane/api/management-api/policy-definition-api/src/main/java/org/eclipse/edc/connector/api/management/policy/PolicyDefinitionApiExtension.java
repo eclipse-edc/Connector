@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfi
 import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectFromPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.policy.validation.PolicyDefinitionValidator;
-import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.connector.controlplane.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -32,7 +32,7 @@ import org.eclipse.edc.web.spi.WebService;
 import java.util.Map;
 
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 
 @Extension(value = PolicyDefinitionApiExtension.NAME)

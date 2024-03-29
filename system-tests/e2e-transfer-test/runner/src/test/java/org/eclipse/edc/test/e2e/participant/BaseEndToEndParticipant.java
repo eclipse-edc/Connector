@@ -40,8 +40,8 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.boot.BootServicesExtension.PARTICIPANT_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.defaultDatasourceConfiguration;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 

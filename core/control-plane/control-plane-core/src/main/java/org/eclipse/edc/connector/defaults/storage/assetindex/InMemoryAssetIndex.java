@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.connector.defaults.storage.assetindex;
 
-import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;

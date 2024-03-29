@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.service.catalog;
 
-import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.catalog.spi.DatasetRequestMessage;
-import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.catalog.spi.DatasetRequestMessage;
+import org.eclipse.edc.connector.controlplane.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;

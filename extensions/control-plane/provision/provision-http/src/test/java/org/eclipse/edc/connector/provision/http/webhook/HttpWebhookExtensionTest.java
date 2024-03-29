@@ -19,7 +19,7 @@ import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.provision.http.HttpProvisionerWebhookUrl;
 import org.eclipse.edc.connector.provision.http.HttpWebhookExtension;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.Hostname;

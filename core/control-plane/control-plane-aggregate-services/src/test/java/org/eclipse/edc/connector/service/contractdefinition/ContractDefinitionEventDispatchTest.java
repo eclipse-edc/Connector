@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractD
 import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionEvent;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
-import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.connector.controlplane.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;

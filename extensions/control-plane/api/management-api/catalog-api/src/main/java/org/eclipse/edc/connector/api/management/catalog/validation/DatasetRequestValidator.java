@@ -20,8 +20,8 @@ import org.eclipse.edc.validator.jsonobject.validators.MandatoryIdNotBlank;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
+import static org.eclipse.edc.connector.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
 
 public class DatasetRequestValidator {
 

@@ -15,13 +15,13 @@
 
 package org.eclipse.edc.connector.contract.spi.validation;
 
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 /**

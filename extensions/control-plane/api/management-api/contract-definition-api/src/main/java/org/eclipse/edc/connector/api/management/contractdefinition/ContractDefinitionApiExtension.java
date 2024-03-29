@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfi
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectFromContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.validation.ContractDefinitionValidator;
-import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.connector.controlplane.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -35,7 +35,7 @@ import org.eclipse.edc.web.spi.WebService;
 import java.util.Map;
 
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = ContractDefinitionApiExtension.NAME)
 public class ContractDefinitionApiExtension implements ServiceExtension {

@@ -21,7 +21,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.api.client.transferprocess.model.TransferProcessFailRequest;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.List;
 
-import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNotIn;
+import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusIsNotIn;
 
 /**
  * Implementation of {@link TransferProcessApiClient} which talks to the Control Plane Transfer Process via HTTP APIs

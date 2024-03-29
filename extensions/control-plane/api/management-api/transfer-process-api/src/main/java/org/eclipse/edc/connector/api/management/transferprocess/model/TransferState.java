@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.api.management.transferprocess.model;
 
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Wrapper for {@link TransferProcessStates} formatted as String. Used to format a simple string as JSON.

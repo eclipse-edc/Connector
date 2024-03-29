@@ -65,6 +65,7 @@ include(":core:control-plane:catalog-core")
 include(":core:control-plane:contract-core")
 include(":core:control-plane:control-plane-core")
 include(":core:control-plane:control-plane-aggregate-services")
+include(":core:control-plane:control-plane-transform")
 include(":core:control-plane:transfer-core")
 include(":core:control-plane:lib:control-plane-policies-lib")
 
@@ -215,7 +216,7 @@ include(":launchers:sts-server")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:auth-spi")
-include(":spi:common:catalog-spi")
+include(":spi:common:boot-spi")
 include(":spi:common:core-spi")
 include(":spi:common:data-address:data-address-http-data-spi")
 include(":spi:common:data-address:data-address-kafka-spi")
@@ -239,6 +240,7 @@ include(":spi:common:edr-store-spi")
 
 
 include(":spi:control-plane:asset-spi")
+include(":spi:control-plane:catalog-spi")
 include(":spi:control-plane:contract-spi")
 include(":spi:control-plane:control-plane-spi")
 include(":spi:control-plane:transfer-data-plane-spi")

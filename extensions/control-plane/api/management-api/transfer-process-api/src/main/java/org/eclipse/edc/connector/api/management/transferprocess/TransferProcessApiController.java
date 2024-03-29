@@ -26,7 +26,7 @@ import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.api.management.transferprocess.model.SuspendTransfer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferState;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.ResumeTransferCommand;

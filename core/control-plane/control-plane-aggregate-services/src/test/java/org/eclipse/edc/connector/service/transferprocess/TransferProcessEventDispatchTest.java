@@ -17,10 +17,11 @@
 package org.eclipse.edc.connector.service.transferprocess;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessDeprovisioned;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessEvent;
@@ -52,7 +53,6 @@ import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jetbrains.annotations.NotNull;

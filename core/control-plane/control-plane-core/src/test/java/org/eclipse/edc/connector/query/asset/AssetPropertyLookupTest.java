@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.query.asset;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.query.PropertyLookup;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

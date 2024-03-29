@@ -26,7 +26,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
-import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.connector.controlplane.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;

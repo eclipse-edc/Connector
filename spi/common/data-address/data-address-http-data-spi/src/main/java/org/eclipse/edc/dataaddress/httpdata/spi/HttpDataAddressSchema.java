@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.dataaddress.httpdata.spi;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Defines the schema of a DataAddress representing an Http endpoint.

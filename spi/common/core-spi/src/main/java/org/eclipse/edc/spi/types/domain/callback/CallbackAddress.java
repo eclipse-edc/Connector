@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * The {@link CallbackAddress} contains information about users configured callbacks
@@ -38,7 +38,7 @@ public class CallbackAddress {
 
     public static final String AUTH_KEY = EDC_NAMESPACE + "authKey";
     public static final String AUTH_CODE_ID = EDC_NAMESPACE + "authCodeId";
-    
+
     private String uri;
     private Set<String> events = new HashSet<>();
     private boolean transactional;

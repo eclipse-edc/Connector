@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.connector.catalog.spi.DataService;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.store.sql.assetindex;
 
+import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.TypeManager;

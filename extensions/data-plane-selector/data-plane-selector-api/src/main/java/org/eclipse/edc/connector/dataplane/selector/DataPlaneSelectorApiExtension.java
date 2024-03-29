@@ -36,7 +36,7 @@ import java.util.Map;
 
 import static jakarta.json.Json.createBuilderFactory;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = "DataPlane selector API")
 public class DataPlaneSelectorApiExtension implements ServiceExtension {

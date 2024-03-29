@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.DataServiceRegistry;
-import org.eclipse.edc.catalog.spi.DistributionResolver;
+import org.eclipse.edc.connector.catalog.spi.DataServiceRegistry;
+import org.eclipse.edc.connector.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -30,19 +30,19 @@ public class CatalogDefaultServicesExtension implements ServiceExtension {
 
     @Inject
     private DataFlowManager dataFlowManager;
-    
+
     private DataServiceRegistry dataServiceRegistry;
 
     @Override
     public String name() {
         return NAME;
     }
-    
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         dataServiceRegistry = new DataServiceRegistryImpl();
     }
-    
+
     @Provider
     public DataServiceRegistry dataServiceRegistry() {
         return dataServiceRegistry;

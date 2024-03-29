@@ -22,9 +22,9 @@ import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_DATA_ADDRESS;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PROPERTIES;
+import static org.eclipse.edc.connector.asset.spi.domain.Asset.EDC_ASSET_DATA_ADDRESS;
+import static org.eclipse.edc.connector.asset.spi.domain.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
+import static org.eclipse.edc.connector.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 /**

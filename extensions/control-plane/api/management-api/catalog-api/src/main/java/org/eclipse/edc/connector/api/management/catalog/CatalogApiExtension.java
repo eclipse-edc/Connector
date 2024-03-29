@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToDa
 import org.eclipse.edc.connector.api.management.catalog.validation.CatalogRequestValidator;
 import org.eclipse.edc.connector.api.management.catalog.validation.DatasetRequestValidator;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.controlplane.spi.catalog.CatalogService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -29,8 +29,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
-import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.connector.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
 
 @Extension(value = CatalogApiExtension.NAME)
 public class CatalogApiExtension implements ServiceExtension {

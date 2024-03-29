@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.defaults.callback;
 
-import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
+import org.eclipse.edc.connector.controlplane.spi.callback.CallbackRegistry;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.ArrayList;

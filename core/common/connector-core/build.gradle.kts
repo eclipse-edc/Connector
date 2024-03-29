@@ -33,7 +33,6 @@ dependencies {
     implementation(project(":core:common:transform-core"))
     implementation(project(":core:common:validator-core"))
     implementation(project(":core:common:lib:state-machine-lib"))
-    implementation(project(":core:common:lib:boot-lib"))
     implementation(project(":core:common:lib:query-lib"))
     implementation(project(":core:common:lib:http-lib"))
     implementation(project(":core:common:lib:keys-lib"))

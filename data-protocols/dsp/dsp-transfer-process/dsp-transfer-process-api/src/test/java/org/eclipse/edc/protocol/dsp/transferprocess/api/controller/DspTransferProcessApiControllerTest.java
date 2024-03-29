@@ -19,7 +19,7 @@ import jakarta.json.Json;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
@@ -75,13 +75,13 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var id = "transferProcessId";
 
         when(dspRequestHandler.getResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
-    
+
         baseRequest()
                 .get(BASE_PATH + id)
                 .then()
                 .contentType(MediaType.APPLICATION_JSON)
                 .statusCode(200);
-    
+
         var captor = ArgumentCaptor.forClass(GetDspRequest.class);
         verify(dspRequestHandler).getResource(captor.capture());
         var dspRequest = captor.getValue();

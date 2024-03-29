@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * A {@link PolicyDefinition} is a container for a {@link Policy} and a unique identifier. Policies by themselves do

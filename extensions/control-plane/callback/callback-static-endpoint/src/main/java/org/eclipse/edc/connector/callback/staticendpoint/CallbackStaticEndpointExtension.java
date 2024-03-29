@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.callback.staticendpoint;
 
-import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
+import org.eclipse.edc.connector.controlplane.spi.callback.CallbackRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;

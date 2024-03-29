@@ -24,10 +24,10 @@ import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.Contract
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationOffered;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationTerminated;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;

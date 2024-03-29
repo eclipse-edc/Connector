@@ -21,6 +21,7 @@ plugins {
 dependencies {
     api(libs.edc.runtime.metamodel)
     api(libs.failsafe.core)
+    api(project(":spi:common:boot-spi"))
     api(project(":spi:common:policy-model"))
 
     implementation(libs.opentelemetry.api)

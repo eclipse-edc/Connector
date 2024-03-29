@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.connector.policy.contract;
 
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -30,7 +30,7 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Constraint function that evaluates a time-based constraint. That is a constraint that either uses the "inForceDate" operand

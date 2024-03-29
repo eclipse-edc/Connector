@@ -15,12 +15,14 @@
 package org.eclipse.edc.connector.service.asset;
 
 import org.assertj.core.api.Assertions;
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.asset.spi.observe.AssetObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.spi.asset.AssetService;
+import org.eclipse.edc.connector.controlplane.spi.asset.AssetService;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Failure;
@@ -28,8 +30,6 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;

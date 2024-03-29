@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.query.asset;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.query.ReflectionPropertyLookup;
 import org.eclipse.edc.spi.query.PropertyLookup;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.util.Map;
 import java.util.Objects;

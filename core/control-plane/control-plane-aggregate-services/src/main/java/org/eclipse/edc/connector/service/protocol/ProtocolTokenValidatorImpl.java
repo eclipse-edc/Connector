@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.service.protocol;
 
-import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;

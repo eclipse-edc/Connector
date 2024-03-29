@@ -30,8 +30,8 @@ import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessa
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.connector.controlplane.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;

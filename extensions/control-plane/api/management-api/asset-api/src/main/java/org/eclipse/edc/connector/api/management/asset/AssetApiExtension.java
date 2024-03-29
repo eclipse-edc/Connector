@@ -20,7 +20,7 @@ import org.eclipse.edc.api.validation.DataAddressValidator;
 import org.eclipse.edc.connector.api.management.asset.v3.AssetApiController;
 import org.eclipse.edc.connector.api.management.asset.validation.AssetValidator;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.spi.asset.AssetService;
+import org.eclipse.edc.connector.controlplane.spi.asset.AssetService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -29,8 +29,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
+import static org.eclipse.edc.connector.asset.spi.domain.Asset.EDC_ASSET_TYPE;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
 
 @Extension(value = AssetApiExtension.NAME)
 public class AssetApiExtension implements ServiceExtension {

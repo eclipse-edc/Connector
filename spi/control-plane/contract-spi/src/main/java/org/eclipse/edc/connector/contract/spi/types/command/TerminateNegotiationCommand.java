@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.contract.spi.types.command;
 
 import org.eclipse.edc.spi.command.EntityCommand;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public class TerminateNegotiationCommand extends EntityCommand {
 

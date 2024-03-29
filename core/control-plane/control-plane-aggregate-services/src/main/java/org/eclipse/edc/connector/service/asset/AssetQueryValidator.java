@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.service.asset;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.service.query.QueryValidator;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.util.regex.Pattern;
 

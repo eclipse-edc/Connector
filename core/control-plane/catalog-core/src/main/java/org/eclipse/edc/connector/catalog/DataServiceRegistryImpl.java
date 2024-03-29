@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.DataService;
-import org.eclipse.edc.catalog.spi.DataServiceRegistry;
+import org.eclipse.edc.connector.catalog.spi.DataService;
+import org.eclipse.edc.connector.catalog.spi.DataServiceRegistry;
 
 import java.util.ArrayList;
 import java.util.List;

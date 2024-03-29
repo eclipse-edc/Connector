@@ -14,15 +14,15 @@
 
 package org.eclipse.edc.connector.service.asset;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.asset.spi.observe.AssetObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.service.query.QueryValidator;
-import org.eclipse.edc.connector.spi.asset.AssetService;
-import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.connector.controlplane.spi.asset.AssetService;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 

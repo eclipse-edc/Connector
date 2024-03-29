@@ -28,7 +28,7 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.document.JarLoader;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.spi.CoreConstants;
+import org.eclipse.edc.spi.constants.CoreConstants;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 

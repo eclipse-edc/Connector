@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher;
 
-import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.catalog.spi.DatasetRequestMessage;
+import org.eclipse.edc.connector.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate.ByteArrayBodyExtractor;
 import org.eclipse.edc.protocol.dsp.dispatcher.GetDspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.dispatcher.PostDspHttpRequestFactory;

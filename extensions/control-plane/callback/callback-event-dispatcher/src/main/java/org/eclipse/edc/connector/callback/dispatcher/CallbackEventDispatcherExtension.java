@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.callback.dispatcher;
 
 import org.eclipse.edc.connector.callback.CallbackProtocolResolverRegistryImpl;
-import org.eclipse.edc.connector.spi.callback.CallbackProtocolResolverRegistry;
-import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
+import org.eclipse.edc.connector.controlplane.spi.callback.CallbackProtocolResolverRegistry;
+import org.eclipse.edc.connector.controlplane.spi.callback.CallbackRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;

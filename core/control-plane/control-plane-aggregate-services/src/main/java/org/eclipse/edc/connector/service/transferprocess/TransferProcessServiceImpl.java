@@ -16,7 +16,7 @@
 package org.eclipse.edc.connector.service.transferprocess;
 
 import org.eclipse.edc.connector.service.query.QueryValidator;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;

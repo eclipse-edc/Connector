@@ -27,14 +27,14 @@ import org.eclipse.edc.connector.api.management.transferprocess.validation.Suspe
 import org.eclipse.edc.connector.api.management.transferprocess.validation.TerminateTransferValidator;
 import org.eclipse.edc.connector.api.management.transferprocess.validation.TransferRequestValidator;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -17,6 +17,7 @@
 
 package org.eclipse.edc.connector.contract;
 
+import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.contract.listener.ContractNegotiationEventListener;
 import org.eclipse.edc.connector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
 import org.eclipse.edc.connector.contract.negotiation.ProviderContractNegotiationManagerImpl;
@@ -40,7 +41,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;

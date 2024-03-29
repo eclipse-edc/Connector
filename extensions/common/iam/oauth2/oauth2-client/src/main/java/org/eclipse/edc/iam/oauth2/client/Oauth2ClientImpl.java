@@ -19,7 +19,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNot;
+import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusIsNot;
 
 public class Oauth2ClientImpl implements Oauth2Client {
 

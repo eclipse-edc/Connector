@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.store.sql.assetindex;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 public class TestFunctions {
 

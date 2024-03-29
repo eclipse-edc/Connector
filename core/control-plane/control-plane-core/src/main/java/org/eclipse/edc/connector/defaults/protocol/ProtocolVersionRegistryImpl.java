@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.defaults.protocol;
 
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersion;
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersions;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersion;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersions;
 
 import java.util.ArrayList;
 import java.util.List;

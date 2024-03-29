@@ -17,9 +17,9 @@ package org.eclipse.edc.vault.hashicorp;
 import dev.failsafe.Fallback;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.eclipse.edc.spi.http.FallbackFactory;
+import org.eclipse.edc.http.spi.FallbackFactory;
 
-import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNotIn;
+import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusIsNotIn;
 
 /**
  * Implements a {@link Fallback}factory for requests executed against the Hashicorp Vault.

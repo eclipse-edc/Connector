@@ -21,9 +21,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
-import org.eclipse.edc.catalog.spi.CatalogRequest;
-import org.eclipse.edc.catalog.spi.DatasetRequest;
-import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.catalog.spi.CatalogRequest;
+import org.eclipse.edc.connector.catalog.spi.DatasetRequest;
+import org.eclipse.edc.connector.controlplane.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -33,8 +33,8 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
-import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
+import static org.eclipse.edc.connector.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.connector.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)

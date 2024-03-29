@@ -16,12 +16,12 @@ package org.eclipse.edc.connector.callback.dispatcher.http;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
-import org.eclipse.edc.connector.spi.callback.CallbackEventRemoteMessage;
+import org.eclipse.edc.connector.controlplane.spi.callback.CallbackEventRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -40,8 +40,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.callback.dispatcher.http.GenericHttpRemoteDispatcherImpl.CALLBACK_EVENT_HTTP;
+import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.eclipse.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.mock;

@@ -21,7 +21,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -29,7 +29,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Objects;
 
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
  * This extension provides an implementation of {@link DataPlaneClient} compliant with the data plane signaling protocol

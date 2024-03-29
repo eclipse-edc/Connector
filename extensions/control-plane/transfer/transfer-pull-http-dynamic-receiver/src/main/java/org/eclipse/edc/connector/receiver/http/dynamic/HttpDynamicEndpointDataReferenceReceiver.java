@@ -34,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import static dev.failsafe.Failsafe.with;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.string.StringUtils.isNullOrBlank;
 
 /**

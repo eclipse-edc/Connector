@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.service.protocol;
 
-import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersions;
-import org.eclipse.edc.connector.spi.protocol.VersionProtocolService;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersions;
+import org.eclipse.edc.connector.controlplane.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;

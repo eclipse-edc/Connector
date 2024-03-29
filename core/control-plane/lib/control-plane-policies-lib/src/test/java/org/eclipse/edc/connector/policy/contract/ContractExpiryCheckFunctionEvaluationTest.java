@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.policy.contract;
 
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
@@ -29,7 +30,6 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;

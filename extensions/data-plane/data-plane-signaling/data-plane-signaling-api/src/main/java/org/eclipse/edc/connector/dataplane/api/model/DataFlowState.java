@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.api.model;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Wrapper for {@link DataFlowStates} formatted as String. Used to format a simple string as JSON.

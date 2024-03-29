@@ -20,7 +20,7 @@ import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionCreated;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionDeleted;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionEvent;
 import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionUpdated;
-import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.connector.controlplane.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.event.EventRouter;

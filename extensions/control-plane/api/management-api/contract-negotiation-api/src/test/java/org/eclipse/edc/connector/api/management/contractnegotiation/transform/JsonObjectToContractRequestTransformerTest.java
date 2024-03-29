@@ -20,12 +20,12 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,7 +84,7 @@ class JsonObjectToContractRequestTransformerTest {
                 .build());
         var offer = createContractOffer("test-provider-id");
         when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(offer);
-        
+
         var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
 
         assertThat(request).isNotNull();

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.asset.spi.observe;
 
+import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.observe.Observable;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 /**
  * Interface implemented by listeners registered to observe asset state changes via {@link Observable#registerListener}.

@@ -19,7 +19,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiver;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;

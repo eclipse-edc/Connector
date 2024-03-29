@@ -31,7 +31,7 @@ import java.security.PrivateKey;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public class ConsumerPullDataPlaneProxyResolver {
 

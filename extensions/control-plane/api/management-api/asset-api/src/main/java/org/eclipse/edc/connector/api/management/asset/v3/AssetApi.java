@@ -29,10 +29,10 @@ import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+import static org.eclipse.edc.connector.asset.spi.domain.Asset.EDC_ASSET_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
 
 @OpenAPIDefinition(
         info = @Info(description = "This contains both the current and the new Asset API, which accepts JSON-LD and will " +

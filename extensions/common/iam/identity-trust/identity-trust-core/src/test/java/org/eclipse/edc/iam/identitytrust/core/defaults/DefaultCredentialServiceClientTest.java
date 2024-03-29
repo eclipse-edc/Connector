@@ -34,7 +34,7 @@ import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
 import org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,7 +88,7 @@ class DefaultCredentialServiceClientTest {
     @Test
     @DisplayName("CS send scopes")
     void requestPresentation_sendScopes() throws IOException {
-        
+
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("single_ldp-vp.json")));
 

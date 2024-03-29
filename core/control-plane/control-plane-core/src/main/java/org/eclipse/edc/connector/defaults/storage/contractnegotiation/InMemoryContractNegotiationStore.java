@@ -16,12 +16,12 @@
 package org.eclipse.edc.connector.defaults.storage.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.store.InMemoryStatefulEntityStore;
 import org.eclipse.edc.store.ReflectionBasedQueryResolver;
 import org.jetbrains.annotations.NotNull;

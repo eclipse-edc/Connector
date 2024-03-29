@@ -58,7 +58,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.e2e.Runtimes.backendService;
 import static org.eclipse.edc.test.e2e.Runtimes.controlPlaneSignaling;
 import static org.eclipse.edc.test.e2e.Runtimes.dataPlane;

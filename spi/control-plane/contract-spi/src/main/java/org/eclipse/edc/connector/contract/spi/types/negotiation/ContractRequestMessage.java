@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 import static java.util.Objects.requireNonNull;

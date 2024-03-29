@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Represent a request for contract negotiation on the consumer side.

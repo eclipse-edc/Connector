@@ -15,9 +15,9 @@
 package org.eclipse.edc.connector.api.management.catalog;
 
 import jakarta.json.Json;
-import org.eclipse.edc.catalog.spi.CatalogRequest;
-import org.eclipse.edc.catalog.spi.DatasetRequest;
-import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.catalog.spi.CatalogRequest;
+import org.eclipse.edc.connector.catalog.spi.DatasetRequest;
+import org.eclipse.edc.connector.controlplane.spi.catalog.CatalogService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -35,8 +35,8 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
-import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
+import static org.eclipse.edc.connector.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
+import static org.eclipse.edc.connector.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

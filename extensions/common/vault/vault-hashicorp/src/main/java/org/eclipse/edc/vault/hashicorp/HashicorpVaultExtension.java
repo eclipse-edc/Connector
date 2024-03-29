@@ -15,17 +15,19 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.types.TypeManager;
+
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 @Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
@@ -70,9 +72,6 @@ public class HashicorpVaultExtension implements ServiceExtension {
     private EdcHttpClient httpClient;
 
     @Inject
-    private TypeManager typeManager;
-
-    @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
     private HashicorpVaultClient client;
@@ -88,9 +87,13 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Provider
     public HashicorpVaultClient hashicorpVaultClient() {
         if (client == null) {
+            // the default type manager cannot be used as the Vault is a primordial service loaded at boot
+            var mapper = new ObjectMapper();
+            mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+
             client = new HashicorpVaultClient(
                     httpClient,
-                    typeManager.getMapper(),
+                    mapper,
                     monitor,
                     settings);
         }

@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.dataplane.selector.api.v2.model;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Represents the request body that the {@link DataplaneSelectorApi#selectDataPlaneInstance(jakarta.json.JsonObject)} endpoint requires

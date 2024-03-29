@@ -16,9 +16,10 @@
 package org.eclipse.edc.connector.service.transferprocess;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
-import org.eclipse.edc.connector.spi.protocol.ProtocolTokenValidator;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
@@ -42,7 +43,6 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;

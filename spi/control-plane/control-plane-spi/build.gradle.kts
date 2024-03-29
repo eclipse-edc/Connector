@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":spi:common:catalog-spi"))
+    api(project(":spi:control-plane:catalog-spi"))
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:transfer-spi"))
 }
