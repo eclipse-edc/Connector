@@ -27,11 +27,11 @@ dependencies {
     implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:common:connector-core"))
-    testImplementation(project(":core:control-plane:catalog-core"))
-    testImplementation(project(":core:control-plane:contract-core"))
+    testImplementation(project(":core:control-plane:control-plane-catalog"))
+    testImplementation(project(":core:control-plane:control-plane-contract"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
-    testImplementation(project(":core:control-plane:transfer-core"))
+    testImplementation(project(":core:control-plane:control-plane-transfer"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
 }

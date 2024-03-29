@@ -27,8 +27,8 @@ dependencies {
     implementation(project(":extensions:control-plane:store:sql:transfer-process-store-sql"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:control-plane:catalog-core"))
-    testImplementation(project(":core:control-plane:contract-core"))
+    testImplementation(project(":core:control-plane:control-plane-catalog"))
+    testImplementation(project(":core:control-plane:control-plane-contract"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
 }

@@ -12,10 +12,9 @@
  *
  */
 
-package org.eclipse.edc.connector.callback.staticendpoint;
+package org.eclipse.edc.connector.controlplane.callback.staticendpoint;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.connector.controlplane.callback.staticendpoint.CallbackStaticEndpointExtension;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
