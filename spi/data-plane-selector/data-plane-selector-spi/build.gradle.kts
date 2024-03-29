@@ -20,7 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
 
     // needed by the abstract test spec located in testFixtures
     testFixturesImplementation(libs.bundles.jupiter)

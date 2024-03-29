@@ -22,7 +22,7 @@ dependencies {
     api(project(":spi:common:transform-spi"))
 
     implementation(project(":core:common:lib:state-machine-lib"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 

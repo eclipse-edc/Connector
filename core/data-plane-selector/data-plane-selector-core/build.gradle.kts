@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":spi:common:transaction-spi"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
 
     testImplementation(testFixtures(project(":spi:data-plane-selector:data-plane-selector-spi")))
 

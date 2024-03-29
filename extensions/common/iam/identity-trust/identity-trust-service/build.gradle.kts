@@ -9,7 +9,7 @@ dependencies {
     api(project(":spi:common:jwt-spi"))
     api(project(":spi:common:token-spi"))
 
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
     implementation(libs.nimbus.jwt)
     implementation(libs.iron.ed25519)
     testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))

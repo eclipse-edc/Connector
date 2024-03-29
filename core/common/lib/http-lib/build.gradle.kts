@@ -24,7 +24,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.dnsOverHttps)
 
-    testImplementation(project(":core:common:util"))
+    testImplementation(project(":core:common:lib:util-lib"))
 
     testFixturesImplementation(libs.mockito.core)
 

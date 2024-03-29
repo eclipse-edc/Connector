@@ -20,7 +20,7 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:transfer-spi"))
 
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
 
     implementation(libs.okhttp)
     implementation(libs.failsafe.core)

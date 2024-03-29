@@ -8,7 +8,7 @@ dependencies {
     implementation(project(":spi:common:keys-spi"))
     implementation(project(":spi:common:http-spi"))
     implementation(project(":spi:common:json-ld-spi"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:crypto-common-lib"))
     implementation(project(":core:common:token-core"))
     implementation(project(":extensions:common:crypto:jws2020"))

@@ -24,7 +24,7 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
 
-    implementation(project(":core:common:validator-lib"))
+    implementation(project(":core:common:lib:validator-lib"))
 
     implementation(libs.jakarta.rsApi)
 

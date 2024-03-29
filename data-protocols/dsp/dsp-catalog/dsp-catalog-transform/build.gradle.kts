@@ -23,5 +23,5 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
 
-    implementation(project(":core:common:transform-lib"))
+    implementation(project(":core:common:lib:transform-lib"))
 }

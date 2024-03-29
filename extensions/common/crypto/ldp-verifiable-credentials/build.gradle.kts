@@ -19,7 +19,7 @@ plugins {
 dependencies {
     implementation(project(":spi:common:json-ld-spi"))
     implementation(project(":spi:common:identity-trust-spi"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
     api(project(":spi:common:identity-did-spi"))
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)

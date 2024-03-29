@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":core:control-plane:contract-core"))
     implementation(project(":core:control-plane:transfer-core"))
     implementation(project(":core:control-plane:control-plane-aggregate-services"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:policy-engine-lib"))
     implementation(project(":core:common:lib:query-lib"))
 
