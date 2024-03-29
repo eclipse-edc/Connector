@@ -38,7 +38,6 @@ import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -67,11 +66,9 @@ public class CoreServicesExtension implements ServiceExtension {
     private static final String DEFAULT_HOSTNAME = "localhost";
 
     @Inject
-    private Vault vault;
-
-    @Inject
     private EventExecutorServiceContainer eventExecutorServiceContainer;
 
+    @Inject(required = false)
     private TypeManager typeManager;
 
     private RuleBindingRegistry ruleBindingRegistry;
@@ -93,7 +90,7 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Override
     public void prepare() {
-        PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
+        PolicyRegistrationTypes.TYPES.forEach(typeManager()::registerTypes);
     }
 
     @Provider

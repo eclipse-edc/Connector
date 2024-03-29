@@ -50,7 +50,7 @@ class EdcExtensionTest {
     void registerServiceMock_serviceAlreadyExists(EdcExtension extension) {
         var mockedMonitor = extension.getContext().getMonitor();
         assertThat(extension.getContext().getService(EdcHttpClient.class)).isEqualTo(testClient);
-        verify(mockedMonitor, atLeastOnce()).warning(startsWith("TestServiceExtensionContext: A service mock was registered for type org.eclipse.edc.spi.http.EdcHttpClient"));
+        verify(mockedMonitor, atLeastOnce()).warning(startsWith("TestServiceExtensionContext: A service mock was registered for type org.eclipse.edc.http.spi.EdcHttpClient"));
     }
 
     @Test

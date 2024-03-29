@@ -36,14 +36,13 @@ class CoreServicesExtensionTest {
     private final TypeManager typeManager = mock(TypeManager.class);
     private CoreServicesExtension extension;
     private ServiceExtensionContext context;
-    private PrivateKeyResolver privateKeyResolverMock;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(Executors.newSingleThreadExecutor()));
         context.registerService(TypeManager.class, typeManager);
 
-        privateKeyResolverMock = mock(PrivateKeyResolver.class);
+        var privateKeyResolverMock = mock(PrivateKeyResolver.class);
         context.registerService(PrivateKeyResolver.class, privateKeyResolverMock);
 
         context.registerService(ExecutorInstrumentation.class, mock(ExecutorInstrumentation.class));

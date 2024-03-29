@@ -14,12 +14,9 @@
 
 package org.eclipse.edc.vault.filesystem;
 
-import org.eclipse.edc.keys.spi.CertificateResolver;
-import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
@@ -33,7 +30,6 @@ import java.nio.file.Paths;
  * Bootstraps the file system-based vault extension.
  */
 @BaseExtension
-@Provides({ PrivateKeyResolver.class, CertificateResolver.class })
 @Extension(value = FsVaultExtension.NAME)
 public class FsVaultExtension implements ServiceExtension {
 
