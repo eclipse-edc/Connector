@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.transfer.spi.types.command;
+package org.eclipse.edc.connector.controlplane.transfer.spi.types.command;
 
 import org.eclipse.edc.spi.command.EntityCommand;
 

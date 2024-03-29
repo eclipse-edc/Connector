@@ -76,6 +76,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
@@ -497,7 +498,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     private <T, M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> AsyncStatusResultRetryProcess<TransferProcess, T, ?>
-            dispatch(B messageBuilder, TransferProcess process, Policy policy, Class<T> responseType) {
+    dispatch(B messageBuilder, TransferProcess process, Policy policy, Class<T> responseType) {
 
         messageBuilder.protocol(process.getProtocol())
                 .counterPartyAddress(process.getCounterPartyAddress())

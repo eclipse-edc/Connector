@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedRe
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -117,8 +118,7 @@ public interface TransferProcessService {
      * The return result status only reflects the successful submission of the command.
      *
      * @param transferProcessId id of the transferProcess
-     * @return a result that is successful if the transfer process was found and is in a state that can be
-     *         deprovisioned
+     * @return a result that is successful if the transfer process was found and is in a state that can be deprovisioned
      */
     @NotNull
     ServiceResult<Void> deprovision(String transferProcessId);
@@ -136,7 +136,7 @@ public interface TransferProcessService {
      * Asynchronously informs the system that the {@link DeprovisionedResource} has been provisioned
      *
      * @param transferProcessId The transfer process id
-     * @param resource The {@link DeprovisionedResource} to deprovision
+     * @param resource          The {@link DeprovisionedResource} to deprovision
      * @return a result that is successful if the transfer process was found
      */
     ServiceResult<Void> completeDeprovision(String transferProcessId, DeprovisionedResource resource);
@@ -145,7 +145,7 @@ public interface TransferProcessService {
      * Asynchronously handles a {@link ProvisionResponse} received from an external system
      *
      * @param transferProcessId The transfer process id
-     * @param response The {@link ProvisionResponse} to handle
+     * @param response          The {@link ProvisionResponse} to handle
      * @return a result that is successful if the transfer process was found
      */
     ServiceResult<Void> addProvisionedResource(String transferProcessId, ProvisionResponse response);

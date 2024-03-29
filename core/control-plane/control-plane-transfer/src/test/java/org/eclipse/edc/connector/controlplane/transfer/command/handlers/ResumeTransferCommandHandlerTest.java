@@ -12,17 +12,17 @@
  *
  */
 
-package org.eclipse.edc.connector.transfer.command.handlers;
+package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 
-import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.command.ResumeTransferCommand;
+import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.RESUMING;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.mockito.Mockito.mock;
 
 class ResumeTransferCommandHandlerTest {

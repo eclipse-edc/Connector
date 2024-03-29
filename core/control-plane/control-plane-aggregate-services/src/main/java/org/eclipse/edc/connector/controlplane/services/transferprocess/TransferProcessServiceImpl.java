@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.AddProv
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.DeprovisionRequest;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;

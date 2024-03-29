@@ -12,15 +12,16 @@
  *
  */
 
-package org.eclipse.edc.connector.transfer.command.handlers;
+package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 
-import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.connector.transfer.spi.types.command.ResumeTransferCommand;
+
+import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.spi.command.EntityCommandHandler;
 
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 
 /**
  * Resumes a SUSPENDED transfer process and puts it in the {@link TransferProcessStates#STARTING} state.

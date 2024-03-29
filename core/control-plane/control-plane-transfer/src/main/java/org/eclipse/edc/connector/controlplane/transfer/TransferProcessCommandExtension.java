@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transfer;
 
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.CompleteTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.DeprovisionRequestCommandHandler;
+import org.eclipse.edc.connector.controlplane.transfer.command.handlers.ResumeTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.SuspendTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.TerminateTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;

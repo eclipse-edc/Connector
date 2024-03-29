@@ -25,10 +25,10 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.UUID;
 
@@ -40,6 +40,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
+import static org.eclipse.edc.test.e2e.managementapi.Runtimes.inMemoryRuntime;
+import static org.eclipse.edc.test.e2e.managementapi.Runtimes.postgresRuntime;
 import static org.hamcrest.Matchers.is;
 
 public class CatalogApiEndToEndTest {

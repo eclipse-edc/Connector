@@ -46,7 +46,11 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.Mockito.mock;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.JsonBody.json;
+import static org.mockserver.verify.VerificationTimes.exactly;
 
 public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
 
