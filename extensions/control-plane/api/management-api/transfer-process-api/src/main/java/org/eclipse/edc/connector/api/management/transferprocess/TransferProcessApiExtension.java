@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonOb
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTransferRequestTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.validation.TerminateTransferValidator;
 import org.eclipse.edc.connector.api.management.transferprocess.validation.TransferRequestValidator;
-import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;

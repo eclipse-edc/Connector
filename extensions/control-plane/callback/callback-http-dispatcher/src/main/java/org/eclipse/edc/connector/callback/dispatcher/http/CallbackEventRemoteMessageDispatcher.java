@@ -20,7 +20,7 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.eclipse.edc.connector.controlplane.spi.callback.CallbackEventRemoteMessage;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackEventRemoteMessage;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
 

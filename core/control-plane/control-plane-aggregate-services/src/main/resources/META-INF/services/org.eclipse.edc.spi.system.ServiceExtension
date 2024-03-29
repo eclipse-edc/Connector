@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.connector.service.ControlPlaneServicesExtension
+org.eclipse.edc.connector.controlplane.services.ControlPlaneServicesExtension

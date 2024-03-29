@@ -19,7 +19,7 @@ import jakarta.json.Json;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;

@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.callback.dispatcher.http;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
-import org.eclipse.edc.connector.controlplane.spi.callback.CallbackEventRemoteMessage;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackEventRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.EdcException;

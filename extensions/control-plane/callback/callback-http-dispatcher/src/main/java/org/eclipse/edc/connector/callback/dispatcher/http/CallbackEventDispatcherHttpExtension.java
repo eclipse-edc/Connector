@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.callback.dispatcher.http;
 
-import org.eclipse.edc.connector.controlplane.spi.callback.CallbackProtocolResolverRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackProtocolResolverRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.http.spi.EdcHttpClient;

@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.junit.annotations.EndToEndTest;

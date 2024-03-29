@@ -18,7 +18,7 @@ import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.provision.http.HttpProvisionerWebhookUrl;
 import org.eclipse.edc.connector.provision.http.HttpWebhookExtension;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;

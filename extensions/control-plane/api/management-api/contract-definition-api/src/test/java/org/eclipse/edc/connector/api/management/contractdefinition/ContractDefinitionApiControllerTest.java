@@ -21,7 +21,7 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.connector.controlplane.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;

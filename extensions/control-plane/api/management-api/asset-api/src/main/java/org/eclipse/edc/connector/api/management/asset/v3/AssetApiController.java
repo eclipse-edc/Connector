@@ -26,7 +26,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.controlplane.spi.asset.AssetService;
+import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;

@@ -26,7 +26,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.catalog.spi.Catalog;
 import org.eclipse.edc.connector.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.catalog.spi.Dataset;
-import org.eclipse.edc.connector.controlplane.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;

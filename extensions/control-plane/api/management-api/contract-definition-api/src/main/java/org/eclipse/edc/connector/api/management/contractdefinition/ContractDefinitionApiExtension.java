@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfi
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectFromContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.validation.ContractDefinitionValidator;
-import org.eclipse.edc.connector.controlplane.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;

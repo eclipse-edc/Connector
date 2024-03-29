@@ -15,8 +15,8 @@
 package org.eclipse.edc.protocol.dsp.version.api.transformer;
 
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersion;
-import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersions;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 

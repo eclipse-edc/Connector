@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.callback.dispatcher;
 
-import org.eclipse.edc.connector.controlplane.spi.callback.CallbackEventRemoteMessage;
-import org.eclipse.edc.connector.controlplane.spi.callback.CallbackProtocolResolverRegistry;
-import org.eclipse.edc.connector.controlplane.spi.callback.CallbackRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackEventRemoteMessage;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackProtocolResolverRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;

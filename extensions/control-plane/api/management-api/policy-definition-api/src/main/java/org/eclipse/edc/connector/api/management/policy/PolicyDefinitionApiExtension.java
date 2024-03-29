@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfi
 import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectFromPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.policy.validation.PolicyDefinitionValidator;
-import org.eclipse.edc.connector.controlplane.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;

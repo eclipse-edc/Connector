@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.provision.http.webhook;
 
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.result.ServiceResult;

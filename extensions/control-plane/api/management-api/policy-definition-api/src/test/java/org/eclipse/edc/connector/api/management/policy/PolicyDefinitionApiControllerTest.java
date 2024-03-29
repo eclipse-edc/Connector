@@ -18,7 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
-import org.eclipse.edc.connector.controlplane.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;

@@ -17,7 +17,7 @@ package org.eclipse.edc.test.e2e.protocol;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;

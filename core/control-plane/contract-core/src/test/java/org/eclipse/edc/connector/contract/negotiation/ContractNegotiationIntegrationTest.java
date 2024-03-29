@@ -34,11 +34,11 @@ import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessa
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
-import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.services.contractnegotiation.ContractNegotiationProtocolServiceImpl;
+import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl;
-import org.eclipse.edc.connector.controlplane.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;

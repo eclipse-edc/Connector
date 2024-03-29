@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.process;
 
-import org.eclipse.edc.connector.defaults.storage.transferprocess.InMemoryTransferProcessStore;
+import org.eclipse.edc.connector.controlplane.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.TestProvisionedDataDestinationResource;
 import org.eclipse.edc.connector.transfer.TestResourceDefinition;

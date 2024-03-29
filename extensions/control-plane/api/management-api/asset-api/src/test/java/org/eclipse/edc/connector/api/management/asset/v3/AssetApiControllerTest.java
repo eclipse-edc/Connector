@@ -19,7 +19,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.controlplane.spi.asset.AssetService;
+import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;

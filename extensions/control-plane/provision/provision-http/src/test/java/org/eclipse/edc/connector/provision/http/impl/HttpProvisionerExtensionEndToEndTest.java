@@ -25,7 +25,7 @@ import org.eclipse.edc.connector.contract.spi.validation.ContractValidationServi
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.provision.http.HttpProvisionerWebhookUrl;
-import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;

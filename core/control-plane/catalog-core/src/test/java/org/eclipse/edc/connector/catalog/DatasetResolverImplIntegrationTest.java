@@ -14,15 +14,15 @@
 
 package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.connector.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.connector.defaults.storage.assetindex.InMemoryAssetIndex;
+import org.eclipse.edc.connector.controlplane.defaults.storage.assetindex.InMemoryAssetIndex;
+import org.eclipse.edc.connector.controlplane.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.connector.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.agent.ParticipantAgent;

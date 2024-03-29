@@ -23,7 +23,7 @@ import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.connector.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.catalog.spi.DatasetRequest;
-import org.eclipse.edc.connector.controlplane.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;

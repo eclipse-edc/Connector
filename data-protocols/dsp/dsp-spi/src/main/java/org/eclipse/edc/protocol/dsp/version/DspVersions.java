@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.version;
 
-import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersion;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
 
 public interface DspVersions {
 

@@ -30,7 +30,7 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Negoti
 import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.controlplane.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;

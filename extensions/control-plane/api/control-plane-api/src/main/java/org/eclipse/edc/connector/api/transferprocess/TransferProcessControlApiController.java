@@ -21,7 +21,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.api.transferprocess.model.TransferProcessFailStateDto;
-import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.validator.spi.ValidationResult;

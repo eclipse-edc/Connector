@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.version.api;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.controlplane.spi.protocol.VersionProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;

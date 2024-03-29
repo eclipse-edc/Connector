@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.catalog;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.catalog.spi.DatasetRequest;
-import org.eclipse.edc.connector.controlplane.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;

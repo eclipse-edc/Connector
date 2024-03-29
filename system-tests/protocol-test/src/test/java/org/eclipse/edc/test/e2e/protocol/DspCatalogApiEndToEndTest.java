@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.test.e2e.protocol;
 
-import org.eclipse.edc.connector.controlplane.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.util.io.Ports;

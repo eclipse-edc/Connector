@@ -25,7 +25,7 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.transform.Js
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.ContractRequestValidator;
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
-import org.eclipse.edc.connector.controlplane.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
