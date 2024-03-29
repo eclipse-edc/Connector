@@ -36,7 +36,7 @@ dependencies {
     testFixturesApi(project(":extensions:common:json-ld"))
     testFixturesImplementation(project(":extensions:common:lib:jersey-providers-lib"))
     testFixturesApi(libs.jakarta.rsApi)
-    testFixturesApi(libs.jacksonJsonP)
+    testFixturesApi(libs.jackson.datatype.jakarta.jsonp)
     testFixturesApi(libs.junit.jupiter.api)
     testFixturesApi(libs.mockito.core)
 }
