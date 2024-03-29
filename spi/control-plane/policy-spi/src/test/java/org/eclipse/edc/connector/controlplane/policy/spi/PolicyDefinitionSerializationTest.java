@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.policy.spi;
 
-import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;

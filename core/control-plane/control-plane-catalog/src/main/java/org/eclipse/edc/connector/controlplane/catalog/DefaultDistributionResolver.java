@@ -15,10 +15,10 @@
 
 package org.eclipse.edc.connector.controlplane.catalog;
 
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 
 import java.util.List;

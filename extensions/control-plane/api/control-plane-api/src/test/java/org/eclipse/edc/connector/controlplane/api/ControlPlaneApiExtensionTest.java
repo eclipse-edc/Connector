@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api;
 
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
-import org.eclipse.edc.connector.controlplane.api.ControlPlaneApiExtension;
 import org.eclipse.edc.connector.controlplane.api.transferprocess.TransferProcessControlApiController;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

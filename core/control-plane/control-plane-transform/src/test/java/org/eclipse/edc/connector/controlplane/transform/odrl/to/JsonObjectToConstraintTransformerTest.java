@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.connector.controlplane.transform.TestInput;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -26,7 +27,6 @@ import org.eclipse.edc.policy.model.MultiplicityConstraint;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.OrConstraint;
 import org.eclipse.edc.policy.model.XoneConstraint;
-import org.eclipse.edc.connector.controlplane.transform.TestInput;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -152,7 +152,7 @@ class JsonObjectToConstraintTransformerTest {
     @ParameterizedTest
     @ArgumentsSource(OperandsProvider.class)
     void logicalConstraint_shouldReturnEmptyMultiplicityConstraint_whenNoConstraints(String operand,
-                                                                             Class<MultiplicityConstraint> expectedType) {
+                                                                                     Class<MultiplicityConstraint> expectedType) {
         var logicalConstraintJson = jsonFactory.createObjectBuilder()
                 .add(operand, jsonFactory.createArrayBuilder().build())
                 .build();
@@ -160,9 +160,9 @@ class JsonObjectToConstraintTransformerTest {
         var result = transformer.transform(TestInput.getExpanded(logicalConstraintJson), context);
 
         assertThat(result).isNotNull().isInstanceOf(expectedType)
-                        .asInstanceOf(type(MultiplicityConstraint.class))
-                        .extracting(MultiplicityConstraint::getConstraints)
-                        .isNotNull().asList().isEmpty();
+                .asInstanceOf(type(MultiplicityConstraint.class))
+                .extracting(MultiplicityConstraint::getConstraints)
+                .isNotNull().asList().isEmpty();
         verify(context, never()).transform(any(JsonObject.class), eq(Constraint.class));
     }
 

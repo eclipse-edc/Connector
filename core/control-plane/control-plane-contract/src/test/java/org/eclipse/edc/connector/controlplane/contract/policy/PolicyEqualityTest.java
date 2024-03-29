@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.contract.policy;
 
-import org.eclipse.edc.connector.controlplane.contract.policy.PolicyEquality;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.TypeManager;

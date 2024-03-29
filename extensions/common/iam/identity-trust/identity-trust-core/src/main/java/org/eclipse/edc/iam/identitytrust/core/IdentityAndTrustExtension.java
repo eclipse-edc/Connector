@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.core;
 
 import jakarta.json.Json;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.identitytrust.DidCredentialServiceUrlResolver;
@@ -36,7 +37,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
-import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

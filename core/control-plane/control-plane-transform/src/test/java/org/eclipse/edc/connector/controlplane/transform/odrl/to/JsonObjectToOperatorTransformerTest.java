@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
-import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToOperatorTransformer;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;

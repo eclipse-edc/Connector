@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.edr.transform;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
-import org.eclipse.edc.connector.controlplane.api.management.edr.transform.JsonObjectFromEndpointDataReferenceEntryTransformer;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;

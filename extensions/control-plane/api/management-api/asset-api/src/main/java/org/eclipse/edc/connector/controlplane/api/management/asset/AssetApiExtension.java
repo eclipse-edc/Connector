@@ -17,9 +17,9 @@
 package org.eclipse.edc.connector.controlplane.api.management.asset;
 
 import org.eclipse.edc.api.validation.DataAddressValidator;
+import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApiController;
 import org.eclipse.edc.connector.controlplane.api.management.asset.validation.AssetValidator;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;

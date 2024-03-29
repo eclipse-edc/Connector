@@ -16,13 +16,13 @@
 package org.eclipse.edc.connector.controlplane.transfer;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
-import org.eclipse.edc.connector.controlplane.transfer.edr.DataAddressToEndpointDataReferenceTransformer;
-import org.eclipse.edc.connector.controlplane.transfer.edr.EndpointDataReferenceReceiverRegistryImpl;
-import org.eclipse.edc.connector.controlplane.transfer.process.TransferProcessManagerImpl;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.AddProvisionedResourceCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.DeprovisionCompleteCommandHandler;
+import org.eclipse.edc.connector.controlplane.transfer.edr.DataAddressToEndpointDataReferenceTransformer;
+import org.eclipse.edc.connector.controlplane.transfer.edr.EndpointDataReferenceReceiverRegistryImpl;
 import org.eclipse.edc.connector.controlplane.transfer.listener.TransferProcessEventListener;
+import org.eclipse.edc.connector.controlplane.transfer.process.TransferProcessManagerImpl;
 import org.eclipse.edc.connector.controlplane.transfer.provision.DeprovisionResponsesHandler;
 import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionResponsesHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;

@@ -25,9 +25,9 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedRe
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceDefinition;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;

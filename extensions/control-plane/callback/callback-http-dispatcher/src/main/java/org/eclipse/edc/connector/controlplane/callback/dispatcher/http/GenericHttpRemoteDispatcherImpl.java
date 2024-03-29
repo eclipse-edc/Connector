@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.callback.dispatcher.http;
 
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 

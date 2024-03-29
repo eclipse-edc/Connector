@@ -18,10 +18,9 @@ package org.eclipse.edc.connector.controlplane.services.transferprocess;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessDeprovisioned;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
@@ -35,6 +34,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;

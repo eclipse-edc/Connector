@@ -14,10 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.client.transferprocess;
 
-import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
-import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
@@ -25,6 +21,10 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
+import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;

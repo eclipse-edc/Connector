@@ -15,8 +15,6 @@
 package org.eclipse.edc.connector.controlplane.callback.dispatcher;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.connector.controlplane.callback.dispatcher.CallbackEventDispatcher;
-import org.eclipse.edc.connector.controlplane.callback.dispatcher.CallbackEventDispatcherExtension;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventRouter;

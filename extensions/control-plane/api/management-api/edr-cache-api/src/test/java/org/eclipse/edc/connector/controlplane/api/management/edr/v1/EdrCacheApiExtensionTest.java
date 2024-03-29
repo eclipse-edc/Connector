@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.edr.v1;
 
 import org.eclipse.edc.connector.controlplane.api.management.edr.EdrCacheApiExtension;
 import org.eclipse.edc.connector.controlplane.api.management.edr.transform.JsonObjectFromEndpointDataReferenceEntryTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.edr.v1.EdrCacheApiController;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;

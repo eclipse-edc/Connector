@@ -38,7 +38,6 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.controlplane.policy.spi.testfixtures.TestFunctions.createPolicy;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;

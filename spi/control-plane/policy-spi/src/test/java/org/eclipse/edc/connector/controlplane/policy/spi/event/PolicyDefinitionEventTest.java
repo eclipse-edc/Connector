@@ -15,9 +15,6 @@
 package org.eclipse.edc.connector.controlplane.policy.spi.event;
 
 import com.fasterxml.jackson.databind.jsontype.NamedType;
-import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionCreated;
-import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionDeleted;
-import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionUpdated;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.extension.ExtensionContext;

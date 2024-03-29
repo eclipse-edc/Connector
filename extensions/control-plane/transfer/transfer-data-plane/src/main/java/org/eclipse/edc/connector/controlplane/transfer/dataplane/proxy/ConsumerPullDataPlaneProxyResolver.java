@@ -15,10 +15,10 @@
 package org.eclipse.edc.connector.controlplane.transfer.dataplane.proxy;
 
 import jakarta.ws.rs.core.HttpHeaders;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;

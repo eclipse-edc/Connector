@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

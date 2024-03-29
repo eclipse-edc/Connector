@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.observe;
 
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.observe.Observable;
 
 /**

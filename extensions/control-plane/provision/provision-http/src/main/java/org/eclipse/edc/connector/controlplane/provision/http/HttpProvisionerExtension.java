@@ -23,11 +23,11 @@ import org.eclipse.edc.connector.controlplane.provision.http.impl.HttpProvisione
 import org.eclipse.edc.connector.controlplane.provision.http.impl.HttpProvisionerRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;

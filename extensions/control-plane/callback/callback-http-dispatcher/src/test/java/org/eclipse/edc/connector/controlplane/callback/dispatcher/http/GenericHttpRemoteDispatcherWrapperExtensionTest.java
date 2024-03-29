@@ -15,8 +15,6 @@
 package org.eclipse.edc.connector.controlplane.callback.dispatcher.http;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.connector.controlplane.callback.dispatcher.http.CallbackEventDispatcherHttpExtension;
-import org.eclipse.edc.connector.controlplane.callback.dispatcher.http.GenericHttpRemoteDispatcherImpl;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;

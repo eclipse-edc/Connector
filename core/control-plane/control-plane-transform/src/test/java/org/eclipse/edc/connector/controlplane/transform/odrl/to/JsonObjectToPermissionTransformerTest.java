@@ -16,11 +16,11 @@ package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.transform.TestInput;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Duty;
-import org.eclipse.edc.connector.controlplane.transform.TestInput;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;

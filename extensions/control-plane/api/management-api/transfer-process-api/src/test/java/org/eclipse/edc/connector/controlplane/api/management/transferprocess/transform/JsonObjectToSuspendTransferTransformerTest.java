@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.api.management.transferprocess.tr
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.transform.JsonObjectToSuspendTransferTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 

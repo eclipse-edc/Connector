@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.provision.http.webhook;
 
-import org.eclipse.edc.connector.controlplane.provision.http.webhook.ProvisionerWebhookRequest;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;

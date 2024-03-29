@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.contract.spi.types.offer;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.junit.jupiter.api.Test;
 

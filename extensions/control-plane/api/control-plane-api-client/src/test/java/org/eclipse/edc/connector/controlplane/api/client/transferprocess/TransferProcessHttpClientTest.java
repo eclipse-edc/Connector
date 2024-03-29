@@ -19,7 +19,6 @@ import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.eclipse.edc.connector.controlplane.api.client.transferprocess.TransferProcessHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;

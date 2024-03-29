@@ -16,9 +16,9 @@ package org.eclipse.edc.connector.controlplane.transfer.dataplane.flow;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.result.Result;

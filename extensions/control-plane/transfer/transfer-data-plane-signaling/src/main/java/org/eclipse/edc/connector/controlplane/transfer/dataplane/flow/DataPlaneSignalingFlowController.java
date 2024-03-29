@@ -15,14 +15,14 @@
 package org.eclipse.edc.connector.controlplane.transfer.dataplane.flow;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;

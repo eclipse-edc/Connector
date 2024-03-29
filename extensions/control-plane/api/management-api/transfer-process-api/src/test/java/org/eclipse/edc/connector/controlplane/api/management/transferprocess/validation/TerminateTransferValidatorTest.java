@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.api.management.transferprocess.va
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.validation.TerminateTransferValidator;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;

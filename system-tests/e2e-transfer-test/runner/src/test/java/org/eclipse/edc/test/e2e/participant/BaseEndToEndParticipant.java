@@ -17,8 +17,8 @@ package org.eclipse.edc.test.e2e.participant;
 import io.restassured.common.mapper.TypeRef;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
+import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.hamcrest.Matcher;
 import org.jetbrains.annotations.NotNull;
 

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi;
 
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.entity.StateEntityManager;
 import org.eclipse.edc.spi.response.StatusResult;

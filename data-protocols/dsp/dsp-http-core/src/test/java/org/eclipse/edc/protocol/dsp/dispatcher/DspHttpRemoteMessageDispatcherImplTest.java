@@ -18,6 +18,7 @@ import okhttp3.MediaType;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
@@ -25,7 +26,6 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatche
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.RequestContext;

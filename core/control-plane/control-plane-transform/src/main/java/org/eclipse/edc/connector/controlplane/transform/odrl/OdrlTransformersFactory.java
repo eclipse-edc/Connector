@@ -15,12 +15,12 @@
 package org.eclipse.edc.connector.controlplane.transform.odrl;
 
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToActionTransformer;
+import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToConstraintTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToDutyTransformer;
+import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToOperatorTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPermissionTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToProhibitionTransformer;
-import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToConstraintTransformer;
-import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToOperatorTransformer;
 import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.TypeTransformer;
 

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.provision.http.webhook;
 
-import org.eclipse.edc.connector.controlplane.provision.http.webhook.SimpleSecretToken;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

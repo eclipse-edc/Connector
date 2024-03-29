@@ -16,11 +16,11 @@
 package org.eclipse.edc.connector.controlplane.store.sql.assetindex;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.connector.controlplane.asset.spi.testfixtures.AssetIndexTestBase;
 import org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
-import org.eclipse.edc.connector.controlplane.asset.spi.testfixtures.AssetIndexTestBase;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;

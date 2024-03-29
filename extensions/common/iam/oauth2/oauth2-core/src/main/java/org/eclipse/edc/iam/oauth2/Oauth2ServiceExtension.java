@@ -16,6 +16,7 @@
 
 package org.eclipse.edc.iam.oauth2;
 
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolver;
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
 import org.eclipse.edc.iam.oauth2.jwt.X509CertificateDecorator;
@@ -28,7 +29,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

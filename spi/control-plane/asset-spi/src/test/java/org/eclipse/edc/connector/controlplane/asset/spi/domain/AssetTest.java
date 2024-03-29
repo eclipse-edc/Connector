@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.asset.spi.domain;
 
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;

@@ -25,6 +25,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.ConsumerOfferResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitionObservableImpl;
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.services.asset.AssetEventListener;
 import org.eclipse.edc.connector.controlplane.services.asset.AssetServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.catalog.CatalogProtocolServiceImpl;
@@ -53,8 +55,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProtocolServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessServiceImpl;
-import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitionObservableImpl;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;

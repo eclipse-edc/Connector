@@ -16,9 +16,9 @@ package org.eclipse.edc.connector.controlplane.defaults.storage.assetindex;
 
 
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.asset.spi.testfixtures.AssetIndexTestBase;
 import org.eclipse.edc.connector.controlplane.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
-import org.eclipse.edc.connector.controlplane.asset.spi.testfixtures.AssetIndexTestBase;
 import org.junit.jupiter.api.BeforeEach;
 
 class InMemoryAssetIndexTest extends AssetIndexTestBase {

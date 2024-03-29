@@ -15,13 +15,13 @@
 package org.eclipse.edc.connector.policy.monitor.manager;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
-import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
-import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;

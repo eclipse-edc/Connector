@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.catalog;
 
+import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.transform.JsonObjectToCatalogRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.transform.JsonObjectToDatasetRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.CatalogRequestValidator;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.DatasetRequestValidator;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;

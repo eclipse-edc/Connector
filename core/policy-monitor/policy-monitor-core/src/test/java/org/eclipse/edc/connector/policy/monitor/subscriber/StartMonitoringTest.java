@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.policy.monitor.subscriber;
 
-import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +61,6 @@ class StartMonitoringTest {
 
         verifyNoInteractions(manager);
     }
-
 
 
     private EventEnvelope<TransferProcessStarted> envelope(TransferProcessStarted event) {

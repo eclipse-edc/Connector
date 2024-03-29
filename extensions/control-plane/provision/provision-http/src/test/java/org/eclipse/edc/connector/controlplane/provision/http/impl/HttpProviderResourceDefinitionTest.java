@@ -16,7 +16,6 @@
 package org.eclipse.edc.connector.controlplane.provision.http.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.eclipse.edc.connector.controlplane.provision.http.impl.HttpProviderResourceDefinition;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 

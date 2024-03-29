@@ -17,13 +17,13 @@
 package org.eclipse.edc.connector.controlplane.transfer.process;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.TestProvisionedDataDestinationResource;
 import org.eclipse.edc.connector.controlplane.transfer.TestResourceDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.TokenTestProvisionResource;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.controlplane.transfer.provision.DeprovisionResponsesHandler;
 import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionResponsesHandler;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;

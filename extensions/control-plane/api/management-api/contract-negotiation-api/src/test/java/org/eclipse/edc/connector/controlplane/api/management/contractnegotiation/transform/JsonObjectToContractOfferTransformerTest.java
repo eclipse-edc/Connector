@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;

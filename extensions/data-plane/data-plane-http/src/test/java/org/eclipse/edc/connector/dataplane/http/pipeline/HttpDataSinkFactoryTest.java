@@ -24,8 +24,8 @@ import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.InputStreamDataSource;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -118,7 +118,7 @@ class HttpDataSinkFactoryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"POST", "GET", "PUT"})
+    @ValueSource(strings = { "POST", "GET", "PUT" })
     void verifyCreateMethodDestination(String method) throws IOException {
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address);

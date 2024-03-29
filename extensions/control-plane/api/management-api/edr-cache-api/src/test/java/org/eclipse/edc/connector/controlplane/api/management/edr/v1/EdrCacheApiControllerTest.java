@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.api.management.edr.v1;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.connector.controlplane.api.management.edr.v1.EdrCacheApiController;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
 import org.eclipse.edc.junit.annotations.ApiTest;

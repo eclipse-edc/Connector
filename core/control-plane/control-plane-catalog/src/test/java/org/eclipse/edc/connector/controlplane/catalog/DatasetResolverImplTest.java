@@ -16,13 +16,13 @@
 package org.eclipse.edc.connector.controlplane.catalog;
 
 import org.assertj.core.api.iterable.ThrowingExtractor;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;

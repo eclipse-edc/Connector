@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.contract.spi.types.offer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 

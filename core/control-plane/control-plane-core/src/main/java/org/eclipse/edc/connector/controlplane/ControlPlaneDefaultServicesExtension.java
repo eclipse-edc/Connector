@@ -25,10 +25,10 @@ import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinitio
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.policydefinition.InMemoryPolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.transferprocess.InMemoryTransferProcessStore;
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;

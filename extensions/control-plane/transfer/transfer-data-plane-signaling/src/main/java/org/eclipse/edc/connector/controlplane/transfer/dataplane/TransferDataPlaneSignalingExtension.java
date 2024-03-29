@@ -15,11 +15,11 @@
 package org.eclipse.edc.connector.controlplane.transfer.dataplane;
 
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.DataPlaneSignalingFlowController;
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;

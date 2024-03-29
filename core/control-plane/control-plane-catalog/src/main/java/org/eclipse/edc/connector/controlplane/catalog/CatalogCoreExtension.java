@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.catalog;
 
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
-import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;

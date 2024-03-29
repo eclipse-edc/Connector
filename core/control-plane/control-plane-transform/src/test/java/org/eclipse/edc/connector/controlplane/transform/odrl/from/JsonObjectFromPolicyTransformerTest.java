@@ -19,7 +19,6 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
