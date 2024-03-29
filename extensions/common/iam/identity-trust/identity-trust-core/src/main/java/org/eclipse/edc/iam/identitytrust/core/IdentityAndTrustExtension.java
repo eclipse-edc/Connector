@@ -141,11 +141,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
-
         var credentialServiceUrlResolver = new DidCredentialServiceUrlResolver(didResolverRegistry);
-
         var validationAction = tokenValidationAction();
-
         return new IdentityAndTrustService(secureTokenService, getOwnDid(context), getPresentationVerifier(context),
                 getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver, claimTokenFunction);
     }
@@ -186,7 +183,11 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     }
 
     private String getOwnDid(ServiceExtensionContext context) {
-        return context.getConfig().getString(CONNECTOR_DID_PROPERTY);
+        var ownDid = context.getConfig().getString(CONNECTOR_DID_PROPERTY, null);
+        if (ownDid == null) {
+            context.getMonitor().severe("Mandatory config value missing: '%s'. This runtime will not be fully operational!".formatted(CONNECTOR_DID_PROPERTY));
+        }
+        return ownDid;
     }
 
 }
