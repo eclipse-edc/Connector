@@ -15,6 +15,8 @@
 
 package org.eclipse.edc.connector.store.sql.contractnegotiation;
 
+import org.eclipse.edc.boot.system.injection.EdcInjectionException;
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.store.sql.contractnegotiation.store.SqlContractNegotiationStore;
 import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.BaseSqlDialectStatements;
@@ -22,8 +24,6 @@ import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.Cont
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.injection.EdcInjectionException;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;

@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.api.management.contractdefinition;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,5 +47,5 @@ class ContractDefinitionApiExtensionTest {
 
         verify(validatorRegistry).register(eq(CONTRACT_DEFINITION_TYPE), any());
     }
-    
+
 }

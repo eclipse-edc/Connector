@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core.base.agent;
+package org.eclipse.edc.connector.core.agent;
 
 import org.eclipse.edc.spi.agent.ParticipantAgentServiceExtension;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.core.base.agent.ParticipantAgentServiceImpl.DEFAULT_IDENTITY_CLAIM_KEY;
+import static org.eclipse.edc.connector.core.agent.ParticipantAgentServiceImpl.DEFAULT_IDENTITY_CLAIM_KEY;
 import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;

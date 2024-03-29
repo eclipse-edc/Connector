@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.system.injection;
+package org.eclipse.edc.boot.system.injection;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,5 +28,6 @@ public interface ObjectFactory {
      * @param clazz The object's class
      * @throws RuntimeException if a new instance could not be created
      */
-    @NotNull <T> T constructInstance(Class<T> clazz);
+    @NotNull
+    <T> T constructInstance(Class<T> clazz);
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core.base;
+package org.eclipse.edc.connector.core.command;
 
 import org.eclipse.edc.spi.command.CommandHandler;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
@@ -42,7 +42,7 @@ public class CommandHandlerRegistryImpl implements CommandHandlerRegistry {
     }
 
     @Override
-    public  <C extends EntityCommand> CommandResult execute(C command) {
+    public <C extends EntityCommand> CommandResult execute(C command) {
         var commandHandler = (CommandHandler<C>) registrations.get(command.getClass());
 
         if (commandHandler == null) {

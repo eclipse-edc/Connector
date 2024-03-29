@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core.base;
+package org.eclipse.edc.connector.core.command;
 
 import org.eclipse.edc.spi.command.CommandFailure;
 import org.eclipse.edc.spi.command.CommandHandler;

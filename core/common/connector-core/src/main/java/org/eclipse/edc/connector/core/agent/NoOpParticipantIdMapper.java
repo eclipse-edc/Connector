@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core.base.agent;
+package org.eclipse.edc.connector.core.agent;
 
 import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 

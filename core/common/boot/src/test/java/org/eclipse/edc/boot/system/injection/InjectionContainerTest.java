@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.system.injection;
+package org.eclipse.edc.boot.system.injection;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;

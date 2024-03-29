@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.callback.dispatcher.http;
 
-import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

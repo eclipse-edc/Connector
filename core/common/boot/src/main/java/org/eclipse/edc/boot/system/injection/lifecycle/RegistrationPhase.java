@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.boot.system.injection.lifecycle;
 
+import org.eclipse.edc.boot.system.injection.ProviderMethod;
+import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.ProviderMethod;
-import org.eclipse.edc.spi.system.injection.ProviderMethodScanner;
 
 /**
  * Represents an {@link ServiceExtension}'s lifecycle phase where all it's provider methods are invoked by the {@link ExtensionLifecycleManager}, and the provided objects are registered into the context.

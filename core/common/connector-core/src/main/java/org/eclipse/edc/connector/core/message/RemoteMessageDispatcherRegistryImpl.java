@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core.base;
+package org.eclipse.edc.connector.core.message;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;

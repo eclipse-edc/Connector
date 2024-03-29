@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.system.injection;
+package org.eclipse.edc.boot.system.injection;
 
 /**
  * Represents an auto-injectable property. Possible implementors are field injection points, constructor injection points, etc.

@@ -16,10 +16,6 @@ package org.eclipse.edc.boot.system.injection;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.InjectionContainer;
-import org.eclipse.edc.spi.system.injection.InjectionPointScanner;
-import org.eclipse.edc.spi.system.injection.Injector;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;

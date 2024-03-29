@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.core;
 
-import org.eclipse.edc.connector.core.base.CommandHandlerRegistryImpl;
-import org.eclipse.edc.connector.core.base.RemoteMessageDispatcherRegistryImpl;
-import org.eclipse.edc.connector.core.base.agent.ParticipantAgentServiceImpl;
+import org.eclipse.edc.connector.core.agent.ParticipantAgentServiceImpl;
+import org.eclipse.edc.connector.core.command.CommandHandlerRegistryImpl;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.core.event.EventRouterImpl;
+import org.eclipse.edc.connector.core.message.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.edc.connector.core.validator.DataAddressValidatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
