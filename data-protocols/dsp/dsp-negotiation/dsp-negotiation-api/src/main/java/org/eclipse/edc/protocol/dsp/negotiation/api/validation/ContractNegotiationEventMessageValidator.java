@@ -15,7 +15,7 @@
 package org.eclipse.edc.protocol.dsp.negotiation.api.validation;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.Validator;

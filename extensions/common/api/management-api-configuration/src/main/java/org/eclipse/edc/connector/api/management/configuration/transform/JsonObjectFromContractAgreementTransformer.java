@@ -16,20 +16,20 @@ package org.eclipse.edc.connector.api.management.configuration.transform;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ASSET_ID;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_CONSUMER_ID;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_PROVIDER_ID;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_SIGNING_DATE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_ASSET_ID;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_CONSUMER_ID;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_PROVIDER_ID;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_SIGNING_DATE;
-import static org.eclipse.edc.spi.types.domain.agreement.ContractAgreement.CONTRACT_AGREEMENT_TYPE;
 
 public class JsonObjectFromContractAgreementTransformer extends AbstractJsonLdTransformer<ContractAgreement, JsonObject> {
     private final JsonBuilderFactory jsonFactory;

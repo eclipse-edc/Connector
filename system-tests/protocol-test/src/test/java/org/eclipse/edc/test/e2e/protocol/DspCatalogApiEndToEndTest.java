@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.test.e2e.protocol;
 
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.util.io.Ports;
@@ -32,7 +32,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.version.DspVersions.V_2024_1;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 @EndToEndTest

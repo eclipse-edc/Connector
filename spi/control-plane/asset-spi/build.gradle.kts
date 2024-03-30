@@ -21,6 +21,8 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
 
+    testImplementation(project(":tests:junit-base"))
+
     // needed by the abstract test spec located in testFixtures
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.mockito.core)

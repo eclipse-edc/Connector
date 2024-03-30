@@ -17,12 +17,14 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:catalog-spi"))
+    api(project(":spi:control-plane:catalog-spi"))
     api(project(":spi:common:core-spi"))
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
+
     implementation(project(":extensions:common:lib:jersey-providers-lib"))
-    implementation(project(":core:common:transform-core"))
+    implementation(project(":core:common:lib:transform-lib"))
+    implementation(project(":core:control-plane:control-plane-transform"))
 
     testImplementation(project(":core:common:junit"))
 }

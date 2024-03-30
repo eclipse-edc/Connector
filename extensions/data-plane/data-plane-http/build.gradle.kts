@@ -21,7 +21,7 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     api(project(":spi:data-plane:data-plane-http-spi"))
     implementation(project(":core:common:connector-core"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:data-plane:data-plane-util"))
 
     testImplementation(project(":core:common:junit"))

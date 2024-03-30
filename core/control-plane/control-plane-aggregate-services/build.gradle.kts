@@ -19,7 +19,7 @@ plugins {
 dependencies {
     implementation(project(":spi:common:validator-spi"))
     implementation(project(":spi:control-plane:control-plane-spi"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
     implementation(project(":spi:common:transaction-spi"))
     implementation(project(":spi:control-plane:asset-spi"))
     implementation(project(":spi:control-plane:transfer-data-plane-spi"))
@@ -27,11 +27,11 @@ dependencies {
     implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:common:connector-core"))
-    testImplementation(project(":core:control-plane:catalog-core"))
-    testImplementation(project(":core:control-plane:contract-core"))
+    testImplementation(project(":core:control-plane:control-plane-catalog"))
+    testImplementation(project(":core:control-plane:control-plane-contract"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
-    testImplementation(project(":core:control-plane:transfer-core"))
+    testImplementation(project(":core:control-plane:control-plane-transfer"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
 }

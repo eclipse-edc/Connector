@@ -26,6 +26,7 @@ dependencies {
     testImplementation(project(":tests:junit-base"));
 
     // needed by the abstract test spec located in testFixtures
+    testFixturesImplementation(project(":spi:control-plane:asset-spi"));
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.mockito.core)
     testFixturesImplementation(libs.assertj)

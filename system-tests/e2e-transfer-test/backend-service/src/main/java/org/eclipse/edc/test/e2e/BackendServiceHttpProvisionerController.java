@@ -20,7 +20,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 
@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static okhttp3.MediaType.get;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 @Path("/provision")
 public class BackendServiceHttpProvisionerController {

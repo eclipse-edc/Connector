@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApiExtension
+org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApiExtension

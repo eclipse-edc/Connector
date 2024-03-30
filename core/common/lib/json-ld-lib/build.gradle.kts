@@ -23,7 +23,7 @@ dependencies {
 
     implementation(project(":spi:common:core-spi"))
     implementation(project(":spi:common:json-ld-spi"))
-    testImplementation(project(":core:common:util"))
+    testImplementation(project(":core:common:lib:util-lib"))
     testImplementation(project(":tests:junit-base"))
 
     testImplementation(libs.mockserver.netty)

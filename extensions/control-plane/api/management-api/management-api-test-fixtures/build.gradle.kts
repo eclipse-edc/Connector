@@ -22,7 +22,7 @@ dependencies {
     testFixturesApi(project(":spi:common:json-ld-spi"))
     testFixturesApi(project(":spi:control-plane:control-plane-spi"))
     testFixturesApi(project(":spi:control-plane:contract-spi"))
-    testFixturesApi(project(":core:common:util"))
+    testFixturesApi(project(":core:common:lib:util-lib"))
     testFixturesApi(project(":core:common:lib:json-ld-lib"))
 
     testFixturesApi(libs.junit.jupiter.api)

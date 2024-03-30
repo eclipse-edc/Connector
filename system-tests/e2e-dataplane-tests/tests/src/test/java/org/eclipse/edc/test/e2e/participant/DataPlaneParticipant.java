@@ -15,7 +15,7 @@
 package org.eclipse.edc.test.e2e.participant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import org.eclipse.edc.test.system.utils.Participant;
+import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;

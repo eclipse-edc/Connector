@@ -16,9 +16,6 @@ package org.eclipse.edc.boot.system.injection;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.EdcInjectionException;
-import org.eclipse.edc.spi.system.injection.InjectionContainer;
-import org.eclipse.edc.spi.system.injection.Injector;
 
 import java.util.Map;
 import java.util.function.Supplier;

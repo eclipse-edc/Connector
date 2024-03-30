@@ -19,8 +19,8 @@ import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersions;
-import org.eclipse.edc.connector.spi.protocol.VersionProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 

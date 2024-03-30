@@ -15,12 +15,12 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher;
 
 
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferProcessAck;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferSuspensionMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.dispatcher.PostDspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.serialization.JsonLdResponseBodyDeserializer;
@@ -40,7 +40,7 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferPr
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_START;
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_SUSPENSION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_TERMINATION;
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 
 /**

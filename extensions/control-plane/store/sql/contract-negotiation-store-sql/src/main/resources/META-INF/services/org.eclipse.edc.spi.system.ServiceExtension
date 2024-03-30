@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.connector.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension
+org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension

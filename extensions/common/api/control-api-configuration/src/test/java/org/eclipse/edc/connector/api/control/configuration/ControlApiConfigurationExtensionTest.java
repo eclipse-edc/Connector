@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.api.control.configuration;
 
-import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
+import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;

@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.edc.connector.provision.http.HttpWebhookExtension
-org.eclipse.edc.connector.provision.http.HttpProvisionerExtension
+org.eclipse.edc.connector.controlplane.provision.http.HttpWebhookExtension
+org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerExtension

@@ -26,7 +26,7 @@ dependencies {
     implementation(project(":core:common:lib:store-lib"))
     implementation(project(":core:common:token-core")) // for the JwtGenerationService
     implementation(project(":core:common:boot"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":extensions:common:http"))
     implementation(project(":core:common:lib:state-machine-lib"))

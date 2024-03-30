@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.connector.policy.monitor.subscriber;
 
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
-import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
 
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 
 /**
  * Event subscriber that will start monitoring a transfer process whenever it gets started and it's a PROVIDER one.

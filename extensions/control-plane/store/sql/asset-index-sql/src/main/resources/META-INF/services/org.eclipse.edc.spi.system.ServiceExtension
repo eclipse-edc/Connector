@@ -11,4 +11,4 @@
 #       Daimler TSS GmbH - Initial API and Implementation
 #
 #
-org.eclipse.edc.connector.store.sql.assetindex.SqlAssetIndexServiceExtension
+org.eclipse.edc.connector.controlplane.store.sql.assetindex.SqlAssetIndexServiceExtension

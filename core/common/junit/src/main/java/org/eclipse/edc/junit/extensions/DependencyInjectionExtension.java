@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.junit.extensions;
 
+import org.eclipse.edc.boot.system.injection.InjectionPointScanner;
 import org.eclipse.edc.boot.system.injection.InjectorImpl;
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.boot.system.injection.ReflectiveObjectFactory;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.InjectionPointScanner;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;

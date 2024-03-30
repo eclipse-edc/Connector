@@ -15,12 +15,12 @@
 package org.eclipse.edc.boot.system.testextensions;
 
 import org.eclipse.edc.boot.system.DependencyGraph;
+import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
-import org.eclipse.edc.spi.system.injection.InjectionContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

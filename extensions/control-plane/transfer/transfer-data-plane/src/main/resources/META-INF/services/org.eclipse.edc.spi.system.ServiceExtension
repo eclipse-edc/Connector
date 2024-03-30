@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneCoreExtension
-org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneDefaultServicesExtension
+org.eclipse.edc.connector.controlplane.transfer.dataplane.TransferDataPlaneCoreExtension
+org.eclipse.edc.connector.controlplane.transfer.dataplane.TransferDataPlaneDefaultServicesExtension

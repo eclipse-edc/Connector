@@ -15,11 +15,11 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -40,7 +40,7 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
-    
+
     @Inject
     private TypeTransformerRegistry typeTransformerRegistry;
 

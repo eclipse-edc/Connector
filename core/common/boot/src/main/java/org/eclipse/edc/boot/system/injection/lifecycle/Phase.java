@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.boot.system.injection.lifecycle;
 
+import org.eclipse.edc.boot.system.injection.InjectionContainer;
+import org.eclipse.edc.boot.system.injection.Injector;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.InjectionContainer;
-import org.eclipse.edc.spi.system.injection.Injector;
 
 /**
  * Represents an abstract phase in an {@link ServiceExtension}'s lifecycle. Is used by the {@link ExtensionLifecycleManager} to ensure the correct

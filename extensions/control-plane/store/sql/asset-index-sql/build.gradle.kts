@@ -20,15 +20,17 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transaction-spi"))
+    api(project(":spi:control-plane:asset-spi"))
+
     implementation(project(":spi:common:transaction-datasource-spi"))
     implementation(project(":extensions:common:sql:sql-core"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
 
     testImplementation(project(":core:common:junit"))
 
     testImplementation(project(":spi:common:policy-model"))
     testImplementation(libs.assertj)
-    testImplementation(testFixtures(project(":spi:common:core-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane:asset-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(libs.postgres)
 

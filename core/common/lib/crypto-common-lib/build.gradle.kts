@@ -18,7 +18,7 @@ plugins {
 dependencies {
     api(project(":spi:common:identity-did-spi"))
     api(project(":spi:common:identity-trust-spi"))
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
     implementation(project(":spi:common:core-spi"))
 
     implementation(libs.nimbus.jwt)

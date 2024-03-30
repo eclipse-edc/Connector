@@ -16,8 +16,8 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +53,7 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTran
             builder.add(DSPACE_PROPERTY_CONSUMER_PID, transferProcess.getId());
             addIfNotNull(transferProcess.getCorrelationId(), DSPACE_PROPERTY_PROVIDER_PID, builder);
         }
-        
+
         return builder.build();
     }
 

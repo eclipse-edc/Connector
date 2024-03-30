@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.api.model;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Represent the response of a "create" call, when a new entity is generated.

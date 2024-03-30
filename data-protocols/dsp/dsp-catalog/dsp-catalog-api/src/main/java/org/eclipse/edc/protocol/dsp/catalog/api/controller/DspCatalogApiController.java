@@ -23,10 +23,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
@@ -42,8 +42,8 @@ import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.D
 /**
  * Provides the HTTP endpoint for receiving catalog requests.
  */
-@Consumes({APPLICATION_JSON})
-@Produces({APPLICATION_JSON})
+@Consumes({ APPLICATION_JSON })
+@Produces({ APPLICATION_JSON })
 @Path(BASE_PATH)
 public class DspCatalogApiController {
 

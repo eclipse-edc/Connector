@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.dispatcher;
 
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
@@ -24,7 +25,6 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.RequestContext;
@@ -45,7 +45,7 @@ import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusNot2xxOr4xx;
+import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr4xx;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 

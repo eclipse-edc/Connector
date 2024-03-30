@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import org.eclipse.edc.spi.entity.Entity;
 
 import static java.util.Objects.requireNonNull;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Represents metadata associated with an EDR

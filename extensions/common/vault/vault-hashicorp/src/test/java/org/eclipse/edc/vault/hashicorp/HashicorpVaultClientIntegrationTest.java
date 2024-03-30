@@ -31,8 +31,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @ComponentTest

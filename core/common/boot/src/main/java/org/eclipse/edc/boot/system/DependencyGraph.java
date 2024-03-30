@@ -14,6 +14,12 @@
 
 package org.eclipse.edc.boot.system;
 
+import org.eclipse.edc.boot.system.injection.EdcInjectionException;
+import org.eclipse.edc.boot.system.injection.InjectionContainer;
+import org.eclipse.edc.boot.system.injection.InjectionPoint;
+import org.eclipse.edc.boot.system.injection.InjectionPointScanner;
+import org.eclipse.edc.boot.system.injection.ProviderMethod;
+import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
 import org.eclipse.edc.boot.util.CyclicDependencyException;
 import org.eclipse.edc.boot.util.TopologicalSort;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
@@ -23,12 +29,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.EdcInjectionException;
-import org.eclipse.edc.spi.system.injection.InjectionContainer;
-import org.eclipse.edc.spi.system.injection.InjectionPoint;
-import org.eclipse.edc.spi.system.injection.InjectionPointScanner;
-import org.eclipse.edc.spi.system.injection.ProviderMethod;
-import org.eclipse.edc.spi.system.injection.ProviderMethodScanner;
 
 import java.util.ArrayList;
 import java.util.Arrays;

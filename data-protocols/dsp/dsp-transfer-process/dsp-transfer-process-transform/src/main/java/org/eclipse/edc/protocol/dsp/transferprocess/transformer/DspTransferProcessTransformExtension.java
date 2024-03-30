@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
 
 import jakarta.json.Json;
-import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferCompletionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferProcessTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferRequestMessageTransformer;
@@ -34,10 +33,11 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
 
 import java.util.Map;
 
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
  * Provides the transformers for transferprocess message types via the {@link TypeTransformerRegistry}.

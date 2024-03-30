@@ -15,15 +15,15 @@
 package org.eclipse.edc.boot.system;
 
 import org.eclipse.edc.boot.system.injection.DefaultServiceSupplier;
+import org.eclipse.edc.boot.system.injection.EdcInjectionException;
+import org.eclipse.edc.boot.system.injection.FieldInjectionPoint;
+import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.boot.system.injection.InjectorImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.EdcInjectionException;
-import org.eclipse.edc.spi.system.injection.FieldInjectionPoint;
-import org.eclipse.edc.spi.system.injection.InjectionContainer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

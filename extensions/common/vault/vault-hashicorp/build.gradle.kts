@@ -19,7 +19,7 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:http-spi"))
 
-    implementation(project(":core:common:util"))
+    implementation(project(":core:common:lib:util-lib"))
 
     testImplementation(project(":core:common:connector-core"))
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))

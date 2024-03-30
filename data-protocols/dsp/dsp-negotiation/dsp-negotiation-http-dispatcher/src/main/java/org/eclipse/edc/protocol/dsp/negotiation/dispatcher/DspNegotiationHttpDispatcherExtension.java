@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher;
 
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
-import org.eclipse.edc.connector.contract.spi.types.protocol.ContractNegotiationAck;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.dispatcher.PostDspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.serialization.JsonLdResponseBodyDeserializer;
@@ -42,7 +42,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApi
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.VERIFICATION;
 import static org.eclipse.edc.protocol.dsp.spi.dispatcher.response.DspHttpResponseBodyExtractor.NOOP;
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = DspNegotiationHttpDispatcherExtension.NAME)
 public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {

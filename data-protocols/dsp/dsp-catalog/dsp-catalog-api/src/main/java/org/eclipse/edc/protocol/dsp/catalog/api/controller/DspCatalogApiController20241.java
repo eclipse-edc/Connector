@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.catalog.api.controller;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.version.DspVersions;
 

@@ -17,8 +17,8 @@ package org.eclipse.edc.test.e2e.participant;
 import io.restassured.common.mapper.TypeRef;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.edc.test.system.utils.Participant;
 import org.hamcrest.Matcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,8 +40,8 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.boot.BootServicesExtension.PARTICIPANT_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.defaultDatasourceConfiguration;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 

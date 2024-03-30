@@ -15,9 +15,9 @@
 package org.eclipse.edc.boot.system;
 
 import org.assertj.core.data.Index;
+import org.eclipse.edc.boot.system.injection.EdcInjectionException;
+import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.EdcInjectionException;
-import org.eclipse.edc.spi.system.injection.InjectionContainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

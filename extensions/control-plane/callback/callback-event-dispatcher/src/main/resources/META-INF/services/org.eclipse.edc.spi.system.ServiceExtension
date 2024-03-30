@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.edc.connector.callback.dispatcher.CallbackEventDispatcherExtension
+org.eclipse.edc.connector.controlplane.callback.dispatcher.CallbackEventDispatcherExtension
 

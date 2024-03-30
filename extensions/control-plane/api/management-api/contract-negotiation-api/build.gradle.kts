@@ -20,12 +20,13 @@ dependencies {
     api(project(":spi:common:transaction-spi"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:common:api:management-api-configuration"))
-    implementation(project(":core:common:validator-core"))
+    implementation(project(":core:common:lib:validator-lib"))
 
     implementation(libs.jakarta.rsApi)
 
-    testImplementation(project(":core:common:transform-core"))
-    testImplementation(project(":core:common:util"))
+    testImplementation(project(":core:common:lib:transform-lib"))
+    testImplementation(project(":core:control-plane:control-plane-transform"))
+    testImplementation(project(":core:common:lib:util-lib"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:http"))

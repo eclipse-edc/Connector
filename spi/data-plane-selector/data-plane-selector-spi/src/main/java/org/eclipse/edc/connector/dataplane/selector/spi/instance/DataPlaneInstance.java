@@ -32,7 +32,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Representations of a data plane instance. Every DPF has an ID and a URL as well as a number, how often it was selected,

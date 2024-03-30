@@ -1,0 +1,55 @@
+/*
+ *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.connector.controlplane.contract.spi.types.agreement;
+
+import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
+
+import java.util.Objects;
+
+public class ContractAgreementMessage extends ContractRemoteMessage {
+
+    private ContractAgreement contractAgreement;
+
+    public ContractAgreement getContractAgreement() {
+        return contractAgreement;
+    }
+
+    public Policy getPolicy() {
+        return contractAgreement.getPolicy();
+    }
+
+    public static class Builder extends ProcessRemoteMessage.Builder<ContractAgreementMessage, Builder> {
+
+        private Builder() {
+            super(new ContractAgreementMessage());
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder contractAgreement(ContractAgreement contractAgreement) {
+            this.message.contractAgreement = contractAgreement;
+            return this;
+        }
+
+        public ContractAgreementMessage build() {
+            Objects.requireNonNull(message.contractAgreement, "contractAgreement");
+            return super.build();
+        }
+    }
+}

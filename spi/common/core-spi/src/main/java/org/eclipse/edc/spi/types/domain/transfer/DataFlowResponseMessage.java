@@ -16,7 +16,7 @@ package org.eclipse.edc.spi.types.domain.transfer;
 
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * A response message from the data plane upon receiving a {@link DataFlowStartMessage}

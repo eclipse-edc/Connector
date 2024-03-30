@@ -22,9 +22,9 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:common:json-ld-spi"))
 
-    implementation(project(":core:common:transform-core"))
-    implementation(project(":core:common:util"))
-    implementation(project(":core:common:validator-core"))
+    implementation(project(":core:common:lib:transform-lib"))
+    implementation(project(":core:common:lib:util-lib"))
+    implementation(project(":core:common:lib:validator-lib"))
     implementation(libs.jakarta.rsApi)
     implementation(libs.swagger.annotations.jakarta)
 

@@ -15,7 +15,7 @@
 package org.eclipse.edc.vault.hashicorp;
 
 import okhttp3.Request;
-import org.eclipse.edc.spi.http.FallbackFactories;
+import org.eclipse.edc.http.spi.FallbackFactories;
 import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.mockStatic;

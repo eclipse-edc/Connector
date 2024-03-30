@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * A request to transfer data from a source to destination.

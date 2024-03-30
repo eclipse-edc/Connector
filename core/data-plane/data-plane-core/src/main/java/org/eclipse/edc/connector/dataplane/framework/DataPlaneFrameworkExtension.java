@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.framework;
 
-import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
+import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.framework.iam.DataPlaneAuthorizationServiceImpl;
 import org.eclipse.edc.connector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceRegistryImpl;

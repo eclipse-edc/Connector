@@ -11,4 +11,4 @@
 #       Daimler TSS GmbH - Initial API and Implementation
 #
 #
-org.eclipse.edc.connector.store.sql.contractdefinition.SqlContractDefinitionStoreExtension
+org.eclipse.edc.connector.controlplane.store.sql.contractdefinition.SqlContractDefinitionStoreExtension

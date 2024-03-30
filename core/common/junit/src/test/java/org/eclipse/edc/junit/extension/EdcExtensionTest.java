@@ -15,9 +15,9 @@
 package org.eclipse.edc.junit.extension;
 
 import org.eclipse.edc.boot.vault.InMemoryVault;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.MonitorExtension;
@@ -50,7 +50,7 @@ class EdcExtensionTest {
     void registerServiceMock_serviceAlreadyExists(EdcExtension extension) {
         var mockedMonitor = extension.getContext().getMonitor();
         assertThat(extension.getContext().getService(EdcHttpClient.class)).isEqualTo(testClient);
-        verify(mockedMonitor, atLeastOnce()).warning(startsWith("TestServiceExtensionContext: A service mock was registered for type org.eclipse.edc.spi.http.EdcHttpClient"));
+        verify(mockedMonitor, atLeastOnce()).warning(startsWith("TestServiceExtensionContext: A service mock was registered for type org.eclipse.edc.http.spi.EdcHttpClient"));
     }
 
     @Test

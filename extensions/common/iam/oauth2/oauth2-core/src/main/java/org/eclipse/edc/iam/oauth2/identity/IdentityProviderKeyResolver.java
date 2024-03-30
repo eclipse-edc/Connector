@@ -16,11 +16,11 @@
 package org.eclipse.edc.iam.oauth2.identity;
 
 import okhttp3.Request;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.oauth2.jwt.JwkKey;
 import org.eclipse.edc.iam.oauth2.jwt.JwkKeys;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;

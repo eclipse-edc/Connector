@@ -20,6 +20,7 @@ import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -34,6 +35,7 @@ import java.security.KeyStore;
 import static org.eclipse.edc.vault.filesystem.JskPrivateKeyResolverExtension.NAME;
 
 @Extension(NAME)
+@Provides({ PrivateKeyResolver.class, CertificateResolver.class })
 public class JskPrivateKeyResolverExtension implements ServiceExtension {
     public static final String NAME = "JKS PrivateKeyResolver Extension";
 

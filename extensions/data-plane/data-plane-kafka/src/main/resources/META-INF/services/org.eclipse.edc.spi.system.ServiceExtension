@@ -1,1 +1,1 @@
-org.eclipse.edc.dataplane.kafka.DataPlaneKafkaExtension
+org.eclipse.edc.connector.dataplane.kafka.DataPlaneKafkaExtension

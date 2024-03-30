@@ -15,17 +15,10 @@
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
 import jakarta.json.Json;
-import org.eclipse.edc.core.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
-import org.eclipse.edc.core.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromAssetTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToAssetTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
-import org.eclipse.edc.core.transform.transformer.odrl.OdrlTransformersFactory;
-import org.eclipse.edc.core.transform.transformer.odrl.from.JsonObjectFromPolicyTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToAssetTransformer;
+import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
+import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -39,6 +32,13 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
+import org.eclipse.edc.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.web.jersey.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
@@ -57,7 +57,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.type.DspConstants.DSP_SCOPE;
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
  * Provides the configuration for the Dataspace Protocol API context. Creates the API context

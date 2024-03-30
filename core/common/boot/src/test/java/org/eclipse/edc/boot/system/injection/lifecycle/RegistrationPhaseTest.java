@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.boot.system.injection.lifecycle;
 
+import org.eclipse.edc.boot.system.injection.ProviderMethod;
+import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.injection.ProviderMethod;
-import org.eclipse.edc.spi.system.injection.ProviderMethodScanner;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;

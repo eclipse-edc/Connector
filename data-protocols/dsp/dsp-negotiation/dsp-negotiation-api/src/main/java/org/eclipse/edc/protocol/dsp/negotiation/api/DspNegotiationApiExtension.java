@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.api;
 
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.connector.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.protocol.dsp.negotiation.api.controller.DspNegotiationApiController;
 import org.eclipse.edc.protocol.dsp.negotiation.api.controller.DspNegotiationApiController20241;
 import org.eclipse.edc.protocol.dsp.negotiation.api.validation.ContractAgreementMessageValidator;
