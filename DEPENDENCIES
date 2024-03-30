@@ -108,9 +108,9 @@ maven/mavencentral/commons-logging/commons-logging/1.2, Apache-2.0, approved, CQ
 maven/mavencentral/dev.failsafe/failsafe-okhttp/3.3.2, Apache-2.0, approved, #9178
 maven/mavencentral/dev.failsafe/failsafe/3.3.2, Apache-2.0, approved, #9268
 maven/mavencentral/info.picocli/picocli/4.7.5, Apache-2.0, approved, #4365
-maven/mavencentral/io.cloudevents/cloudevents-api/2.5.0, Apache-2.0, approved, clearlydefined
-maven/mavencentral/io.cloudevents/cloudevents-core/2.5.0, Apache-2.0, approved, #9328
-maven/mavencentral/io.cloudevents/cloudevents-http-basic/2.5.0, Apache-2.0, approved, #9329
+maven/mavencentral/io.cloudevents/cloudevents-api/3.0.0, , restricted, clearlydefined
+maven/mavencentral/io.cloudevents/cloudevents-core/3.0.0, , restricted, clearlydefined
+maven/mavencentral/io.cloudevents/cloudevents-http-basic/3.0.0, , restricted, clearlydefined
 maven/mavencentral/io.github.classgraph/classgraph/4.8.154, MIT, approved, CQ22530
 maven/mavencentral/io.micrometer/micrometer-commons/1.12.4, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #11679
 maven/mavencentral/io.micrometer/micrometer-core/1.12.4, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #11678
@@ -144,7 +144,7 @@ maven/mavencentral/io.rest-assured/rest-assured/5.4.0, Apache-2.0, approved, #12
 maven/mavencentral/io.rest-assured/xml-path/5.4.0, Apache-2.0, approved, #12038
 maven/mavencentral/io.setl/rdf-urdna/1.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.15, Apache-2.0, approved, #5947
-maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.20, Apache-2.0, approved, #5947
+maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.21, Apache-2.0, approved, #5947
 maven/mavencentral/io.swagger.core.v3/swagger-annotations/2.2.15, Apache-2.0, approved, #11362
 maven/mavencentral/io.swagger.core.v3/swagger-annotations/2.2.8, Apache-2.0, approved, #11362
 maven/mavencentral/io.swagger.core.v3/swagger-core-jakarta/2.2.15, Apache-2.0, approved, #5929
@@ -230,7 +230,7 @@ maven/mavencentral/org.apache.velocity/velocity-engine-scripting/2.3, Apache-2.0
 maven/mavencentral/org.apache.xbean/xbean-reflect/3.7, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.assertj/assertj-core/3.25.3, Apache-2.0, approved, #12585
-maven/mavencentral/org.awaitility/awaitility/4.2.0, Apache-2.0, approved, #14178
+maven/mavencentral/org.awaitility/awaitility/4.2.1, Apache-2.0, approved, #14178
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.72, MIT, approved, #3789
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.77, MIT, approved, #11593
 maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.72, MIT AND CC0-1.0, approved, #3538
@@ -339,7 +339,7 @@ maven/mavencentral/org.ow2.asm/asm-tree/9.6, BSD-3-Clause, approved, #10773
 maven/mavencentral/org.ow2.asm/asm/9.1, BSD-3-Clause, approved, CQ23029
 maven/mavencentral/org.ow2.asm/asm/9.5, BSD-3-Clause, approved, #7554
 maven/mavencentral/org.ow2.asm/asm/9.6, BSD-3-Clause, approved, #10776
-maven/mavencentral/org.postgresql/postgresql/42.7.2, BSD-2-Clause AND Apache-2.0, approved, #11681
+maven/mavencentral/org.postgresql/postgresql/42.7.3, BSD-2-Clause AND Apache-2.0, approved, #11681
 maven/mavencentral/org.reflections/reflections/0.10.2, Apache-2.0 AND WTFPL, approved, clearlydefined
 maven/mavencentral/org.rnorth.duct-tape/duct-tape/1.0.8, MIT, approved, clearlydefined
 maven/mavencentral/org.slf4j/slf4j-api/1.7.22, MIT, approved, CQ11943
