@@ -57,12 +57,5 @@ allprojects {
         configDirectory.set(rootProject.file("resources"))
     }
 
-    // EdcRuntimeExtension uses this to determine the runtime classpath of the module to run.
-    tasks.register("printClasspath") {
-        dependsOn(tasks.compileJava)
-        doLast {
-            println(sourceSets["main"].runtimeClasspath.asPath)
-        }
-    }
 
 }
