@@ -497,8 +497,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .execute("send transfer termination to " + process.getCounterPartyAddress());
     }
 
-    private <T, M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> AsyncStatusResultRetryProcess<TransferProcess, T, ?>
-    dispatch(B messageBuilder, TransferProcess process, Policy policy, Class<T> responseType) {
+    private <T, M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> AsyncStatusResultRetryProcess<TransferProcess, T, ?> dispatch(B messageBuilder, TransferProcess process, Policy policy, Class<T> responseType) {
 
         messageBuilder.protocol(process.getProtocol())
                 .counterPartyAddress(process.getCounterPartyAddress())
