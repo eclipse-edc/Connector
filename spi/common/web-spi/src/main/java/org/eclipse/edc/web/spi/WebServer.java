@@ -41,7 +41,7 @@ public interface WebServer {
      * @param contextName the name of the API context.
      * @param servlet     servlet implementation to add.
      */
-    public void registerServlet(String contextName, Servlet servlet);
+    void registerServlet(String contextName, Servlet servlet);
 
     /**
      * Returns the default context name
