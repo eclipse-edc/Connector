@@ -21,7 +21,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.jersey.mapper.EdcApiExceptionMapper;
 import org.eclipse.edc.web.jersey.mapper.UnexpectedExceptionMapper;
-import org.eclipse.edc.web.jetty.JettyService;
+import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -40,7 +40,7 @@ import static org.glassfish.jersey.server.ServerProperties.WADL_FEATURE_DISABLE;
 public class JerseyRestService implements WebService {
     private static final String DEFAULT_CONTEXT_ALIAS = "default";
 
-    private final JettyService jettyService;
+    private final WebServer webServer;
     private final TypeManager typeManager;
     private final Monitor monitor;
 
@@ -48,8 +48,8 @@ public class JerseyRestService implements WebService {
     private final JerseyConfiguration configuration;
     private final List<Supplier<Object>> additionalInstances = new ArrayList<>();
 
-    public JerseyRestService(JettyService jettyService, TypeManager typeManager, JerseyConfiguration configuration, Monitor monitor) {
-        this.jettyService = jettyService;
+    public JerseyRestService(WebServer webServer, TypeManager typeManager, JerseyConfiguration configuration, Monitor monitor) {
+        this.webServer = webServer;
         this.typeManager = typeManager;
         this.configuration = configuration;
         this.monitor = monitor;
@@ -101,7 +101,7 @@ public class JerseyRestService implements WebService {
         resourceConfig.register(MultiPartFeature.class);
 
         var servletContainer = new ServletContainer(resourceConfig);
-        jettyService.registerServlet(contextAlias, servletContainer);
+        webServer.registerServlet(contextAlias, servletContainer);
 
         monitor.info("Registered Web API context alias: " + contextAlias);
     }
