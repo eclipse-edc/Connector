@@ -14,7 +14,6 @@ failsafe = "3.3.2"
 h2 = "2.2.224"
 httpMockServer = "5.15.0"
 jakarta-json = "2.0.1"
-jakarta-servlet-api = "5.0.0"
 jakarta-transaction = "2.0.1"
 jackson = "2.16.2"
 jersey = "3.1.5"
@@ -55,7 +54,6 @@ jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-datatype-jakarta-jsonp = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp", version.ref = "jackson" }
 jakarta-rsApi = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "rsApi" }
-jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet-api" }
 jakarta-transaction-api = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction" }
 jakartaJson = { module = "org.glassfish:jakarta.json", version.ref = "jakarta-json" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }

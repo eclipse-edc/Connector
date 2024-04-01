@@ -18,12 +18,12 @@ plugins {
 }
 
 dependencies {
-    api(libs.jakarta.servlet.api)
     api(project(":spi:common:web-spi"))
 
     implementation(project(":extensions:common:lib:jersey-providers-lib"))
 
     implementation(libs.bundles.jersey.core)
+    implementation(libs.jetty.jakarta.servlet.api)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:connector-core"))
