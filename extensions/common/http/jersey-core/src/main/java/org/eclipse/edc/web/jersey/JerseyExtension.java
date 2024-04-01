@@ -23,7 +23,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.validation.ResourceInterceptorBinder;
 import org.eclipse.edc.web.jersey.validation.ResourceInterceptorProvider;
-import org.eclipse.edc.web.jetty.JettyService;
+import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.validation.InterceptorFunctionRegistry;
 
@@ -41,7 +41,7 @@ public class JerseyExtension implements ServiceExtension {
     public static final String CORS_CONFIG_METHODS_SETTING = "edc.web.rest.cors.methods";
 
     @Inject
-    private JettyService jettyService;
+    private WebServer webServer;
 
     @Inject
     private TypeManager typeManager;
@@ -64,7 +64,7 @@ public class JerseyExtension implements ServiceExtension {
                 .corsEnabled(context.getSetting(CORS_CONFIG_ENABLED_SETTING, false))
                 .build();
 
-        jerseyRestService = new JerseyRestService(jettyService, typeManager, configuration, monitor);
+        jerseyRestService = new JerseyRestService(webServer, typeManager, configuration, monitor);
 
         provider = new ResourceInterceptorProvider();
         jerseyRestService.registerInstance(() -> new ResourceInterceptorBinder(provider));

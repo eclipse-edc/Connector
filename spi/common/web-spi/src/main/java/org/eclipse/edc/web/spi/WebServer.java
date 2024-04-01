@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.web.spi;
 
+import jakarta.servlet.Servlet;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
@@ -34,6 +35,13 @@ public interface WebServer {
      */
     void addPortMapping(String contextName, int port, String path);
 
+    /**
+     * Adds a new servlet to the specified context name..
+     *
+     * @param contextName the name of the API context.
+     * @param servlet     servlet implementation to add.
+     */
+    void registerServlet(String contextName, Servlet servlet);
 
     /**
      * Returns the default context name

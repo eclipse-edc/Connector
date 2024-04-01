@@ -19,7 +19,6 @@ plugins {
 
 dependencies {
     api(project(":spi:common:web-spi"))
-    api(project(":extensions:common:http:jetty-core"))
 
     implementation(project(":extensions:common:lib:jersey-providers-lib"))
 
@@ -33,6 +32,7 @@ dependencies {
 
     testFixturesApi(project(":core:common:lib:json-ld-lib"))
     testFixturesApi(project(":core:common:junit"))
+    testFixturesApi(project(":extensions:common:http:jetty-core"))
     testFixturesApi(project(":extensions:common:json-ld"))
     testFixturesImplementation(project(":extensions:common:lib:jersey-providers-lib"))
     testFixturesApi(libs.jakarta.rsApi)

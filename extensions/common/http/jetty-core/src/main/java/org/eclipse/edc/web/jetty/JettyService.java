@@ -123,6 +123,7 @@ public class JettyService implements WebServer {
         }
     }
 
+    @Override
     public void registerServlet(String contextName, Servlet servlet) {
         var servletHolder = new ServletHolder(Source.EMBEDDED);
         servletHolder.setName("EDC-" + contextName);
