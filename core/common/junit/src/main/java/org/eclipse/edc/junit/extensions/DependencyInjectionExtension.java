@@ -30,6 +30,7 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import org.mockito.Mockito;
 
 import static org.eclipse.edc.util.types.Cast.cast;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 /**
@@ -48,6 +49,7 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
 
     @Override
     public void beforeEach(ExtensionContext extensionContext) {
+        monitor = mock();
         context = spy(super.createServiceExtensionContext());
         context.initialize();
         factory = new ReflectiveObjectFactory(

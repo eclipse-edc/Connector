@@ -53,7 +53,6 @@ import static java.lang.String.format;
 public class BaseRuntime {
 
     private static String[] programArgs = new String[0];
-    protected final ServiceLocator serviceLocator;
     private final ExtensionLoader extensionLoader;
     private final List<ServiceExtension> serviceExtensions = new ArrayList<>();
     protected Monitor monitor;
@@ -64,7 +63,6 @@ public class BaseRuntime {
 
     protected BaseRuntime(ServiceLocator serviceLocator) {
         extensionLoader = new ExtensionLoader(serviceLocator);
-        this.serviceLocator = serviceLocator;
     }
 
     public static void main(String[] args) {
