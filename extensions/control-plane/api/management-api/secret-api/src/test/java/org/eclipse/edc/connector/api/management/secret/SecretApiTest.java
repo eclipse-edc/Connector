@@ -18,14 +18,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.secret.validation.SecretValidator;
-import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToSecretTransformer;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
+import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

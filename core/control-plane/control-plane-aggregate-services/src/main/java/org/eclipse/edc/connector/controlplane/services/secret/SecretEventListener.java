@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.service.secret;
+package org.eclipse.edc.connector.controlplane.services.secret;
 
 import org.eclipse.edc.connector.secret.spi.event.SecretCreated;
 import org.eclipse.edc.connector.secret.spi.event.SecretDeleted;

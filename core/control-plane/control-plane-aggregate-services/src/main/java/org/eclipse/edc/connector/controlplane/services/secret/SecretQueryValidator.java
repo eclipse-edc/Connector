@@ -12,9 +12,9 @@
  *
  */
 
-package org.eclipse.edc.connector.service.secret;
+package org.eclipse.edc.connector.controlplane.services.secret;
 
-import org.eclipse.edc.connector.service.query.QueryValidator;
+import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 

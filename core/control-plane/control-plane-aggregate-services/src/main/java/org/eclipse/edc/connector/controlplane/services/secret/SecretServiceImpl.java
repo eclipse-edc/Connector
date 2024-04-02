@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.service.secret;
+package org.eclipse.edc.connector.controlplane.services.secret;
 
 import org.eclipse.edc.connector.secret.spi.observe.SecretObservable;
 import org.eclipse.edc.connector.spi.service.SecretService;
