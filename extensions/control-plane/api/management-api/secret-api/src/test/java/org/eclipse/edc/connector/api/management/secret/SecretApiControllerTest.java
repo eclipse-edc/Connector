@@ -88,7 +88,7 @@ class SecretApiControllerTest extends RestControllerTestBase {
     @Test
     void requestSecret() {
         when(service.search(any()))
-                .thenReturn(ServiceResult.success(List.of(Secret.Builder.newInstance().build())));
+                .thenReturn(ServiceResult.success(List.of(Secret.Builder.newInstance().key(TEST_SECRET_KEY).value(TEST_SECRET_VALUE).build())));
         when(transformerRegistry.transform(isA(Secret.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(createSecretJson().build()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class)))
@@ -112,7 +112,7 @@ class SecretApiControllerTest extends RestControllerTestBase {
     @Test
     void requestSecret_filtersOutFailedTransforms() {
         when(service.search(any()))
-                .thenReturn(ServiceResult.success(List.of(Secret.Builder.newInstance().build())));
+                .thenReturn(ServiceResult.success(List.of(Secret.Builder.newInstance().key(TEST_SECRET_KEY).value(TEST_SECRET_VALUE).build())));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(Secret.class), eq(JsonObject.class)))
@@ -217,7 +217,7 @@ class SecretApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getSecretById_shouldReturnNotFound_whenTransformFails() {
-        when(service.findById("id")).thenReturn(Secret.Builder.newInstance().build());
+        when(service.findById("id")).thenReturn(Secret.Builder.newInstance().key(TEST_SECRET_KEY).value(TEST_SECRET_VALUE).build());
         when(transformerRegistry.transform(isA(Secret.class), eq(JsonObject.class))).thenReturn(Result.failure("failure"));
 
         baseRequest()
