@@ -18,12 +18,10 @@ package org.eclipse.edc.junit.extensions;
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.boot.system.ServiceLocator;
 import org.eclipse.edc.boot.system.ServiceLocatorImpl;
-import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
-import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.SystemExtension;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -51,10 +49,16 @@ import static org.eclipse.edc.util.types.Cast.cast;
  */
 public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
+    private final MultiSourceServiceLocator serviceLocator;
     private DefaultServiceExtensionContext context;
 
     public EdcExtension() {
-        super(new MultiSourceServiceLocator());
+        this(new MultiSourceServiceLocator());
+    }
+
+    private EdcExtension(MultiSourceServiceLocator serviceLocator) {
+        super(serviceLocator);
+        this.serviceLocator = serviceLocator;
     }
 
     /**
@@ -71,7 +75,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
      * Registers a service extension with the runtime.
      */
     public <T extends SystemExtension> void registerSystemExtension(Class<T> type, SystemExtension extension) {
-        ((MultiSourceServiceLocator) serviceLocator).registerSystemExtension(type, extension);
+        serviceLocator.registerSystemExtension(type, extension);
     }
 
     @Override
@@ -83,7 +87,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     public void afterTestExecution(ExtensionContext context) throws Exception {
         shutdown();
         // clear the systemExtensions map to prevent it from piling up between subsequent runs
-        ((MultiSourceServiceLocator) serviceLocator).clearSystemExtensions();
+        serviceLocator.clearSystemExtensions();
     }
 
     public DefaultServiceExtensionContext getContext() {
@@ -121,16 +125,6 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     }
 
     @Override
-    protected void initializeContext(ServiceExtensionContext context) {
-        super.initializeContext(context);
-    }
-
-    @Override
-    protected void bootExtensions(ServiceExtensionContext context, List<InjectionContainer<ServiceExtension>> serviceExtensions) {
-        super.bootExtensions(context, serviceExtensions);
-    }
-
-    @Override
     protected @NotNull ServiceExtensionContext createContext(Monitor monitor) {
         context = new TestServiceExtensionContext(monitor, loadConfigurationExtensions(), serviceMocks);
         return context;
@@ -160,7 +154,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
          */
         @Override
         public <T> T loadSingletonImplementor(Class<T> type, boolean required) {
-            List<SystemExtension> extensions = systemExtensions.get(type);
+            var extensions = systemExtensions.get(type);
             if (extensions == null || extensions.isEmpty()) {
                 return delegate.loadSingletonImplementor(type, required);
             } else if (extensions.size() > 1) {
