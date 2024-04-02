@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.iam.oauth2.Oauth2ClientExtension
+org.eclipse.edc.iam.oauth2.client.Oauth2ClientExtension

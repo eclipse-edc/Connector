@@ -29,14 +29,14 @@ dependencies {
     }
 
     testImplementation(testFixtures(project(":core:common:junit")))
-    testImplementation(project(":extensions:common:crypto:jws2020"))
+    testImplementation(project(":extensions:common:crypto:lib:jws2020-lib"))
     testImplementation(project(":core:common:lib:json-ld-lib"))
 
     // deps for test fixtures
     testFixturesImplementation(project(":spi:common:json-ld-spi"))
     testFixturesImplementation(project(":core:common:lib:json-ld-lib"))
     testFixturesApi(libs.nimbus.jwt)
-    testFixturesApi(testFixtures(project(":extensions:common:crypto:jws2020")))
+    testFixturesApi(testFixtures(project(":extensions:common:crypto:lib:jws2020-lib")))
 
 
 }

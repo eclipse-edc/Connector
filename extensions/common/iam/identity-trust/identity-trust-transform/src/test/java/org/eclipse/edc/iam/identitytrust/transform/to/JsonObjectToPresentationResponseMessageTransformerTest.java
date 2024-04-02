@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.identitytrust.VcConstants.IATP_CONTEXT_URL;
+import static org.eclipse.edc.iam.identitytrust.spi.VcConstants.IATP_CONTEXT_URL;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectToPresentationResponseMessageTransformerTest {

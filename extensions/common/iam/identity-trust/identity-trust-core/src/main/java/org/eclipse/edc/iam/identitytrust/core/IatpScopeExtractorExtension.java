@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.core;
 
 import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorFunction;
-import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
+import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;

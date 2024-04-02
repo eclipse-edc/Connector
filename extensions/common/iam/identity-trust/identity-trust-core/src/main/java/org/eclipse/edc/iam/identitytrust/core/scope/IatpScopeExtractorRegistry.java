@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.identitytrust.core.scope;
 
-import org.eclipse.edc.identitytrust.scope.ScopeExtractor;
-import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
+import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractor;
+import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Result;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 public class IatpScopeExtractorRegistry implements ScopeExtractorRegistry {
-    
+
     private final List<ScopeExtractor> extractors = new ArrayList<>();
 
     @Override

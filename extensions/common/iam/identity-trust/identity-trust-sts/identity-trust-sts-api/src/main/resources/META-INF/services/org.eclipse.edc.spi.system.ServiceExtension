@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.edc.connector.api.sts.StsApiConfigurationExtension
-org.eclipse.edc.connector.api.sts.SecureTokenServiceApiExtension
+org.eclipse.edc.api.iam.identitytrust.sts.StsApiConfigurationExtension
+org.eclipse.edc.api.iam.identitytrust.sts.SecureTokenServiceApiExtension

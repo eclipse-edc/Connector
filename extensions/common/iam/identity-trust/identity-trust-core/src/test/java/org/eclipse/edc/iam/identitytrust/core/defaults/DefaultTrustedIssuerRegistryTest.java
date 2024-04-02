@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.core.defaults;
 
-import org.eclipse.edc.identitytrust.model.Issuer;
+import org.eclipse.edc.iam.identitytrust.spi.model.Issuer;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.identitytrust.core.defaults;
 
-import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
-import org.eclipse.edc.identitytrust.model.Issuer;
+import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
+import org.eclipse.edc.iam.identitytrust.spi.model.Issuer;
 
 import java.util.Collection;
 import java.util.HashMap;
