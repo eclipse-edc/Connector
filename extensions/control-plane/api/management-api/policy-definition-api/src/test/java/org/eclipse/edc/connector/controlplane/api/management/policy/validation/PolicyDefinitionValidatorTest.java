@@ -33,7 +33,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIB
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LOGICAL_CONSTRAINT_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
@@ -111,7 +110,13 @@ class PolicyDefinitionValidatorTest {
 
     @Test
     void shouldSucceed_whenPolicyWithPermissionIsValid() {
-        var policyDefinition = createValidDefinition();
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
+                .add(ODRL_PERMISSION_ATTRIBUTE, createValidPermission());
+        var policyDefinition = createObjectBuilder()
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
+                .build();
 
         var result = validator.validate(policyDefinition);
 
@@ -122,11 +127,11 @@ class PolicyDefinitionValidatorTest {
     void shouldFail_whenPermissionActionIsMissing() {
         var permission = createArrayBuilder().add(createObjectBuilder()
                 .add(ODRL_CONSTRAINT_ATTRIBUTE, createValidConstraint("GroupNumber", "isPartOf", "allowedGroups")));
-        var policy = createArrayBuilder()
-                .add(createObjectBuilder().add(ODRL_PERMISSION_ATTRIBUTE, permission))
-                .add(createObjectBuilder().add(TYPE, createValidType()));
         var policyDefinition = createObjectBuilder()
-                .add(EDC_POLICY_DEFINITION_POLICY, policy)
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(createObjectBuilder()
+                        .add(TYPE, policySet())
+                        .add(ODRL_PERMISSION_ATTRIBUTE, permission))
+                )
                 .build();
 
         var result = validator.validate(policyDefinition);
@@ -143,11 +148,11 @@ class PolicyDefinitionValidatorTest {
         var permission = createArrayBuilder().add(createObjectBuilder()
                 .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
                 .add(ODRL_CONSTRAINT_ATTRIBUTE, constraint));
-        var policy = createArrayBuilder()
-                .add(createObjectBuilder().add(TYPE, createValidType()))
-                .add(createObjectBuilder().add(ODRL_PERMISSION_ATTRIBUTE, permission));
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PERMISSION_ATTRIBUTE, permission);
         var policyDefinition = createObjectBuilder()
-                .add(EDC_POLICY_DEFINITION_POLICY, policy)
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
                 .build();
 
         var result = validator.validate(policyDefinition);
@@ -161,11 +166,11 @@ class PolicyDefinitionValidatorTest {
         var permission = createArrayBuilder().add(createObjectBuilder()
                 .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
                 .add(ODRL_CONSTRAINT_ATTRIBUTE, constraint));
-        var policy = createArrayBuilder()
-                .add(createObjectBuilder().add(ODRL_PERMISSION_ATTRIBUTE, permission))
-                .add(createObjectBuilder().add(TYPE, createValidType()));
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PERMISSION_ATTRIBUTE, permission);
         var policyDefinition = createObjectBuilder()
-                .add(EDC_POLICY_DEFINITION_POLICY, policy)
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
                 .build();
 
         var result = validator.validate(policyDefinition);
@@ -180,12 +185,15 @@ class PolicyDefinitionValidatorTest {
     void shouldSucceed_whenLogicalConstraintIsPresent() {
         var permission = createArrayBuilder().add(createObjectBuilder()
                 .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
-                .add(ODRL_CONSTRAINT_ATTRIBUTE, createValidLogicalConstraint()));
-        var policy = createArrayBuilder()
-                .add(createObjectBuilder().add(TYPE, createValidType()))
-                .add(createObjectBuilder().add(ODRL_PERMISSION_ATTRIBUTE, permission));
+                .add(ODRL_CONSTRAINT_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder()
+                        .add(ODRL_AND_CONSTRAINT_ATTRIBUTE, createArrayBuilder()
+                                .add(createValidConstraint("inForceDate", "gteq", "2024-01-01T00:00:00Z"))
+                                .add(createValidConstraint("inForceDate", "lteq", "2024-04-01T00:00:00Z"))))));
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PERMISSION_ATTRIBUTE, permission);
         var policyDefinition = createObjectBuilder()
-                .add(EDC_POLICY_DEFINITION_POLICY, policy)
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
                 .build();
 
         var result = validator.validate(policyDefinition);
@@ -193,19 +201,7 @@ class PolicyDefinitionValidatorTest {
         assertThat(result).isSucceeded();
     }
 
-    private JsonObject createValidDefinition() {
-        return createObjectBuilder()
-                .add(EDC_POLICY_DEFINITION_POLICY, createValidPolicy()).build();
-    }
-
-    private JsonArrayBuilder createValidPolicy() {
-        return createArrayBuilder().add(createObjectBuilder()
-                .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
-                .add(TYPE, createValidType())
-                .add(ODRL_PERMISSION_ATTRIBUTE, createValidPermission()));
-    }
-
-    private JsonArrayBuilder createValidType() {
+    private JsonArrayBuilder policySet() {
         return createArrayBuilder().add(ODRL_POLICY_TYPE_SET);
     }
 
@@ -227,14 +223,6 @@ class PolicyDefinitionValidatorTest {
                 .add(ODRL_LEFT_OPERAND_ATTRIBUTE, leftOperand)
                 .add(ODRL_OPERATOR_ATTRIBUTE, operatorObject)
                 .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, rightOperand));
-    }
-
-    private JsonArrayBuilder createValidLogicalConstraint() {
-        return createArrayBuilder().add(createObjectBuilder()
-                .add(TYPE, createArrayBuilder().add(ODRL_LOGICAL_CONSTRAINT_TYPE))
-                .add(ODRL_AND_CONSTRAINT_ATTRIBUTE, createArrayBuilder()
-                        .add(createValidConstraint("inForceDate", "gteq", "2024-01-01T00:00:00Z"))
-                        .add(createValidConstraint("inForceDate", "lteq", "2024-04-01T00:00:00Z"))));
     }
 
 }
