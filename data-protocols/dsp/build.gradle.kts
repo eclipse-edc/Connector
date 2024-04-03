@@ -18,11 +18,11 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-api-configuration"))
+    api(project(":data-protocols:dsp:dsp-http-api-configuration"))
     api(project(":data-protocols:dsp:dsp-catalog"))
     api(project(":data-protocols:dsp:dsp-http-core"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":data-protocols:dsp:dsp-negotiation"))
     api(project(":data-protocols:dsp:dsp-transfer-process"))
-    api(project(":data-protocols:dsp:dsp-version:dsp-version-api"))
+    api(project(":data-protocols:dsp:dsp-version:dsp-version-http-api"))
 }

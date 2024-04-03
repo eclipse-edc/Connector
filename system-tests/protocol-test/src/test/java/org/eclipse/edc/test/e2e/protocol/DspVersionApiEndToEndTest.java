@@ -34,9 +34,9 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.protocol.dsp.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
-import static org.eclipse.edc.protocol.dsp.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
-import static org.eclipse.edc.protocol.dsp.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_VERSION;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_VERSION;
 
 @EndToEndTest
 public class DspVersionApiEndToEndTest {
@@ -51,8 +51,8 @@ public class DspVersionApiEndToEndTest {
                     "web.http.protocol.path", "/protocol",
                     "web.http.protocol.port", String.valueOf(PROTOCOL_PORT)
             ),
-            ":data-protocols:dsp:dsp-version:dsp-version-api",
-            ":data-protocols:dsp:dsp-api-configuration",
+            ":data-protocols:dsp:dsp-version:dsp-version-http-api",
+            ":data-protocols:dsp:dsp-http-api-configuration",
             ":data-protocols:dsp:dsp-http-core",
             ":extensions:common:iam:iam-mock",
             ":core:control-plane:control-plane-aggregate-services",
@@ -63,7 +63,7 @@ public class DspVersionApiEndToEndTest {
     @Test
     void shouldReturnValidJsonLd() {
         runtime.getContext().getService(ProtocolVersionRegistry.class)
-                        .register(new ProtocolVersion("1.0", "/v1/path"));
+                .register(new ProtocolVersion("1.0", "/v1/path"));
 
         var compacted = given()
                 .port(PROTOCOL_PORT)
