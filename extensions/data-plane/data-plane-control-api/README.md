@@ -50,9 +50,7 @@ _Provide some information about dependencies, e.g., used extensions._
 
 ### Configurations
 
-| Parameter name                                      | Description                                                                                       | Mandatory | Default value                          |
-|:----------------------------------------------------|:--------------------------------------------------------------------------------------------------|:----------|:---------------------------------------|
-| `edc.dataplane.token.validation.endpoint`  | Endpoint of the token validation server that will be hit when targeting the Data Plane public API | true      |                                        |
+See [here](https://eclipse-edc.github.io/Connector/autodoc/#data-plane-control-api) the latest documentation for the available configuration parameters.
 
 ## Design Principles
 
