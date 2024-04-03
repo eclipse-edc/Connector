@@ -18,6 +18,7 @@ dependencies {
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:lib:crypto-common-lib"))
 
+    testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
     testImplementation(testFixtures(project(":extensions:common:crypto:ldp-verifiable-credentials")))
     testImplementation(testFixtures(project(":extensions:common:crypto:jwt-verifiable-credentials")))
 

@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.transform.from;
 
 import jakarta.json.Json;
-import org.eclipse.edc.iam.identitytrust.spi.model.credentialservice.PresentationResponseMessage;
+import org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.spi.model.credentialservice.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.credentialservice.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY;
+import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY;
+import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.mockito.Mockito.mock;

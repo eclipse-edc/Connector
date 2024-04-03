@@ -15,12 +15,12 @@
 package org.eclipse.edc.iam.identitytrust.service.validation.rules;
 
 
-import org.eclipse.edc.iam.identitytrust.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.eclipse.edc.iam.identitytrust.spi.TestFunctions.createCredentialBuilder;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createCredentialBuilder;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
 class HasValidSubjectIdsTest {

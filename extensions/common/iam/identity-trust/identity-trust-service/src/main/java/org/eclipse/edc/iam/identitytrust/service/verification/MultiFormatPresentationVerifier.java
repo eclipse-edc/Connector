@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.iam.identitytrust.service.verification;
 
-import org.eclipse.edc.iam.identitytrust.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.iam.identitytrust.spi.verification.CredentialVerifier;
 import org.eclipse.edc.iam.identitytrust.spi.verification.PresentationVerifier;
 import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;

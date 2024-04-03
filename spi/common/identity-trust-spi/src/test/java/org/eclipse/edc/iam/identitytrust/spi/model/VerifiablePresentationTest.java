@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.spi.model;
 
 
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -22,13 +23,13 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.iam.identitytrust.spi.TestFunctions.createCredential;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createCredential;
 
 class VerifiablePresentationTest {
 
     @Test
     void buildMinimalVp() {
-        assertThatNoException().isThrownBy(() -> VerifiablePresentation.Builder.newInstance()
+        assertThatNoException().isThrownBy(() -> org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation.Builder.newInstance()
                 .credential(createCredential())
                 .type("test-type")
                 .build());
@@ -37,7 +38,7 @@ class VerifiablePresentationTest {
 
     @Test
     void build_noType() {
-        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance()
+        assertThatThrownBy(() -> org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation.Builder.newInstance()
                 .types(new ArrayList<>())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)

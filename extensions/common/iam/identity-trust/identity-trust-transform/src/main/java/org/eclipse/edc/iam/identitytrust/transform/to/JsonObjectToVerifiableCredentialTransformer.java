@@ -16,10 +16,10 @@ package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.iam.identitytrust.spi.model.CredentialStatus;
-import org.eclipse.edc.iam.identitytrust.spi.model.CredentialSubject;
-import org.eclipse.edc.iam.identitytrust.spi.model.Issuer;
-import org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -29,17 +29,17 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.util.Map;
 
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.Builder;
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_EXPIRATIONDATE_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_ISSUANCEDATE_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_ISSUER_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_NAME_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_PROOF_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_STATUS_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_VALIDFROM_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_VALIDUNTIL_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.Builder;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_EXPIRATIONDATE_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_ISSUANCEDATE_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_ISSUER_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_NAME_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_PROOF_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_STATUS_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_VALIDFROM_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_VALIDUNTIL_PROPERTY;
 
 /**
  * Transforms a JSON-LD structure into a {@link VerifiableCredential}.

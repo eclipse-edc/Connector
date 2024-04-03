@@ -15,10 +15,10 @@
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.iam.identitytrust.spi.model.CredentialStatus;
-import org.eclipse.edc.iam.identitytrust.spi.model.CredentialSubject;
-import org.eclipse.edc.iam.identitytrust.spi.model.Issuer;
-import org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;

@@ -16,7 +16,7 @@ package org.eclipse.edc.iam.identitytrust.issuer.configuration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
-import org.eclipse.edc.iam.identitytrust.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;

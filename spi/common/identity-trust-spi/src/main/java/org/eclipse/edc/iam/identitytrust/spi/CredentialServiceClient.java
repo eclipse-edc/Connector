@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.spi;
 
-import org.eclipse.edc.iam.identitytrust.spi.model.VerifiablePresentationContainer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;

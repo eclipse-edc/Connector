@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.spi;
 
-import org.eclipse.edc.iam.identitytrust.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 
 import java.util.Collection;
 

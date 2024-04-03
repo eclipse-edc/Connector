@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.spi.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -27,11 +28,11 @@ class CredentialSubjectTest {
 
     @Test
     void build_noClaims() {
-        assertThatThrownBy(() -> CredentialSubject.Builder.newInstance()
+        assertThatThrownBy(() -> org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject.Builder.newInstance()
                 .build())
                 .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> CredentialSubject.Builder.newInstance()
+        assertThatThrownBy(() -> org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject.Builder.newInstance()
                 .claims(null)
                 .build())
                 .isInstanceOf(IllegalArgumentException.class);
@@ -40,7 +41,7 @@ class CredentialSubjectTest {
     @Test
     void serDes() throws JsonProcessingException {
         var mapper = new ObjectMapper();
-        var cred = CredentialSubject.Builder.newInstance()
+        var cred = org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject.Builder.newInstance()
                 .claim("key", "val")
                 .claim("complex", Map.of("sub", "subval"))
                 .build();

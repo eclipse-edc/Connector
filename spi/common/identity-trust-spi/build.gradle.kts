@@ -20,6 +20,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:verifiable-credentials-spi"))
     api(project(":spi:common:policy-engine-spi"))
     api(libs.iron.vc) {
         //this is not on MavenCentral, and we don't really need it anyway
@@ -27,6 +28,7 @@ dependencies {
     }
 
     testFixturesImplementation(libs.nimbus.jwt)
+    testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
 }
 
 

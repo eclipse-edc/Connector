@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.identitytrust.service.validation.rules;
 
-import org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential;
-import org.eclipse.edc.iam.identitytrust.spi.validation.CredentialValidationRule;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
 
 import java.time.Clock;
