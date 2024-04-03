@@ -97,4 +97,13 @@ class JsonObjectFromTransferProcessTransformerTest {
         assertThat(result.getString(TRANSFER_PROCESS_ERROR_DETAIL)).isEqualTo("an error");
     }
 
+    @Test
+    void shouldNotThrownException_whenBareboneTransferProcess() {
+        var input = TransferProcess.Builder.newInstance()
+                .build();
+
+        var result = transformer.transform(input, context);
+
+        assertThat(result).isNotNull();
+    }
 }

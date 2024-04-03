@@ -25,8 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
+import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_ASSET_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CONTRACT_ID;
@@ -54,24 +53,23 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTran
     public @Nullable JsonObject transform(@NotNull TransferProcess input, @NotNull TransformerContext context) {
         var callbackAddresses = input.getCallbackAddresses().stream()
                 .map(it -> context.transform(it, JsonObject.class))
-                .collect(collectingAndThen(toList(), l -> builderFactory.createArrayBuilder(l).build()));
-
-        var dataDestination = context.transform(input.getDataDestination(), JsonObject.class);
+                .collect(toJsonArray());
 
         var builder = builderFactory.createObjectBuilder()
                 .add(ID, input.getId())
                 .add(TYPE, TRANSFER_PROCESS_TYPE)
-                .add(TRANSFER_PROCESS_CORRELATION_ID, input.getCorrelationId())
                 .add(TRANSFER_PROCESS_STATE, TransferProcessStates.from(input.getState()).name())
                 .add(TRANSFER_PROCESS_STATE_TIMESTAMP, input.getStateTimestamp())
                 .add(TRANSFER_PROCESS_TYPE_TYPE, input.getType().name())
-                .add(TRANSFER_PROCESS_ASSET_ID, input.getAssetId())
-                .add(TRANSFER_PROCESS_CONTRACT_ID, input.getContractId())
-                .add(TRANSFER_PROCESS_CALLBACK_ADDRESSES, callbackAddresses)
-                .add(TRANSFER_PROCESS_DATA_DESTINATION, dataDestination);
+                .add(TRANSFER_PROCESS_CALLBACK_ADDRESSES, callbackAddresses);
 
-        Optional.ofNullable(input.getTransferType()).ifPresent(it -> builder.add(TRANSFER_PROCESS_TRANSFER_TYPE, it));
-        Optional.ofNullable(input.getErrorDetail()).ifPresent(it -> builder.add(TRANSFER_PROCESS_ERROR_DETAIL, it));
+        addIfNotNull(input.getCorrelationId(), TRANSFER_PROCESS_CORRELATION_ID, builder);
+        addIfNotNull(input.getAssetId(), TRANSFER_PROCESS_ASSET_ID, builder);
+        addIfNotNull(input.getContractId(), TRANSFER_PROCESS_CONTRACT_ID, builder);
+        addIfNotNull(input.getTransferType(), TRANSFER_PROCESS_TRANSFER_TYPE, builder);
+        addIfNotNull(input.getErrorDetail(), TRANSFER_PROCESS_ERROR_DETAIL, builder);
+        Optional.ofNullable(input.getDataDestination()).map(it -> context.transform(it, JsonObject.class))
+                .ifPresent(it -> builder.add(TRANSFER_PROCESS_DATA_DESTINATION, it));
 
         return builder.build();
     }
