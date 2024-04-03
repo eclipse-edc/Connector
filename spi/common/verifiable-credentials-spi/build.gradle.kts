@@ -19,11 +19,13 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:boot-spi"))
     api(libs.iron.vc) {
         //this is not on MavenCentral, and we don't really need it anyway
         exclude("com.github.multiformats")
     }
 
+    testImplementation(project(":spi:common:core-spi"))
     testFixturesImplementation(libs.nimbus.jwt)
 }
 
