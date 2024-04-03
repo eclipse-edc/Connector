@@ -21,18 +21,16 @@ import org.eclipse.edc.spi.result.Result;
 import static org.eclipse.edc.spi.result.Result.success;
 
 /**
- * This class represents a rule that checks if a given VerifiableCredential is revoked based on a StatusList2021 credential.
+ * This class represents a rule that checks if a given VerifiableCredential is revoked based on a BitStringStatusList credential.
  */
 public class IsRevoked implements CredentialValidationRule {
-    private final VerifiableCredential statusList2021;
-
-    public IsRevoked(VerifiableCredential statusList2021) {
-        this.statusList2021 = statusList2021;
-    }
-
 
     @Override
     public Result<Void> apply(VerifiableCredential credential) {
-        return success();
+        if (credential.getCredentialStatus().isEmpty()) {
+            return success();
+        }
+
+        return Result.success(); //todo: implement
     }
 }
