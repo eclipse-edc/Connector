@@ -30,9 +30,12 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFac
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +49,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ContractNegotiationApiTest {
 
@@ -62,7 +67,9 @@ class ContractNegotiationApiTest {
         transformer.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformer.register(new JsonObjectToCallbackAddressTransformer());
         transformer.register(new JsonObjectToTerminateNegotiationCommandTransformer());
-        OdrlTransformersFactory.jsonObjectToOdrlTransformers(mock()).forEach(transformer::register);
+        ParticipantIdMapper participantIdMapper = mock();
+        when(participantIdMapper.fromIri(any())).thenAnswer(a -> a.getArgument(0));
+        OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper).forEach(transformer::register);
     }
 
     @Test
@@ -78,6 +85,21 @@ class ContractNegotiationApiTest {
                 .extracting(e -> transformer.transform(e, ContractRequest.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
                         .satisfies(transformed -> assertThat(transformed.getProtocol()).isNotBlank()));
+    }
+
+    @Test
+    void offerExample() throws JsonProcessingException {
+        var validator = ContractRequestValidator.offerValidator(JsonObjectValidator.newValidator()).build();
+
+        var jsonObject = objectMapper.readValue(ContractNegotiationApi.OfferSchema.OFFER_EXAMPLE, JsonObject.class);
+        assertThat(jsonObject).isNotNull();
+
+        var expanded = jsonLd.expand(jsonObject);
+        assertThat(expanded).isSucceeded()
+                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
+                .extracting(e -> transformer.transform(e, Policy.class))
+                .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
+                        .satisfies(transformed -> assertThat(transformed.getAssigner()).isNotBlank()));
     }
 
     @Test
