@@ -19,7 +19,6 @@ import jakarta.json.Json;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.protocol.dsp.http.serialization.JsonLdResponseBodyDeserializer;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;

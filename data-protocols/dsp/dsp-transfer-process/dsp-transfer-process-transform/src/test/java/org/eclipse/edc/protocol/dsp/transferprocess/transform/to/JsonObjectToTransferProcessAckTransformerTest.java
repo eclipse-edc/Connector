@@ -57,9 +57,9 @@ class JsonObjectToTransferProcessAckTransformerTest {
         verifyNoInteractions(context);
     }
 
+    // this is to support old connectors that did not handle consumerPid and providerPid
     @Deprecated(since = "0.5.0")
     @Test
-        // this is to support old connectors that did not handle consumerPid and providerPid
     void shouldUseProcessIdAsConsumerPidAndProviderPid_whenTheyAreNotPresent() {
         var message = jsonFactory.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_TRANSFER_PROCESS)
