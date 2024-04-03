@@ -13,13 +13,14 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.health;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.LivenessProvider;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
 import org.eclipse.edc.spi.system.health.StartupStatusProvider;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
 
 /**
  * Implements the healthcheck of the Hashicorp Vault.

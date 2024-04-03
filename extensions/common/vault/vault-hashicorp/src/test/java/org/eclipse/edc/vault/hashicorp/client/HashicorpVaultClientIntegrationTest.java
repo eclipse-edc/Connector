@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;

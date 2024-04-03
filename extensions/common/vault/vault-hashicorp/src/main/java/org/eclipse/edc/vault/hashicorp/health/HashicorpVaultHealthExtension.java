@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.health;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -21,6 +21,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
 
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_HEALTH_CHECK_ENABLED;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_HEALTH_CHECK_ENABLED_DEFAULT;
@@ -51,7 +52,7 @@ public class HashicorpVaultHealthExtension implements ServiceExtension {
             healthCheckService.addLivenessProvider(healthCheck);
             healthCheckService.addReadinessProvider(healthCheck);
             healthCheckService.addStartupStatusProvider(healthCheck);
-            monitor.info("Vault health check initialization complete");
+            monitor.debug("Vault health check initialization complete");
         } else {
             monitor.info("Vault health check disabled");
         }

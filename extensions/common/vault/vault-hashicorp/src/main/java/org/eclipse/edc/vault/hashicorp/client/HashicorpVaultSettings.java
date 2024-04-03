@@ -12,14 +12,14 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.client;
 
 import okhttp3.HttpUrl;
 
 import static java.util.Objects.requireNonNull;
 
 /**
- * Value container for {@link HashicorpVaultExtension} settings.
+ * Settings for the {@link HashicorpVaultClient}.
  */
 public class HashicorpVaultSettings {
 
@@ -33,7 +33,8 @@ public class HashicorpVaultSettings {
     private long renewBuffer;
     private String secretPath;
 
-    private HashicorpVaultSettings() {}
+    private HashicorpVaultSettings() {
+    }
 
     public HttpUrl url() {
         return url;

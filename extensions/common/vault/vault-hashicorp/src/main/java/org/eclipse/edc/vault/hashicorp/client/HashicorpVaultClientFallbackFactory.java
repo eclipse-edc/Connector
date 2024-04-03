@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.client;
 
 import dev.failsafe.Fallback;
 import okhttp3.Request;
@@ -28,7 +28,7 @@ import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusIsNotIn;
  */
 public class HashicorpVaultClientFallbackFactory implements FallbackFactory {
 
-    private static final int[] NON_RETRYABLE_STATUS_CODES = {200, 204, 400, 403, 404, 405};
+    private static final int[] NON_RETRYABLE_STATUS_CODES = { 200, 204, 400, 403, 404, 405 };
 
     @Override
     public Fallback<Response> create(Request request) {

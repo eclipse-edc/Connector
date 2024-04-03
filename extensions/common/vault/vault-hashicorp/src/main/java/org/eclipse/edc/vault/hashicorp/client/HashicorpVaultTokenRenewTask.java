@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.client;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -34,11 +34,12 @@ public class HashicorpVaultTokenRenewTask {
     private static final String INITIAL_TOKEN_RENEW_ERR_MSG_FORMAT = "Initial token renewal failed with reason: %s";
     private static final String SCHEDULED_TOKEN_RENEWAL_ERR_MSG_FORMAT = "Scheduled token renewal failed: %s";
 
-    @NotNull
+    private final String name;
+
     private final ExecutorInstrumentation executorInstrumentation;
-    @NotNull
+
     private final HashicorpVaultClient client;
-    @NotNull
+
     private final Monitor monitor;
     private final long renewBuffer;
     private ScheduledExecutorService scheduledExecutorService;
@@ -51,14 +52,16 @@ public class HashicorpVaultTokenRenewTask {
      * before the token expires and failed renewals can be retried in time.
      *
      * @param executorInstrumentation executor instrumentation used to initialize a {@link ScheduledExecutorService}
-     * @param client the HashicorpVaultClient
-     * @param renewBuffer the renewal buffer time in seconds
-     * @param monitor the monitor
+     * @param client                  the HashicorpVaultClient
+     * @param renewBuffer             the renewal buffer time in seconds
+     * @param monitor                 the monitor
      */
-    public HashicorpVaultTokenRenewTask(@NotNull ExecutorInstrumentation executorInstrumentation,
+    public HashicorpVaultTokenRenewTask(@NotNull String name,
+                                        @NotNull ExecutorInstrumentation executorInstrumentation,
                                         @NotNull HashicorpVaultClient client,
                                         long renewBuffer,
                                         @NotNull Monitor monitor) {
+        this.name = name;
         this.executorInstrumentation = executorInstrumentation;
         this.client = client;
         this.renewBuffer = renewBuffer;
@@ -71,7 +74,7 @@ public class HashicorpVaultTokenRenewTask {
      */
     public void start() {
         if (!isRunning()) {
-            scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), HashicorpVaultExtension.NAME);
+            scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), name);
             scheduledExecutorService.execute(this::initialize);
             isRunning.set(true);
         }
