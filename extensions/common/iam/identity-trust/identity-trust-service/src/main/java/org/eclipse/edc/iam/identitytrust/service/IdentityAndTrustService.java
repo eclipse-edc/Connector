@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.identitytrust.service;
 import org.eclipse.edc.iam.identitytrust.service.validation.rules.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.service.validation.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsNotExpired;
+import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsNotRevoked;
 import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
@@ -78,6 +79,7 @@ public class IdentityAndTrustService implements IdentityService {
     private final Clock clock;
     private final CredentialServiceUrlResolver credentialServiceUrlResolver;
     private final ClaimTokenCreatorFunction claimTokenCreatorFunction;
+    private final boolean strictRevocation = false;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -177,14 +179,25 @@ public class IdentityAndTrustService implements IdentityService {
 
     @NotNull
     private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, String issuer) {
+
+        var revocationRule = new IsNotRevoked(credential -> null);
+        if (strictRevocation && credentials.stream().anyMatch(credential -> revocationRule.apply(credential).failed())) {
+            return Result.failure("Encountered at least one revoked credential. Strict credential revocation check is activated.");
+        }
+
         // in addition, verify that all VCs are valid
         var filters = new ArrayList<>(List.of(
                 new IsNotExpired(clock),
                 new HasValidSubjectIds(issuer),
+                revocationRule, // either strict checking is disabled, or no violating credentials
                 new HasValidIssuer(getTrustedIssuerIds())));
 
+
         filters.addAll(getAdditionalValidations());
-        var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c)).reduce(Result::merge);
+        var results = credentials
+                .stream()
+                .map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c))
+                .reduce(Result::merge);
         return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
     }
 
