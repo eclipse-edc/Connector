@@ -74,7 +74,7 @@ public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdT
             case VERIFIABLE_CREDENTIAL_STATUS_PROPERTY ->
                     vcBuilder.credentialStatus(transformArray(jsonValue, CredentialStatus.class, context));
             case VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY ->
-                    vcBuilder.credentialSubject(transformArray(jsonValue, CredentialSubject.class, context));
+                    vcBuilder.credentialSubjects(transformArray(jsonValue, CredentialSubject.class, context));
             case VERIFIABLE_CREDENTIAL_NAME_PROPERTY -> vcBuilder.name(transformString(jsonValue, context));
             case VERIFIABLE_CREDENTIAL_PROOF_PROPERTY -> {
                 //noop

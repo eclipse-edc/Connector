@@ -31,6 +31,10 @@ public class IsRevoked implements CredentialValidationRule {
             return success();
         }
 
+        var credentialStatus = credential.getCredentialStatus();
+        credentialStatus.forEach(status -> {
+            
+        });
         return Result.success(); //todo: implement
     }
 }

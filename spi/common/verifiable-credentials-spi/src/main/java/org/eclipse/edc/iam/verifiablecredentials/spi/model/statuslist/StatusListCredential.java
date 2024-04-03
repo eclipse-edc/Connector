@@ -12,9 +12,9 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.spi.model.statuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist;
 
-import org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -48,7 +48,7 @@ public class StatusListCredential extends VerifiableCredential {
         return StatusListCredential.Builder.newInstance()
                 .credentialStatus(rawCredential.getCredentialStatus())
                 .id(rawCredential.getId())
-                .credentialSubject(rawCredential.getCredentialSubject())
+                .credentialSubjects(rawCredential.getCredentialSubject())
                 .name(rawCredential.getName())
                 .types(rawCredential.getType())
                 .description(rawCredential.getDescription())
