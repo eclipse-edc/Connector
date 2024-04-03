@@ -39,6 +39,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 
 @OpenAPIDefinition
 @Tag(name = "Contract Negotiation")
@@ -50,7 +51,7 @@ public interface ContractNegotiationApi {
                     @ApiResponse(responseCode = "200", description = "The contract negotiations that match the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))}
     )
     JsonArray queryNegotiations(JsonObject querySpecJson);
 
@@ -138,7 +139,8 @@ public interface ContractNegotiationApi {
             @Deprecated(since = "0.3.2")
             @Schema(deprecated = true, description = "please use policy instead of offer")
             ContractOfferDescriptionSchema offer,
-            ManagementApiSchema.PolicySchema policy,
+            @Schema(requiredMode = REQUIRED)
+            OfferSchema policy,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
 
         // policy example took from https://w3c.github.io/odrl/bp/
@@ -151,7 +153,7 @@ public interface ContractNegotiationApi {
                     "policy": {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
                         "@type": "odrl:Offer",
-                        "@id": "policy-id",
+                        "@id": "offer-id",
                         "assigner": "providerId",
                         "permission": [],
                         "prohibition": [],
@@ -165,6 +167,31 @@ public interface ContractNegotiationApi {
                         "authKey": "auth-key",
                         "authCodeId": "auth-code-id"
                     }]
+                }
+                """;
+    }
+
+    @Schema(name = "Offer", description = "ODRL offer", example = OfferSchema.OFFER_EXAMPLE)
+    record OfferSchema(
+            @Schema(name = TYPE, example = ODRL_POLICY_TYPE_OFFER)
+            String type,
+            @Schema(name = ID, requiredMode = REQUIRED)
+            String id,
+            @Schema(requiredMode = REQUIRED)
+            String assigner,
+            @Schema(requiredMode = REQUIRED)
+            String target
+    ) {
+        public static final String OFFER_EXAMPLE = """
+                {
+                    "@context": "http://www.w3.org/ns/odrl.jsonld",
+                    "@type": "odrl:Offer",
+                    "@id": "offer-id",
+                    "assigner": "providerId",
+                    "target": "assetId",
+                    "permission": [],
+                    "prohibition": [],
+                    "obligation": []
                 }
                 """;
     }

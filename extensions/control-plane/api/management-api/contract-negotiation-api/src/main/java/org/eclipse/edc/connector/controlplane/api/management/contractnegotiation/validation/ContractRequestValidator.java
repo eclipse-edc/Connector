@@ -52,6 +52,16 @@ public class ContractRequestValidator {
                 .build();
     }
 
+    public static JsonObjectValidator.Builder offerValidator(JsonObjectValidator.Builder builder) {
+        return builder
+                .verifyId(MandatoryIdNotBlank::new)
+                .verify(path -> new TypeIs(path, ODRL_POLICY_TYPE_OFFER))
+                .verify(ODRL_ASSIGNER_ATTRIBUTE, MandatoryObject::new)
+                .verifyObject(ODRL_ASSIGNER_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new))
+                .verify(ODRL_TARGET_ATTRIBUTE, MandatoryObject::new)
+                .verifyObject(ODRL_TARGET_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new));
+    }
+
     private record MandatoryOfferOrPolicy(JsonLdPath path, Monitor monitor) implements Validator<JsonObject> {
         @Override
         public ValidationResult validate(JsonObject input) {
@@ -65,20 +75,12 @@ public class ContractRequestValidator {
                         ).build().validate(input);
             }
 
-            var validator = JsonObjectValidator.newValidator()
+            return JsonObjectValidator.newValidator()
                     .verify(POLICY, MandatoryObject::new)
-                    .verifyObject(POLICY, builder -> builder
-                            .verifyId(MandatoryIdNotBlank::new)
-                            .verify(path -> new TypeIs(path, ODRL_POLICY_TYPE_OFFER))
-                            .verify(ODRL_ASSIGNER_ATTRIBUTE, MandatoryObject::new)
-                            .verifyObject(ODRL_ASSIGNER_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new))
-                            .verify(ODRL_TARGET_ATTRIBUTE, MandatoryObject::new)
-                            .verifyObject(ODRL_TARGET_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new))
-                    )
-                    .build();
-
-            return validator.validate(input);
+                    .verifyObject(POLICY, ContractRequestValidator::offerValidator)
+                    .build().validate(input);
         }
+
     }
 
     /**
