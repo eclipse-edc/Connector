@@ -24,6 +24,7 @@ import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.spi.verification.PresentationVerifier;
+import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListDatabase;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
@@ -80,6 +81,7 @@ public class IdentityAndTrustService implements IdentityService {
     private final CredentialServiceUrlResolver credentialServiceUrlResolver;
     private final ClaimTokenCreatorFunction claimTokenCreatorFunction;
     private final boolean strictRevocation = false;
+    private final RevocationListDatabase revocationListDatabase;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -90,7 +92,11 @@ public class IdentityAndTrustService implements IdentityService {
     public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid,
                                    PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
                                    TokenValidationAction tokenValidationAction,
-                                   TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver, ClaimTokenCreatorFunction claimTokenCreatorFunction) {
+                                   TrustedIssuerRegistry trustedIssuerRegistry,
+                                   Clock clock,
+                                   CredentialServiceUrlResolver csUrlResolver,
+                                   ClaimTokenCreatorFunction claimTokenCreatorFunction,
+                                   RevocationListDatabase revocationListDatabase) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
         this.presentationVerifier = presentationVerifier;
@@ -100,6 +106,7 @@ public class IdentityAndTrustService implements IdentityService {
         this.clock = clock;
         this.credentialServiceUrlResolver = csUrlResolver;
         this.claimTokenCreatorFunction = claimTokenCreatorFunction;
+        this.revocationListDatabase = revocationListDatabase;
     }
 
     @Override
@@ -180,7 +187,7 @@ public class IdentityAndTrustService implements IdentityService {
     @NotNull
     private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, String issuer) {
 
-        var revocationRule = new IsNotRevoked(credential -> null);
+        var revocationRule = new IsNotRevoked(revocationListDatabase);
         if (strictRevocation && credentials.stream().anyMatch(credential -> revocationRule.apply(credential).failed())) {
             return Result.failure("Encountered at least one revoked credential. Strict credential revocation check is activated.");
         }

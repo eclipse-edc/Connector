@@ -22,7 +22,9 @@ import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.spi.verification.PresentationVerifier;
+import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListDatabase;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
@@ -78,8 +80,10 @@ class IdentityAndTrustServiceTest {
     private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
     private final CredentialServiceUrlResolver credentialServiceUrlResolverMock = mock();
     private final TokenValidationAction actionMock = mock();
+    private final RevocationListDatabase revocationListDatabase = mock();
     private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, mockedVerifier, mockedClient,
-            actionMock, trustedIssuerRegistryMock, Clock.systemUTC(), credentialServiceUrlResolverMock, vcs -> Result.success(ClaimToken.Builder.newInstance().claim("vc", vcs).build()));
+            actionMock, trustedIssuerRegistryMock, Clock.systemUTC(), credentialServiceUrlResolverMock, vcs -> Result.success(ClaimToken.Builder.newInstance().claim("vc", vcs).build()),
+            revocationListDatabase);
 
     @BeforeEach
     void setup() {
@@ -377,6 +381,30 @@ class IdentityAndTrustServiceTest {
                         Assertions.assertThat(credentials).anySatisfy(vc -> Assertions.assertThat(vc.getCredentialSubject().get(0).getClaims()).containsEntry("some-claim-2", "some-val-2"));
                         Assertions.assertThat(credentials).anySatisfy(vc -> Assertions.assertThat(vc.getCredentialSubject().get(0).getClaims()).containsEntry("some-other-claim-2", "some-other-val-2"));
                     });
+        }
+
+        @Test
+        void verify_revocationCheckFails() {
+            var presentation = createPresentationBuilder()
+                    .type("VerifiablePresentation")
+                    .credentials(List.of(createCredentialBuilder()
+                            .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                    .id(CONSUMER_DID)
+                                    .claim("some-claim", "some-val")
+                                    .build()))
+                            .credentialStatus(new CredentialStatus("test-cred-status", "StatusList2021", Map.of()))
+                            .build()))
+                    .build();
+            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
+            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
+            when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
+            when(revocationListDatabase.checkValidity(any())).thenReturn(Result.failure("invalid"));
+
+            var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
+            var result = service.verifyJwtToken(token, verificationContext());
+            assertThat(result).isFailed()
+                    .detail().isEqualTo("invalid");
         }
     }
 }

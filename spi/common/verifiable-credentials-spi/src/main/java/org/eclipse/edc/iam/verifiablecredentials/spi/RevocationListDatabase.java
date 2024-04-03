@@ -30,5 +30,5 @@ import org.eclipse.edc.spi.result.Result;
  */
 @FunctionalInterface
 public interface RevocationListDatabase {
-    Result<Void> isValid(VerifiableCredential credential);
+    Result<Void> checkValidity(VerifiableCredential credential);
 }

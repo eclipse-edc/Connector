@@ -30,6 +30,7 @@ import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.spi.verification.PresentationVerifier;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
+import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListDatabase;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -114,6 +115,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Inject
     private IatpParticipantAgentServiceExtension participantAgentServiceExtension;
+    @Inject
+    private RevocationListDatabase revocationListDatabase;
 
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
@@ -144,7 +147,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         var credentialServiceUrlResolver = new DidCredentialServiceUrlResolver(didResolverRegistry);
         var validationAction = tokenValidationAction();
         return new IdentityAndTrustService(secureTokenService, getOwnDid(context), getPresentationVerifier(context),
-                getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver, claimTokenFunction);
+                getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver, claimTokenFunction, revocationListDatabase);
     }
 
     @Provider

@@ -46,6 +46,6 @@ public class IsNotRevoked implements CredentialValidationRule {
             return success();
         }
 
-        return revocationListDatabase.isValid(credential);
+        return revocationListDatabase.checkValidity(credential);
     }
 }
