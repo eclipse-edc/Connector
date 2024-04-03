@@ -30,8 +30,8 @@ import org.junit.jupiter.api.Test;
 import java.net.URISyntaxException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.spi.VcConstants.VC_PREFIX;
 import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_VP_JSONLD;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.VC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;

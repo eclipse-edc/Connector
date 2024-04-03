@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.transform.from;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.iam.identitytrust.spi.model.credentialservice.PresentationQueryMessage;
+import org.eclipse.edc.iam.identitytrust.spi.model.PresentationQueryMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;

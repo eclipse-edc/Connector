@@ -16,6 +16,8 @@ package org.eclipse.edc.iam.identitytrust.spi.model.credentialservice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.credentialservice.InputDescriptorMapping;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.credentialservice.PresentationSubmission;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -50,7 +52,7 @@ class PresentationSubmissionSerDesTest {
                     ]
                   }
                 """;
-        var pd = mapper.readValue(json, PresentationSubmission.class);
+        var pd = mapper.readValue(json, org.eclipse.edc.iam.verifiablecredentials.spi.model.credentialservice.PresentationSubmission.class);
         assertThat(pd).isNotNull();
 
         assertThat(pd.id()).isEqualTo("a30e3b91-fb77-4d22-95fa-871689c322e2");
@@ -60,7 +62,7 @@ class PresentationSubmissionSerDesTest {
 
     @Test
     void verifySerialization() throws JsonProcessingException {
-        var pd = new PresentationSubmission("test-id", "test-def-id", List.of(new InputDescriptorMapping("test-input", "ldp_vc", "$.verifiableCredentials[0]")));
+        var pd = new org.eclipse.edc.iam.verifiablecredentials.spi.model.credentialservice.PresentationSubmission("test-id", "test-def-id", List.of(new InputDescriptorMapping("test-input", "ldp_vc", "$.verifiableCredentials[0]")));
         var json = mapper.writeValueAsString(pd);
 
         var deser = mapper.readValue(json, PresentationSubmission.class);

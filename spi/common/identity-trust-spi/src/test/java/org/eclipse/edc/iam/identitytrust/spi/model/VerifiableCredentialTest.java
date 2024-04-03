@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.iam.identitytrust.spi.model;
 
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
@@ -30,9 +33,9 @@ class VerifiableCredentialTest {
     @Test
     void serDeser() {
         var typeManager = new TypeManager();
-        var vc = VerifiableCredential.Builder.newInstance()
-                .credentialSubject(new CredentialSubject())
-                .issuer(new Issuer("http://test.issuer", Map.of()))
+        var vc = org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.Builder.newInstance()
+                .credentialSubject(new org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject())
+                .issuer(new org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now())
                 .type("test-type")
                 .build();
@@ -41,16 +44,16 @@ class VerifiableCredentialTest {
         assertThat(serialized).contains("\"type\"");
         assertThat(serialized).contains("\"credentialSubject\"");
 
-        var deserialized = typeManager.readValue(serialized, VerifiableCredential.class);
+        var deserialized = typeManager.readValue(serialized, org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.class);
 
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(vc);
     }
 
     @Test
     void buildMinimalVc() {
-        assertThatNoException().isThrownBy(() -> VerifiableCredential.Builder.newInstance()
-                .credentialSubject(new CredentialSubject())
-                .issuer(new Issuer("http://test.issuer", Map.of()))
+        assertThatNoException().isThrownBy(() -> org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.Builder.newInstance()
+                .credentialSubject(new org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject())
+                .issuer(new org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now())
                 .type("test-type")
                 .build());
@@ -58,9 +61,9 @@ class VerifiableCredentialTest {
 
     @Test
     void build_emptyContexts() {
-        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
-                .credentialSubject(new CredentialSubject())
-                .issuer(new Issuer("http://test.issuer", Map.of()))
+        assertThatThrownBy(() -> org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.Builder.newInstance()
+                .credentialSubject(new org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject())
+                .issuer(new org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class);
@@ -68,9 +71,9 @@ class VerifiableCredentialTest {
 
     @Test
     void build_emptyTypes() {
-        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
-                .credentialSubject(new CredentialSubject())
-                .issuer(new Issuer("http://test.issuer", Map.of()))
+        assertThatThrownBy(() -> org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.Builder.newInstance()
+                .credentialSubject(new org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject())
+                .issuer(new org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now())
                 .types(new ArrayList<>())
                 .build())

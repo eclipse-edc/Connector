@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.spi;
 
-import org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 

@@ -15,8 +15,8 @@
 package org.eclipse.edc.iam.identitytrust.core.defaults;
 
 import org.eclipse.edc.iam.identitytrust.spi.IatpParticipantAgentServiceExtension;
-import org.eclipse.edc.iam.identitytrust.spi.model.CredentialSubject;
-import org.eclipse.edc.iam.identitytrust.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
 

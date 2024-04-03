@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.iam.identitytrust.spi.model.CredentialStatus;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 
-import static org.eclipse.edc.iam.identitytrust.spi.model.CredentialStatus.CREDENTIAL_STATUS_TYPE_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus.CREDENTIAL_STATUS_TYPE_PROPERTY;
 
 public class JsonObjectToCredentialStatusTransformer extends AbstractJsonLdTransformer<JsonObject, CredentialStatus> {
     public JsonObjectToCredentialStatusTransformer() {

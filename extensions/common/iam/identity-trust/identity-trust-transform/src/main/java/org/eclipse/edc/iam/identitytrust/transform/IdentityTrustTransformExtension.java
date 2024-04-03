@@ -40,7 +40,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.iam.identitytrust.spi.VcConstants.IATP_CONTEXT_URL;
+import static org.eclipse.edc.iam.identitytrust.spi.IatpConstants.IATP_CONTEXT_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = IdentityTrustTransformExtension.NAME, categories = { "iam", "transform", "jsonld" })

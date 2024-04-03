@@ -23,7 +23,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.core.IatpDefaultServicesExtension.CLAIMTOKEN_VC_KEY;
-import static org.eclipse.edc.iam.identitytrust.spi.TestFunctions.createCredential;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createCredential;
 
 class DefaultIatpParticipantAgentServiceExtensionTest {
 
