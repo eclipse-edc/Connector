@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.client;
 
 import okhttp3.Request;
 import org.eclipse.edc.http.spi.FallbackFactories;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.mockStatic;
 
 class HashicorpVaultClientFallbackFactoryTest {
 
-    private static final int[] NON_RETRYABLE_STATUS_CODES = {200, 204, 400, 403, 404, 405};
+    private static final int[] NON_RETRYABLE_STATUS_CODES = { 200, 204, 400, 403, 404, 405 };
 
     @Test
     void create_shouldInitializeWithCorrectStatusCodes() {

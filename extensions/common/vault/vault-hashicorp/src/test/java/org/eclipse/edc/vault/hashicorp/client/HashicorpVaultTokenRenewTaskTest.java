@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.client;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -38,6 +38,7 @@ class HashicorpVaultTokenRenewTaskTest {
     private final Monitor monitor = mock();
     private final HashicorpVaultClient client = mock();
     private final HashicorpVaultTokenRenewTask tokenRenewTask = new HashicorpVaultTokenRenewTask(
+            "Hashicorp Vault",
             ExecutorInstrumentation.noop(),
             client,
             RENEW_BUFFER,

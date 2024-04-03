@@ -16,6 +16,7 @@ package org.eclipse.edc.vault.hashicorp;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

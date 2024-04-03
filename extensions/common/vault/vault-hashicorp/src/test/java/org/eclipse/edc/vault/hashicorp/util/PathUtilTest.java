@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.util;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;

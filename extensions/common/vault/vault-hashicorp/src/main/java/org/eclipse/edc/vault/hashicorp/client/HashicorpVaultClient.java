@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -31,6 +31,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryRequestPayload;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryResponsePayload;
 import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayload;
+import org.eclipse.edc.vault.hashicorp.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -70,10 +71,10 @@ public class HashicorpVaultClient {
     private final HttpUrl healthCheckUrl;
     private final Monitor monitor;
 
-    HashicorpVaultClient(@NotNull EdcHttpClient httpClient,
-                         @NotNull ObjectMapper objectMapper,
-                         @NotNull Monitor monitor,
-                         @NotNull HashicorpVaultSettings settings) {
+    public HashicorpVaultClient(@NotNull EdcHttpClient httpClient,
+                                @NotNull ObjectMapper objectMapper,
+                                @NotNull Monitor monitor,
+                                @NotNull HashicorpVaultSettings settings) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.monitor = monitor;

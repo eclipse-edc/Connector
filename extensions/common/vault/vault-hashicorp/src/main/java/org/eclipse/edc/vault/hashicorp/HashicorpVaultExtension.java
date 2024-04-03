@@ -26,6 +26,9 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewTask;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
@@ -110,6 +113,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
         monitor = context.getMonitor().withPrefix(NAME);
         settings = getSettings(context);
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
+                NAME,
                 executorInstrumentation,
                 hashicorpVaultClient(),
                 settings.renewBuffer(),

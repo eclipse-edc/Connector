@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.client;
 
 import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Test;
@@ -87,7 +87,7 @@ class HashicorpVaultSettingsTest {
         var throwable = assertThrows(Exception.class, () -> createSettings(
                 URL,
                 null,
-                HEALTH_CHECK_PATH, 
+                HEALTH_CHECK_PATH,
                 VAULT_TOKEN_TTL_DEFAULT,
                 VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
         assertThat(throwable.getMessage()).isEqualTo("Vault token must not be null");
@@ -105,12 +105,12 @@ class HashicorpVaultSettingsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(longs = {VAULT_TOKEN_TTL_DEFAULT, VAULT_TOKEN_TTL_DEFAULT + 1})
+    @ValueSource(longs = { VAULT_TOKEN_TTL_DEFAULT, VAULT_TOKEN_TTL_DEFAULT + 1 })
     void createSettings_withVaultTokenRenewBufferEqualOrGreaterThanTtl_shouldThrowException(long value) {
         var throwable = assertThrows(Exception.class, () -> createSettings(
                 URL,
                 TOKEN,
-                HEALTH_CHECK_PATH, 
+                HEALTH_CHECK_PATH,
                 VAULT_TOKEN_TTL_DEFAULT,
                 value));
         assertThat(throwable.getMessage()).isEqualTo("Vault token renew buffer value must be less than ttl value");
