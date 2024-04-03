@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.core.scope;
 
-import org.eclipse.edc.identitytrust.scope.ScopeExtractor;
+import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractor;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Operator;

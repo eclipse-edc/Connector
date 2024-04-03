@@ -17,7 +17,7 @@ package org.eclipse.edc.iam.identitytrust.transform.to;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.identitytrust.model.Issuer;
+import org.eclipse.edc.iam.identitytrust.spi.model.Issuer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;

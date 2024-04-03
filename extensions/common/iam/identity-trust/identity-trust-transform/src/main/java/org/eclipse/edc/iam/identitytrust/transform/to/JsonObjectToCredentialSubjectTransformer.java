@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.identitytrust.model.CredentialSubject;
+import org.eclipse.edc.iam.identitytrust.spi.model.CredentialSubject;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;

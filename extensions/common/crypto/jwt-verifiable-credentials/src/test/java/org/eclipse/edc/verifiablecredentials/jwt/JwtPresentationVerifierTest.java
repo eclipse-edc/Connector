@@ -21,7 +21,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import org.eclipse.edc.identitytrust.verification.VerifierContext;
+import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
@@ -38,7 +38,6 @@ import java.util.Map;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.success;
-import static org.eclipse.edc.verifiablecredentials.TestFunctions.createPublicKey;
 import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.JWT_VP_TOKEN_CONTEXT;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_DID;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_KEY_ID;
@@ -48,6 +47,7 @@ import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VC_CONTENT
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VC_CONTENT_DEGREE_EXAMPLE;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_CONTENT_TEMPLATE;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_HOLDER_ID;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestFunctions.createPublicKey;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

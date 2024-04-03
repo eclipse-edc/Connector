@@ -20,7 +20,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.JerseyConfiguration;
 import org.eclipse.edc.web.jersey.JerseyRestService;
-import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
+import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
 import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.jetty.PortMapping;

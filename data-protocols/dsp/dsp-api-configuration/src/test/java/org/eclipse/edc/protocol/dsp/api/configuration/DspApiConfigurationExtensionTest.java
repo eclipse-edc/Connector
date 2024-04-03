@@ -20,8 +20,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.jersey.jsonld.JerseyJsonLdInterceptor;
-import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
+import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
+import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
@@ -108,5 +108,5 @@ class DspApiConfigurationExtensionTest {
         verify(webService).registerResource(eq(CONTEXT_ALIAS), isA(ObjectMapperProvider.class));
         verify(webService).registerResource(eq(CONTEXT_ALIAS), isA(JerseyJsonLdInterceptor.class));
     }
-    
+
 }

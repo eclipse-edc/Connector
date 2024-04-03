@@ -16,15 +16,15 @@ package org.eclipse.edc.iam.identitytrust.transform.from;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage;
+import org.eclipse.edc.iam.identitytrust.spi.model.credentialservice.PresentationResponseMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY;
-import static org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY;
+import static org.eclipse.edc.iam.identitytrust.spi.model.credentialservice.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY;
+import static org.eclipse.edc.iam.identitytrust.spi.model.credentialservice.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 
@@ -44,7 +44,7 @@ public class JsonObjectFromPresentationResponseMessageTransformer extends Abstra
                 .add(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY, createJson(responseMessage))
                 .build();
     }
-    
+
     private JsonObject createJson(PresentationResponseMessage responseMessage) {
         var jo = Json.createObjectBuilder();
         jo.add(JsonLdKeywords.VALUE, Json.createArrayBuilder(responseMessage.getPresentation()).build());

@@ -11,7 +11,7 @@ dependencies {
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:crypto-common-lib"))
     implementation(project(":core:common:token-core"))
-    implementation(project(":extensions:common:crypto:jws2020"))
+    implementation(project(":extensions:common:crypto:lib:jws2020-lib"))
     implementation(project(":extensions:common:crypto:jwt-verifiable-credentials"))
     implementation(project(":extensions:common:crypto:ldp-verifiable-credentials"))
     implementation(project(":extensions:common:iam:identity-trust:identity-trust-service"))

@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.connector.store.sql.edr.SqlEndpointDataReferenceEntryIndexExtension
+org.eclipse.edc.edr.store.index.SqlEndpointDataReferenceEntryIndexExtension
