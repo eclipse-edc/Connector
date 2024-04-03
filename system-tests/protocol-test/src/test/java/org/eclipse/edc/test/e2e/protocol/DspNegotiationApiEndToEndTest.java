@@ -32,7 +32,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
-import static org.eclipse.edc.protocol.dsp.version.DspVersions.V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 
 @EndToEndTest
 public class DspNegotiationApiEndToEndTest {
@@ -46,9 +46,9 @@ public class DspNegotiationApiEndToEndTest {
                     "web.http.protocol.path", "/protocol",
                     "web.http.protocol.port", String.valueOf(PROTOCOL_PORT)
             ),
-            ":data-protocols:dsp:dsp-negotiation:dsp-negotiation-api",
+            ":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-api",
             ":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform",
-            ":data-protocols:dsp:dsp-api-configuration",
+            ":data-protocols:dsp:dsp-http-api-configuration",
             ":data-protocols:dsp:dsp-http-core",
             ":extensions:common:iam:iam-mock",
             ":core:control-plane:control-plane-aggregate-services",

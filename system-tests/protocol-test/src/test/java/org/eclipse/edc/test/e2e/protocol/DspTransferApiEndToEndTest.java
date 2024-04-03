@@ -37,7 +37,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
-import static org.eclipse.edc.protocol.dsp.version.DspVersions.V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 
 @EndToEndTest
 public class DspTransferApiEndToEndTest {
@@ -51,9 +51,9 @@ public class DspTransferApiEndToEndTest {
                     "web.http.protocol.path", "/protocol",
                     "web.http.protocol.port", String.valueOf(PROTOCOL_PORT)
             ),
-            ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-api",
+            ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-api",
             ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform",
-            ":data-protocols:dsp:dsp-api-configuration",
+            ":data-protocols:dsp:dsp-http-api-configuration",
             ":data-protocols:dsp:dsp-http-core",
             ":extensions:common:iam:iam-mock",
             ":core:control-plane:control-plane-aggregate-services",

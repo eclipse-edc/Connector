@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-api"))
+    api(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-api"))
     api(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher"))
     api(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
 }

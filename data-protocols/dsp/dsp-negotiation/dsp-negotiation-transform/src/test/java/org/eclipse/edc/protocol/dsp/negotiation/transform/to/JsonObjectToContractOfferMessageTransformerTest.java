@@ -28,12 +28,12 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -44,23 +44,23 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToContractOfferMessageTransformerTest {
-    
+
     private static final String CALLBACK_ADDRESS = "https://test.com";
     private static final String MESSAGE_ID = "messageId";
     private static final String ASSET_ID = "assetId";
     private static final String CONTRACT_OFFER_ID = "assetId";
-    
+
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
-    
+
     private JsonObjectToContractOfferMessageTransformer transformer;
-    
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToContractOfferMessageTransformer();
         when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
-    
+
     @Test
     void transform_shouldReturnMessage_whenValidJsonObject() {
         var message = jsonFactory.createObjectBuilder()
@@ -74,23 +74,23 @@ class JsonObjectToContractOfferMessageTransformerTest {
                         .build())
                 .build();
         var policy = policy();
-        
+
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy);
-        
+
         var result = transformer.transform(message, context);
-        
+
         assertThat(result).isNotNull();
         assertThat(result.getProtocol()).isNotEmpty();
         assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
         assertThat(result.getProviderPid()).isEqualTo("providerPid");
         assertThat(result.getCallbackAddress()).isEqualTo(CALLBACK_ADDRESS);
-    
+
         var contractOffer = result.getContractOffer();
         assertThat(contractOffer).isNotNull();
         assertThat(contractOffer.getId()).isEqualTo(CONTRACT_OFFER_ID);
         assertThat(contractOffer.getPolicy()).isEqualTo(policy);
         assertThat(contractOffer.getAssetId()).isEqualTo(ASSET_ID);
-    
+
         verify(context, never()).reportProblem(anyString());
     }
 
@@ -126,7 +126,7 @@ class JsonObjectToContractOfferMessageTransformerTest {
 
         verify(context, never()).reportProblem(anyString());
     }
-    
+
     @Test
     void transform_shouldReportProblem_whenMissingProcessId() {
         var message = jsonFactory.createObjectBuilder()
@@ -137,13 +137,13 @@ class JsonObjectToContractOfferMessageTransformerTest {
                         .add(ID, CONTRACT_OFFER_ID)
                         .build())
                 .build();
-    
+
         var result = transformer.transform(message, context);
-        
+
         assertThat(result).isNull();
         verify(context, times(1)).reportProblem(any());
     }
-    
+
     @Test
     void transform_shouldReportProblem_whenMissingContractOffer() {
         var message = jsonFactory.createObjectBuilder()
@@ -153,13 +153,13 @@ class JsonObjectToContractOfferMessageTransformerTest {
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK_ADDRESS)
                 .build();
-        
+
         var result = transformer.transform(message, context);
-    
+
         assertThat(result).isNull();
         verify(context, times(1)).reportProblem(any());
     }
-    
+
     @Test
     void transform_shouldReportProblem_whenMissingContractOfferId() {
         var message = jsonFactory.createObjectBuilder()
@@ -171,15 +171,15 @@ class JsonObjectToContractOfferMessageTransformerTest {
                 .add(DSPACE_PROPERTY_OFFER, jsonFactory.createObjectBuilder().build())
                 .build();
         var policy = policy();
-    
+
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy);
-    
+
         var result = transformer.transform(message, context);
-    
+
         assertThat(result).isNull();
         verify(context, times(1)).reportProblem(any());
     }
-    
+
     @Test
     void transform_shouldReportProblem_whenPolicyTransformationFails() {
         var message = jsonFactory.createObjectBuilder()
@@ -192,15 +192,15 @@ class JsonObjectToContractOfferMessageTransformerTest {
                         .add(ID, CONTRACT_OFFER_ID)
                         .build())
                 .build();
-    
+
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(null);
-    
+
         var result = transformer.transform(message, context);
-    
+
         assertThat(result).isNull();
         verify(context, times(1)).reportProblem(any());
     }
-    
+
     private Policy policy() {
         return Policy.Builder.newInstance().target(ASSET_ID).build();
     }

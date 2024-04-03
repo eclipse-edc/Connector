@@ -78,23 +78,23 @@ include(":core:policy-monitor:policy-monitor-core")
 
 
 // modules that provide implementations for data ingress/egress ------------------------------------
-include(":data-protocols:dsp:dsp-api-configuration")
+include(":data-protocols:dsp:dsp-http-api-configuration")
 include(":data-protocols:dsp:dsp-catalog")
-include(":data-protocols:dsp:dsp-catalog:dsp-catalog-api")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-api")
 include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-dispatcher")
 include(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform")
 include(":data-protocols:dsp:dsp-spi")
 include(":data-protocols:dsp:dsp-negotiation")
-include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-api")
+include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-api")
 include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-dispatcher")
 include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform")
 include(":data-protocols:dsp:dsp-http-core")
 include(":data-protocols:dsp:dsp-http-spi")
 include(":data-protocols:dsp:dsp-transfer-process")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-api")
+include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-api")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform")
-include(":data-protocols:dsp:dsp-version:dsp-version-api")
+include(":data-protocols:dsp:dsp-version:dsp-version-http-api")
 
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
