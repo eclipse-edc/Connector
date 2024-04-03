@@ -1904,6 +1904,7 @@ components:
       required:
       - '@context'
       - counterPartyAddress
+      - policy
       - protocol
       type: object
       properties:
@@ -1929,7 +1930,7 @@ components:
         offer:
           $ref: "#/components/schemas/ContractOfferDescription"
         policy:
-          $ref: "#/components/schemas/Policy"
+          $ref: "#/components/schemas/Offer"
         protocol:
           type: string
           example: null
@@ -1947,7 +1948,7 @@ components:
         policy:
           '@context': http://www.w3.org/ns/odrl.jsonld
           '@type': odrl:Offer
-          '@id': policy-id
+          '@id': offer-id
           assigner: providerId
           permission: []
           prohibition: []
@@ -2229,6 +2230,35 @@ components:
           type: string
           example: null
       example: null
+    Offer:
+      required:
+      - '@id'
+      - assigner
+      - target
+      type: object
+      properties:
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: http://www.w3.org/ns/odrl/2/Offer
+        assigner:
+          type: string
+          example: null
+        target:
+          type: string
+          example: null
+      description: ODRL offer
+      example:
+        '@context': http://www.w3.org/ns/odrl.jsonld
+        '@type': odrl:Offer
+        '@id': offer-id
+        assigner: providerId
+        target: assetId
+        permission: []
+        prohibition: []
+        obligation: []
     Policy:
       type: object
       description: ODRL policy
