@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
@@ -70,6 +71,7 @@ public class VerifiableCredential {
         return issuer;
     }
 
+    @JsonAlias({ "issued" })
     @NotNull
     public Instant getIssuanceDate() {
         return issuanceDate;

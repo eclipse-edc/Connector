@@ -29,6 +29,6 @@ import org.eclipse.edc.spi.result.Result;
  * the value at the index indicated by {@code statusListIndex} is "1".
  */
 @FunctionalInterface
-public interface RevocationListDatabase {
+public interface RevocationListService {
     Result<Void> checkValidity(VerifiableCredential credential);
 }

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.service.validation.rules;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListDatabase;
+import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
@@ -34,10 +34,10 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class IsNotRevoked implements CredentialValidationRule {
 
-    private final RevocationListDatabase revocationListDatabase;
+    private final RevocationListService revocationListService;
 
-    public IsNotRevoked(RevocationListDatabase revocationListDatabase) {
-        this.revocationListDatabase = revocationListDatabase;
+    public IsNotRevoked(RevocationListService revocationListService) {
+        this.revocationListService = revocationListService;
     }
 
     @Override
@@ -46,6 +46,6 @@ public class IsNotRevoked implements CredentialValidationRule {
             return success();
         }
 
-        return revocationListDatabase.checkValidity(credential);
+        return revocationListService.checkValidity(credential);
     }
 }
