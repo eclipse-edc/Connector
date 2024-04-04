@@ -53,17 +53,14 @@ import static org.eclipse.edc.spi.agent.ParticipantAgentService.DEFAULT_IDENTITY
 @Extension(value = CoreServicesExtension.NAME)
 public class CoreServicesExtension implements ServiceExtension {
 
-    @Setting
-    public static final String HOSTNAME_SETTING = "edc.hostname";
-
-    /**
-     * The name of the claim key used to determine the participant identity.
-     */
-    @Setting
-    public static final String IDENTITY_KEY = "edc.agent.identity.key";
-
     public static final String NAME = "Core Services";
-    private static final String DEFAULT_HOSTNAME = "localhost";
+
+    private static final String DEFAULT_EDC_HOSTNAME = "localhost";
+
+    @Setting(value = "Connector hostname, which e.g. is used in referer urls", defaultValue = DEFAULT_EDC_HOSTNAME)
+    public static final String EDC_HOSTNAME = "edc.hostname";
+    @Setting(value = "The name of the claim key used to determine the participant identity", defaultValue = DEFAULT_IDENTITY_CLAIM_KEY)
+    public static final String EDC_AGENT_IDENTITY_KEY = "edc.agent.identity.key";
 
     @Inject
     private EventExecutorServiceContainer eventExecutorServiceContainer;
@@ -103,9 +100,9 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Provider
     public Hostname hostname(ServiceExtensionContext context) {
-        var hostname = context.getSetting(HOSTNAME_SETTING, DEFAULT_HOSTNAME);
-        if (DEFAULT_HOSTNAME.equals(hostname)) {
-            context.getMonitor().warning(String.format("Settings: No setting found for key '%s'. Using default value '%s'", HOSTNAME_SETTING, DEFAULT_HOSTNAME));
+        var hostname = context.getSetting(EDC_HOSTNAME, DEFAULT_EDC_HOSTNAME);
+        if (DEFAULT_EDC_HOSTNAME.equals(hostname)) {
+            context.getMonitor().warning(String.format("Settings: No setting found for key '%s'. Using default value '%s'", EDC_HOSTNAME, DEFAULT_EDC_HOSTNAME));
         }
         return () -> hostname;
     }
@@ -122,7 +119,7 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Provider
     public ParticipantAgentService participantAgentService(ServiceExtensionContext context) {
-        var identityKey = context.getSetting(IDENTITY_KEY, DEFAULT_IDENTITY_CLAIM_KEY);
+        var identityKey = context.getSetting(EDC_AGENT_IDENTITY_KEY, DEFAULT_IDENTITY_CLAIM_KEY);
         return new ParticipantAgentServiceImpl(identityKey);
     }
 
