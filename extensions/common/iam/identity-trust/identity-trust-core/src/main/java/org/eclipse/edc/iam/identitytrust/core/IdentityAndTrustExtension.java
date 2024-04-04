@@ -182,7 +182,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     }
 
     @Provider
-    public RevocationListService createRevocationList(ServiceExtensionContext context) {
+    public RevocationListService createRevocationListService(ServiceExtensionContext context) {
         if (revocationListService == null) {
             var validity = context.getConfig().getLong(REVOCATION_CACHE_VALIDITY, DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS);
             revocationListService = new StatusList2021RevocationService(typeManager.getMapper(), validity);

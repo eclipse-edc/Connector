@@ -18,17 +18,19 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 
 import static java.util.Optional.ofNullable;
 
+/**
+ * Specialized {@code credentialStatus}, that contains information mandated by the StatusList2021 standard.
+ */
 public class StatusListStatus {
-
     public static final String STATUS_LIST_CREDENTIAL = "statusListCredential";
     public static final String STATUS_LIST_INDEX = "statusListIndex";
     public static final String STATUS_PURPOSE = "statusPurpose";
+    
     private String statusListPurpose;
     private int statusListIndex;
     private String statusListCredential;
 
     private StatusListStatus() {
-
     }
 
     public static StatusListStatus parse(CredentialStatus status) {
