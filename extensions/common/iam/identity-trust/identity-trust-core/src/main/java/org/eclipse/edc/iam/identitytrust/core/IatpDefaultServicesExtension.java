@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
-import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultIatpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.core.defaults.InMemorySignatureSuiteRegistry;
@@ -65,9 +64,6 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     private Clock clock;
     @Inject
     private PrivateKeyResolver privateKeyResolver;
-
-    @Inject
-    private EdcHttpClient httpClient;
 
     @Provider(isDefault = true)
     public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {

@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusListCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusListStatus;
 import org.eclipse.edc.spi.result.Result;
 
@@ -63,7 +63,7 @@ public class StatusList2021RevocationService implements RevocationListService {
     private Result<Void> checkStatus(StatusListStatus status) {
         var statusListCredUrl = status.getStatusListCredential();
         var credential = cacheGet(statusListCredUrl);
-        var statuslistCredential = StatusListCredential.parse(credential);
+        var statuslistCredential = StatusList2021Credential.parse(credential);
 
         // check that the "statusPurpose" values match
         var credentialPurpose = status.getStatusListPurpose();

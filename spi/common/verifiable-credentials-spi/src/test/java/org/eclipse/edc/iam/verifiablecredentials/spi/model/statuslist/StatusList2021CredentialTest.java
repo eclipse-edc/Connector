@@ -25,7 +25,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class StatusListCredentialTest {
+public class StatusList2021CredentialTest {
 
     @Test
     void parseStatusList2021() {
@@ -43,14 +43,10 @@ public class StatusListCredentialTest {
                         .build())
                 .build();
 
-        var statusListCred = StatusListCredential.parse(credential);
+        var statusListCred = StatusList2021Credential.parse(credential);
 
         assertThat(statusListCred.encodedList()).isNotNull();
         assertThat(statusListCred.statusPurpose()).isEqualTo("revocation");
-        assertThat(statusListCred.ttl()).isNull();
-        assertThat(statusListCred.statusReference()).isNull();
-        assertThat(statusListCred.statusSize()).isNull();
-        assertThat(statusListCred.statusMessages()).isNull();
     }
 
     @Test
@@ -65,21 +61,13 @@ public class StatusListCredentialTest {
                         .id("https://example.com/status/3#list")
                         .claim("type", "StatusList2021")
                         .claim("statusPurpose", "revocation")
-                        .claim("ttl", 500)
-                        .claim("statusReference", "https://example.org/status-dictionary/")
-                        .claim("statusSize", 2)
-                        //.claim("statusMessage", ) not yet implemented
                         .claim("encodedList", "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA")
                         .build())
                 .build();
 
-        var statusListCred = StatusListCredential.parse(credential);
+        var statusListCred = StatusList2021Credential.parse(credential);
 
         assertThat(statusListCred.encodedList()).isNotNull();
         assertThat(statusListCred.statusPurpose()).isEqualTo("revocation");
-        assertThat(statusListCred.ttl()).isEqualTo(500);
-        assertThat(statusListCred.statusReference()).isEqualTo("https://example.org/status-dictionary/");
-        assertThat(statusListCred.statusSize()).isEqualTo(2);
-        assertThat(statusListCred.statusMessages()).isNull();
     }
 }

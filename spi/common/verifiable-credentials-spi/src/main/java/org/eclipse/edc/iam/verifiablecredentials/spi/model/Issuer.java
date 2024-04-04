@@ -18,8 +18,11 @@ import java.util.Map;
 import java.util.Objects;
 
 public record Issuer(String id, Map<String, Object> additionalProperties) {
+    public Issuer {
+        Objects.requireNonNull(id, "Issuer must be a URL or have an id!");
+    }
+
     public Issuer(String id) {
         this(id, Map.of());
-        Objects.requireNonNull(id, "Issuer must be a URL or have an id!");
     }
 }

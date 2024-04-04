@@ -71,7 +71,7 @@ public class VerifiableCredential {
         return issuer;
     }
 
-    @JsonAlias({ "issued" })
+    @JsonAlias({ "issued" }) // some credentials like StatusList2021 don't adhere to the spec
     @NotNull
     public Instant getIssuanceDate() {
         return issuanceDate;
