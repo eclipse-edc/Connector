@@ -45,7 +45,7 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
     private static final String PUBLIC_CONTEXT_ALIAS = "public";
     private static final String PUBLIC_CONTEXT_PATH = "/api/v1/public";
 
-    @Setting(value = "Endpoint of the token validation server that will be hit when targeting the Data Plane public API", required = true)
+    @Setting(value = "Token validation server endpoint", required = true)
     private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
 
     private static final int DEFAULT_THREAD_POOL = 10;
