@@ -1,4 +1,4 @@
-# Data Transfer
+# Transfer Process
 
 ## Data Flows Supported by the EDC
 
@@ -45,9 +45,9 @@ to query data from the provider Data Plane, by simply providing the provided tok
 11. Provider Data Plane pushes data to the consumer services (see `DataSink`)
 
 ## Transfer Process State Machine
-![Transfer Process State Machine](diagrams/transfer-process-states.png)
 
-Description:
-- Provider lists supported protocols and flows (e.g., HTTP push) as part of the initial contract offer. TBD which IDS message property can be used.
+### Consumer
+![Transfer Process Consumer State Machine](diagrams/transfer-process-consumer-states.png)
 
-Subsequently, a contract negotiation (not depicted here) is performed.
+### Provider
+![Transfer Process Provider State Machine](diagrams/transfer-process-provider-states.png)
