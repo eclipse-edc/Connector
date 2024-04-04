@@ -48,7 +48,7 @@ import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static jakarta.ws.rs.core.Response.status;
 
-@Path("/v2/{any:.*}")
+@Path("{any:.*}")
 @Produces(WILDCARD)
 public class DataPlanePublicApiV2Controller implements DataPlanePublicApiV2 {
 

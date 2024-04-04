@@ -161,7 +161,7 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
         var request = requestCaptor.getValue();
         assertThat(request.getDestinationDataAddress().getType()).isEqualTo(AsyncStreamingDataSink.TYPE);
         assertThat(request.getSourceDataAddress().getType()).isEqualTo("test");
-        assertThat(request.getProperties()).containsEntry("method", "POST").containsEntry("pathSegments", "v2/any").containsEntry("queryParams", "foo=bar");
+        assertThat(request.getProperties()).containsEntry("method", "POST").containsEntry("pathSegments", "any").containsEntry("queryParams", "foo=bar");
     }
 
     @Override
@@ -171,7 +171,7 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
 
     private RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port + "/v2")
+                .baseUri("http://localhost:" + port)
                 .when();
     }
 
