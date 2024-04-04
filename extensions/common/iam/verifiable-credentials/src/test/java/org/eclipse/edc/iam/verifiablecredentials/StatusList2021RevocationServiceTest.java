@@ -74,7 +74,7 @@ class StatusList2021RevocationServiceTest {
                                 "statusListCredential", "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
                 .build();
         assertThat(revocationService.checkValidity(credential)).isFailed()
-                .detail().isEqualTo("Credential status is 'revocation', status at index %d is false".formatted(REVOKED_INDEX));
+                .detail().isEqualTo("Credential status is 'revocation', status at index %d is '1''".formatted(REVOKED_INDEX));
     }
 
     @Test
