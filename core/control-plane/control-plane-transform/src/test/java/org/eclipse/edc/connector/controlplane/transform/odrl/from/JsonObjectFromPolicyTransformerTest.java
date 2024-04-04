@@ -273,11 +273,13 @@ class JsonObjectFromPolicyTransformerTest {
     void transform_dutyWithConstraintAndConsequence_returnJsonObject() {
         var constraint = getConstraint();
         var action = getAction();
-        var consequence = Duty.Builder.newInstance().action(action).build();
+        var firstConsequence = Duty.Builder.newInstance().action(action).build();
+        var secondConsequence = Duty.Builder.newInstance().action(action).build();
         var duty = Duty.Builder.newInstance()
                 .action(action)
                 .constraint(constraint)
-                .consequence(consequence)
+                .consequence(firstConsequence)
+                .consequence(secondConsequence)
                 .build();
         var policy = Policy.Builder.newInstance().duty(duty).build();
 
@@ -294,8 +296,10 @@ class JsonObjectFromPolicyTransformerTest {
         assertThat(constraintJson.getJsonObject(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getRightExpression()).getValue());
 
-        var consequenceJson = dutyJson.getJsonObject(ODRL_CONSEQUENCE_ATTRIBUTE);
-        assertThat(consequenceJson.getJsonObject(ODRL_ACTION_ATTRIBUTE)).isNotNull();
+        var consequencesJson = dutyJson.getJsonArray(ODRL_CONSEQUENCE_ATTRIBUTE);
+        assertThat(consequencesJson).hasSize(2).map(JsonValue::asJsonObject).allSatisfy(consequenceJson -> {
+            assertThat(consequenceJson.getJsonObject(ODRL_ACTION_ATTRIBUTE)).isNotNull();
+        });
 
         verify(context, never()).reportProblem(anyString());
     }

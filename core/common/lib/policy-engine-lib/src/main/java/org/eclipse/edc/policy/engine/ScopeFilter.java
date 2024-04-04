@@ -59,8 +59,7 @@ public class ScopeFilter {
         var filteredObligations = policy.getObligations().stream().map(d -> applyScope(d, scope)).filter(Objects::nonNull).collect(toList());
         var filteredPermissions = policy.getPermissions().stream().map(p -> applyScope(p, scope)).filter(Objects::nonNull).collect(toList());
         var filteredProhibitions = policy.getProhibitions().stream().map(p -> applyScope(p, scope)).filter(Objects::nonNull).collect(toList());
-        var policyBuilder = Policy.Builder.newInstance();
-        policyBuilder
+        return Policy.Builder.newInstance()
                 .type(policy.getType())
                 .assignee(policy.getAssignee())
                 .assigner(policy.getAssigner())
@@ -69,8 +68,8 @@ public class ScopeFilter {
                 .duties(filteredObligations)
                 .permissions(filteredPermissions)
                 .prohibitions(filteredProhibitions)
-                .extensibleProperties(policy.getExtensibleProperties());
-        return policyBuilder.build();
+                .extensibleProperties(policy.getExtensibleProperties())
+                .build();
     }
 
     @Nullable
@@ -79,7 +78,7 @@ public class ScopeFilter {
             return null;
         }
         var filteredConstraints = applyScope(permission.getConstraints(), scope);
-        var filteredDuties = permission.getDuties().stream().map(d -> applyScope(d, scope)).filter(Objects::nonNull).collect(toList());
+        var filteredDuties = permission.getDuties().stream().map(d -> applyScope(d, scope)).filter(Objects::nonNull).toList();
 
         return Permission.Builder.newInstance()
                 .action(permission.getAction())
@@ -93,14 +92,17 @@ public class ScopeFilter {
         if (actionNotInScope(duty, scope)) {
             return null;
         }
-        var filteredConsequence = duty.getConsequence() != null ? applyScope(duty.getConsequence(), scope) : null;
+        var filteredConsequences = duty.getConsequences().stream()
+                .map(consequence -> applyScope(consequence, scope))
+                .filter(Objects::nonNull)
+                .toList();
         var filteredConstraints = applyScope(duty.getConstraints(), scope);
 
         return Duty.Builder.newInstance()
                 .action(duty.getAction())
                 .constraints(filteredConstraints)
                 .parentPermission(duty.getParentPermission())
-                .consequence(filteredConsequence)
+                .consequences(filteredConsequences)
                 .build();
     }
 
@@ -119,10 +121,10 @@ public class ScopeFilter {
 
     @Nullable
     Constraint applyScope(Constraint rootConstraint, String scope) {
-        if (rootConstraint instanceof AtomicConstraint) {
-            return applyScope((AtomicConstraint) rootConstraint, scope);
+        if (rootConstraint instanceof AtomicConstraint atomicConstraint) {
+            return applyScope(atomicConstraint, scope);
         } else if (rootConstraint instanceof MultiplicityConstraint multiplicityConstraint) {
-            var filteredConstraints = multiplicityConstraint.getConstraints().stream().map(c -> applyScope(c, scope)).filter(Objects::nonNull).collect(toList());
+            var filteredConstraints = multiplicityConstraint.getConstraints().stream().map(c -> applyScope(c, scope)).filter(Objects::nonNull).toList();
             return filteredConstraints.isEmpty() ? null : multiplicityConstraint.create(filteredConstraints);
         }
         return rootConstraint;
@@ -133,13 +135,13 @@ public class ScopeFilter {
     }
 
     private List<Constraint> applyScope(List<Constraint> constraints, String scope) {
-        return constraints.stream().map(constraint -> applyScope(constraint, scope)).filter(Objects::nonNull).collect(toList());
+        return constraints.stream().map(constraint -> applyScope(constraint, scope)).filter(Objects::nonNull).toList();
     }
 
     @Nullable
     private Constraint applyScope(AtomicConstraint constraint, String scope) {
-        if (constraint.getLeftExpression() instanceof LiteralExpression) {
-            return registry.isInScope(((LiteralExpression) constraint.getLeftExpression()).asString(), scope) ? constraint : null;
+        if (constraint.getLeftExpression() instanceof LiteralExpression literalExpression) {
+            return registry.isInScope(literalExpression.asString(), scope) ? constraint : null;
         } else {
             return constraint;
         }

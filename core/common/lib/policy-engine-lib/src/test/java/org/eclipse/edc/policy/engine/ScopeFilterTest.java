@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ScopeFilterTest {
+
     public static final String BOUND_SCOPE = "scope1";
     private static final Action REPORT_ACTION = Action.Builder.newInstance().type("report").build();
     private static final Action SUB_ACTION = Action.Builder.newInstance().type("subaction").build();
@@ -80,7 +81,6 @@ class ScopeFilterTest {
         assertThat(filteredPolicy.getObligations()).isNotEmpty();
         assertThat(filteredPolicy.getProhibitions()).isNotEmpty();
         assertThat(filteredPolicy.getExtensibleProperties()).isNotEmpty();
-
     }
 
     @Test
@@ -163,7 +163,7 @@ class ScopeFilterTest {
 
         assertThat(filteredDuty).isNotNull();
         assertThat(filteredDuty.getAction()).isNotNull();
-        assertThat(filteredDuty.getConsequence()).isNotNull();
+        assertThat(filteredDuty.getConsequences()).hasSize(1);
         assertThat(filteredDuty.getConstraints().size()).isEqualTo(1);  // verify that the unbound constraint was removed
         assertThat(filteredDuty.getConstraints()).contains(BOUND_CONSTRAINT);
     }

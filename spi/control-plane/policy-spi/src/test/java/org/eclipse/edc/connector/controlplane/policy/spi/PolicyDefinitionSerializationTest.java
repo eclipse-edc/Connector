@@ -31,7 +31,6 @@ class PolicyDefinitionSerializationTest {
 
     private final TypeManager typeManager = new TypeManager();
 
-
     @Test
     void verifySerialization() {
         var policyDef = PolicyDefinition.Builder.newInstance()
@@ -42,9 +41,7 @@ class PolicyDefinitionSerializationTest {
                 .build();
 
         var json = typeManager.writeValueAsString(policyDef);
-        assertThat(json).isNotNull();
-        assertThat(json).contains("createdAt");
-        assertThat(json).contains("sampleInheritsFrom");
+        assertThat(json).isNotNull().contains("createdAt").contains("sampleInheritsFrom");
 
         var deserialized = typeManager.readValue(json, PolicyDefinition.class);
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(policyDef);
@@ -52,21 +49,14 @@ class PolicyDefinitionSerializationTest {
     }
 
     private Policy createPolicy() {
-        var permission = Permission.Builder.newInstance().build();
-
-        var prohibition = Prohibition.Builder.newInstance().build();
-
-        var duty = Duty.Builder.newInstance().build();
-
-        var p = Policy.Builder.newInstance()
-                .permission(permission)
-                .prohibition(prohibition)
-                .duties(List.of(duty))
+        return Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance().build())
+                .prohibition(Prohibition.Builder.newInstance().build())
+                .duties(List.of(Duty.Builder.newInstance().build()))
                 .inheritsFrom("sampleInheritsFrom")
                 .assigner("sampleAssigner")
                 .assignee("sampleAssignee")
                 .target("sampleTarget")
-                .type(PolicyType.SET);
-        return p.build();
+                .type(PolicyType.SET).build();
     }
 }
