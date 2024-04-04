@@ -34,7 +34,8 @@ import static org.mockserver.model.HttpRequest.request;
 class StatusList2021RevocationServiceTest {
     private static final int NOT_REVOKED_INDEX = 42;
     private static final int REVOKED_INDEX = 359;
-    private final StatusList2021RevocationService revocationService = new StatusList2021RevocationService(new ObjectMapper().registerModule(new JavaTimeModule()), 1000L);
+    private final StatusList2021RevocationService revocationService = new StatusList2021RevocationService(new ObjectMapper().registerModule(new JavaTimeModule()),
+            5 * 60 * 1000);
     private ClientAndServer clientAndServer;
 
     @BeforeEach

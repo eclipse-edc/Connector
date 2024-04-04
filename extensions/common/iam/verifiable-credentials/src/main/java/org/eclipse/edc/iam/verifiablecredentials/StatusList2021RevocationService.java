@@ -21,16 +21,13 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusListStatus;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.util.collection.Cache;
 
 import java.io.IOException;
 import java.net.URI;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Service to check if a particular {@link VerifiableCredential} is "valid", where "validity" is defined as not revoked and not suspended.
@@ -41,15 +38,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * To limit traffic on the actual StatusList2021 credential, it is cached in a thread-safe {@link Map}, and only re-downloaded if the cache is expired.
  */
 public class StatusList2021RevocationService implements RevocationListService {
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final Map<String, TimestampedValue> cache = new HashMap<>();
-
     private final ObjectMapper objectMapper;
-    private final long cacheValidityMillis;
+    private final Cache<String, VerifiableCredential> cache;
 
-    public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidityMillis) {
+    public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidity) {
         this.objectMapper = objectMapper.copy().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
-        this.cacheValidityMillis = cacheValidityMillis;
+        cache = new Cache<>(this::updateCredential, cacheValidity);
     }
 
     @Override
@@ -61,70 +55,32 @@ public class StatusList2021RevocationService implements RevocationListService {
     }
 
     private Result<Void> checkStatus(StatusListStatus status) {
-        var statusListCredUrl = status.getStatusListCredential();
-        var credential = cacheGet(statusListCredUrl);
-        var statuslistCredential = StatusList2021Credential.parse(credential);
+        var slCredUrl = status.getStatusListCredential();
+        var credential = cache.get(slCredUrl);
+        var slCred = StatusList2021Credential.parse(credential);
 
         // check that the "statusPurpose" values match
-        var credentialPurpose = status.getStatusListPurpose();
-        var statusListCredentialPurpose = statuslistCredential.statusPurpose();
-        if (!credentialPurpose.equalsIgnoreCase(statusListCredentialPurpose)) {
-            return Result.failure("Credential's statusPurpose value must match the status list's purpose: '%s' != '%s'".formatted(credentialPurpose, statusListCredentialPurpose));
+        var purpose = status.getStatusListPurpose();
+        var slCredPurpose = slCred.statusPurpose();
+        if (!purpose.equalsIgnoreCase(slCredPurpose)) {
+            return Result.failure("Credential's statusPurpose value must match the status list's purpose: '%s' != '%s'".formatted(purpose, slCredPurpose));
         }
 
         // check that the value at index in the bitset is "1"
-        var bytes = Base64.getUrlDecoder().decode(statuslistCredential.encodedList());
+        var bytes = Base64.getUrlDecoder().decode(slCred.encodedList());
         var bitset = BitSet.valueOf(bytes);
         var index = status.getStatusListIndex();
         if (bitset.get(index)) {
-            return Result.failure("Credential status is '%s', status at index %d is false".formatted(credentialPurpose, index));
+            return Result.failure("Credential status is '%s', status at index %d is '1''".formatted(purpose, index));
         }
         return Result.success();
     }
 
-    private VerifiableCredential downloadCredential(String url) {
+    private VerifiableCredential updateCredential(String credentialUrl) {
         try {
-            return objectMapper.readValue(URI.create(url).toURL(), VerifiableCredential.class);
+            return objectMapper.readValue(URI.create(credentialUrl).toURL(), VerifiableCredential.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private VerifiableCredential cacheGet(String statusListCredentialUrl) {
-        VerifiableCredential value;
-        lock.readLock().lock();
-        try {
-            if (isEntryExpired(statusListCredentialUrl)) {
-                lock.readLock().unlock(); // unlock read, acquire write -> "upgrade" lock
-                lock.writeLock().lock();
-                try {
-                    if (isEntryExpired(statusListCredentialUrl)) {
-                        var newCred = downloadCredential(statusListCredentialUrl);
-                        cache.put(statusListCredentialUrl, new TimestampedValue(newCred));
-                    }
-                } finally {
-                    lock.readLock().lock(); // downgrade lock
-                    lock.writeLock().unlock();
-                }
-            }
-
-            value = cache.get(statusListCredentialUrl).verifiableCredential();
-        } finally {
-            lock.readLock().unlock();
-        }
-        return value;
-    }
-
-    private boolean isEntryExpired(String key) {
-        var timestampedValue = cache.get(key);
-        if (timestampedValue == null) return true;
-        var lastCacheUpdate = timestampedValue.lastUpdatedAt;
-        return lastCacheUpdate == null || lastCacheUpdate.plus(cacheValidityMillis, ChronoUnit.MILLIS).isBefore(Instant.now());
-    }
-
-    private record TimestampedValue(VerifiableCredential verifiableCredential, Instant lastUpdatedAt) {
-        TimestampedValue(VerifiableCredential credential) {
-            this(credential, Instant.now());
         }
     }
 }

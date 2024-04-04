@@ -20,8 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:verifiable-credentials-spi"))
     api(project(":spi:common:http-spi"))
-    implementation(project(":core:common:lib:store-lib"))
-
+    implementation(project(":core:common:lib:util-lib"))
 
     testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
     testImplementation(libs.mockserver.netty)

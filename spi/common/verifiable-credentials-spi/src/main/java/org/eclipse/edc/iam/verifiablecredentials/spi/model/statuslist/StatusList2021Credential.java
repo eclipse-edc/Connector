@@ -67,14 +67,14 @@ public class StatusList2021Credential extends VerifiableCredential {
         public StatusList2021Credential build() {
             super.build();
             if (!instance.type.contains(STATUSLIST_2021_CREDENTIAL)) {
-                throw new IllegalArgumentException("Only %s is supported currently, but encountered: %s".formatted(STATUSLIST_2021_CREDENTIAL, instance.type));
+                throw new IllegalArgumentException("Only %s is supported, but encountered: %s".formatted(STATUSLIST_2021_CREDENTIAL, instance.type));
             }
 
             if (instance.credentialSubject == null || instance.credentialSubject.isEmpty()) {
                 throw new IllegalArgumentException("Status list credentials must contain a 'credentialSubject' property.");
             }
             if (instance.credentialSubject.size() != 1) {
-                throw new IllegalArgumentException("Status list credentials must contain exactly 1 `credentialsubject` object, but found %d".formatted(instance.credentialSubject.size()));
+                throw new IllegalArgumentException("Status list credentials must contain exactly 1 'credentialSubject' object, but found %d".formatted(instance.credentialSubject.size()));
             }
 
             // check mandatory fields of the credentialSubject object
