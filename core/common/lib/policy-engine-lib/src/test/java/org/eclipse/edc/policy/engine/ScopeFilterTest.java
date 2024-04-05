@@ -25,23 +25,23 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Prohibition;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ScopeFilterTest {
 
-    public static final String BOUND_SCOPE = "scope1";
+    private static final String BOUND_SCOPE = "scope1";
     private static final Action REPORT_ACTION = Action.Builder.newInstance().type("report").build();
     private static final Action SUB_ACTION = Action.Builder.newInstance().type("subaction").build();
     private static final LiteralExpression BOUND_LITERAL = new LiteralExpression("bound");
     private static final LiteralExpression UNBOUND_LITERAL = new LiteralExpression("unbound");
     private static final LiteralExpression EMPTY_LITERAL = new LiteralExpression("");
-    public static final AtomicConstraint BOUND_CONSTRAINT = AtomicConstraint.Builder.newInstance().leftExpression(BOUND_LITERAL).rightExpression(EMPTY_LITERAL).build();
-    public static final AtomicConstraint UNBOUND_CONSTRAINT = AtomicConstraint.Builder.newInstance().leftExpression(UNBOUND_LITERAL).rightExpression(EMPTY_LITERAL).build();
-    private ScopeFilter scopeFilter;
-    private RuleBindingRegistry registry;
+    private static final AtomicConstraint BOUND_CONSTRAINT = AtomicConstraint.Builder.newInstance().leftExpression(BOUND_LITERAL).rightExpression(EMPTY_LITERAL).build();
+    private static final AtomicConstraint UNBOUND_CONSTRAINT = AtomicConstraint.Builder.newInstance().leftExpression(UNBOUND_LITERAL).rightExpression(EMPTY_LITERAL).build();
+
+    private final RuleBindingRegistry registry = new RuleBindingRegistryImpl();
+    private final ScopeFilter scopeFilter = new ScopeFilter(registry);
 
     @Test
     void verifyFiltersUnboundPermissionType() {
@@ -125,14 +125,19 @@ class ScopeFilterTest {
                 .action(REPORT_ACTION)
                 .constraint(BOUND_CONSTRAINT)
                 .constraint(UNBOUND_CONSTRAINT)
+                .remedy(Duty.Builder.newInstance().constraint(BOUND_CONSTRAINT).build())
+                .remedy(Duty.Builder.newInstance().constraint(UNBOUND_CONSTRAINT).build())
                 .build();
 
         var filteredPermission = scopeFilter.applyScope(prohibition, BOUND_SCOPE);
 
         assertThat(filteredPermission).isNotNull();
         assertThat(filteredPermission.getAction()).isNotNull();
-        assertThat(filteredPermission.getConstraints().size()).isEqualTo(1);  // verify that the unbound constraint was removed
+        assertThat(filteredPermission.getConstraints()).hasSize(1);  // verify that the unbound constraint was removed
         assertThat(filteredPermission.getConstraints()).contains(BOUND_CONSTRAINT);
+        assertThat(filteredPermission.getRemedies()).hasSize(2)
+                .anyMatch(it -> it.getConstraints().contains(BOUND_CONSTRAINT))
+                .anyMatch(it -> it.getConstraints().isEmpty());
     }
 
     @Test
@@ -183,9 +188,4 @@ class ScopeFilterTest {
         assertThat(filteredConstraint.getConstraints().size()).isEqualTo(2);
     }
 
-    @BeforeEach
-    void setUp() {
-        registry = new RuleBindingRegistryImpl();
-        scopeFilter = new ScopeFilter(registry);
-    }
 }
