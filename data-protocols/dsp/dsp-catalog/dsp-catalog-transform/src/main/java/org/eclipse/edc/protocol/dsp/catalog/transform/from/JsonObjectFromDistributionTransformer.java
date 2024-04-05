@@ -42,14 +42,13 @@ public class JsonObjectFromDistributionTransformer extends AbstractJsonLdTransfo
 
     @Override
     public @Nullable JsonObject transform(@NotNull Distribution distribution, @NotNull TransformerContext context) {
-        var objectBuilder = jsonFactory.createObjectBuilder();
-        objectBuilder.add(TYPE, DCAT_DISTRIBUTION_TYPE);
-        objectBuilder.add(DCT_FORMAT_ATTRIBUTE, jsonFactory.createObjectBuilder()
-                .add(ID, distribution.getFormat())
-                .build());
-        objectBuilder.add(DCAT_ACCESS_SERVICE_ATTRIBUTE, distribution.getDataService().getId());
-
-        return objectBuilder.build();
+        return jsonFactory.createObjectBuilder()
+                .add(TYPE, DCAT_DISTRIBUTION_TYPE)
+                .add(DCT_FORMAT_ATTRIBUTE, jsonFactory.createObjectBuilder()
+                    .add(ID, distribution.getFormat())
+                    .build())
+                .add(DCAT_ACCESS_SERVICE_ATTRIBUTE, context.transform(distribution.getDataService(), JsonObject.class))
+                .build();
     }
 
 }

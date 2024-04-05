@@ -20,6 +20,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
@@ -43,6 +45,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
 import static org.eclipse.edc.test.e2e.managementapi.Runtimes.inMemoryRuntime;
 import static org.eclipse.edc.test.e2e.managementapi.Runtimes.postgresRuntime;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.is;
 
 public class CatalogApiEndToEndTest {
@@ -97,7 +100,7 @@ public class CatalogApiEndToEndTest {
                     .body(requestBody)
                     .post("/v2/catalog/request")
                     .then()
-                    .log().ifError()
+                    .log().ifValidationFails()
                     .statusCode(200)
                     .contentType(JSON)
                     .body(TYPE, is("dcat:Catalog"));
@@ -123,8 +126,8 @@ public class CatalogApiEndToEndTest {
             policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
             contractDefinitionStore.save(cd);
 
-            assetIndex.create(createAsset("id-1").build());
-            assetIndex.create(createAsset("id-2").build());
+            assetIndex.create(createAsset("id-1", "test-type").build());
+            assetIndex.create(createAsset("id-2", "test-type").build());
 
             var criteria = createArrayBuilder()
                     .add(createObjectBuilder()
@@ -162,8 +165,12 @@ public class CatalogApiEndToEndTest {
 
         @Test
         void getDataset_shouldReturnDataset() {
+            var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
+                    .allowedDestType("any").allowedSourceType("test-type").allowedTransferType("any").build();
+            runtime.getContext().getService(DataPlaneInstanceStore.class).create(dataPlaneInstance);
+
             var assetIndex = runtime.getContext().getService(AssetIndex.class);
-            assetIndex.create(createAsset("asset-id").build());
+            assetIndex.create(createAsset("asset-id", "test-type").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "DatasetRequest")
@@ -177,15 +184,17 @@ public class CatalogApiEndToEndTest {
                     .body(requestBody)
                     .post("/v2/catalog/dataset/request")
                     .then()
+                    .log().ifValidationFails()
                     .statusCode(200)
                     .contentType(JSON)
                     .body(ID, is("asset-id"))
-                    .body(TYPE, is("dcat:Dataset"));
+                    .body(TYPE, is("dcat:Dataset"))
+                    .body("'dcat:distribution'.'dcat:accessService'.@id", notNullValue());
         }
 
-        private Asset.Builder createAsset(String id) {
+        private Asset.Builder createAsset(String id, String sourceType) {
             return Asset.Builder.newInstance()
-                    .dataAddress(DataAddress.Builder.newInstance().type("test-type").build())
+                    .dataAddress(DataAddress.Builder.newInstance().type(sourceType).build())
                     .id(id);
         }
 
