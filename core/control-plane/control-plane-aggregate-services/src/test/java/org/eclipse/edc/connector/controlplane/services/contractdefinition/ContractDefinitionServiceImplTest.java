@@ -19,14 +19,17 @@ import org.eclipse.edc.connector.controlplane.contract.spi.definition.observe.Co
 import org.eclipse.edc.connector.controlplane.contract.spi.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,8 +63,9 @@ class ContractDefinitionServiceImplTest {
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final ContractDefinitionObservable observable = new ContractDefinitionObservableImpl();
     private final ContractDefinitionListener listener = mock();
+    private final QueryValidator queryValidator = mock();
 
-    private final ContractDefinitionService service = new ContractDefinitionServiceImpl(store, transactionContext, observable);
+    private final ContractDefinitionService service = new ContractDefinitionServiceImpl(store, transactionContext, observable, queryValidator);
 
     @BeforeEach
     void setUp() {
@@ -88,38 +92,34 @@ class ContractDefinitionServiceImplTest {
     }
 
     @Test
-    void search() {
+    void search_success() {
         var definition = createContractDefinition();
         when(store.findAll(isA(QuerySpec.class))).thenReturn(Stream.of(definition));
+        QuerySpec querySpec = QuerySpec.none();
+        when(queryValidator.validate(querySpec)).thenReturn(Result.success());
 
-        var result = service.search(QuerySpec.none());
+        var result = service.search(querySpec);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).first().matches(hasId(definition.getId()));
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(InvalidFilters.class)
-    void search_invalidFilter(Criterion invalidFilter) {
+    @Test
+    void search_failure() {
         var query = QuerySpec.Builder.newInstance()
-                .filter(invalidFilter)
+                .filter(Criterion.Builder
+                        .newInstance()
+                        .operandLeft("test")
+                        .operandRight("test")
+                        .operator("=")
+                        .build())
                 .build();
+        when(queryValidator.validate(query)).thenReturn(Result.failure("Test failure"));
 
         var result = service.search(query);
 
         assertThat(result.failed()).isTrue();
-    }
-
-    @ParameterizedTest
-    @ArgumentsSource(ValidFilters.class)
-    void search_validFilter(Criterion validFilter) {
-        var query = QuerySpec.Builder.newInstance()
-                .filter(validFilter)
-                .build();
-
-        service.search(query);
-
-        verify(store).findAll(query);
+        assertThat(result.getFailureMessages()).hasSize(1).first().matches(message -> message.equals("Error validating schema: Test failure"));
     }
 
     @Test
@@ -210,24 +210,54 @@ class ContractDefinitionServiceImplTest {
         verify(listener, never()).updated(any());
     }
 
-    private static class InvalidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("assetsSelector.leftHand", "=", "foo")), // invalid path
-                    arguments(criterion("accessPolicyId'LIKE/**/?/**/LIMIT/**/?/**/OFFSET/**/?;DROP/**/TABLE/**/test/**/--%20", "=", "%20ABC--")) //some SQL injection
-            );
-        }
-    }
+    @Nested
+    class QueryValidatorIntegrationTest {
+        private final ContractDefinitionService service = new ContractDefinitionServiceImpl(store, transactionContext, observable);
 
-    private static class ValidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("assetsSelector.operandLeft", "=", "foo")),
-                    arguments(criterion("assetsSelector.operator", "=", "LIKE")),
-                    arguments(criterion("assetsSelector.operandRight", "=", "bar"))
-            );
+        @ParameterizedTest
+        @ArgumentsSource(InvalidFilters.class)
+        void search_invalidFilter(Criterion invalidFilter) {
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(invalidFilter)
+                    .build();
+
+            var result = service.search(query);
+
+            assertThat(result.failed()).isTrue();
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ValidFilters.class)
+        void search_validFilter(Criterion validFilter) {
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(validFilter)
+                    .build();
+            when(store.findAll(query)).thenReturn(Stream.empty());
+
+            service.search(query);
+
+            verify(store).findAll(query);
+        }
+
+        private static class InvalidFilters implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(criterion("assetsSelector.leftHand", "=", "foo")), // invalid path
+                        arguments(criterion("accessPolicyId'LIKE/**/?/**/LIMIT/**/?/**/OFFSET/**/?;DROP/**/TABLE/**/test/**/--%20", "=", "%20ABC--")) //some SQL injection
+                );
+            }
+        }
+
+        private static class ValidFilters implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(criterion("assetsSelector.operandLeft", "=", "foo")),
+                        arguments(criterion("assetsSelector.operator", "=", "LIKE")),
+                        arguments(criterion("assetsSelector.operandRight", "=", "bar"))
+                );
+            }
         }
     }
 

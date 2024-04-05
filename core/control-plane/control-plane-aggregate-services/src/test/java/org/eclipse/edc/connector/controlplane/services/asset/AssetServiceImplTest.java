@@ -21,11 +21,13 @@ import org.eclipse.edc.connector.controlplane.asset.spi.observe.AssetObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Failure;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -36,6 +38,7 @@ import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -76,8 +79,9 @@ class AssetServiceImplTest {
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
     private final AssetObservable observable = mock();
     private final DataAddressValidatorRegistry dataAddressValidator = mock();
+    private final QueryValidator queryValidator = mock();
 
-    private final AssetService service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext, observable, dataAddressValidator);
+    private final AssetService service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext, observable, dataAddressValidator, queryValidator);
 
     @Test
     void findById_shouldRelyOnAssetIndex() {
@@ -93,6 +97,7 @@ class AssetServiceImplTest {
     void search_shouldRelyOnAssetIndex() {
         var asset = createAsset("assetId");
         when(index.queryAssets(any(QuerySpec.class))).thenReturn(Stream.of(asset));
+        when(queryValidator.validate(any())).thenReturn(Result.success());
 
         var assets = service.search(QuerySpec.none());
 
@@ -100,20 +105,20 @@ class AssetServiceImplTest {
         assertThat(assets.getContent()).hasSize(1).first().matches(hasId("assetId"));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = { Asset.PROPERTY_ID, Asset.PROPERTY_NAME, Asset.PROPERTY_DESCRIPTION, Asset.PROPERTY_VERSION, Asset.PROPERTY_CONTENT_TYPE })
-    void search_validFilter(String filter) {
-        var query = QuerySpec.Builder.newInstance().filter(criterion(filter, "=", "somevalue")).build();
+    @Test
+    void search_success() {
+        var query = QuerySpec.Builder.newInstance().filter(criterion("somevalue", "=", "somevalue")).build();
+        when(queryValidator.validate(query)).thenReturn(Result.success());
 
         service.search(query);
 
         verify(index).queryAssets(query);
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(InvalidFilters.class)
-    void search_invalidFilter(Criterion filter) {
-        var query = QuerySpec.Builder.newInstance().filter(filter).build();
+    @Test
+    void search_failure() {
+        var query = QuerySpec.Builder.newInstance().filter(criterion("left", "op", "right")).build();
+        when(queryValidator.validate(query)).thenReturn(Result.failure("Test failure message"));
 
         var result = service.search(query);
 
@@ -266,13 +271,39 @@ class AssetServiceImplTest {
         verifyNoInteractions(index);
     }
 
-    private static class InvalidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(arguments(criterion("  asset_prop_id", "in", "(foo, bar)")), // invalid leading whitespace
-                    arguments(criterion(".customProp", "=", "whatever"))  // invalid leading dot
-            );
+    @Nested
+    class QueryValidatorIntegrationTest {
+        private final AssetService service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext, observable, dataAddressValidator);
+
+        @ParameterizedTest
+        @ValueSource(strings = {Asset.PROPERTY_ID, Asset.PROPERTY_NAME, Asset.PROPERTY_DESCRIPTION, Asset.PROPERTY_VERSION, Asset.PROPERTY_CONTENT_TYPE})
+        void search_validFilter(String filter) {
+            var query = QuerySpec.Builder.newInstance().filter(criterion(filter, "=", "somevalue")).build();
+
+            service.search(query);
+
+            verify(index).queryAssets(query);
         }
+
+        @ParameterizedTest
+        @ArgumentsSource(InvalidFilters.class)
+        void search_invalidFilter(Criterion filter) {
+            var query = QuerySpec.Builder.newInstance().filter(filter).build();
+
+            var result = service.search(query);
+
+            assertThat(result).isFailed().extracting(Failure::getMessages).asList().hasSize(1);
+        }
+
+        private static class InvalidFilters implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(arguments(criterion("  asset_prop_id", "in", "(foo, bar)")), // invalid leading whitespace
+                        arguments(criterion(".customProp", "=", "whatever"))  // invalid leading dot
+                );
+            }
+        }
+
     }
 
     @NotNull

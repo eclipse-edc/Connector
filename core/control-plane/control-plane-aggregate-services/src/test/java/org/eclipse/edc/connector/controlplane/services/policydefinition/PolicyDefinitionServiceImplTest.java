@@ -19,13 +19,16 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitionObservable;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -56,7 +59,8 @@ class PolicyDefinitionServiceImplTest {
     private final ContractDefinitionStore contractDefinitionStore = mock(ContractDefinitionStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
     private final PolicyDefinitionObservable observable = mock(PolicyDefinitionObservable.class);
-    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable);
+    private final QueryValidator queryValidator = mock(QueryValidator.class);
+    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable, queryValidator);
 
 
     @Test
@@ -72,30 +76,33 @@ class PolicyDefinitionServiceImplTest {
     void search_shouldRelyOnPolicyStore() {
         var policy = createPolicy("policyId");
         when(policyStore.findAll(any(QuerySpec.class))).thenReturn(Stream.of(policy));
-        var policies = policyServiceImpl.search(QuerySpec.none());
+        QuerySpec querySpec = QuerySpec.none();
+        when(queryValidator.validate(querySpec)).thenReturn(Result.success());
+
+        var policies = policyServiceImpl.search(querySpec);
 
         assertThat(policies.succeeded()).isTrue();
         assertThat(policies.getContent()).containsExactly(policy);
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(InvalidFilters.class)
-    void search_invalidExpression_raiseException(Criterion invalidFilter) {
+    @Test
+    void search_failure() {
         var query = QuerySpec.Builder.newInstance()
-                .filter(invalidFilter)
+                .filter(Criterion.criterion("test", "=", "test1"))
                 .build();
+        when(queryValidator.validate(query)).thenReturn(Result.failure("Test message"));
 
         var result = policyServiceImpl.search(query);
 
         assertThat(result).isFailed();
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(ValidFilters.class)
-    void search_validExpression_privateProperties(Criterion validFilter) {
+    @Test
+    void search_success() {
         var query = QuerySpec.Builder.newInstance()
-                .filter(validFilter)
+                .filter(Criterion.criterion("test", "=", "test"))
                 .build();
+        when(queryValidator.validate(query)).thenReturn(Result.success());
 
         var result = policyServiceImpl.search(query);
 
@@ -240,33 +247,63 @@ class PolicyDefinitionServiceImplTest {
         verify(observable, never()).invokeForEach(any());
     }
 
-    private static class InvalidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("policy.permissions.action.constraint.noexist", "=", "123455")), // wrong property
-                    arguments(criterion("permissions.action.constraint.leftExpression", "=", "123455")), // missing root
-                    arguments(criterion("policy.permissions.action.leftExpression", "=", "123455")) // skips path element
-            );
+    @Nested
+    class QueryValidatorIntegrationTest {
+        private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable);
+
+        @ParameterizedTest
+        @ArgumentsSource(InvalidFilters.class)
+        void search_invalidExpression_raiseException(Criterion invalidFilter) {
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(invalidFilter)
+                    .build();
+
+            var result = policyServiceImpl.search(query);
+
+            assertThat(result).isFailed();
         }
-    }
 
-    private static class ValidFilters implements ArgumentsProvider {
-        private static final String PRIVATE_PROPERTIES = "privateProperties";
-        private static final String EDC_NAMESPACE = "'https://w3id.org/edc/v0.0.1/ns/'";
-        private static final String KEY = "key";
+        @ParameterizedTest
+        @ArgumentsSource(ValidFilters.class)
+        void search_validExpression_privateProperties(Criterion validFilter) {
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(validFilter)
+                    .build();
 
-        private static final String VALUE = "123455";
+            var result = policyServiceImpl.search(query);
 
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion(PRIVATE_PROPERTIES, "=", VALUE)), // path element with privateProperties
-                    arguments(criterion(PRIVATE_PROPERTIES + "." + KEY, "=", VALUE)), // path element with privateProperties and key
-                    arguments(criterion(PRIVATE_PROPERTIES + ".'" + KEY + "'", "=", VALUE)), // path element with privateProperties and 'key'
-                    arguments(criterion(PRIVATE_PROPERTIES + "." + EDC_NAMESPACE + KEY, "=", VALUE)) // path element with privateProperties and edc_namespace key
-            );
+            assertThat(result).isSucceeded();
         }
+
+        private static class InvalidFilters implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(criterion("policy.permissions.action.constraint.noexist", "=", "123455")), // wrong property
+                        arguments(criterion("permissions.action.constraint.leftExpression", "=", "123455")), // missing root
+                        arguments(criterion("policy.permissions.action.leftExpression", "=", "123455")) // skips path element
+                );
+            }
+        }
+
+        private static class ValidFilters implements ArgumentsProvider {
+            private static final String PRIVATE_PROPERTIES = "privateProperties";
+            private static final String EDC_NAMESPACE = "'https://w3id.org/edc/v0.0.1/ns/'";
+            private static final String KEY = "key";
+
+            private static final String VALUE = "123455";
+
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(criterion(PRIVATE_PROPERTIES, "=", VALUE)), // path element with privateProperties
+                        arguments(criterion(PRIVATE_PROPERTIES + "." + KEY, "=", VALUE)), // path element with privateProperties and key
+                        arguments(criterion(PRIVATE_PROPERTIES + ".'" + KEY + "'", "=", VALUE)), // path element with privateProperties and 'key'
+                        arguments(criterion(PRIVATE_PROPERTIES + "." + EDC_NAMESPACE + KEY, "=", VALUE)) // path element with privateProperties and edc_namespace key
+                );
+            }
+        }
+
     }
 
     @NotNull

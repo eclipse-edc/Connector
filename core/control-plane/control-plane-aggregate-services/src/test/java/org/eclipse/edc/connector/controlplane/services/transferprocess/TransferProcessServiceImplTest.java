@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.controlplane.services.transferprocess;
 
 import org.assertj.core.api.Assertions;
+import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
@@ -31,6 +32,7 @@ import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -76,9 +78,10 @@ class TransferProcessServiceImplTest {
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
     private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final CommandHandlerRegistry commandHandlerRegistry = mock();
+    private final QueryValidator queryValidator = mock();
 
     private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext,
-            dataAddressValidator, commandHandlerRegistry);
+            dataAddressValidator, commandHandlerRegistry, queryValidator);
 
     @Test
     void findById_whenFound() {
@@ -96,6 +99,7 @@ class TransferProcessServiceImplTest {
     @Test
     void search() {
         when(store.findAll(query)).thenReturn(Stream.of(process1, process2));
+        when(queryValidator.validate(query)).thenReturn(Result.success());
 
         var result = service.search(query);
 
@@ -103,20 +107,21 @@ class TransferProcessServiceImplTest {
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(InvalidFilters.class)
-    void search_invalidFilter_raiseException(Criterion invalidFilter) {
-        var spec = QuerySpec.Builder.newInstance().filter(invalidFilter).build();
+    @Test
+    void search_failure() {
+        var spec = QuerySpec.Builder.newInstance().filter(criterion("left", "op", "right")).build();
+        when(queryValidator.validate(spec)).thenReturn(Result.failure("Test failure"));
 
         var result = service.search(spec);
 
         assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureMessages()).contains("Error validating schema: Test failure");
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(ValidFilters.class)
-    void search_validFilter(Criterion validFilter) {
-        var spec = QuerySpec.Builder.newInstance().filter(validFilter).build();
+    @Test
+    void search_success() {
+        var spec = QuerySpec.Builder.newInstance().filter(criterion("left", "op", "right")).build();
+        when(queryValidator.validate(spec)).thenReturn(Result.success());
 
         service.search(spec);
 
@@ -256,26 +261,54 @@ class TransferProcessServiceImplTest {
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
-    private static class InvalidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("provisionedResourceSet.resources.hastoken", "=", "true")), // wrong case
-                    arguments(criterion("resourceManifest.definitions.notexist", "=", "foobar")), // property not exist
-                    arguments(criterion("contentDataAddress.properties[*].someKey", "=", "someval")) // map types not supported
-            );
-        }
-    }
+    @Nested
+    class QueryValidatorIntegrationTest {
+        private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext,
+                dataAddressValidator, commandHandlerRegistry);
 
-    private static class ValidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("deprovisionedResources.provisionedResourceId", "=", "someval")),
-                    arguments(criterion("type", "=", "CONSUMER")),
-                    arguments(criterion("provisionedResourceSet.resources.hasToken", "=", "true"))
-            );
+        @ParameterizedTest
+        @ArgumentsSource(InvalidFilters.class)
+        void search_invalidFilter_raiseException(Criterion invalidFilter) {
+            var spec = QuerySpec.Builder.newInstance().filter(invalidFilter).build();
+
+            var result = service.search(spec);
+
+            assertThat(result.failed()).isTrue();
         }
+
+        @ParameterizedTest
+        @ArgumentsSource(ValidFilters.class)
+        void search_validFilter(Criterion validFilter) {
+            var spec = QuerySpec.Builder.newInstance().filter(validFilter).build();
+
+            service.search(spec);
+
+            verify(store).findAll(spec);
+            verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        private static class InvalidFilters implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(criterion("provisionedResourceSet.resources.hastoken", "=", "true")), // wrong case
+                        arguments(criterion("resourceManifest.definitions.notexist", "=", "foobar")), // property not exist
+                        arguments(criterion("contentDataAddress.properties[*].someKey", "=", "someval")) // map types not supported
+                );
+            }
+        }
+
+        private static class ValidFilters implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(criterion("deprovisionedResources.provisionedResourceId", "=", "someval")),
+                        arguments(criterion("type", "=", "CONSUMER")),
+                        arguments(criterion("provisionedResourceSet.resources.hasToken", "=", "true"))
+                );
+            }
+        }
+
     }
 
     private TransferProcess transferProcess() {

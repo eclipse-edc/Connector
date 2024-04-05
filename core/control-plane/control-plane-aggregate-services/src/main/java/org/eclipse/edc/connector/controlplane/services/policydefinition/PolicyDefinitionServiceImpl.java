@@ -20,21 +20,12 @@ import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitio
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
-import org.eclipse.edc.policy.model.AndConstraint;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.Constraint;
-import org.eclipse.edc.policy.model.Expression;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.MultiplicityConstraint;
-import org.eclipse.edc.policy.model.OrConstraint;
-import org.eclipse.edc.policy.model.XoneConstraint;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Map;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -49,11 +40,17 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
 
     public PolicyDefinitionServiceImpl(TransactionContext transactionContext, PolicyDefinitionStore policyStore,
                                        ContractDefinitionStore contractDefinitionStore, PolicyDefinitionObservable observable) {
+        this(transactionContext, policyStore, contractDefinitionStore, observable,
+                new QueryValidator(PolicyDefinition.class, new PolicyDefinitionServiceSubtypesProvider().getSubtypeMap()));
+    }
+
+    public PolicyDefinitionServiceImpl(TransactionContext transactionContext, PolicyDefinitionStore policyStore,
+                                       ContractDefinitionStore contractDefinitionStore, PolicyDefinitionObservable observable, QueryValidator queryValidator) {
         this.transactionContext = transactionContext;
         this.policyStore = policyStore;
         this.contractDefinitionStore = contractDefinitionStore;
         this.observable = observable;
-        queryValidator = new QueryValidator(PolicyDefinition.class, getSubtypeMap());
+        this.queryValidator = queryValidator;
     }
 
     @Override
@@ -123,13 +120,5 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
                 return stream.toList();
             }
         });
-    }
-
-    private Map<Class<?>, List<Class<?>>> getSubtypeMap() {
-        return Map.of(
-                Constraint.class, List.of(MultiplicityConstraint.class, AtomicConstraint.class),
-                MultiplicityConstraint.class, List.of(AndConstraint.class, OrConstraint.class, XoneConstraint.class),
-                Expression.class, List.of(LiteralExpression.class)
-        );
     }
 }

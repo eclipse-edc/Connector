@@ -17,9 +17,11 @@ package org.eclipse.edc.connector.controlplane.services.contractagreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -43,7 +45,8 @@ class ContractAgreementServiceImplTest {
 
     private final ContractNegotiationStore store = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final ContractAgreementService service = new ContractAgreementServiceImpl(store, transactionContext);
+    private final QueryValidator queryValidator = mock();
+    private final ContractAgreementService service = new ContractAgreementServiceImpl(store, transactionContext, queryValidator);
 
     @Test
     void findById_filtersById() {
@@ -68,6 +71,7 @@ class ContractAgreementServiceImplTest {
     void search_filtersBySpec() {
         var agreement = createContractAgreement("agreementId");
         when(store.queryAgreements(isA(QuerySpec.class))).thenReturn(Stream.of(agreement));
+        when(queryValidator.validate(any())).thenReturn(Result.success());
 
         var result = service.search(QuerySpec.none());
 
