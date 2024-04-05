@@ -103,9 +103,9 @@ maven/mavencentral/commons-logging/commons-logging/1.2, Apache-2.0, approved, CQ
 maven/mavencentral/dev.failsafe/failsafe-okhttp/3.3.2, Apache-2.0, approved, #9178
 maven/mavencentral/dev.failsafe/failsafe/3.3.2, Apache-2.0, approved, #9268
 maven/mavencentral/info.picocli/picocli/4.7.5, Apache-2.0, approved, #4365
-maven/mavencentral/io.cloudevents/cloudevents-api/3.0.0, , restricted, clearlydefined
-maven/mavencentral/io.cloudevents/cloudevents-core/3.0.0, , restricted, clearlydefined
-maven/mavencentral/io.cloudevents/cloudevents-http-basic/3.0.0, , restricted, clearlydefined
+maven/mavencentral/io.cloudevents/cloudevents-api/3.0.0, Apache-2.0, approved, #14228
+maven/mavencentral/io.cloudevents/cloudevents-core/3.0.0, Apache-2.0, approved, #14227
+maven/mavencentral/io.cloudevents/cloudevents-http-basic/3.0.0, Apache-2.0, approved, #14229
 maven/mavencentral/io.github.classgraph/classgraph/4.8.154, MIT, approved, CQ22530
 maven/mavencentral/io.micrometer/micrometer-commons/1.12.4, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #11679
 maven/mavencentral/io.micrometer/micrometer-core/1.12.4, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #11678
@@ -348,7 +348,7 @@ maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
 maven/mavencentral/org.testcontainers/database-commons/1.19.7, Apache-2.0, approved, #10345
 maven/mavencentral/org.testcontainers/jdbc/1.19.7, Apache-2.0, approved, #10348
 maven/mavencentral/org.testcontainers/junit-jupiter/1.19.7, MIT, approved, #10344
-maven/mavencentral/org.testcontainers/kafka/1.19.7, None, restricted, #14177
+maven/mavencentral/org.testcontainers/kafka/1.19.7, MIT, approved, #14177
 maven/mavencentral/org.testcontainers/postgresql/1.19.7, MIT, approved, #10350
 maven/mavencentral/org.testcontainers/testcontainers/1.19.7, Apache-2.0 AND MIT, approved, #10347
 maven/mavencentral/org.testcontainers/vault/1.19.7, MIT, approved, #10852
