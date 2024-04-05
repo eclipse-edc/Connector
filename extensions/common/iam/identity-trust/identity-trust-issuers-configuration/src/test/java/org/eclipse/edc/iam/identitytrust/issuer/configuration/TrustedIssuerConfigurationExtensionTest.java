@@ -17,7 +17,7 @@ package org.eclipse.edc.iam.identitytrust.issuer.configuration;
 import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -29,11 +29,11 @@ import org.mockito.ArgumentCaptor;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -58,11 +58,16 @@ public class TrustedIssuerConfigurationExtensionTest {
     }
 
     @Test
-    void initialize_failure_WithNoIssuer(ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
+    void initialize_WithNoIssuer(ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext, Monitor monitor) {
         var cfg = ConfigFactory.fromMap(Map.of());
         when(context.getConfig("edc.iam.trusted-issuer")).thenReturn(cfg);
 
-        assertThatThrownBy(() -> ext.initialize(context)).isInstanceOf(EdcException.class);
+        ext.initialize(context);
+
+        verifyNoMoreInteractions(trustedIssuerRegistry);
+
+        verify(monitor).warning("The list of trusted issuers is empty");
+
     }
 
     @Test
