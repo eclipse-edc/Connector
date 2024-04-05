@@ -20,7 +20,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -50,13 +50,15 @@ public class TrustedIssuerConfigurationExtension implements ServiceExtension {
     private TrustedIssuerRegistry trustedIssuerRegistry;
     @Inject
     private TypeManager typeManager;
+    @Inject
+    private Monitor monitor;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var config = context.getConfig(CONFIG_PREFIX);
         var issuers = config.partition().map(this::configureIssuer).toList();
         if (issuers.isEmpty()) {
-            throw new EdcException("The list of trusted issuers is empty");
+            monitor.warning("The list of trusted issuers is empty");
         }
         issuers.forEach(issuer -> trustedIssuerRegistry.addIssuer(issuer));
     }
