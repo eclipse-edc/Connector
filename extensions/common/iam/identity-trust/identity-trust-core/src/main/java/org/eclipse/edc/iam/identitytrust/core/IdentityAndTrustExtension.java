@@ -30,6 +30,8 @@ import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.spi.verification.PresentationVerifier;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
+import org.eclipse.edc.iam.verifiablecredentials.StatusList2021RevocationService;
+import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -65,6 +67,9 @@ import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.
 @Extension("Identity And Trust Extension")
 public class IdentityAndTrustExtension implements ServiceExtension {
 
+    public static final long DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS = 15 * 60 * 1000L;
+    @Setting(value = "Validity period of cached StatusList2021 credential entries in milliseconds.", defaultValue = DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS + "", type = "long")
+    public static final String REVOCATION_CACHE_VALIDITY = "edc.iam.credential.revocation.cache.validity";
     @Setting(value = "DID of this connector", required = true)
     public static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
     public static final String IATP_SELF_ISSUED_TOKEN_CONTEXT = "iatp-si";
@@ -117,6 +122,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
+    private RevocationListService revocationListService;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -143,8 +149,9 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     public IdentityService createIdentityService(ServiceExtensionContext context) {
         var credentialServiceUrlResolver = new DidCredentialServiceUrlResolver(didResolverRegistry);
         var validationAction = tokenValidationAction();
+
         return new IdentityAndTrustService(secureTokenService, getOwnDid(context), getPresentationVerifier(context),
-                getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver, claimTokenFunction);
+                getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver, claimTokenFunction, revocationListService);
     }
 
     @Provider
@@ -172,6 +179,15 @@ public class IdentityAndTrustExtension implements ServiceExtension {
             presentationVerifier = new MultiFormatPresentationVerifier(getOwnDid(context), jwtVerifier, ldpVerifier);
         }
         return presentationVerifier;
+    }
+
+    @Provider
+    public RevocationListService createRevocationListService(ServiceExtensionContext context) {
+        if (revocationListService == null) {
+            var validity = context.getConfig().getLong(REVOCATION_CACHE_VALIDITY, DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS);
+            revocationListService = new StatusList2021RevocationService(typeManager.getMapper(), validity);
+        }
+        return revocationListService;
     }
 
     @NotNull

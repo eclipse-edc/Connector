@@ -27,4 +27,5 @@ public interface VcConstants {
     String PRESENTATION_SUBMISSION_URL = "https://identity.foundation/presentation-exchange/submission/v1/";
     String JWS_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
     String ED25519_SIGNATURE_SUITE = "Ed25519Signature2020"; // not used right now
+    String VC_PREFIX_V2 = "https://www.w3.org/ns/credentials/v2";
 }

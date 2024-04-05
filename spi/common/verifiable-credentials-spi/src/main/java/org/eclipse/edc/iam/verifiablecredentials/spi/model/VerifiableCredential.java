@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
@@ -40,18 +41,18 @@ public class VerifiableCredential {
     public static final String VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY = SCHEMA_ORG_NAMESPACE + "description";
     public static final String VERIFIABLE_CREDENTIAL_PROOF_PROPERTY = "https://w3id.org/security#proof";
 
-    private List<CredentialSubject> credentialSubject = new ArrayList<>();
-    private String id; // must be URI, but URI is less efficient at runtime
+    protected List<CredentialSubject> credentialSubject = new ArrayList<>();
+    protected String id; // must be URI, but URI is less efficient at runtime
 
-    private List<String> type = new ArrayList<>();
-    private Issuer issuer; // can be URI or an object containing an ID
-    private Instant issuanceDate; // v2 of the spec renames this to "validFrom"
-    private Instant expirationDate; // v2 of the spec renames this to "validUntil"
-    private CredentialStatus credentialStatus;
-    private String description;
-    private String name;
+    protected List<String> type = new ArrayList<>();
+    protected Issuer issuer; // can be URI or an object containing an ID
+    protected Instant issuanceDate; // v2 of the spec renames this to "validFrom"
+    protected Instant expirationDate; // v2 of the spec renames this to "validUntil"
+    protected List<CredentialStatus> credentialStatus = new ArrayList<>();
+    protected String description;
+    protected String name;
 
-    private VerifiableCredential() {
+    protected VerifiableCredential() {
     }
 
     public List<CredentialSubject> getCredentialSubject() {
@@ -70,6 +71,7 @@ public class VerifiableCredential {
         return issuer;
     }
 
+    @JsonAlias({ "issued" }) // some credentials like StatusList2021 don't adhere to the spec
     @NotNull
     public Instant getIssuanceDate() {
         return issuanceDate;
@@ -79,7 +81,7 @@ public class VerifiableCredential {
         return expirationDate;
     }
 
-    public CredentialStatus getCredentialStatus() {
+    public List<CredentialStatus> getCredentialStatus() {
         return credentialStatus;
     }
 
@@ -91,76 +93,82 @@ public class VerifiableCredential {
         return name;
     }
 
-    public static final class Builder {
-        private final VerifiableCredential instance;
+    public static class Builder<T extends VerifiableCredential, B extends Builder<T, B>> {
+        protected final T instance;
 
-        private Builder() {
-            instance = new VerifiableCredential();
+        protected Builder(T credential) {
+            instance = credential;
         }
 
         public static Builder newInstance() {
-            return new Builder();
+            return new Builder(new VerifiableCredential());
         }
 
-        public Builder credentialSubjects(List<CredentialSubject> credentialSubject) {
+        public B credentialSubjects(List<CredentialSubject> credentialSubject) {
             this.instance.credentialSubject = credentialSubject;
-            return this;
+            return self();
         }
 
-        public Builder credentialSubject(CredentialSubject subject) {
+        public B credentialSubject(CredentialSubject subject) {
             this.instance.credentialSubject.add(subject);
-            return this;
+            return self();
         }
 
-        public Builder id(String id) {
+        public B id(String id) {
             this.instance.id = id;
-            return this;
+            return self();
         }
 
-        public Builder types(List<String> type) {
+        public B types(List<String> type) {
             this.instance.type = type;
-            return this;
+            return self();
         }
 
-        public Builder type(String type) {
+        public B type(String type) {
             this.instance.type.add(type);
-            return this;
+            return self();
         }
 
-        public Builder description(String desc) {
+        public B description(String desc) {
             this.instance.description = desc;
-            return this;
+            return self();
         }
 
         /**
          * Issuers can be URIs or objects containing an ID
          */
-        public Builder issuer(Issuer issuer) {
+        public B issuer(Issuer issuer) {
             this.instance.issuer = issuer;
-            return this;
+            return self();
         }
 
-        public Builder issuanceDate(Instant issuanceDate) {
+        public B issuanceDate(Instant issuanceDate) {
             this.instance.issuanceDate = issuanceDate;
-            return this;
+            return self();
         }
 
-        public Builder expirationDate(Instant expirationDate) {
+        public B expirationDate(Instant expirationDate) {
             this.instance.expirationDate = expirationDate;
-            return this;
+            return self();
         }
 
-        public Builder credentialStatus(CredentialStatus credentialStatus) {
+        // yes, the plural of "status" is "status"
+        public B credentialStatus(List<CredentialStatus> credentialStatus) {
             this.instance.credentialStatus = credentialStatus;
-            return this;
+            return self();
         }
 
-        public Builder name(String name) {
+        public B credentialStatus(CredentialStatus credentialStatus) {
+            this.instance.credentialStatus.add(credentialStatus);
+            return self();
+        }
+
+        public B name(String name) {
             this.instance.name = name;
-            return this;
+            return self();
         }
 
-        public VerifiableCredential build() {
+        public T build() {
             if (instance.type.isEmpty()) {
                 throw new IllegalArgumentException("VerifiableCredentials MUST have at least one 'type' value.");
             }
@@ -173,6 +181,8 @@ public class VerifiableCredential {
             return instance;
         }
 
-
+        protected B self() {
+            return (B) this;
+        }
     }
 }

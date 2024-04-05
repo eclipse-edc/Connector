@@ -17,13 +17,14 @@ package org.eclipse.edc.iam.identitytrust.service;
 import org.eclipse.edc.iam.identitytrust.service.validation.rules.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.service.validation.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsNotExpired;
-import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsRevoked;
+import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsNotRevoked;
 import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.spi.verification.PresentationVerifier;
+import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
@@ -79,6 +80,7 @@ public class IdentityAndTrustService implements IdentityService {
     private final Clock clock;
     private final CredentialServiceUrlResolver credentialServiceUrlResolver;
     private final ClaimTokenCreatorFunction claimTokenCreatorFunction;
+    private final RevocationListService revocationListService;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -89,7 +91,11 @@ public class IdentityAndTrustService implements IdentityService {
     public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid,
                                    PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
                                    TokenValidationAction tokenValidationAction,
-                                   TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver, ClaimTokenCreatorFunction claimTokenCreatorFunction) {
+                                   TrustedIssuerRegistry trustedIssuerRegistry,
+                                   Clock clock,
+                                   CredentialServiceUrlResolver csUrlResolver,
+                                   ClaimTokenCreatorFunction claimTokenCreatorFunction,
+                                   RevocationListService revocationListService) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
         this.presentationVerifier = presentationVerifier;
@@ -99,6 +105,7 @@ public class IdentityAndTrustService implements IdentityService {
         this.clock = clock;
         this.credentialServiceUrlResolver = csUrlResolver;
         this.claimTokenCreatorFunction = claimTokenCreatorFunction;
+        this.revocationListService = revocationListService;
     }
 
     @Override
@@ -178,15 +185,21 @@ public class IdentityAndTrustService implements IdentityService {
 
     @NotNull
     private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, String issuer) {
+
+
         // in addition, verify that all VCs are valid
         var filters = new ArrayList<>(List.of(
                 new IsNotExpired(clock),
                 new HasValidSubjectIds(issuer),
-                new IsRevoked(null),
+                new IsNotRevoked(revocationListService),
                 new HasValidIssuer(getTrustedIssuerIds())));
 
+
         filters.addAll(getAdditionalValidations());
-        var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c)).reduce(Result::merge);
+        var results = credentials
+                .stream()
+                .map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c))
+                .reduce(Result::merge);
         return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
     }
 
