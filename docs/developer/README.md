@@ -3,7 +3,7 @@
 ## Architecture
 - [Terminology](terminology.md)
 - [Contracts](contracts.md)
-- [Data Transfer](data-transfer.md)
+- [Transfer Process](transfer-process)
 - [Identity Management](identity-management.md)
 - [Terminology](terminology.md)
 - [Dataspace Protocol](ids-dataspace-protocol/)
