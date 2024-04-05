@@ -329,5 +329,4 @@ class TransferProcessServiceImplTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("type").build())
                 .build();
     }
-
 }
