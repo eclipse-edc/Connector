@@ -210,9 +210,10 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         public JsonObject visitDuty(Duty duty) {
             var obligationBuilder = visitRule(duty);
 
-            if (duty.getConsequence() != null) {
-                var consequence = visitDuty(duty.getConsequence());
-                obligationBuilder.add(ODRL_CONSEQUENCE_ATTRIBUTE, consequence);
+            var consequences = duty.getConsequences();
+            if (consequences != null && !consequences.isEmpty()) {
+                var consequencesJson = consequences.stream().map(this::visitDuty).collect(toJsonArray());
+                obligationBuilder.add(ODRL_CONSEQUENCE_ATTRIBUTE, consequencesJson);
             }
 
             return obligationBuilder.build();

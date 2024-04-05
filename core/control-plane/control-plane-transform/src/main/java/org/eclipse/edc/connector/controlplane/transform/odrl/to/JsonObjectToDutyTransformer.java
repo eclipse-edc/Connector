@@ -43,7 +43,7 @@ public class JsonObjectToDutyTransformer extends AbstractJsonLdTransformer<JsonO
         visitProperties(object, key -> switch (key) {
             case ODRL_ACTION_ATTRIBUTE -> value -> builder.action(transformObject(value, Action.class, context));
             case ODRL_CONSTRAINT_ATTRIBUTE -> value -> builder.constraints(transformArray(value, Constraint.class, context));
-            case ODRL_CONSEQUENCE_ATTRIBUTE -> value -> builder.consequence(transformObject(value, Duty.class, context));
+            case ODRL_CONSEQUENCE_ATTRIBUTE -> value -> builder.consequences(transformArray(value, Duty.class, context));
             default -> doNothing();
         });
 

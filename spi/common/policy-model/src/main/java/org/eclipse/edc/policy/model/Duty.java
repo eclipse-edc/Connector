@@ -21,24 +21,20 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.util.stream.Collectors.joining;
 
 /**
  * An obligation that must be performed if all its constraints are satisfied.
- * TODO: Do we need to support deserializing the parent permission setting?
  */
 @JsonDeserialize(builder = Duty.Builder.class)
 @JsonTypeName("dataspaceconnector:duty")
 public class Duty extends Rule {
 
     private Permission parentPermission;
-
-    @Nullable
-    private Duty consequence;
-
-    public Duty getConsequence() {
-        return consequence;
-    }
+    private final List<Duty> consequences = new ArrayList<>();
 
     /**
      * If this duty is part of a permission, returns the parent permission; otherwise returns null.
@@ -46,6 +42,10 @@ public class Duty extends Rule {
     @Nullable
     public Permission getParentPermission() {
         return parentPermission;
+    }
+
+    public List<Duty> getConsequences() {
+        return consequences;
     }
 
     void setParentPermission(Permission permission) {
@@ -80,7 +80,12 @@ public class Duty extends Rule {
         }
 
         public Builder consequence(Duty consequence) {
-            rule.consequence = consequence;
+            rule.consequences.add(consequence);
+            return this;
+        }
+
+        public Builder consequences(List<Duty> consequences) {
+            rule.consequences.addAll(consequences);
             return this;
         }
 

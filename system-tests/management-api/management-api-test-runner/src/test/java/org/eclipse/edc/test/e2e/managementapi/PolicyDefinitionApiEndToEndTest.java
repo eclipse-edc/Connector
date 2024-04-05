@@ -20,11 +20,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.Prohibition;
-import org.eclipse.edc.policy.model.Rule;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -38,7 +34,6 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
-import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -108,14 +103,6 @@ public class PolicyDefinitionApiEndToEndTest {
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
 
-            assertThat(store().findById(id)).isNotNull()
-                    .extracting(PolicyDefinition::getPolicy).isNotNull().satisfies(policy -> {
-                        assertThat(policy.getPermissions()).hasSize(1);
-                        assertThat(policy.getProhibitions()).hasSize(1).first()
-                                .extracting(Prohibition::getRemedies).asInstanceOf(list(Duty.class)).first()
-                                .extracting(Rule::getAction).extracting(Action::getType).isEqualTo(ODRL_SCHEMA + "anonymize");
-                    });
-
             baseRequest()
                     .get("/v2/policydefinitions/" + id)
                     .then()
@@ -126,7 +113,8 @@ public class PolicyDefinitionApiEndToEndTest {
                     .body(CONTEXT, hasEntry(EDC_PREFIX, EDC_NAMESPACE))
                     .body(CONTEXT, hasEntry(ODRL_PREFIX, ODRL_SCHEMA))
                     .body("policy.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"))
-                    .body("policy.'odrl:prohibition'.'odrl:remedy'.'odrl:action'.'odrl:type'", is(ODRL_SCHEMA + "anonymize"));
+                    .body("policy.'odrl:prohibition'.'odrl:remedy'.'odrl:action'.'odrl:type'", is(ODRL_SCHEMA + "anonymize"))
+                    .body("policy.'odrl:obligation'.'odrl:consequence'.size()", is(2));
         }
 
         @Test
@@ -346,6 +334,16 @@ public class PolicyDefinitionApiEndToEndTest {
                                     .add("remedy", createObjectBuilder()
                                             .add("action", "anonymize"))
                             ))
+                    .add("obligation", createArrayBuilder()
+                            .add(createObjectBuilder()
+                                    .add("target", "http://example.com/data:77")
+                                    .add("action", "use")
+                                    .add("consequence", createArrayBuilder()
+                                            .add(createObjectBuilder().add("action", "use"))
+                                            .add(createObjectBuilder().add("action", "anonymize"))
+                                    )
+                            )
+                    )
                     .build();
         }
 
