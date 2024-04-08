@@ -42,7 +42,9 @@ public class StatusList2021RevocationService implements RevocationListService {
     private final Cache<String, VerifiableCredential> cache;
 
     public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidity) {
-        this.objectMapper = objectMapper.copy().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
+        this.objectMapper = objectMapper.copy()
+                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // technically, credential subjects and credential status can be objects AND Arrays
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
         cache = new Cache<>(this::updateCredential, cacheValidity);
     }
 
