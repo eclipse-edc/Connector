@@ -26,7 +26,9 @@ import org.mockserver.verify.VerificationTimes;
 
 import java.util.Map;
 
-import static org.eclipse.edc.iam.verifiablecredentials.TestData.STATUS_LIST_CREDENTIAL;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_CREDENTIAL;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_INDEX;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_PURPOSE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.model.HttpRequest.request;
@@ -42,15 +44,15 @@ class StatusList2021RevocationServiceTest {
     void setup() {
         clientAndServer = ClientAndServer.startClientAndServer("localhost", getFreePort());
         clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                .respond(HttpResponse.response().withStatusCode(200).withBody(STATUS_LIST_CREDENTIAL));
+                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL));
     }
 
     @Test
     void checkRevocation_whenNotCached_valid() {
         var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
-                        Map.of("statusPurpose", "revocation",
-                                "statusListIndex", NOT_REVOKED_INDEX,
-                                "statusListCredential", "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
+                        Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                                STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
                 .build();
         assertThat(revocationService.checkValidity(credential)).isSucceeded();
     }
@@ -58,9 +60,9 @@ class StatusList2021RevocationServiceTest {
     @Test
     void checkRevocation_whenNotCached_credentialPurposeMismatch() {
         var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
-                        Map.of("statusPurpose", "suspension",
-                                "statusListIndex", NOT_REVOKED_INDEX,
-                                "statusListCredential", "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
+                        Map.of(STATUS_LIST_PURPOSE, "suspension",
+                                STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                                STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
                 .build();
         assertThat(revocationService.checkValidity(credential)).isFailed()
                 .detail().startsWith("Credential's statusPurpose value must match the status list's purpose:");
@@ -69,20 +71,20 @@ class StatusList2021RevocationServiceTest {
     @Test
     void checkRevocation_whenNotCached_invalid() {
         var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
-                        Map.of("statusPurpose", "revocation",
-                                "statusListIndex", REVOKED_INDEX,
-                                "statusListCredential", "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
+                        Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                STATUS_LIST_INDEX, REVOKED_INDEX,
+                                STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
                 .build();
         assertThat(revocationService.checkValidity(credential)).isFailed()
-                .detail().isEqualTo("Credential status is 'revocation', status at index %d is '1''".formatted(REVOKED_INDEX));
+                .detail().isEqualTo("Credential status is 'revocation', status at index %d is '1'".formatted(REVOKED_INDEX));
     }
 
     @Test
     void checkRevocation_whenCached_valid() {
-        var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
-                        Map.of("statusPurpose", "revocation",
-                                "statusListIndex", NOT_REVOKED_INDEX,
-                                "statusListCredential", "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
+        var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021Entry",
+                        Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                                STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
                 .build();
         assertThat(revocationService.checkValidity(credential)).isSucceeded();
         assertThat(revocationService.checkValidity(credential)).isSucceeded();

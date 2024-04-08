@@ -20,18 +20,27 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.time.Clock;
 
-public class IsNotExpired implements CredentialValidationRule {
+/**
+ * Rule that verifies, that a credential is already valid ({@code issuanceDate} is before NOW), and that it is not yet expired.
+ * {@code expirationDate} is not mandatory, so expiration is only checked if it is present.
+ */
+public class IsInValidityPeriod implements CredentialValidationRule {
     private final Clock clock;
 
-    public IsNotExpired(Clock clock) {
+    public IsInValidityPeriod(Clock clock) {
         this.clock = clock;
     }
 
     @Override
     public Result<Void> apply(VerifiableCredential credential) {
+        var now = clock.instant();
         // issuance date can not be null, due to builder validation
-        return credential.getIssuanceDate().isAfter(clock.instant()) ?
-                Result.failure("Credential is not yet valid.") :
-                Result.success();
+        if (credential.getIssuanceDate().isAfter(now)) {
+            return Result.failure("Credential is not yet valid.");
+        }
+        if (credential.getExpirationDate() != null && credential.getExpirationDate().isBefore(now)) {
+            return Result.failure("Credential expired.");
+        }
+        return Result.success();
     }
 }

@@ -29,8 +29,8 @@ public class TestData {
               "credentialSubject": [{
                 "id": "https://example.com/status/3#list",
                 "type": "StatusList2021",
-                "statusPurpose": "revocation",
-                "encodedList": "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA"
+                "https://w3id.org/vc/status-list#statusPurpose": "revocation",
+                "https://w3id.org/vc/status-list#encodedList": "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA"
               }]
             }
             """;

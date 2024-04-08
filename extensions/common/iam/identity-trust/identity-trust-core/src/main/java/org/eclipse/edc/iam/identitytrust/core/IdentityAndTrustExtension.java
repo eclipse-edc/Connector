@@ -58,9 +58,11 @@ import org.eclipse.edc.verifiablecredentials.linkeddata.DidMethodResolver;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URISyntaxException;
 import java.time.Clock;
 import java.util.Map;
 
+import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.JWT_VC_TOKEN_CONTEXT;
 
@@ -142,6 +144,12 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         // TODO move in a separated extension?
         signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new JwsSignature2020Suite(typeManager.getMapper(JSON_LD)));
 
+        try {
+            jsonLd.registerCachedDocument(STATUSLIST_2021_URL, getClass().getClassLoader().getResource("statuslist2021.json").toURI());
+        } catch (URISyntaxException e) {
+            context.getMonitor().warning("Could not load JSON-LD file", e);
+        }
+
         participantAgentService.register(participantAgentServiceExtension);
     }
 
@@ -151,7 +159,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         var validationAction = tokenValidationAction();
 
         return new IdentityAndTrustService(secureTokenService, getOwnDid(context), getPresentationVerifier(context),
-                getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver, claimTokenFunction, revocationListService);
+                getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver, claimTokenFunction, createRevocationListService(context));
     }
 
     @Provider
