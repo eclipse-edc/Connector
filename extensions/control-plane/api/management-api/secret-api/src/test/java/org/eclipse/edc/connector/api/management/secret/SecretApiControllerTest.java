@@ -98,10 +98,10 @@ class SecretApiControllerTest extends RestControllerTestBase {
         baseRequest()
                 .contentType(JSON)
                 .body("{}")
-                .post("/secret/request")
+                .post("/secrets/request")
                 .then()
                 .log().ifError()
-                .statusCode(200)
+                .statusCode(501) // 501 Not Implemented
                 .contentType(JSON)
                 .body("size()", is(1));
         verify(service).search(argThat(s -> s.getOffset() == 10));

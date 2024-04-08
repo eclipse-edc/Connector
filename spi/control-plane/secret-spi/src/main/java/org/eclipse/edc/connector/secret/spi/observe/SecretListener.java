@@ -37,7 +37,10 @@ public interface SecretListener {
      *
      * @param secret the secret that has been deleted.
      */
-    default void deleted(Secret secret) {
+
+    //default void deleted(Secret secret) {
+    default void deleted(String secretId) {
+        // TODO: SB: To be discussed
 
     }
 

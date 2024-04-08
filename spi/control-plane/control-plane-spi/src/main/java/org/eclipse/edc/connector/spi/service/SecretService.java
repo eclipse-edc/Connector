@@ -23,9 +23,9 @@ import java.util.List;
 public interface SecretService {
 
     /**
-     * Returns an asset by its id
+     * Returns an secret by its id
      *
-     * @param secretId id of the asset
+     * @param secretId id of the secret
      * @return the secret, null if it's not found
      */
     Secret findById(String secretId);
@@ -34,7 +34,7 @@ public interface SecretService {
      * Search Secrets
      *
      * @param query the query
-     * @return the collection of assets that matches the query
+     * @return the collection of secrets that matches the query
      */
     ServiceResult<List<Secret>> search(QuerySpec query);
 
@@ -42,7 +42,7 @@ public interface SecretService {
      * Create a secret
      *
      * @param secret the secret
-     * @return successful result if the asset is created correctly, failure otherwise
+     * @return successful result if the secret is created correctly, failure otherwise
      */
     ServiceResult<Secret> create(Secret secret);
 
