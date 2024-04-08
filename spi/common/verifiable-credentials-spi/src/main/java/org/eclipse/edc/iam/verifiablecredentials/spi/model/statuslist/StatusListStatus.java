@@ -19,15 +19,11 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import java.util.Map;
 
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_PREFIX;
 
 /**
  * Specialized {@code credentialStatus}, that contains information mandated by the StatusList2021 standard.
  */
 public class StatusListStatus {
-    public static final String STATUS_LIST_CREDENTIAL = STATUSLIST_2021_PREFIX + "statusListCredential";
-    public static final String STATUS_LIST_INDEX = STATUSLIST_2021_PREFIX + "statusListIndex";
-    public static final String STATUS_PURPOSE = STATUSLIST_2021_PREFIX + "statusPurpose";
 
     private String statusListPurpose;
     private int statusListIndex;
@@ -40,22 +36,22 @@ public class StatusListStatus {
         var instance = new StatusListStatus();
         instance.statusListCredential = ofNullable(getId(status))
                 .map(Object::toString)
-                .orElseThrow(() -> new IllegalArgumentException(missingProperty(STATUS_LIST_CREDENTIAL)));
+                .orElseThrow(() -> new IllegalArgumentException(missingProperty(StatusList2021Credential.STATUS_LIST_CREDENTIAL)));
 
-        instance.statusListIndex = ofNullable(status.additionalProperties().get(STATUS_LIST_INDEX))
+        instance.statusListIndex = ofNullable(status.additionalProperties().get(StatusList2021Credential.STATUS_LIST_INDEX))
                 .map(Object::toString)
                 .map(Integer::parseInt)
-                .orElseThrow(() -> new IllegalArgumentException(missingProperty(STATUS_LIST_INDEX)));
+                .orElseThrow(() -> new IllegalArgumentException(missingProperty(StatusList2021Credential.STATUS_LIST_INDEX)));
 
-        instance.statusListPurpose = ofNullable(status.additionalProperties().get(STATUS_PURPOSE))
+        instance.statusListPurpose = ofNullable(status.additionalProperties().get(StatusList2021Credential.STATUS_LIST_PURPOSE))
                 .map(Object::toString)
-                .orElseThrow(() -> new IllegalArgumentException(missingProperty(STATUS_PURPOSE)));
+                .orElseThrow(() -> new IllegalArgumentException(missingProperty(StatusList2021Credential.STATUS_LIST_PURPOSE)));
 
         return instance;
     }
 
     private static Object getId(CredentialStatus status) {
-        var credentialId = status.additionalProperties().get(STATUS_LIST_CREDENTIAL);
+        var credentialId = status.additionalProperties().get(StatusList2021Credential.STATUS_LIST_CREDENTIAL);
         if (credentialId instanceof Map<?, ?> map) {
             return map.get("@id");
         }
@@ -63,7 +59,7 @@ public class StatusListStatus {
     }
 
     private static String missingProperty(String property) {
-        return "A StatusList2021 credentialStatus must have a 'credentialStatus.%s' property".formatted(property);
+        return "A StatusList2021 credential must have a credentialStatus object with the '%s' property".formatted(property);
     }
 
     public String getStatusListPurpose() {
@@ -77,5 +73,6 @@ public class StatusListStatus {
     public String getStatusListCredential() {
         return statusListCredential;
     }
+
 
 }

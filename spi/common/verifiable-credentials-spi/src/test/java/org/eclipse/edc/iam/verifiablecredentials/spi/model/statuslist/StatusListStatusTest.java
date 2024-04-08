@@ -21,15 +21,18 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_CREDENTIAL;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_INDEX;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_PURPOSE;
 
 class StatusListStatusTest {
 
     @Test
     void verifyStatusList2021() {
         Map<String, Object> props = Map.of(
-                "statusPurpose", "revocation",
-                "statusListIndex", "237",
-                "statusListCredential", "https://example.com/credentials/status/3"
+                STATUS_LIST_PURPOSE, "revocation",
+                STATUS_LIST_INDEX, "237",
+                STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
 
@@ -43,8 +46,8 @@ class StatusListStatusTest {
     void verifyMissingPurpose() {
         Map<String, Object> props = Map.of(
                 //"statusPurpose", "revocation",
-                "statusListIndex", "237",
-                "statusListCredential", "https://example.com/credentials/status/3"
+                STATUS_LIST_INDEX, "237",
+                STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
         assertThatThrownBy(() -> StatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
@@ -54,9 +57,9 @@ class StatusListStatusTest {
     @Test
     void verifyMissingIndex() {
         Map<String, Object> props = Map.of(
-                "statusPurpose", "revocation",
+                STATUS_LIST_PURPOSE, "revocation",
                 //"statusListIndex", "237",
-                "statusListCredential", "https://example.com/credentials/status/3"
+                STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
         assertThatThrownBy(() -> StatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
@@ -66,9 +69,9 @@ class StatusListStatusTest {
     @Test
     void verifyMissingCredential() {
         Map<String, Object> props = Map.of(
-                "statusPurpose", "revocation",
-                "statusListIndex", "237"
-                //"statusListCredential", "https://example.com/credentials/status/3"
+                STATUS_LIST_PURPOSE, "revocation",
+                STATUS_LIST_INDEX, "237"
+                // "statusListCredential", "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
         assertThatThrownBy(() -> StatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)

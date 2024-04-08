@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.atLeastOnce;
@@ -39,9 +38,7 @@ class IdentityAndTrustExtensionTest {
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(SecureTokenService.class, mock());
-        TypeManager mockedTm = mock();
-        when(mockedTm.getMapper(eq(JSON_LD))).thenReturn(mock());
-        context.registerService(TypeManager.class, mockedTm);
+        context.registerService(TypeManager.class, new TypeManager());
     }
 
     @Test

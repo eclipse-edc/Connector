@@ -16,7 +16,7 @@ package org.eclipse.edc.iam.identitytrust.service;
 
 import org.eclipse.edc.iam.identitytrust.service.validation.rules.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.service.validation.rules.HasValidSubjectIds;
-import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsNotExpired;
+import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsInValidityPeriod;
 import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsNotRevoked;
 import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
@@ -189,7 +189,7 @@ public class IdentityAndTrustService implements IdentityService {
 
         // in addition, verify that all VCs are valid
         var filters = new ArrayList<>(List.of(
-                new IsNotExpired(clock),
+                new IsInValidityPeriod(clock),
                 new HasValidSubjectIds(issuer),
                 new IsNotRevoked(revocationListService),
                 new HasValidIssuer(getTrustedIssuerIds())));

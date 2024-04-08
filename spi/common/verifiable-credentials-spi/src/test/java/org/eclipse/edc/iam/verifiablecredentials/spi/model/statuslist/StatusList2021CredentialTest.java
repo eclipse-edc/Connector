@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_ENCODED_LIST;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_PURPOSE;
 
 public class StatusList2021CredentialTest {
 
@@ -38,8 +40,8 @@ public class StatusList2021CredentialTest {
                 .credentialSubject(CredentialSubject.Builder.newInstance()
                         .id("https://example.com/status/3#list")
                         .claim("type", "StatusList2021")
-                        .claim("statusPurpose", "revocation")
-                        .claim("encodedList", "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA")
+                        .claim(STATUS_LIST_PURPOSE, "revocation")
+                        .claim(STATUS_LIST_ENCODED_LIST, "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA")
                         .build())
                 .build();
 
@@ -60,8 +62,8 @@ public class StatusList2021CredentialTest {
                 .credentialSubject(CredentialSubject.Builder.newInstance()
                         .id("https://example.com/status/3#list")
                         .claim("type", "StatusList2021")
-                        .claim("statusPurpose", "revocation")
-                        .claim("encodedList", "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA")
+                        .claim(STATUS_LIST_PURPOSE, "revocation")
+                        .claim(STATUS_LIST_ENCODED_LIST, "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA")
                         .build())
                 .build();
 

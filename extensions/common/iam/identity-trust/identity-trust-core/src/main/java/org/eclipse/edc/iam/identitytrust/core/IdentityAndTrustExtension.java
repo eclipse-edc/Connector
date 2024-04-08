@@ -62,6 +62,7 @@ import java.net.URISyntaxException;
 import java.time.Clock;
 import java.util.Map;
 
+import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.JWT_VC_TOKEN_CONTEXT;
 
@@ -143,9 +144,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         // TODO move in a separated extension?
         signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new JwsSignature2020Suite(typeManager.getMapper(JSON_LD)));
 
-        var uri = getClass().getClassLoader().getResource("statuslist2021.json");
         try {
-            jsonLd.registerCachedDocument("https://w3id.org/vc/status-list/2021/v1", uri.toURI());
+            jsonLd.registerCachedDocument(STATUSLIST_2021_URL, getClass().getClassLoader().getResource("statuslist2021.json").toURI());
         } catch (URISyntaxException e) {
             context.getMonitor().warning("Could not load JSON-LD file", e);
         }
