@@ -71,7 +71,7 @@ public class StatusList2021RevocationService implements RevocationListService {
         var bitset = BitSet.valueOf(bytes);
         var index = status.getStatusListIndex();
         if (bitset.get(index)) {
-            return Result.failure("Credential status is '%s', status at index %d is '1''".formatted(purpose, index));
+            return Result.failure("Credential status is '%s', status at index %d is '1'".formatted(purpose, index));
         }
         return Result.success();
     }

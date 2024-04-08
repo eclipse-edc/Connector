@@ -382,7 +382,7 @@ class LdpVerifierTest {
             }
 
         }
-    }
+‹    }
 
     @Nested
     class Ed25519Signature2018 {

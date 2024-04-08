@@ -16,16 +16,19 @@ package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 
+import java.util.Map;
+
 import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_PREFIX;
 
 /**
  * Specialized {@code credentialStatus}, that contains information mandated by the StatusList2021 standard.
  */
 public class StatusListStatus {
-    public static final String STATUS_LIST_CREDENTIAL = "statusListCredential";
-    public static final String STATUS_LIST_INDEX = "statusListIndex";
-    public static final String STATUS_PURPOSE = "statusPurpose";
-    
+    public static final String STATUS_LIST_CREDENTIAL = STATUSLIST_2021_PREFIX + "statusListCredential";
+    public static final String STATUS_LIST_INDEX = STATUSLIST_2021_PREFIX + "statusListIndex";
+    public static final String STATUS_PURPOSE = STATUSLIST_2021_PREFIX + "statusPurpose";
+
     private String statusListPurpose;
     private int statusListIndex;
     private String statusListCredential;
@@ -35,7 +38,7 @@ public class StatusListStatus {
 
     public static StatusListStatus parse(CredentialStatus status) {
         var instance = new StatusListStatus();
-        instance.statusListCredential = ofNullable(status.additionalProperties().get(STATUS_LIST_CREDENTIAL))
+        instance.statusListCredential = ofNullable(getId(status))
                 .map(Object::toString)
                 .orElseThrow(() -> new IllegalArgumentException(missingProperty(STATUS_LIST_CREDENTIAL)));
 
@@ -49,6 +52,14 @@ public class StatusListStatus {
                 .orElseThrow(() -> new IllegalArgumentException(missingProperty(STATUS_PURPOSE)));
 
         return instance;
+    }
+
+    private static Object getId(CredentialStatus status) {
+        var credentialId = status.additionalProperties().get(STATUS_LIST_CREDENTIAL);
+        if (credentialId instanceof Map<?, ?> map) {
+            return map.get("@id");
+        }
+        return credentialId;
     }
 
     private static String missingProperty(String property) {

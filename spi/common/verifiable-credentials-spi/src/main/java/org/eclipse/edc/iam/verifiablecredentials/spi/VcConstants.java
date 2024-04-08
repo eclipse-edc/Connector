@@ -28,4 +28,6 @@ public interface VcConstants {
     String JWS_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
     String ED25519_SIGNATURE_SUITE = "Ed25519Signature2020"; // not used right now
     String VC_PREFIX_V2 = "https://www.w3.org/ns/credentials/v2";
+    String STATUSLIST_2021_URL = "https://w3id.org/vc/status-list/2021/v1";
+    String STATUSLIST_2021_PREFIX = "https://w3id.org/vc/status-list#";
 }
