@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
@@ -44,8 +45,27 @@ class StatusList2021RevocationServiceTest {
     void setup() {
         clientAndServer = ClientAndServer.startClientAndServer("localhost", getFreePort());
         clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL));
+                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT));
     }
+
+    @AfterEach
+    void tearDown() {
+        clientAndServer.stop();
+    }
+
+    @Test
+    void checkRevocation_shenSubjectIsArray() {
+        clientAndServer.reset();
+        clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
+                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY));
+        var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
+                        Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                                STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
+                .build();
+        assertThat(revocationService.checkValidity(credential)).isSucceeded();
+    }
+
 
     @Test
     void checkRevocation_whenNotCached_valid() {
