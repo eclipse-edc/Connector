@@ -48,10 +48,6 @@ _Provide some information about dependencies, e.g., used extensions._
 |:--------|:---------------------------------------------|
 | web-spi | Essentially for the Controllers registration |
 
-### Configurations
-
-See [here](https://eclipse-edc.github.io/Connector/autodoc/#data-plane-control-api) the latest documentation for the available configuration parameters.
-
 ## Design Principles
 
 Both public and control APIs rely on the `DataPlaneManager` for executing the actual data transfer, see [Data Plane Framework](../../../core/data-plane/data-plane-framework/README.md) for more details.

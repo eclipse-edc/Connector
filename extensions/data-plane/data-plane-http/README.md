@@ -21,10 +21,6 @@ Typically, this extension is used to fetch or post data from/to a REST endpoint.
 |:-------------------------------------|:----------------------|
 | extensions:data-plane:data-plane-spi | SPI of the data plane |
 
-### Configurations
-
-See [here](https://eclipse-edc.github.io/Connector/autodoc/#data-plane-http) the latest documentation for the available configuration parameters.
-
 ### Provided Services
 
 #### `HttpRequestParamsProvider`

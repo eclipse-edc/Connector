@@ -41,7 +41,3 @@ put these data into its Azure Blob Storage.
 
 This extension introduces a Control Plane endpoint used by the Data Plane for validating the access token received in input
 of its public API. OpenApi documentation can be found [here](../../../../resources/openapi/yaml/transfer-data-plane.yaml).
-
-### Configurations
-
-See [here](https://eclipse-edc.github.io/Connector/autodoc/#transfer-data-plane) the latest documentation for the available configuration parameters.
