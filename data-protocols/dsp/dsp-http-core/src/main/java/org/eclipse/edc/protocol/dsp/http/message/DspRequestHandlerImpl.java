@@ -20,6 +20,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
+import org.eclipse.edc.protocol.dsp.http.spi.message.ResponseDecorator;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -74,7 +75,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     @Override
-    public <I extends RemoteMessage, R> Response createResource(PostDspRequest<I, R> request) {
+    public <I extends RemoteMessage, R> Response createResource(PostDspRequest<I, R> request, ResponseDecorator<I, R> responseDecorator) {
         monitor.debug(() -> "DSP: Incoming %s for %s process%s".formatted(
                 request.getInputClass().getSimpleName(),
                 request.getResultClass(),
@@ -106,7 +107,8 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
 
-        var serviceResult = request.getServiceCall().apply(inputTransformation.getContent(), tokenRepresentation);
+        var input = inputTransformation.getContent();
+        var serviceResult = request.getServiceCall().apply(input, tokenRepresentation);
         if (serviceResult.failed()) {
             monitor.debug(() -> "DSP: Service call failed: %s".formatted(serviceResult.getFailureDetail()));
             return type(request.getErrorType()).from(serviceResult.getFailure());
@@ -121,7 +123,10 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
             return type(request.getErrorType()).message("Error code %s".formatted(errorCode)).internalServerError();
         }
 
-        return Response.ok().type(MediaType.APPLICATION_JSON).entity(outputTransformation.getContent()).build();
+        return responseDecorator.decorate(Response.ok(), input, resource)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(outputTransformation.getContent())
+                .build();
     }
 
     @Override

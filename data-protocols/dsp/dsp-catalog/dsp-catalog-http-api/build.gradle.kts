@@ -30,6 +30,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:lib:transform-lib"))
     testImplementation(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
     testImplementation(libs.restAssured)
 }

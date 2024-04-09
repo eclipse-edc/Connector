@@ -18,8 +18,11 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiController;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiController20241;
+import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.Base64continuationTokenSerDes;
+import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.ContinuationTokenManagerImpl;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.validation.CatalogRequestMessageValidator;
 import org.eclipse.edc.protocol.dsp.http.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
@@ -28,6 +31,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -58,6 +62,10 @@ public class DspCatalogApiExtension implements ServiceExtension {
     private CriterionOperatorRegistry criterionOperatorRegistry;
     @Inject
     private ProtocolVersionRegistry versionRegistry;
+    @Inject
+    private TypeTransformerRegistry typeTransformerRegistry;
+    @Inject
+    private JsonLd jsonLd;
 
     @Override
     public String name() {
@@ -68,8 +76,10 @@ public class DspCatalogApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         validatorRegistry.register(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE, CatalogRequestMessageValidator.instance(criterionOperatorRegistry));
 
-        webService.registerResource(apiConfiguration.getContextAlias(), new DspCatalogApiController(service, dspRequestHandler));
-        webService.registerResource(apiConfiguration.getContextAlias(), new DspCatalogApiController20241(service, dspRequestHandler));
+        var continuationTokenSerDes = new Base64continuationTokenSerDes(typeTransformerRegistry.forContext("dsp-api"), jsonLd);
+        var catalogPaginationResponseDecoratorFactory = new ContinuationTokenManagerImpl(continuationTokenSerDes, context.getMonitor());
+        webService.registerResource(apiConfiguration.getContextAlias(), new DspCatalogApiController(service, dspRequestHandler, catalogPaginationResponseDecoratorFactory));
+        webService.registerResource(apiConfiguration.getContextAlias(), new DspCatalogApiController20241(service, dspRequestHandler, catalogPaginationResponseDecoratorFactory));
 
         dataServiceRegistry.register(DataService.Builder.newInstance()
                 .terms("connector")
