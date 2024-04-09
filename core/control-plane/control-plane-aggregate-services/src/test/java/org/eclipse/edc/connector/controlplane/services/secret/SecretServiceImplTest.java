@@ -128,6 +128,6 @@ class SecretServiceImplTest {
     }
 
     private Secret.Builder createSecretBuilder(String secretId, String secretValue) {
-        return Secret.Builder.newInstance().id(secretId).key(secretId).value(secretValue);
+        return Secret.Builder.newInstance().id(secretId).value(secretValue);
     }
 }

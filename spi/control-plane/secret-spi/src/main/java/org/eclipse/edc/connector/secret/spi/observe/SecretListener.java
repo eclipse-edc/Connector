@@ -39,8 +39,7 @@ public interface SecretListener {
      */
 
     //default void deleted(Secret secret) {
-    default void deleted(String secretId) {
-        // TODO: SB: To be discussed
+    default void deleted(String secret) {
 
     }
 

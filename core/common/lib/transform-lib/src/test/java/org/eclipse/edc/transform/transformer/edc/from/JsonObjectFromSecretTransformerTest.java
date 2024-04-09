@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.core.transform.transformer.edc.from;
+package org.eclipse.edc.transform.transformer.edc.from;
 
 
 import jakarta.json.Json;
@@ -26,7 +26,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_KEY;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.PROPERTY_ID;
 import static org.mockito.Mockito.mock;
@@ -48,7 +47,6 @@ class JsonObjectFromSecretTransformerTest {
     void transform_returnJsonObject() {
         var secret = Secret.Builder.newInstance()
                 .id("test-secret-id")
-                .key("my-test-key")
                 .value("my-test-value")
                 .build();
         var result = transformer.transform(secret, context);
@@ -56,7 +54,6 @@ class JsonObjectFromSecretTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(PROPERTY_ID).getString()).isEqualTo(secret.getId());
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(Secret.EDC_SECRET_TYPE);
-        assertThat(result.getJsonString(EDC_SECRET_KEY).getString()).isEqualTo(secret.getKey());
         assertThat(result.getJsonString(EDC_SECRET_VALUE).getString()).isEqualTo(secret.getValue());
     }
 }

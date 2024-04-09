@@ -20,7 +20,6 @@ import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_KEY;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 
 /**
@@ -31,7 +30,6 @@ public class SecretValidator {
     public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
                 .verifyId(OptionalIdNotBlank::new)
-                .verify(EDC_SECRET_KEY, MandatoryValue::new)
                 .verify(EDC_SECRET_VALUE, MandatoryValue::new)
                 .build();
     }

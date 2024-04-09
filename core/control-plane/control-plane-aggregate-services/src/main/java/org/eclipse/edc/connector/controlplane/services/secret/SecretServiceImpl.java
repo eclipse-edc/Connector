@@ -34,11 +34,11 @@ public class SecretServiceImpl implements SecretService {
     }
 
     @Override
-    public Secret findById(String secretKey) {
-        return Optional.ofNullable(vault.resolveSecret(secretKey))
+    public Secret findById(String secretId) {
+        return Optional.ofNullable(vault.resolveSecret(secretId))
                 .map(secretValue -> Secret.Builder.newInstance()
                         .value(secretValue)
-                        .key(secretKey)
+                        .id(secretId)
                         .build())
                 .orElse(null);
     }
@@ -50,13 +50,13 @@ public class SecretServiceImpl implements SecretService {
 
     @Override
     public ServiceResult<Secret> create(Secret secret) {
-        var existingSecret = findById(secret.getKey());
+        var existingSecret = findById(secret.getId());
 
         if (existingSecret != null) {
-            return ServiceResult.conflict("Secret " + secret.getKey() + " already exist");
+            return ServiceResult.conflict("Secret " + secret.getId() + " already exist");
         }
 
-        var createResult = vault.storeSecret(secret.getKey(), secret.getValue());
+        var createResult = vault.storeSecret(secret.getId(), secret.getValue());
         if (createResult.succeeded()) {
             observable.invokeForEach(l -> l.created(secret));
             return ServiceResult.success(secret);
@@ -83,13 +83,13 @@ public class SecretServiceImpl implements SecretService {
 
     @Override
     public ServiceResult<Secret> update(Secret secret) {
-        var existingSecret = findById(secret.getKey());
-        
+        var existingSecret = findById(secret.getId());
+
         if (existingSecret == null) {
-            return ServiceResult.notFound("Secret " + secret.getKey() + " not found");
+            return ServiceResult.notFound("Secret " + secret.getId() + " not found");
         }
 
-        var updateResult = vault.storeSecret(secret.getKey(), secret.getValue());
+        var updateResult = vault.storeSecret(secret.getId(), secret.getValue());
         if (updateResult.succeeded()) {
             observable.invokeForEach(l -> l.updated(secret));
             return ServiceResult.success(secret);

@@ -32,35 +32,31 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class Secret extends Entity {
     public static final String PROPERTY_ID = EDC_NAMESPACE + "id";
     public static final String EDC_SECRET_TYPE = EDC_NAMESPACE + "Secret";
-    public static final String EDC_SECRET_KEY = EDC_NAMESPACE + "key";
+
     public static final String EDC_SECRET_VALUE = EDC_NAMESPACE + "value";
 
-    private String key;
     private String value;
 
 
     private Secret() {
     }
 
-    public String getKey() {
-        return key;
-    }
 
     public String getValue() {
         return value;
     }
 
     public Builder toBuilder() {
+        // No key, Id is used as vault key
         return Builder.newInstance()
-                .key(key)
                 .value(value);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends Entity.Builder<Secret, Builder> {
 
-        protected Builder(Secret asset) {
-            super(asset);
+        protected Builder(Secret secret) {
+            super(secret);
         }
 
         @JsonCreator
@@ -71,11 +67,6 @@ public class Secret extends Entity {
         @Override
         public Builder self() {
             return this;
-        }
-
-        public Builder key(String key) {
-            entity.key = key;
-            return self();
         }
 
         public Builder value(String value) {
@@ -92,7 +83,6 @@ public class Secret extends Entity {
                 id(UUID.randomUUID().toString());
             }
 
-            Objects.requireNonNull(entity.key, "`key` is missing");
             Objects.requireNonNull(entity.value, "`value` is missing");
 
             return entity;

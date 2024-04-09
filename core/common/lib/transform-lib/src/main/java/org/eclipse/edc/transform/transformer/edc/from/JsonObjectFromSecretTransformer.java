@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.core.transform.transformer.edc.from;
+package org.eclipse.edc.transform.transformer.edc.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_KEY;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.PROPERTY_ID;
 
@@ -41,7 +40,6 @@ public class JsonObjectFromSecretTransformer extends AbstractJsonLdTransformer<S
         var builder = jsonFactory.createObjectBuilder()
                 .add(PROPERTY_ID, secret.getId())
                 .add(TYPE, Secret.EDC_SECRET_TYPE)
-                .add(EDC_SECRET_KEY, secret.getKey())
                 .add(EDC_SECRET_VALUE, secret.getValue());
 
         return builder.build();

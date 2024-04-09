@@ -57,7 +57,7 @@ public class SecretEventDispatchTest {
     @Test
     void shouldDispatchEventsOnSecretCreationAndDeletion(SecretService service, EventRouter eventRouter) {
         eventRouter.register(SecretEvent.class, eventSubscriber);
-        var secret = Secret.Builder.newInstance().id("secretId").key("secret-key").value("secret-value").build();
+        var secret = Secret.Builder.newInstance().id("secretId").value("secret-value").build();
 
         var result = service.create(secret);
         await().untilAsserted(() -> {

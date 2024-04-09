@@ -25,8 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_KEY;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
+import static org.eclipse.edc.spi.types.domain.secret.Secret.PROPERTY_ID;
 
 class SecretValidatorTest {
 
@@ -36,7 +36,7 @@ class SecretValidatorTest {
     void shouldSucceed_whenValidInput() {
         // ID is automatically added is missing
         var input = createObjectBuilder()
-                .add(EDC_SECRET_KEY, value("secret-key"))
+                .add(PROPERTY_ID, value("secret-id"))
                 .add(EDC_SECRET_VALUE, value("secret-value"))
                 .build();
 
@@ -50,7 +50,7 @@ class SecretValidatorTest {
     void shouldFail_whenIdIsBlank() {
         var input = createObjectBuilder()
                 .add(ID, " ")
-                .add(EDC_SECRET_KEY, value("secret-key"))
+                .add(PROPERTY_ID, value("secret-id"))
                 .add(EDC_SECRET_VALUE, value("secret-value"))
                 .build();
 
@@ -65,24 +65,9 @@ class SecretValidatorTest {
 
 
     @Test
-    void shouldFail_whenSecretKeyIsMissing() {
-        var input = createObjectBuilder()
-                .add(ID, "id")
-                .add(EDC_SECRET_VALUE, value("secret-value"))
-                .build();
-
-        var result = validator.validate(input);
-
-        assertThat(result).isFailed().satisfies(failure -> {
-            assertThat(failure.getViolations()).hasSize(1).anySatisfy(v ->
-                    assertThat(v.path()).isEqualTo(EDC_SECRET_KEY));
-        });
-    }
-
-    @Test
     void shouldFail_whenSecretValueIsMissing() {
         var input = createObjectBuilder()
-                .add(EDC_SECRET_KEY, value("secret-key"))
+                .add(PROPERTY_ID, value("secret-id"))
                 .build();
 
         var result = validator.validate(input);

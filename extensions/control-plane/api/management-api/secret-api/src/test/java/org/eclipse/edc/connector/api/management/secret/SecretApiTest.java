@@ -18,13 +18,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.secret.validation.SecretValidator;
-import org.eclipse.edc.core.transform.transformer.edc.to.JsonObjectToSecretTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToSecretTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_KEY;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 import static org.mockito.Mockito.mock;
@@ -66,7 +65,6 @@ class SecretApiTest {
                 .isNotNull()
                 .satisfies(transformed -> {
                     assertThat(transformed.getId()).isNotBlank();
-                    assertThat(transformed.getKey()).isNotBlank();
                     assertThat(transformed.getValue()).isNotBlank();
                 });
     }
@@ -80,7 +78,6 @@ class SecretApiTest {
             assertThat(content.getString(ID)).isNotBlank();
 
             assertThat(content.getJsonArray(TYPE).getString(0)).isEqualTo(EDC_SECRET_TYPE);
-            assertThat(content.getJsonArray(EDC_SECRET_KEY).getJsonObject(0).getString(VALUE)).isNotBlank();
             assertThat(content.getJsonArray(EDC_SECRET_VALUE).getJsonObject(0).getString(VALUE)).isNotBlank();
         });
     }

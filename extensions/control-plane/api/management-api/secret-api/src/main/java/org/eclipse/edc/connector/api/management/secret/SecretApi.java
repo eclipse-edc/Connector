@@ -31,7 +31,6 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_KEY;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 
@@ -109,10 +108,6 @@ public interface SecretApi {
             String id,
             @Schema(name = TYPE, example = EDC_SECRET_TYPE)
             String type,
-
-            @Schema(name = EDC_SECRET_KEY, requiredMode = REQUIRED)
-            String key,
-
             @Schema(name = EDC_SECRET_VALUE, requiredMode = REQUIRED)
             String value
     ) {
@@ -133,8 +128,6 @@ public interface SecretApi {
             String id,
             @Schema(name = TYPE, example = EDC_SECRET_TYPE)
             String type,
-            @Schema(name = EDC_SECRET_KEY, requiredMode = REQUIRED)
-            String key,
             @Schema(name = EDC_SECRET_VALUE, requiredMode = REQUIRED)
             String value,
             long createdAt

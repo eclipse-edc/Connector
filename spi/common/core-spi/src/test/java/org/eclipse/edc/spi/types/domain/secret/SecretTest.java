@@ -33,7 +33,6 @@ class SecretTest {
     @Test
     void verifySerDeser() {
         var secret = Secret.Builder.newInstance().id("abcd123")
-                .key("keytest")
                 .value("valuetest")
                 .build();
 
@@ -44,14 +43,8 @@ class SecretTest {
     }
 
     @Test
-    void verifyExceptionWhenKeyMissing() {
-        assertThatNullPointerException().isThrownBy(() -> Secret.Builder.newInstance().id("abcd123").value("valuetest").build())
-                .withMessage("`key` is missing");
-    }
-
-    @Test
     void verifyExceptionWhenValueMissing() {
-        assertThatNullPointerException().isThrownBy(() -> Secret.Builder.newInstance().id("abcd123").key("keytest").build())
+        assertThatNullPointerException().isThrownBy(() -> Secret.Builder.newInstance().id("abcd123").build())
                 .withMessage("`value` is missing");
     }
 }

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.core.transform.transformer.edc.to;
+package org.eclipse.edc.transform.transformer.edc.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -22,8 +22,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_KEY;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
+import static org.eclipse.edc.spi.types.domain.secret.Secret.PROPERTY_ID;
 
 
 public class JsonObjectToSecretTransformer extends AbstractJsonLdTransformer<JsonObject, Secret> {
@@ -40,8 +40,8 @@ public class JsonObjectToSecretTransformer extends AbstractJsonLdTransformer<Jso
     }
 
     private void transformProperties(String key, JsonValue value, Secret.Builder builder, @NotNull TransformerContext context) {
-        if (EDC_SECRET_KEY.equals(key)) {
-            builder.key(transformString(value, context));
+        if (PROPERTY_ID.equals(key)) {
+            builder.id(transformString(value, context));
         } else if (EDC_SECRET_VALUE.equals(key)) {
             builder.value(transformString(value, context));
         }

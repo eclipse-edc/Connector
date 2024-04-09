@@ -45,7 +45,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_KEY;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
@@ -66,7 +65,6 @@ import static org.mockito.Mockito.when;
 class SecretApiControllerTest extends RestControllerTestBase {
 
     private static final String TEST_SECRET_ID = "test-secret-id";
-    private static final String TEST_SECRET_KEY = "test-secret-key";
     private static final String TEST_SECRET_VALUE = "test-secret-value";
     private final SecretService service = mock(SecretService.class);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
@@ -88,7 +86,7 @@ class SecretApiControllerTest extends RestControllerTestBase {
     @Test
     void requestSecret() {
         when(service.search(any()))
-                .thenReturn(ServiceResult.success(List.of(Secret.Builder.newInstance().key(TEST_SECRET_KEY).value(TEST_SECRET_VALUE).build())));
+                .thenReturn(ServiceResult.success(List.of(Secret.Builder.newInstance().id(TEST_SECRET_ID).value(TEST_SECRET_VALUE).build())));
         when(transformerRegistry.transform(isA(Secret.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(createSecretJson().build()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class)))
@@ -112,7 +110,7 @@ class SecretApiControllerTest extends RestControllerTestBase {
     @Test
     void requestSecret_filtersOutFailedTransforms() {
         when(service.search(any()))
-                .thenReturn(ServiceResult.success(List.of(Secret.Builder.newInstance().key(TEST_SECRET_KEY).value(TEST_SECRET_VALUE).build())));
+                .thenReturn(ServiceResult.success(List.of(Secret.Builder.newInstance().id(TEST_SECRET_ID).value(TEST_SECRET_VALUE).build())));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(Secret.class), eq(JsonObject.class)))
@@ -189,8 +187,8 @@ class SecretApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getSingleSecret() {
-        var secret = Secret.Builder.newInstance().key("secret-key").value("secret-value").build();
-        when(service.findById("id")).thenReturn(secret);
+        var secret = Secret.Builder.newInstance().id(TEST_SECRET_ID).value(TEST_SECRET_VALUE).build();
+        when(service.findById(TEST_SECRET_ID)).thenReturn(secret);
         var secretJson = createSecretJson().build();
         when(transformerRegistry.transform(isA(Secret.class), eq(JsonObject.class))).thenReturn(Result.success(secretJson));
 
@@ -217,7 +215,7 @@ class SecretApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getSecretById_shouldReturnNotFound_whenTransformFails() {
-        when(service.findById("id")).thenReturn(Secret.Builder.newInstance().key(TEST_SECRET_KEY).value(TEST_SECRET_VALUE).build());
+        when(service.findById("id")).thenReturn(Secret.Builder.newInstance().id(TEST_SECRET_ID).value(TEST_SECRET_VALUE).build());
         when(transformerRegistry.transform(isA(Secret.class), eq(JsonObject.class))).thenReturn(Result.failure("failure"));
 
         baseRequest()
@@ -343,7 +341,7 @@ class SecretApiControllerTest extends RestControllerTestBase {
 
     @Test
     void updateSecret_whenExists() {
-        var secret = Secret.Builder.newInstance().key("secret-key").value("secret-value").build();
+        var secret = Secret.Builder.newInstance().id(TEST_SECRET_ID).value(TEST_SECRET_VALUE).build();
         when(transformerRegistry.transform(isA(JsonObject.class), eq(Secret.class))).thenReturn(Result.success(secret));
         when(service.update(any(Secret.class))).thenReturn(ServiceResult.success());
         when(validator.validate(any(), any())).thenReturn(ValidationResult.success());
@@ -359,7 +357,7 @@ class SecretApiControllerTest extends RestControllerTestBase {
 
     @Test
     void updateSecret_shouldReturnNotFound_whenItDoesNotExists() {
-        var secret = Secret.Builder.newInstance().key("secret-key").value("secret-value").build();
+        var secret = Secret.Builder.newInstance().id(TEST_SECRET_ID).value(TEST_SECRET_VALUE).build();
         when(transformerRegistry.transform(isA(JsonObject.class), eq(Secret.class))).thenReturn(Result.success(secret));
         when(service.update(any(Secret.class))).thenReturn(ServiceResult.notFound("not found"));
         when(validator.validate(any(), any())).thenReturn(ValidationResult.success());
@@ -411,7 +409,6 @@ class SecretApiControllerTest extends RestControllerTestBase {
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, EDC_SECRET_TYPE)
                 .add(ID, TEST_SECRET_ID)
-                .add(EDC_SECRET_KEY, TEST_SECRET_KEY)
                 .add(EDC_SECRET_VALUE, TEST_SECRET_VALUE);
     }
 
@@ -431,7 +428,6 @@ class SecretApiControllerTest extends RestControllerTestBase {
     private Secret.Builder createSecretBuilder() {
         return Secret.Builder.newInstance()
                 .id(TEST_SECRET_ID)
-                .key(TEST_SECRET_KEY)
                 .value(TEST_SECRET_VALUE);
     }
 }
