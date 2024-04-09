@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.service;
 
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceUrlResolver;
 import org.eclipse.edc.spi.result.Result;
 
 import static org.eclipse.edc.spi.result.Result.failure;

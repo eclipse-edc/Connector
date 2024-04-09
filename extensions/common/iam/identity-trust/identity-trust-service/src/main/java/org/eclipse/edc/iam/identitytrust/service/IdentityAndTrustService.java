@@ -20,6 +20,7 @@ import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsInValidityPe
 import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsNotRevoked;
 import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
+import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;

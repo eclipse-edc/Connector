@@ -18,6 +18,7 @@ package org.eclipse.edc.iam.identitytrust.service;
 import com.nimbusds.jwt.JWTClaimsSet;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
+import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
