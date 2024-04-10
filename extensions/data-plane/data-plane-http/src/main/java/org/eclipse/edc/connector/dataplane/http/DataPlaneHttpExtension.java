@@ -39,9 +39,9 @@ import org.eclipse.edc.spi.types.TypeManager;
 @Extension(value = DataPlaneHttpExtension.NAME)
 public class DataPlaneHttpExtension implements ServiceExtension {
     public static final String NAME = "Data Plane HTTP";
-    private static final int DEFAULT_PART_SIZE = 5;
+    private static final int DEFAULT_PARTITION_SIZE = 5;
 
-    @Setting
+    @Setting(value = "Number of partitions for parallel message push in the HttpDataSink", type = "int", defaultValue = DEFAULT_PARTITION_SIZE + "")
     private static final String EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE = "edc.dataplane.http.sink.partition.size";
 
     @Inject
@@ -67,7 +67,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var sinkPartitionSize = context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
+        var sinkPartitionSize = context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PARTITION_SIZE);
 
         var paramsProvider = new HttpRequestParamsProviderImpl(vault, typeManager);
         context.registerService(HttpRequestParamsProvider.class, paramsProvider);

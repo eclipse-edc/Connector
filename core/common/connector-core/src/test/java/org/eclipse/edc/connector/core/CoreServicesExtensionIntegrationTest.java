@@ -23,14 +23,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.core.CoreServicesExtension.HOSTNAME_SETTING;
+import static org.eclipse.edc.connector.core.CoreServicesExtension.EDC_HOSTNAME;
 
 @ExtendWith(EdcExtension.class)
 class CoreServicesExtensionIntegrationTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.setConfiguration(Map.of(HOSTNAME_SETTING, "hostname"));
+        extension.setConfiguration(Map.of(EDC_HOSTNAME, "hostname"));
     }
 
     @Test

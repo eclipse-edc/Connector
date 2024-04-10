@@ -48,12 +48,6 @@ _Provide some information about dependencies, e.g., used extensions._
 |:--------|:---------------------------------------------|
 | web-spi | Essentially for the Controllers registration |
 
-### Configurations
-
-| Parameter name                                      | Description                                                                                       | Mandatory | Default value                          |
-|:----------------------------------------------------|:--------------------------------------------------------------------------------------------------|:----------|:---------------------------------------|
-| `edc.dataplane.token.validation.endpoint`  | Endpoint of the token validation server that will be hit when targeting the Data Plane public API | true      |                                        |
-
 ## Design Principles
 
 Both public and control APIs rely on the `DataPlaneManager` for executing the actual data transfer, see [Data Plane Framework](../../../core/data-plane/data-plane-framework/README.md) for more details.

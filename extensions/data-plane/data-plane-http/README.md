@@ -21,14 +21,6 @@ Typically, this extension is used to fetch or post data from/to a REST endpoint.
 |:-------------------------------------|:----------------------|
 | extensions:data-plane:data-plane-spi | SPI of the data plane |
 
-### Configurations
-
-The setting parameters of this extension are listed below:
-
-| Parameter name                           | Description                                                          | Mandatory | Default value |
-|:-----------------------------------------|:---------------------------------------------------------------------|:----------|:--------------|
-| `edc.dataplane.http.sink.partition.size` | Number of partitions for parallel message push in the `HttpDataSink` | false     | 5             |
-
 ### Provided Services
 
 #### `HttpRequestParamsProvider`
