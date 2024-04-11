@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Computes the cryptographic integrity of a VerifiablePresentation when it's represented as JWT. Internally, for the actual
@@ -145,10 +146,16 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     }
 
     private List<TokenValidationRule> vpValidationRules(String audience) {
-        var audRule = new AudienceValidationRule(audience);
-        var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(JWT_VP_TOKEN_CONTEXT));
-        rules.add(audRule);
-        return rules;
+
+        return Optional.ofNullable(audience)
+                .map(aud -> {
+                    List<TokenValidationRule> r = new ArrayList<>(tokenValidationRulesRegistry.getRules(JWT_VP_TOKEN_CONTEXT));
+                    var audRule = new AudienceValidationRule(audience);
+                    r.add(audRule);
+                    return r;
+                })
+                .orElse(tokenValidationRulesRegistry.getRules(JWT_VP_TOKEN_CONTEXT));
+
     }
 
     private boolean isCredential(SignedJWT jwt) throws ParseException {

@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.transform;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.iam.identitytrust.core.IdentityTrustTransformExtension;
 import org.eclipse.edc.iam.identitytrust.transform.from.JsonObjectFromPresentationResponseMessageTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToCredentialStatusTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToCredentialSubjectTransformer;
