@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A generic result type.
@@ -46,6 +47,21 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
 
     public static <T> Result<T> failure(List<String> failures) {
         return new Result<>(null, new Failure(failures));
+    }
+
+
+    /**
+     * Runs the block provided by the {@link Supplier} and wrap the return into a Result
+     *
+     * @param supplier The block to execute
+     * @return The Result of the supplier call. Success if no {@link Exception} were thrown. Failure otherwise
+     */
+    public static <T> Result<T> ofThrowable(Supplier<T> supplier) {
+        try {
+            return Result.success(supplier.get());
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
     }
 
     /**

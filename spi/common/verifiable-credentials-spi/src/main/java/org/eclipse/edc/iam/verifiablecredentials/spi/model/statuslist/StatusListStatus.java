@@ -19,6 +19,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import java.util.Map;
 
 import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_PREFIX;
 
 /**
  * Specialized {@code credentialStatus}, that contains information mandated by the StatusList2021 standard.
@@ -38,12 +39,12 @@ public class StatusListStatus {
                 .map(Object::toString)
                 .orElseThrow(() -> new IllegalArgumentException(missingProperty(StatusList2021Credential.STATUS_LIST_CREDENTIAL)));
 
-        instance.statusListIndex = ofNullable(status.additionalProperties().get(StatusList2021Credential.STATUS_LIST_INDEX))
+        instance.statusListIndex = ofNullable(status.getProperty(STATUSLIST_2021_PREFIX, StatusList2021Credential.STATUS_LIST_INDEX_LITERAL))
                 .map(Object::toString)
                 .map(Integer::parseInt)
                 .orElseThrow(() -> new IllegalArgumentException(missingProperty(StatusList2021Credential.STATUS_LIST_INDEX)));
 
-        instance.statusListPurpose = ofNullable(status.additionalProperties().get(StatusList2021Credential.STATUS_LIST_PURPOSE))
+        instance.statusListPurpose = ofNullable(status.getProperty(STATUSLIST_2021_PREFIX, StatusList2021Credential.STATUS_LIST_PURPOSE_LITERAL))
                 .map(Object::toString)
                 .orElseThrow(() -> new IllegalArgumentException(missingProperty(StatusList2021Credential.STATUS_LIST_PURPOSE)));
 
@@ -51,7 +52,7 @@ public class StatusListStatus {
     }
 
     private static Object getId(CredentialStatus status) {
-        var credentialId = status.additionalProperties().get(StatusList2021Credential.STATUS_LIST_CREDENTIAL);
+        var credentialId = status.getProperty(STATUSLIST_2021_PREFIX, StatusList2021Credential.STATUS_LIST_CREDENTIAL_LITERAL);
         if (credentialId instanceof Map<?, ?> map) {
             return map.get("@id");
         }

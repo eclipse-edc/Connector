@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.BitString;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusListStatus;
 import org.eclipse.edc.spi.result.Result;
@@ -25,8 +26,6 @@ import org.eclipse.edc.util.collection.Cache;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Base64;
-import java.util.BitSet;
 import java.util.Map;
 
 /**
@@ -68,11 +67,16 @@ public class StatusList2021RevocationService implements RevocationListService {
             return Result.failure("Credential's statusPurpose value must match the status list's purpose: '%s' != '%s'".formatted(purpose, slCredPurpose));
         }
 
-        // check that the value at index in the bitset is "1"
-        var bytes = Base64.getUrlDecoder().decode(slCred.encodedList());
-        var bitset = BitSet.valueOf(bytes);
+        var bitStringResult = BitString.Parser.newInstance().parse(slCred.encodedList());
+
+        if (bitStringResult.failed()) {
+            return bitStringResult.mapTo();
+        }
+        var bitString = bitStringResult.getContent();
+
         var index = status.getStatusListIndex();
-        if (bitset.get(index)) {
+        // check that the value at index in the bitset is "1"
+        if (bitString.get(index)) {
             return Result.failure("Credential status is '%s', status at index %d is '1'".formatted(purpose, index));
         }
         return Result.success();

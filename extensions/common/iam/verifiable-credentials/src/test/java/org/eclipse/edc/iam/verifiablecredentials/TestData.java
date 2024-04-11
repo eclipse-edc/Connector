@@ -31,7 +31,7 @@ public class TestData {
                 "id": "https://example.com/status/3#list",
                 "type": "StatusList2021",
                 "https://w3id.org/vc/status-list#statusPurpose": "revocation",
-                "https://w3id.org/vc/status-list#encodedList": "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA"
+                "https://w3id.org/vc/status-list#encodedList": "H4sIAAAAAAAAA+3BIQEAAAACIP+vcKozLEADAAAAAAAAAAAAAAAAAAAAvA0cOP65AEAAAA"
               }
               ]
             }
@@ -51,7 +51,7 @@ public class TestData {
                 "id": "https://example.com/status/3#list",
                 "type": "StatusList2021",
                 "https://w3id.org/vc/status-list#statusPurpose": "revocation",
-                "https://w3id.org/vc/status-list#encodedList": "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA"
+                "https://w3id.org/vc/status-list#encodedList": "H4sIAAAAAAAAA+3BIQEAAAACIP+vcKozLEADAAAAAAAAAAAAAAAAAAAAvA0cOP65AEAAAA"
               }
             }
             """;
