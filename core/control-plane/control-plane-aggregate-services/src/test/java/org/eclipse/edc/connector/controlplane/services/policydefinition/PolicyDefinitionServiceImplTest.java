@@ -135,8 +135,6 @@ class PolicyDefinitionServiceImplTest {
 
         var deleted = policyServiceImpl.deleteById("policyId");
 
-        var result = deleted.getContent().getUid();
-
         assertThat(deleted.succeeded()).isTrue();
         assertThat(deleted.getContent()).matches(hasId("policyId"));
     }
@@ -148,8 +146,8 @@ class PolicyDefinitionServiceImplTest {
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("A found Contract Definition")
-                .accessPolicyId(policy.getUid())
-                .contractPolicyId(policy.getUid())
+                .accessPolicyId(policy.getId())
+                .contractPolicyId(policy.getId())
                 .assetsSelectorCriterion(criterion("left", "op", "right"))
                 .build();
 
@@ -166,10 +164,10 @@ class PolicyDefinitionServiceImplTest {
         var policy = createPolicy("policyId");
         when(policyStore.delete("policyId")).thenReturn(StoreResult.success(policy));
 
-        ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
+        var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("A found Contract Definition")
-                .accessPolicyId(policy.getUid())
-                .contractPolicyId(policy.getUid())
+                .accessPolicyId(policy.getId())
+                .contractPolicyId(policy.getId())
                 .assetsSelectorCriterion(criterion("left", "op", "right"))
                 .build();
 
@@ -273,7 +271,7 @@ class PolicyDefinitionServiceImplTest {
 
     @NotNull
     private Predicate<PolicyDefinition> hasId(String policyId) {
-        return it -> policyId.equals(it.getUid());
+        return it -> policyId.equals(it.getId());
     }
 
     private PolicyDefinition createPolicy(String policyId) {

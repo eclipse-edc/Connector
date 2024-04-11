@@ -40,7 +40,7 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
     @Override
     public void created(PolicyDefinition policyDefinition) {
         var event = PolicyDefinitionCreated.Builder.newInstance()
-                .policyDefinitionId(policyDefinition.getUid())
+                .policyDefinitionId(policyDefinition.getId())
                 .build();
 
         publish(event);
@@ -49,7 +49,7 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
     @Override
     public void deleted(PolicyDefinition policyDefinition) {
         var event = PolicyDefinitionDeleted.Builder.newInstance()
-                .policyDefinitionId(policyDefinition.getUid())
+                .policyDefinitionId(policyDefinition.getId())
                 .build();
 
         publish(event);
@@ -58,7 +58,7 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
     @Override
     public void updated(PolicyDefinition policyDefinition) {
         var event = PolicyDefinitionUpdated.Builder.newInstance()
-                .policyDefinitionId(policyDefinition.getUid())
+                .policyDefinitionId(policyDefinition.getId())
                 .build();
 
         publish(event);
