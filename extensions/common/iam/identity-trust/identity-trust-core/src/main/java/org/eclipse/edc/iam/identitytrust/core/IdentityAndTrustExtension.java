@@ -26,12 +26,13 @@ import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.spi.IatpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
-import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
-import org.eclipse.edc.iam.identitytrust.spi.verification.PresentationVerifier;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.StatusList2021RevocationService;
+import org.eclipse.edc.iam.verifiablecredentials.VerifiableCredentialValidationServiceImpl;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
+import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
+import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -83,7 +84,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private SecureTokenService secureTokenService;
 
     @Inject
-    private TrustedIssuerRegistry registry;
+    private TrustedIssuerRegistry trustedIssuerRegistry;
 
     @Inject
     private TypeManager typeManager;
@@ -158,8 +159,12 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         var credentialServiceUrlResolver = new DidCredentialServiceUrlResolver(didResolverRegistry);
         var validationAction = tokenValidationAction();
 
-        return new IdentityAndTrustService(secureTokenService, getOwnDid(context), getPresentationVerifier(context),
-                getCredentialServiceClient(context), validationAction, registry, clock, credentialServiceUrlResolver, claimTokenFunction, createRevocationListService(context));
+        var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context),
+                trustedIssuerRegistry, createRevocationListService(context), clock);
+        
+        return new IdentityAndTrustService(secureTokenService, getOwnDid(context),
+                getCredentialServiceClient(context), validationAction, credentialServiceUrlResolver, claimTokenFunction,
+                credentialValidationService);
     }
 
     @Provider
@@ -172,7 +177,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     }
 
     @Provider
-    public PresentationVerifier getPresentationVerifier(ServiceExtensionContext context) {
+    public PresentationVerifier createPresentationVerifier(ServiceExtensionContext context) {
         if (presentationVerifier == null) {
             var mapper = typeManager.getMapper(JSON_LD);
 

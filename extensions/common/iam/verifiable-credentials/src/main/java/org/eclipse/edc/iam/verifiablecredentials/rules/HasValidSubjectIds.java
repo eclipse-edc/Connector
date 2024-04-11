@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,8 +12,9 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.service.validation.rules;
+package org.eclipse.edc.iam.verifiablecredentials.rules;
 
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
@@ -30,15 +31,17 @@ public class HasValidSubjectIds implements CredentialValidationRule {
     private final String expectedSubjectId;
 
     public HasValidSubjectIds(String expectedSubjectId) {
-
         this.expectedSubjectId = expectedSubjectId;
     }
 
 
     @Override
     public Result<Void> apply(VerifiableCredential credential) {
-        return credential.getCredentialSubject().stream()
-                .allMatch(sub -> expectedSubjectId.equals(sub.getId())) ?
-                success() : failure("Not all subject IDs match the expected subject ID %s".formatted(expectedSubjectId));
+        var violatingSubIds = credential.getCredentialSubject().stream()
+                .map(CredentialSubject::getId)
+                .filter(id -> !expectedSubjectId.equals(id))
+                .toList();
+        return violatingSubIds.isEmpty() ?
+                success() : failure("Not all credential subject IDs match the expected subject ID '%s'. Violating subject IDs: %s".formatted(expectedSubjectId, violatingSubIds));
     }
 }
