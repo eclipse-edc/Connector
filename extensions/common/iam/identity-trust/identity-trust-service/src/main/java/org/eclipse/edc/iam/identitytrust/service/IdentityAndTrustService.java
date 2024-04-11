@@ -14,20 +14,12 @@
 
 package org.eclipse.edc.iam.identitytrust.service;
 
-import org.eclipse.edc.iam.identitytrust.service.validation.rules.HasValidIssuer;
-import org.eclipse.edc.iam.identitytrust.service.validation.rules.HasValidSubjectIds;
-import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsInValidityPeriod;
-import org.eclipse.edc.iam.identitytrust.service.validation.rules.IsNotRevoked;
 import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
-import org.eclipse.edc.iam.identitytrust.spi.TrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
-import org.eclipse.edc.iam.identitytrust.spi.verification.PresentationVerifier;
-import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -36,12 +28,9 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
-import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -74,14 +63,12 @@ public class IdentityAndTrustService implements IdentityService {
     private static final String SCOPE_STRING_REGEX = "(.+):(.+):(read|write|\\*)";
     private final SecureTokenService secureTokenService;
     private final String myOwnDid;
-    private final PresentationVerifier presentationVerifier;
     private final CredentialServiceClient credentialServiceClient;
     private final Function<TokenRepresentation, Result<ClaimToken>> tokenValidationAction;
-    private final TrustedIssuerRegistry trustedIssuerRegistry;
-    private final Clock clock;
+
     private final CredentialServiceUrlResolver credentialServiceUrlResolver;
     private final ClaimTokenCreatorFunction claimTokenCreatorFunction;
-    private final RevocationListService revocationListService;
+    private final VerifiableCredentialValidationService verifiableCredentialValidationService;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -90,23 +77,18 @@ public class IdentityAndTrustService implements IdentityService {
      * @param myOwnDid           The DID which belongs to "this connector"
      */
     public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid,
-                                   PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
+                                   CredentialServiceClient credentialServiceClient,
                                    TokenValidationAction tokenValidationAction,
-                                   TrustedIssuerRegistry trustedIssuerRegistry,
-                                   Clock clock,
                                    CredentialServiceUrlResolver csUrlResolver,
                                    ClaimTokenCreatorFunction claimTokenCreatorFunction,
-                                   RevocationListService revocationListService) {
+                                   VerifiableCredentialValidationService verifiableCredentialValidationService) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
-        this.presentationVerifier = presentationVerifier;
         this.credentialServiceClient = credentialServiceClient;
         this.tokenValidationAction = tokenValidationAction;
-        this.trustedIssuerRegistry = trustedIssuerRegistry;
-        this.clock = clock;
         this.credentialServiceUrlResolver = csUrlResolver;
         this.claimTokenCreatorFunction = claimTokenCreatorFunction;
-        this.revocationListService = revocationListService;
+        this.verifiableCredentialValidationService = verifiableCredentialValidationService;
     }
 
     @Override
@@ -171,12 +153,9 @@ public class IdentityAndTrustService implements IdentityService {
         }
 
         var presentations = vpResponse.getContent();
-        var result = presentations.stream().map(verifiablePresentation -> {
-            var credentials = verifiablePresentation.presentation().getCredentials();
-            // verify, that the VP and all VPs are cryptographically OK
-            return presentationVerifier.verifyPresentation(verifiablePresentation)
-                    .compose(u -> validateVerifiableCredentials(credentials, issuer));
-        }).reduce(Result.success(), Result::merge);
+
+        var result = verifiableCredentialValidationService.validate(presentations, getAdditionalValidations());
+
         //todo: at this point we have established what the other participant's DID is, and that it's authentic
         // so we need to make sure that `iss == sub == DID`
         return result.compose(u -> claimTokenCreatorFunction.apply(presentations.stream().map(p -> p.presentation().getCredentials().stream())
@@ -184,33 +163,11 @@ public class IdentityAndTrustService implements IdentityService {
                 .toList()));
     }
 
-    @NotNull
-    private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, String issuer) {
-
-
-        // in addition, verify that all VCs are valid
-        var filters = new ArrayList<>(List.of(
-                new IsInValidityPeriod(clock),
-                new HasValidSubjectIds(issuer),
-                new IsNotRevoked(revocationListService),
-                new HasValidIssuer(getTrustedIssuerIds())));
-
-
-        filters.addAll(getAdditionalValidations());
-        var results = credentials
-                .stream()
-                .map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c))
-                .reduce(Result::merge);
-        return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
-    }
 
     private Collection<? extends CredentialValidationRule> getAdditionalValidations() {
         return List.of();
     }
 
-    private List<String> getTrustedIssuerIds() {
-        return trustedIssuerRegistry.getTrustedIssuers().stream().map(Issuer::id).toList();
-    }
 
     private Result<Void> validateScope(String scope) {
         if (StringUtils.isNullOrBlank(scope)) {

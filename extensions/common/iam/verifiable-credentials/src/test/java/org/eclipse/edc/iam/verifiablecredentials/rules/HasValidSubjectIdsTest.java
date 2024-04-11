@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.service.validation.rules;
+package org.eclipse.edc.iam.verifiablecredentials.rules;
 
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
@@ -41,7 +41,7 @@ class HasValidSubjectIdsTest {
                 .credentialSubjects(List.of(createSubject("violating-id")))
                 .build();
         assertThat(new HasValidSubjectIds(SUBJECT_ID).apply(vc)).isFailed()
-                .detail().isEqualTo("Not all subject IDs match the expected subject ID %s".formatted(SUBJECT_ID));
+                .detail().isEqualTo("Not all credential subject IDs match the expected subject ID '%s'. Violating subject IDs: [violating-id]".formatted(SUBJECT_ID));
     }
 
     @Test
@@ -58,7 +58,7 @@ class HasValidSubjectIdsTest {
                 .credentialSubjects(List.of(createSubject(SUBJECT_ID), createSubject("violating-id")))
                 .build();
         assertThat(new HasValidSubjectIds(SUBJECT_ID).apply(vc)).isFailed()
-                .detail().isEqualTo("Not all subject IDs match the expected subject ID %s".formatted(SUBJECT_ID));
+                .detail().isEqualTo("Not all credential subject IDs match the expected subject ID '%s'. Violating subject IDs: [violating-id]".formatted(SUBJECT_ID));
     }
 
     private CredentialSubject createSubject(String id) {

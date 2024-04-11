@@ -26,6 +26,6 @@ dependencies {
     testImplementation(libs.mockserver.netty)
     testImplementation(project(":tests:junit-base"))
     testImplementation(project(":core:common:lib:util-lib"))
-
+    testImplementation(testFixtures(project(":spi:common:identity-trust-spi"))) //test functions
 }
 
