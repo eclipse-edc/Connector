@@ -15,7 +15,6 @@
 package org.eclipse.edc.iam.verifiablecredentials;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
-import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
@@ -50,7 +49,7 @@ class VerifiableCredentialValidationServiceImplTest {
     private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
     private final RevocationListService revocationListServiceMock = mock();
 
-    private final VerifiableCredentialValidationService service = new VerifiableCredentialValidationServiceImpl(verifierMock, trustedIssuerRegistryMock, revocationListServiceMock, Clock.systemUTC());
+    private final VerifiableCredentialValidationServiceImpl service = new VerifiableCredentialValidationServiceImpl(verifierMock, trustedIssuerRegistryMock, revocationListServiceMock, Clock.systemUTC());
 
     @Test
     void cryptographicError() {
