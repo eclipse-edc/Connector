@@ -55,7 +55,7 @@ public abstract class PolicyDefinitionStoreTestBase {
 
             getPolicyDefinitionStore().create(policy);
 
-            var policyFromDb = getPolicyDefinitionStore().findById(policy.getUid());
+            var policyFromDb = getPolicyDefinitionStore().findById(policy.getId());
             assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
         }
 
@@ -98,7 +98,7 @@ public abstract class PolicyDefinitionStoreTestBase {
 
             getPolicyDefinitionStore().create(policy);
 
-            var policyFromDb = getPolicyDefinitionStore().findById(policy.getUid());
+            var policyFromDb = getPolicyDefinitionStore().findById(policy.getId());
             assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
 
             assertThat(policyFromDb.getPrivateProperties()).hasSize(2);
@@ -304,7 +304,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             var policy = TestFunctions.createPolicy(getRandomId());
             getPolicyDefinitionStore().create(policy);
 
-            var policyFromDb = getPolicyDefinitionStore().findById(policy.getUid());
+            var policyFromDb = getPolicyDefinitionStore().findById(policy.getId());
 
             assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
         }
@@ -682,7 +682,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             getPolicyDefinitionStore().create(policy2);
             getPolicyDefinitionStore().create(policy3);
 
-            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", policy1.getUid())).build();
+            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", policy1.getId())).build();
 
             assertThat(getPolicyDefinitionStore().findAll(querySpec)).usingRecursiveFieldByFieldElementComparator().containsExactly(policy1);
         }
@@ -736,10 +736,10 @@ public abstract class PolicyDefinitionStoreTestBase {
             var store = getPolicyDefinitionStore();
             store.create(policy);
 
-            var result = store.delete(policy.getUid());
+            var result = store.delete(policy.getId());
             assertThat(result.succeeded()).isTrue();
             assertThat(result.getContent()).usingRecursiveComparison().isEqualTo(policy);
-            assertThat(store.findById(policy.getUid())).isNull();
+            assertThat(store.findById(policy.getId())).isNull();
         }
 
         @Test
@@ -749,10 +749,10 @@ public abstract class PolicyDefinitionStoreTestBase {
             var store = getPolicyDefinitionStore();
             store.create(policy);
 
-            var result = store.delete(policy.getUid());
+            var result = store.delete(policy.getId());
             assertThat(result.succeeded()).isTrue();
             assertThat(result.getContent()).usingRecursiveComparison().isEqualTo(policy);
-            assertThat(store.findById(policy.getUid())).isNull();
+            assertThat(store.findById(policy.getId())).isNull();
         }
 
         @Test

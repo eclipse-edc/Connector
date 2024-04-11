@@ -97,9 +97,9 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     @Override
     public StoreResult<PolicyDefinition> create(PolicyDefinition policy) {
         Objects.requireNonNull(policy);
-        var policyId = policy.getUid();
+        var policyId = policy.getId();
         return transactionContext.execute(() -> {
-            if (findById(policy.getUid()) != null) {
+            if (findById(policyId) != null) {
                 return StoreResult.alreadyExists(format(POLICY_ALREADY_EXISTS, policyId));
             } else {
                 insert(policy);
@@ -110,7 +110,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
 
     @Override
     public StoreResult<PolicyDefinition> update(PolicyDefinition policyDefinition) {
-        var policyId = policyDefinition.getUid();
+        var policyId = policyDefinition.getId();
         if (findById(policyId) != null) {
             return transactionContext.execute(() -> {
                 updateInternal(policyDefinition);
@@ -141,7 +141,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var policy = def.getPolicy();
-                var id = def.getUid();
+                var id = def.getId();
                 queryExecutor.execute(connection, statements.getInsertTemplate(),
                         id,
                         toJson(policy.getPermissions(), permissionListType),
@@ -165,7 +165,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var policy = def.getPolicy();
-                var id = def.getUid();
+                var id = def.getId();
                 queryExecutor.execute(connection, statements.getUpdateTemplate(),
                         toJson(policy.getPermissions(), permissionListType),
                         toJson(policy.getProhibitions(), prohibitionListType),

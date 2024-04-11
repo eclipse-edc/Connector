@@ -63,7 +63,7 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
     public StoreResult<PolicyDefinition> create(PolicyDefinition policy) {
         try {
             return lockManager.writeLock(() -> {
-                var id = policy.getUid();
+                var id = policy.getId();
                 // do not replace if already exists
                 if (policiesById.containsKey(id)) {
                     return StoreResult.alreadyExists(format(POLICY_ALREADY_EXISTS, id));

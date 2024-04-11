@@ -70,6 +70,7 @@ public class PolicyDefinition extends Entity {
         return Objects.equals(id, that.id) && policy.equals(that.policy);
     }
 
+    @Deprecated(since = "0.6.0", forRemoval = true)
     public String getUid() {
         return id;
     }
