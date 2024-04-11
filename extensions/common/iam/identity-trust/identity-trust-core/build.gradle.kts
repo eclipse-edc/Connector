@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":extensions:common:crypto:jwt-verifiable-credentials"))
     implementation(project(":extensions:common:crypto:ldp-verifiable-credentials"))
     implementation(project(":extensions:common:iam:identity-trust:identity-trust-service"))
+    implementation(project(":extensions:common:iam:identity-trust:identity-trust-transform"))
     implementation(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-embedded"))
     implementation(project(":extensions:common:iam:verifiable-credentials"))
     implementation(libs.nimbus.jwt)
