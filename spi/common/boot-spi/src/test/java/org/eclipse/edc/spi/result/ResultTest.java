@@ -15,6 +15,7 @@
 package org.eclipse.edc.spi.result;
 
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
+import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -255,5 +256,21 @@ class ResultTest {
         Function<Failure, Result<String>> failingRecoverFunction = f -> Result.failure("error");
 
         AbstractResultAssert.assertThat(succeededResult.recover(failingRecoverFunction)).isSucceeded();
+    }
+
+    @Test
+    void ofThrowable_success() {
+
+        var result = Result.ofThrowable(String::new);
+        AbstractResultAssert.assertThat(result).isSucceeded().isEqualTo("");
+    }
+
+    @Test
+    void ofThrowable_failure() {
+
+        var result = Result.ofThrowable(() -> {
+            throw new EdcException("Exception");
+        });
+        AbstractResultAssert.assertThat(result).isFailed().detail().contains("Exception");
     }
 }

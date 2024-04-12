@@ -28,10 +28,14 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLI
 public class StatusList2021Credential extends VerifiableCredential {
     public static final String STATUSLIST_2021_TYPE = "StatusList2021";
     public static final String STATUSLIST_2021_CREDENTIAL = STATUSLIST_2021_TYPE + "Credential";
-    public static final String STATUS_LIST_ENCODED_LIST = STATUSLIST_2021_PREFIX + "encodedList";
-    public static final String STATUS_LIST_CREDENTIAL = STATUSLIST_2021_PREFIX + "statusListCredential";
-    public static final String STATUS_LIST_INDEX = STATUSLIST_2021_PREFIX + "statusListIndex";
-    public static final String STATUS_LIST_PURPOSE = STATUSLIST_2021_PREFIX + "statusPurpose";
+    public static final String STATUS_LIST_ENCODED_LIST_LITERAL = "encodedList";
+    public static final String STATUS_LIST_ENCODED_LIST = STATUSLIST_2021_PREFIX + STATUS_LIST_ENCODED_LIST_LITERAL;
+    public static final String STATUS_LIST_CREDENTIAL_LITERAL = "statusListCredential";
+    public static final String STATUS_LIST_CREDENTIAL = STATUSLIST_2021_PREFIX + STATUS_LIST_CREDENTIAL_LITERAL;
+    public static final String STATUS_LIST_INDEX_LITERAL = "statusListIndex";
+    public static final String STATUS_LIST_INDEX = STATUSLIST_2021_PREFIX + STATUS_LIST_INDEX_LITERAL;
+    public static final String STATUS_LIST_PURPOSE_LITERAL = "statusPurpose";
+    public static final String STATUS_LIST_PURPOSE = STATUSLIST_2021_PREFIX + STATUS_LIST_PURPOSE_LITERAL;
 
     private StatusList2021Credential() {
     }
@@ -51,11 +55,11 @@ public class StatusList2021Credential extends VerifiableCredential {
     }
 
     public String encodedList() {
-        return (String) credentialSubject.get(0).getClaims().get(STATUS_LIST_ENCODED_LIST);
+        return (String) credentialSubject.get(0).getClaim(STATUSLIST_2021_PREFIX, STATUS_LIST_ENCODED_LIST_LITERAL);
     }
 
     public String statusPurpose() {
-        return (String) credentialSubject.get(0).getClaims().get(STATUS_LIST_PURPOSE);
+        return (String) credentialSubject.get(0).getClaim(STATUSLIST_2021_PREFIX, STATUS_LIST_PURPOSE_LITERAL);
     }
 
     public static class Builder extends VerifiableCredential.Builder<StatusList2021Credential, Builder> {
@@ -83,10 +87,10 @@ public class StatusList2021Credential extends VerifiableCredential {
 
             // check mandatory fields of the credentialSubject object
             var subject = instance.credentialSubject.get(0);
-            if (!subject.getClaims().containsKey(STATUS_LIST_ENCODED_LIST)) {
+            if (subject.getClaim(STATUSLIST_2021_PREFIX, STATUS_LIST_ENCODED_LIST_LITERAL) == null) {
                 throw new IllegalArgumentException("Status list credentials must contain a 'credentialSubject.encodedList' field.");
             }
-            if (!subject.getClaims().containsKey(STATUS_LIST_PURPOSE)) {
+            if (subject.getClaim(STATUSLIST_2021_PREFIX, STATUS_LIST_PURPOSE_LITERAL) == null) {
                 throw new IllegalArgumentException("Status list credentials must contain a 'credentialSubject.statusPurpose' field.");
             }
             return instance;

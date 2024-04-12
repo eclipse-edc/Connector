@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.VC_PREFIX;
 
 /**
@@ -38,6 +39,23 @@ public class CredentialSubject {
     @JsonAnySetter
     public void setClaim(String name, Object value) {
         claims.put(name, value);
+    }
+
+
+    /**
+     * Returns a claim if presents in the claims map. This method
+     * will try first the combination namespace + property and if
+     * not found will fall back to just property when fetching the claim
+     * from the underling map
+     *
+     * @param namespace The namespace of the property
+     * @param property  The name of the property
+     * @return The claim if present, null otherwise
+     */
+    public Object getClaim(String namespace, String property) {
+        return ofNullable(claims.get(namespace + property))
+                .or(() -> ofNullable(claims.get(property)))
+                .orElse(null);
     }
 
     public String getId() {

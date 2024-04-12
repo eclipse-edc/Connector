@@ -55,4 +55,17 @@ class CredentialSubjectTest {
                 .containsKey("complex")
                 .hasEntrySatisfying("complex", o -> assertThat(o).isInstanceOf(Map.class));
     }
+
+    @Test
+    void getClaim() {
+        var namespace = "http://namespace#";
+        var cred = CredentialSubject.Builder.newInstance()
+                .claim("key", "val")
+                .claim(namespace + "key1", "val1")
+                .build();
+
+
+        assertThat(cred.getClaim(namespace, "key")).isEqualTo("val");
+        assertThat(cred.getClaim(namespace, "key1")).isEqualTo("val1");
+    }
 }
