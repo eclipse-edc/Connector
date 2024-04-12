@@ -17,7 +17,7 @@ package org.eclipse.edc.iam.identitytrust.spi.model;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -31,8 +31,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class VerifiableCredentialTest {
 
     @Test
-    void serDeser() {
-        var typeManager = new TypeManager();
+    void serDes() {
+        var typeManager = new JacksonTypeManager();
         var vc = org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject())
                 .issuer(new org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer("http://test.issuer", Map.of()))

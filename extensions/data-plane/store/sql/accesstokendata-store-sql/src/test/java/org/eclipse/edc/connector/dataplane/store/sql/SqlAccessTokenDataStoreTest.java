@@ -19,9 +19,9 @@ import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataTestBase;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.BaseSqlAccessTokenStatements;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.PostgresAccessTokenDataStatements;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -41,7 +41,7 @@ class SqlAccessTokenDataStoreTest extends AccessTokenDataTestBase {
 
     @BeforeEach
     void setup(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) throws IOException {
-        var typeManager = new TypeManager();
+        var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
         sqlStore = new SqlAccessTokenDataStore(setupExtension.getDataSourceRegistry(), setupExtension.getDatasourceName(),

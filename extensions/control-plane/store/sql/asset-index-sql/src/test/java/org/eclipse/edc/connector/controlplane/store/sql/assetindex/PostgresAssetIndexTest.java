@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.asset.spi.testfixtures.AssetIndexTestBase;
 import org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.postgres.PostgresDialectStatements;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -42,7 +42,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
 
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) throws IOException {
-        var typeManager = new TypeManager();
+        var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
         sqlAssetIndex = new SqlAssetIndex(setupExtension.getDataSourceRegistry(), setupExtension.getDatasourceName(),

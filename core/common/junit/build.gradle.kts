@@ -23,8 +23,9 @@ dependencies {
 
     api(project(":spi:common:core-spi"))
     api(project(":core:common:boot"))
-    api(project(":core:common:lib:util-lib"))
     api(project(":core:common:lib:http-lib"))
+    api(project(":core:common:lib:json-lib"))
+    api(project(":core:common:lib:util-lib"))
 
     implementation(project(":spi:common:http-spi"))
     implementation(libs.okhttp)

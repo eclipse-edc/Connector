@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.asset.spi.event;
 
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -31,11 +32,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class AssetEventTest {
 
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
 
     @ParameterizedTest
     @ArgumentsSource(EventInstances.class)
-    void serdes(EventEnvelope<?> event) {
+    void serDes(EventEnvelope<?> event) {
         var eventEnvelopeClass = event.getClass();
         var eventClass = event.getPayload().getClass();
 

@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotia
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationTerminated;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -45,11 +46,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ContractEventTest {
 
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
 
     @ParameterizedTest
     @ArgumentsSource(EventInstances.class)
-    void serdes(EventEnvelope<?> event) {
+    void serDes(EventEnvelope<?> event) {
         var eventEnvelopeClass = event.getClass();
         var eventClass = event.getPayload().getClass();
 

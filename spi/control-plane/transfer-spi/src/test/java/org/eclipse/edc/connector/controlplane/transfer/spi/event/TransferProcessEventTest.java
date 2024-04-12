@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transfer.spi.event;
 
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -36,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TransferProcessEventTest {
 
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
 
     @ParameterizedTest
     @ArgumentsSource(EventInstances.class)

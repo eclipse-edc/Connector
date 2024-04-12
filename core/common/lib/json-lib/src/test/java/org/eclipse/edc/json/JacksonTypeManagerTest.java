@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Microsoft Corporation
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.edc.spi.types;
+package org.eclipse.edc.json;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,19 +26,20 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class TypeManagerTest {
+class JacksonTypeManagerTest {
+
+    private final JacksonTypeManager typeManager = new JacksonTypeManager();
 
     @Test
     void verifySerialization() throws JsonProcessingException {
-        var manager = new TypeManager();
-        manager.registerSerializer("foo", Bar.class, new JsonSerializer<>() {
+        typeManager.registerSerializer("foo", Bar.class, new JsonSerializer<>() {
             @Override
             public void serialize(Bar value, JsonGenerator generator, SerializerProvider serializers) throws IOException {
                 generator.writeString(value.toString());
             }
         });
 
-        var fooMapper = manager.getMapper("foo");
+        var fooMapper = typeManager.getMapper("foo");
         assertThat(fooMapper).isNotNull();
 
         var result = fooMapper.writeValueAsString(new Bar());
@@ -47,11 +48,10 @@ class TypeManagerTest {
 
     @Test
     void decorateExample() throws JsonProcessingException {
-        var manager = new TypeManager();
-        var fooMapper = manager.getMapper("foo");
+        var fooMapper = typeManager.getMapper("foo");
 
-        manager.registerSerializer("foo", Bar.class, new DecoratingSerializer<>(Bar.class));
-        manager.registerSerializer("foo", Baz.class, new DecoratingSerializer<>(Baz.class));
+        typeManager.registerSerializer("foo", Bar.class, new DecoratingSerializer<>(Bar.class));
+        typeManager.registerSerializer("foo", Baz.class, new DecoratingSerializer<>(Baz.class));
 
         var baz = new Baz();
         baz.setName("name");

@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackEventRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
@@ -59,7 +60,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
     private static final int CALLBACK_PORT = getFreePort();
     private static final String CALLBACK_PATH = "hooks";
     private static ClientAndServer receiverEndpointServer;
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
     private final EdcHttpClient httpClient = spy(testHttpClient());
     private final Vault vault = mock();
     private final GenericHttpRemoteDispatcherImpl dispatcher = new GenericHttpRemoteDispatcherImpl(httpClient);

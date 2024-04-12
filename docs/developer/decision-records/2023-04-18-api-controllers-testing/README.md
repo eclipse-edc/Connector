@@ -32,7 +32,7 @@ public abstract class JerseyIntegrationTestBase {
         var config = new JettyConfiguration(null, null);
         config.portMapping(new PortMapping("test", port, "/"));
         jetty = new JettyService(config, monitor);
-        var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(JerseyConfiguration.class), monitor);
+        var jerseyService = new JerseyRestService(jetty, new JacksonTypeManager(), mock(JerseyConfiguration.class), monitor);
         jetty.start();
         jerseyService.registerResource("test", controller());
         jerseyService.start();

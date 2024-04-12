@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.types.domain;
 
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ class DataAddressTest {
 
     @Test
     void verifyDeserialization() throws IOException {
-        var mapper = new TypeManager().getMapper();
+        var mapper = new JacksonTypeManager().getMapper();
 
         var dataAddress = DataAddress.Builder.newInstance()
                 .type("test")

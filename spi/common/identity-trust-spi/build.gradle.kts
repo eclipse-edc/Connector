@@ -27,8 +27,10 @@ dependencies {
         exclude("com.github.multiformats")
     }
 
-    testFixturesImplementation(libs.nimbus.jwt)
+    testImplementation(project(":core:common:lib:json-lib"))
     testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
+
+    testFixturesImplementation(libs.nimbus.jwt)
 }
 
 

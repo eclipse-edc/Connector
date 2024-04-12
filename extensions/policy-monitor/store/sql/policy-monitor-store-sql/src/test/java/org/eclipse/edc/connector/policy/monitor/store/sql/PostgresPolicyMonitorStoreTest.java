@@ -18,8 +18,8 @@ import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.policy.monitor.spi.testfixtures.store.PolicyMonitorStoreTestBase;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PolicyMonitorStatements;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PostgresPolicyMonitorStatements;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
@@ -45,7 +45,7 @@ public class PostgresPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
 
-        var typeManager = new TypeManager();
+        var typeManager = new JacksonTypeManager();
 
         var clock = Clock.systemUTC();
 

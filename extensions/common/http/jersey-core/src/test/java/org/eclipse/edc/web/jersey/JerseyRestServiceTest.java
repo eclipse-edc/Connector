@@ -20,9 +20,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
 import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.jetty.PortMapping;
@@ -231,7 +231,7 @@ public class JerseyRestServiceTest {
         var config = new JettyConfiguration(null, null);
         Arrays.stream(mapping).forEach(config::portMapping);
         jettyService = new JettyService(config, monitor);
-        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), JerseyConfiguration.Builder.newInstance().build(), monitor);
+        jerseyRestService = new JerseyRestService(jettyService, new JacksonTypeManager(), JerseyConfiguration.Builder.newInstance().build(), monitor);
         jettyService.start();
     }
 

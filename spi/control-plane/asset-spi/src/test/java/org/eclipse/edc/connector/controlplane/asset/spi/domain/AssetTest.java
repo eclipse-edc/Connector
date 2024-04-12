@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.asset.spi.domain;
 
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +28,7 @@ class AssetTest {
 
     @BeforeEach
     void setUp() {
-        typeManager = new TypeManager();
+        typeManager = new JacksonTypeManager();
     }
 
     @Test

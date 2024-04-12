@@ -17,6 +17,7 @@ package org.eclipse.edc.edr.store.index.sql;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex;
 import org.eclipse.edc.edr.store.index.SqlEndpointDataReferenceEntryIndex;
 import org.eclipse.edc.edr.store.index.SqlEndpointDataReferenceEntryIndexExtension;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -39,7 +40,7 @@ public class SqlEndpointDataReferenceEntryIndexExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(TypeManager.class, new TypeManager());
+        context.registerService(TypeManager.class, new JacksonTypeManager());
     }
 
     @Test

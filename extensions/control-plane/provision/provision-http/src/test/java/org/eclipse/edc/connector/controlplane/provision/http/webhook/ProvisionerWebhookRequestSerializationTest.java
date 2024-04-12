@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.provision.http.webhook;
 
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +28,7 @@ class ProvisionerWebhookRequestSerializationTest {
 
     @BeforeEach
     void setUp() {
-        typeManager = new TypeManager();
+        typeManager = new JacksonTypeManager();
         typeManager.registerTypes(ProvisionerWebhookRequest.class);
     }
 

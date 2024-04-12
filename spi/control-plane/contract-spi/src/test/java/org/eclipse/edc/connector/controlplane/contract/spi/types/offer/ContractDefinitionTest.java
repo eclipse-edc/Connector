@@ -16,8 +16,7 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.types.offer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -30,7 +29,7 @@ class ContractDefinitionTest {
 
     @Test
     void verifySerializeDeserialize() throws JsonProcessingException {
-        ObjectMapper mapper = new TypeManager().getMapper();
+        var mapper = new JacksonTypeManager().getMapper();
         var definition = ContractDefinition.Builder.newInstance()
                 .id("1")
                 .accessPolicyId(UUID.randomUUID().toString())

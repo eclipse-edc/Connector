@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.SqlContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -51,7 +52,7 @@ class SqlContractNegotiationStoreExtensionTest {
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
         context.registerService(ContractNegotiationStatements.class, null);
-        context.registerService(TypeManager.class, new TypeManager());
+        context.registerService(TypeManager.class, new JacksonTypeManager());
 
         extension = factory.constructInstance(SqlContractNegotiationStoreExtension.class);
 
@@ -68,7 +69,7 @@ class SqlContractNegotiationStoreExtensionTest {
     void initialize_withCustomSqlDialect(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
-        context.registerService(TypeManager.class, new TypeManager());
+        context.registerService(TypeManager.class, new JacksonTypeManager());
         var customSqlDialect = mock(ContractNegotiationStatements.class);
         context.registerService(ContractNegotiationStatements.class, customSqlDialect);
 

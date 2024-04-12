@@ -22,10 +22,10 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     implementation(project(":core:common:lib:util-lib"))
 
+    testImplementation(project(":core:common:lib:json-lib"))
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
-
-    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
 
 }
 

@@ -16,9 +16,9 @@ package org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.sto
 
 import org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.ContractNegotiationStoreTestBase;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
@@ -45,7 +45,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
         var statements = new PostgresDialectStatements();
-        var manager = new TypeManager();
+        var manager = new JacksonTypeManager();
 
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
         store = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),

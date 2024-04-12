@@ -17,11 +17,11 @@ package org.eclipse.edc.test.e2e.sts.api;
 import org.eclipse.edc.iam.identitytrust.sts.remote.RemoteSecureTokenService;
 import org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration;
 import org.eclipse.edc.iam.oauth2.client.Oauth2ClientImpl;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Failure;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -68,7 +68,7 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
 
     @BeforeEach
     void setup() {
-        var oauth2Client = new Oauth2ClientImpl(testHttpClient(), new TypeManager());
+        var oauth2Client = new Oauth2ClientImpl(testHttpClient(), new JacksonTypeManager());
         remoteSecureTokenService = new RemoteSecureTokenService(oauth2Client, config);
     }
 

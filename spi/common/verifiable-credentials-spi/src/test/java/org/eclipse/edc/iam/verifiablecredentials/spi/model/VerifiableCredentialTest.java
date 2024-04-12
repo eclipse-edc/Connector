@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model;
 
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ class VerifiableCredentialTest {
 
     @Test
     void serDeser() {
-        var typeManager = new TypeManager();
+        var typeManager = new JacksonTypeManager();
         var vc = VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
                 .issuer(new Issuer("http://test.issuer", Map.of()))

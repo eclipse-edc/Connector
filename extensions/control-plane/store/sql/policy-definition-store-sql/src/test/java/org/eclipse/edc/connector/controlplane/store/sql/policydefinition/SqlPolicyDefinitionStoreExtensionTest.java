@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.store.sql.policydefinition;
 
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.store.sql.policydefinition.store.SqlPolicyDefinitionStore;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -38,7 +39,7 @@ public class SqlPolicyDefinitionStoreExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(TypeManager.class, new TypeManager());
+        context.registerService(TypeManager.class, new JacksonTypeManager());
     }
 
     @Test

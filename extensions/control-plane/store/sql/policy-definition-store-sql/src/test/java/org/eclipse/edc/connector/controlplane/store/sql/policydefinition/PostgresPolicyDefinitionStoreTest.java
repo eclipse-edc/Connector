@@ -17,9 +17,9 @@ package org.eclipse.edc.connector.controlplane.store.sql.policydefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.testfixtures.store.PolicyDefinitionStoreTestBase;
 import org.eclipse.edc.connector.controlplane.store.sql.policydefinition.store.SqlPolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.store.sql.policydefinition.store.schema.postgres.PostgresDialectStatements;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -43,7 +43,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
 
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
-        var typeManager = new TypeManager();
+        var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
         sqlPolicyStore = new SqlPolicyDefinitionStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),

@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.receiver.http;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -49,7 +50,7 @@ public class HttpEndpointDataReferenceReceiverTest {
     private static final String RECEIVER_ENDPOINT_PATH = "path";
 
     private final EdcHttpClient httpClient = testHttpClient();
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
     private final Monitor monitor = mock(Monitor.class);
     private ClientAndServer receiverEndpointServer;
     private HttpEndpointDataReferenceReceiver receiver;

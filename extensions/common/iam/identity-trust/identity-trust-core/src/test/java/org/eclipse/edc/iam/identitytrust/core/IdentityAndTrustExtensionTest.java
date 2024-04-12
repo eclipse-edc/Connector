@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.core;
 
 import org.eclipse.edc.iam.identitytrust.service.IdentityAndTrustService;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -38,7 +39,7 @@ class IdentityAndTrustExtensionTest {
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(SecureTokenService.class, mock());
-        context.registerService(TypeManager.class, new TypeManager());
+        context.registerService(TypeManager.class, new JacksonTypeManager());
     }
 
     @Test

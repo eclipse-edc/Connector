@@ -26,10 +26,11 @@ dependencies {
     implementation(libs.failsafe.core)
 
     testImplementation(project(":spi:common:data-address:data-address-http-data-spi"))
+    testImplementation(project(":core:common:lib:json-lib"))
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
 
-    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
 
 
 }

@@ -16,8 +16,8 @@ package org.eclipse.edc.connector.dataplane.http.params;
 
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.mock;
 
 class HttpRequestParamsProviderImplSinkTest {
 
-    private final HttpRequestParamsProvider provider = new HttpRequestParamsProviderImpl(mock(Vault.class), new TypeManager());
+    private final HttpRequestParamsProvider provider = new HttpRequestParamsProviderImpl(mock(Vault.class), new JacksonTypeManager());
 
     @Test
     void shouldMapDataFlowRequestToHttpRequest() {

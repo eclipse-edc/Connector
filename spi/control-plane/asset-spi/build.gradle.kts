@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi:common:core-spi"))
 
     testImplementation(project(":tests:junit-base"))
+    testImplementation(project(":core:common:lib:json-lib"))
 
     // needed by the abstract test spec located in testFixtures
     testFixturesImplementation(libs.bundles.jupiter)
