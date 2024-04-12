@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Representation of <a href="https://www.w3.org/TR/2023/WD-vc-status-list-20230427/#bitstring-encoding">StatusList2021Credential#bitstring</a>
@@ -51,13 +52,72 @@ public class BitString {
             throw new IllegalArgumentException("Index out of range 0-%s".formatted(length()));
         }
         var byteIdx = idx / bitsPerByte;
-        var bitIdx = idx % bitsPerByte;
-        var shift = leftToRightIndexing ? (7 - bitIdx) : bitIdx;
+        var shift = bitPosition(idx);
         return (bits[byteIdx] & (1L << shift)) != 0;
+    }
+
+    /**
+     * Set the bit at idx to either `1` or `0` depending on the boolean in input
+     *
+     * @param idx    The index to change
+     * @param status true or false if it's revoked or not
+     */
+    public void set(int idx, boolean status) {
+        if (idx < 0 || idx >= length()) {
+            throw new IllegalArgumentException("Index out of range 0-%s".formatted(length()));
+        }
+        var byteIdx = idx / bitsPerByte;
+        var shift = bitPosition(idx);
+
+        if (status) {
+            bits[byteIdx] |= (byte) (1L << shift);
+        } else {
+            bits[byteIdx] &= (byte) ~(1L << shift);
+        }
     }
 
     public int length() {
         return bits.length * bitsPerByte;
+    }
+
+    private int bitPosition(int idx) {
+        var bitIdx = idx % bitsPerByte;
+        return leftToRightIndexing ? (7 - bitIdx) : bitIdx;
+    }
+
+    /**
+     * Parser configuration for {@link BitString}
+     */
+    public static final class Builder {
+
+        private boolean leftToRightIndexing = true;
+        private int size = 16 * 1024 * 8;
+
+        private Builder() {
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+
+        public Builder leftToRightIndexing(boolean leftToRightIndexing) {
+            this.leftToRightIndexing = leftToRightIndexing;
+            return this;
+        }
+
+        public Builder size(int size) {
+            this.size = size;
+            return this;
+        }
+
+        public BitString build() {
+            if (size % 8 != 0) {
+                throw new IllegalArgumentException("BitString size should be multiple of 8");
+            }
+            var bits = new byte[size / 8];
+            return new BitString(bits, leftToRightIndexing);
+        }
     }
 
     /**
@@ -86,11 +146,11 @@ public class BitString {
 
         public Result<BitString> parse(String encodedList) {
             return Result.ofThrowable(() -> decoder.decode(encodedList))
-                    .compose(this::unGzip)
+                    .compose(this::decompress)
                     .map(bytes -> new BitString(bytes, leftToRightIndexing));
         }
 
-        private Result<byte[]> unGzip(byte[] bytes) {
+        private Result<byte[]> decompress(byte[] bytes) {
             try (var inputStream = new GZIPInputStream(new ByteArrayInputStream(bytes))) {
                 try (var outputStream = new ByteArrayOutputStream()) {
                     inputStream.transferTo(outputStream);
@@ -98,6 +158,43 @@ public class BitString {
                 }
             } catch (IOException e) {
                 return Result.failure("Failed to ungzip encoded list: %s".formatted(e.getMessage()));
+            }
+        }
+    }
+
+    /**
+     * Writer configuration for {@link BitString}
+     */
+    public static final class Writer {
+        private Base64.Encoder encoder = Base64.getEncoder();
+
+        private Writer() {
+        }
+
+        public static Writer newInstance() {
+            return new Writer();
+        }
+
+        public Writer encoder(Base64.Encoder encoder) {
+            this.encoder = encoder;
+            return this;
+        }
+
+        public Result<String> write(BitString bitString) {
+            return compress(bitString.bits)
+                    .compose(compressed -> Result.ofThrowable(() -> encoder.encodeToString(compressed)));
+
+        }
+
+        private Result<byte[]> compress(byte[] bytes) {
+            try (var outputStream = new ByteArrayOutputStream()) {
+                try (var zipStream = new GZIPOutputStream(outputStream)) {
+                    zipStream.write(bytes);
+                    zipStream.close();
+                    return Result.success(outputStream.toByteArray());
+                }
+            } catch (IOException e) {
+                return Result.failure("Failed to gzip the input bytes: %s".formatted(e.getMessage()));
             }
         }
     }
