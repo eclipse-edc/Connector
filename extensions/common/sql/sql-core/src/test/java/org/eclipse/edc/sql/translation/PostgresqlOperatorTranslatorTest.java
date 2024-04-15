@@ -41,6 +41,14 @@ class PostgresqlOperatorTranslatorTest {
     }
 
     @Test
+    void shouldTranslate_ilike() {
+        var operator = translator.translate("ilike");
+
+        assertThat(operator.representation()).isEqualTo("ilike");
+        assertThat(operator.rightOperandClass()).isEqualTo(String.class);
+    }
+
+    @Test
     void shouldTranslate_in() {
         var operator = translator.translate("in");
 

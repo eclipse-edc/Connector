@@ -24,6 +24,7 @@ public interface CriterionOperatorRegistry {
     String EQUAL = "=";
     String IN = "in";
     String LIKE = "like";
+    String ILIKE = "ilike";
     String CONTAINS = "contains";
 
     /**
