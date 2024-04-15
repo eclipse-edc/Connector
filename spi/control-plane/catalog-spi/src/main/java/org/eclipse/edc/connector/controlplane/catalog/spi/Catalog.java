@@ -31,7 +31,7 @@ import static java.util.UUID.randomUUID;
 @JsonDeserialize(builder = Catalog.Builder.class)
 public class Catalog {
     private String id;
-    private List<Dataset> datasets;
+    private List<Dataset> datasets = new ArrayList<>();
     private List<DataService> dataServices;
     private Map<String, Object> properties;
     private String participantId;
@@ -74,14 +74,11 @@ public class Catalog {
         }
 
         public Builder datasets(List<Dataset> datasets) {
-            catalog.datasets = datasets;
+            catalog.datasets.addAll(datasets);
             return this;
         }
 
         public Builder dataset(Dataset dataset) {
-            if (catalog.datasets == null) {
-                catalog.datasets = new ArrayList<>();
-            }
             catalog.datasets.add(dataset);
             return this;
         }

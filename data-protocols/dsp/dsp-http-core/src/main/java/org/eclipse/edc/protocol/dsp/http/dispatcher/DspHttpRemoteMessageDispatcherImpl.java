@@ -117,9 +117,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
         }
 
-        tokenParametersBuilder = tokenDecorator.decorate(tokenParametersBuilder);
-
-        var tokenParameters = tokenParametersBuilder
+        var tokenParameters = tokenDecorator.decorate(tokenParametersBuilder)
                 .claims(AUDIENCE_CLAIM, audienceResolver.resolve(message)) // enforce the audience, ignore anything a decorator might have set
                 .build();
 

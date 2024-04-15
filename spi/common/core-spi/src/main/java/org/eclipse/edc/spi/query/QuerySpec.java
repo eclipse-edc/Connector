@@ -57,6 +57,43 @@ public class QuerySpec {
         return sortField;
     }
 
+    public int getOffset() {
+        return offset;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    @JsonIgnore
+    public Range getRange() {
+        return new Range(offset, offset + limit);
+    }
+
+    public List<Criterion> getFilterExpression() {
+        return filterExpression;
+    }
+
+    public SortOrder getSortOrder() {
+        return sortOrder;
+    }
+
+    /**
+     * Checks whether any {@link Criterion} contains the given left-hand operand
+     */
+    public boolean containsAnyLeftOperand(String leftOperand) {
+        return getFilterExpression().stream().anyMatch(c -> c.getOperandLeft().toString().startsWith(leftOperand));
+    }
+
+    public Builder toBuilder() {
+        return new Builder()
+                .offset(offset)
+                .limit(limit)
+                .filter(filterExpression)
+                .sortOrder(sortOrder)
+                .sortField(sortField);
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(offset, limit, filterExpression, sortOrder, sortField);
@@ -85,33 +122,6 @@ public class QuerySpec {
                 '}';
     }
 
-    public int getOffset() {
-        return offset;
-    }
-
-    public int getLimit() {
-        return limit;
-    }
-
-    @JsonIgnore
-    public Range getRange() {
-        return new Range(offset, offset + limit);
-    }
-
-    public List<Criterion> getFilterExpression() {
-        return filterExpression;
-    }
-
-    public SortOrder getSortOrder() {
-        return sortOrder;
-    }
-
-    /**
-     * Checks whether any {@link Criterion} contains the given left-hand operand
-     */
-    public boolean containsAnyLeftOperand(String leftOperand) {
-        return getFilterExpression().stream().anyMatch(c -> c.getOperandLeft().toString().startsWith(leftOperand));
-    }
 
     public static final class Builder {
         private final QuerySpec querySpec;

@@ -36,11 +36,24 @@ public interface DspRequestHandler {
      * return as response.
      *
      * @param request the request.
+     * @param <I> the input type.
+     * @param <R> the result type.
+     * @return the response to be returned to the client.
+     */
+    default <I extends RemoteMessage, R> Response createResource(PostDspRequest<I, R> request) {
+        return createResource(request, (b, i, o) -> b);
+    }
+
+    /**
+     * Verify identity, validate incoming message, transform, call the service to create the resource, transform it,
+     * create the response, decorate it and return as response.
+     *
+     * @param request the request.
      * @return the response to be returned to the client.
      * @param <I> the input type.
      * @param <R> the result type.
      */
-    <I extends RemoteMessage, R> Response createResource(PostDspRequest<I, R> request);
+    <I extends RemoteMessage, R> Response createResource(PostDspRequest<I, R> request, ResponseDecorator<I, R> responseDecorator);
 
     /**
      * Verify identity, validate incoming message, transform and call the service.

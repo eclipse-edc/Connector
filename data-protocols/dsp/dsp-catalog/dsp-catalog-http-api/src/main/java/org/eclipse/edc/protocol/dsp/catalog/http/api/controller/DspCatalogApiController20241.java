@@ -18,6 +18,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.version.DspVersions;
 
@@ -32,7 +33,8 @@ import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE
 @Path(DspVersions.V_2024_1_PATH + BASE_PATH)
 public class DspCatalogApiController20241 extends DspCatalogApiController {
 
-    public DspCatalogApiController20241(CatalogProtocolService service, DspRequestHandler dspRequestHandler) {
-        super(service, dspRequestHandler);
+    public DspCatalogApiController20241(CatalogProtocolService service, DspRequestHandler dspRequestHandler,
+                                        ContinuationTokenManager responseDecorator) {
+        super(service, dspRequestHandler, responseDecorator);
     }
 }

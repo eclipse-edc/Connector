@@ -244,6 +244,29 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(500);
         }
 
+        @Test
+        void shouldDecorateResponse_whenDecoratorSpecified() {
+            var jsonMessage = Json.createObjectBuilder().build();
+            var message = mock(TestProcessRemoteMessage.class);
+            var content = new Object();
+            var responseJson = Json.createObjectBuilder().build();
+            BiFunction<TestProcessRemoteMessage, TokenRepresentation, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.success(content);
+            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+            when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
+            when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseJson));
+            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class)
+                    .token("token")
+                    .expectedMessageType("expected-message-type")
+                    .message(jsonMessage)
+                    .serviceCall(serviceCall)
+                    .errorType("errorType")
+                    .build();
+
+            var result = handler.createResource(request, (r, i, o) -> r.header("test", "test"));
+
+            assertThat(result.getHeaderString("test")).isEqualTo("test");
+        }
+
         private PostDspRequest.Builder<TestProcessRemoteMessage, Object> postDspRequestBuilder() {
             return PostDspRequest.Builder
                     .newInstance(TestProcessRemoteMessage.class, Object.class)
