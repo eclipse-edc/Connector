@@ -20,6 +20,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -63,7 +64,7 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
     private static ClientAndServer receiverEndpointServer;
     private final Monitor monitor = mock(Monitor.class);
     private final OkHttpClient httpClient = spy(testOkHttpClient());
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
     private final TransferProcessStore transferProcessStore = mock(TransferProcessStore.class);
     private HttpDynamicEndpointDataReferenceReceiver receiver;
     private RetryPolicy<Object> retryPolicy;
@@ -119,7 +120,7 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
                 .monitor(monitor)
                 .build();
 
-        String url = receiverUrl();
+        var url = receiverUrl();
         when(transferProcessStore.findForCorrelationId(any()))
                 .thenReturn(createTransferProcess(TRANSFER_ID, transferProperties(url)));
 

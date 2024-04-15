@@ -15,7 +15,7 @@
 package org.eclipse.edc.spi.types.domain.transfer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +31,7 @@ class DataFlowStartMessageTest {
     void verifySerializeDeserialize() throws JsonProcessingException {
 
         var uri = URI.create("http://test");
-        var mapper = new TypeManager().getMapper();
+        var mapper = new JacksonTypeManager().getMapper();
         var request = DataFlowStartMessage.Builder.newInstance()
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("foo").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("bar").build())

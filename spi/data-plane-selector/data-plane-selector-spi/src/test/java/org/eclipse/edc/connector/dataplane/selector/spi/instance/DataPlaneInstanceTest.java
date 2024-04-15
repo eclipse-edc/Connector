@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector.spi.instance;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ class DataPlaneInstanceTest {
 
     @BeforeEach
     void setup() {
-        var tm = new TypeManager();
+        var tm = new JacksonTypeManager();
         tm.registerTypes(DataPlaneInstance.class);
         mapper = tm.getMapper();
     }

@@ -23,10 +23,10 @@ dependencies {
     api(libs.failsafe.core)
     api(project(":spi:common:boot-spi"))
     api(project(":spi:common:policy-model"))
-    api(libs.jackson.datatypeJsr310)
     implementation(libs.opentelemetry.api)
 
-    testImplementation(project(":tests:junit-base"));
+    testImplementation(project(":tests:junit-base"))
+    testImplementation(project(":core:common:lib:json-lib"))
 
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.mockito.core)

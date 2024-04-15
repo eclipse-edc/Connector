@@ -18,8 +18,8 @@ import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.spi.testfixtures.store.DataPlaneStoreTestBase;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.PostgresDataPlaneStatements;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
@@ -45,7 +45,7 @@ public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
 
-        var typeManager = new TypeManager();
+        var typeManager = new JacksonTypeManager();
 
         var clock = Clock.systemUTC();
 

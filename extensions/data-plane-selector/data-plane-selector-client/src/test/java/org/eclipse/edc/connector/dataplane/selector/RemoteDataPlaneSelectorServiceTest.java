@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectFromDataPlaneInstanceTransformer;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
@@ -56,7 +57,7 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
     private static final String BASE_URL = "http://localhost:%d/v2/dataplanes";
     private static final DataPlaneSelectorService SELECTOR_SERVICE_MOCK = mock();
-    private static final TypeManager TYPE_MANAGER = new TypeManager();
+    private static final TypeManager TYPE_MANAGER = new JacksonTypeManager();
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();
     private final JsonObjectValidatorRegistry validator = mock();
     private RemoteDataPlaneSelectorService service;

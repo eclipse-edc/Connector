@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.api.iam.identitytrust.sts.model;
 
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -28,12 +28,12 @@ public class StsTokenResponseTest {
 
     @Test
     void verifyDeserialize() throws IOException {
-        var mapper = new TypeManager().getMapper();
+        var mapper = new JacksonTypeManager().getMapper();
 
         var accessToken = "token";
         var expiration = Clock.systemUTC().millis();
         var tokenResponse = new StsTokenResponse(accessToken, expiration);
-        StringWriter writer = new StringWriter();
+        var writer = new StringWriter();
         mapper.writeValue(writer, tokenResponse);
 
         var deserialized = mapper.readValue(writer.toString(), StsTokenResponse.class);

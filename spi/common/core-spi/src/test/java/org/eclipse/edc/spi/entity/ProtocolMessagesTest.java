@@ -16,14 +16,14 @@ package org.eclipse.edc.spi.entity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ProtocolMessagesTest {
 
-    private final ObjectMapper mapper = new TypeManager().getMapper();
+    private final ObjectMapper mapper = new JacksonTypeManager().getMapper();
 
     @Test
     void serdes() throws JsonProcessingException {

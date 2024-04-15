@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.issuer.configuration;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -44,7 +45,7 @@ public class TrustedIssuerConfigurationExtensionTest {
     @BeforeEach
     void setup(ServiceExtensionContext context) {
         context.registerService(TrustedIssuerRegistry.class, trustedIssuerRegistry);
-        context.registerService(TypeManager.class, new TypeManager());
+        context.registerService(TypeManager.class, new JacksonTypeManager());
     }
 
     @Test

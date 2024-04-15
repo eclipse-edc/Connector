@@ -24,6 +24,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.oauth2.jwt.JwkKeys;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -48,7 +49,7 @@ class IdentityProviderKeyResolverTest {
     private static final String JWKS_URL = "https://test.jwks.url";
     private static final String JWKS_FILE = "jwks_response.json";
     private final Interceptor interceptor = mock(Interceptor.class);
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
     private final EdcHttpClient httpClient = testHttpClient(interceptor);
     private JwkKeys testKeys;
     private IdentityProviderKeyResolver resolver;

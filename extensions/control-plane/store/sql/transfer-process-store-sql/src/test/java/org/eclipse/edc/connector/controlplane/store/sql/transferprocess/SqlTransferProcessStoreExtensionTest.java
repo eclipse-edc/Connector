@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.store.sql.transferprocess;
 
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.SqlTransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -37,7 +38,7 @@ public class SqlTransferProcessStoreExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(TypeManager.class, new TypeManager());
+        context.registerService(TypeManager.class, new JacksonTypeManager());
     }
 
     @Test

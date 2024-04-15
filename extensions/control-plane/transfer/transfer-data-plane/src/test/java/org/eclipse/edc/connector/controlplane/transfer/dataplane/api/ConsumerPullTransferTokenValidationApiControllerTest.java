@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.dataplane.api;
 
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.security.DataEncrypter;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 class ConsumerPullTransferTokenValidationApiControllerTest {
 
-    private static final TypeManager TYPE_MANAGER = new TypeManager();
+    private static final TypeManager TYPE_MANAGER = new JacksonTypeManager();
 
     private final DataEncrypter encrypterMock = mock(DataEncrypter.class);
     private final TokenValidationService tokenValidationServiceMock = mock(TokenValidationService.class);

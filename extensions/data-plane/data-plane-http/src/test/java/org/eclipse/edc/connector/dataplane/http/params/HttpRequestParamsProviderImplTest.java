@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.http.params;
 
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -37,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 class HttpRequestParamsProviderImplTest {
 
-    private static final TypeManager TYPE_MANAGER = new TypeManager();
+    private static final TypeManager TYPE_MANAGER = new JacksonTypeManager();
 
     private final Vault vault = mock(Vault.class);
     private HttpRequestParamsProvider provider;

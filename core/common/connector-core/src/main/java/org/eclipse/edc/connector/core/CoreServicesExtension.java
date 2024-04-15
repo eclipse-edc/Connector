@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.core.event.EventRouterImpl;
 import org.eclipse.edc.connector.core.message.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.edc.connector.core.validator.DataAddressValidatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
 import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
 import org.eclipse.edc.policy.engine.ScopeFilter;
@@ -93,7 +94,7 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public TypeManager typeManager() {
         if (typeManager == null) {
-            typeManager = new TypeManager();
+            typeManager = new JacksonTypeManager();
         }
         return typeManager;
     }

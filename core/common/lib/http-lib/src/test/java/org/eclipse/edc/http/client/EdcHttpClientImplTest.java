@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,7 @@ class EdcHttpClientImplTest {
 
     private final int port = getFreePort();
 
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
     private ClientAndServer server;
 
     @NotNull

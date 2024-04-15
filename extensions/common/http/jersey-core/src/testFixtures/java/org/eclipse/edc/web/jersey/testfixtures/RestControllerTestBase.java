@@ -15,9 +15,9 @@
 package org.eclipse.edc.web.jersey.testfixtures;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.JerseyConfiguration;
 import org.eclipse.edc.web.jersey.JerseyRestService;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
@@ -46,7 +46,7 @@ public abstract class RestControllerTestBase {
         var config = new JettyConfiguration(null, null);
         config.portMapping(new PortMapping("test", port, "/"));
         jetty = new JettyService(config, monitor);
-        var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(JerseyConfiguration.class), monitor);
+        var jerseyService = new JerseyRestService(jetty, new JacksonTypeManager(), mock(JerseyConfiguration.class), monitor);
         jerseyService.registerResource("test", new ObjectMapperProvider(objectMapper));
         jerseyService.registerResource("test", controller());
         var additionalResource = additionalResource();

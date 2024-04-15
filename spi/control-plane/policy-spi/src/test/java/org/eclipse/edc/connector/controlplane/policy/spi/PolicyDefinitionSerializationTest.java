@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.policy.spi;
 
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
@@ -29,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PolicyDefinitionSerializationTest {
 
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
 
     @Test
     void verifySerialization() {

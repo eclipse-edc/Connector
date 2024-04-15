@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrate
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectFromDataPlaneInstanceTransformer;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -59,7 +60,7 @@ class DataPlaneSelectorApiExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
-        context.registerService(TypeManager.class, new TypeManager());
+        context.registerService(TypeManager.class, new JacksonTypeManager());
         context.registerService(WebService.class, webService);
         context.registerService(ManagementApiConfiguration.class, managementApiConfiguration);
         context.registerService(DataPlaneSelectorService.class, new EmbeddedDataPlaneSelectorService(

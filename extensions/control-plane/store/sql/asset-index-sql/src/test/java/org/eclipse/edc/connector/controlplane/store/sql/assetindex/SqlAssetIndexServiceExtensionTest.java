@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.store.sql.assetindex;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -37,7 +38,7 @@ public class SqlAssetIndexServiceExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(TypeManager.class, new TypeManager());
+        context.registerService(TypeManager.class, new JacksonTypeManager());
     }
 
     @Test

@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.security.Da
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -45,7 +46,7 @@ import static org.mockito.Mockito.when;
 
 class ConsumerPullDataPlaneProxyResolverTest {
 
-    private static final TypeManager TYPE_MANAGER = new TypeManager();
+    private static final TypeManager TYPE_MANAGER = new JacksonTypeManager();
 
     private final DataEncrypter dataEncrypter = mock();
     private final TokenGenerationService tokenGenerationService = mock();
