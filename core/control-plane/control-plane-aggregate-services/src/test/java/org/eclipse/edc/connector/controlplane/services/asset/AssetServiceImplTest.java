@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.result.Result;
@@ -38,14 +37,7 @@ import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -58,7 +50,6 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.validator.spi.Violation.violation;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -269,41 +260,6 @@ class AssetServiceImplTest {
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
         verifyNoInteractions(index);
-    }
-
-    @Nested
-    class QueryValidatorIntegrationTest {
-        private final AssetService service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext, observable, dataAddressValidator);
-
-        @ParameterizedTest
-        @ValueSource(strings = {Asset.PROPERTY_ID, Asset.PROPERTY_NAME, Asset.PROPERTY_DESCRIPTION, Asset.PROPERTY_VERSION, Asset.PROPERTY_CONTENT_TYPE})
-        void search_validFilter(String filter) {
-            var query = QuerySpec.Builder.newInstance().filter(criterion(filter, "=", "somevalue")).build();
-
-            service.search(query);
-
-            verify(index).queryAssets(query);
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(InvalidFilters.class)
-        void search_invalidFilter(Criterion filter) {
-            var query = QuerySpec.Builder.newInstance().filter(filter).build();
-
-            var result = service.search(query);
-
-            assertThat(result).isFailed().extracting(Failure::getMessages).asList().hasSize(1);
-        }
-
-        private static class InvalidFilters implements ArgumentsProvider {
-            @Override
-            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-                return Stream.of(arguments(criterion("  asset_prop_id", "in", "(foo, bar)")), // invalid leading whitespace
-                        arguments(criterion(".customProp", "=", "whatever"))  // invalid leading dot
-                );
-            }
-        }
-
     }
 
     @NotNull

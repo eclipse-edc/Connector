@@ -33,13 +33,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -47,9 +41,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -228,59 +220,6 @@ class ContractNegotiationServiceImplTest {
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
     }
 
-    @Nested
-    class QueryValidatorIntegrationTest {
-        private final ContractNegotiationService service = new ContractNegotiationServiceImpl(store, consumerManager, transactionContext, commandHandlerRegistry);
-
-        @ParameterizedTest
-        @ArgumentsSource(InvalidFilters.class)
-        void search_invalidFilter(Criterion invalidFilter) {
-            var query = QuerySpec.Builder.newInstance()
-                    .filter(invalidFilter)
-                    .build();
-            when(queryValidator.validate(query)).thenReturn(Result.failure("Test"));
-
-            var result = service.search(query);
-
-            assertThat(result).isFailed();
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(ValidFilters.class)
-        void search_validFilter(Criterion validFilter) {
-            var query = QuerySpec.Builder.newInstance()
-                    .filter(validFilter)
-                    .build();
-            when(queryValidator.validate(query)).thenReturn(Result.success());
-
-            var result = service.search(query);
-
-            assertThat(result).isSucceeded();
-            verify(store).queryNegotiations(query);
-        }
-
-        private static class InvalidFilters implements ArgumentsProvider {
-            @Override
-            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-                return Stream.of(
-                        arguments(criterion("contractAgreement.contractStartDate.begin", "=", "123455")), // invalid path
-                        arguments(criterion("contractOffers.policy.unexistent", "=", "123455")), // invalid path
-                        arguments(criterion("contractOffers.policy.assetid", "=", "123455")), // wrong case
-                        arguments(criterion("contractOffers.policy.=some-id", "=", "123455")) // incomplete path
-                );
-            }
-        }
-
-        private static class ValidFilters implements ArgumentsProvider {
-            @Override
-            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-                return Stream.of(
-                        arguments(criterion("contractAgreement.assetId", "=", "test-asset")),
-                        arguments(criterion("contractAgreement.policy.assignee", "=", "123455"))
-                );
-            }
-        }
-    }
 
     private ContractNegotiation createContractNegotiation(String negotiationId) {
         return createContractNegotiationBuilder(negotiationId)

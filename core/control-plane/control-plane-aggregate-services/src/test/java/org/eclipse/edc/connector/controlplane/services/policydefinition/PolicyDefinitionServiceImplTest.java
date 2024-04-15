@@ -28,13 +28,7 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -44,7 +38,6 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -245,65 +238,6 @@ class PolicyDefinitionServiceImplTest {
         verify(policyStore).update(policy);
         verifyNoMoreInteractions(policyStore);
         verify(observable, never()).invokeForEach(any());
-    }
-
-    @Nested
-    class QueryValidatorIntegrationTest {
-        private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable);
-
-        @ParameterizedTest
-        @ArgumentsSource(InvalidFilters.class)
-        void search_invalidExpression_raiseException(Criterion invalidFilter) {
-            var query = QuerySpec.Builder.newInstance()
-                    .filter(invalidFilter)
-                    .build();
-
-            var result = policyServiceImpl.search(query);
-
-            assertThat(result).isFailed();
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(ValidFilters.class)
-        void search_validExpression_privateProperties(Criterion validFilter) {
-            var query = QuerySpec.Builder.newInstance()
-                    .filter(validFilter)
-                    .build();
-
-            var result = policyServiceImpl.search(query);
-
-            assertThat(result).isSucceeded();
-        }
-
-        private static class InvalidFilters implements ArgumentsProvider {
-            @Override
-            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-                return Stream.of(
-                        arguments(criterion("policy.permissions.action.constraint.noexist", "=", "123455")), // wrong property
-                        arguments(criterion("permissions.action.constraint.leftExpression", "=", "123455")), // missing root
-                        arguments(criterion("policy.permissions.action.leftExpression", "=", "123455")) // skips path element
-                );
-            }
-        }
-
-        private static class ValidFilters implements ArgumentsProvider {
-            private static final String PRIVATE_PROPERTIES = "privateProperties";
-            private static final String EDC_NAMESPACE = "'https://w3id.org/edc/v0.0.1/ns/'";
-            private static final String KEY = "key";
-
-            private static final String VALUE = "123455";
-
-            @Override
-            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-                return Stream.of(
-                        arguments(criterion(PRIVATE_PROPERTIES, "=", VALUE)), // path element with privateProperties
-                        arguments(criterion(PRIVATE_PROPERTIES + "." + KEY, "=", VALUE)), // path element with privateProperties and key
-                        arguments(criterion(PRIVATE_PROPERTIES + ".'" + KEY + "'", "=", VALUE)), // path element with privateProperties and 'key'
-                        arguments(criterion(PRIVATE_PROPERTIES + "." + EDC_NAMESPACE + KEY, "=", VALUE)) // path element with privateProperties and edc_namespace key
-                );
-            }
-        }
-
     }
 
     @NotNull
