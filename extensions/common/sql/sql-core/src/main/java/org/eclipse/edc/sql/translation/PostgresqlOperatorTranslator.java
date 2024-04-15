@@ -18,6 +18,7 @@ import java.util.Collection;
 
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.CONTAINS;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.EQUAL;
+import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.ILIKE;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.IN;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.LIKE;
 
@@ -31,6 +32,7 @@ public class PostgresqlOperatorTranslator implements SqlOperatorTranslator {
         return switch (operator) {
             case EQUAL -> new SqlOperator("=", Object.class);
             case LIKE -> new SqlOperator("like", String.class);
+            case ILIKE -> new SqlOperator("ilike", String.class);
             case IN -> new SqlOperator("in", Collection.class);
             case CONTAINS -> new SqlOperator("??", Object.class);
             default -> null;

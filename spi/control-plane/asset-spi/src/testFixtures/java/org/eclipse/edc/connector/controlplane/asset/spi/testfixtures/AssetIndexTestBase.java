@@ -211,10 +211,7 @@ public abstract class AssetIndexTestBase {
         @Test
         @DisplayName("Query assets with query spec")
         void limit() {
-            for (var i = 1; i <= 10; i++) {
-                var asset = getAsset("id" + i);
-                getAssetIndex().create(asset);
-            }
+            range(1, 10).mapToObj(it -> getAsset("id" + it)).forEach(asset -> getAssetIndex().create(asset));
             var querySpec = QuerySpec.Builder.newInstance().limit(3).offset(2).build();
 
             var assetsFound = getAssetIndex().queryAssets(querySpec);
@@ -405,13 +402,23 @@ public abstract class AssetIndexTestBase {
         }
 
         @Test
-        @DisplayName("Query assets using the LIKE operator")
-        void like() {
+        void shouldFilter_whenLikeOperator() {
             var asset1 = getAsset("id1");
             getAssetIndex().create(asset1);
             var asset2 = getAsset("id2");
             getAssetIndex().create(asset2);
             var criterion = new Criterion(Asset.PROPERTY_ID, "LIKE", "id%");
+
+            var assetsFound = getAssetIndex().queryAssets(filter(criterion));
+
+            assertThat(assetsFound).isNotNull().hasSize(2);
+        }
+
+        @Test
+        void shouldFilter_whenIlikeOperator() {
+            getAssetIndex().create(getAsset("ID1"));
+            getAssetIndex().create(getAsset("ID2"));
+            var criterion = new Criterion(Asset.PROPERTY_ID, "ilike", "id%");
 
             var assetsFound = getAssetIndex().queryAssets(filter(criterion));
 
