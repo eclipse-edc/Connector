@@ -12,17 +12,17 @@
  *
  */
 
-package org.eclipse.edc.test.e2e.signaling;
+package org.eclipse.edc.test.e2e;
 
 import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import static org.eclipse.edc.test.e2e.signaling.SignalingEndToEndTestBase.CONSUMER;
-import static org.eclipse.edc.test.e2e.signaling.SignalingEndToEndTestBase.PROVIDER;
+import static org.eclipse.edc.test.e2e.Runtimes.backendService;
+import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER;
+import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER;
 
 public interface EmbeddedDataPlaneSignalingRuntimes {
 
@@ -48,29 +48,13 @@ public interface EmbeddedDataPlaneSignalingRuntimes {
                     CONSUMER.controlPlaneConfiguration(),
                     CONSUMER_MODULES
             ),
-            new EdcRuntimeExtension(
-                    ":system-tests:e2e-transfer-test:backend-service",
-                    "consumer-backend-service",
-                    new HashMap<>() {
-                        {
-                            put("web.http.port", String.valueOf(CONSUMER.backendService().getPort()));
-                        }
-                    }
-            ),
+            backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
             new EdcRuntimeExtension(
                     "provider-control-plane",
                     providerConfig(),
                     PROVIDER_MODULES
             ),
-            new EdcRuntimeExtension(
-                    ":system-tests:e2e-transfer-test:backend-service",
-                    "provider-backend-service",
-                    new HashMap<>() {
-                        {
-                            put("web.http.port", String.valueOf(PROVIDER.backendService().getPort()));
-                        }
-                    }
-            )
+            backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
     );
 
     private static Map<String, String> providerConfig() {

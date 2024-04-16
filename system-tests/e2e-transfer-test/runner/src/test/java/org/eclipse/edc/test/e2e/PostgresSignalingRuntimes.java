@@ -12,16 +12,15 @@
  *
  */
 
-package org.eclipse.edc.test.e2e.signaling;
+package org.eclipse.edc.test.e2e;
 
 import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.util.HashMap;
-
-import static org.eclipse.edc.test.e2e.signaling.SignalingEndToEndTestBase.CONSUMER;
-import static org.eclipse.edc.test.e2e.signaling.SignalingEndToEndTestBase.PROVIDER;
+import static org.eclipse.edc.test.e2e.Runtimes.backendService;
+import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER;
+import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER;
 
 public interface PostgresSignalingRuntimes {
 
@@ -34,6 +33,7 @@ public interface PostgresSignalingRuntimes {
             ":extensions:control-plane:transfer:transfer-data-plane-signaling",
             ":extensions:control-plane:api:management-api:edr-cache-api",
             ":extensions:control-plane:edr:edr-store-receiver",
+            ":extensions:control-plane:store:sql:control-plane-sql",
             ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client",
             ":extensions:control-plane:callback:callback-event-dispatcher",
             ":extensions:control-plane:callback:callback-http-dispatcher"
@@ -41,12 +41,15 @@ public interface PostgresSignalingRuntimes {
 
     String[] DATA_PLANE_MODULES = new String[]{
             ":system-tests:e2e-transfer-test:data-plane",
+            ":extensions:data-plane:store:sql:data-plane-store-sql",
+            ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
+            ":extensions:common:transaction:transaction-local",
             ":extensions:data-plane:data-plane-public-api-v2"
     };
 
     EdcRuntimeExtension DATA_PLANE = new EdcRuntimeExtension(
             "provider-data-plane",
-            PROVIDER.dataPlaneConfiguration(),
+            PROVIDER.dataPlanePostgresConfiguration(),
             DATA_PLANE_MODULES
     );
 
@@ -57,30 +60,14 @@ public interface PostgresSignalingRuntimes {
                     CONSUMER.controlPlanePostgresConfiguration(),
                     CONTROL_PLANE_MODULES
             ),
-            new EdcRuntimeExtension(
-                    ":system-tests:e2e-transfer-test:backend-service",
-                    "consumer-backend-service",
-                    new HashMap<>() {
-                        {
-                            put("web.http.port", String.valueOf(CONSUMER.backendService().getPort()));
-                        }
-                    }
-            ),
+            backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
             DATA_PLANE,
             new EdcRuntimeExtension(
                     "provider-control-plane",
                     PROVIDER.controlPlanePostgresConfiguration(),
                     CONTROL_PLANE_MODULES
             ),
-            new EdcRuntimeExtension(
-                    ":system-tests:e2e-transfer-test:backend-service",
-                    "provider-backend-service",
-                    new HashMap<>() {
-                        {
-                            put("web.http.port", String.valueOf(PROVIDER.backendService().getPort()));
-                        }
-                    }
-            )
+            backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
     );
 
 

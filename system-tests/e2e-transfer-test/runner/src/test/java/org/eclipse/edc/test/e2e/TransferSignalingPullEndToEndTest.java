@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.test.e2e.signaling;
+package org.eclipse.edc.test.e2e;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -41,7 +41,7 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 import org.mockserver.model.MediaType;
 
-import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -49,12 +49,15 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static jakarta.json.Json.createObjectBuilder;
+import static java.time.Duration.ofDays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePolicy;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
@@ -91,12 +94,11 @@ class TransferSignalingPullEndToEndTest {
         };
     }
 
-    abstract static class Tests extends SignalingEndToEndTestBase {
+    abstract static class Tests extends TransferEndToEndTestBase {
         private static final ObjectMapper MAPPER = new ObjectMapper();
         private static final String CALLBACK_PATH = "hooks";
         private static final int CALLBACK_PORT = getFreePort();
         private static ClientAndServer callbacksEndpoint;
-        protected final Duration timeout = Duration.ofSeconds(60);
 
         @BeforeEach
         void beforeEach() {
@@ -202,6 +204,61 @@ class TransferSignalingPullEndToEndTest {
 
         }
 
+        @Test
+        void pullFromHttp_httpProvision() {
+            var assetId = UUID.randomUUID().toString();
+            createResourcesOnProvider(assetId, noConstraintPolicy(), Map.of(
+                    "name", "transfer-test",
+                    "baseUrl", PROVIDER.backendService() + "/api/provider/data",
+                    "type", "HttpProvision",
+                    "proxyQueryParams", "true"
+            ));
+
+            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, CONSUMER.dynamicReceiverPrivateProperties(),
+                    syncDataAddress(), "HttpData-PULL");
+
+            awaitTransferToBeInState(transferProcessId, STARTED);
+
+            await().atMost(timeout).untilAsserted(() -> {
+                var state = CONSUMER.getTransferProcessState(transferProcessId);
+                assertThat(state).isEqualTo(STARTED.name());
+
+                var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
+                CONSUMER.pullData(edr, Map.of("message", "some information"), equalTo("some information"));
+            });
+        }
+
+        @Test
+        void shouldTerminateTransfer_whenContractExpires_fixedInForcePeriod() {
+            var assetId = UUID.randomUUID().toString();
+            var now = Instant.now();
+
+            // contract was valid from t-10d to t-5d, so "now" it is expired
+            var contractPolicy = inForceDatePolicy("gteq", now.minus(ofDays(10)), "lteq", now.minus(ofDays(5)));
+            createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
+
+            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), syncDataAddress(), "HttpData-PULL");
+            await().atMost(timeout).untilAsserted(() -> {
+                var state = CONSUMER.getTransferProcessState(transferProcessId);
+                assertThat(state).isEqualTo(TERMINATED.name());
+            });
+        }
+
+        @Test
+        void shouldTerminateTransfer_whenContractExpires_durationInForcePeriod() {
+            var assetId = UUID.randomUUID().toString();
+            var now = Instant.now();
+            // contract was valid from t-10d to t-5d, so "now" it is expired
+            var contractPolicy = inForceDatePolicy("gteq", now.minus(ofDays(10)), "lteq", "contractAgreement+1s");
+            createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
+
+            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), syncDataAddress(), "HttpData-PULL");
+            await().atMost(timeout).untilAsserted(() -> {
+                var state = CONSUMER.getTransferProcessState(transferProcessId);
+                assertThat(state).isEqualTo(TERMINATED.name());
+            });
+        }
+
         private void awaitTransferToBeInState(String transferProcessId, TransferProcessStates state) {
             await().atMost(timeout).until(
                     () -> CONSUMER.getTransferProcessState(transferProcessId),
@@ -253,6 +310,10 @@ class TransferSignalingPullEndToEndTest {
                 throw new RuntimeException(e);
             }
 
+        }
+
+        private JsonObject noPrivateProperty() {
+            return Json.createObjectBuilder().build();
         }
 
         private String callbackUrl() {
