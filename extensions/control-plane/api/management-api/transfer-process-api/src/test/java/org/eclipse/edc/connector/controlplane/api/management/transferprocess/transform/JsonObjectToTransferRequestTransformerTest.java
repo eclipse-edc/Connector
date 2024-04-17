@@ -30,7 +30,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PRIVATE_PROPERTIES;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
@@ -57,10 +56,8 @@ class JsonObjectToTransferRequestTransformerTest {
     @Test
     void transform() {
         var dataDestinationJson = Json.createObjectBuilder().build();
-        var propertiesJson = Json.createObjectBuilder().add("foo", "bar").build();
         var privatePropertiesJson = Json.createObjectBuilder().add("fooPrivate", "bar").build();
         var dataDestination = DataAddress.Builder.newInstance().type("type").build();
-        var properties = Map.of("foo", "bar");
         var privateProperties = Map.of("fooPrivate", "bar");
 
         when(context.transform(any(), eq(DataAddress.class))).thenReturn(dataDestination);
@@ -71,7 +68,6 @@ class JsonObjectToTransferRequestTransformerTest {
                 .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, "address")
                 .add(TRANSFER_REQUEST_CONTRACT_ID, "contractId")
                 .add(TRANSFER_REQUEST_DATA_DESTINATION, dataDestinationJson)
-                .add(TRANSFER_REQUEST_PROPERTIES, propertiesJson)
                 .add(TRANSFER_REQUEST_PRIVATE_PROPERTIES, privatePropertiesJson)
                 .add(TRANSFER_REQUEST_TRANSFER_TYPE, "Http-Pull")
                 .add(TRANSFER_REQUEST_PROTOCOL, "protocol")
@@ -85,7 +81,6 @@ class JsonObjectToTransferRequestTransformerTest {
         assertThat(result.getCounterPartyAddress()).isEqualTo("address");
         assertThat(result.getContractId()).isEqualTo("contractId");
         assertThat(result.getDataDestination()).isSameAs(dataDestination);
-        assertThat(result.getProperties()).containsAllEntriesOf(properties);
         assertThat(result.getPrivateProperties()).containsAllEntriesOf(privateProperties);
         assertThat(result.getProtocol()).isEqualTo("protocol");
         assertThat(result.getAssetId()).isEqualTo("assetId");

@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.FlowTypeExtractor;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
@@ -27,11 +28,9 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -52,26 +51,29 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     private final ControlApiUrl callbackUrl;
     private final DataPlaneSelectorService selectorClient;
     private final DataPlaneClientFactory clientFactory;
-
     private final DataFlowPropertiesProvider propertiesProvider;
     private final String selectionStrategy;
+    private final FlowTypeExtractor flowTypeExtractor;
 
-    public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, DataFlowPropertiesProvider propertiesProvider, DataPlaneClientFactory clientFactory, String selectionStrategy) {
+    public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient,
+                                            DataFlowPropertiesProvider propertiesProvider, DataPlaneClientFactory clientFactory,
+                                            String selectionStrategy, FlowTypeExtractor flowTypeExtractor) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
         this.propertiesProvider = propertiesProvider;
         this.clientFactory = clientFactory;
         this.selectionStrategy = selectionStrategy;
+        this.flowTypeExtractor = flowTypeExtractor;
     }
 
     @Override
     public boolean canHandle(TransferProcess transferProcess) {
-        return extractFlowType(transferProcess).succeeded();
+        return flowTypeExtractor.extract(transferProcess.getTransferType()).succeeded();
     }
 
     @Override
     public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
-        var flowType = extractFlowType(transferProcess);
+        var flowType = flowTypeExtractor.extract(transferProcess.getTransferType());
         if (flowType.failed()) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, flowType.getFailureDetail());
         }
@@ -133,23 +135,6 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .map(DataPlaneInstance::getAllowedTransferTypes)
                 .flatMap(Collection::stream)
                 .collect(toSet());
-    }
-
-    private StatusResult<FlowType> extractFlowType(TransferProcess transferProcess) {
-        return Optional.ofNullable(transferProcess.getTransferType())
-                .map(transferType -> transferType.split("-"))
-                .filter(tokens -> tokens.length == 2)
-                .map(tokens -> parseFlowType(tokens[1]))
-                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to extract flow type from transferType %s".formatted(transferProcess.getTransferType())));
-
-    }
-
-    private StatusResult<FlowType> parseFlowType(String flowType) {
-        try {
-            return StatusResult.success(FlowType.valueOf(flowType));
-        } catch (Exception e) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Unknown flow type %s".formatted(flowType));
-        }
     }
 
     private Predicate<DataPlaneInstance> dataPlaneInstanceFilter(TransferProcess transferProcess) {

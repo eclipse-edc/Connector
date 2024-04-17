@@ -211,9 +211,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             process.setContentDataAddress(dataAddress);
 
             var dataDestination = process.getDataDestination();
-            var secret = dataDestination.getStringProperty(EDC_DATA_ADDRESS_SECRET);
-            if (secret != null) {
-                vault.storeSecret(dataDestination.getKeyName(), secret);
+            if (dataDestination != null) {
+                var secret = dataDestination.getStringProperty(EDC_DATA_ADDRESS_SECRET);
+                if (secret != null) {
+                    vault.storeSecret(dataDestination.getKeyName(), secret);
+                }
             }
 
             manifest = manifestGenerator.generateProviderResourceManifest(process, dataAddress, policy);
@@ -280,8 +282,10 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     @WithSpan
     private boolean processRequesting(TransferProcess process) {
         var originalDestination = process.getDataDestination();
-        var dataDestination = Optional.ofNullable(originalDestination.getKeyName())
-                .flatMap(key -> Optional.ofNullable(vault.resolveSecret(key)))
+
+        var dataDestination = Optional.ofNullable(originalDestination)
+                .map(DataAddress::getKeyName)
+                .map(key -> vault.resolveSecret(key))
                 .map(secret -> DataAddress.Builder.newInstance().properties(originalDestination.getProperties()).property(EDC_DATA_ADDRESS_SECRET, secret).build())
                 .orElse(originalDestination);
 

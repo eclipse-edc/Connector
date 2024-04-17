@@ -34,8 +34,6 @@ public class TransferRequest {
     public static final String TRANSFER_REQUEST_CONTRACT_ID = EDC_NAMESPACE + "contractId";
     public static final String TRANSFER_REQUEST_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_REQUEST_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
-    @Deprecated(since = "0.2.0")
-    public static final String TRANSFER_REQUEST_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
     @Deprecated(since = "0.3.2")
@@ -50,8 +48,6 @@ public class TransferRequest {
     private String assetId;
     private String transferType;
     private DataAddress dataDestination;
-    @Deprecated(since = "0.2.0")
-    private Map<String, String> properties = new HashMap<>();
     private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
@@ -69,11 +65,6 @@ public class TransferRequest {
 
     public DataAddress getDataDestination() {
         return dataDestination;
-    }
-
-    @Deprecated(since = "0.2.0")
-    public Map<String, String> getProperties() {
-        return properties;
     }
 
     public Map<String, Object> getPrivateProperties() {
@@ -129,12 +120,6 @@ public class TransferRequest {
 
         public Builder dataDestination(DataAddress dataDestination) {
             request.dataDestination = dataDestination;
-            return this;
-        }
-
-        @Deprecated(since = "0.2.0")
-        public Builder properties(Map<String, String> properties) {
-            request.properties = properties;
             return this;
         }
 

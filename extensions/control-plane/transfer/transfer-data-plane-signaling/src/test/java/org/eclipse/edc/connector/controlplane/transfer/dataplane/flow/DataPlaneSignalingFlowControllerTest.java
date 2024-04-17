@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transfer.dataplane.flow;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.FlowTypeExtractor;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
@@ -28,11 +29,10 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.net.URI;
@@ -55,166 +55,176 @@ public class DataPlaneSignalingFlowControllerTest {
     private final DataPlaneClient dataPlaneClient = mock();
     private final DataPlaneClientFactory dataPlaneClientFactory = mock();
     private final DataPlaneSelectorService selectorService = mock();
-
     private final DataFlowPropertiesProvider propertiesProvider = mock();
-    private final DataPlaneSignalingFlowController flowController =
-            new DataPlaneSignalingFlowController(() -> URI.create("http://localhost"), selectorService, propertiesProvider, dataPlaneClientFactory, "random");
+    private final FlowTypeExtractor flowTypeExtractor = mock();
 
+    private final DataPlaneSignalingFlowController flowController = new DataPlaneSignalingFlowController(
+            () -> URI.create("http://localhost"), selectorService, propertiesProvider, dataPlaneClientFactory,
+            "random", flowTypeExtractor);
 
-    @Test
-    void canHandle() {
-        var transferProcess = transferProcess("HttpData", HTTP_DATA_PULL);
-        var transferProcess1 = transferProcess("Custom", "notHandledFormat");
-        var transferProcess2 = transferProcess("Custom", "Custom-INVALID");
+    @Nested
+    class CanHandle {
+        @Test
+        void shouldReturnTrue_whenFlowTypeIsValid() {
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PUSH));
+            var transferProcess = transferProcess("Custom", "Valid-PUSH");
 
-        assertThat(flowController.canHandle(transferProcess)).isTrue();
-        assertThat(flowController.canHandle(transferProcess1)).isFalse();
-        assertThat(flowController.canHandle(transferProcess2)).isFalse();
+            var result = flowController.canHandle(transferProcess);
+
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        void shouldReturnFalse_whenFlowTypeIsNotValid() {
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR));
+            var transferProcess = transferProcess("Custom", "Invalid-ANY");
+
+            var result = flowController.canHandle(transferProcess);
+
+            assertThat(result).isFalse();
+        }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            HTTP_DATA_PULL,
-            CUSTOM_PUSH,
-    })
-    void initiateFlow_transferSuccess(String transferType) {
-        var source = testDataAddress();
-        var policy = Policy.Builder.newInstance().assignee("participantId").build();
-        var transferProcess = transferProcessBuilder()
-                .transferType(transferType)
-                .contentDataAddress(testDataAddress())
-                .build();
+    @Nested
+    class InitiateFlow {
+        @Test
+        void transferSuccess() {
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PULL));
+            var source = testDataAddress();
+            var policy = Policy.Builder.newInstance().assignee("participantId").build();
+            var transferProcess = transferProcessBuilder()
+                    .transferType("transferType")
+                    .contentDataAddress(testDataAddress())
+                    .build();
 
-        var customProperties = Map.of("foo", "bar");
-        when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(customProperties));
-        when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(mock(DataFlowResponseMessage.class)));
-        var dataPlaneInstance = createDataPlaneInstance();
-        when(selectorService.select(any(), any(), any(), eq(transferType))).thenReturn(dataPlaneInstance);
-        when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            var customProperties = Map.of("foo", "bar");
+            when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(customProperties));
+            when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(mock(DataFlowResponseMessage.class)));
+            var dataPlaneInstance = createDataPlaneInstance();
+            when(selectorService.select(any(), any(), any(), any())).thenReturn(dataPlaneInstance);
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
-        var result = flowController.start(transferProcess, policy);
+            var result = flowController.start(transferProcess, policy);
 
-        assertThat(result).isSucceeded().extracting(DataFlowResponse::getDataPlaneId).isEqualTo(dataPlaneInstance.getId());
-        var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
-        verify(dataPlaneClient).start(captor.capture());
-        var captured = captor.getValue();
-        assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
-        assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
-        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(transferProcess.getDataDestination());
-        assertThat(captured.getParticipantId()).isEqualTo(policy.getAssignee());
-        assertThat(captured.getAgreementId()).isEqualTo(transferProcess.getContractId());
-        assertThat(captured.getAssetId()).isEqualTo(transferProcess.getAssetId());
-        assertThat(transferType).contains(captured.getFlowType().toString());
-        assertThat(captured.getProperties()).containsAllEntriesOf(customProperties);
-        assertThat(captured.getCallbackAddress()).isNotNull();
-    }
+            assertThat(result).isSucceeded().extracting(DataFlowResponse::getDataPlaneId).isEqualTo(dataPlaneInstance.getId());
+            var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
+            verify(dataPlaneClient).start(captor.capture());
+            var captured = captor.getValue();
+            assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
+            assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
+            assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(transferProcess.getDataDestination());
+            assertThat(captured.getParticipantId()).isEqualTo(policy.getAssignee());
+            assertThat(captured.getAgreementId()).isEqualTo(transferProcess.getContractId());
+            assertThat(captured.getAssetId()).isEqualTo(transferProcess.getAssetId());
+            assertThat(captured.getFlowType()).isEqualTo(FlowType.PULL);
+            assertThat(captured.getProperties()).containsAllEntriesOf(customProperties);
+            assertThat(captured.getCallbackAddress()).isNotNull();
+        }
 
-    @Test
-    void initiateFlow_transferSuccess_withReturnedDataAddress() {
-        var policy = Policy.Builder.newInstance().assignee("participantId").build();
-        var transferProcess = transferProcessBuilder()
-                .transferType(HTTP_DATA_PULL)
-                .contentDataAddress(testDataAddress())
-                .build();
+        @Test
+        void transferSuccess_withReturnedDataAddress() {
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PULL));
+            var policy = Policy.Builder.newInstance().assignee("participantId").build();
+            var transferProcess = transferProcessBuilder()
+                    .transferType(HTTP_DATA_PULL)
+                    .contentDataAddress(testDataAddress())
+                    .build();
 
-        var response = mock(DataFlowResponseMessage.class);
-        when(response.getDataAddress()).thenReturn(DataAddress.Builder.newInstance().type("type").build());
-        when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
-        when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(response));
-        var dataPlaneInstance = createDataPlaneInstance();
-        when(selectorService.select(any(), any(), any(), eq(HTTP_DATA_PULL))).thenReturn(dataPlaneInstance);
-        when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            var response = mock(DataFlowResponseMessage.class);
+            when(response.getDataAddress()).thenReturn(DataAddress.Builder.newInstance().type("type").build());
+            when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
+            when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(response));
+            var dataPlaneInstance = createDataPlaneInstance();
+            when(selectorService.select(any(), any(), any(), eq(HTTP_DATA_PULL))).thenReturn(dataPlaneInstance);
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
-        var result = flowController.start(transferProcess, policy);
+            var result = flowController.start(transferProcess, policy);
 
-        assertThat(result).isSucceeded()
-                .satisfies(dataFlowResponse -> {
-                    assertThat(dataFlowResponse.getDataPlaneId()).isEqualTo(dataPlaneInstance.getId());
-                    assertThat(dataFlowResponse.getDataAddress()).isNotNull();
-                });
-    }
+            assertThat(result).isSucceeded()
+                    .satisfies(dataFlowResponse -> {
+                        assertThat(dataFlowResponse.getDataPlaneId()).isEqualTo(dataPlaneInstance.getId());
+                        assertThat(dataFlowResponse.getDataAddress()).isNotNull();
+                    });
+        }
 
-    @Test
-    void initiateFlow_transferSuccess_withoutDataPlane() {
-        var source = testDataAddress();
-        var transferProcess = transferProcessBuilder()
-                .contentDataAddress(testDataAddress())
-                .transferType(HTTP_DATA_PULL)
-                .build();
+        @Test
+        void transferSuccess_withoutDataPlane() {
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PULL));
+            var source = testDataAddress();
+            var transferProcess = transferProcessBuilder()
+                    .contentDataAddress(testDataAddress())
+                    .transferType(HTTP_DATA_PULL)
+                    .build();
 
-        when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
-        when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(mock(DataFlowResponseMessage.class)));
-        when(selectorService.select(any(), any())).thenReturn(null);
-        when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
+            when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(mock(DataFlowResponseMessage.class)));
+            when(selectorService.select(any(), any())).thenReturn(null);
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
-        var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
+            var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
-        assertThat(result).isSucceeded().extracting(DataFlowResponse::getDataPlaneId).isNull();
-        var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
-        verify(dataPlaneClient).start(captor.capture());
-        var captured = captor.getValue();
-        assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
-        assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
-        assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(transferProcess.getDataDestination());
-        assertThat(captured.getProperties()).isEmpty();
-        assertThat(captured.getCallbackAddress()).isNotNull();
-    }
+            assertThat(result).isSucceeded().extracting(DataFlowResponse::getDataPlaneId).isNull();
+            var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
+            verify(dataPlaneClient).start(captor.capture());
+            var captured = captor.getValue();
+            assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
+            assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
+            assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(transferProcess.getDataDestination());
+            assertThat(captured.getProperties()).isEmpty();
+            assertThat(captured.getCallbackAddress()).isNotNull();
+        }
 
+        @Test
+        void invalidTransferType() {
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "error"));
+            var transferProcess = transferProcessBuilder()
+                    .contentDataAddress(testDataAddress())
+                    .transferType("invalid")
+                    .build();
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "httppull",
-            "http-",
-            "",
-    })
-    void initiateFlow_invalidTransferType(String transferType) {
-        var transferProcess = transferProcessBuilder()
-                .contentDataAddress(testDataAddress())
-                .transferType(transferType)
-                .build();
+            var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
+            assertThat(result).isFailed().messages().containsOnly("error");
+        }
 
-        var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
+        @Test
+        void returnFailedResult_whenPropertiesResolveFails() {
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PULL));
+            var errorMsg = "error";
+            var transferProcess = transferProcessBuilder()
+                    .contentDataAddress(testDataAddress())
+                    .transferType(HTTP_DATA_PULL)
+                    .build();
 
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains("Failed to extract flow type from transferType %s".formatted(transferType)));
-    }
+            when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
+            var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
-    @Test
-    void initiateFlow_returnFailedResult_whenPropertiesResolveFails() {
-        var errorMsg = "error";
-        var transferProcess = transferProcessBuilder()
-                .contentDataAddress(testDataAddress())
-                .transferType(HTTP_DATA_PULL)
-                .build();
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
+        }
 
-        when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
-        var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
+        @Test
+        void returnFailedResultIfTransferFails() {
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PULL));
+            var errorMsg = "error";
+            var transferProcess = transferProcessBuilder()
+                    .contentDataAddress(testDataAddress())
+                    .transferType(HTTP_DATA_PULL)
+                    .build();
 
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
-    }
+            when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
+            when(dataPlaneClient.start(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
+            var dataPlaneInstance = createDataPlaneInstance();
+            when(selectorService.select(any(), any())).thenReturn(dataPlaneInstance);
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
-    @Test
-    void initiateFlow_returnFailedResultIfTransferFails() {
-        var errorMsg = "error";
-        var transferProcess = transferProcessBuilder()
-                .contentDataAddress(testDataAddress())
-                .transferType(HTTP_DATA_PULL)
-                .build();
+            var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
-        when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
-        when(dataPlaneClient.start(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
-        var dataPlaneInstance = createDataPlaneInstance();
-        when(selectorService.select(any(), any())).thenReturn(dataPlaneInstance);
-        when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            verify(dataPlaneClient).start(any());
 
-        var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
-
-        verify(dataPlaneClient).start(any());
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
+        }
     }
 
     @Test

@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.controlplane.services.transferprocess;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.FlowTypeExtractor;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;
@@ -40,6 +41,7 @@ import org.eclipse.edc.spi.command.EntityCommand;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.jetbrains.annotations.NotNull;
@@ -58,15 +60,17 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final QueryValidator queryValidator;
     private final DataAddressValidatorRegistry dataAddressValidator;
     private final CommandHandlerRegistry commandHandlerRegistry;
+    private final FlowTypeExtractor flowTypeExtractor;
 
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
                                       TransactionContext transactionContext, DataAddressValidatorRegistry dataAddressValidator,
-                                      CommandHandlerRegistry commandHandlerRegistry) {
+                                      CommandHandlerRegistry commandHandlerRegistry, FlowTypeExtractor flowTypeExtractor) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
         this.transactionContext = transactionContext;
         this.dataAddressValidator = dataAddressValidator;
         this.commandHandlerRegistry = commandHandlerRegistry;
+        this.flowTypeExtractor = flowTypeExtractor;
         queryValidator = new QueryValidator(TransferProcess.class, getSubtypes());
     }
 
@@ -119,9 +123,17 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @NotNull ServiceResult<TransferProcess> initiateTransfer(TransferRequest request) {
-        var validDestination = dataAddressValidator.validateDestination(request.getDataDestination());
-        if (validDestination.failed()) {
-            return ServiceResult.badRequest(validDestination.getFailureMessages());
+        var flowType = flowTypeExtractor.extract(request.getTransferType()).getContent();
+
+        if (flowType == FlowType.PUSH) {
+            if (request.getDataDestination() == null) {
+                return ServiceResult.badRequest("For PUSH transfers dataDestination must be defined");
+            }
+
+            var validDestination = dataAddressValidator.validateDestination(request.getDataDestination());
+            if (validDestination.failed()) {
+                return ServiceResult.badRequest(validDestination.getFailureMessages());
+            }
         }
 
         return transactionContext.execute(() -> {

@@ -43,9 +43,9 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIB
 public class ContractRequestValidator {
     public static Validator<JsonObject> instance(Monitor monitor) {
         return JsonObjectValidator.newValidator()
-                .verify(path -> new LogDeprecatedValue(path.append(PROVIDER_ID), CONTRACT_REQUEST_TYPE, ODRL_ASSIGNER_ATTRIBUTE, monitor))
-                .verify(path -> new LogDeprecatedValue(path.append(OFFER), CONTRACT_REQUEST_TYPE, POLICY, monitor))
-                .verify(path -> new LogDeprecatedValue(path.append(CONNECTOR_ADDRESS), CONTRACT_REQUEST_TYPE, CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, monitor))
+                .verify(PROVIDER_ID, path -> new LogDeprecatedValue(path, CONTRACT_REQUEST_TYPE, ODRL_ASSIGNER_ATTRIBUTE, monitor))
+                .verify(OFFER, path -> new LogDeprecatedValue(path, CONTRACT_REQUEST_TYPE, POLICY, monitor))
+                .verify(CONNECTOR_ADDRESS, path -> new LogDeprecatedValue(path, CONTRACT_REQUEST_TYPE, CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, monitor))
                 .verify(path -> new MandatoryCounterPartyAddressOrConnectorAddress(path, monitor))
                 .verify(PROTOCOL, MandatoryValue::new)
                 .verify(path -> new MandatoryOfferOrPolicy(path, monitor))

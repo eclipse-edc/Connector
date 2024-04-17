@@ -33,6 +33,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TRANSFER_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -53,6 +54,7 @@ class TransferRequestValidatorTest {
                 .add(TRANSFER_REQUEST_CONTRACT_ID, value("contract-id"))
                 .add(TRANSFER_REQUEST_PROTOCOL, value("protocol"))
                 .add(TRANSFER_REQUEST_ASSET_ID, value("assetId"))
+                .add(TRANSFER_REQUEST_TRANSFER_TYPE, value("transferType"))
                 .add(TRANSFER_REQUEST_DATA_DESTINATION, createArrayBuilder().add(createObjectBuilder()
                         .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, value("type"))
                 ))
@@ -64,12 +66,29 @@ class TransferRequestValidatorTest {
     }
 
     @Test
+    void shouldSucceed_whenDataDestinationIsMissing() {
+        var input = Json.createObjectBuilder()
+                .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
+                .add(TRANSFER_REQUEST_CONTRACT_ID, value("contract-id"))
+                .add(TRANSFER_REQUEST_PROTOCOL, value("protocol"))
+                .add(TRANSFER_REQUEST_ASSET_ID, value("assetId"))
+                .add(TRANSFER_REQUEST_TRANSFER_TYPE, value("transferType"))
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isSucceeded();
+    }
+
+    @Test
+    @Deprecated(since = "0.3.2")
     void shouldSucceed_whenDeprecatedConnectorAddressIsUsed() {
         var input = Json.createObjectBuilder()
                 .add(TRANSFER_REQUEST_CONNECTOR_ADDRESS, value("http://connector-address"))
                 .add(TRANSFER_REQUEST_CONTRACT_ID, value("contract-id"))
                 .add(TRANSFER_REQUEST_PROTOCOL, value("protocol"))
                 .add(TRANSFER_REQUEST_ASSET_ID, value("assetId"))
+                .add(TRANSFER_REQUEST_TRANSFER_TYPE, value("transferType"))
                 .add(TRANSFER_REQUEST_DATA_DESTINATION, createArrayBuilder().add(createObjectBuilder()
                         .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, value("type"))
                 ))
@@ -107,7 +126,7 @@ class TransferRequestValidatorTest {
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONTRACT_ID))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_PROTOCOL))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_ASSET_ID))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_DATA_DESTINATION));
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_TRANSFER_TYPE));
     }
 
     private JsonArrayBuilder value(String value) {

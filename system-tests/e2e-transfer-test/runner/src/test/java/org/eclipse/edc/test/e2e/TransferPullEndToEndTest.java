@@ -49,7 +49,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static jakarta.json.Json.createObjectBuilder;
 import static java.time.Duration.ofDays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -156,7 +155,11 @@ class TransferPullEndToEndTest {
 
             callbacksEndpoint.when(request).respond(req -> this.cacheEdr(req, events));
 
-            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, dynamicReceiverProps, syncDataAddress(), "HttpData-PULL", callbacks);
+            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withPrivateProperties(dynamicReceiverProps)
+                    .withTransferType("HttpData-PULL")
+                    .withCallbacks(callbacks)
+                    .execute();
 
             await().atMost(timeout).untilAsserted(() -> {
                 var state = CONSUMER.getTransferProcessState(transferProcessId);
@@ -177,8 +180,10 @@ class TransferPullEndToEndTest {
             createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("10s"), httpDataAddressProperties());
             var dynamicReceiverProps = CONSUMER.dynamicReceiverPrivateProperties();
 
-
-            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, dynamicReceiverProps, syncDataAddress(), "HttpData-PULL");
+            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withPrivateProperties(dynamicReceiverProps)
+                    .withTransferType("HttpData-PULL")
+                    .execute();
 
             await().atMost(timeout).untilAsserted(() -> {
                 var state = CONSUMER.getTransferProcessState(transferProcessId);
@@ -203,8 +208,10 @@ class TransferPullEndToEndTest {
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
 
-            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, CONSUMER.dynamicReceiverPrivateProperties(),
-                    syncDataAddress(), "HttpData-PULL");
+            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withPrivateProperties(CONSUMER.dynamicReceiverPrivateProperties())
+                    .withTransferType("HttpData-PULL")
+                    .execute();
 
             awaitTransferToBeInState(transferProcessId, STARTED);
 
@@ -242,8 +249,10 @@ class TransferPullEndToEndTest {
                     "proxyQueryParams", "true"
             ));
 
-            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, CONSUMER.dynamicReceiverPrivateProperties(),
-                    syncDataAddress(), "HttpData-PULL");
+            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withPrivateProperties(CONSUMER.dynamicReceiverPrivateProperties())
+                    .withTransferType("HttpData-PULL")
+                    .execute();
 
             awaitTransferToBeInState(transferProcessId, STARTED);
 
@@ -265,7 +274,10 @@ class TransferPullEndToEndTest {
             var contractPolicy = inForceDatePolicy("gteq", now.minus(ofDays(10)), "lteq", now.minus(ofDays(5)));
             createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
 
-            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), syncDataAddress(), "HttpData-PULL");
+            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withTransferType("HttpData-PULL")
+                    .execute();
+
             await().atMost(timeout).untilAsserted(() -> {
                 var state = CONSUMER.getTransferProcessState(transferProcessId);
                 assertThat(state).isEqualTo(TERMINATED.name());
@@ -280,7 +292,9 @@ class TransferPullEndToEndTest {
             var contractPolicy = inForceDatePolicy("gteq", now.minus(ofDays(10)), "lteq", "contractAgreement+1s");
             createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
 
-            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), syncDataAddress(), "HttpData-PULL");
+            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withTransferType("HttpData-PULL")
+                    .execute();
             await().atMost(timeout).untilAsserted(() -> {
                 var state = CONSUMER.getTransferProcessState(transferProcessId);
                 assertThat(state).isEqualTo(TERMINATED.name());
@@ -292,13 +306,6 @@ class TransferPullEndToEndTest {
                     () -> CONSUMER.getTransferProcessState(transferProcessId),
                     it -> Objects.equals(it, state.name())
             );
-        }
-
-        private JsonObject syncDataAddress() {
-            return createObjectBuilder()
-                    .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                    .add(EDC_NAMESPACE + "type", "HttpProxy")
-                    .build();
         }
 
         public JsonObject createCallback(String url, boolean transactional, Set<String> events) {
@@ -338,10 +345,6 @@ class TransferPullEndToEndTest {
                 throw new RuntimeException(e);
             }
 
-        }
-
-        private JsonObject noPrivateProperty() {
-            return Json.createObjectBuilder().build();
         }
 
         private String callbackUrl() {
