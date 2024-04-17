@@ -72,4 +72,22 @@ public interface TransformerContext {
     default Class<?> typeAlias(String type, Class<?> defaultType) {
         return defaultType;
     }
+
+    /**
+     * Set context data to be consumed by the transformer operating on type.
+     *
+     * @param type the type of the transformer that will consume the data.
+     * @param key the key.
+     * @param value the value.
+     */
+    void setData(Class<?> type, String key, Object value);
+
+    /**
+     * Consume context data. After consuming the data will be cleared.
+     *
+     * @param type the type of the transformer that consumes the data.
+     * @param key the key.
+     * @return the value.
+     */
+    Object consumeData(Class<?> type, String key);
 }

@@ -20,11 +20,16 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class TransformerContextImpl implements TransformerContext {
     private final List<String> problems = new ArrayList<>();
     private final TypeTransformerRegistry registry;
+    private final Map<Class<?>, Map<String, AtomicReference<?>>> data = new HashMap<>();
 
     public TransformerContextImpl(TypeTransformerRegistry registry) {
         this.registry = registry;
@@ -68,6 +73,20 @@ public class TransformerContextImpl implements TransformerContext {
     @Override
     public Class<?> typeAlias(String type, Class<?> defaultType) {
         return registry.typeAlias(type, defaultType);
+    }
+
+    @Override
+    public void setData(Class<?> type, String key, Object value) {
+        data.computeIfAbsent(type, t -> new HashMap<>()).put(key, new AtomicReference<>(value));
+    }
+
+    @Override
+    public Object consumeData(Class<?> type, String key) {
+        return Optional.of(type)
+                .map(data::get)
+                .map(typeMap -> typeMap.get(key))
+                .map(reference -> reference.getAndSet(null))
+                .orElse(null);
     }
 
 }
