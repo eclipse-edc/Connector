@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.test.e2e.participant;
+package org.eclipse.edc.test.e2e;
 
 import io.restassured.common.mapper.TypeRef;
 import jakarta.json.Json;
@@ -166,6 +166,12 @@ public class TransferEndToEndParticipant extends Participant {
                 put("edc.dataplane.http.sink.partition.size", "1");
             }
         };
+    }
+
+    public Map<String, String> controlPlaneEmbeddedDataPlaneConfiguration() {
+        var cfg = dataPlaneConfiguration();
+        cfg.putAll(controlPlaneConfiguration());
+        return cfg;
     }
 
     public Map<String, String> dataPlanePostgresConfiguration() {

@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -37,34 +38,64 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
+import static org.eclipse.edc.test.e2e.Runtimes.InMemory.controlPlane;
+import static org.eclipse.edc.test.e2e.Runtimes.InMemory.controlPlaneEmbeddedDataPlane;
+import static org.eclipse.edc.test.e2e.Runtimes.InMemory.dataPlane;
+import static org.eclipse.edc.test.e2e.Runtimes.backendService;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 
-class TransferSignalingPushEndToEndTest {
+class TransferPushEndToEndTest {
 
     @Nested
     @EndToEndTest
-    class InMemory extends Tests implements InMemorySignalingRuntimes {
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
+                controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
+                dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
+                controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
+        );
 
     }
 
     @Nested
     @EndToEndTest
-    class EmbeddedDataPlane extends Tests implements EmbeddedDataPlaneSignalingRuntimes {
+    class EmbeddedDataPlane extends Tests {
+
+        @RegisterExtension
+        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
+                controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
+                controlPlaneEmbeddedDataPlane("provider-control-plane", PROVIDER.controlPlaneEmbeddedDataPlaneConfiguration()),
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
+        );
 
     }
 
     @Nested
     @PostgresqlIntegrationTest
-    class Postgres extends Tests implements PostgresSignalingRuntimes {
+    class Postgres extends Tests {
 
         @RegisterExtension
         static final BeforeAllCallback CREATE_DATABASES = context -> {
             createDatabase(CONSUMER.getName());
             createDatabase(PROVIDER.getName());
         };
+
+        @RegisterExtension
+        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
+                Runtimes.Postgres.controlPlane("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration()),
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
+                Runtimes.Postgres.dataPlane("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()),
+                Runtimes.Postgres.controlPlane("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration()),
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
+        );
     }
 
     abstract static class Tests extends TransferEndToEndTestBase {
@@ -129,9 +160,7 @@ class TransferSignalingPushEndToEndTest {
             return createObjectBuilder()
                     .add(TYPE, EDC_NAMESPACE + "DataAddress")
                     .add(EDC_NAMESPACE + "type", "HttpData")
-                    .add(EDC_NAMESPACE + "properties", createObjectBuilder()
-                            .add(EDC_NAMESPACE + "baseUrl", baseUrl)
-                            .build())
+                    .add(EDC_NAMESPACE + "baseUrl", baseUrl)
                     .build();
         }
 

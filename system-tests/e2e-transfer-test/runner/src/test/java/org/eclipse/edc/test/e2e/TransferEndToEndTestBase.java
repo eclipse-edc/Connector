@@ -15,7 +15,6 @@
 package org.eclipse.edc.test.e2e;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.test.e2e.participant.TransferEndToEndParticipant;
 
 import java.time.Duration;
 import java.util.Map;

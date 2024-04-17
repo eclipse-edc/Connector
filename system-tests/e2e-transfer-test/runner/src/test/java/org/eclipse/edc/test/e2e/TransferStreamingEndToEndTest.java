@@ -28,9 +28,11 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -59,6 +61,9 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.test.e2e.Runtimes.InMemory.controlPlane;
+import static org.eclipse.edc.test.e2e.Runtimes.InMemory.dataPlane;
+import static org.eclipse.edc.test.e2e.Runtimes.backendService;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
@@ -71,7 +76,16 @@ public class TransferStreamingEndToEndTest {
 
     @Nested
     @EndToEndTest
-    class InMemory extends Tests implements InMemorySignalingRuntimes {
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
+                controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
+                dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
+                controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
+        );
 
     }
 

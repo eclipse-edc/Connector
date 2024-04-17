@@ -436,7 +436,7 @@ public class Participant {
      * @param privateProperties private properties of the data request
      * @param destination       data destination
      * @return transfer process id.
-     * @deprecated transferType will become mandatory, please urse {@link #requestAsset(Participant, String, JsonObject, JsonObject, String)}
+     * @deprecated transferType will become mandatory, please use {@link #requestAsset(Participant, String, JsonObject, JsonObject, String)}
      */
     @Deprecated(since = "0.6.1")
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination) {
