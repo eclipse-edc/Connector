@@ -14,7 +14,9 @@
 
 package org.eclipse.edc.transform;
 
+import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,8 +28,8 @@ import static org.mockito.Mockito.when;
 
 class TransformerContextImplTest {
 
-    private final TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
-    private final TransformerContextImpl context = new TransformerContextImpl(registry);
+    private final TypeTransformerRegistry registry = mock();
+    private final TransformerContext context = new TransformerContextImpl(registry);
 
     @Test
     void shouldReturnTransformedInput() {
@@ -54,5 +56,44 @@ class TransformerContextImplTest {
 
         assertThat(result).isNull();
         verifyNoInteractions(registry);
+    }
+
+    @Nested
+    class Data {
+        @Test
+        void shouldClearData_whenConsumed() {
+            context.setData(Integer.class, "key", "value");
+
+            var data = context.consumeData(Integer.class, "key");
+
+            assertThat(data).isEqualTo("value");
+            assertThat(context.consumeData(Integer.class, "key")).isNull();
+        }
+
+        @Test
+        void shouldReturnNull_whenKeyDoesNotExist() {
+            context.setData(Integer.class, "key", "value");
+
+            var data = context.consumeData(Integer.class, "unexistent-key");
+
+            assertThat(data).isNull();
+        }
+
+        @Test
+        void shouldReturnNull_whenTypeDoesNotExist() {
+            var data = context.consumeData(Double.class, "any");
+
+            assertThat(data).isNull();
+        }
+
+        @Test
+        void shouldPermitMultipleDataPerType() {
+            context.setData(Integer.class, "key", "value");
+            context.setData(Integer.class, "another-key", "another-value");
+
+            var data = context.consumeData(Integer.class, "key");
+
+            assertThat(data).isEqualTo("value");
+        }
     }
 }
