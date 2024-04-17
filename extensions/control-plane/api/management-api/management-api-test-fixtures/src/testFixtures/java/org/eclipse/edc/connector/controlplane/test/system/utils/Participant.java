@@ -299,7 +299,6 @@ public class Participant {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "ContractRequest")
-                .add("providerId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.getUrl().toString())
                 .add("protocol", protocol)
                 .add("policy", jsonLd.compact(policy).getContent())
@@ -437,7 +436,9 @@ public class Participant {
      * @param privateProperties private properties of the data request
      * @param destination       data destination
      * @return transfer process id.
+     * @deprecated transferType will become mandatory, please use {@link #requestAsset(Participant, String, JsonObject, JsonObject, String)}
      */
+    @Deprecated(since = "0.6.1")
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination) {
         return requestAsset(provider, assetId, privateProperties, destination, null);
     }

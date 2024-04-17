@@ -61,9 +61,9 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.test.e2e.Runtimes.InMemory.controlPlane;
+import static org.eclipse.edc.test.e2e.Runtimes.InMemory.dataPlane;
 import static org.eclipse.edc.test.e2e.Runtimes.backendService;
-import static org.eclipse.edc.test.e2e.Runtimes.controlPlaneSignaling;
-import static org.eclipse.edc.test.e2e.Runtimes.dataPlane;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
@@ -80,11 +80,11 @@ public class TransferStreamingEndToEndTest {
 
         @RegisterExtension
         static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
-                controlPlaneSignaling("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
-                backendService("consumer-backend-service", Map.of("web.http.port", String.valueOf(CONSUMER.backendService().getPort()))),
-                controlPlaneSignaling("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
+                controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
                 dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
-                backendService("provider-backend-service", Map.of("web.http.port", String.valueOf(PROVIDER.backendService().getPort())))
+                controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
         );
 
     }

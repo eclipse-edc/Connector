@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,31 +12,27 @@
  *
  */
 
-package org.eclipse.edc.test.e2e.participant;
+package org.eclipse.edc.test.e2e;
 
 import io.restassured.common.mapper.TypeRef;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.hamcrest.Matcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.io.File.separator;
-import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.boot.BootServicesExtension.PARTICIPANT_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -45,9 +41,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.defaultDatasourceConfiguration;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-public class BaseEndToEndParticipant extends Participant {
-
-    private final Duration timeout = Duration.ofSeconds(30);
+public class TransferEndToEndParticipant extends Participant {
 
     private final URI controlPlaneDefault = URI.create("http://localhost:" + getFreePort());
     private final URI controlPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
@@ -57,7 +51,7 @@ public class BaseEndToEndParticipant extends Participant {
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
     private final URI backendService = URI.create("http://localhost:" + getFreePort());
 
-    protected BaseEndToEndParticipant() {
+    protected TransferEndToEndParticipant() {
         super();
     }
 
@@ -72,92 +66,8 @@ public class BaseEndToEndParticipant extends Participant {
                 .build();
     }
 
-    /**
-     * Get the latest EDR received by the backend service.
-     *
-     * @param id EDR id
-     * @return endpoint data reference.
-     */
-    public EndpointDataReference getDataReference(String id) {
-        var dataReference = new AtomicReference<EndpointDataReference>();
-
-        await().atMost(timeout).untilAsserted(() -> {
-            var result = given()
-                    .baseUri(backendService.toString())
-                    .when()
-                    .get("/api/consumer/dataReference/{id}", id)
-                    .then()
-                    .statusCode(200)
-                    .extract()
-                    .body()
-                    .as(EndpointDataReference.class);
-            dataReference.set(result);
-        });
-
-        return dataReference.get();
-    }
-
-    /**
-     * Get all EDR received by the backend service.
-     *
-     * @param id transfer process id.
-     * @return list of endpoint data references.
-     */
-    public List<EndpointDataReference> getAllDataReferences(String id) {
-        var dataReference = new AtomicReference<List<EndpointDataReference>>();
-
-        var listType = new TypeRef<List<EndpointDataReference>>() {
-        };
-
-        await().atMost(timeout).untilAsserted(() -> {
-            var result = given()
-                    .baseUri(backendService.toString())
-                    .when()
-                    .get("/api/consumer/dataReference/{id}/all", id)
-                    .then()
-                    .statusCode(200)
-                    .extract()
-                    .body()
-                    .as(listType);
-            dataReference.set(result);
-        });
-
-        return dataReference.get();
-    }
-
-    /**
-     * Pull data from provider using EDR.
-     *
-     * @param edr         endpoint data reference
-     * @param queryParams query parameters
-     * @param bodyMatcher matcher for response body
-     */
-    public void pullData(EndpointDataReference edr, Map<String, String> queryParams, Matcher<String> bodyMatcher) {
-        given()
-                .baseUri(edr.getEndpoint())
-                .header(edr.getAuthKey(), edr.getAuthCode())
-                .queryParams(queryParams)
-                .when()
-                .get()
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .body("message", bodyMatcher);
-    }
-
     public URI backendService() {
         return backendService;
-    }
-
-    public URI publicDataPlane() {
-        return dataPlanePublic;
-    }
-
-    /**
-     * Register a data plane using the old data plane control API URL and no transfer types
-     */
-    public void registerDataPlane() {
-        registerDataPlane(dataPlaneControl + "/transfer", Set.of());
     }
 
     /**
@@ -165,26 +75,6 @@ public class BaseEndToEndParticipant extends Participant {
      */
     public void registerDataPlane(Set<String> transferTypes) {
         registerDataPlane(dataPlaneSignaling + "/v1/dataflows", Set.of("HttpData", "HttpProvision", "Kafka"), Set.of("HttpData", "HttpProvision", "HttpProxy", "Kafka"), transferTypes);
-    }
-
-    /**
-     * Register a data plane
-     *
-     * @param url           The data plane url
-     * @param transferTypes supported transfer types
-     */
-    public void registerDataPlane(String url, Set<String> transferTypes) {
-        registerDataPlane(url, Set.of("HttpData", "HttpProvision", "Kafka"), Set.of("HttpData", "HttpProvision", "HttpProxy", "Kafka"), transferTypes);
-    }
-
-    /**
-     * Register a data plane with the old data plane control API url
-     *
-     * @param sources      The allowed source types
-     * @param destinations The allowed destination types
-     */
-    public void registerDataPlane(Set<String> sources, Set<String> destinations) {
-        registerDataPlane(dataPlaneControl + "/transfer", sources, destinations, Set.of());
     }
 
     /**
@@ -278,10 +168,69 @@ public class BaseEndToEndParticipant extends Participant {
         };
     }
 
+    public Map<String, String> controlPlaneEmbeddedDataPlaneConfiguration() {
+        var cfg = dataPlaneConfiguration();
+        cfg.putAll(controlPlaneConfiguration());
+        return cfg;
+    }
+
     public Map<String, String> dataPlanePostgresConfiguration() {
         var baseConfiguration = dataPlaneConfiguration();
         baseConfiguration.putAll(defaultDatasourceConfiguration(getName()));
         return baseConfiguration;
+    }
+
+    public Map<String, String> backendServiceConfiguration() {
+        return new HashMap<>() {
+            {
+                put("web.http.port", String.valueOf(backendService.getPort()));
+            }
+        };
+    }
+
+    /**
+     * Get the EDR from the EDR cache by transfer process id.
+     *
+     * @param transferProcessId The transfer process id
+     * @return The cached {@link DataAddress}
+     */
+    public DataAddress getEdr(String transferProcessId) {
+        var dataAddressRaw = managementEndpoint.baseRequest()
+                .contentType(JSON)
+                .when()
+                .get("/v1/edrs/{id}/dataaddress", transferProcessId)
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .contentType(JSON)
+                .extract().body().as(new TypeRef<Map<String, Object>>() {
+                });
+
+
+        var builder = DataAddress.Builder.newInstance();
+        dataAddressRaw.forEach(builder::property);
+        return builder.build();
+
+    }
+
+    /**
+     * Pull data from provider using EDR.
+     *
+     * @param edr         endpoint data reference
+     * @param queryParams query parameters
+     * @param bodyMatcher matcher for response body
+     */
+    public void pullData(DataAddress edr, Map<String, String> queryParams, Matcher<String> bodyMatcher) {
+        given()
+                .baseUri(edr.getStringProperty("endpoint"))
+                .header("Authorization", edr.getStringProperty("authorization"))
+                .queryParams(queryParams)
+                .when()
+                .get()
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("message", bodyMatcher);
     }
 
     @NotNull
@@ -289,14 +238,18 @@ public class BaseEndToEndParticipant extends Participant {
         return System.getProperty("user.dir") + separator + "build" + separator + "resources" + separator + "test" + separator + filename;
     }
 
-    public static class Builder<P extends BaseEndToEndParticipant, B extends Builder<P, B>> extends Participant.Builder<P, B> {
+    public static class Builder extends Participant.Builder<TransferEndToEndParticipant, Builder> {
 
-        protected Builder(P participant) {
-            super(participant);
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        protected Builder() {
+            super(new TransferEndToEndParticipant());
         }
 
         @Override
-        public BaseEndToEndParticipant build() {
+        public TransferEndToEndParticipant build() {
             super.managementEndpoint(new Endpoint(URI.create("http://localhost:" + getFreePort() + "/api/management")));
             super.protocolEndpoint(new Endpoint(URI.create("http://localhost:" + getFreePort() + "/protocol")));
             super.build();

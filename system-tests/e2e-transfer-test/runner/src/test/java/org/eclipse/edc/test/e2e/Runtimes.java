@@ -20,55 +20,72 @@ import java.util.Map;
 
 public interface Runtimes {
 
-    static EdcRuntimeExtension controlPlane(String name, Map<String, String> configuration) {
-        return new EdcRuntimeExtension(name, configuration,
-                ":system-tests:e2e-transfer-test:control-plane",
-                ":extensions:control-plane:transfer:transfer-data-plane",
-                ":extensions:data-plane:data-plane-client"
-        );
-    }
+    interface InMemory {
 
-    static EdcRuntimeExtension controlPlaneSignaling(String name, Map<String, String> configuration) {
-        return new EdcRuntimeExtension(name, configuration,
+        static EdcRuntimeExtension controlPlane(String name, Map<String, String> configuration) {
+            return new EdcRuntimeExtension(name, configuration,
+                    ":system-tests:e2e-transfer-test:control-plane",
+                    ":core:common:edr-store-core",
+                    ":extensions:control-plane:transfer:transfer-data-plane-signaling",
+                    ":extensions:control-plane:api:management-api:edr-cache-api",
+                    ":extensions:control-plane:edr:edr-store-receiver",
+                    ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client",
+                    ":extensions:control-plane:callback:callback-event-dispatcher",
+                    ":extensions:control-plane:callback:callback-http-dispatcher"
+            );
+        }
+
+        static EdcRuntimeExtension controlPlaneEmbeddedDataPlane(String name, Map<String, String> configuration) {
+            return new EdcRuntimeExtension(name, configuration,
                 ":system-tests:e2e-transfer-test:control-plane",
                 ":extensions:control-plane:transfer:transfer-data-plane-signaling",
-                ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"
-        );
+                ":system-tests:e2e-transfer-test:data-plane",
+                ":extensions:data-plane:data-plane-public-api-v2"
+            );
+        }
+
+        static EdcRuntimeExtension dataPlane(String name, Map<String, String> configuration) {
+            return new EdcRuntimeExtension(name, configuration,
+                    ":system-tests:e2e-transfer-test:data-plane",
+                    ":extensions:data-plane:data-plane-public-api-v2"
+            );
+        }
     }
 
-    static EdcRuntimeExtension dataPlane(String name, Map<String, String> configuration) {
-        return new EdcRuntimeExtension(name, configuration,
-                ":system-tests:e2e-transfer-test:data-plane",
-                ":extensions:data-plane:data-plane-public-api"
-        );
+    interface Postgres {
+
+        static EdcRuntimeExtension controlPlane(String name, Map<String, String> configuration) {
+            return new EdcRuntimeExtension(name, configuration,
+                    ":system-tests:e2e-transfer-test:control-plane",
+                    ":core:common:edr-store-core",
+                    ":extensions:common:store:sql:edr-index-sql",
+                    ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
+                    ":extensions:common:transaction:transaction-local",
+                    ":extensions:control-plane:transfer:transfer-data-plane-signaling",
+                    ":extensions:control-plane:api:management-api:edr-cache-api",
+                    ":extensions:control-plane:edr:edr-store-receiver",
+                    ":extensions:control-plane:store:sql:control-plane-sql",
+                    ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client",
+                    ":extensions:control-plane:callback:callback-event-dispatcher",
+                    ":extensions:control-plane:callback:callback-http-dispatcher"
+            );
+        }
+
+        static EdcRuntimeExtension dataPlane(String name, Map<String, String> configuration) {
+            return new EdcRuntimeExtension(name, configuration,
+                    ":system-tests:e2e-transfer-test:data-plane",
+                    ":extensions:data-plane:store:sql:data-plane-store-sql",
+                    ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
+                    ":extensions:common:transaction:transaction-local",
+                    ":extensions:data-plane:data-plane-public-api-v2"
+            );
+        }
+
     }
 
     static EdcRuntimeExtension backendService(String name, Map<String, String> configuration) {
         return new EdcRuntimeExtension(name, configuration,
                 ":system-tests:e2e-transfer-test:backend-service"
-        );
-    }
-
-    static EdcRuntimeExtension postgresControlPlane(String name, Map<String, String> configuration) {
-        return new EdcRuntimeExtension(name, configuration,
-                ":system-tests:e2e-transfer-test:control-plane",
-                ":extensions:control-plane:transfer:transfer-data-plane",
-                ":extensions:data-plane:data-plane-client",
-                ":extensions:control-plane:store:sql:control-plane-sql",
-                ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
-                ":extensions:common:transaction:transaction-local",
-                ":extensions:common:api:management-api-configuration",
-                ":extensions:policy-monitor:store:sql:policy-monitor-store-sql"
-        );
-    }
-
-    static EdcRuntimeExtension postgresDataPlane(String name, Map<String, String> configuration) {
-        return new EdcRuntimeExtension(name, configuration,
-                ":system-tests:e2e-transfer-test:data-plane",
-                ":extensions:data-plane:data-plane-public-api",
-                ":extensions:data-plane:store:sql:data-plane-store-sql",
-                ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
-                ":extensions:common:transaction:transaction-local"
         );
     }
 }
