@@ -19,13 +19,18 @@ import com.nimbusds.jose.jwk.JWK;
 
 import java.net.URI;
 
-public record JwkMethod(URI id, URI type, URI controller, JWK keyPair) implements KeyPair {
+public record JsonWebKeyPair(URI id, URI type, URI controller, JWK keyPair) implements KeyPair {
 
     @Override
     public byte[] privateKey() {
         return keyPair != null ? serializeKeyPair(keyPair) : null;
     }
 
+
+    @Override
+    public String algorithm() {
+        return "JsonWebKey2020";
+    }
 
     @Override
     public byte[] publicKey() {

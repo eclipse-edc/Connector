@@ -27,13 +27,12 @@ dependencies {
     runtimeOnly(libs.tink)
     implementation(libs.jakartaJson)
 
-    api(libs.iron.vc) {
+    api("com.apicatalog:iron-verifiable-credentials:0.14.0") {
         exclude("com.github.multiformats")
     }
 
     testImplementation(testFixtures(project(":core:common:junit")))
     testImplementation(project(":core:common:lib:json-ld-lib"))
-
     testFixturesImplementation(testFixtures(project(":core:common:junit")))
     testFixturesImplementation(libs.nimbus.jwt)
     testFixturesImplementation(project(":core:common:lib:json-ld-lib"))

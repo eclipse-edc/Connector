@@ -17,12 +17,15 @@ package org.eclipse.edc.security.signature.jws2020;
 import com.apicatalog.jsonld.loader.SchemeRouter;
 import com.apicatalog.ld.DocumentError;
 import com.apicatalog.ld.signature.SigningError;
-import com.apicatalog.vc.Vc;
+import com.apicatalog.ld.signature.VerificationError;
+import com.apicatalog.vc.verifier.Verifier;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
@@ -43,15 +46,18 @@ import java.util.Date;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 import static org.eclipse.edc.security.signature.jws2020.TestFunctions.createKeyPair;
 import static org.eclipse.edc.security.signature.jws2020.TestFunctions.readResourceAsJson;
 
 class IssuerTests {
 
-    private final JwsSignature2020Suite jws2020suite = new JwsSignature2020Suite(JacksonJsonLd.createObjectMapper());
     //used to load remote data from a local directory
     private final TestDocumentLoader loader = new TestDocumentLoader("https://org.eclipse.edc/", "jws2020/issuing/", SchemeRouter.defaultInstance());
+    private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
+
+    private final Jws2020SignatureSuite suite = new Jws2020SignatureSuite(objectMapper);
 
     @DisplayName("t0001: a simple credential to sign (EC Key)")
     @Test
@@ -61,18 +67,21 @@ class IssuerTests {
 
         var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
-        var proofOptions = jws2020suite.createOptions()
+        var proofDraft = Jws2020ProofDraft.Builder.newInstance()
+                .mapper(objectMapper)
                 .created(Instant.parse("2022-12-31T23:00:00Z"))
-                .verificationMethod(new JwkMethod(URI.create(verificationMethodUrl), null, null, null))
-                .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                .verificationMethod(new JsonWebKeyPair(URI.create(verificationMethodUrl), null, null, null))
+                .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                .build();
 
+        var issuer = suite.createIssuer(keypair)
+                .loader(loader)
+                .sign(vc, proofDraft);
 
-        var issuer = Vc.sign(vc, keypair, proofOptions).loader(loader);
-
-        // would throw an exception
-        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
-        var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
-
+        var compacted = issuer.compacted();
+        var verificationMethod = compacted.getJsonObject("proof").get("verificationMethod");
+        var proofValue = compacted.getJsonObject("proof").get("jws");
+        assertThat(proofValue).describedAs("Expected a JWS String!").isInstanceOf(JsonString.class);
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);
         assertThat(((JsonString) verificationMethod).getString()).isEqualTo(verificationMethodUrl);
     }
@@ -97,18 +106,21 @@ class IssuerTests {
 
         var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
-        var proofOptions = jws2020suite.createOptions()
+        var proofDraft = Jws2020ProofDraft.Builder.newInstance()
+                .mapper(objectMapper)
                 .created(Instant.parse("2022-12-31T23:00:00Z"))
-                .verificationMethod(new JwkMethod(URI.create(verificationMethodUrl), null, null, null))
-                .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                .verificationMethod(new JsonWebKeyPair(URI.create(verificationMethodUrl), null, null, null))
+                .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                .build();
 
+        var issuer = suite.createIssuer(keypair)
+                .loader(loader)
+                .sign(vc, proofDraft);
 
-        var issuer = Vc.sign(vc, keypair, proofOptions).loader(loader);
-
-        // would throw an exception
-        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
-        var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
-
+        var compacted = issuer.compacted();
+        var verificationMethod = compacted.getJsonObject("proof").get("verificationMethod");
+        var proofValue = compacted.getJsonObject("proof").get("jws");
+        assertThat(proofValue).describedAs("Expected a JWS String!").isInstanceOf(JsonString.class);
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);
         assertThat(((JsonString) verificationMethod).getString()).isEqualTo(verificationMethodUrl);
     }
@@ -123,18 +135,21 @@ class IssuerTests {
 
         var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
-        var proofOptions = jws2020suite.createOptions()
+        var proofDraft = Jws2020ProofDraft.Builder.newInstance()
+                .mapper(objectMapper)
                 .created(Instant.parse("2022-12-31T23:00:00Z"))
-                .verificationMethod(new JwkMethod(URI.create(verificationMethodUrl), null, null, null))
-                .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                .verificationMethod(new JsonWebKeyPair(URI.create(verificationMethodUrl), null, null, null))
+                .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                .build();
 
+        var issuer = suite.createIssuer(keypair)
+                .loader(loader)
+                .sign(vc, proofDraft);
 
-        var issuer = Vc.sign(vc, keypair, proofOptions).loader(loader);
-
-        // would throw an exception
-        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
-        var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
-
+        var compacted = issuer.compacted();
+        var verificationMethod = compacted.getJsonObject("proof").get("verificationMethod");
+        var proofValue = compacted.getJsonObject("proof").get("jws");
+        assertThat(proofValue).describedAs("Expected a JWS String!").isInstanceOf(JsonString.class);
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);
         assertThat(((JsonString) verificationMethod).getString()).isEqualTo(verificationMethodUrl);
     }
@@ -151,20 +166,23 @@ class IssuerTests {
         var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
         var keypair = createKeyPair(CryptoConverter.create(getResourceFileContentAsString("jws2020/issuing/private-key.json")));
 
-        var proofOptions = jws2020suite.createOptions()
+        var proofDraft = Jws2020ProofDraft.Builder.newInstance()
+                .mapper(objectMapper)
                 .created(Instant.parse("2022-12-31T23:00:00Z"))
                 .verificationMethod(keypair)
-                .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                .build();
 
+        var issuer = suite.createIssuer(keypair)
+                .loader(loader)
+                .sign(vc, proofDraft);
 
-        var issuer = Vc.sign(vc, keypair, proofOptions).loader(loader);
-
-        // would throw an exception
-        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
-        var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
+        var compacted = issuer.compacted();
+        var verificationMethod = compacted.getJsonObject("proof").get("verificationMethod");
 
         assertThat(verificationMethod).describedAs("Expected an Object!").isInstanceOf(JsonObject.class);
         assertThat(verificationMethod.asJsonObject().get("publicKeyJwk"))
+                .describedAs("JWK cannot be empty!")
                 .isInstanceOf(JsonObject.class)
                 .satisfies(jv -> {
                     assertThat(jv.asJsonObject().get("x")).isNotNull();
@@ -177,7 +195,7 @@ class IssuerTests {
     @Test
     void signVerificationDidKey() throws SigningError, DocumentError {
         var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
-        var eckey = (ECKey) CryptoConverter.create("""
+        var eckey = (JWK) CryptoConverter.create("""
                 {
                     "kty": "EC",
                     "d": "UEUJVbKZC3vR-y65gXx8NZVnE0QD5xe6qOk4eiObj-qVOg5zqt9zc0d6fdu4mUuu",
@@ -193,18 +211,20 @@ class IssuerTests {
         // check https://w3c-ccg.github.io/did-method-key/#create for details
         var didKey = "did:key:zC2zU1wUHhYYX4CDwNwky9f5jtSvp5aQy5aNRQMHEdpK5xkJMy6TcMbWBP3scHbR6hhidR3RRjfAA7cuLxjydXgEiZUzRzguozYFeR3G6SzjAwswJ6hXKBWhFEHm2L6Rd6GRAw8r3kyPovxvcabdMF2gBy5TAioY1mVYFeT6";
 
-        var proofOptions = jws2020suite.createOptions()
+
+        var proofDraft = Jws2020ProofDraft.Builder.newInstance()
+                .mapper(objectMapper)
                 .created(Instant.parse("2022-12-31T23:00:00Z"))
-                .verificationMethod(new JwkMethod(URI.create(didKey), null, null, null))
-                .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                .verificationMethod(new JsonWebKeyPair(URI.create(didKey), null, null, null))
+                .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                .build();
 
+        var issuer = suite.createIssuer(keypair)
+                .loader(loader)
+                .sign(vc, proofDraft);
 
-        var issuer = Vc.sign(vc, keypair, proofOptions).loader(loader);
-
-        // would throw an exception
-        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
-        var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
-
+        var compacted = issuer.compacted();
+        var verificationMethod = compacted.getJsonObject("proof").get("verificationMethod");
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);
         assertThat(((JsonString) verificationMethod).getString()).isEqualTo(didKey);
 
@@ -219,20 +239,43 @@ class IssuerTests {
 
         var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
-        var proofOptions = jws2020suite.createOptions()
+        var proofDraft = Jws2020ProofDraft.Builder.newInstance()
+                .mapper(objectMapper)
                 .created(Instant.parse("2022-12-31T23:00:00Z"))
-                .verificationMethod(new JwkMethod(URI.create(verificationMethodUrl), null, null, null))
-                .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                .verificationMethod(new JsonWebKeyPair(URI.create(verificationMethodUrl), null, null, null))
+                .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                .build();
 
+        var issuer = suite.createIssuer(keypair)
+                .loader(loader)
+                .sign(vp, proofDraft);
 
-        var issuer = Vc.sign(vp, keypair, proofOptions).loader(loader);
-
-        // would throw an exception
-        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
-        var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
-
+        var compacted = issuer.compacted();
+        var verificationMethod = compacted.getJsonObject("proof").get("verificationMethod");
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);
         assertThat(((JsonString) verificationMethod).getString()).isEqualTo(verificationMethodUrl);
     }
 
+    @Test
+    void signAndVerify() throws JOSEException, SigningError, DocumentError, VerificationError {
+        var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
+
+        var ecKey = new ECKeyGenerator(Curve.P_256).keyID("test-foo").generate();
+        var keypair = createKeyPair(ecKey);
+
+
+        var proofDraft = Jws2020ProofDraft.Builder.newInstance()
+                .mapper(objectMapper)
+                .created(Instant.now())
+                .verificationMethod(keypair)
+                .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                .build();
+        var signedCredential = suite.createIssuer(keypair)
+                .loader(loader)
+                .sign(vc, proofDraft)
+                .compacted();
+
+        //verify
+        assertThatNoException().isThrownBy(() -> Verifier.with(suite).loader(loader).verify(signedCredential).validate());
+    }
 }

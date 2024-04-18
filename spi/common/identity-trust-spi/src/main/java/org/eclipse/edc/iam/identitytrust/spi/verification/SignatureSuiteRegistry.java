@@ -14,7 +14,8 @@
 
 package org.eclipse.edc.iam.identitytrust.spi.verification;
 
-import com.apicatalog.ld.signature.SignatureSuite;
+
+import com.apicatalog.vc.suite.SignatureSuite;
 
 import java.util.Collection;
 

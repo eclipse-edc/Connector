@@ -15,7 +15,7 @@
     ],
     "issuer": "did:web:localhost:member0123456789",
     "expirationDate": "2024-12-31T23:00:00Z",
-    "sec:proof": {
+    "proof": {
       "type": "JsonWebSignature2020",
       "created": "2022-12-31T23:00:00Z",
       "proofPurpose": "assertionMethod",
@@ -23,12 +23,12 @@
       "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..SwEkR4duA97jHy_WSVKIHLJqd8i2IidedmlMpUKyeV0YlPNz0pjPEKM9p7PqBb7oRIKG3-5qCxpzNhbsIEZZMzEMjWE1adckJ9SMiNr_G1wiAh3Op0cZHDgZBevIPElG"
     }
   },
-  "sec:proof": {
-    "type": "JsonWebSignature2020",
-    "created": "2022-12-31T23:00:00Z",
-    "proofPurpose": "assertionMethod",
+  "proof": {
     "verificationMethod": "https://org.eclipse.edc/verification-method",
-    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..kfTedAzvjguntyvun_puf_I46-I8YT--JI8XIxoRkKodU-oVK15bh_KXUlX4A8znjwGEz6MVSCH2jx21q13lXOOiuloGgfqRA31RY6r4ZBpzSw4dc9-dgsRlICJjUdmK"
+    "type": "JsonWebSignature2020",
+    "proofPurpose": "assertionMethod",
+    "created": "2022-12-31T23:00:00Z",
+    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..vo8x80Jm5h_qubTcDvrF3VXy6RRXcX0OdWQ8XLg_cXP_3-1-xXqT--dLMpQUfaPsOV-Y5Gu27gsukI73yKiBs63ebQ3Llc8gQB_BrZ5Ianfy4IcLh7dviW1KqtJ3e2y-"
   },
   "@context": [
     "https://www.w3.org/ns/did/v1",

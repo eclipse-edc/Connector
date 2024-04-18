@@ -17,7 +17,7 @@ package org.eclipse.edc.security.signature.jws2020;
 import com.apicatalog.jsonld.loader.SchemeRouter;
 import com.apicatalog.ld.DocumentError;
 import com.apicatalog.ld.signature.VerificationError;
-import com.apicatalog.vc.Vc;
+import com.apicatalog.vc.verifier.Verifier;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -29,48 +29,47 @@ import static org.eclipse.edc.security.signature.jws2020.TestFunctions.readResou
 
 class VerifierTests {
 
-    private final JwsSignature2020Suite jws2020suite = new JwsSignature2020Suite(JacksonJsonLd.createObjectMapper());
-    //used to load remote data from a local directory
+    private final Jws2020SignatureSuite jws2020suite = new Jws2020SignatureSuite(JacksonJsonLd.createObjectMapper());
     private final TestDocumentLoader loader = new TestDocumentLoader("https://org.eclipse.edc/", "jws2020/verifying/", SchemeRouter.defaultInstance());
+    private final Verifier verifier = Verifier.with(jws2020suite).loader(loader);
 
     @DisplayName("t0001: valid signed VC")
     @Test
     void verifyValidVc() throws VerificationError, DocumentError {
         var vc = readResourceAsJson("jws2020/verifying/0001_vc.json");
-        var result = Vc.verify(vc, jws2020suite).loader(loader);
-        assertThatNoException().isThrownBy(result::isValid);
+
+        var result = verifier.verify(vc);
+        assertThatNoException().isThrownBy(result::validate);
     }
 
     @DisplayName("t0002: forged credentials subject")
     @Test
     void verify_forgedSubject() throws VerificationError, DocumentError {
         var vc = readResourceAsJson("jws2020/verifying/0002_vc_forged.json");
-        var result = Vc.verify(vc, jws2020suite).loader(loader);
-        assertThatThrownBy(result::isValid).isInstanceOf(VerificationError.class);
+        assertThatThrownBy(() -> verifier.verify(vc)).isInstanceOf(VerificationError.class);
     }
 
     @DisplayName("t0003: valid VC with embedded verification method")
     @Test
     void verifyVc_withEmbeddedVerificationMethod() throws VerificationError, DocumentError {
         var vc = readResourceAsJson("jws2020/verifying/0003_vc_embedded.json");
-        var result = Vc.verify(vc, jws2020suite).loader(loader);
-        assertThatNoException().isThrownBy(result::isValid);
+        var result = verifier.verify(vc);
+        assertThatNoException().isThrownBy(result::validate);
     }
 
     @DisplayName("t0004: proof set of two valid proofs")
     @Test
     void verify_multipleValidProofs() throws VerificationError, DocumentError {
         var vc = readResourceAsJson("jws2020/verifying/0004_vc_two_valid_proofs.json");
-        var result = Vc.verify(vc, jws2020suite).loader(loader);
-        assertThatNoException().isThrownBy(result::isValid);
+        var result = verifier.verify(vc);
+        assertThatNoException().isThrownBy(result::validate);
     }
 
     @DisplayName("t0005: proof set having one forged proof")
     @Test
     void verify_oneForgedProof() throws VerificationError, DocumentError {
         var vc = readResourceAsJson("jws2020/verifying/0005_vc_one_forged_proof.json");
-        var result = Vc.verify(vc, jws2020suite).loader(loader);
-        assertThatThrownBy(result::isValid).isInstanceOf(VerificationError.class);
+        assertThatThrownBy(() -> verifier.verify(vc)).isInstanceOf(VerificationError.class);
     }
 
     /**
@@ -85,8 +84,7 @@ class VerifierTests {
     @Test
     void verify_didKeyAsVerificationMethod() throws VerificationError, DocumentError {
         var vc = readResourceAsJson("jws2020/verifying/0006_vc_did_key.json");
-        var result = Vc.verify(vc, jws2020suite).loader(loader);
-        assertThatThrownBy(result::isValid).isInstanceOf(UnsupportedOperationException.class)
+        assertThatThrownBy(() -> verifier.verify(vc)).isInstanceOf(UnsupportedOperationException.class)
                 .hasMessage("Cannot deserialize public key, expected JWK format");
     }
 
@@ -94,15 +92,14 @@ class VerifierTests {
     @Test
     void verify_validSignedVp() throws VerificationError, DocumentError {
         var vc = readResourceAsJson("jws2020/verifying/0007_vp_compacted.json");
-        var result = Vc.verify(vc, jws2020suite).loader(loader);
-        assertThatNoException().isThrownBy(result::isValid);
+        var result = verifier.verify(vc);
+        assertThatNoException().isThrownBy(result::validate);
     }
 
     @DisplayName("t0008: forged signed VP")
     @Test
     void verify_forgedSignedVp() throws VerificationError, DocumentError {
         var vc = readResourceAsJson("jws2020/verifying/0007_vp_compacted_forged.json");
-        var result = Vc.verify(vc, jws2020suite).loader(loader);
-        assertThatThrownBy(result::isValid).isInstanceOf(VerificationError.class);
+        assertThatThrownBy(() -> verifier.verify(vc)).isInstanceOf(VerificationError.class);
     }
 }

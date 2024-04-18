@@ -38,7 +38,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
+import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -143,7 +143,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new HasSubjectRule());
 
         // TODO move in a separated extension?
-        signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new JwsSignature2020Suite(typeManager.getMapper(JSON_LD)));
+        signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD)));
 
         try {
             jsonLd.registerCachedDocument(STATUSLIST_2021_URL, getClass().getClassLoader().getResource("statuslist2021.json").toURI());
@@ -161,7 +161,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context),
                 trustedIssuerRegistry, createRevocationListService(context), clock);
-        
+
         return new IdentityAndTrustService(secureTokenService, getOwnDid(context),
                 getCredentialServiceClient(context), validationAction, credentialServiceUrlResolver, claimTokenFunction,
                 credentialValidationService);

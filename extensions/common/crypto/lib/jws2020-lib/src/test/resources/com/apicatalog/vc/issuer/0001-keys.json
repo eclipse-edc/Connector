@@ -1,0 +1,8 @@
+{
+	"@context": "https://github.com/filip26/iron-verifiable-credentials/security-context.jsonld",
+	"id": "https://github.com/filip26/iron-verifiable-credentials/issuer/0001-keys.json",
+	"type": "Ed25519KeyPair2020",
+	"controller": "https://github.com/filip26/iron-verifiable-credentials/issuer/1",
+	"publicKeyMultibase": "z6Mkska8oQD7QQQWxqa7L5ai4mH98HfAdSwomPFYKuqNyE2y",
+	"privateKeyMultibase": "z3u2RRiEW8idMgvP3kthwjWqPo9W8X4pvEp52toGwp8EjJvg"
+}

@@ -1,0 +1,12 @@
+{
+	"@context": [
+		"https://www.w3.org/2018/credentials/v1"
+	],
+	"id": "https://apicatalog/com/vc/test-credentials#0023",
+	"type": "VerifiableCredential",
+	"issuer": "https://github.com/filip26/iron-verifiable-credentials/issuer/23",
+	"issuanceDate": "2022-06-13T19:54:42Z",
+	"credentialSubject": {
+		"id": "did:example:ebfeb1f712ebc6f1c276e12ec21"
+	}
+}
