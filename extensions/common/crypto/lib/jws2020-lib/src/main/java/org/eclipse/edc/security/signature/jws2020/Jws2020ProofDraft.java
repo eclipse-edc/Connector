@@ -32,6 +32,9 @@ import java.util.Objects;
 
 import static org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite.PROOF_VALUE_TERM;
 
+/**
+ * {@link ProofDraft} objects are effectively proof objects without a {@code proofValue} property, or - as it is called here - a {@code jws}
+ */
 public class Jws2020ProofDraft extends ProofDraft {
 
     private final Instant created;

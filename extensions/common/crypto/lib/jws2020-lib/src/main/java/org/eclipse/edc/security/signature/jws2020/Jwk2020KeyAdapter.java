@@ -23,6 +23,7 @@ import com.apicatalog.vc.VcVocab;
 import com.apicatalog.vc.method.MethodAdapter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.jwk.JWK;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
@@ -32,6 +33,9 @@ import java.util.Objects;
 
 import static java.util.Optional.ofNullable;
 
+/**
+ * {@link MethodAdapter} that encapsulates a JsonWebKey2020 ({@link JWK})
+ */
 public class Jwk2020KeyAdapter implements MethodAdapter {
     public static final Term CONTROLLER = Term.create("controller", VcVocab.SECURITY_VOCAB);
     public static final Term PUBLIC_KEY_JWK = Term.create("publicKeyJwk", VcVocab.SECURITY_VOCAB);

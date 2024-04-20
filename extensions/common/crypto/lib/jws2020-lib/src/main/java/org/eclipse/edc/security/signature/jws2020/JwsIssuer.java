@@ -34,8 +34,8 @@ import jakarta.json.JsonObject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-public class JwsIssuer extends AbstractIssuer {
-    public JwsIssuer(Jws2020SignatureSuite jws2020SignatureSuite, KeyPair keyPair) {
+class JwsIssuer extends AbstractIssuer {
+    JwsIssuer(Jws2020SignatureSuite jws2020SignatureSuite, KeyPair keyPair) {
         super(jws2020SignatureSuite, keyPair, Multibase.BASE_64_URL);
     }
 

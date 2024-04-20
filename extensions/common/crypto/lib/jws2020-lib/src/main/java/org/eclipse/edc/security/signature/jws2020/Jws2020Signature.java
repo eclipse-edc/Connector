@@ -30,7 +30,10 @@ import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import java.text.ParseException;
 import java.util.Collections;
 
-class Jws2020SignatureProvider implements SignatureAlgorithm {
+/**
+ * Implements signing a VerifiableCredential with the JsonWebSignature2020 algorithm
+ */
+class Jws2020Signature implements SignatureAlgorithm {
 
     @Override
     public void verify(byte[] publicKey, byte[] signature, byte[] data) throws VerificationError {

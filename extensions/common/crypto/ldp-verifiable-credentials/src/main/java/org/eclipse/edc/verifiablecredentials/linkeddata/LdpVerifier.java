@@ -278,51 +278,6 @@ public class LdpVerifier implements CredentialVerifier {
             }
         }
         return success();
-
-        //        // sort the proofs in the verification order
-//        final ProofQueue queue = ProofQueue.create(proofs);
-//
-//        signatureSuite.getSchema().validate(proof, params);
-//
-//        if (!proof.contains(proofValueProperty.term())) {
-//            return failure("%s: %s".formatted(ErrorType.Missing, proofValueProperty.term()));
-//        }
-//
-//        byte[] proofValue = proof.value(proofValueProperty.term());
-//
-//        if (proofValue == null || proofValue.length == 0) {
-//            return failure("%s: %s".formatted(ErrorType.Missing, proofValueProperty.term()));
-//        }
-//
-//        LdProperty<VerificationMethod> methodProperty = signatureSuite.getSchema().tagged(VcTag.VerificationMethod.name());
-//
-//        if (methodProperty == null) {
-//            return failure("The proof schema does not define a verification method.");
-//        }
-//
-//        var verificationMethod = getMethod(methodProperty, proofObject, signatureSuite)
-//                .orElseThrow(() -> new DocumentError(ErrorType.Missing, methodProperty.term()));
-//
-//        if (!(verificationMethod instanceof VerificationKey)) {
-//            return failure("%s: %s".formatted(ErrorType.Unknown, methodProperty.term()));
-//        }
-//
-//        if (isCredential(expanded)) {
-//            var failure = validateCredentialIssuer(expanded, verificationMethod);
-//            if (failure.failed()) return failure;
-//        }
-//
-//        // remote a proof value
-//        var unsignedProof = Json.createObjectBuilder(proofObject)
-//                .remove(proofValueProperty.term().uri())
-//                .build();
-//
-//        var signature = new LinkedDataSignature(signatureSuite.getCryptoSuite());
-//
-//        // verify signature
-//        signature.verify(data, unsignedProof, verificationMethod, proofValue);
-//        // all good
-//        return success();
     }
 
     private VerificationMethod getMethod(Proof proof, DocumentLoader loader) throws DocumentError {

@@ -18,8 +18,12 @@ package org.eclipse.edc.verifiablecredentials.linkeddata;
 import com.apicatalog.ld.signature.VerificationMethod;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Objects;
 
+/**
+ * Generic adapter object for a {@link VerificationMethod}
+ */
 class DataIntegrityKeyPair implements VerificationMethod {
     private final URI id;
     private final URI type;
@@ -27,7 +31,7 @@ class DataIntegrityKeyPair implements VerificationMethod {
     private final byte[] privateKey;
     private final byte[] publicKey;
 
-    public DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] privateKey, byte[] publicKey) {
+    DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] privateKey, byte[] publicKey) {
         super();
         this.id = id;
         this.type = type;
@@ -36,7 +40,7 @@ class DataIntegrityKeyPair implements VerificationMethod {
         this.publicKey = publicKey;
     }
 
-    public DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] privateKey) {
+    DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] privateKey) {
         this(id, type, controller, privateKey, null);
     }
 
@@ -62,7 +66,7 @@ class DataIntegrityKeyPair implements VerificationMethod {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, type, controller, privateKey, publicKey);
+        return Objects.hash(id, type, controller, Arrays.hashCode(privateKey), Arrays.hashCode(publicKey));
     }
 
     @Override
@@ -73,8 +77,8 @@ class DataIntegrityKeyPair implements VerificationMethod {
         return Objects.equals(this.id, that.id) &&
                 Objects.equals(this.type, that.type) &&
                 Objects.equals(this.controller, that.controller) &&
-                Objects.equals(this.privateKey, that.privateKey) &&
-                Objects.equals(this.publicKey, that.publicKey);
+                Arrays.equals(this.privateKey, that.privateKey) &&
+                Arrays.equals(this.publicKey, that.publicKey);
     }
 
     @Override
@@ -83,8 +87,8 @@ class DataIntegrityKeyPair implements VerificationMethod {
                 "id=" + id + ", " +
                 "type=" + type + ", " +
                 "controller=" + controller + ", " +
-                "privateKey=" + privateKey + ", " +
-                "publicKey=" + publicKey + ']';
+                "privateKey=" + Arrays.toString(privateKey) + ", " +
+                "publicKey=" + Arrays.toString(publicKey) + ']';
     }
 
 }

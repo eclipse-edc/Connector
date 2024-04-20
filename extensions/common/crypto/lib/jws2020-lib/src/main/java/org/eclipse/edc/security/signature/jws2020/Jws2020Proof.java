@@ -34,6 +34,9 @@ import java.util.Objects;
 
 import static org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite.PROOF_VALUE_TERM;
 
+/**
+ * Represents the {@code proof} object of a verifiable credential which is backed by a JsonWebKey2020, either embedded or linked.
+ */
 public class Jws2020Proof implements Proof, MethodAdapter {
     private final CryptoSuite cryptoSuite;
     private JsonObject expandedDocument;
@@ -55,7 +58,7 @@ public class Jws2020Proof implements Proof, MethodAdapter {
 
     @Override
     public JsonObject write(VerificationMethod verificationMethod) {
-        throw new UnsupportedOperationException("not implemented yet");
+        return adapter.write(verificationMethod);
     }
 
     @Override
@@ -129,6 +132,7 @@ public class Jws2020Proof implements Proof, MethodAdapter {
 
         public Jws2020Proof build() {
             Objects.requireNonNull(instance.expandedDocument, "JsonDocument cannot be null");
+            Objects.requireNonNull(instance.adapter, "Jwk2020KeyAdapter cannot be null");
             return instance;
         }
 
