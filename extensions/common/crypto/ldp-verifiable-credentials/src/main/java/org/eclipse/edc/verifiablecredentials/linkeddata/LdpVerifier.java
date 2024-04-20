@@ -28,13 +28,11 @@ import com.apicatalog.ld.signature.VerificationMethod;
 import com.apicatalog.ld.signature.key.VerificationKey;
 import com.apicatalog.vc.Presentation;
 import com.apicatalog.vc.VcVocab;
-import com.apicatalog.vc.Verifiable;
 import com.apicatalog.vc.method.resolver.HttpMethodResolver;
 import com.apicatalog.vc.method.resolver.MethodResolver;
 import com.apicatalog.vc.proof.EmbeddedProof;
 import com.apicatalog.vc.proof.Proof;
 import com.apicatalog.vc.suite.SignatureSuite;
-import com.apicatalog.vc.verifier.Verifier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
@@ -43,7 +41,6 @@ import org.eclipse.edc.iam.identitytrust.spi.verification.CredentialVerifier;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.uri.UriUtils;
 
@@ -119,14 +116,6 @@ public class LdpVerifier implements CredentialVerifier {
 
     public URI getBase() {
         return base;
-    }
-
-    private Verifiable getVerify(JsonObject jo) {
-        try {
-            return Verifier.with(new Jws2020SignatureSuite(jsonLdMapper)).loader(loader).verify(jo);
-        } catch (VerificationError | DocumentError e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private VerificationMethod resolveMethod(URI id, Proof proof, DocumentLoader loader) throws DocumentError {
@@ -223,8 +212,6 @@ public class LdpVerifier implements CredentialVerifier {
             if (JsonUtils.isNotObject(expandedProof)) {
                 return failure("%s: %s".formatted(ErrorType.Invalid, VcVocab.PROOF));
             }
-
-            var proofObject = expandedProof.asJsonObject();
 
             var proofTypes = LdType.strings(expandedProof);
 
