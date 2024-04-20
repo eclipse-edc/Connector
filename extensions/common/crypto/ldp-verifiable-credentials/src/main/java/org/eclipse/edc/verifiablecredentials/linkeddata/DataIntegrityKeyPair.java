@@ -44,14 +44,17 @@ class DataIntegrityKeyPair implements VerificationMethod {
         this(id, type, controller, privateKey, null);
     }
 
+    @Override
     public URI id() {
         return id;
     }
 
+    @Override
     public URI type() {
         return type;
     }
 
+    @Override
     public URI controller() {
         return controller;
     }
