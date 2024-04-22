@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.core.defaults;
 
-import com.apicatalog.ld.signature.SignatureSuite;
+import com.apicatalog.vc.suite.SignatureSuite;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
 
 import java.util.Collection;
@@ -27,7 +27,6 @@ public class InMemorySignatureSuiteRegistry implements SignatureSuiteRegistry {
     @Override
     public void register(String w3cIdentifier, SignatureSuite suite) {
         registry.put(w3cIdentifier, suite);
-        registry.put(suite.getId().uri(), suite);
     }
 
     @Override

@@ -1,0 +1,88 @@
+{
+	"@context": [
+		"context.jsonld",
+		{
+			"@base": "verifier-manifest"
+		}
+	],
+	"@id": "",
+	"@type": "mf:Manifest",
+	"name": "Verifiable Credentials Verifier Test Suite",
+	"sequence": [
+		{
+			"@id": "#t0001",
+			"@type": [
+				"PositiveEvaluationTest",
+				"VeriferTest"
+			],
+			"name": "valid signed VC",
+			"input": "verifier/0001-in.jsonld"
+		},
+		{
+			"@id": "#t0002",
+			"@type": [
+				"NegativeEvaluationTest",
+				"VeriferTest"
+			],
+			"name": "forged credentials subject",
+			"input": "verifier/0002-in.jsonld",
+			"expectErrorCode": "InvalidSignature"
+		},
+		{
+			"@id": "#t0003",
+			"@type": [
+				"PositiveEvaluationTest",
+				"VeriferTest"
+			],
+			"name": "valid VC with embedded verification method",
+			"input": "verifier/0003-in.jsonld"
+		},
+		{
+			"@id": "#t0004",
+			"@type": [
+				"PositiveEvaluationTest",
+				"VeriferTest"
+			],
+			"name": "proof set of two valid proofs",
+			"input": "verifier/0004-in.jsonld"
+		},
+		{
+			"@id": "#t0005",
+			"@type": [
+				"NegativeEvaluationTest",
+				"VeriferTest"
+			],
+			"name": "proof set having one forged proof",
+			"input": "verifier/0005-in.jsonld",
+			"expectErrorCode": "InvalidSignature"
+		},
+		{
+			"@id": "#t0006",
+			"@type": [
+				"PositiveEvaluationTest",
+				"VeriferTest"
+			],
+			"name": "DID key as a verification method",
+			"input": "verifier/0006-in.jsonld"
+		},
+		{
+			"@id": "#t0007",
+			"@type": [
+				"PositiveEvaluationTest",
+				"VeriferTest"
+			],
+			"name": "valid signed VP",
+			"input": "verifier/0007-in.jsonld"
+		},
+		{
+			"@id": "#t0008",
+			"@type": [
+				"NegativeEvaluationTest",
+				"VeriferTest"
+			],
+			"name": "forged signed VP",
+			"input": "verifier/0008-in.jsonld",
+			"expectErrorCode": "InvalidSignature"
+		}
+	]
+}

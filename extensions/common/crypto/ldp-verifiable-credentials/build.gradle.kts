@@ -17,9 +17,11 @@ plugins {
 }
 
 dependencies {
+    api(project(":extensions:common:crypto:lib:jws2020-lib"))
     implementation(project(":spi:common:json-ld-spi"))
     implementation(project(":spi:common:identity-trust-spi"))
-    implementation(project(":core:common:lib:util-lib"))
+    implementation(project(":core:common:lib:util-lib")) //exposes SignatureSuite in its public API
+
     api(project(":spi:common:identity-did-spi"))
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)
@@ -35,6 +37,7 @@ dependencies {
     // deps for test fixtures
     testFixturesImplementation(project(":spi:common:json-ld-spi"))
     testFixturesImplementation(project(":core:common:lib:json-ld-lib"))
+    testFixturesImplementation(project(":extensions:common:crypto:lib:jws2020-lib"))
     testFixturesApi(libs.nimbus.jwt)
     testFixturesApi(testFixtures(project(":extensions:common:crypto:lib:jws2020-lib")))
 

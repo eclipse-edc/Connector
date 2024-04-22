@@ -24,18 +24,16 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.OctetKeyPair;
-import com.nimbusds.jose.jwk.RSAKey;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
-import org.eclipse.edc.spi.EdcException;
 
 import java.text.ParseException;
 import java.util.Collections;
 
-class Jws2020SignatureProvider implements SignatureAlgorithm {
+/**
+ * Implements signing a VerifiableCredential with the JsonWebSignature2020 algorithm
+ */
+class Jws2020Signature implements SignatureAlgorithm {
 
     @Override
     public void verify(byte[] publicKey, byte[] signature, byte[] data) throws VerificationError {
@@ -90,7 +88,7 @@ class Jws2020SignatureProvider implements SignatureAlgorithm {
     }
 
     @Override
-    public KeyPair keygen(int length) throws KeyGenError {
+    public KeyPair keygen() throws KeyGenError {
         return null;
     }
 
@@ -98,20 +96,7 @@ class Jws2020SignatureProvider implements SignatureAlgorithm {
      * Attempt to determine the {@link JWSAlgorithm} from the curve that is being used in the ECKey pair
      */
     private JWSAlgorithm from(JWK keyPair) {
-        if (keyPair instanceof ECKey eckey) {
-            var jwsAlgorithm = JWSAlgorithm.Family.EC.stream()
-                    .filter(algo -> Curve.forJWSAlgorithm(algo).contains(eckey.getCurve()))
-                    .findFirst();
-            return jwsAlgorithm.orElseThrow(() -> new EdcException("Could not determine JWSAlgorithm for Curve " + eckey.getCurve()));
-        } else if (keyPair instanceof OctetKeyPair okp) {
-            var jwsAlgorithm = JWSAlgorithm.Family.ED.stream()
-                    .filter(algo -> Curve.forJWSAlgorithm(algo).contains(okp.getCurve()))
-                    .findFirst();
-            return jwsAlgorithm.orElseThrow(() -> new EdcException("Could not determine JWSAlgorithm for Curve " + okp.getCurve()));
-        } else if (keyPair instanceof RSAKey) {
-            return JWSAlgorithm.RS512;
-        }
-        return null;
+        return CryptoConverter.getRecommendedAlgorithm(CryptoConverter.createSigner(keyPair));
     }
 
     private JWK deserialize(byte[] privateKey) {

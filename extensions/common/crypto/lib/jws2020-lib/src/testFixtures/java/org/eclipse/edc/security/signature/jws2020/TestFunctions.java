@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.security.signature.jws2020;
 
+import com.apicatalog.ld.signature.VerificationMethod;
 import com.apicatalog.ld.signature.key.KeyPair;
-import com.apicatalog.ld.signature.method.VerificationMethod;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
@@ -35,7 +35,7 @@ public class TestFunctions {
     public static KeyPair createKeyPair(JWK jwk) {
         var id = URI.create("https://org.eclipse.edc/keys/" + UUID.randomUUID());
         var type = URI.create("https://w3id.org/security#JsonWebKey2020");
-        return new JwkMethod(id, type, null, jwk);
+        return new JsonWebKeyPair(id, type, null, jwk);
     }
 
     public static JsonObject readResourceAsJson(String name) {
@@ -48,6 +48,6 @@ public class TestFunctions {
 
     public static VerificationMethod createKeyPair(ECKey jwk, String id) {
         var type = URI.create("https://w3id.org/security#JsonWebKey2020");
-        return new JwkMethod(URI.create(id), type, null, jwk);
+        return new JsonWebKeyPair(URI.create(id), type, null, jwk);
     }
 }

@@ -19,13 +19,21 @@ import com.nimbusds.jose.jwk.JWK;
 
 import java.net.URI;
 
-public record JwkMethod(URI id, URI type, URI controller, JWK keyPair) implements KeyPair {
+/**
+ * {@link com.apicatalog.ld.signature.VerificationMethod} that consists of a Json Web Key (JWK).
+ * Serialization to a byte array happens by converting to String first ({@link JWK#toJSONString()}), and getting the bytes.
+ */
+public record JsonWebKeyPair(URI id, URI type, URI controller, JWK keyPair) implements KeyPair {
 
     @Override
     public byte[] privateKey() {
         return keyPair != null ? serializeKeyPair(keyPair) : null;
     }
 
+    @Override
+    public String algorithm() {
+        return "JsonWebKey2020";
+    }
 
     @Override
     public byte[] publicKey() {

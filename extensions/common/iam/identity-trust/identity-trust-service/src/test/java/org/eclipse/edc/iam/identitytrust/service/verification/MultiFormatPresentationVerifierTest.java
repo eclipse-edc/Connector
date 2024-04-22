@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.service.verification;
 
 import com.apicatalog.jsonld.loader.SchemeRouter;
-import com.apicatalog.vc.integrity.DataIntegrityProofOptions;
+import com.apicatalog.vc.issuer.ProofDraft;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +29,8 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentatio
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
-import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
+import org.eclipse.edc.security.signature.jws2020.Jws2020ProofDraft;
+import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.security.signature.jws2020.TestDocumentLoader;
 import org.eclipse.edc.security.signature.jws2020.TestFunctions;
 import org.eclipse.edc.spi.result.Result;
@@ -49,6 +50,7 @@ import org.mockito.Mockito;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -77,7 +79,7 @@ class MultiFormatPresentationVerifierTest {
     public static final String INVALID_SIGNATURE = "Invalid signature";
     private static final SignatureSuiteRegistry SIGNATURE_SUITE_REGISTRY = mock();
     private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
-    private static final JwsSignature2020Suite JWS_SIGNATURE_SUITE = new JwsSignature2020Suite(MAPPER);
+    private static final Jws2020SignatureSuite JWS_SIGNATURE_SUITE = new Jws2020SignatureSuite(MAPPER);
     private static ECKey vpSigningKey;
     private static ECKey vcSigningKey;
     private static TitaniumJsonLd jsonLd;
@@ -89,6 +91,7 @@ class MultiFormatPresentationVerifierTest {
     @BeforeAll
     static void prepare() throws URISyntaxException, JOSEException {
         when(SIGNATURE_SUITE_REGISTRY.getForId(any())).thenReturn(JWS_SIGNATURE_SUITE);
+        when(SIGNATURE_SUITE_REGISTRY.getAllSuites()).thenReturn(List.of(JWS_SIGNATURE_SUITE));
         jsonLd = new TitaniumJsonLd(mock());
         jsonLd.registerCachedDocument("https://www.w3.org/ns/odrl.jsonld", Thread.currentThread().getContextClassLoader().getResource("odrl.jsonld").toURI());
         jsonLd.registerCachedDocument("https://www.w3.org/ns/did/v1", Thread.currentThread().getContextClassLoader().getResource("jws2020.json").toURI());
@@ -119,12 +122,14 @@ class MultiFormatPresentationVerifierTest {
         multiFormatVerifier = new MultiFormatPresentationVerifier(MY_OWN_DID, jwtPresentationVerifier, ldpVerifier);
     }
 
-    private DataIntegrityProofOptions generateEmbeddedProofOptions(ECKey vcKey, String proofPurpose) {
-        return JWS_SIGNATURE_SUITE
-                .createOptions()
+    private ProofDraft generateEmbeddedProofOptions(ECKey vcKey, String proofPurpose) {
+
+        return Jws2020ProofDraft.Builder.newInstance()
+                .mapper(MAPPER)
                 .created(Instant.now())
                 .verificationMethod(TestFunctions.createKeyPair(vcKey, proofPurpose)) // embedded proof
-                .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                .build();
     }
 
     private Map<String, Object> asMap(String rawContent) {

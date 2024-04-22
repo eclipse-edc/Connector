@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.verifiablecredentials.linkeddata;
 
-import com.apicatalog.ld.DocumentError;
-import com.apicatalog.ld.signature.SigningError;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
@@ -29,8 +27,9 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.security.signature.jws2020.JwkMethod;
-import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
+import org.eclipse.edc.security.signature.jws2020.JsonWebKeyPair;
+import org.eclipse.edc.security.signature.jws2020.Jws2020ProofDraft;
+import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -59,8 +58,8 @@ class LdpIssuerTest {
     private final ObjectMapper mapper = createObjectMapper();
 
     @Nested
-    class JsonWegSignature2020 {
-        private final JwsSignature2020Suite jws2020suite = new JwsSignature2020Suite(mapper);
+    class JsonWebSignature2020 {
+        private final Jws2020SignatureSuite jws2020suite = new Jws2020SignatureSuite(mapper);
         private LdpIssuer issuer;
 
         @BeforeEach
@@ -86,15 +85,17 @@ class LdpIssuerTest {
 
             var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
-            var proofOptions = jws2020suite.createOptions()
+            var proofOptions = Jws2020ProofDraft.Builder.newInstance()
+                    .mapper(mapper)
                     .created(Instant.parse("2022-12-31T23:00:00Z"))
-                    .verificationMethod(new JwkMethod(URI.create(verificationMethodUrl), null, null, null))
-                    .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                    .verificationMethod(new JsonWebKeyPair(URI.create(verificationMethodUrl), null, null, null))
+                    .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                    .build();
 
 
-            var result = issuer.signDocument(vc, keypair, proofOptions);
+            var result = issuer.signDocument(jws2020suite, vc, keypair, proofOptions);
             assertThat(result.succeeded()).withFailMessage(result::getFailureDetail).isTrue();
-            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
+            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().getJsonArray("@graph").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
 
             assertThat(verificationMethod.getValueType()).describedAs("Expected a String!").isEqualTo(JsonValue.ValueType.ARRAY);
             assertThat(verificationMethod.asJsonArray().get(0).asJsonObject().toString()).contains(verificationMethodUrl);
@@ -103,7 +104,7 @@ class LdpIssuerTest {
         @DisplayName("t0001: a simple credential to sign (RSA Key)")
         @ParameterizedTest(name = "keySize = {0} bits")
         @ValueSource(ints = { 2048, 3072, 4096 })
-        void signSimpleCredential_rsaKey(int keysize) throws SigningError, DocumentError, NoSuchAlgorithmException {
+        void signSimpleCredential_rsaKey(int keysize) throws NoSuchAlgorithmException {
             var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
 
             var gen = KeyPairGenerator.getInstance("RSA");
@@ -120,14 +121,16 @@ class LdpIssuerTest {
 
             var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
-            var proofOptions = jws2020suite.createOptions()
+            var proofOptions = Jws2020ProofDraft.Builder.newInstance()
+                    .mapper(mapper)
                     .created(Instant.parse("2022-12-31T23:00:00Z"))
-                    .verificationMethod(new JwkMethod(URI.create(verificationMethodUrl), null, null, null))
-                    .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                    .verificationMethod(new JsonWebKeyPair(URI.create(verificationMethodUrl), null, null, null))
+                    .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                    .build();
 
-            var result = issuer.signDocument(vc, keypair, proofOptions);
+            var result = issuer.signDocument(jws2020suite, vc, keypair, proofOptions);
             assertThat(result.succeeded()).withFailMessage(result::getFailureDetail).isTrue();
-            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
+            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().getJsonArray("@graph").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
 
             assertThat(verificationMethod.getValueType()).describedAs("Expected a String!").isEqualTo(JsonValue.ValueType.ARRAY);
             assertThat(verificationMethod.asJsonArray().get(0).asJsonObject().toString()).contains(verificationMethodUrl);
@@ -135,7 +138,7 @@ class LdpIssuerTest {
 
         @DisplayName("t0001: a simple credential to sign (OctetKeyPair)")
         @Test
-        void signSimpleCredential_octetKeyPair() throws SigningError, DocumentError, JOSEException {
+        void signSimpleCredential_octetKeyPair() throws JOSEException {
             var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
 
             var jwk = new OctetKeyPairGenerator(Curve.Ed25519).generate();
@@ -143,15 +146,17 @@ class LdpIssuerTest {
 
             var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
-            var proofOptions = jws2020suite.createOptions()
+            var proofOptions = Jws2020ProofDraft.Builder.newInstance()
+                    .mapper(mapper)
                     .created(Instant.parse("2022-12-31T23:00:00Z"))
-                    .verificationMethod(new JwkMethod(URI.create(verificationMethodUrl), null, null, null))
-                    .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                    .verificationMethod(new JsonWebKeyPair(URI.create(verificationMethodUrl), null, null, null))
+                    .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                    .build();
 
 
-            var result = issuer.signDocument(vc, keypair, proofOptions);
+            var result = issuer.signDocument(jws2020suite, vc, keypair, proofOptions);
             assertThat(result.succeeded()).withFailMessage(result::getFailureDetail).isTrue();
-            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
+            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().getJsonArray("@graph").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
 
             assertThat(verificationMethod.getValueType()).describedAs("Expected a String!").isEqualTo(JsonValue.ValueType.ARRAY);
             assertThat(verificationMethod.asJsonArray().get(0).asJsonObject().toString()).contains(verificationMethodUrl);
@@ -163,15 +168,17 @@ class LdpIssuerTest {
             var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
             var keypair = createKeyPair(new ECKeyGenerator(Curve.P_384).keyID("test-kid").generate());
 
-            var proofOptions = jws2020suite.createOptions()
+            var proofOptions = Jws2020ProofDraft.Builder.newInstance()
+                    .mapper(mapper)
                     .created(Instant.parse("2022-12-31T23:00:00Z"))
                     .verificationMethod(keypair)
-                    .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                    .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                    .build();
 
 
-            var result = issuer.signDocument(vc, keypair, proofOptions);
+            var result = issuer.signDocument(jws2020suite, vc, keypair, proofOptions);
             assertThat(result.succeeded()).withFailMessage(result::getFailureDetail).isTrue();
-            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
+            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().getJsonArray("@graph").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
 
             assertThat(verificationMethod).withFailMessage("Expected an JsonArray!").isInstanceOf(JsonArray.class);
             assertThat(verificationMethod.asJsonArray().get(0).asJsonObject().get("https://w3id.org/security#publicKeyJwk"))
@@ -186,7 +193,7 @@ class LdpIssuerTest {
 
         @DisplayName("t0004: a credential with DID key as verification method")
         @Test
-        void signVerificationDidKey() throws SigningError, DocumentError, ParseException {
+        void signVerificationDidKey() throws ParseException {
             var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
             var eckey = (ECKey) JWK.parse("""
                     {
@@ -204,15 +211,17 @@ class LdpIssuerTest {
             // check https://w3c-ccg.github.io/did-method-key/#create for details
             var didKey = "did:key:zC2zU1wUHhYYX4CDwNwky9f5jtSvp5aQy5aNRQMHEdpK5xkJMy6TcMbWBP3scHbR6hhidR3RRjfAA7cuLxjydXgEiZUzRzguozYFeR3G6SzjAwswJ6hXKBWhFEHm2L6Rd6GRAw8r3kyPovxvcabdMF2gBy5TAioY1mVYFeT6";
 
-            var proofOptions = jws2020suite.createOptions()
+            var proofOptions = Jws2020ProofDraft.Builder.newInstance()
+                    .mapper(mapper)
                     .created(Instant.parse("2022-12-31T23:00:00Z"))
-                    .verificationMethod(new JwkMethod(URI.create(didKey), null, null, null))
-                    .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                    .verificationMethod(new JsonWebKeyPair(URI.create(didKey), null, null, null))
+                    .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                    .build();
 
 
-            var result = issuer.signDocument(vc, keypair, proofOptions);
+            var result = issuer.signDocument(jws2020suite, vc, keypair, proofOptions);
             assertThat(result.succeeded()).withFailMessage(result::getFailureDetail).isTrue();
-            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
+            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().getJsonArray("@graph").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
 
             assertThat(verificationMethod.getValueType()).describedAs("Expected a String!").isEqualTo(JsonValue.ValueType.ARRAY);
             assertThat(verificationMethod.asJsonArray().get(0).asJsonObject().toString()).contains(didKey);
@@ -229,15 +238,17 @@ class LdpIssuerTest {
 
             var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
-            var proofOptions = jws2020suite.createOptions()
+            var proofOptions = Jws2020ProofDraft.Builder.newInstance()
+                    .mapper(mapper)
                     .created(Instant.parse("2022-12-31T23:00:00Z"))
-                    .verificationMethod(new JwkMethod(URI.create(verificationMethodUrl), null, null, null))
-                    .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                    .verificationMethod(new JsonWebKeyPair(URI.create(verificationMethodUrl), null, null, null))
+                    .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                    .build();
 
 
-            var result = issuer.signDocument(vp, keypair, proofOptions);
+            var result = issuer.signDocument(jws2020suite, vp, keypair, proofOptions);
             assertThat(result.succeeded()).withFailMessage(result::getFailureDetail).isTrue();
-            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
+            var verificationMethod = result.getContent().getJsonArray("https://w3id.org/security#proof").get(0).asJsonObject().getJsonArray("@graph").get(0).asJsonObject().get("https://w3id.org/security#verificationMethod");
 
             assertThat(verificationMethod.getValueType()).describedAs("Expected a String!").isEqualTo(JsonValue.ValueType.ARRAY);
             assertThat(verificationMethod.asJsonArray().get(0).asJsonObject().toString()).contains(verificationMethodUrl);

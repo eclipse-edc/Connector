@@ -22,7 +22,7 @@ check the `IssuerTests` and the `VerifierTests` for more comprehensive explanati
 JwsSignature2020Suite suite=new JwsSignature2020Suite(JacksonJsonLd.createObjectMapper());
 JsonObject vc=createVcAsJsonLd();
 JWK keyPair=createKeyPairAsJwk();
-JwkMethod signKeys=new JwkMethod(id,type,controller,keyPair);
+JsonWebKeyPair signKeys=new JsonWebKeyPair(id,type,controller,keyPair);
 
 var options=suite.createOptions()
         .created(Instant.now())

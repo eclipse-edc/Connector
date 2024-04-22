@@ -106,7 +106,8 @@ public interface TestData {
         return createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, Json.createArrayBuilder()
                         .add("https://www.w3.org/2018/credentials/v1")
-                        .add("https://www.w3.org/2018/credentials/examples/v1"))
+                        .add("https://www.w3.org/2018/credentials/examples/v1")
+                        .add("https://w3id.org/security/suites/jws-2020/v1"))
                 .add("type", typeArray)
                 .add("issuer", issuer)
                 .add("issuanceDate", issuanceDate.toString())
@@ -141,9 +142,9 @@ public interface TestData {
                 Instant.parse("2020-06-01T12:00:00Z"),
                 createObjectBuilder()
                         .add("id", "https://some.subject/name#1")
-                        .add("name", createObjectBuilder()
+                        .add("name", Json.createObjectBuilder()
                                 .add("name", "Test Person III.")
-                                .add("shortName", "Testy")).build(),
+                                .add("short-name", "Testy")).build(),
                 "NameCredential");
     }
 
