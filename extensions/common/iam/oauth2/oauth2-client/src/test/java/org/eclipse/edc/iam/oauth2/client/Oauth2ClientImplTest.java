@@ -70,6 +70,71 @@ class Oauth2ClientImplTest {
     }
 
     @Test
+    void verifyRequestTokenSuccess_withExpiresIn() {
+        var request = createRequest();
+
+        var formParameters = new Parameters(
+                request.getParams().entrySet().stream()
+                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue()))
+                        .collect(Collectors.toList())
+        );
+
+        var expectedRequest = HttpRequest.request().withBody(new ParameterBody(formParameters));
+        var responseBody = typeManager.writeValueAsString(Map.of("access_token", "token", "expires_in", 1800));
+        server.when(expectedRequest).respond(HttpResponse.response().withBody(responseBody, APPLICATION_JSON));
+
+        var result = client.requestToken(request);
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().getToken()).isEqualTo("token");
+        assertThat(result.getContent().getExpiresIn()).isEqualTo(1800);
+        assertThat(result.getContent().getAdditional()).doesNotContainKeys("token", "expires_in");
+    }
+
+    @Test
+    void verifyRequestTokenSuccess_withExpiresIn_whenNotNumber() {
+        var request = createRequest();
+
+        var formParameters = new Parameters(
+                request.getParams().entrySet().stream()
+                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue()))
+                        .collect(Collectors.toList())
+        );
+
+        var expectedRequest = HttpRequest.request().withBody(new ParameterBody(formParameters));
+        var responseBody = typeManager.writeValueAsString(Map.of("access_token", "token", "expires_in", "wrong"));
+        server.when(expectedRequest).respond(HttpResponse.response().withBody(responseBody, APPLICATION_JSON));
+
+        var result = client.requestToken(request);
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().getToken()).isEqualTo("token");
+        assertThat(result.getContent().getExpiresIn()).isNull();
+    }
+
+    @Test
+    void verifyRequestTokenSuccess_withAdditionalProperties() {
+        var request = createRequest();
+
+        var formParameters = new Parameters(
+                request.getParams().entrySet().stream()
+                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue()))
+                        .collect(Collectors.toList())
+        );
+
+        var expectedRequest = HttpRequest.request().withBody(new ParameterBody(formParameters));
+        var responseBody = typeManager.writeValueAsString(Map.of("access_token", "token", "expires_in", 1800, "scope", "test"));
+        server.when(expectedRequest).respond(HttpResponse.response().withBody(responseBody, APPLICATION_JSON));
+
+        var result = client.requestToken(request);
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().getToken()).isEqualTo("token");
+        assertThat(result.getContent().getExpiresIn()).isEqualTo(1800);
+        assertThat(result.getContent().getAdditional()).containsEntry("scope", "test");
+    }
+
+    @Test
     void verifyFailureIfServerCallFails() {
         var request = createRequest();
         server.when(HttpRequest.request()).respond(HttpResponse.response().withStatusCode(400));
