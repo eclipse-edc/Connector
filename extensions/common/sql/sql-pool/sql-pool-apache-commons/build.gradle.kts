@@ -30,6 +30,7 @@ dependencies {
 
     // required for statically mocking the JDBC DriverManager
     testImplementation(libs.mockito.inline)
+    testImplementation(project(":core:common:lib:boot-lib")) //in-mem vault
 }
 
 

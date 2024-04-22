@@ -15,12 +15,17 @@
 package org.eclipse.edc.sql.pool.commons;
 
 import org.assertj.core.api.ThrowingConsumer;
+import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.sql.ConnectionFactory;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,14 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.DEPRACATED_POOL_MAX_IDLE_CONNECTIONS;
-import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.DEPRACATED_POOL_MAX_TOTAL_CONNECTIONS;
-import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.DEPRACATED_POOL_MIN_IDLE_CONNECTIONS;
-import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.DEPRACATED_POOL_TEST_CONNECTION_ON_BORROW;
-import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.DEPRACATED_POOL_TEST_CONNECTION_ON_CREATE;
-import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.DEPRACATED_POOL_TEST_CONNECTION_ON_RETURN;
-import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.DEPRACATED_POOL_TEST_CONNECTION_WHILE_IDLE;
-import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.DEPRACATED_POOL_TEST_QUERY;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.EDC_DATASOURCE_PREFIX;
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.POOL_CONNECTIONS_MAX_IDLE;
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.POOL_CONNECTIONS_MAX_TOTAL;
@@ -51,6 +49,7 @@ import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExten
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.POOL_CONNECTION_TEST_QUERY;
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.POOL_CONNECTION_TEST_WHILE_IDLE;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -61,10 +60,13 @@ import static org.mockito.Mockito.when;
 class CommonsConnectionPoolServiceExtensionTest {
     private static final String DS_1_NAME = "ds1";
     private final DataSourceRegistry dataSourceRegistry = mock();
+    private final ConnectionFactory connectionFactory = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(DataSourceRegistry.class, dataSourceRegistry);
+        context.registerService(Vault.class, new InMemoryVault(mock()));
+        context.registerService(ConnectionFactory.class, connectionFactory);
     }
 
     @ParameterizedTest
@@ -89,6 +91,55 @@ class CommonsConnectionPoolServiceExtensionTest {
                 .satisfies(checker);
     }
 
+    @Test
+    void initialize_fromVault(CommonsConnectionPoolServiceExtension extension, ServiceExtensionContext context) {
+        when(context.getConfig(EDC_DATASOURCE_PREFIX))
+                .thenReturn(ConfigFactory.fromMap(Map.of("ds1.name", "ds1")));
+        var vault = context.getService(Vault.class);
+
+        vault.storeSecret("edc.datasource." + DS_1_NAME + ".user", "test-user");
+        vault.storeSecret("edc.datasource." + DS_1_NAME + ".password", "test-pwd");
+        vault.storeSecret("edc.datasource." + DS_1_NAME + ".url", "jdbc://whatever");
+
+        extension.initialize(context);
+
+        verify(dataSourceRegistry).register(eq(DS_1_NAME), any());
+        assertThat(extension.getCommonsConnectionPools()).hasSize(1).first()
+                .satisfies(pool -> {
+                    assertThatThrownBy(pool::getConnection).isInstanceOf(EdcException.class); //we need this only to invoke the connection factory
+                    verify(connectionFactory).create(eq("jdbc://whatever"), argThat(p ->
+                            p.size() == 3 &&
+                                    p.containsValue("test-pwd") &&
+                                    p.containsValue("test-user")));
+                });
+    }
+
+    @Test
+    void initialize_fromVault_shouldOverrideConfig(CommonsConnectionPoolServiceExtension extension, ServiceExtensionContext context) {
+        when(context.getConfig(EDC_DATASOURCE_PREFIX))
+                .thenReturn(ConfigFactory.fromMap(
+                        Map.of("ds1.name", "ds1",
+                                "ds1.user", "this-should-be-ignored",
+                                "ds1.password", "this-as-well")));
+        var vault = context.getService(Vault.class);
+
+        vault.storeSecret("edc.datasource." + DS_1_NAME + ".user", "test-user");
+        vault.storeSecret("edc.datasource." + DS_1_NAME + ".password", "test-pwd");
+        vault.storeSecret("edc.datasource." + DS_1_NAME + ".url", "jdbc://whatever");
+
+        extension.initialize(context);
+
+        verify(dataSourceRegistry).register(eq(DS_1_NAME), any());
+        assertThat(extension.getCommonsConnectionPools()).hasSize(1).first()
+                .satisfies(pool -> {
+                    assertThatThrownBy(pool::getConnection).isInstanceOf(EdcException.class); //we need this only to invoke the connection factory
+                    verify(connectionFactory).create(eq("jdbc://whatever"), argThat(p ->
+                            p.size() == 3 &&
+                                    p.containsValue("test-pwd") &&
+                                    p.containsValue("test-user")));
+                });
+    }
+
 
     static class ConfigProvider implements ArgumentsProvider {
 
@@ -106,17 +157,6 @@ class CommonsConnectionPoolServiceExtensionTest {
                 DS_1_NAME + "." + POOL_CONNECTIONS_MAX_TOTAL, "10");
 
 
-        private final Map<String, String> deprecatedConfig = Map.of(
-                DS_1_NAME + ".url", DS_1_NAME,
-                DS_1_NAME + "." + DEPRACATED_POOL_TEST_CONNECTION_ON_CREATE, "false",
-                DS_1_NAME + "." + DEPRACATED_POOL_TEST_CONNECTION_ON_BORROW, "false",
-                DS_1_NAME + "." + DEPRACATED_POOL_TEST_CONNECTION_ON_RETURN, "true",
-                DS_1_NAME + "." + DEPRACATED_POOL_TEST_CONNECTION_WHILE_IDLE, "true",
-                DS_1_NAME + "." + DEPRACATED_POOL_TEST_QUERY, "SELECT foo FROM bar;",
-                DS_1_NAME + "." + DEPRACATED_POOL_MIN_IDLE_CONNECTIONS, "10",
-                DS_1_NAME + "." + DEPRACATED_POOL_MAX_IDLE_CONNECTIONS, "10",
-                DS_1_NAME + "." + DEPRACATED_POOL_MAX_TOTAL_CONNECTIONS, "10");
-
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             ThrowingConsumer<CommonsConnectionPoolConfig> checkDefault = this::checkDefault;
@@ -128,8 +168,7 @@ class CommonsConnectionPoolServiceExtensionTest {
             return Stream.of(
                     Arguments.of(defaultConfig, checkDefault, false),
                     Arguments.of(configuration, checkWithConfig, false),
-                    Arguments.of(envConfiguration, checkWithConfig, true),
-                    Arguments.of(deprecatedConfig, checkWithConfig, false)
+                    Arguments.of(envConfiguration, checkWithConfig, true)
             );
         }
 

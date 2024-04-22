@@ -18,6 +18,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -25,6 +26,8 @@ import org.eclipse.edc.sql.ConnectionFactory;
 import org.eclipse.edc.sql.datasource.ConnectionFactoryDataSource;
 import org.eclipse.edc.sql.datasource.ConnectionPoolDataSource;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -34,9 +37,10 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javax.sql.DataSource;
 
-import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 
 @Extension(value = CommonsConnectionPoolServiceExtension.NAME)
 public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
@@ -44,50 +48,23 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     public static final String NAME = "Commons Connection Pool";
 
     public static final String EDC_DATASOURCE_PREFIX = "edc.datasource";
-    @Deprecated(since = "0.3.1")
-    @Setting(required = false)
-    public static final String DEPRACATED_POOL_MAX_IDLE_CONNECTIONS = "pool.maxIdleConnections";
     public static final String POOL_CONNECTIONS_MAX_IDLE = "pool.connections.max-idle";
-    @Deprecated(since = "0.3.1")
-    @Setting(required = false)
-    public static final String DEPRACATED_POOL_MAX_TOTAL_CONNECTIONS = "pool.maxTotalConnections";
     public static final String POOL_CONNECTIONS_MAX_TOTAL = "pool.connections.max-total";
-    @Deprecated(since = "0.3.1")
-    @Setting(required = false)
-    public static final String DEPRACATED_POOL_MIN_IDLE_CONNECTIONS = "pool.minIdleConnections";
     public static final String POOL_CONNECTIONS_MIN_IDLE = "pool.connections.min-idle";
-    @Deprecated(since = "0.3.1")
-    @Setting(required = false)
-    public static final String DEPRACATED_POOL_TEST_CONNECTION_ON_BORROW = "pool.testConnectionOnBorrow";
     public static final String POOL_CONNECTION_TEST_ON_BORROW = "pool.connection.test.on-borrow";
-    @Deprecated(since = "0.3.1")
-    @Setting(required = false)
-    public static final String DEPRACATED_POOL_TEST_CONNECTION_ON_CREATE = "pool.testConnectionOnCreate";
     public static final String POOL_CONNECTION_TEST_ON_CREATE = "pool.connection.test.on-create";
-    @Deprecated(since = "0.3.1")
-    @Setting(required = false)
-    public static final String DEPRACATED_POOL_TEST_CONNECTION_ON_RETURN = "pool.testConnectionOnReturn";
     public static final String POOL_CONNECTION_TEST_ON_RETURN = "pool.connection.test.on-return";
-    @Deprecated(since = "0.3.1")
-    @Setting(required = false)
-    public static final String DEPRACATED_POOL_TEST_CONNECTION_WHILE_IDLE = "pool.testConnectionWhileIdle";
     public static final String POOL_CONNECTION_TEST_WHILE_IDLE = "pool.connection.test.while-idle";
-    @Deprecated(since = "0.3.1")
-    @Setting(required = false)
-    public static final String DEPRACATED_POOL_TEST_QUERY = "pool.testQuery";
     public static final String POOL_CONNECTION_TEST_QUERY = "pool.connection.test.query";
-    public static final Map<String, String> CONFIGURATION_MAPPING = Map.of(
-            POOL_CONNECTIONS_MAX_IDLE, DEPRACATED_POOL_MAX_IDLE_CONNECTIONS,
-            POOL_CONNECTIONS_MIN_IDLE, DEPRACATED_POOL_MIN_IDLE_CONNECTIONS,
-            POOL_CONNECTIONS_MAX_TOTAL, DEPRACATED_POOL_MAX_TOTAL_CONNECTIONS,
-            POOL_CONNECTION_TEST_ON_BORROW, DEPRACATED_POOL_TEST_CONNECTION_ON_BORROW,
-            POOL_CONNECTION_TEST_ON_CREATE, DEPRACATED_POOL_TEST_CONNECTION_ON_CREATE,
-            POOL_CONNECTION_TEST_ON_RETURN, DEPRACATED_POOL_TEST_CONNECTION_ON_RETURN,
-            POOL_CONNECTION_TEST_WHILE_IDLE, DEPRACATED_POOL_TEST_CONNECTION_WHILE_IDLE,
-            POOL_CONNECTION_TEST_QUERY, DEPRACATED_POOL_TEST_QUERY);
 
     @Setting(required = true)
     public static final String URL = "url";
+
+    @Setting(value = "Username to be used for the JDBC connection. Can be omitted if not required, or if the user is encoded in the JDBC url.")
+    public static final String USER = "user";
+    @Setting(value = "Username to be used for the JDBC connection. Can be omitted if not required, or if the password is encoded in the JDBC url.")
+    public static final String PASSWORD = "password";
+
     private final List<CommonsConnectionPool> commonsConnectionPools = new LinkedList<>();
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -97,6 +74,9 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
 
     @Inject
     private ConnectionFactory connectionFactory;
+
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -127,6 +107,13 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
         return commonsConnectionPools;
     }
 
+    private @NotNull Supplier<@Nullable String> readFromConfig(Config config, String value) {
+        return () -> {
+            monitor.warning("Database configuration value '%s' not found in vault, will fall back to Config. Please consider putting database configuration into the vault.");
+            return config.getString(value, null);
+        };
+    }
+
     private void setIfProvidedString(String key, Consumer<String> setter, Config config) {
         setIfProvided(key, setter, config::getString);
     }
@@ -140,12 +127,7 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     }
 
     private <T> void setIfProvided(String key, Consumer<T> setter, BiFunction<String, T, T> getter) {
-        var oldKey = CONFIGURATION_MAPPING.get(key);
-        var oldValue = getter.apply(oldKey, null);
-        if (oldValue != null) {
-            monitor.warning(format("Configuration setting %s has been deprecated, please use %s instead", oldKey, key));
-        }
-        var value = getter.apply(key, oldValue);
+        var value = getter.apply(key, null);
         if (value != null) {
             setter.accept(value);
         }
@@ -165,10 +147,21 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     }
 
     private DataSource createDataSource(Config config) {
-        var jdbcUrl = Objects.requireNonNull(config.getString(URL));
+        var rootPath = EDC_DATASOURCE_PREFIX + "." + config.currentNode();
+
+        // read values from the vault first, fall back to config
+        var jdbcUrl = Objects.requireNonNull(ofNullable(vault.resolveSecret(rootPath + "." + URL)).orElseGet(readFromConfig(config, URL)));
+        var jdbcUser = ofNullable(vault.resolveSecret(rootPath + "." + USER))
+                .orElseGet(readFromConfig(config, USER));
+        var jdbcPassword = ofNullable(vault.resolveSecret(rootPath + "." + PASSWORD))
+                .orElseGet(readFromConfig(config, PASSWORD));
 
         var properties = new Properties();
         properties.putAll(config.getRelativeEntries());
+
+        // only set if not-null, otherwise Properties#add throws a NPE
+        ofNullable(jdbcUser).ifPresent(u -> properties.put(USER, u));
+        ofNullable(jdbcPassword).ifPresent(p -> properties.put(PASSWORD, p));
 
         return new ConnectionFactoryDataSource(connectionFactory, jdbcUrl, properties);
     }
