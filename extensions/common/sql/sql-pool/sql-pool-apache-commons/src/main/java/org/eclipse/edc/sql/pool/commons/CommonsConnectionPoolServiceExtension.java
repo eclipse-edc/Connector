@@ -17,6 +17,7 @@ package org.eclipse.edc.sql.pool.commons;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -33,7 +34,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -109,7 +109,8 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
 
     private @NotNull Supplier<@Nullable String> readFromConfig(Config config, String value) {
         return () -> {
-            monitor.warning("Database configuration value '%s' not found in vault, will fall back to Config. Please consider putting database configuration into the vault.");
+            var entry = EDC_DATASOURCE_PREFIX + "." + config.currentNode() + "." + value;
+            monitor.warning("Database configuration value '%s' not found in vault, will fall back to Config. Please consider putting database configuration into the vault.".formatted(entry));
             return config.getString(value, null);
         };
     }
@@ -150,7 +151,13 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
         var rootPath = EDC_DATASOURCE_PREFIX + "." + config.currentNode();
 
         // read values from the vault first, fall back to config
-        var jdbcUrl = Objects.requireNonNull(ofNullable(vault.resolveSecret(rootPath + "." + URL)).orElseGet(readFromConfig(config, URL)));
+        var urlProperty = rootPath + "." + URL;
+        var jdbcUrl = ofNullable(vault.resolveSecret(urlProperty)).orElseGet(readFromConfig(config, URL));
+
+        if (jdbcUrl == null) {
+            throw new EdcException("Mandatory config '%s' not found. Please provide a value for the '%s' property, either as a secret in the vault or an application property.".formatted(urlProperty, urlProperty));
+        }
+
         var jdbcUser = ofNullable(vault.resolveSecret(rootPath + "." + USER))
                 .orElseGet(readFromConfig(config, USER));
         var jdbcPassword = ofNullable(vault.resolveSecret(rootPath + "." + PASSWORD))
