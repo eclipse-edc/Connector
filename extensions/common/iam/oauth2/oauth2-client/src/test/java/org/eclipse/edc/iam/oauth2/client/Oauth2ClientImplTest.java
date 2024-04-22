@@ -92,7 +92,7 @@ class Oauth2ClientImplTest {
     }
 
     @Test
-    void verifyRequestTokenSuccess_withExpiresIn_whenNotANumber() {
+    void verifyRequestTokenSuccess_withExpiresIn_whenNotNumber() {
         var request = createRequest();
 
         var formParameters = new Parameters(
