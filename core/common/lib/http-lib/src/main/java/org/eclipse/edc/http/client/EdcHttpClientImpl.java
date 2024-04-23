@@ -69,7 +69,7 @@ public class EdcHttpClientImpl implements EdcHttpClient {
         try (var response = execute(request, fallbacks)) {
             return mappingFunction.apply(response);
         } catch (Throwable e) {
-            monitor.severe("HTTP client exception caught for request " + request, e);
+            monitor.severe("HTTP client exception caught for request [%s, %s]".formatted(request.method(), request.url()), e);
             return Result.failure(e.getMessage());
         }
     }
