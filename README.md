@@ -117,7 +117,7 @@ Then you can add snapshot dependencies by simply using the `-SNAPSHOT` version s
 
 ```kotlin
 dependencies {
-    implementation("org.eclipse.edc:spi:core-spi:0.6.2-SNAPSHOT")
+    implementation("org.eclipse.edc:spi:core-spi:0.6.3-SNAPSHOT")
     // any other dependencies
 }
 ```
