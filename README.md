@@ -25,14 +25,14 @@ This repository contains forks of the Eclipse EDC with additions by sovity.
 
 See the CHANGELOG.md on each branch for more details.
 
-[0.2.1.x](https://github.com/sovity/core-edc/blob/sovity/0.2.1.x/CHANGELOG.md)
+[0.2.1](https://github.com/sovity/core-edc/blob/sovity/0.2.1/CHANGELOG.md)
 
 ## Usage
 
-The `default` branch serves as a default branch.
-
 The `main` branch tracks the Eclipse EDC main branch.
+
+The `default` branch serves as a default branch.
 
 The forked branches are prefixed with `sovity/`.
 
-Any version that needs forking should be labeled `sovity/x.y.z` where `x.y.z` is the Eclipse EDC version from which it was forked.
+Any version that needs forking should be labeled `sovity/X.Y.Z` where `X.Y.Z` is the Eclipse EDC version from which it was forked and acts as the main branch for this forked version.
