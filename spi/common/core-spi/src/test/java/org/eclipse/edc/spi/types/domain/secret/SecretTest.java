@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.spi.types.domain.secret;
 
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ class SecretTest {
 
     @BeforeEach
     void setUp() {
-        typeManager = new TypeManager();
+        typeManager = new JacksonTypeManager();
     }
 
     @Test

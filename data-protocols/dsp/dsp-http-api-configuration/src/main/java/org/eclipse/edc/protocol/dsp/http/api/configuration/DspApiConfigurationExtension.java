@@ -143,7 +143,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(jsonBuilderFactory, mapper));
         dspApiTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromCriterionTransformer(jsonBuilderFactory, mapper));
-        // TODO: To be discussed
         dspApiTransformerRegistry.register(new JsonObjectFromSecretTransformer(jsonBuilderFactory));
 
         // JSON-LD to EDC model transformers
@@ -155,7 +154,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer());
-        // TODO: To be discussed
         dspApiTransformerRegistry.register(new JsonObjectToSecretTransformer());
     }
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2024 Amadeus
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Amadeus - initial API and implementation
  *
  */
 
@@ -19,7 +19,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -36,12 +35,7 @@ class JsonObjectFromSecretTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
 
-    private JsonObjectFromSecretTransformer transformer;
-
-    @BeforeEach
-    void setUp() {
-        transformer = new JsonObjectFromSecretTransformer(jsonFactory);
-    }
+    private final JsonObjectFromSecretTransformer transformer = new JsonObjectFromSecretTransformer(jsonFactory);
 
     @Test
     void transform_returnJsonObject() {

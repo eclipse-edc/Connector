@@ -37,11 +37,10 @@ public class JsonObjectFromSecretTransformer extends AbstractJsonLdTransformer<S
 
     @Override
     public @Nullable JsonObject transform(@NotNull Secret secret, @NotNull TransformerContext context) {
-        var builder = jsonFactory.createObjectBuilder()
+        return jsonFactory.createObjectBuilder()
                 .add(PROPERTY_ID, secret.getId())
                 .add(TYPE, Secret.EDC_SECRET_TYPE)
-                .add(EDC_SECRET_VALUE, secret.getValue());
-
-        return builder.build();
+                .add(EDC_SECRET_VALUE, secret.getValue())
+                .build();
     }
 }

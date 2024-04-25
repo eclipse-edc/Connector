@@ -22,7 +22,12 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 
 import java.util.List;
-import java.util.Optional;
+
+import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.spi.result.ServiceResult.badRequest;
+import static org.eclipse.edc.spi.result.ServiceResult.conflict;
+import static org.eclipse.edc.spi.result.ServiceResult.notFound;
+import static org.eclipse.edc.spi.result.ServiceResult.success;
 
 public class SecretServiceImpl implements SecretService {
     private final Vault vault;
@@ -35,7 +40,7 @@ public class SecretServiceImpl implements SecretService {
 
     @Override
     public Secret findById(String secretId) {
-        return Optional.ofNullable(vault.resolveSecret(secretId))
+        return ofNullable(vault.resolveSecret(secretId))
                 .map(secretValue -> Secret.Builder.newInstance()
                         .value(secretValue)
                         .id(secretId)
@@ -50,51 +55,41 @@ public class SecretServiceImpl implements SecretService {
 
     @Override
     public ServiceResult<Secret> create(Secret secret) {
-        var existingSecret = findById(secret.getId());
-
-        if (existingSecret != null) {
-            return ServiceResult.conflict("Secret " + secret.getId() + " already exist");
+        var existing = findById(secret.getId());
+        if (existing != null) {
+            return conflict("Secret " + secret.getId() + " already exist");
         }
 
-        var createResult = vault.storeSecret(secret.getId(), secret.getValue());
-        if (createResult.succeeded()) {
-            observable.invokeForEach(l -> l.created(secret));
-            return ServiceResult.success(secret);
-        }
-
-        return ServiceResult.badRequest(createResult.getFailureMessages().toString());
+        return vault.storeSecret(secret.getId(), secret.getValue())
+                .onSuccess(unused -> observable.invokeForEach(l -> l.created(secret)))
+                .map(unused -> success(secret))
+                .orElse(failure -> badRequest(failure.getFailureDetail()));
     }
 
     @Override
     public ServiceResult<Secret> delete(String secretKey) {
-        var existingSecret = findById(secretKey);
-
-        if (existingSecret == null) {
-            return ServiceResult.notFound("Secret " + secretKey + " not found");
+        var existing = findById(secretKey);
+        if (existing == null) {
+            return notFound("Secret " + secretKey + " not found");
         }
 
-        var deleteResult = vault.deleteSecret(secretKey);
-        if (deleteResult.succeeded()) {
-            deleteResult.onSuccess(a -> observable.invokeForEach(l -> l.deleted(secretKey)));
-            return ServiceResult.success(null);
-        }
-        return ServiceResult.badRequest(deleteResult.getFailureMessages().toString());
+        return vault.deleteSecret(secretKey)
+                .onSuccess(unused -> observable.invokeForEach(l -> l.deleted(existing)))
+                .map(unused -> success(existing))
+                .orElse(failure -> badRequest(failure.getFailureDetail()));
     }
 
     @Override
     public ServiceResult<Secret> update(Secret secret) {
-        var existingSecret = findById(secret.getId());
-
-        if (existingSecret == null) {
-            return ServiceResult.notFound("Secret " + secret.getId() + " not found");
+        var existing = findById(secret.getId());
+        if (existing == null) {
+            return notFound("Secret " + secret.getId() + " not found");
         }
 
-        var updateResult = vault.storeSecret(secret.getId(), secret.getValue());
-        if (updateResult.succeeded()) {
-            observable.invokeForEach(l -> l.updated(secret));
-            return ServiceResult.success(secret);
-        }
-        return ServiceResult.badRequest(updateResult.getFailureMessages().toString());
+        return vault.storeSecret(secret.getId(), secret.getValue())
+                .onSuccess(unused -> observable.invokeForEach(l -> l.updated(secret)))
+                .map(unused -> success(secret))
+                .orElse(failure -> badRequest(failure.getFailureDetail()));
     }
 
 }

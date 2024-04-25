@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.eclipse.edc.connector.secret.spi.event.SecretCreated;
 import org.eclipse.edc.connector.secret.spi.event.SecretDeleted;
 import org.eclipse.edc.connector.secret.spi.event.SecretUpdated;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -34,11 +35,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SecretEventTest {
 
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
 
     @ParameterizedTest
     @ArgumentsSource(EventInstances.class)
-    void serdes(EventEnvelope<?> event) {
+    void serDes(EventEnvelope<?> event) {
         var eventEnvelopeClass = event.getClass();
         var eventClass = event.getPayload().getClass();
 

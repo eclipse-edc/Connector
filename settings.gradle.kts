@@ -250,6 +250,7 @@ include(":spi:control-plane:control-plane-spi")
 include(":spi:control-plane:transfer-data-plane-spi")
 include(":spi:control-plane:policy-spi")
 include(":spi:control-plane:transfer-spi")
+include(":spi:control-plane:secret-spi")
 include(":spi:control-plane:control-plane-api-client-spi")
 
 include(":spi:data-plane:data-plane-spi")
@@ -277,9 +278,3 @@ include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 
 include(":version-catalog")
-include("core:control-plane:secret-spi1")
-findProject(":core:control-plane:secret-spi1")?.name = "secret-spi1"
-include("spi:control-plane:secret-spi")
-findProject(":spi:control-plane:secret-spi")?.name = "secret-spi"
-include("spi:control-plane:secret-spi")
-findProject(":spi:control-plane:secret-spi")?.name = "secret-spi"

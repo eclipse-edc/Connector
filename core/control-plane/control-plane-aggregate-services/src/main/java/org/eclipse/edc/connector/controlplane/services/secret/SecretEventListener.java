@@ -47,9 +47,9 @@ public class SecretEventListener implements SecretListener {
     }
 
     @Override
-    public void deleted(String secretId) {
+    public void deleted(Secret secret) {
         var event = SecretDeleted.Builder.newInstance()
-                .secretId(secretId)
+                .secretId(secret.getId())
                 .build();
 
         publish(event);

@@ -23,7 +23,6 @@ dependencies {
     api(project(":spi:common:jwt-spi"))
 
     implementation(project(":core:common:lib:crypto-common-lib")) // for the CryptoConverter
-    implementation(project(":spi:common"))
     implementation(libs.nimbus.jwt)
     api(libs.bouncyCastle.bcpkixJdk18on)
 }
