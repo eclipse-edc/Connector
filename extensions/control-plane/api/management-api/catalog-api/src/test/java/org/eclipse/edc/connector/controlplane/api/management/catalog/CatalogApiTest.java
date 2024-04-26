@@ -62,7 +62,7 @@ class CatalogApiTest {
 
     @Test
     void catalogRequestExample() throws JsonProcessingException {
-        var validator = CatalogRequestValidator.instance(mock(), mock());
+        var validator = CatalogRequestValidator.instance(mock());
 
         var jsonObject = objectMapper.readValue(CATALOG_REQUEST_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
