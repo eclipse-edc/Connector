@@ -151,6 +151,7 @@ public class TransferProcessApiEndToEndTest {
                                     .build())
                             .build()
                     )
+                    .add("transferType", "HttpData-PUSH")
                     .add("callbackAddresses", createCallbackAddress())
                     .add("protocol", "dataspace-protocol-http")
                     .add("counterPartyAddress", "http://connector-address")

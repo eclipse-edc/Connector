@@ -15,9 +15,9 @@
 
 package org.eclipse.edc.connector.controlplane.services.transferprocess;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.FlowTypeExtractor;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -32,8 +32,8 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
@@ -76,9 +76,10 @@ class TransferProcessServiceImplTest {
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
     private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final CommandHandlerRegistry commandHandlerRegistry = mock();
+    private final FlowTypeExtractor flowTypeExtractor = mock();
 
     private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext,
-            dataAddressValidator, commandHandlerRegistry);
+            dataAddressValidator, commandHandlerRegistry, flowTypeExtractor);
 
     @Test
     void findById_whenFound() {
@@ -137,30 +138,47 @@ class TransferProcessServiceImplTest {
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
-    @Test
-    void initiateTransfer() {
-        var transferRequest = transferRequest();
-        var transferProcess = transferProcess();
-        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
-        when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(transferProcess));
+    @Nested
+    class InitiateTransfer {
+        @Test
+        void shouldInitiateTransfer() {
+            var transferRequest = transferRequest();
+            var transferProcess = transferProcess();
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PUSH));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(transferProcess));
 
-        var result = service.initiateTransfer(transferRequest);
+            var result = service.initiateTransfer(transferRequest);
 
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).isEqualTo(transferProcess);
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
+            assertThat(result).isSucceeded().isEqualTo(transferProcess);
+            verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
 
-    @Test
-    void initiateTransfer_consumer_invalidDestination_shouldNotInitiateTransfer() {
-        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
+        @Test
+        void shouldFail_whenDestinationIsNotValid() {
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PUSH));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
 
-        var result = service.initiateTransfer(transferRequest());
+            var result = service.initiateTransfer(transferRequest());
 
-        Assertions.assertThat(result).satisfies(ServiceResult::failed)
-                .extracting(ServiceResult::reason)
-                .isEqualTo(BAD_REQUEST);
-        verifyNoInteractions(manager);
+            assertThat(result).isFailed()
+                    .extracting(ServiceFailure::getReason)
+                    .isEqualTo(BAD_REQUEST);
+            verifyNoInteractions(manager);
+        }
+
+        @Test
+        void shouldFail_whenDataDestinationNotPassedAndFlowTypeIsPush() {
+            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PUSH));
+            var request = TransferRequest.Builder.newInstance()
+                    .transferType("any")
+                    .build();
+
+            var result = service.initiateTransfer(request);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verifyNoInteractions(manager);
+        }
     }
 
     @Test

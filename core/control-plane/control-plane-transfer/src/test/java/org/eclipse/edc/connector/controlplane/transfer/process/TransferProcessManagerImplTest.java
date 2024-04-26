@@ -257,71 +257,78 @@ class TransferProcessManagerImplTest {
         });
     }
 
-    @Test
-    void initial_provider_shouldTransitionToProvisioning() {
-        var transferProcess = createTransferProcessBuilder(INITIAL).type(PROVIDER).build();
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
-        var contentDataAddress = DataAddress.Builder.newInstance().type("type").build();
-        when(addressResolver.resolveForAsset(any())).thenReturn(contentDataAddress);
-        var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateProviderResourceManifest(any(TransferProcess.class), any(), any()))
-                .thenReturn(resourceManifest);
+    @Nested
+    class InitialProvider {
 
-        manager.start();
+        private final TransferProcess.Builder builder = createTransferProcessBuilder(INITIAL).type(PROVIDER);
 
-        await().untilAsserted(() -> {
-            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            var captor = ArgumentCaptor.forClass(TransferProcess.class);
-            verify(transferProcessStore).save(captor.capture());
-            verify(manifestGenerator).generateProviderResourceManifest(any(), any(), any());
-            verifyNoInteractions(provisionManager, vault);
-            var actualTransferProcess = captor.getValue();
-            assertThat(actualTransferProcess.getState()).isEqualTo(PROVISIONING.code());
-            assertThat(actualTransferProcess.getContentDataAddress()).isSameAs(contentDataAddress);
-            assertThat(actualTransferProcess.getResourceManifest()).isSameAs(resourceManifest);
-        });
-    }
+        @Test
+        void shouldTransitionToProvisioning() {
+            var transferProcess = builder.dataDestination(null).build();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+            var contentDataAddress = DataAddress.Builder.newInstance().type("type").build();
+            when(addressResolver.resolveForAsset(any())).thenReturn(contentDataAddress);
+            var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
+            when(manifestGenerator.generateProviderResourceManifest(any(TransferProcess.class), any(), any()))
+                    .thenReturn(resourceManifest);
 
-    @Test
-    void initial_provider_shouldStoreSecret_whenItIsFoundInTheDataAddress() {
-        var destinationDataAddress = DataAddress.Builder.newInstance()
-                .keyName("keyName")
-                .type("type")
-                .property(EDC_DATA_ADDRESS_SECRET, "secret")
-                .build();
-        var transferProcess = createTransferProcessBuilder(INITIAL).type(PROVIDER).dataDestination(destinationDataAddress).build();
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
-        when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
-        var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateProviderResourceManifest(any(TransferProcess.class), any(), any()))
-                .thenReturn(resourceManifest);
+            manager.start();
 
-        manager.start();
+            await().untilAsserted(() -> {
+                verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                var captor = ArgumentCaptor.forClass(TransferProcess.class);
+                verify(transferProcessStore).save(captor.capture());
+                verify(manifestGenerator).generateProviderResourceManifest(any(), any(), any());
+                verifyNoInteractions(provisionManager, vault);
+                var actualTransferProcess = captor.getValue();
+                assertThat(actualTransferProcess.getState()).isEqualTo(PROVISIONING.code());
+                assertThat(actualTransferProcess.getContentDataAddress()).isSameAs(contentDataAddress);
+                assertThat(actualTransferProcess.getResourceManifest()).isSameAs(resourceManifest);
+            });
+        }
 
-        await().untilAsserted(() -> {
-            verify(vault).storeSecret("keyName", "secret");
-        });
-    }
+        @Test
+        void shouldStoreSecret_whenItIsFoundInTheDataAddress() {
+            var destinationDataAddress = DataAddress.Builder.newInstance()
+                    .keyName("keyName")
+                    .type("type")
+                    .property(EDC_DATA_ADDRESS_SECRET, "secret")
+                    .build();
+            var transferProcess = builder.dataDestination(destinationDataAddress).build();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+            when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
+            var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
+            when(manifestGenerator.generateProviderResourceManifest(any(TransferProcess.class), any(), any()))
+                    .thenReturn(resourceManifest);
 
-    @Test
-    void initial_provider_shouldTransitionToTerminating_whenAssetIsNotResolved() {
-        var transferProcess = createTransferProcessBuilder(INITIAL).type(PROVIDER).build();
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
-        when(addressResolver.resolveForAsset(any())).thenReturn(null);
+            manager.start();
 
-        manager.start();
+            await().untilAsserted(() -> {
+                verify(vault).storeSecret("keyName", "secret");
+                verify(transferProcessStore).save(any());
+            });
+        }
 
-        await().untilAsserted(() -> {
-            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            var captor = ArgumentCaptor.forClass(TransferProcess.class);
-            verify(transferProcessStore).save(captor.capture());
-            verifyNoInteractions(manifestGenerator, provisionManager);
-            var actualTransferProcess = captor.getValue();
-            assertThat(actualTransferProcess.getState()).isEqualTo(TERMINATING.code());
-        });
+        @Test
+        void shouldTransitionToTerminating_whenAssetIsNotResolved() {
+            var transferProcess = builder.build();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+            when(addressResolver.resolveForAsset(any())).thenReturn(null);
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                var captor = ArgumentCaptor.forClass(TransferProcess.class);
+                verify(transferProcessStore).save(captor.capture());
+                verifyNoInteractions(manifestGenerator, provisionManager);
+                var actualTransferProcess = captor.getValue();
+                assertThat(actualTransferProcess.getState()).isEqualTo(TERMINATING.code());
+            });
+        }
     }
 
     @Test
@@ -442,57 +449,60 @@ class TransferProcessManagerImplTest {
         });
     }
 
-    @Test
-    void requesting_shouldSendMessageAndTransitionToRequested() {
-        var process = createTransferProcess(REQUESTING);
-        process.setCorrelationId(null);
-        var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
-        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
-        when(vault.resolveSecret(any())).thenReturn(null);
+    @Nested
+    class Requesting {
+        @Test
+        void requesting_shouldSendMessageAndTransitionToRequested() {
+            var process = createTransferProcessBuilder(REQUESTING).dataDestination(null).build();
+            process.setCorrelationId(null);
+            var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
+            when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+            when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
+            when(vault.resolveSecret(any())).thenReturn(null);
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            var storeCaptor = ArgumentCaptor.forClass(TransferProcess.class);
-            verify(transferProcessStore, times(1)).save(storeCaptor.capture());
-            var storedTransferProcess = storeCaptor.getValue();
-            assertThat(storedTransferProcess.getState()).isEqualTo(REQUESTED.code());
-            assertThat(storedTransferProcess.getCorrelationId()).isEqualTo("providerPid");
-            verify(listener).requested(process);
-            var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
-            verify(dispatcherRegistry).dispatch(eq(TransferProcessAck.class), captor.capture());
-            var message = captor.getValue();
-            assertThat(message.getProcessId()).isEqualTo(process.getId());
-            assertThat(message.getConsumerPid()).isEqualTo(process.getId());
-            assertThat(message.getProviderPid()).isEqualTo(null);
-            assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
-            assertThat(message.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isNull();
-        });
-    }
+            await().untilAsserted(() -> {
+                var storeCaptor = ArgumentCaptor.forClass(TransferProcess.class);
+                verify(transferProcessStore, times(1)).save(storeCaptor.capture());
+                var storedTransferProcess = storeCaptor.getValue();
+                assertThat(storedTransferProcess.getState()).isEqualTo(REQUESTED.code());
+                assertThat(storedTransferProcess.getCorrelationId()).isEqualTo("providerPid");
+                verify(listener).requested(process);
+                var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
+                verify(dispatcherRegistry).dispatch(eq(TransferProcessAck.class), captor.capture());
+                var message = captor.getValue();
+                assertThat(message.getProcessId()).isEqualTo(process.getId());
+                assertThat(message.getConsumerPid()).isEqualTo(process.getId());
+                assertThat(message.getProviderPid()).isEqualTo(null);
+                assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
+                assertThat(message.getDataDestination()).isNull();
+            });
+        }
 
-    @Test
-    void requesting_shouldAddSecretToDataAddress_whenItExists() {
-        var destination = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
-        var process = createTransferProcessBuilder(REQUESTING).dataDestination(destination).build();
-        var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
-        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
-        when(vault.resolveSecret(any())).thenReturn("secret");
+        @Test
+        void requesting_shouldAddSecretToDataAddress_whenItExists() {
+            var destination = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
+            var process = createTransferProcessBuilder(REQUESTING).dataDestination(destination).build();
+            var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
+            when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+            when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
+            when(vault.resolveSecret(any())).thenReturn("secret");
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
-            verify(dispatcherRegistry).dispatch(eq(TransferProcessAck.class), captor.capture());
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
-            verify(listener).requested(process);
-            verify(vault).resolveSecret("keyName");
-            var requestMessage = captor.getValue();
-            assertThat(requestMessage.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isEqualTo("secret");
-        });
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
+                verify(dispatcherRegistry).dispatch(eq(TransferProcessAck.class), captor.capture());
+                verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
+                verify(listener).requested(process);
+                verify(vault).resolveSecret("keyName");
+                var requestMessage = captor.getValue();
+                assertThat(requestMessage.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isEqualTo("secret");
+            });
+        }
     }
 
     @Nested

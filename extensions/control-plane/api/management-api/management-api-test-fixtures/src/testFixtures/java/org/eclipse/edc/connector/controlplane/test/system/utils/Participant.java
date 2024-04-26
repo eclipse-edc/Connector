@@ -95,7 +95,7 @@ public class Participant {
     }
 
     /**
-     * Create a new {@link org.eclipse.edc.spi.types.domain.asset.Asset}.
+     * Create a new {@link org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset}.
      *
      * @param assetId               asset id
      * @param properties            asset properties
@@ -365,13 +365,19 @@ public class Participant {
         var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "TransferRequest")
-                .add("dataDestination", destination)
                 .add("protocol", protocol)
                 .add("assetId", assetId)
                 .add("contractId", contractAgreementId)
                 .add("connectorId", provider.id)
-                .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
-                .add("privateProperties", privateProperties);
+                .add("counterPartyAddress", provider.protocolEndpoint.url.toString());
+
+        if (privateProperties != null) {
+            requestBodyBuilder.add("privateProperties", privateProperties);
+        }
+
+        if (destination != null) {
+            requestBodyBuilder.add("dataDestination", destination);
+        }
 
         if (transferType != null) {
             requestBodyBuilder.add("transferType", transferType);
@@ -382,6 +388,7 @@ public class Participant {
         }
 
         var requestBody = requestBodyBuilder.build();
+
         return managementEndpoint.baseRequest()
                 .contentType(JSON)
                 .body(requestBody)
@@ -425,6 +432,10 @@ public class Participant {
                 .as(JsonArray.class);
     }
 
+    public RequestAsset requestAssetFrom(String assetId, Participant provider) {
+        return new RequestAsset(assetId, provider);
+    }
+
     /**
      * Request a provider asset:
      * - retrieves the contract definition associated with the asset,
@@ -436,11 +447,14 @@ public class Participant {
      * @param privateProperties private properties of the data request
      * @param destination       data destination
      * @return transfer process id.
-     * @deprecated transferType will become mandatory, please use {@link #requestAsset(Participant, String, JsonObject, JsonObject, String)}
+     * @deprecated please use {@link #requestAssetFrom(String, Participant)} instead
      */
     @Deprecated(since = "0.6.1")
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination) {
-        return requestAsset(provider, assetId, privateProperties, destination, null);
+        return requestAssetFrom(assetId, provider)
+                .withPrivateProperties(privateProperties)
+                .withDestination(destination)
+                .execute();
     }
 
     /**
@@ -455,17 +469,25 @@ public class Participant {
      * @param destination       data destination
      * @param transferType      transfer type
      * @return transfer process id.
+     * @deprecated please use {@link #requestAssetFrom(String, Participant)} instead
      */
+    @Deprecated(since = "0.6.1")
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
-        return requestAsset(provider, assetId, privateProperties, destination, transferType, null);
+        return requestAssetFrom(assetId, provider)
+                .withPrivateProperties(privateProperties)
+                .withDestination(destination)
+                .withTransferType(transferType)
+                .execute();
     }
 
+    @Deprecated(since = "0.6.1")
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType, JsonArray callbacks) {
-        var offer = getOfferForAsset(provider, assetId);
-        var contractAgreementId = negotiateContract(provider, offer);
-        var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType, callbacks);
-        assertThat(transferProcessId).isNotNull();
-        return transferProcessId;
+        return requestAssetFrom(assetId, provider)
+                .withPrivateProperties(privateProperties)
+                .withDestination(destination)
+                .withTransferType(transferType)
+                .withCallbacks(callbacks)
+                .execute();
     }
 
     /**
@@ -659,6 +681,59 @@ public class Participant {
         @SuppressWarnings("unchecked")
         protected B self() {
             return (B) this;
+        }
+    }
+
+    /**
+     * Build an Asset request
+     */
+    public class RequestAsset {
+        private final String assetId;
+        private final Participant counterPart;
+        private JsonObject privateProperties;
+        private JsonObject destination;
+        private String transferType;
+        private JsonArray callbacks;
+
+        private RequestAsset(String assetId, Participant counterPart) {
+            this.assetId = assetId;
+            this.counterPart = counterPart;
+        }
+
+        public RequestAsset withPrivateProperties(JsonObject privateProperties) {
+            this.privateProperties = privateProperties;
+            return this;
+        }
+
+        public RequestAsset withDestination(JsonObject destination) {
+            this.destination = destination;
+            return this;
+        }
+
+        public RequestAsset withTransferType(String transferType) {
+            this.transferType = transferType;
+            return this;
+        }
+
+        public RequestAsset withCallbacks(JsonArray callbacks) {
+            this.callbacks = callbacks;
+            return this;
+        }
+
+        /**
+         * Request a provider asset:
+         * - retrieves the contract definition associated with the asset,
+         * - handles the contract negotiation.
+         * - initiate the data transfer.
+         *
+         * @return the transfer process id.
+         */
+        public String execute() {
+            var offer = getOfferForAsset(counterPart, assetId);
+            var contractAgreementId = negotiateContract(counterPart, offer);
+            var transferProcessId = initiateTransfer(counterPart, contractAgreementId, assetId, privateProperties, destination, transferType, callbacks);
+            assertThat(transferProcessId).isNotNull();
+            return transferProcessId;
         }
     }
 }

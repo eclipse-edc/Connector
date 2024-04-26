@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.DataPlaneS
 import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.FlowTypeExtractor;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -40,8 +41,10 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
 
     @Setting(value = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime", defaultValue = DEFAULT_DATAPLANE_SELECTOR_STRATEGY)
     private static final String DPF_SELECTOR_STRATEGY = "edc.dataplane.client.selector.strategy";
+
     @Inject
     private DataFlowManager dataFlowManager;
+
     @Inject(required = false)
     private ControlApiUrl callbackUrl;
 
@@ -54,10 +57,15 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
     @Inject(required = false)
     private DataFlowPropertiesProvider propertiesProvider;
 
+    @Inject
+    private FlowTypeExtractor flowTypeExtractor;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var selectionStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, DEFAULT_DATAPLANE_SELECTOR_STRATEGY);
-        dataFlowManager.register(new DataPlaneSignalingFlowController(callbackUrl, selectorService, getPropertiesProvider(), clientFactory, selectionStrategy));
+        var controller = new DataPlaneSignalingFlowController(callbackUrl, selectorService, getPropertiesProvider(),
+                clientFactory, selectionStrategy, flowTypeExtractor);
+        dataFlowManager.register(controller);
     }
 
     private DataFlowPropertiesProvider getPropertiesProvider() {

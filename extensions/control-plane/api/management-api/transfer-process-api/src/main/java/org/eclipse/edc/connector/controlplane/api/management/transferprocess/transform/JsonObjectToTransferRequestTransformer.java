@@ -39,7 +39,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PRIVATE_PROPERTIES;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TRANSFER_TYPE;
 
@@ -60,7 +59,6 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
             case TRANSFER_REQUEST_CONTRACT_ID -> (v) -> builder.contractId(transformString(v, context));
             case TRANSFER_REQUEST_DATA_DESTINATION ->
                     v -> builder.dataDestination(transformObject(v, DataAddress.class, context));
-            case TRANSFER_REQUEST_PROPERTIES -> (v) -> transformStringProperties(v, builder::properties, context);
             case TRANSFER_REQUEST_CALLBACK_ADDRESSES -> (v) -> {
                 var addresses = new ArrayList<CallbackAddress>();
                 transformArrayOrObject(v, CallbackAddress.class, addresses::add, context);
@@ -97,24 +95,4 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
         consumer.accept(properties);
     }
 
-    @Deprecated(since = "0.2.0")
-    private void transformStringProperties(JsonValue jsonValue, Consumer<Map<String, String>> consumer, TransformerContext context) {
-        JsonObject jsonObject;
-        if (jsonValue instanceof JsonArray) {
-            jsonObject = jsonValue.asJsonArray().getJsonObject(0);
-        } else if (jsonValue instanceof JsonObject) {
-            jsonObject = (JsonObject) jsonValue;
-        } else {
-            context.problem()
-                    .unexpectedType()
-                    .actual(jsonValue.getValueType())
-                    .expected(OBJECT)
-                    .expected(ARRAY)
-                    .report();
-            return;
-        }
-        var properties = new HashMap<String, String>();
-        visitProperties(jsonObject, (k, v) -> properties.put(k, transformString(v, context)));
-        consumer.accept(properties);
-    }
 }

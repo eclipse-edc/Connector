@@ -170,9 +170,8 @@ public interface TransferProcessApi {
             @Schema(requiredMode = REQUIRED)
             String assetId,
             @Schema(requiredMode = REQUIRED)
+            String transferType,
             ManagementApiSchema.DataAddressSchema dataDestination,
-            @Schema(deprecated = true, description = "Deprecated as this field is not used anymore, please use privateProperties instead")
-            ManagementApiSchema.FreeFormPropertiesSchema properties,
             @Schema(additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
             ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
@@ -185,6 +184,7 @@ public interface TransferProcessApi {
                     "counterPartyAddress": "http://provider-address",
                     "contractId": "contract-id",
                     "assetId": "asset-id",
+                    "transferType": "transferType",
                     "dataDestination": {
                         "type": "data-destination-type"
                     },
@@ -215,9 +215,6 @@ public interface TransferProcessApi {
             String state,
             String contractAgreementId,
             String errorDetail,
-            @Deprecated(since = "0.2.0")
-            @Schema(deprecated = true)
-            ManagementApiSchema.FreeFormPropertiesSchema properties,
             ManagementApiSchema.DataAddressSchema dataDestination,
             ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses
