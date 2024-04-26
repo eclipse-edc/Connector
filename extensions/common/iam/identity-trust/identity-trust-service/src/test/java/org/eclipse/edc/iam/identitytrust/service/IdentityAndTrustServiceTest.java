@@ -207,6 +207,7 @@ class IdentityAndTrustServiceTest {
         @Test
         void verify_singlePresentation_singleCredential() {
             var presentation = createPresentationBuilder()
+                    .holder(CONSUMER_DID)
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
                             .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
@@ -231,6 +232,7 @@ class IdentityAndTrustServiceTest {
         @Test
         void verify_singlePresentation_multipleCredentials() {
             var presentation = createPresentationBuilder()
+                    .holder(CONSUMER_DID)
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
                                     .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
@@ -262,6 +264,7 @@ class IdentityAndTrustServiceTest {
         @Test
         void verify_multiplePresentations_multipleCredentialsEach() {
             var presentation1 = createPresentationBuilder()
+                    .holder(CONSUMER_DID)
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
                                     .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
@@ -279,6 +282,7 @@ class IdentityAndTrustServiceTest {
             var vpContainer1 = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation1);
 
             var presentation2 = createPresentationBuilder()
+                    .holder(CONSUMER_DID)
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
                                     .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
