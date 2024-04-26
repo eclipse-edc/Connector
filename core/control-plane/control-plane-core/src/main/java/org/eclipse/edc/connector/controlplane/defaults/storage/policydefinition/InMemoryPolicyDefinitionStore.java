@@ -22,11 +22,10 @@ import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.store.ReflectionBasedQueryResolver;
-import org.eclipse.edc.util.concurrency.LockManager;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -36,19 +35,17 @@ import static java.lang.String.format;
  */
 public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
 
-    private final LockManager lockManager;
-    private final Map<String, PolicyDefinition> policiesById = new HashMap<>();
+    private final Map<String, PolicyDefinition> policiesById = new ConcurrentHashMap<>();
     private final QueryResolver<PolicyDefinition> queryResolver;
 
-    public InMemoryPolicyDefinitionStore(LockManager lockManager, CriterionOperatorRegistry criterionToPredicateConverter) {
-        this.lockManager = lockManager;
+    public InMemoryPolicyDefinitionStore(CriterionOperatorRegistry criterionToPredicateConverter) {
         queryResolver = new ReflectionBasedQueryResolver<>(PolicyDefinition.class, criterionToPredicateConverter);
     }
 
     @Override
     public PolicyDefinition findById(String policyId) {
         try {
-            return lockManager.readLock(() -> policiesById.get(policyId));
+            return policiesById.get(policyId);
         } catch (Exception e) {
             throw new EdcPersistenceException(format("Finding policy by id %s failed.", policyId), e);
         }
@@ -56,56 +53,32 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
 
     @Override
     public Stream<PolicyDefinition> findAll(QuerySpec spec) {
-        return lockManager.readLock(() -> queryResolver.query(policiesById.values().stream(), spec));
+        return queryResolver.query(policiesById.values().stream(), spec);
     }
 
     @Override
     public StoreResult<PolicyDefinition> create(PolicyDefinition policy) {
-        try {
-            return lockManager.writeLock(() -> {
-                var id = policy.getId();
-                // do not replace if already exists
-                if (policiesById.containsKey(id)) {
-                    return StoreResult.alreadyExists(format(POLICY_ALREADY_EXISTS, id));
-                }
-                policiesById.put(id, policy);
-                return StoreResult.success(policy);
-            });
-        } catch (Exception e) {
-            throw new EdcPersistenceException("Saving policy failed", e);
-        }
+        var prev = policiesById.putIfAbsent(policy.getId(), policy);
+        return Optional.ofNullable(prev)
+                .map(a -> StoreResult.<PolicyDefinition>alreadyExists(format(POLICY_ALREADY_EXISTS, policy.getId())))
+                .orElse(StoreResult.success(policy));
+
     }
 
     @Override
     public StoreResult<PolicyDefinition> update(PolicyDefinition policy) {
-        try {
-            var policyId = policy.getId();
-            Objects.requireNonNull(policyId, "policyId");
-            Objects.requireNonNull(policy, "policy");
-            // do not update if not exists
-            return lockManager.writeLock(() -> {
-                if (policiesById.containsKey(policyId)) {
-                    policiesById.put(policyId, policy);
-                    return StoreResult.success(policy);
-                }
-                return StoreResult.notFound(format(POLICY_NOT_FOUND, policyId));
-            });
-
-        } catch (Exception e) {
-            throw new EdcPersistenceException("Updating policy failed", e);
-        }
+        var prev = policiesById.replace(policy.getId(), policy);
+        return Optional.ofNullable(prev)
+                .map(a -> StoreResult.success(policy))
+                .orElse(StoreResult.notFound(format(POLICY_NOT_FOUND, policy.getId())));
     }
 
     @Override
     public StoreResult<PolicyDefinition> delete(String policyId) {
-        try {
-            var previous = lockManager.writeLock(() -> policiesById.remove(policyId));
-            return previous == null ?
-                    StoreResult.notFound(format(POLICY_NOT_FOUND, policyId)) :
-                    StoreResult.success(previous);
-        } catch (Exception e) {
-            throw new EdcPersistenceException("Deleting policy failed", e);
-        }
+        var prev = policiesById.remove(policyId);
+        return Optional.ofNullable(prev)
+                .map(StoreResult::success)
+                .orElse(StoreResult.notFound(format(POLICY_NOT_FOUND, policyId)));
     }
 
 }
