@@ -1697,11 +1697,6 @@ components:
         protocol:
           type: string
           example: null
-        providerUrl:
-          type: string
-          description: please use counterPartyAddress instead
-          example: null
-          deprecated: true
         querySpec:
           $ref: "#/components/schemas/QuerySpec"
       example:
