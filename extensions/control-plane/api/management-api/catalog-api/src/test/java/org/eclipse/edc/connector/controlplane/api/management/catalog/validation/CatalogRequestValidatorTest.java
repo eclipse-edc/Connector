@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.api.management.catalog.validation
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -29,19 +28,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
-import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_FIELD;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 class CatalogRequestValidatorTest {
 
-    private final Monitor monitor = mock();
-    private final Validator<JsonObject> validator = CatalogRequestValidator.instance(monitor, mock());
+    private final Validator<JsonObject> validator = CatalogRequestValidator.instance(mock());
 
     @Test
     void shouldSucceed_whenInputIsValid() {
@@ -53,19 +48,6 @@ class CatalogRequestValidatorTest {
         var result = validator.validate(input);
 
         assertThat(result).isSucceeded();
-    }
-
-    @Test
-    void shouldSucceed_whenDeprecatedProviderUrlIsUsed() {
-        var input = Json.createObjectBuilder()
-                .add(CATALOG_REQUEST_PROVIDER_URL, value("http://any"))
-                .add(CATALOG_REQUEST_PROTOCOL, value("protocol"))
-                .build();
-
-        var result = validator.validate(input);
-
-        assertThat(result).isSucceeded();
-        verify(monitor).warning(anyString());
     }
 
     @Test

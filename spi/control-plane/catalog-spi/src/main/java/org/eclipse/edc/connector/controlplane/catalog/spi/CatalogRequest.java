@@ -26,8 +26,6 @@ public class CatalogRequest {
     public static final String CATALOG_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String CATALOG_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String CATALOG_REQUEST_COUNTER_PARTY_ID = EDC_NAMESPACE + "counterPartyId";
-    @Deprecated(since = "0.2.0")
-    public static final String CATALOG_REQUEST_PROVIDER_URL = EDC_NAMESPACE + "providerUrl";
     public static final String CATALOG_REQUEST_QUERY_SPEC = EDC_NAMESPACE + "querySpec";
 
     private QuerySpec querySpec;

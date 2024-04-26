@@ -64,9 +64,6 @@ public interface CatalogApi {
             Object context,
             @Schema(name = TYPE, example = CATALOG_REQUEST_TYPE)
             String type,
-            @Deprecated(since = "0.2.0")
-            @Schema(deprecated = true, description = "please use counterPartyAddress instead")
-            String providerUrl,
             @Schema(requiredMode = REQUIRED)
             String counterPartyAddress,
             // Switch to required in the next API iteration

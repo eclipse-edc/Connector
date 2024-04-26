@@ -15,7 +15,6 @@
 package org.eclipse.edc.jsonld.spi;
 
 import jakarta.json.Json;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,27 +80,4 @@ class TypeUtilTest {
         assertNull(actual);
     }
 
-    @Test
-    public void isOfExpectedType_false() {
-        var expected = "type";
-        var object = Json.createObjectBuilder()
-                .add("@type", expected)
-                .build();
-
-        var actual = TypeUtil.isOfExpectedType(object, "invalid_type");
-
-        Assertions.assertFalse(actual);
-    }
-
-    @Test
-    public void isOfExpectedType_true() {
-        var expected = "type";
-        var object = Json.createObjectBuilder()
-                .add("@type", expected)
-                .build();
-
-        var actual = TypeUtil.isOfExpectedType(object, expected);
-
-        Assertions.assertTrue(actual);
-    }
 }
