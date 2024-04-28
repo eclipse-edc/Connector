@@ -17,17 +17,14 @@ package org.eclipse.edc.connector.controlplane.defaults.storage.policydefinition
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.testfixtures.store.PolicyDefinitionStoreTestBase;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
-import org.eclipse.edc.util.concurrency.LockManager;
 import org.junit.jupiter.api.BeforeEach;
-
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     private PolicyDefinitionStore store;
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryPolicyDefinitionStore(new LockManager(new ReentrantReadWriteLock(true)), CriterionOperatorRegistryImpl.ofDefaults());
+        store = new InMemoryPolicyDefinitionStore(CriterionOperatorRegistryImpl.ofDefaults());
     }
 
     @Override

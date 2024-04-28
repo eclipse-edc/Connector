@@ -36,10 +36,8 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.util.concurrency.LockManager;
 
 import java.time.Clock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Provides default service implementations for fallback
@@ -50,17 +48,15 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     public static final String NAME = "Control Plane Default Services";
     private InMemoryAssetIndex assetIndex;
     private InMemoryContractDefinitionStore contractDefinitionStore;
+    @Inject
+    private Clock clock;
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
 
     @Override
     public String name() {
         return NAME;
     }
-
-    @Inject
-    private Clock clock;
-
-    @Inject
-    private CriterionOperatorRegistry criterionOperatorRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -94,7 +90,7 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public PolicyDefinitionStore defaultPolicyStore() {
-        return new InMemoryPolicyDefinitionStore(new LockManager(new ReentrantReadWriteLock(true)), criterionOperatorRegistry);
+        return new InMemoryPolicyDefinitionStore(criterionOperatorRegistry);
     }
 
     @Provider(isDefault = true)
