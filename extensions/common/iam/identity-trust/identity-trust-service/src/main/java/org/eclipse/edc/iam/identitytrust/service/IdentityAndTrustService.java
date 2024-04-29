@@ -20,6 +20,8 @@ import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -156,11 +158,27 @@ public class IdentityAndTrustService implements IdentityService {
 
         var result = verifiableCredentialValidationService.validate(presentations, getAdditionalValidations());
 
-        //todo: at this point we have established what the other participant's DID is, and that it's authentic
-        // so we need to make sure that `iss == sub == DID`
-        return result.compose(u -> claimTokenCreatorFunction.apply(presentations.stream().map(p -> p.presentation().getCredentials().stream())
-                .reduce(Stream.empty(), Stream::concat)
-                .toList()));
+        return result
+                .compose(u -> verifyPresentationIssuer(issuer, presentations))
+                .compose(u -> claimTokenCreatorFunction.apply(presentations.stream().map(p -> p.presentation().getCredentials().stream())
+                        .reduce(Stream.empty(), Stream::concat)
+                        .toList()));
+    }
+
+    /**
+     * Checks that the issuer in the SI token == VP token issuer for all presentations
+     */
+    private Result<Void> verifyPresentationIssuer(String expectedIssuer, List<VerifiablePresentationContainer> presentationContainers) {
+
+        var issuers = presentationContainers.stream().map(VerifiablePresentationContainer::presentation)
+                .map(VerifiablePresentation::getHolder)
+                .toList();
+
+        if (issuers.stream().allMatch(expectedIssuer::equals)) {
+            return Result.success();
+        } else {
+            return Result.failure("Returned presentations contains invalid issuer. Expected %s found %s".formatted(expectedIssuer, issuers));
+        }
     }
 
 

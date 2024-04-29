@@ -205,8 +205,31 @@ class IdentityAndTrustServiceTest {
         }
 
         @Test
+        void verify_failsWithWrongHolder() {
+            var presentation = createPresentationBuilder()
+                    .holder("did:web:wrong")
+                    .type("VerifiablePresentation")
+                    .credentials(List.of(createCredentialBuilder()
+                            .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                    .id(CONSUMER_DID)
+                                    .claim("some-claim", "some-val")
+                                    .build()))
+                            .build()))
+                    .build();
+            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
+            when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
+            var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
+            var result = service.verifyJwtToken(token, verificationContext());
+            assertThat(result).isFailed()
+                    .detail()
+                    .isEqualTo("Returned presentations contains invalid issuer. Expected did:web:consumer found [did:web:wrong]");
+        }
+
+        @Test
         void verify_singlePresentation_singleCredential() {
             var presentation = createPresentationBuilder()
+                    .holder(CONSUMER_DID)
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
                             .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
@@ -231,6 +254,7 @@ class IdentityAndTrustServiceTest {
         @Test
         void verify_singlePresentation_multipleCredentials() {
             var presentation = createPresentationBuilder()
+                    .holder(CONSUMER_DID)
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
                                     .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
@@ -262,6 +286,7 @@ class IdentityAndTrustServiceTest {
         @Test
         void verify_multiplePresentations_multipleCredentialsEach() {
             var presentation1 = createPresentationBuilder()
+                    .holder(CONSUMER_DID)
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
                                     .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
@@ -279,6 +304,7 @@ class IdentityAndTrustServiceTest {
             var vpContainer1 = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation1);
 
             var presentation2 = createPresentationBuilder()
+                    .holder(CONSUMER_DID)
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
                                     .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
