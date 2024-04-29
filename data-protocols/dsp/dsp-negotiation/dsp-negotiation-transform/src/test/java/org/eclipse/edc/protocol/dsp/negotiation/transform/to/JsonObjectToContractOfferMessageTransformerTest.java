@@ -19,6 +19,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
@@ -53,11 +55,10 @@ class JsonObjectToContractOfferMessageTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
 
-    private JsonObjectToContractOfferMessageTransformer transformer;
+    private final JsonObjectToContractOfferMessageTransformer transformer = new JsonObjectToContractOfferMessageTransformer();
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectToContractOfferMessageTransformer();
         when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
 
@@ -92,6 +93,7 @@ class JsonObjectToContractOfferMessageTransformerTest {
         assertThat(contractOffer.getAssetId()).isEqualTo(ASSET_ID);
 
         verify(context, never()).reportProblem(anyString());
+        verify(context).setData(Policy.class, TYPE, PolicyType.OFFER);
     }
 
     @Deprecated(since = "0.4.1")

@@ -27,6 +27,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
@@ -54,23 +56,28 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
     public @Nullable Policy transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Policy.Builder.newInstance();
 
-        var type = object.getJsonArray(TYPE).stream().findFirst()
-                .map(JsonString.class::cast)
-                .map(JsonString::getString)
-                .orElse(ODRL_POLICY_TYPE_SET);
+        var policyType = Optional.ofNullable(context.consumeData(Policy.class, TYPE))
+                .map(PolicyType.class::cast)
+                .orElseGet(() -> {
+                    var tp = object.getJsonArray(TYPE).stream().findFirst()
+                            .map(JsonString.class::cast)
+                            .map(JsonString::getString)
+                            .orElse(ODRL_POLICY_TYPE_SET);
 
-        var policyType = switch (type) {
-            case ODRL_POLICY_TYPE_SET -> PolicyType.SET;
-            case ODRL_POLICY_TYPE_OFFER -> PolicyType.OFFER;
-            case ODRL_POLICY_TYPE_AGREEMENT -> PolicyType.CONTRACT;
-            default -> null;
-        };
+                    return switch (tp) {
+                        case ODRL_POLICY_TYPE_SET -> PolicyType.SET;
+                        case ODRL_POLICY_TYPE_OFFER -> PolicyType.OFFER;
+                        case ODRL_POLICY_TYPE_AGREEMENT -> PolicyType.CONTRACT;
+                        default -> null;
+                    };
+                });
 
         if (policyType == null) {
             context.problem()
                     .invalidProperty()
                     .property(TYPE)
-                    .error("Invalid type %s for ODRL policy, should be one of [%s, %s, %s]".formatted(type, ODRL_POLICY_TYPE_SET, ODRL_POLICY_TYPE_OFFER, ODRL_POLICY_TYPE_AGREEMENT))
+                    .value(null)
+                    .error("Invalid type for ODRL policy, should be one of [%s, %s, %s]".formatted(ODRL_POLICY_TYPE_SET, ODRL_POLICY_TYPE_OFFER, ODRL_POLICY_TYPE_AGREEMENT))
                     .report();
             return null;
         }

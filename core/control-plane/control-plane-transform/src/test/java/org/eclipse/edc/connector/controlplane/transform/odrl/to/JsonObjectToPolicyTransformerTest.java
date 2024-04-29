@@ -21,6 +21,7 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.transform.TestInput;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.spi.agent.ParticipantIdMapper;
@@ -85,7 +86,6 @@ class JsonObjectToPolicyTransformerTest {
 
     @Test
     void transform_withAllRuleTypesAsObjects_returnPolicy() {
-        var jsonFactory = Json.createBuilderFactory(Map.of());
         var permissionJson = jsonFactory.createObjectBuilder().add(TYPE, "permission").build();
         var prohibitionJson = jsonFactory.createObjectBuilder().add(TYPE, "prohibition").build();
         var dutyJson = jsonFactory.createObjectBuilder().add(TYPE, "duty").build();
@@ -169,6 +169,20 @@ class JsonObjectToPolicyTransformerTest {
 
         assertThat(result).isNull();
         verify(context).reportProblem(anyString());
+    }
+
+    @Test
+    void shouldGetTypeFromContext_whenSet() {
+        when(context.consumeData(Policy.class, TYPE)).thenReturn(CONTRACT);
+
+        var policy = jsonFactory.createObjectBuilder()
+                .add(ODRL_TARGET_ATTRIBUTE, TARGET)
+                .build();
+
+        var result = transformer.transform(TestInput.getExpanded(policy), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getType()).isEqualTo(CONTRACT);
     }
 
     private static class PolicyTypeArguments implements ArgumentsProvider {
