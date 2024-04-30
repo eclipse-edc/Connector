@@ -33,6 +33,8 @@ public interface PropertyAndTypeNames {
     String DCAT_DATASET_ATTRIBUTE = DCAT_SCHEMA + "dataset";
     String DCAT_DISTRIBUTION_ATTRIBUTE = DCAT_SCHEMA + "distribution";
     String DCAT_ACCESS_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "accessService";
+    String DCAT_ENDPOINT_URL_ATTRIBUTE = DCAT_SCHEMA + "endpointUrl";
+    String DCAT_ENDPOINT_DESCRIPTION_ATTRIBUTE = DCAT_SCHEMA + "endpointDescription";
 
     //EDC
     String EDC_CREATED_AT = EDC_NAMESPACE + "createdAt";
@@ -41,7 +43,9 @@ public interface PropertyAndTypeNames {
     @Deprecated(since = "0.5.1")
     String DEPRECATED_DCT_FORMAT_ATTRIBUTE = "https://purl.org/dc/terms/format";
     String DCT_FORMAT_ATTRIBUTE = DCT_SCHEMA + "format";
+    @Deprecated(since = "0.6.2")
     String DCT_TERMS_ATTRIBUTE = DCT_SCHEMA + "terms";
+    @Deprecated(since = "0.6.2")
     String DCT_ENDPOINT_URL_ATTRIBUTE = DCT_SCHEMA + "endpointUrl";
 
     String ODRL_POLICY_ATTRIBUTE = ODRL_SCHEMA + "hasPolicy";

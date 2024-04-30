@@ -25,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_DESCRIPTION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_TERMS_ATTRIBUTE;
 
@@ -42,17 +44,16 @@ public class JsonObjectFromDataServiceTransformer extends AbstractJsonLdTransfor
 
     @Override
     public @Nullable JsonObject transform(@NotNull DataService dataService, @NotNull TransformerContext context) {
-        var objectBuilder = jsonFactory.createObjectBuilder();
-        objectBuilder.add(ID, dataService.getId());
-        objectBuilder.add(TYPE, DCAT_DATA_SERVICE_TYPE);
+        var objectBuilder = jsonFactory.createObjectBuilder()
+                .add(ID, dataService.getId())
+                .add(TYPE, DCAT_DATA_SERVICE_TYPE);
 
-        if (dataService.getTerms() != null) {
-            objectBuilder.add(DCT_TERMS_ATTRIBUTE, dataService.getTerms());
-        }
+        addIfNotNull(dataService.getEndpointDescription(), DCAT_ENDPOINT_DESCRIPTION_ATTRIBUTE, objectBuilder);
+        addIfNotNull(dataService.getEndpointUrl(), DCAT_ENDPOINT_URL_ATTRIBUTE, objectBuilder);
 
-        if (dataService.getEndpointUrl() != null) {
-            objectBuilder.add(DCT_ENDPOINT_URL_ATTRIBUTE, dataService.getEndpointUrl());
-        }
+        // deprecated attributes, to be removed
+        addIfNotNull(dataService.getEndpointDescription(), DCT_TERMS_ATTRIBUTE, objectBuilder);
+        addIfNotNull(dataService.getEndpointUrl(), DCT_ENDPOINT_URL_ATTRIBUTE, objectBuilder);
 
         return objectBuilder.build();
     }
