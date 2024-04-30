@@ -27,14 +27,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_DESCRIPTION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_TERMS_ATTRIBUTE;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromDataServiceTransformerTest {
 
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock();
 
     private JsonObjectFromDataServiceTransformer transformer;
 
@@ -47,15 +49,34 @@ class JsonObjectFromDataServiceTransformerTest {
     void transform_returnJsonObject() {
         var dataService = DataService.Builder.newInstance()
                 .id("dataServiceId")
-                .terms("terms")
+                .endpointDescription("description")
                 .endpointUrl("url")
                 .build();
+
         var result = transformer.transform(dataService, context);
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isEqualTo(dataService.getId());
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DCAT_DATA_SERVICE_TYPE);
-        assertThat(result.getJsonString(DCT_TERMS_ATTRIBUTE).getString()).isEqualTo(dataService.getTerms());
-        assertThat(result.getJsonString(DCT_ENDPOINT_URL_ATTRIBUTE).getString()).isEqualTo(dataService.getEndpointUrl());
+        assertThat(result.getJsonString(DCAT_ENDPOINT_DESCRIPTION_ATTRIBUTE).getString()).isEqualTo("description");
+        assertThat(result.getJsonString(DCAT_ENDPOINT_URL_ATTRIBUTE).getString()).isEqualTo("url");
+    }
+
+    @Deprecated
+    @Test
+    void deprecated_attributes() {
+        var dataService = DataService.Builder.newInstance()
+                .id("dataServiceId")
+                .endpointDescription("description")
+                .endpointUrl("url")
+                .build();
+
+        var result = transformer.transform(dataService, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getJsonString(ID).getString()).isEqualTo(dataService.getId());
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DCAT_DATA_SERVICE_TYPE);
+        assertThat(result.getJsonString(DCT_TERMS_ATTRIBUTE).getString()).isEqualTo("description");
+        assertThat(result.getJsonString(DCT_ENDPOINT_URL_ATTRIBUTE).getString()).isEqualTo("url");
     }
 }

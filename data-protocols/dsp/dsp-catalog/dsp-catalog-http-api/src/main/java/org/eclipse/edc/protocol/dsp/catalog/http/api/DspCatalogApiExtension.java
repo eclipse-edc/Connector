@@ -82,7 +82,7 @@ public class DspCatalogApiExtension implements ServiceExtension {
         webService.registerResource(apiConfiguration.getContextAlias(), new DspCatalogApiController20241(service, dspRequestHandler, catalogPaginationResponseDecoratorFactory));
 
         dataServiceRegistry.register(DataService.Builder.newInstance()
-                .terms("connector")
+                .endpointDescription("dspace:connector")
                 .endpointUrl(apiConfiguration.getDspCallbackAddress())
                 .build());
 
