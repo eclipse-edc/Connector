@@ -90,6 +90,11 @@ public class PipelineServiceIntegrationTest {
         }
 
         @Override
+        public String supportedType() {
+            return "any";
+        }
+
+        @Override
         public boolean canHandle(DataFlowStartMessage request) {
             return true;
         }
@@ -114,6 +119,11 @@ public class PipelineServiceIntegrationTest {
 
         InputStreamDataFactory() {
             this("bytes");
+        }
+
+        @Override
+        public String supportedType() {
+            return "any";
         }
 
         @Override

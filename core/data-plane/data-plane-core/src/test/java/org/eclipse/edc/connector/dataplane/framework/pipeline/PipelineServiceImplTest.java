@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -45,7 +44,6 @@ import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Rea
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -54,18 +52,14 @@ import static org.mockito.Mockito.when;
 
 class PipelineServiceImplTest {
 
-    Monitor monitor = mock();
-    PipelineServiceImpl service = new PipelineServiceImpl(monitor);
-    DataFlowStartMessage request = DataFlowStartMessage.Builder.newInstance()
-            .id("1")
-            .processId("1")
-            .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
-            .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
-            .build();
-    DataSourceFactory sourceFactory = mock(DataSourceFactory.class);
-    DataSinkFactory sinkFactory = mock(DataSinkFactory.class);
-    DataSource source = mock(DataSource.class);
-    DataSink sink = mock(DataSink.class);
+    private final Monitor monitor = mock();
+
+    private final DataSourceFactory sourceFactory = mock();
+
+    private final DataSinkFactory sinkFactory = mock();
+    private final DataSource source = mock();
+    private final DataSink sink = mock();
+    private final PipelineServiceImpl service = new PipelineServiceImpl(monitor);
 
     @BeforeEach
     void setUp() {
@@ -75,26 +69,25 @@ class PipelineServiceImplTest {
 
     @Test
     void transfer_invokesSink() {
-        when(sourceFactory.canHandle(request)).thenReturn(true);
-        when(sourceFactory.createSource(request)).thenReturn(source);
-        when(sinkFactory.canHandle(request)).thenReturn(true);
-        when(sinkFactory.createSink(request)).thenReturn(sink);
-        when(sink.transfer(source)).thenReturn(completedFuture(StreamResult.success()));
+        when(sourceFactory.supportedType()).thenReturn("source");
+        when(sourceFactory.createSource(any())).thenReturn(source);
+        when(sinkFactory.supportedType()).thenReturn("destination");
+        when(sinkFactory.createSink(any())).thenReturn(sink);
+        when(sink.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
 
-        service.transfer(request);
+        var future = service.transfer(dataFlow("source", "destination").toRequest());
 
-        verify(sink).transfer(eq(source));
+        assertThat(future).succeedsWithin(5, TimeUnit.SECONDS).satisfies(result -> {
+            assertThat(result).isSucceeded();
+        });
+        verify(sink).transfer(source);
     }
 
     @Test
-    void transfer_withCustomSink_shouldNotInvokeSinkFactory() throws Exception {
-        var flowRequest = DataFlow.Builder.newInstance().id("dataFlowId")
-                .source(DataAddress.Builder.newInstance().type("source").build())
-                .destination(DataAddress.Builder.newInstance().type("custom-destination").build())
-                .build()
-                .toRequest();
+    void transfer_withCustomSink_shouldNotInvokeSinkFactory() {
+        var flowRequest = dataFlow("source", "custom-destination").toRequest();
 
-        when(sourceFactory.canHandle(any())).thenReturn(true);
+        when(sourceFactory.supportedType()).thenReturn("source");
         when(sourceFactory.createSource(any())).thenReturn(source);
 
         var customSink = new DataSink() {
@@ -114,13 +107,10 @@ class PipelineServiceImplTest {
 
     @Test
     void terminate_shouldCloseDataSource() throws Exception {
-        var dataFlow = DataFlow.Builder.newInstance().id("dPIataFlowId")
-                .source(DataAddress.Builder.newInstance().type("source").build())
-                .destination(DataAddress.Builder.newInstance().type("destination").build())
-                .build();
-        when(sourceFactory.canHandle(any())).thenReturn(true);
+        var dataFlow = dataFlow("source", "destination");
+        when(sourceFactory.supportedType()).thenReturn("source");
         when(sourceFactory.createSource(any())).thenReturn(source);
-        when(sinkFactory.canHandle(any())).thenReturn(true);
+        when(sinkFactory.supportedType()).thenReturn("destination");
         when(sinkFactory.createSink(any())).thenReturn(sink);
         when(sink.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
 
@@ -134,13 +124,10 @@ class PipelineServiceImplTest {
 
     @Test
     void terminate_shouldFail_whenSourceClosureFails() throws Exception {
-        var dataFlow = DataFlow.Builder.newInstance().id("dataFlowId")
-                .source(DataAddress.Builder.newInstance().type("source").build())
-                .destination(DataAddress.Builder.newInstance().type("destination").build())
-                .build();
-        when(sourceFactory.canHandle(any())).thenReturn(true);
+        var dataFlow = dataFlow("source", "destination");
+        when(sourceFactory.supportedType()).thenReturn("source");
         when(sourceFactory.createSource(any())).thenReturn(source);
-        when(sinkFactory.canHandle(any())).thenReturn(true);
+        when(sinkFactory.supportedType()).thenReturn("destination");
         when(sinkFactory.createSink(any())).thenReturn(sink);
         when(sink.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
         doThrow(IOException.class).when(source).close();
@@ -154,10 +141,7 @@ class PipelineServiceImplTest {
 
     @Test
     void terminate_shouldFail_whenTransferDoesNotExist() {
-        var dataFlow = DataFlow.Builder.newInstance().id("dataFlowId")
-                .source(DataAddress.Builder.newInstance().type("source").build())
-                .destination(DataAddress.Builder.newInstance().type("destination").build())
-                .build();
+        var dataFlow = dataFlow("source", "destination");
 
         var result = service.terminate(dataFlow);
 
@@ -167,16 +151,21 @@ class PipelineServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(CanHandleArguments.class)
-    void canHandle_returnsTrue_onlyIfSourceAndSinkCanHandle(
-            boolean sourceFactoryResponse,
-            boolean sinkFactoryResponse,
-            boolean expectedResult
-    ) {
-        when(sourceFactory.canHandle(request)).thenReturn(sourceFactoryResponse);
-        when(sinkFactory.canHandle(request)).thenReturn(sinkFactoryResponse);
+    void canHandle_shouldReturnTrue_whenSourceAndDestinationCanBeHandled(String source, String destination, boolean expected) {
+        when(sourceFactory.supportedType()).thenReturn("source");
+        when(sinkFactory.supportedType()).thenReturn("destination");
 
-        assertThat(service.canHandle(request))
-                .isEqualTo(expectedResult);
+        boolean result = service.canHandle(dataFlow(source, destination).toRequest());
+
+        assertThat(result).isEqualTo(expected);
+    }
+
+    private DataFlow dataFlow(String sourceType, String destinationType) {
+        return DataFlow.Builder.newInstance()
+                .id("1")
+                .source(DataAddress.Builder.newInstance().type(sourceType).build())
+                .destination(DataAddress.Builder.newInstance().type(destinationType).build())
+                .build();
     }
 
     private static class CanHandleArguments implements ArgumentsProvider {
@@ -184,10 +173,10 @@ class PipelineServiceImplTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return Stream.of(
-                    arguments(true, true, true),
-                    arguments(true, false, false),
-                    arguments(false, true, false),
-                    arguments(false, false, false)
+                    arguments("source", "destination", true),
+                    arguments("unsupported_source", "destination", false),
+                    arguments("source", "unsupported_destination", false),
+                    arguments("unsupported_source", "unsupported_destination", false)
             );
         }
     }

@@ -47,6 +47,7 @@ class KafkaDataSinkFactoryTest {
         factory = new KafkaDataSinkFactory(mock(ExecutorService.class), mock(Monitor.class), propertiesFactory, 1);
     }
 
+    @Deprecated(since = "0.6.2")
     @Test
     void verifyCanHandle() {
         assertThat(factory.canHandle(createRequest("kafka", emptyMap()))).isTrue();

@@ -51,11 +51,13 @@ class HttpDataSourceFactoryTest {
         factory = new HttpDataSourceFactory(httpClient, provider, monitor, requestFactory);
     }
 
+    @Deprecated(since = "0.6.2")
     @Test
     void verifyCanHandle() {
         assertThat(factory.canHandle(TestFunctions.createRequest(HTTP_DATA_TYPE).build())).isTrue();
     }
 
+    @Deprecated(since = "0.6.2")
     @Test
     void verifyCannotHandle() {
         assertThat(factory.canHandle(TestFunctions.createRequest("dummy").build())).isFalse();
