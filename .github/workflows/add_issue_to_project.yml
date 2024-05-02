@@ -1,0 +1,16 @@
+name: Add issue to project action
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  add_issue_to_project:
+    name: add_issue_to_project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/orgs/sovity/projects/9
+          github-token: ${{ secrets.ADD_ISSUE_TO_PROJECT_PAT }}
