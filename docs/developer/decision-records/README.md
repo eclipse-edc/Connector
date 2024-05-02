@@ -53,5 +53,6 @@
 - [2023-11-20 Transfer_Type](./2023-11-20-transfer-type)
 - [2023-11-09 Protocol Services Refactor](./2023-11-27-refactor-protocol-services)
 - [2023-12-12 Data Plane Signaling and Access Control Architecture](./2023-12-12-dataplane-signaling)
-- [2023-12-12 Token Handling Refactor](./2023-12-19-token-handling-refactor)
-- [2024-01-12 Dynamic_Constraint_Functions](./2024-01-12-dynamic-constraint-functions)
+- [2023-12-19 Token Handling Refactor](./2023-12-19-token-handling-refactor)
+- [2024-01-12 Dynamic Constraint Functions](./2024-01-12-dynamic-constraint-functions)
+- [2024-05-24 Dataplane Selection Improvements](./2024-05-24-dataplane-selection-improvements)
