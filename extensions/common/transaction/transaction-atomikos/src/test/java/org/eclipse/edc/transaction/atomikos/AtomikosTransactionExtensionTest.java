@@ -45,7 +45,7 @@ class AtomikosTransactionExtensionTest {
     @Test
     void verifyEndToEndTransactions() {
         var extensionContext = mock(ServiceExtensionContext.class);
-        when(extensionContext.getConnectorId()).thenReturn(randomUUID().toString());
+        when(extensionContext.getRuntimeId()).thenReturn(randomUUID().toString());
         when(extensionContext.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(AtomikosTransactionExtension.LOGGING, "false")));
 
         when(extensionContext.getConfig(isA(String.class))).thenAnswer(a -> JdbcTestFixtures.createDataSourceConfig());

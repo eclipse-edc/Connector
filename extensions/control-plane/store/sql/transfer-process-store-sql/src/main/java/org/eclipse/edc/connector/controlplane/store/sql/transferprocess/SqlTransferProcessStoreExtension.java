@@ -57,7 +57,7 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var store = new SqlTransferProcessStore(dataSourceRegistry, getDataSourceName(context), trxContext,
-                typeManager.getMapper(), getStatementImpl(), context.getConnectorId(), clock, queryExecutor);
+                typeManager.getMapper(), getStatementImpl(), context.getRuntimeId(), clock, queryExecutor);
         context.registerService(TransferProcessStore.class, store);
     }
 

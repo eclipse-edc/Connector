@@ -29,16 +29,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
+
 /**
  * Base service extension context.
  * <p>Prior to using, {@link #initialize()} must be called.</p>
  */
 public class DefaultServiceExtensionContext implements ServiceExtensionContext {
+
+    @Deprecated(since = "0.6.2")
+    private static final String EDC_CONNECTOR_NAME = "edc.connector.name";
+
     private final Map<Class<?>, Object> services = new HashMap<>();
     private final List<ConfigurationExtension> configurationExtensions;
     private boolean isReadOnly = false;
     private String participantId;
-    private String connectorId;
+    private String runtimeId;
     private Config config;
 
     public DefaultServiceExtensionContext(Monitor monitor, List<ConfigurationExtension> configurationExtensions) {
@@ -63,8 +69,8 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
-    public String getConnectorId() {
-        return connectorId;
+    public String getRuntimeId() {
+        return runtimeId;
     }
 
     @Override
@@ -107,10 +113,19 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
             getMonitor().info("Initialized " + ext.name());
         });
         config = loadConfig();
-        connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
         participantId = getSetting(BootServicesExtension.PARTICIPANT_ID, ANONYMOUS_PARTICIPANT);
         if (ANONYMOUS_PARTICIPANT.equals(participantId)) {
             getMonitor().warning("The runtime is configured as an anonymous participant. DO NOT DO THIS IN PRODUCTION.");
+        }
+
+        runtimeId = getSetting(RUNTIME_ID, null);
+        if (runtimeId == null) {
+            getMonitor().warning("Runtime id is not configured so a random UUID is used. It is recommended to provide a static one.");
+            runtimeId = UUID.randomUUID().toString();
+        }
+
+        if (getSetting(EDC_CONNECTOR_NAME, null) != null) {
+            getMonitor().warning("Setting %s has been deprecated, please use %s instead".formatted(EDC_CONNECTOR_NAME, RUNTIME_ID));
         }
     }
 

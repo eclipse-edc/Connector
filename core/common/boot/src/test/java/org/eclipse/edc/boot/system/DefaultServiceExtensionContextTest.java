@@ -18,29 +18,35 @@ package org.eclipse.edc.boot.system;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
+import static org.mockito.AdditionalMatchers.and;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DefaultServiceExtensionContextTest {
 
-    private final ConfigurationExtension configuration = mock(ConfigurationExtension.class);
+    private final ConfigurationExtension configuration = mock();
+    private final Monitor monitor = mock();
     private DefaultServiceExtensionContext context;
 
     @BeforeEach
     void setUp() {
-        var monitor = mock(Monitor.class);
         context = new DefaultServiceExtensionContext(monitor, List.of(configuration));
     }
 
@@ -48,7 +54,7 @@ class DefaultServiceExtensionContextTest {
     void getConfig_onlyFromConfig() {
         var path = "edc.test";
 
-        Config extensionConfig = ConfigFactory.fromMap(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        var extensionConfig = ConfigFactory.fromMap(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
         when(configuration.getConfig()).thenReturn(extensionConfig);
         context.initialize();
 
@@ -62,7 +68,7 @@ class DefaultServiceExtensionContextTest {
     void getConfig_withOtherProperties() {
         var path = "edc.test";
 
-        Config extensionConfig = ConfigFactory.fromMap(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        var extensionConfig = ConfigFactory.fromMap(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
         when(configuration.getConfig()).thenReturn(extensionConfig);
         System.setProperty("edc.test.entry3", "foo");
 
@@ -82,7 +88,7 @@ class DefaultServiceExtensionContextTest {
     void getConfig_withOtherPropertiesOverlapping() {
         var path = "edc.test";
 
-        Config extensionConfig = ConfigFactory.fromMap(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        var extensionConfig = ConfigFactory.fromMap(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
         when(configuration.getConfig()).thenReturn(extensionConfig);
         System.setProperty("edc.test.entry2", "foo");
 
@@ -173,8 +179,29 @@ class DefaultServiceExtensionContextTest {
         context.freeze();
         assertThatThrownBy(() -> context.registerService(Object.class, new Object() {
         })).isInstanceOf(EdcException.class).hasMessageStartingWith("Cannot register service");
+    }
 
+    @Nested
+    class GetRuntimeId {
+        @Test
+        void shouldReturnRandomUuid_whenNotConfigured() {
+            context.initialize();
 
+            var runtimeId = context.getRuntimeId();
+
+            assertThat(UUID.fromString(runtimeId)).isNotNull();
+            verify(monitor).warning(and(isA(String.class), argThat(message -> message.startsWith("Runtime id"))));
+        }
+
+        @Test
+        void shouldReturnConfiguredId_whenConfigured() {
+            when(configuration.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(RUNTIME_ID, "runtime-id")));
+            context.initialize();
+
+            var runtimeId = context.getRuntimeId();
+
+            assertThat(runtimeId).isEqualTo("runtime-id");
+        }
     }
 
 }
