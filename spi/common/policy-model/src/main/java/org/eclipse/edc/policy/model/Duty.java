@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,23 +32,10 @@ import static java.util.stream.Collectors.joining;
 @JsonTypeName("dataspaceconnector:duty")
 public class Duty extends Rule {
 
-    private Permission parentPermission;
     private final List<Duty> consequences = new ArrayList<>();
-
-    /**
-     * If this duty is part of a permission, returns the parent permission; otherwise returns null.
-     */
-    @Nullable
-    public Permission getParentPermission() {
-        return parentPermission;
-    }
 
     public List<Duty> getConsequences() {
         return consequences;
-    }
-
-    void setParentPermission(Permission permission) {
-        parentPermission = permission;
     }
 
     @Override
@@ -72,11 +58,6 @@ public class Duty extends Rule {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder parentPermission(Permission parentPermission) {
-            rule.parentPermission = parentPermission;
-            return this;
         }
 
         public Builder consequence(Duty consequence) {
