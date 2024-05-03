@@ -60,15 +60,11 @@ public class Permission extends Rule {
         }
 
         public Builder duty(Duty duty) {
-            duty.setParentPermission(rule);
             rule.duties.add(duty);
             return this;
         }
 
         public Builder duties(List<Duty> duties) {
-            for (var duty : duties) {
-                duty.setParentPermission(rule);
-            }
             rule.duties.addAll(duties);
             return this;
         }

@@ -97,7 +97,6 @@ public class ScopeFilter {
         return Duty.Builder.newInstance()
                 .action(duty.getAction())
                 .constraints(filteredConstraints)
-                .parentPermission(duty.getParentPermission())
                 .consequences(filteredConsequences)
                 .build();
     }
