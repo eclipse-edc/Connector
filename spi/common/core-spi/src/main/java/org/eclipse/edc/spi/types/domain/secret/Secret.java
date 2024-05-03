@@ -14,9 +14,6 @@
 
 package org.eclipse.edc.spi.types.domain.secret;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.Entity;
 
 import java.util.Objects;
@@ -28,19 +25,14 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 /**
  * The {@link Secret} contains the metadata and describes the data itself or a collection of data.
  */
-@JsonDeserialize(builder = Secret.Builder.class)
 public class Secret extends Entity {
-    public static final String PROPERTY_ID = EDC_NAMESPACE + "id";
     public static final String EDC_SECRET_TYPE = EDC_NAMESPACE + "Secret";
-
     public static final String EDC_SECRET_VALUE = EDC_NAMESPACE + "value";
 
     private String value;
 
-
     private Secret() {
     }
-
 
     public String getValue() {
         return value;
@@ -52,14 +44,12 @@ public class Secret extends Entity {
                 .value(value);
     }
 
-    @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends Entity.Builder<Secret, Builder> {
+    public static final class Builder extends Entity.Builder<Secret, Builder> {
 
-        protected Builder(Secret secret) {
+        private Builder(Secret secret) {
             super(secret);
         }
 
-        @JsonCreator
         public static Builder newInstance() {
             return new Builder(new Secret());
         }
@@ -74,7 +64,6 @@ public class Secret extends Entity {
             return self();
         }
 
-
         @Override
         public Secret build() {
             super.build();
@@ -83,7 +72,7 @@ public class Secret extends Entity {
                 id(UUID.randomUUID().toString());
             }
 
-            Objects.requireNonNull(entity.value, "`value` is missing");
+            Objects.requireNonNull(entity.value, "'value' is missing");
 
             return entity;
         }

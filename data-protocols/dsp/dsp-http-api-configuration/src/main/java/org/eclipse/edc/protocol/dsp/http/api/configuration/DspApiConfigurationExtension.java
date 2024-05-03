@@ -36,10 +36,8 @@ import org.eclipse.edc.transform.transformer.dspace.from.JsonObjectFromDataAddre
 import org.eclipse.edc.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
-import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromSecretTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
-import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToSecretTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
@@ -68,7 +66,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
  * parameters.
  */
 @Extension(value = DspApiConfigurationExtension.NAME)
-@Provides({DspApiConfiguration.class, ProtocolWebhook.class})
+@Provides({ DspApiConfiguration.class, ProtocolWebhook.class })
 public class DspApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
@@ -143,7 +141,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(jsonBuilderFactory, mapper));
         dspApiTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromCriterionTransformer(jsonBuilderFactory, mapper));
-        dspApiTransformerRegistry.register(new JsonObjectFromSecretTransformer(jsonBuilderFactory));
 
         // JSON-LD to EDC model transformers
         // ODRL Transformers
@@ -154,7 +151,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToSecretTransformer());
     }
 
 }

@@ -14,11 +14,8 @@
 
 package org.eclipse.edc.connector.spi.service;
 
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
-
-import java.util.List;
 
 public interface SecretService {
 
@@ -29,14 +26,6 @@ public interface SecretService {
      * @return the secret, null if it's not found
      */
     Secret findById(String secretId);
-
-    /**
-     * Search Secrets
-     *
-     * @param query the query
-     * @return the collection of secrets that matches the query
-     */
-    ServiceResult<List<Secret>> search(QuerySpec query);
 
     /**
      * Create a secret
