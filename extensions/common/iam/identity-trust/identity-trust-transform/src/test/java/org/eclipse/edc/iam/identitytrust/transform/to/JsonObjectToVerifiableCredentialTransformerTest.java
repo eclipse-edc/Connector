@@ -73,6 +73,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         assertThat(vc.getName()).isNotNull();
         assertThat(vc.getCredentialStatus()).isNotNull();
         assertThat(vc.getIssuer()).isNotNull().extracting(Issuer::id).isEqualTo("https://university.example/issuers/565049");
+        assertThat(vc.getIssuanceDate().isBefore(vc.getExpirationDate())).isTrue();
         verify(context, never()).reportProblem(anyString());
     }
 
