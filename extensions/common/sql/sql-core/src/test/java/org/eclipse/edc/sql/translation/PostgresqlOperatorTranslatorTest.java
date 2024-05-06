@@ -33,6 +33,14 @@ class PostgresqlOperatorTranslatorTest {
     }
 
     @Test
+    void shouldTranslate_notEqual() {
+        var operator = translator.translate("!=");
+
+        assertThat(operator.representation()).isEqualTo("!=");
+        assertThat(operator.rightOperandClass()).isEqualTo(Object.class);
+    }
+
+    @Test
     void shouldTranslate_like() {
         var operator = translator.translate("like");
 
