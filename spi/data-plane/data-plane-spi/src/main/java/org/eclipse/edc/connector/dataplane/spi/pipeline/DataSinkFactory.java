@@ -24,9 +24,21 @@ import org.jetbrains.annotations.NotNull;
 public interface DataSinkFactory {
 
     /**
-     * Returns true if this factory can create a {@link DataSink} for the request.
+     * Return the supported DataAddress type.
+     *
+     * @return supported DataAddress type.
      */
-    boolean canHandle(DataFlowStartMessage request);
+    String supportedType();
+
+    /**
+     * Returns true if this factory can create a {@link DataSink} for the request.
+     *
+     * @deprecated please use {@link #supportedType()} instead.
+     */
+    @Deprecated(since = "0.6.2")
+    default boolean canHandle(DataFlowStartMessage request) {
+        return false;
+    }
 
     /**
      * Creates a sink to send data to.

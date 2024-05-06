@@ -49,6 +49,11 @@ public class KafkaDataSinkFactory implements DataSinkFactory {
     }
 
     @Override
+    public String supportedType() {
+        return KAFKA_TYPE;
+    }
+
+    @Override
     public boolean canHandle(DataFlowStartMessage dataRequest) {
         return KAFKA_TYPE.equalsIgnoreCase(dataRequest.getDestinationDataAddress().getType());
     }

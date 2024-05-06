@@ -55,6 +55,11 @@ public class KafkaDataSourceFactory implements DataSourceFactory {
     }
 
     @Override
+    public String supportedType() {
+        return KAFKA_TYPE;
+    }
+
+    @Override
     public boolean canHandle(DataFlowStartMessage dataRequest) {
         return KAFKA_TYPE.equalsIgnoreCase(dataRequest.getSourceDataAddress().getType());
     }

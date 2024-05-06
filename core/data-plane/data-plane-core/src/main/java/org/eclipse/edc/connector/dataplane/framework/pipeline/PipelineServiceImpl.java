@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
@@ -141,12 +142,18 @@ public class PipelineServiceImpl implements PipelineService {
 
     @Nullable
     private DataSourceFactory getSourceFactory(DataFlowStartMessage request) {
-        return sourceFactories.stream().filter(s -> s.canHandle(request)).findFirst().orElse(null);
+        return sourceFactories.stream()
+                .filter(s -> Objects.equals(s.supportedType(), request.getSourceDataAddress().getType()))
+                .findFirst()
+                .orElse(null);
     }
 
     @Nullable
     private DataSinkFactory getSinkFactory(DataFlowStartMessage request) {
-        return sinkFactories.stream().filter(s -> s.canHandle(request)).findFirst().orElse(null);
+        return sinkFactories.stream()
+                .filter(s -> Objects.equals(s.supportedType(), request.getDestinationDataAddress().getType()))
+                .findFirst()
+                .orElse(null);
     }
 
     @NotNull

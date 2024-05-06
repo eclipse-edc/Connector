@@ -55,6 +55,11 @@ public class HttpDataSinkFactory implements DataSinkFactory {
     }
 
     @Override
+    public String supportedType() {
+        return HTTP_DATA_TYPE;
+    }
+
+    @Override
     public boolean canHandle(DataFlowStartMessage request) {
         return HTTP_DATA_TYPE.equals(request.getDestinationDataAddress().getType());
     }
