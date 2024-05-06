@@ -190,7 +190,7 @@ class DefaultServiceExtensionContextTest {
             var runtimeId = context.getRuntimeId();
 
             assertThat(UUID.fromString(runtimeId)).isNotNull();
-            verify(monitor).warning(and(isA(String.class), argThat(message -> message.startsWith("Runtime id"))));
+            verify(monitor).warning(and(isA(String.class), argThat(message -> message.startsWith(RUNTIME_ID))));
         }
 
         @Test

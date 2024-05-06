@@ -118,15 +118,22 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
             getMonitor().warning("The runtime is configured as an anonymous participant. DO NOT DO THIS IN PRODUCTION.");
         }
 
-        runtimeId = getSetting(RUNTIME_ID, null);
-        if (runtimeId == null) {
-            getMonitor().warning("Runtime id is not configured so a random UUID is used. It is recommended to provide a static one.");
-            runtimeId = UUID.randomUUID().toString();
-        }
-
-        if (getSetting(EDC_CONNECTOR_NAME, null) != null) {
+        var connectorName = getSetting(EDC_CONNECTOR_NAME, null);
+        if (connectorName != null) {
             getMonitor().warning("Setting %s has been deprecated, please use %s instead".formatted(EDC_CONNECTOR_NAME, RUNTIME_ID));
         }
+
+        runtimeId = getSetting(RUNTIME_ID, null);
+        if (runtimeId == null) {
+            if (connectorName == null) {
+                getMonitor().warning("%s is not configured so a random UUID is used. It is recommended to provide a static one.".formatted(RUNTIME_ID));
+                runtimeId = UUID.randomUUID().toString();
+            } else {
+                getMonitor().warning("%s is not configured and it will fallback to the deprecated %s value".formatted(RUNTIME_ID, EDC_CONNECTOR_NAME));
+                runtimeId = connectorName;
+            }
+        }
+
     }
 
     // this method exists so that getting env vars can be mocked during testing
