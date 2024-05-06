@@ -18,15 +18,11 @@ package org.eclipse.edc.boot.system;
 import org.eclipse.edc.boot.BootServicesExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
@@ -41,14 +37,13 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private static final String EDC_CONNECTOR_NAME = "edc.connector.name";
 
     private final Map<Class<?>, Object> services = new HashMap<>();
-    private final List<ConfigurationExtension> configurationExtensions;
+    private final Config config;
     private boolean isReadOnly = false;
     private String participantId;
     private String runtimeId;
-    private Config config;
 
-    public DefaultServiceExtensionContext(Monitor monitor, List<ConfigurationExtension> configurationExtensions) {
-        this.configurationExtensions = configurationExtensions;
+    public DefaultServiceExtensionContext(Monitor monitor, Config config) {
+        this.config = config;
         // register as service
         registerService(Monitor.class, monitor);
     }
@@ -108,11 +103,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     @Override
     public void initialize() {
-        configurationExtensions.forEach(ext -> {
-            ext.initialize(getMonitor());
-            getMonitor().info("Initialized " + ext.name());
-        });
-        config = loadConfig();
         participantId = getSetting(BootServicesExtension.PARTICIPANT_ID, ANONYMOUS_PARTICIPANT);
         if (ANONYMOUS_PARTICIPANT.equals(participantId)) {
             getMonitor().warning("The runtime is configured as an anonymous participant. DO NOT DO THIS IN PRODUCTION.");
@@ -136,21 +126,4 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     }
 
-    // this method exists so that getting env vars can be mocked during testing
-    protected Map<String, String> getEnvironmentVariables() {
-        return System.getenv();
-    }
-
-    private Config loadConfig() {
-        var config = configurationExtensions.stream()
-                .map(ConfigurationExtension::getConfig)
-                .filter(Objects::nonNull)
-                .reduce(Config::merge)
-                .orElse(ConfigFactory.empty());
-
-        var environmentConfig = ConfigFactory.fromEnvironment(getEnvironmentVariables());
-        var systemPropertyConfig = ConfigFactory.fromProperties(System.getProperties());
-
-        return config.merge(environmentConfig).merge(systemPropertyConfig);
-    }
 }

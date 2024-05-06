@@ -41,7 +41,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -86,7 +85,7 @@ class DataPlaneSelectorApiExtensionTest {
 
     @NotNull
     private DefaultServiceExtensionContext contextWithConfig(Config config) {
-        var context = new DefaultServiceExtensionContext(monitor, List.of(() -> config));
+        var context = new DefaultServiceExtensionContext(monitor, config);
         context.initialize();
         return context;
     }
