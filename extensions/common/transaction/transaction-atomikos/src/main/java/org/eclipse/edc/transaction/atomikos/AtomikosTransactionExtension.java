@@ -19,7 +19,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -122,8 +121,8 @@ public class AtomikosTransactionExtension implements ServiceExtension {
     private TransactionManagerConfiguration getTransactionManagerConfiguration(ServiceExtensionContext context) {
         var builder = TransactionManagerConfiguration.Builder.newInstance();
 
-        Config config = context.getConfig();
-        var name = context.getConnectorId().replace(":", "_");
+        var config = context.getConfig();
+        var name = context.getRuntimeId().replace(":", "_");
         builder.name(name);
 
         setIfProvidedInt(CHECKPOINT_INTERVAL, builder::checkPointInterval, config);

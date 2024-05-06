@@ -51,6 +51,9 @@ public class BootServicesExtension implements ServiceExtension {
     @Setting(value = "Configures the participant id this runtime is operating on behalf of")
     public static final String PARTICIPANT_ID = "edc.participant.id";
 
+    @Setting(value = "Configures the runtime id", defaultValue = "<random UUID>")
+    public static final String RUNTIME_ID = "edc.runtime.id";
+
     private static final long DEFAULT_DURATION = 60;
     private static final int DEFAULT_TP_SIZE = 3;
 

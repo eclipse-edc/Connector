@@ -40,10 +40,22 @@ public interface ServiceExtensionContext extends SettingResolver {
     String getParticipantId();
 
     /**
+     * Return the id of the runtime. If not configured a random UUID is used.
+     *
+     * @return the runtime id.
+     */
+    String getRuntimeId();
+
+    /**
      * Fetches the unique ID of the connector. If the {@code dataspaceconnector.connector.name} config value has been set, that value is returned; otherwise  a random
      * name is chosen.
+     *
+     * @deprecated use {{@link #getRuntimeId()}} instead.
      */
-    String getConnectorId();
+    @Deprecated(since = "0.6.2")
+    default String getConnectorId() {
+        return getRuntimeId();
+    }
 
     /**
      * Returns the system monitor.

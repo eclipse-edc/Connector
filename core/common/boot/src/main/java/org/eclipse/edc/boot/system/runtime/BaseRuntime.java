@@ -123,14 +123,6 @@ public class BaseRuntime {
     }
 
     /**
-     * The name of this runtime. This string is solely used for cosmetic/display/logging purposes.
-     * By default, {@link ServiceExtensionContext#getConnectorId()} is used.
-     */
-    protected String getRuntimeName(ServiceExtensionContext context) {
-        return context.getConnectorId();
-    }
-
-    /**
      * Callback for any error that happened during runtime initialization
      */
     protected void onError(Exception e) {
@@ -189,7 +181,6 @@ public class BaseRuntime {
         monitor = createMonitor();
         var context = createServiceExtensionContext();
 
-        var name = getRuntimeName(context);
         try {
             var newExtensions = createExtensions(context);
             bootExtensions(context, newExtensions);
@@ -213,7 +204,7 @@ public class BaseRuntime {
             onError(e);
         }
 
-        monitor.info(format("%s ready", name));
+        monitor.info(format("Runtime %s ready", context.getRuntimeId()));
     }
 
 }

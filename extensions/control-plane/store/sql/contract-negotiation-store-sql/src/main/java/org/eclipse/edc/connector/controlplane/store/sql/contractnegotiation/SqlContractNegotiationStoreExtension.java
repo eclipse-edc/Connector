@@ -57,7 +57,7 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, getDataSourceName(context), trxContext,
-                typeManager.getMapper(), getStatementImpl(), context.getConnectorId(), clock, queryExecutor);
+                typeManager.getMapper(), getStatementImpl(), context.getRuntimeId(), clock, queryExecutor);
         context.registerService(ContractNegotiationStore.class, sqlStore);
     }
 
