@@ -22,6 +22,7 @@ import java.util.function.Predicate;
 public interface CriterionOperatorRegistry {
 
     String EQUAL = "=";
+    String NOT_EQUAL = "!=";
     String IN = "in";
     String LIKE = "like";
     String ILIKE = "ilike";
@@ -30,7 +31,7 @@ public interface CriterionOperatorRegistry {
     /**
      * Register an operator with the related operator predicate.
      *
-     * @param operator the operator, case-insensitive.
+     * @param operator  the operator, case-insensitive.
      * @param predicate the operator predicate.
      */
     void registerOperatorPredicate(String operator, OperatorPredicate predicate);

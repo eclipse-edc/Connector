@@ -32,6 +32,8 @@ class EqualOperatorPredicateTest {
         assertThat(predicate.test("any", "any")).isTrue();
         assertThat(predicate.test("other", "any")).isFalse();
         assertThat(predicate.test("", "any")).isFalse();
+        assertThat(predicate.test(null, "any")).isFalse();
+        assertThat(predicate.test(null, null)).isTrue();
         assertThat(predicate.test(42, 42)).isTrue();
     }
 
