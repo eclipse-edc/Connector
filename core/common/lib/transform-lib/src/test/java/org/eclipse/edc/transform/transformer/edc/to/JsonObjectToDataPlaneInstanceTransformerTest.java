@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.transformer;
+package org.eclipse.edc.transform.transformer.edc.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;

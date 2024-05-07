@@ -22,8 +22,6 @@ import org.eclipse.edc.connector.dataplane.selector.service.EmbeddedDataPlaneSel
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
-import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectFromDataPlaneInstanceTransformer;
-import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
@@ -34,6 +32,8 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataPlaneInstanceTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.web.spi.WebService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;

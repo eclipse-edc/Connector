@@ -33,6 +33,7 @@ import java.util.function.Supplier;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
+@Deprecated(since = "0.5.1")
 public class ConsumerPullDataPlaneProxyResolver {
 
     private static final String PUBLIC_API_URL_PROPERTY_DEPRECATED = "publicApiUrl";

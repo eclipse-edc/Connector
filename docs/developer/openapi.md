@@ -33,7 +33,7 @@ val rsApi: String by project
 
 plugins {
     `java-library`
-    id("io.swagger.core.v3.swagger-gradle-plugin") //<-- add this
+    id(libs.plugins.swagger.get().pluginId) //<-- add this
 }
 
 dependencies {
@@ -55,7 +55,7 @@ add your module to one of the categories, simply add this block to your module's
 ```kotlin
 plugins {
     `java-library`
-    id("io.swagger.core.v3.swagger-gradle-plugin")
+    id(libs.plugins.swagger.get().pluginId)
 }
 
 dependencies {

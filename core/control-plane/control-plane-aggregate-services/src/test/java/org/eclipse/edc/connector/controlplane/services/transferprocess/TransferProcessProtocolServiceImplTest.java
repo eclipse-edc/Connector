@@ -65,7 +65,6 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProtocolServiceImpl.TRANSFER_PROCESS_REQUEST_SCOPE;
-import static org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
@@ -221,36 +220,6 @@ class TransferProcessProtocolServiceImplTest {
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
         verify(store, never()).save(any());
         verifyNoInteractions(listener);
-    }
-
-    @Test
-    void notifyRequested_missingDestination_shouldInitiateTransfer() {
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
-        var message = TransferRequestMessage.Builder.newInstance()
-                .consumerPid("consumerPid")
-                .processId("consumerPid")
-                .protocol("protocol")
-                .contractId("agreementId")
-                .callbackAddress("http://any")
-                .build();
-
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), eq(TRANSFER_PROCESS_REQUEST_SCOPE), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-
-        var result = service.notifyRequested(message, tokenRepresentation);
-
-        assertThat(result).isSucceeded().satisfies(transferProcess -> {
-            assertThat(transferProcess.getCorrelationId()).isEqualTo("consumerPid");
-            assertThat(transferProcess.getCounterPartyAddress()).isEqualTo("http://any");
-            assertThat(transferProcess.getAssetId()).isEqualTo("assetId");
-            assertThat(transferProcess.getDataDestination().getType()).isEqualTo(HTTP_PROXY);
-        });
-        verify(listener).preCreated(any());
-        verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
-        verify(listener).initiated(any());
-        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test

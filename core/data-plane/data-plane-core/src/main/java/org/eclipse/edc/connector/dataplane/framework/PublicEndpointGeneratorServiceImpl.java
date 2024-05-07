@@ -22,6 +22,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -42,5 +43,10 @@ class PublicEndpointGeneratorServiceImpl implements PublicEndpointGeneratorServi
     @Override
     public void addGeneratorFunction(String destinationType, Function<DataAddress, Endpoint> generatorFunction) {
         generatorFunctions.put(destinationType, generatorFunction);
+    }
+
+    @Override
+    public Set<String> supportedDestinationTypes() {
+        return generatorFunctions.keySet();
     }
 }

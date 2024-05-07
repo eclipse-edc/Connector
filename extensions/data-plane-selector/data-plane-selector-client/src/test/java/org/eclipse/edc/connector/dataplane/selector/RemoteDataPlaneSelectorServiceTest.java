@@ -15,11 +15,10 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import jakarta.json.Json;
+import org.eclipse.edc.api.transformer.JsonObjectFromIdResponseTransformer;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectFromDataPlaneInstanceTransformer;
-import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
@@ -30,13 +29,16 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataPlaneInstanceTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -46,10 +48,12 @@ import java.util.Map;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
@@ -76,6 +80,7 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
         typeTransformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
         typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(factory, JacksonJsonLd.createObjectMapper()));
         typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
+        typeTransformerRegistry.register(new JsonObjectFromIdResponseTransformer(factory));
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(objectMapper));
         var url = format(BASE_URL, port);
         service = new RemoteDataPlaneSelectorService(testHttpClient(), url, JacksonJsonLd.createObjectMapper(), typeTransformerRegistry, "selectionStrategy");
@@ -93,12 +98,11 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
     @Test
     void find() {
         var expected = createInstance("some-instance");
-        when(SELECTOR_SERVICE_MOCK.select(any(), any())).thenReturn(expected);
+        when(SELECTOR_SERVICE_MOCK.select(any(), any(), any(), any())).thenReturn(expected);
 
         var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test2").build());
 
         assertThat(result).usingRecursiveComparison().isEqualTo(expected);
-
     }
 
     @Test
@@ -109,7 +113,17 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
         var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test2").build(), "random", "transferType");
 
         assertThat(result).usingRecursiveComparison().isEqualTo(expected);
+    }
 
+    @Test
+    @Disabled // this will be tested when there will be a clear separation between the selector management and control api
+    void addInstance() {
+        var instance = createInstance("dataPlaneId");
+
+        var result = service.addInstance(instance);
+
+        assertThat(result).isSucceeded();
+        verify(SELECTOR_SERVICE_MOCK).addInstance(eq(instance));
     }
 
     @Override

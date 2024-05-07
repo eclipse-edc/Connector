@@ -18,27 +18,31 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategy;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstance;
 import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstanceBuilder;
 import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstanceJson;
 import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstanceJsonBuilder;
-import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createSelectionRequestJson;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.hamcrest.Matchers.equalTo;
 
 @ComponentTest
@@ -92,7 +96,7 @@ public class DataPlaneSelectorApiControllerTest {
     }
 
     @Test
-    void addEntry_fails_whenMissingUrl(DataPlaneInstanceStore store) {
+    void addEntry_fails_whenMissingUrl() {
         var dpi = createInstanceJsonBuilder("test-id").build();
 
         baseRequest()
@@ -101,7 +105,6 @@ public class DataPlaneSelectorApiControllerTest {
                 .post()
                 .then()
                 .statusCode(400);
-
     }
 
     @Test
@@ -134,14 +137,16 @@ public class DataPlaneSelectorApiControllerTest {
         var dpi = createInstanceBuilder("test-id")
                 .allowedSourceType("test-src1")
                 .allowedDestType("test-dst1")
+                .allowedTransferType("transfer-type-1")
                 .build();
         var dpi2 = createInstanceBuilder("test-id")
                 .allowedSourceType("test-src2")
                 .allowedDestType("test-dst2")
+                .allowedTransferType("transfer-type-2")
                 .build();
         saveInstances(List.of(dpi, dpi2), store);
 
-        var rq = createSelectionRequestJson("test-src1", "test-dst1");
+        var rq = createSelectionRequestJson("test-src1", "test-dst1", null, "transfer-type-1");
 
         var result = baseRequest()
                 .body(rq)
@@ -165,8 +170,7 @@ public class DataPlaneSelectorApiControllerTest {
                 .build();
         saveInstances(List.of(dpi, dpi2), store);
 
-        var rq = createSelectionRequestJson("notexist-src", "test-dst2");
-
+        var rq = createSelectionRequestJson("notexist-src", "test-dst2", null, "transfer-type");
 
         baseRequest()
                 .body(rq)
@@ -178,7 +182,7 @@ public class DataPlaneSelectorApiControllerTest {
     }
 
     @Test
-    void select_selectionStrategyNotFound(DataPlaneInstanceStore store) throws IOException {
+    void select_selectionStrategyNotFound(DataPlaneInstanceStore store) {
         var dpi = createInstanceBuilder("test-id")
                 .allowedSourceType("test-src1")
                 .allowedDestType("test-dst1")
@@ -189,7 +193,7 @@ public class DataPlaneSelectorApiControllerTest {
                 .build();
         saveInstances(List.of(dpi, dpi2), store);
 
-        var rq = createSelectionRequestJson("test-src1", "test-dst2", "notexist");
+        var rq = createSelectionRequestJson("test-src1", "test-dst2", "notexist", "transfer-type1");
 
 
         baseRequest()
@@ -201,14 +205,16 @@ public class DataPlaneSelectorApiControllerTest {
     }
 
     @Test
-    void select_withCustomStrategy(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry) throws IOException {
+    void select_withCustomStrategy(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry) {
         var dpi = createInstanceBuilder("test-id1")
                 .allowedSourceType("test-src1")
                 .allowedDestType("test-dst1")
+                .allowedTransferType("transfer-type-1")
                 .build();
         var dpi2 = createInstanceBuilder("test-id2")
                 .allowedSourceType("test-src1")
                 .allowedDestType("test-dst1")
+                .allowedTransferType("transfer-type-2")
                 .build();
         saveInstances(List.of(dpi, dpi2), store);
 
@@ -226,7 +232,7 @@ public class DataPlaneSelectorApiControllerTest {
 
         selectionStrategyRegistry.add(myCustomStrategy);
 
-        var rq = createSelectionRequestJson("test-src1", "test-dst1", "myCustomStrategy");
+        var rq = createSelectionRequestJson("test-src1", "test-dst1", "myCustomStrategy", "transfer-type-1");
 
         var result = baseRequest()
                 .body(rq)
@@ -245,6 +251,24 @@ public class DataPlaneSelectorApiControllerTest {
                 .port(PORT)
                 .baseUri("http://localhost:" + PORT + "/api/v2/dataplanes")
                 .when();
+    }
+
+    public JsonObject createSelectionRequestJson(String srcType, String destType, String strategy, String transferType) {
+        var builder = createObjectBuilder()
+                .add(SelectionRequest.SOURCE_ADDRESS, createDataAddress(srcType))
+                .add(SelectionRequest.DEST_ADDRESS, createDataAddress(destType))
+                .add(SelectionRequest.TRANSFER_TYPE, transferType);
+
+        if (strategy != null) {
+            builder.add(SelectionRequest.STRATEGY, strategy);
+        }
+        return builder.build();
+    }
+
+    private JsonObjectBuilder createDataAddress(String type) {
+        return createObjectBuilder()
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, type);
     }
 
     private void saveInstances(List<DataPlaneInstance> instances, DataPlaneInstanceStore store) {

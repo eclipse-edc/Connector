@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 import javax.validation.constraints.NotNull;
 
@@ -82,8 +81,8 @@ public class TransferStreamingEndToEndTest {
         static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
                 controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
                 backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
                 controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
+                dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
                 backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
         );
 
@@ -114,7 +113,6 @@ public class TransferStreamingEndToEndTest {
                     .withMethod(HttpMethod.POST.name())
                     .withPath("/api/service");
             destinationServer.when(request).respond(response());
-            PROVIDER.registerDataPlane(Set.of("HttpData-PUSH"));
 
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, contractExpiresIn("10s"), kafkaSourceProperty());
@@ -151,8 +149,6 @@ public class TransferStreamingEndToEndTest {
             try (var consumer = createKafkaConsumer()) {
                 consumer.subscribe(List.of(SINK_TOPIC));
 
-                PROVIDER.registerDataPlane(Set.of("Kafka-PUSH"));
-
                 var assetId = UUID.randomUUID().toString();
                 createResourcesOnProvider(assetId, contractExpiresIn("10s"), kafkaSourceProperty());
 
@@ -168,8 +164,6 @@ public class TransferStreamingEndToEndTest {
         void shouldSuspendAndResumeTransfer() {
             try (var consumer = createKafkaConsumer()) {
                 consumer.subscribe(List.of(SINK_TOPIC));
-
-                PROVIDER.registerDataPlane(Set.of("Kafka-PUSH"));
 
                 var assetId = UUID.randomUUID().toString();
                 createResourcesOnProvider(assetId, noConstraintPolicy(), kafkaSourceProperty());

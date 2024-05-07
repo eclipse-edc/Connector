@@ -103,7 +103,6 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
         return flowType;
     }
 
-
     /**
      * The agreement id associated to the request
      */
@@ -247,7 +246,6 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
             }
             Objects.requireNonNull(request.processId, "processId");
             Objects.requireNonNull(request.sourceDataAddress, "sourceDataAddress");
-            Objects.requireNonNull(request.destinationDataAddress, "destinationDataAddress");
             Objects.requireNonNull(request.traceContext, "traceContext");
             Objects.requireNonNull(request.flowType, "flowType");
             return request;

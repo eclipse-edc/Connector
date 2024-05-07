@@ -37,7 +37,6 @@ import java.time.Clock;
 import java.util.function.Supplier;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
-import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -67,9 +66,7 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
         var request = transformerRegistry.transform(requestObject, SelectionRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        var dpi = ofNullable(request.getStrategy())
-                .map(strategy -> catchException(() -> selectionService.select(request.getSource(), request.getDestination(), strategy, request.getTransferType())))
-                .orElseGet(() -> catchException(() -> selectionService.select(request.getSource(), request.getDestination())));
+        var dpi = catchException(() -> selectionService.select(request.getSource(), request.getDestination(), request.getStrategy(), request.getTransferType()));
 
         if (dpi == null) {
             return null;

@@ -50,14 +50,16 @@ public interface DataplaneSelectorApi {
 
     @Operation(method = "POST",
             operationId = "addDataPlaneInstance",
-            description = "Adds one dataplane instance to the internal database of the selector",
+            description = "Adds one dataplane instance to the internal database of the selector. DEPRECATED: dataplanes should register themselves through control-api",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataPlaneInstanceSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Entry was added successfully to the database", content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
-            }
+            },
+            deprecated = true
     )
     @POST
+    @Deprecated(since = "0.6.2")
     JsonObject addDataPlaneInstance(JsonObject instance);
 
     @Operation(method = "GET",

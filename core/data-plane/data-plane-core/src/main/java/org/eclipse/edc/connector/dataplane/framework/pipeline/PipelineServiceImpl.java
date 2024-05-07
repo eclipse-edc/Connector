@@ -33,10 +33,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Default pipeline service implementation.
@@ -138,6 +140,16 @@ public class PipelineServiceImpl implements PipelineService {
     @Override
     public void registerFactory(DataSinkFactory factory) {
         sinkFactories.add(factory);
+    }
+
+    @Override
+    public Set<String> supportedSourceTypes() {
+        return sourceFactories.stream().map(DataSourceFactory::supportedType).collect(toSet());
+    }
+
+    @Override
+    public Set<String> supportedSinkTypes() {
+        return sinkFactories.stream().map(DataSinkFactory::supportedType).collect(toSet());
     }
 
     @Nullable

@@ -20,7 +20,6 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -57,8 +56,8 @@ class TransferPushEndToEndTest {
         static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
                 controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
                 backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
                 controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
+                dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
                 backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
         );
 
@@ -92,18 +91,13 @@ class TransferPushEndToEndTest {
         static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
                 Runtimes.Postgres.controlPlane("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration()),
                 backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                Runtimes.Postgres.dataPlane("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()),
                 Runtimes.Postgres.controlPlane("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration()),
+                Runtimes.Postgres.dataPlane("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()),
                 backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
         );
     }
 
     abstract static class Tests extends TransferEndToEndTestBase {
-
-        @BeforeEach
-        void beforeEach() {
-            registerDataPlanes();
-        }
 
         @Test
         void httpPushDataTransfer() {

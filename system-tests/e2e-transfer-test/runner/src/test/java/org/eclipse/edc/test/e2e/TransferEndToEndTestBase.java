@@ -18,7 +18,6 @@ import jakarta.json.JsonObject;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
@@ -41,10 +40,6 @@ public abstract class TransferEndToEndTestBase {
         var accessPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
         var contractPolicyId = PROVIDER.createPolicyDefinition(contractPolicy);
         PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), accessPolicyId, contractPolicyId);
-    }
-
-    protected void registerDataPlanes() {
-        PROVIDER.registerDataPlane(Set.of("HttpData-PUSH", "HttpData-PULL"));
     }
 
 }

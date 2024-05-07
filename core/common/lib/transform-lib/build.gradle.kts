@@ -21,6 +21,7 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:transform-spi"))
+    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
     api(libs.jakartaJson)
 
