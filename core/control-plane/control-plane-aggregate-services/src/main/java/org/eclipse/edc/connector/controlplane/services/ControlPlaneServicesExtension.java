@@ -40,6 +40,8 @@ import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDe
 import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDefinitionServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.ProtocolTokenValidatorImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.VersionProtocolServiceImpl;
+import org.eclipse.edc.connector.controlplane.services.secret.SecretEventListener;
+import org.eclipse.edc.connector.controlplane.services.secret.SecretServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
@@ -60,6 +62,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.FlowTypeExtractor;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.secret.spi.observe.SecretObservableImpl;
+import org.eclipse.edc.connector.spi.service.SecretService;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -70,6 +74,7 @@ import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
@@ -97,7 +102,8 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Inject
     private AssetIndex assetIndex;
-
+    @Inject
+    private Vault vault;
     @Inject
     private ContractDefinitionStore contractDefinitionStore;
 
@@ -177,6 +183,13 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
         var assetObservable = new AssetObservableImpl();
         assetObservable.registerListener(new AssetEventListener(clock, eventRouter));
         return new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable, dataAddressValidator);
+    }
+
+    @Provider
+    public SecretService secretService() {
+        var secretObservable = new SecretObservableImpl();
+        secretObservable.registerListener(new SecretEventListener(clock, eventRouter));
+        return new SecretServiceImpl(vault, secretObservable);
     }
 
     @Provider
