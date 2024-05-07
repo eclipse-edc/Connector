@@ -19,6 +19,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -241,6 +243,48 @@ public class TransferProcessApiEndToEndTest {
 
             assertThat(result).isNotEmpty();
             assertThat(result).anySatisfy(it -> assertThat(it.asJsonObject().getString("state")).isEqualTo(state.toString()));
+        }
+
+        @Test
+        void request_sortByStateTimestamp() throws JsonProcessingException, InterruptedException {
+            var tp1 = createTransferProcessBuilder("test-tp1").build();
+            var tp2 = createTransferProcessBuilder("test-tp2").build();
+            getStore().save(tp1);
+            Thread.sleep(3000);
+            tp2.updateStateTimestamp();
+            getStore().save(tp2);
+
+
+            var content = """
+                    {
+                        "@context": {
+                            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+                        },
+                        "@type": "QuerySpec",
+                        "sortField": "stateTimestamp",
+                        "sortOrder": "ASC",
+                        "limit": 100,
+                        "offset": 0
+                    }
+                    """;
+            var query = JacksonJsonLd.createObjectMapper()
+                    .readValue(content, JsonObject.class);
+
+            var result = baseRequest()
+                    .contentType(JSON)
+                    .body(query)
+                    .post("/v2/transferprocesses/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .extract().body().as(JsonArray.class);
+
+            assertThat(result).isNotEmpty().hasSize(2);
+            assertThat(result).isSortedAccordingTo((o1, o2) -> {
+                Long l1 = o1.asJsonObject().getJsonNumber("stateTimestamp").longValue();
+                Long l2 = o2.asJsonObject().getJsonNumber("stateTimestamp").longValue();
+                return l1.compareTo(l2);
+            });
         }
 
         private TransferProcessStore getStore() {
