@@ -161,6 +161,144 @@ paths:
                 example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v1/secrets:
+    put:
+      tags:
+      - Secret
+      description: "Updates a secret with the given ID if it exists. If the secret\
+        \ is not found, no further action is taken. "
+      operationId: updateSecret
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SecretInput"
+      responses:
+        "204":
+          description: Secret was updated successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: "Secret could not be updated, because it does not exist."
+    post:
+      tags:
+      - Secret
+      description: Creates a new secret.
+      operationId: createSecret
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SecretInput"
+      responses:
+        "200":
+          description: Secret was created successfully. Returns the secret Id and
+            created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdResponse"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "Could not create secret, because a secret with that ID already\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v1/secrets/{id}:
+    get:
+      tags:
+      - Secret
+      description: Gets a secret with the given ID
+      operationId: getSecret
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: The secret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretOutput"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: A secret with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+    delete:
+      tags:
+      - Secret
+      description: Removes a secret with the given ID if possible.
+      operationId: removeSecret
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "204":
+          description: Secret was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: A secret with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/catalog/dataset/request:
     post:
       tags:
@@ -2393,6 +2531,49 @@ components:
         sortOrder: DESC
         sortField: fieldName
         filterExpression: []
+    SecretInput:
+      required:
+      - '@context'
+      - https://w3id.org/edc/v0.0.1/ns/value
+      type: object
+      properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Secret
+        https://w3id.org/edc/v0.0.1/ns/value:
+          type: string
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@id': secret-id
+        value: secret-value
+    SecretOutput:
+      required:
+      - https://w3id.org/edc/v0.0.1/ns/value
+      type: object
+      properties:
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Secret
+        https://w3id.org/edc/v0.0.1/ns/value:
+          type: string
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@id': secret-id
+        '@type': https://w3id.org/edc/v0.0.1/ns/Secret
+        value: secret-value
     SelectionRequestSchema:
       type: object
       properties:
