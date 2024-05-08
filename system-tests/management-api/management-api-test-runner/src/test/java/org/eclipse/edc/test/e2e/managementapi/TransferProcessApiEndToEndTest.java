@@ -32,6 +32,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,34 +62,6 @@ import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.Matchers.is;
 
 public class TransferProcessApiEndToEndTest {
-
-    @Nested
-    @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    class Postgres extends Tests {
-
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
-
-        Postgres() {
-            super(RUNTIME);
-        }
-    }
 
     abstract static class Tests extends ManagementApiEndToEndTestBase {
 
@@ -243,6 +219,48 @@ public class TransferProcessApiEndToEndTest {
             assertThat(result).anySatisfy(it -> assertThat(it.asJsonObject().getString("state")).isEqualTo(state.toString()));
         }
 
+        @Test
+        void request_sortByStateTimestamp() throws JsonProcessingException, InterruptedException {
+            var tp1 = createTransferProcessBuilder("test-tp1").build();
+            var tp2 = createTransferProcessBuilder("test-tp2")
+                    .clock(Clock.fixed(Instant.now().plus(1, ChronoUnit.HOURS), ZoneId.systemDefault()))
+                    .build();
+            getStore().save(tp1);
+            getStore().save(tp2);
+
+
+            var content = """
+                    {
+                        "@context": {
+                            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+                        },
+                        "@type": "QuerySpec",
+                        "sortField": "stateTimestamp",
+                        "sortOrder": "ASC",
+                        "limit": 100,
+                        "offset": 0
+                    }
+                    """;
+            var query = JacksonJsonLd.createObjectMapper()
+                    .readValue(content, JsonObject.class);
+
+            var result = baseRequest()
+                    .contentType(JSON)
+                    .body(query)
+                    .post("/v2/transferprocesses/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .extract().body().as(JsonArray.class);
+
+            assertThat(result).isNotEmpty().hasSizeGreaterThanOrEqualTo(2);
+            assertThat(result).isSortedAccordingTo((o1, o2) -> {
+                var l1 = o1.asJsonObject().getJsonNumber("stateTimestamp").longValue();
+                var l2 = o2.asJsonObject().getJsonNumber("stateTimestamp").longValue();
+                return Long.compare(l1, l2);
+            });
+        }
+
         private TransferProcessStore getStore() {
             return runtime.getContext().getService(TransferProcessStore.class);
         }
@@ -271,6 +289,33 @@ public class TransferProcessApiEndToEndTest {
                     .add(IS_TRANSACTIONAL, false)
                     .add(URI, "http://test.local/")
                     .add(EVENTS, Json.createArrayBuilder().build()));
+        }
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
+
+        InMemory() {
+            super(RUNTIME);
+        }
+
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
+
+        Postgres() {
+            super(RUNTIME);
         }
     }
 
