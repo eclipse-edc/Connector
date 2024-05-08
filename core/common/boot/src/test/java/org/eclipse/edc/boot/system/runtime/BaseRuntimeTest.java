@@ -19,6 +19,7 @@ import org.eclipse.edc.boot.system.ServiceLocator;
 import org.eclipse.edc.boot.system.testextensions.BaseExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
@@ -76,6 +77,15 @@ public class BaseRuntimeTest {
 
         verify(healthCheckService).addStartupStatusProvider(any());
         verify(healthCheckService).refresh();
+    }
+
+    @Test
+    void shouldLoadConfiguration() {
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(List.of(new BaseExtension()));
+
+        runtime.boot();
+
+        verify(serviceLocator).loadImplementors(ConfigurationExtension.class, false);
     }
 
     @NotNull

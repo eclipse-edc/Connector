@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.SystemExtension;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
@@ -125,8 +126,8 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     }
 
     @Override
-    protected @NotNull ServiceExtensionContext createContext(Monitor monitor) {
-        context = new TestServiceExtensionContext(monitor, loadConfigurationExtensions(), serviceMocks);
+    protected @NotNull ServiceExtensionContext createContext(Monitor monitor, Config config) {
+        context = new TestServiceExtensionContext(monitor, config, serviceMocks);
         return context;
     }
 

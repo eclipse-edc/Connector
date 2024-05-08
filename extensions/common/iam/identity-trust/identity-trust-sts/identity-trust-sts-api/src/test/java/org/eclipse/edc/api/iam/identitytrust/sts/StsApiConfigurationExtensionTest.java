@@ -28,8 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.List;
-
 import static org.eclipse.edc.api.iam.identitytrust.sts.StsApiConfigurationExtension.SETTINGS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -64,7 +62,7 @@ public class StsApiConfigurationExtensionTest {
 
     @NotNull
     private DefaultServiceExtensionContext contextWithConfig(Config config) {
-        var context = new DefaultServiceExtensionContext(monitor, List.of(() -> config));
+        var context = new DefaultServiceExtensionContext(monitor, config);
         context.initialize();
         return context;
     }

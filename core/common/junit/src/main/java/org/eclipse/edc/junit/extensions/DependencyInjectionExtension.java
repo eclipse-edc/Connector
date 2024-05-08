@@ -21,7 +21,7 @@ import org.eclipse.edc.boot.system.injection.ReflectiveObjectFactory;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -50,7 +50,7 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
     @Override
     public void beforeEach(ExtensionContext extensionContext) {
         monitor = mock();
-        context = spy(super.createServiceExtensionContext());
+        context = spy(super.createServiceExtensionContext(ConfigFactory.empty()));
         context.initialize();
         factory = new ReflectiveObjectFactory(
                 new InjectorImpl(Mockito::mock),
@@ -91,8 +91,4 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
         return null;
     }
 
-    @Override
-    protected @NotNull ServiceExtensionContext createServiceExtensionContext() {
-        return context;
-    }
 }
