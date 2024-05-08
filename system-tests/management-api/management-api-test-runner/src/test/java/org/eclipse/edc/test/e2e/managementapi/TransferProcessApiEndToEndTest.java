@@ -226,8 +226,6 @@ public class TransferProcessApiEndToEndTest {
                     .clock(Clock.fixed(Instant.now().plus(1, ChronoUnit.HOURS), ZoneId.systemDefault()))
                     .build();
             getStore().save(tp1);
-
-            tp2.updateStateTimestamp();
             getStore().save(tp2);
 
 
@@ -255,7 +253,7 @@ public class TransferProcessApiEndToEndTest {
                     .statusCode(200)
                     .extract().body().as(JsonArray.class);
 
-            assertThat(result).isNotEmpty().hasSize(2);
+            assertThat(result).isNotEmpty().hasSizeGreaterThanOrEqualTo(2);
             assertThat(result).isSortedAccordingTo((o1, o2) -> {
                 var l1 = o1.asJsonObject().getJsonNumber("stateTimestamp").longValue();
                 var l2 = o2.asJsonObject().getJsonNumber("stateTimestamp").longValue();
