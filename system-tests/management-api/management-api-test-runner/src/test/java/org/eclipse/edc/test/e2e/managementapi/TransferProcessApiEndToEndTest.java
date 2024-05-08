@@ -32,6 +32,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,34 +62,6 @@ import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.Matchers.is;
 
 public class TransferProcessApiEndToEndTest {
-
-    @Nested
-    @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    class Postgres extends Tests {
-
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
-
-        Postgres() {
-            super(RUNTIME);
-        }
-    }
 
     abstract static class Tests extends ManagementApiEndToEndTestBase {
 
@@ -246,9 +222,11 @@ public class TransferProcessApiEndToEndTest {
         @Test
         void request_sortByStateTimestamp() throws JsonProcessingException, InterruptedException {
             var tp1 = createTransferProcessBuilder("test-tp1").build();
-            var tp2 = createTransferProcessBuilder("test-tp2").build();
+            var tp2 = createTransferProcessBuilder("test-tp2")
+                    .clock(Clock.fixed(Instant.now().plus(1, ChronoUnit.HOURS), ZoneId.systemDefault()))
+                    .build();
             getStore().save(tp1);
-            Thread.sleep(3000);
+
             tp2.updateStateTimestamp();
             getStore().save(tp2);
 
@@ -279,9 +257,9 @@ public class TransferProcessApiEndToEndTest {
 
             assertThat(result).isNotEmpty().hasSize(2);
             assertThat(result).isSortedAccordingTo((o1, o2) -> {
-                Long l1 = o1.asJsonObject().getJsonNumber("stateTimestamp").longValue();
-                Long l2 = o2.asJsonObject().getJsonNumber("stateTimestamp").longValue();
-                return l1.compareTo(l2);
+                var l1 = o1.asJsonObject().getJsonNumber("stateTimestamp").longValue();
+                var l2 = o2.asJsonObject().getJsonNumber("stateTimestamp").longValue();
+                return Long.compare(l1, l2);
             });
         }
 
@@ -313,6 +291,33 @@ public class TransferProcessApiEndToEndTest {
                     .add(IS_TRANSACTIONAL, false)
                     .add(URI, "http://test.local/")
                     .add(EVENTS, Json.createArrayBuilder().build()));
+        }
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
+
+        InMemory() {
+            super(RUNTIME);
+        }
+
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
+
+        Postgres() {
+            super(RUNTIME);
         }
     }
 
