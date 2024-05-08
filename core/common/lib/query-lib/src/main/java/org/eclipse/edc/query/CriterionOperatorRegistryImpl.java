@@ -44,6 +44,7 @@ public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry 
         registry.registerOperatorPredicate(LIKE, new LikeOperatorPredicate());
         registry.registerOperatorPredicate(ILIKE, new IlikeOperatorPredicate());
         registry.registerOperatorPredicate(CONTAINS, new ContainsOperatorPredicate());
+        registry.registerOperatorPredicate(NOT_EQUAL, new NotEqualOperatorPredicate());
         return registry;
     }
 
@@ -60,11 +61,6 @@ public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry 
     @Override
     public void unregister(String operator) {
         operatorPredicates.remove(operator.toLowerCase());
-    }
-
-    @Override
-    public boolean isSupported(String operator) {
-        return operatorPredicates.containsKey(operator.toLowerCase());
     }
 
     @Override
@@ -91,6 +87,11 @@ public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry 
             return predicate.test(property, criterion.getOperandRight());
         };
 
+    }
+
+    @Override
+    public boolean isSupported(String operator) {
+        return operatorPredicates.containsKey(operator.toLowerCase());
     }
 
 }

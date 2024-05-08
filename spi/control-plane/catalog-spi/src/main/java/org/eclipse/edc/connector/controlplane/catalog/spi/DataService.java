@@ -74,7 +74,7 @@ public class DataService {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private DataService dataService;
+        private final DataService dataService;
 
         private Builder() {
             dataService = new DataService();

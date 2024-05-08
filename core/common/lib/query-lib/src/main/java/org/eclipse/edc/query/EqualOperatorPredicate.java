@@ -23,6 +23,9 @@ public class EqualOperatorPredicate implements OperatorPredicate {
 
     @Override
     public boolean test(Object property, Object operandRight) {
+        if (property == null) {
+            return operandRight == null;
+        }
         if (property.getClass().isEnum()) {
             var enumProperty = (Enum<?>) property;
             if (operandRight instanceof String) {
