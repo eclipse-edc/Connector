@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-  pull_request_target:
-    paths:
-      - "gradle/libs.versions.toml"
+  pull_request:
 
 permissions:
   contents: read
