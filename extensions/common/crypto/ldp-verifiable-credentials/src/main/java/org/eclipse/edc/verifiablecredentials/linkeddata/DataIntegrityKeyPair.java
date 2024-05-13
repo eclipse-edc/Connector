@@ -16,6 +16,7 @@ package org.eclipse.edc.verifiablecredentials.linkeddata;
 
 
 import com.apicatalog.ld.signature.VerificationMethod;
+import com.apicatalog.ld.signature.key.VerificationKey;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -24,24 +25,24 @@ import java.util.Objects;
 /**
  * Generic adapter object for a {@link VerificationMethod}
  */
-class DataIntegrityKeyPair implements VerificationMethod {
+class DataIntegrityKeyPair implements VerificationKey {
     private final URI id;
     private final URI type;
     private final URI controller;
     private final byte[] privateKey;
     private final byte[] publicKey;
 
-    DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] privateKey, byte[] publicKey) {
+    DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] publicKey, byte[] privateKey) {
         super();
         this.id = id;
         this.type = type;
         this.controller = controller;
-        this.privateKey = privateKey;
         this.publicKey = publicKey;
+        this.privateKey = privateKey;
     }
 
-    DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] privateKey) {
-        this(id, type, controller, privateKey, null);
+    DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] publicKey) {
+        this(id, type, controller, publicKey, null);
     }
 
     @Override
@@ -61,6 +62,11 @@ class DataIntegrityKeyPair implements VerificationMethod {
 
     public byte[] privateKey() {
         return privateKey;
+    }
+
+    @Override
+    public String algorithm() {
+        return type.toString();
     }
 
     public byte[] publicKey() {
