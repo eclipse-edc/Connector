@@ -48,7 +48,7 @@ public class StatusList2021RevocationService implements RevocationListService {
         this.objectMapper = objectMapper.copy()
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // technically, credential subjects and credential status can be objects AND Arrays
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
-        cache = new Cache<>(this::updateCredential, cacheValidity);
+        cache = new Cache<>(this::downloadStatusListCredential, cacheValidity);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class StatusList2021RevocationService implements RevocationListService {
     @Override
     public Result<String> getStatusPurpose(VerifiableCredential credential) {
         if (credential.getCredentialStatus().isEmpty()) {
-            return success(null);
+            return success();
         }
         var res = credential.getCredentialStatus().stream()
                 .map(StatusListStatus::parse)
@@ -79,7 +79,8 @@ public class StatusList2021RevocationService implements RevocationListService {
                 .filter(r -> r.getContent() != null) //
                 .map(AbstractResult::getContent).toList();
 
-        return list.isEmpty() ? success(null) : success(list.get(0));
+        // get(0) is OK, because there should only be 1 credentialStatus
+        return list.isEmpty() ? success() : success(list.get(0));
 
     }
 
@@ -119,10 +120,10 @@ public class StatusList2021RevocationService implements RevocationListService {
         if (bitString.get(index)) {
             return success(purpose);
         }
-        return success(null);
+        return success();
     }
 
-    private VerifiableCredential updateCredential(String credentialUrl) {
+    private VerifiableCredential downloadStatusListCredential(String credentialUrl) {
         try {
             return objectMapper.readValue(URI.create(credentialUrl).toURL(), VerifiableCredential.class);
         } catch (IOException e) {
