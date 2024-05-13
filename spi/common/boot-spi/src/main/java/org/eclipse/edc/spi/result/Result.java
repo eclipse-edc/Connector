@@ -33,11 +33,15 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
         super(content, failure);
     }
 
-    public static <T> Result<T> success() {
+    public static Result<Void> success() {
         return new Result<>(null, null);
     }
 
     public static <T> Result<T> success(@NotNull T content) {
+        return new Result<>(content, null);
+    }
+
+    public static <T> Result<T> successNullable(@Nullable T content) {
         return new Result<>(content, null);
     }
 

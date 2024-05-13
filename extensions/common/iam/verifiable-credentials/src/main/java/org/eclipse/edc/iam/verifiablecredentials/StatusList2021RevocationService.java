@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.spi.result.Result.success;
+import static org.eclipse.edc.spi.result.Result.successNullable;
 
 /**
  * Service to check if a particular {@link VerifiableCredential} is "valid", where "validity" is defined as not revoked and not suspended.
@@ -62,7 +63,7 @@ public class StatusList2021RevocationService implements RevocationListService {
     @Override
     public Result<String> getStatusPurpose(VerifiableCredential credential) {
         if (credential.getCredentialStatus().isEmpty()) {
-            return success();
+            return successNullable(null);
         }
         var res = credential.getCredentialStatus().stream()
                 .map(StatusListStatus::parse)
@@ -80,7 +81,7 @@ public class StatusList2021RevocationService implements RevocationListService {
                 .map(AbstractResult::getContent).toList();
 
         // get(0) is OK, because there should only be 1 credentialStatus
-        return list.isEmpty() ? success() : success(list.get(0));
+        return list.isEmpty() ? successNullable(null) : success(list.get(0));
 
     }
 
@@ -120,7 +121,7 @@ public class StatusList2021RevocationService implements RevocationListService {
         if (bitString.get(index)) {
             return success(purpose);
         }
-        return success();
+        return successNullable(null);
     }
 
     private VerifiableCredential downloadStatusListCredential(String credentialUrl) {
