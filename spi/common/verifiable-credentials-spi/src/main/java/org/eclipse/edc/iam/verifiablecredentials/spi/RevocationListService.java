@@ -28,7 +28,24 @@ import org.eclipse.edc.spi.result.Result;
  * A credential is regarded as "valid" if its {@code statusPurpose} field matches the status list credential and if
  * the value at the index indicated by {@code statusListIndex} is "1".
  */
-@FunctionalInterface
 public interface RevocationListService {
+    /**
+     * Check the "validity" of a credential, where validity is understood as not-revoked and not-suspended. Credentials that don't have
+     * a {@code credentialStatus} object are deemed valid. If the {@code credentialStatus} object is invalid, the credential is deemed invalid.
+     */
     Result<Void> checkValidity(VerifiableCredential credential);
+
+    /**
+     * Determines the status of a credential. If a {@code credentialStatus} object exists, the service will determin the "status purpose". It can be:
+     * <ul>
+     *     <li>null: {@code credentialStatus} object not present, or status purpose is present but the status credential's encoded bitstring resolves a "0" at the status index.
+     *        i.e. the credential is "not revoked" and "not suspended". </li>
+     *     <li>suspended: credential is temporarily deactivated, i.e. the status credential's encoded bitstring resolves a "1" at the status index</li>
+     *     <li>revoked: credential is permanently deactivated, i.e. the status credential's encoded bitstring resolves a "1" at the status index</li>
+     * </ul>
+     *
+     * @param credential The credential to inspect.
+     * @return either the status purpose, if the status is active, or null, if not active or not present. returns a failure if the status check failed, or the {@code credentialStatus} object is invalid.
+     */
+    Result<String> getStatusPurpose(VerifiableCredential credential);
 }
