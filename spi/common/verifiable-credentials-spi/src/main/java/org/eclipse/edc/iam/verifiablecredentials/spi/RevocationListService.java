@@ -28,7 +28,8 @@ import org.eclipse.edc.spi.result.Result;
  * A credential is regarded as "valid" if its {@code statusPurpose} field matches the status list credential and if
  * the value at the index indicated by {@code statusListIndex} is "1".
  */
-@FunctionalInterface
 public interface RevocationListService {
     Result<Void> checkValidity(VerifiableCredential credential);
+
+    Result<String> getStatusPurpose(VerifiableCredential credential);
 }

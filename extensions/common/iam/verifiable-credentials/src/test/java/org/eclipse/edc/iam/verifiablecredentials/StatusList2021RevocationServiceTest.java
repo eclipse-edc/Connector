@@ -54,7 +54,7 @@ class StatusList2021RevocationServiceTest {
     }
 
     @Test
-    void checkRevocation_shenSubjectIsArray() {
+    void checkRevocation_whenSubjectIsArray() {
         clientAndServer.reset();
         clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
                 .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY));
@@ -65,7 +65,6 @@ class StatusList2021RevocationServiceTest {
                 .build();
         assertThat(revocationService.checkValidity(credential)).isSucceeded();
     }
-
 
     @Test
     void checkRevocation_whenNotCached_valid() {
@@ -110,4 +109,58 @@ class StatusList2021RevocationServiceTest {
         assertThat(revocationService.checkValidity(credential)).isSucceeded();
         clientAndServer.verify(request(), VerificationTimes.exactly(1));
     }
+
+    @Test
+    void getStatusPurposes_whenSingleCredentialStatusRevoked() {
+        clientAndServer.reset();
+        clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
+                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT));
+        var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
+                        Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                STATUS_LIST_INDEX, REVOKED_INDEX,
+                                STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
+                .build();
+        assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
+                .isEqualTo("revocation");
+    }
+
+    @Test
+    void getStatusPurposes_whenMultipleCredentialStatusRevoked() {
+        clientAndServer.reset();
+        clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
+                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY));
+        var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
+                        Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                STATUS_LIST_INDEX, REVOKED_INDEX,
+                                STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
+                .build();
+        assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
+                .isEqualTo("revocation");
+    }
+
+    @Test
+    void getStatusPurpose_whenCredentialStatusNotActive() {
+        clientAndServer.reset();
+        clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
+                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT));
+        var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
+                        Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                                STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
+                .build();
+        assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
+                .isNull();
+    }
+
+    @Test
+    void getStatusPurpose_whenNoCredentialStatus() {
+        clientAndServer.reset();
+        clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
+                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT));
+        var credential = TestFunctions.createCredentialBuilder().build();
+        assertThat(revocationService.getStatusPurpose(credential))
+                .isSucceeded()
+                .isNull(); //content is null, not the result!
+    }
+
 }
