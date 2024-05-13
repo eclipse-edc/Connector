@@ -37,11 +37,7 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
         return new Result<>(null, null);
     }
 
-    public static <T> Result<T> success(@NotNull T content) {
-        return new Result<>(content, null);
-    }
-
-    public static <T> Result<T> successNullable(@Nullable T content) {
+    public static <T> Result<T> success(T content) {
         return new Result<>(content, null);
     }
 

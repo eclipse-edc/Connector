@@ -159,8 +159,8 @@ class StatusList2021RevocationServiceTest {
                 .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT));
         var credential = TestFunctions.createCredentialBuilder().build();
         assertThat(revocationService.getStatusPurpose(credential))
-                .isSucceeded()
-                .isNull(); //content is null, not the result!
+                .isNotNull()
+                .isSucceeded();
     }
 
 }
