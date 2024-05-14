@@ -47,6 +47,7 @@ import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
+@Deprecated(since = "0.6.4")
 @Provides(SignalingApiConfiguration.class)
 @Extension(value = NAME)
 public class SignalingApiConfigurationExtension implements ServiceExtension {
@@ -87,6 +88,11 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var warningMessage = """
+                The data-plane-signaling-api-configuration extension is deprecated as the related 'web.http.signaling'
+                settings, please exclude from your build and configure your endpoints to the control-api context
+                """;
+        context.getMonitor().warning(warningMessage);
         var webServiceConfiguration = configurer.configure(context, webServer, SETTINGS);
         context.registerService(SignalingApiConfiguration.class, new SignalingApiConfiguration(webServiceConfiguration));
 

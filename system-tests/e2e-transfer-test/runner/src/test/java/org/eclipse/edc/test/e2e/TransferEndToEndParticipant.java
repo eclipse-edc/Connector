@@ -47,7 +47,6 @@ public class TransferEndToEndParticipant extends Participant {
     private final URI controlPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
     private final URI dataPlaneDefault = URI.create("http://localhost:" + getFreePort());
     private final URI dataPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
-    private final URI dataPlaneSignaling = URI.create("http://localhost:" + getFreePort() + "/signaling");
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
     private final URI backendService = URI.create("http://localhost:" + getFreePort());
 
@@ -77,7 +76,7 @@ public class TransferEndToEndParticipant extends Participant {
      */
     @Deprecated(since = "0.6.3")
     public void registerDataPlane(Set<String> transferTypes) {
-        registerDataPlane(dataPlaneSignaling + "/v1/dataflows", Set.of("HttpData", "HttpProvision", "Kafka"), Set.of("HttpData", "HttpProvision", "HttpProxy", "Kafka"), transferTypes);
+        registerDataPlane(dataPlaneControl + "/v1/dataflows", Set.of("HttpData", "HttpProvision", "Kafka"), Set.of("HttpData", "HttpProvision", "HttpProxy", "Kafka"), transferTypes);
     }
 
     /**
@@ -159,8 +158,6 @@ public class TransferEndToEndParticipant extends Participant {
                 put("web.http.public.path", "/public");
                 put("web.http.control.port", String.valueOf(dataPlaneControl.getPort()));
                 put("web.http.control.path", dataPlaneControl.getPath());
-                put("web.http.signaling.port", String.valueOf(dataPlaneSignaling.getPort()));
-                put("web.http.signaling.path", dataPlaneSignaling.getPath());
                 put("edc.vault", resourceAbsolutePath(getName() + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");

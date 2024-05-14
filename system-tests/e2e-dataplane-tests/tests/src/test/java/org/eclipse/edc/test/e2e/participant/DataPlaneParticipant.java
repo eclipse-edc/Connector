@@ -31,14 +31,13 @@ public class DataPlaneParticipant extends Participant {
     private final URI dataPlaneDefault = URI.create("http://localhost:" + getFreePort());
     private final URI dataPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
-    private final URI dataPlaneSignaling = URI.create("http://localhost:" + getFreePort() + "/api/signaling");
 
     private DataPlaneParticipant() {
         super();
     }
 
-    public Endpoint getDataPlaneSignalingEndpoint() {
-        return new Endpoint(dataPlaneSignaling);
+    public Endpoint getDataPlaneControlEndpoint() {
+        return new Endpoint(dataPlaneControl);
     }
 
     public Endpoint getDataPlanePublicEndpoint() {
@@ -54,8 +53,6 @@ public class DataPlaneParticipant extends Participant {
                 put("web.http.public.path", "/public");
                 put("web.http.control.port", String.valueOf(dataPlaneControl.getPort()));
                 put("web.http.control.path", dataPlaneControl.getPath());
-                put("web.http.signaling.port", String.valueOf(dataPlaneSignaling.getPort()));
-                put("web.http.signaling.path", dataPlaneSignaling.getPath());
                 put("edc.vault", resourceAbsolutePath(getName() + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");

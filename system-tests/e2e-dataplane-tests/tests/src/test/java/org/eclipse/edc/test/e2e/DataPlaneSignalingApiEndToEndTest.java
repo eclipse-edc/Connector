@@ -81,7 +81,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         var flowMessage = createStartMessage(processId);
         var startMessage = registry.transform(flowMessage, JsonObject.class).orElseThrow(failTest());
 
-        var resultJson = DATAPLANE.getDataPlaneSignalingEndpoint()
+        var resultJson = DATAPLANE.getDataPlaneControlEndpoint()
                 .baseRequest()
                 .contentType(ContentType.JSON)
                 .body(startMessage)
@@ -121,7 +121,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
                 .build();
         runtime.getService(DataPlaneStore.class).save(flow);
 
-        var resultJson = DATAPLANE.getDataPlaneSignalingEndpoint()
+        var resultJson = DATAPLANE.getDataPlaneControlEndpoint()
                 .baseRequest()
                 .contentType(ContentType.JSON)
                 .get("/v1/dataflows/%s/state".formatted(dataFlowId))
@@ -153,7 +153,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
                 .add(DATA_FLOW_TERMINATE_MESSAGE_REASON, "test-reason")
                 .build();
 
-        DATAPLANE.getDataPlaneSignalingEndpoint()
+        DATAPLANE.getDataPlaneControlEndpoint()
                 .baseRequest()
                 .body(terminateMessage)
                 .contentType(ContentType.JSON)

@@ -14,21 +14,33 @@
 
 package org.eclipse.edc.connector.dataplane.api;
 
+import jakarta.json.Json;
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.api.signaling.configuration.SignalingApiConfiguration;
+import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowResponseMessageTransformer;
+import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowStartMessageTransformer;
+import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowSuspendMessageTransformer;
+import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowTerminateMessageTransformer;
 import org.eclipse.edc.connector.dataplane.api.controller.v1.DataPlaneSignalingApiController;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
+import org.eclipse.edc.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
 import org.eclipse.edc.web.spi.WebService;
 
+import java.util.Map;
+
 import static org.eclipse.edc.connector.dataplane.api.DataPlaneSignalingApiExtension.NAME;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(NAME)
 public class DataPlaneSignalingApiExtension implements ServiceExtension {
+
     public static final String NAME = "DataPlane Signaling API extension";
 
     @Inject
@@ -41,6 +53,8 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
     private TypeTransformerRegistry transformerRegistry;
     @Inject
     private DataPlaneManager dataPlaneManager;
+    @Inject
+    private TypeManager typeManager;
 
     @Override
     public String name() {
@@ -49,10 +63,26 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var factory = Json.createBuilderFactory(Map.of());
+        var jsonLdMapper = typeManager.getMapper(JSON_LD);
+
         var signalingApiTypeTransformerRegistry = transformerRegistry.forContext("signaling-api");
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowStartMessageTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowSuspendMessageTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
+        signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(factory, jsonLdMapper));
+
         var controller = new DataPlaneSignalingApiController(signalingApiTypeTransformerRegistry,
                 dataPlaneManager, context.getMonitor().withPrefix("SignalingAPI"));
-        webService.registerResource(signalingApiConfiguration.getContextAlias(), controller);
+
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
+        registerSignalingContext(controller);
+    }
+
+    @Deprecated(since = "0.6.4")
+    private void registerSignalingContext(DataPlaneSignalingApiController controller) {
+        webService.registerResource(signalingApiConfiguration.getContextAlias(), controller);
     }
 }
