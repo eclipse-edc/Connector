@@ -39,7 +39,6 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
@@ -52,7 +51,6 @@ import java.util.function.Function;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.joining;
-import static org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
@@ -153,9 +151,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @NotNull
     private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message, String assetId) {
-        var destination = message.getDataDestination() != null
-                ? message.getDataDestination() : DataAddress.Builder.newInstance().type(HTTP_PROXY).build();
-
         var existingTransferProcess = transferProcessStore.findForCorrelationId(message.getConsumerPid());
         if (existingTransferProcess != null) {
             return ServiceResult.success(existingTransferProcess);
@@ -165,7 +160,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .protocol(message.getProtocol())
                 .correlationId(message.getConsumerPid())
                 .counterPartyAddress(message.getCallbackAddress())
-                .dataDestination(destination)
+                .dataDestination(message.getDataDestination())
                 .assetId(assetId)
                 .contractId(message.getContractId())
                 .transferType(message.getTransferType())

@@ -16,6 +16,8 @@ package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
+import java.util.Set;
+
 /**
  * Transfers data from a {@link DataSource} to a {@link DataSink} using Data Plane extensions.
  * Represent the default {@link TransferService} that leverages on the internal Data-Plane transfer mechanism.
@@ -32,5 +34,19 @@ public interface PipelineService extends TransferService {
      * Registers a factory for creating data sinks.
      */
     void registerFactory(DataSinkFactory factory);
+
+    /**
+     * Return a collection of source DataAddress types supported.
+     *
+     * @return set of types.
+     */
+    Set<String> supportedSourceTypes();
+
+    /**
+     * Return a collection of sink DataAddress types supported.
+     *
+     * @return set of types.
+     */
+    Set<String> supportedSinkTypes();
 
 }

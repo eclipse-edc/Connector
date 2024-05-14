@@ -37,17 +37,19 @@ public interface Runtimes {
 
         static EdcRuntimeExtension controlPlaneEmbeddedDataPlane(String name, Map<String, String> configuration) {
             return new EdcRuntimeExtension(name, configuration,
-                ":system-tests:e2e-transfer-test:control-plane",
-                ":extensions:control-plane:transfer:transfer-data-plane-signaling",
-                ":system-tests:e2e-transfer-test:data-plane",
-                ":extensions:data-plane:data-plane-public-api-v2"
+                    ":system-tests:e2e-transfer-test:control-plane",
+                    ":system-tests:e2e-transfer-test:data-plane",
+                    ":extensions:control-plane:transfer:transfer-data-plane-signaling",
+                    ":extensions:data-plane:data-plane-self-registration",
+                    ":extensions:data-plane:data-plane-public-api-v2"
             );
         }
 
         static EdcRuntimeExtension dataPlane(String name, Map<String, String> configuration) {
             return new EdcRuntimeExtension(name, configuration,
                     ":system-tests:e2e-transfer-test:data-plane",
-                    ":extensions:data-plane:data-plane-public-api-v2"
+                    ":extensions:data-plane:data-plane-public-api-v2",
+                    ":extensions:data-plane-selector:data-plane-selector-client"
             );
         }
     }
@@ -77,7 +79,8 @@ public interface Runtimes {
                     ":extensions:data-plane:store:sql:data-plane-store-sql",
                     ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
                     ":extensions:common:transaction:transaction-local",
-                    ":extensions:data-plane:data-plane-public-api-v2"
+                    ":extensions:data-plane:data-plane-public-api-v2",
+                    ":extensions:data-plane-selector:data-plane-selector-client"
             );
         }
 

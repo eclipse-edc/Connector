@@ -46,7 +46,7 @@ public class EmbeddedDataPlaneSelectorServiceTest {
         when(selectionStrategy.apply(any())).thenAnswer(it -> instances.get(0));
         when(selectionStrategyRegistry.find(any())).thenReturn(selectionStrategy);
 
-        var result = selector.select(createAddress("srcTestType"), createAddress("destTestType"), "strategy");
+        var result = selector.select(createAddress("srcTestType"), createAddress("destTestType"), "strategy", "transferType");
 
         assertThat(result).isNotNull().extracting(DataPlaneInstance::getId).isEqualTo("instance0");
         verify(selectionStrategyRegistry).find("strategy");
@@ -58,7 +58,7 @@ public class EmbeddedDataPlaneSelectorServiceTest {
         when(store.getAll()).thenReturn(instances.stream());
         when(selectionStrategyRegistry.find(any())).thenReturn(null);
 
-        assertThatThrownBy(() -> selector.select(createAddress("srcTestType"), createAddress("destTestType"), "strategy"))
+        assertThatThrownBy(() -> selector.select(createAddress("srcTestType"), createAddress("destTestType"), "strategy", "transferType"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

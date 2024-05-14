@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -41,12 +40,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class DataPlaneInstance {
 
     public static final String DATAPLANE_INSTANCE_TYPE = EDC_NAMESPACE + "DataPlaneInstance";
+    @Deprecated(since = "0.6.3")
     public static final String TURN_COUNT = EDC_NAMESPACE + "turnCount";
     public static final String LAST_ACTIVE = EDC_NAMESPACE + "lastActive";
     public static final String URL = EDC_NAMESPACE + "url";
     public static final String PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String ALLOWED_TRANSFER_TYPES = EDC_NAMESPACE + "allowedTransferTypes";
-
     public static final String ALLOWED_SOURCE_TYPES = EDC_NAMESPACE + "allowedSourceTypes";
     public static final String ALLOWED_DEST_TYPES = EDC_NAMESPACE + "allowedDestTypes";
 
@@ -54,6 +53,7 @@ public class DataPlaneInstance {
     private Set<String> allowedTransferTypes = new HashSet<>();
     private Set<String> allowedSourceTypes = new HashSet<>();
     private Set<String> allowedDestTypes = new HashSet<>();
+    @Deprecated(since = "0.6.3")
     private int turnCount = 0;
     private long lastActive = Instant.now().toEpochMilli();
     private URL url;
@@ -67,36 +67,24 @@ public class DataPlaneInstance {
     }
 
     /**
-     * Determines whether this instance can handle a particular source and data address, by evaluating {@link DataAddress#getType()}
-     * against an internal list of allowed source and dest types and if present that the transferType is handled
+     * Determines whether this instance can handle a particular source and data address, by evaluating sourceAddress and
+     * transferType against an internal list of allowed source and transfer types.
      *
-     * @param sourceAddress      The location where the data is located
-     * @param destinationAddress The destination address of the data
+     * @param sourceAddress the sourceAddress
+     * @param transferType the transferType
      * @return true if it can handle, false otherwise.
      */
-    public boolean canHandle(DataAddress sourceAddress, DataAddress destinationAddress, @Nullable String transferType) {
+    public boolean canHandle(DataAddress sourceAddress, @Nullable String transferType) {
         Objects.requireNonNull(sourceAddress, "source cannot be null!");
-        Objects.requireNonNull(destinationAddress, "destination cannot be null");
-        return allowedSourceTypes.contains(sourceAddress.getType()) && allowedDestTypes.contains(destinationAddress.getType()) &&
-                Optional.ofNullable(transferType).map(t -> allowedTransferTypes.contains(t)).orElse(true);
-    }
-
-    /**
-     * Determines whether this instance can handle a particular source and data address, by evaluating {@link DataAddress#getType()}
-     * against an internal list of allowed source and dest types.
-     *
-     * @param sourceAddress      The location where the data is located
-     * @param destinationAddress The destination address of the data
-     * @return true if it can handle, false otherwise.
-     */
-    public boolean canHandle(DataAddress sourceAddress, DataAddress destinationAddress) {
-        return canHandle(sourceAddress, destinationAddress, null);
+        Objects.requireNonNull(transferType, "transferType cannot be null!");
+        return allowedSourceTypes.contains(sourceAddress.getType()) && allowedTransferTypes.contains(transferType);
     }
 
     public URL getUrl() {
         return url;
     }
 
+    @Deprecated(since = "0.6.3")
     public int getTurnCount() {
         return turnCount;
     }
@@ -134,6 +122,7 @@ public class DataPlaneInstance {
             return new Builder();
         }
 
+        @Deprecated(since = "0.6.3")
         public Builder turnCount(int turnCount) {
             instance.turnCount = turnCount;
             return this;

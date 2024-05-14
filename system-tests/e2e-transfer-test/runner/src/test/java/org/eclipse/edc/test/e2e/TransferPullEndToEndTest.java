@@ -80,8 +80,8 @@ class TransferPullEndToEndTest {
         static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
                 Runtimes.InMemory.controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
                 backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                Runtimes.InMemory.dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
                 Runtimes.InMemory.controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
+                Runtimes.InMemory.dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
                 backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
         );
 
@@ -115,8 +115,8 @@ class TransferPullEndToEndTest {
         static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
                 Runtimes.Postgres.controlPlane("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration()),
                 backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                Runtimes.Postgres.dataPlane("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()),
                 Runtimes.Postgres.controlPlane("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration()),
+                Runtimes.Postgres.dataPlane("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()),
                 backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
         );
     }
@@ -129,7 +129,6 @@ class TransferPullEndToEndTest {
 
         @BeforeEach
         void beforeEach() {
-            registerDataPlanes();
             callbacksEndpoint = startClientAndServer(CALLBACK_PORT);
         }
 

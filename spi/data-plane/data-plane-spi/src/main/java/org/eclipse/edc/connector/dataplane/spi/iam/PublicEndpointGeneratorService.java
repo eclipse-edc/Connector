@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -41,4 +42,11 @@ public interface PublicEndpointGeneratorService {
      * @param generatorFunction the generator function
      */
     void addGeneratorFunction(String destinationType, Function<DataAddress, Endpoint> generatorFunction);
+
+    /**
+     * Return the supported destination types.
+     *
+     * @return the supported types;
+     */
+    Set<String> supportedDestinationTypes();
 }

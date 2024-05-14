@@ -52,7 +52,7 @@ public class JsonObjectFromDataFlowStartMessageTransformer extends AbstractJsonL
     public @Nullable JsonObject transform(@NotNull DataFlowStartMessage message, @NotNull TransformerContext context) {
         var propertiesBuilder = jsonFactory.createObjectBuilder();
         transformProperties(message.getProperties(), propertiesBuilder, mapper, context);
-        return jsonFactory.createObjectBuilder()
+        var builder = jsonFactory.createObjectBuilder()
                 .add(TYPE, EDC_DATA_FLOW_START_MESSAGE_TYPE)
                 .add(EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE, message.getFlowType().toString())
                 .add(EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID, message.getAgreementId())
@@ -60,9 +60,13 @@ public class JsonObjectFromDataFlowStartMessageTransformer extends AbstractJsonL
                 .add(EDC_DATA_FLOW_START_MESSAGE_DATASET_ID, message.getAssetId())
                 .add(EDC_DATA_FLOW_START_MESSAGE_PROPERTIES, propertiesBuilder)
                 .add(EDC_DATA_FLOW_START_MESSAGE_DESTINATION_CALLBACK_ADDRESS, message.getCallbackAddress().toString())
-                .add(EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS, context.transform(message.getDestinationDataAddress(), JsonObject.class))
                 .add(EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS, context.transform(message.getSourceDataAddress(), JsonObject.class))
-                .add(EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID, message.getParticipantId())
-                .build();
+                .add(EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID, message.getParticipantId());
+
+        if (message.getDestinationDataAddress() != null) {
+            builder.add(EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS, context.transform(message.getDestinationDataAddress(), JsonObject.class));
+        }
+
+        return builder.build();
     }
 }

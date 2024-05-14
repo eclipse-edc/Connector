@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
 
@@ -42,4 +43,12 @@ class PublicEndpointGeneratorServiceImplTest {
                 .isEqualTo("No Endpoint generator function registered for source data type 'testtype'");
     }
 
+    @Test
+    void supportedTypes() {
+        generatorService.addGeneratorFunction("type", dataAddress -> new Endpoint("any", "any"));
+
+        var result = generatorService.supportedDestinationTypes();
+
+        assertThat(result).containsOnly("type");
+    }
 }

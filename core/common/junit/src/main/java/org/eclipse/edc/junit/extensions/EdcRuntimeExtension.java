@@ -33,6 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -113,8 +114,8 @@ public class EdcRuntimeExtension extends EdcExtension {
         var savedProperties = (Properties) System.getProperties().clone();
         properties.forEach(System::setProperty);
 
+        var runtimeException = new AtomicReference<Exception>();
         var latch = new CountDownLatch(1);
-
         runtimeThread = new Thread(() -> {
             try {
 
@@ -127,6 +128,7 @@ public class EdcRuntimeExtension extends EdcExtension {
 
                 latch.countDown();
             } catch (Exception e) {
+                runtimeException.set(e);
                 throw new EdcException(e);
             }
         });
@@ -136,7 +138,7 @@ public class EdcRuntimeExtension extends EdcExtension {
         runtimeThread.start();
 
         if (!latch.await(20, SECONDS)) {
-            throw new EdcException("Failed to start EDC runtime");
+            throw new EdcException("Failed to start EDC runtime", runtimeException.get());
         }
 
         MONITOR.info("Runtime %s started".formatted(name));

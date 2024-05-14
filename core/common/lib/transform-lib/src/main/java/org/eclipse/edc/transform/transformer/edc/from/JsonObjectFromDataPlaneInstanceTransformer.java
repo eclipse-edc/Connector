@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.transformer;
+package org.eclipse.edc.transform.transformer.edc.from;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;

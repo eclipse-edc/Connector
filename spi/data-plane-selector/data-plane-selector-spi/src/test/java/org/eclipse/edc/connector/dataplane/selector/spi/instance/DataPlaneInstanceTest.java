@@ -67,36 +67,9 @@ class DataPlaneInstanceTest {
     }
 
     @Test
-    void verifyCanHandle() throws MalformedURLException {
-        var srcType1 = "srcType1";
-        var srcType2 = "srcType1";
-        var destType1 = "destType1";
-        var destType2 = "destType2";
-
-        var inst = DataPlaneInstance.Builder.newInstance()
-                .id("test-id")
-                .url(new URL("http://localhost:8234/some/path"))
-                .allowedSourceType(srcType1)
-                .allowedSourceType(srcType2)
-                .allowedDestType(destType1)
-                .allowedDestType(destType2)
-                .build();
-
-        assertThat(inst.canHandle(createAddress(srcType1), createAddress(destType1))).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType1), createAddress(destType2))).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType2), createAddress(destType2))).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType2), createAddress(destType1))).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType2), createAddress("notexist"))).isFalse();
-        assertThat(inst.canHandle(createAddress("notexist"), createAddress(destType1))).isFalse();
-
-    }
-
-    @Test
     void verifyCanHandle_withTransferType() throws MalformedURLException {
         var srcType1 = "srcType1";
         var srcType2 = "srcType1";
-        var destType1 = "destType1";
-        var destType2 = "destType2";
         var transferType1 = "customTransferType1";
         var transferType2 = "customTransferType2";
 
@@ -105,19 +78,15 @@ class DataPlaneInstanceTest {
                 .url(new URL("http://localhost:8234/some/path"))
                 .allowedSourceType(srcType1)
                 .allowedSourceType(srcType2)
-                .allowedDestType(destType1)
-                .allowedDestType(destType2)
                 .allowedTransferType(transferType1)
                 .allowedTransferType(transferType2)
                 .build();
 
-        assertThat(inst.canHandle(createAddress(srcType1), createAddress(destType1), transferType1)).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType1), createAddress(destType2), transferType1)).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType2), createAddress(destType2), transferType2)).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType2), createAddress(destType1), transferType2)).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType2), createAddress("notexist"))).isFalse();
-        assertThat(inst.canHandle(createAddress("notexist"), createAddress(destType1))).isFalse();
-        assertThat(inst.canHandle(createAddress(srcType1), createAddress(destType1), "notexist")).isFalse();
+        assertThat(inst.canHandle(createAddress(srcType1), transferType1)).isTrue();
+        assertThat(inst.canHandle(createAddress(srcType1), transferType1)).isTrue();
+        assertThat(inst.canHandle(createAddress(srcType2), transferType2)).isTrue();
+        assertThat(inst.canHandle(createAddress(srcType2), transferType2)).isTrue();
+        assertThat(inst.canHandle(createAddress(srcType1), "notexist")).isFalse();
 
 
     }

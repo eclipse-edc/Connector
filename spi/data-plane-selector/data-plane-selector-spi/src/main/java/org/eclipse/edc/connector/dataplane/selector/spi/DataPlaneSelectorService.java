@@ -28,6 +28,8 @@ import java.util.List;
 @ExtensionPoint
 public interface DataPlaneSelectorService {
 
+    String DEFAULT_STRATEGY = "random";
+
     /**
      * Returns all {@link DataPlaneInstance}s known in the system
      */
@@ -36,7 +38,10 @@ public interface DataPlaneSelectorService {
     /**
      * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the configured
      * strategy.
+     *
+     * @deprecated please use the one that passes the transferType
      */
+    @Deprecated(since = "0.6.3")
     default DataPlaneInstance select(DataAddress source, DataAddress destination) {
         return select(source, destination, "random");
     }
@@ -44,7 +49,10 @@ public interface DataPlaneSelectorService {
     /**
      * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the passed
      * strategy.
+     *
+     * @deprecated please use the one that passes the transferType
      */
+    @Deprecated(since = "0.6.3")
     default DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy) {
         return select(source, destination, selectionStrategy, null);
     }
@@ -53,7 +61,7 @@ public interface DataPlaneSelectorService {
      * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the passed
      * strategy and the optional transferType.
      */
-    DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy, @Nullable String transferType);
+    DataPlaneInstance select(DataAddress source, DataAddress destination, @Nullable String selectionStrategy, @Nullable String transferType);
     
 
     /**

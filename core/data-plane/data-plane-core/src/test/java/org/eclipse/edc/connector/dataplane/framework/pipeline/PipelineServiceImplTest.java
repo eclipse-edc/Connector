@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -158,6 +159,31 @@ class PipelineServiceImplTest {
         boolean result = service.canHandle(dataFlow(source, destination).toRequest());
 
         assertThat(result).isEqualTo(expected);
+    }
+
+    @Nested
+    class SupportedTypes {
+
+        @Test
+        void shouldReturnSourceTypesFromFactories() {
+            when(sourceFactory.supportedType()).thenReturn("source");
+
+            var result = service.supportedSourceTypes();
+
+            assertThat(result).containsOnly("source");
+            verifyNoInteractions(sinkFactory);
+        }
+
+        @Test
+        void shouldReturnSinkTypesFromFactories() {
+            when(sinkFactory.supportedType()).thenReturn("sink");
+
+            var result = service.supportedSinkTypes();
+
+            assertThat(result).containsOnly("sink");
+            verifyNoInteractions(sourceFactory);
+        }
+
     }
 
     private DataFlow dataFlow(String sourceType, String destinationType) {

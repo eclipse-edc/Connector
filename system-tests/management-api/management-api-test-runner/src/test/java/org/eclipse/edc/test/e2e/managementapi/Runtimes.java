@@ -52,6 +52,7 @@ public interface Runtimes {
                 put("web.http.protocol.port", String.valueOf(ManagementApiEndToEndTestBase.PROTOCOL_PORT));
                 put("edc.dsp.callback.address", "http://localhost:" + ManagementApiEndToEndTestBase.PROTOCOL_PORT + "/protocol");
                 put("web.http.port", String.valueOf(getFreePort()));
+                put("web.http.control.port", String.valueOf(getFreePort()));
                 put("web.http.management.path", "/management");
                 put("web.http.management.port", String.valueOf(ManagementApiEndToEndTestBase.PORT));
             }

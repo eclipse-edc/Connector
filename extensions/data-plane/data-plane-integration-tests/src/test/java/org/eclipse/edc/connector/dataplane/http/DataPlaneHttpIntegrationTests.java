@@ -110,7 +110,6 @@ public class DataPlaneHttpIntegrationTests {
 
     @RegisterExtension
     static EdcRuntimeExtension dataPlane = new EdcRuntimeExtension(
-            ":launchers:data-plane-server",
             "data-plane-server",
             Map.of(
                     "web.http.public.port", valueOf(PUBLIC_API_PORT),
@@ -118,7 +117,16 @@ public class DataPlaneHttpIntegrationTests {
                     "web.http.control.port", valueOf(CONTROL_API_PORT),
                     "web.http.control.path", CONTROL_PATH,
                     "edc.dataplane.token.validation.endpoint", VALIDATION_API_HOST
-            ));
+            ),
+            ":extensions:common:metrics:micrometer-core",
+            ":core:data-plane:data-plane-core",
+            ":extensions:common:http",
+            ":extensions:common:json-ld",
+            ":extensions:common:configuration:configuration-filesystem",
+            ":extensions:data-plane:data-plane-http",
+            ":extensions:data-plane:data-plane-control-api",
+            ":extensions:data-plane:data-plane-public-api"
+    );
 
     @BeforeAll
     public static void setUp() {

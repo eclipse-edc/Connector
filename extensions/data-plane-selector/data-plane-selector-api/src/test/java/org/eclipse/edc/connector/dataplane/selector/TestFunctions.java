@@ -17,19 +17,14 @@ package org.eclipse.edc.connector.dataplane.selector;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Set;
 
-import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public class TestFunctions {
 
@@ -53,30 +48,9 @@ public class TestFunctions {
                 .add(ID, id);
     }
 
-    public static JsonObject createSelectionRequestJson(String srcType, String destType, String strategy) {
-        return Json.createObjectBuilder()
-                .add(SelectionRequest.SOURCE_ADDRESS, createDataAddress(srcType))
-                .add(SelectionRequest.DEST_ADDRESS, createDataAddress(destType))
-                .add(SelectionRequest.STRATEGY, strategy)
-                .build();
-    }
-
-    public static JsonObject createSelectionRequestJson(String srcType, String destType) {
-        return Json.createObjectBuilder()
-                .add(SelectionRequest.SOURCE_ADDRESS, createDataAddress(srcType))
-                .add(SelectionRequest.DEST_ADDRESS, createDataAddress(destType))
-                .build();
-    }
-
     public static DataPlaneInstance.Builder createInstanceBuilder(String id) {
         return DataPlaneInstance.Builder.newInstance()
                 .id(id)
                 .url("http://somewhere.com:1234/api/v1");
-    }
-
-    private static JsonObjectBuilder createDataAddress(String type) {
-        return createObjectBuilder()
-                .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, type);
     }
 }
