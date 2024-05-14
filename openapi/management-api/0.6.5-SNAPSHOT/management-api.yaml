@@ -873,7 +873,8 @@ paths:
     post:
       tags:
       - Dataplane Selector
-      description: Adds one dataplane instance to the internal database of the selector
+      description: "Adds one dataplane instance to the internal database of the selector.\
+        \ DEPRECATED: dataplanes should register themselves through control-api"
       operationId: addDataPlaneInstance
       requestBody:
         content:
@@ -896,6 +897,7 @@ paths:
                 example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+      deprecated: true
   /v2/dataplanes/select:
     post:
       tags:

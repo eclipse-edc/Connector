@@ -254,6 +254,78 @@ paths:
           description: Data transfer not handled by the data plane
         "409":
           description: Cannot terminate the transfer
+  /v1/dataplanes:
+    post:
+      tags:
+      - Dataplane Selector
+      description: Register new Dataplane
+      operationId: registerDataplane
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataPlaneInstanceSchema"
+      responses:
+        "200":
+          description: Dataplane successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdResponse"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: Resource already exists
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v1/dataplanes/{id}:
+    delete:
+      tags:
+      - Dataplane Selector
+      description: Unregister existing Dataplane
+      operationId: unregisterDataplane
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "204":
+          description: Dataplane successfully unregistered
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
 components:
   schemas:
     ApiErrorDetail:
@@ -390,6 +462,69 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@type': DataFlowTerminateMessage
         reason: reason
+    DataPlaneInstanceSchema:
+      required:
+      - '@context'
+      - '@id'
+      - allowedDestTypes
+      - allowedSourceTypes
+      - url
+      type: object
+      properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/DataPlaneInstance
+        allowedDestTypes:
+          uniqueItems: true
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+        allowedSourceTypes:
+          uniqueItems: true
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+        url:
+          type: string
+          format: url
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@id': your-dataplane-id
+        url: http://somewhere.com:1234/api/v1
+        allowedSourceTypes:
+        - source-type1
+        - source-type2
+        allowedDestTypes:
+        - your-dest-type
+        allowedTransferTypes:
+        - transfer-type
+    IdResponse:
+      type: object
+      properties:
+        '@id':
+          type: string
+          example: null
+        createdAt:
+          type: integer
+          format: int64
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@id': id-value
+        createdAt: 1688465655
     JsonObject:
       type: object
       properties:
