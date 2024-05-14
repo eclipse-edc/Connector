@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 import jakarta.json.Json;
 import org.eclipse.edc.api.transformer.JsonObjectFromIdResponseTransformer;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
+import org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
@@ -24,6 +25,7 @@ import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -34,11 +36,12 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTrans
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -57,9 +60,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
+class RemoteDataPlaneSelectorServiceTest {
 
-    private static final String BASE_URL = "http://localhost:%d/v2/dataplanes";
     private static final DataPlaneSelectorService SELECTOR_SERVICE_MOCK = mock();
     private static final TypeManager TYPE_MANAGER = new JacksonTypeManager();
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();
@@ -72,68 +74,107 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
         TYPE_MANAGER.registerContext(JSON_LD, JacksonJsonLd.createObjectMapper());
     }
 
-    @BeforeEach
-    void setUp() {
-        var factory = Json.createBuilderFactory(Map.of());
-        typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(factory));
-        typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
-        typeTransformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
-        typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(factory, JacksonJsonLd.createObjectMapper()));
-        typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
-        typeTransformerRegistry.register(new JsonObjectFromIdResponseTransformer(factory));
-        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(objectMapper));
-        var url = format(BASE_URL, port);
-        service = new RemoteDataPlaneSelectorService(testHttpClient(), url, JacksonJsonLd.createObjectMapper(), typeTransformerRegistry, "selectionStrategy");
+    @Nested
+    class Select extends RestControllerTestBase {
+
+        private static final String BASE_URL = "http://localhost:%d/v2/dataplanes";
+
+        @BeforeEach
+        void setUp() {
+            var factory = Json.createBuilderFactory(Map.of());
+            typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(factory));
+            typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
+            typeTransformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
+            typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(factory, JacksonJsonLd.createObjectMapper()));
+            typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
+            typeTransformerRegistry.register(new JsonObjectFromIdResponseTransformer(factory));
+            typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(objectMapper));
+            var url = format(BASE_URL, port);
+            service = new RemoteDataPlaneSelectorService(testHttpClient(), url, JacksonJsonLd.createObjectMapper(), typeTransformerRegistry, "selectionStrategy");
+        }
+
+        @Test
+        void getAll() {
+            when(SELECTOR_SERVICE_MOCK.getAll()).thenReturn(List.of(createInstance("test-inst1"), createInstance("test-inst2")));
+
+            var result = service.getAll();
+
+            assertThat(result).hasSize(2).extracting(DataPlaneInstance::getId).containsExactlyInAnyOrder("test-inst1", "test-inst2");
+        }
+
+        @Test
+        void find() {
+            var expected = createInstance("some-instance");
+            when(SELECTOR_SERVICE_MOCK.select(any(), any(), any(), any())).thenReturn(expected);
+
+            var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test2").build());
+
+            assertThat(result).usingRecursiveComparison().isEqualTo(expected);
+        }
+
+        @Test
+        void find_withTransferType() {
+            var expected = createInstance("some-instance");
+            when(SELECTOR_SERVICE_MOCK.select(any(), any(), eq("random"), eq("transferType"))).thenReturn(expected);
+
+            var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test2").build(), "random", "transferType");
+
+            assertThat(result).usingRecursiveComparison().isEqualTo(expected);
+        }
+
+        @Override
+        protected Object controller() {
+            return new DataplaneSelectorApiController(SELECTOR_SERVICE_MOCK, typeTransformerRegistry, validator, Clock.systemUTC());
+        }
+
+        @Override
+        protected Object additionalResource() {
+            return new JerseyJsonLdInterceptor(new TitaniumJsonLd(mock()), JacksonJsonLd.createObjectMapper(), "scope");
+        }
+
+
     }
 
-    @Test
-    void getAll() {
-        when(SELECTOR_SERVICE_MOCK.getAll()).thenReturn(List.of(createInstance("test-inst1"), createInstance("test-inst2")));
+    @Nested
+    class AddInstance extends RestControllerTestBase {
 
-        var result = service.getAll();
+        private static final String BASE_URL = "http://localhost:%d/v1/dataplanes";
 
-        assertThat(result).hasSize(2).extracting(DataPlaneInstance::getId).containsExactlyInAnyOrder("test-inst1", "test-inst2");
-    }
+        @BeforeEach
+        void setUp() {
+            var factory = Json.createBuilderFactory(Map.of());
+            typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(factory));
+            typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
+            typeTransformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
+            typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(factory, JacksonJsonLd.createObjectMapper()));
+            typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
+            typeTransformerRegistry.register(new JsonObjectFromIdResponseTransformer(factory));
+            typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(objectMapper));
+            var url = format(BASE_URL, port);
+            service = new RemoteDataPlaneSelectorService(testHttpClient(), url, JacksonJsonLd.createObjectMapper(), typeTransformerRegistry, "selectionStrategy");
+        }
 
-    @Test
-    void find() {
-        var expected = createInstance("some-instance");
-        when(SELECTOR_SERVICE_MOCK.select(any(), any(), any(), any())).thenReturn(expected);
+        @Test
+        void addInstance() {
+            when(validator.validate(any(), any())).thenReturn(ValidationResult.success());
+            when(SELECTOR_SERVICE_MOCK.addInstance(any())).thenReturn(ServiceResult.success());
+            var instance = createInstance("dataPlaneId");
 
-        var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test2").build());
+            var result = service.addInstance(instance);
 
-        assertThat(result).usingRecursiveComparison().isEqualTo(expected);
-    }
+            assertThat(result).isSucceeded();
+            verify(SELECTOR_SERVICE_MOCK).addInstance(any());
+        }
 
-    @Test
-    void find_withTransferType() {
-        var expected = createInstance("some-instance");
-        when(SELECTOR_SERVICE_MOCK.select(any(), any(), eq("random"), eq("transferType"))).thenReturn(expected);
+        @Override
+        protected Object controller() {
+            return new DataplaneSelectorControlApiController(validator, typeTransformerRegistry, SELECTOR_SERVICE_MOCK, Clock.systemUTC());
+        }
 
-        var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test2").build(), "random", "transferType");
-
-        assertThat(result).usingRecursiveComparison().isEqualTo(expected);
-    }
-
-    @Test
-    @Disabled // this will be tested when there will be a clear separation between the selector management and control api
-    void addInstance() {
-        var instance = createInstance("dataPlaneId");
-
-        var result = service.addInstance(instance);
-
-        assertThat(result).isSucceeded();
-        verify(SELECTOR_SERVICE_MOCK).addInstance(eq(instance));
-    }
-
-    @Override
-    protected Object controller() {
-        return new DataplaneSelectorApiController(SELECTOR_SERVICE_MOCK, typeTransformerRegistry, validator, Clock.systemUTC());
-    }
-
-    @Override
-    protected Object additionalResource() {
-        return new JerseyJsonLdInterceptor(new TitaniumJsonLd(mock()), JacksonJsonLd.createObjectMapper(), "scope");
+        @Override
+        protected Object additionalResource() {
+            return new JerseyJsonLdInterceptor(new TitaniumJsonLd(mock()), JacksonJsonLd.createObjectMapper(), "scope");
+        }
     }
 
     private DataPlaneInstance createInstance(String id) {
@@ -142,4 +183,5 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
                 .url("http://somewhere.com:1234/api/v1")
                 .build();
     }
+
 }

@@ -124,9 +124,12 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
     @Override
     public ServiceResult<Void> addInstance(DataPlaneInstance instance) {
-        var jsonObject = typeTransformerRegistry.transform(instance, JsonObject.class).getContent();
+        var transform = typeTransformerRegistry.transform(instance, JsonObject.class);
+        if (transform.failed()) {
+            return ServiceResult.badRequest(transform.getFailureDetail());
+        }
 
-        var requestBody = Json.createObjectBuilder(jsonObject)
+        var requestBody = Json.createObjectBuilder(transform.getContent())
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .build();
         var body = RequestBody.create(requestBody.toString(), TYPE_JSON);
