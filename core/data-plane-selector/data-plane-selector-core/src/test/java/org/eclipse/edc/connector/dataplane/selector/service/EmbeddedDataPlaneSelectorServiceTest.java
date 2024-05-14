@@ -19,14 +19,17 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategy;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.TestFunctions.createAddress;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -46,20 +49,31 @@ public class EmbeddedDataPlaneSelectorServiceTest {
         when(selectionStrategy.apply(any())).thenAnswer(it -> instances.get(0));
         when(selectionStrategyRegistry.find(any())).thenReturn(selectionStrategy);
 
-        var result = selector.select(createAddress("srcTestType"), createAddress("destTestType"), "strategy", "transferType");
+        var result = selector.select(createAddress("srcTestType"), "transferType", "strategy");
 
-        assertThat(result).isNotNull().extracting(DataPlaneInstance::getId).isEqualTo("instance0");
+        assertThat(result).isSucceeded().extracting(DataPlaneInstance::getId).isEqualTo("instance0");
         verify(selectionStrategyRegistry).find("strategy");
     }
 
     @Test
-    void select_shouldThrowException_whenStrategyNotFound() {
+    void select_shouldReturnBadRequest_whenStrategyNotFound() {
         var instances = IntStream.range(0, 10).mapToObj(i -> createInstanceMock("instance" + i, "srcTestType", "destTestType")).toList();
         when(store.getAll()).thenReturn(instances.stream());
         when(selectionStrategyRegistry.find(any())).thenReturn(null);
 
-        assertThatThrownBy(() -> selector.select(createAddress("srcTestType"), createAddress("destTestType"), "strategy", "transferType"))
-                .isInstanceOf(IllegalArgumentException.class);
+        var result = selector.select(createAddress("srcTestType"), "transferType", "strategy");
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+    }
+
+    @Test
+    void select_shouldReturnNotFound_whenInstanceNotFound() {
+        when(store.getAll()).thenReturn(Stream.empty());
+        when(selectionStrategyRegistry.find(any())).thenReturn(mock());
+
+        var result = selector.select(createAddress("srcTestType"), "transferType", "strategy");
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
     }
 
     private DataPlaneInstance createInstanceMock(String id, String srcType, String destType) {

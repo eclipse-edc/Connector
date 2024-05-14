@@ -32,6 +32,6 @@ public class ServiceFailure extends Failure {
     }
 
     public enum Reason {
-        NOT_FOUND, CONFLICT, BAD_REQUEST, UNAUTHORIZED
+        NOT_FOUND, CONFLICT, BAD_REQUEST, UNAUTHORIZED, UNEXPECTED
     }
 }

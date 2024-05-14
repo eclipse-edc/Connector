@@ -33,7 +33,17 @@ public interface DataPlaneSelectorService {
     /**
      * Returns all {@link DataPlaneInstance}s known in the system
      */
-    List<DataPlaneInstance> getAll();
+    ServiceResult<List<DataPlaneInstance>> getAll();
+
+    /**
+     * Select the {@link DataPlaneInstance} that can handle the source and the transferType using the passed strategy
+     *
+     * @param source            the source.
+     * @param transferType      the transfer type.
+     * @param selectionStrategy the selection strategy.
+     * @return the DataPlaneInstance, null if not found.
+     */
+    ServiceResult<DataPlaneInstance> select(DataAddress source, String transferType, @Nullable String selectionStrategy);
 
     /**
      * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the configured
@@ -60,9 +70,18 @@ public interface DataPlaneSelectorService {
     /**
      * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the passed
      * strategy and the optional transferType.
+     *
+     * @deprecated please use {@link #select(DataAddress, String, String)}.
      */
-    DataPlaneInstance select(DataAddress source, DataAddress destination, @Nullable String selectionStrategy, @Nullable String transferType);
-    
+    @Deprecated(since = "0.6.4")
+    default DataPlaneInstance select(DataAddress source, DataAddress destination, @Nullable String selectionStrategy, @Nullable String transferType) {
+        var selection = select(source, transferType, selectionStrategy);
+        if (selection.succeeded()) {
+            return selection.getContent();
+        } else {
+            return null;
+        }
+    }
 
     /**
      * Add a data plane instance

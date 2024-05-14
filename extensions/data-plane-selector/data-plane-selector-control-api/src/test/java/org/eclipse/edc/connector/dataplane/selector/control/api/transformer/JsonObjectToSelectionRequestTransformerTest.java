@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,23 +12,20 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.transformer;
+package org.eclipse.edc.connector.dataplane.selector.control.api.transformer;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.DEST_ADDRESS;
-import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.SOURCE_ADDRESS;
-import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.STRATEGY;
-import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.TRANSFER_TYPE;
+import static org.eclipse.edc.connector.dataplane.selector.control.api.model.SelectionRequest.DEST_ADDRESS;
+import static org.eclipse.edc.connector.dataplane.selector.control.api.model.SelectionRequest.SOURCE_ADDRESS;
+import static org.eclipse.edc.connector.dataplane.selector.control.api.model.SelectionRequest.STRATEGY;
+import static org.eclipse.edc.connector.dataplane.selector.control.api.model.SelectionRequest.TRANSFER_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -37,19 +34,14 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToSelectionRequestTransformerTest {
 
-    private final JsonObjectToSelectionRequestTransformer transformer = new JsonObjectToSelectionRequestTransformer();
     private final TransformerContext context = mock();
+    private final JsonObjectToSelectionRequestTransformer transformer = new JsonObjectToSelectionRequestTransformer();
 
-    @BeforeEach
-    void setUp() {
+    @Test
+    void transform() {
         when(context.transform(isA(JsonObject.class), eq(DataAddress.class))).thenReturn(DataAddress.Builder.newInstance().type("test-type").build());
-    }
 
-    @ParameterizedTest
-    @ValueSource(strings = "test-strategy")
-    @NullSource
-    void transform(String strategy) {
-        var builder = Json.createObjectBuilder()
+        var jsonObject = Json.createObjectBuilder()
                 .add(SOURCE_ADDRESS, createObjectBuilder()
                         .add(TYPE, DataAddress.EDC_DATA_ADDRESS_TYPE)
                         .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, "test-type")
@@ -60,18 +52,17 @@ class JsonObjectToSelectionRequestTransformerTest {
                         .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, "test-type")
                         .add(DataAddress.EDC_DATA_ADDRESS_KEY_NAME, "test-key")
                 )
-                .add(TRANSFER_TYPE, "transfer-type");
-        if (strategy != null) {
-            builder.add(STRATEGY, strategy);
-        }
-        var jsonObject = builder.build();
+                .add(TRANSFER_TYPE, "transfer-type")
+                .add(STRATEGY, "strategy")
+                .build();
 
-        var rq = transformer.transform(jsonObject, context);
-        assertThat(rq).isNotNull();
-        assertThat(rq.getStrategy()).isEqualTo(strategy);
-        assertThat(rq.getDestination()).isNotNull();
-        assertThat(rq.getSource()).isNotNull();
-        assertThat(rq.getTransferType()).isEqualTo("transfer-type");
+        var result = transformer.transform(jsonObject, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStrategy()).isEqualTo("strategy");
+        assertThat(result.getDestination()).isNotNull();
+        assertThat(result.getSource()).isNotNull();
+        assertThat(result.getTransferType()).isEqualTo("transfer-type");
     }
 
 }

@@ -113,7 +113,7 @@ public interface AssetApi {
             ManagementApiSchema.FreeFormPropertiesSchema properties,
             ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             @Schema(requiredMode = REQUIRED)
-            ManagementApiSchema.DataAddressSchema dataAddress
+            ApiCoreSchema.DataAddressSchema dataAddress
     ) {
         public static final String ASSET_INPUT_EXAMPLE = """
                 {
@@ -142,7 +142,7 @@ public interface AssetApi {
             String type,
             ManagementApiSchema.FreeFormPropertiesSchema properties,
             ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
-            ManagementApiSchema.DataAddressSchema dataAddress,
+            ApiCoreSchema.DataAddressSchema dataAddress,
             long createdAt
     ) {
         public static final String ASSET_OUTPUT_EXAMPLE = """

@@ -66,12 +66,12 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
         var request = transformerRegistry.transform(requestObject, SelectionRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        var dpi = catchException(() -> selectionService.select(request.getSource(), request.getDestination(), request.getStrategy(), request.getTransferType()));
+        var selection = selectionService.select(request.getSource(), request.getTransferType(), request.getStrategy());
 
-        if (dpi == null) {
+        if (selection.failed()) {
             return null;
         }
-        return transformerRegistry.transform(dpi, JsonObject.class)
+        return transformerRegistry.transform(selection.getContent(), JsonObject.class)
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
@@ -98,7 +98,11 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
     @Override
     @GET
     public JsonArray getAllDataPlaneInstances() {
-        var instances = selectionService.getAll();
+        var result = selectionService.getAll();
+        if (result.failed()) {
+            throw new EdcException(result.getFailureDetail());
+        }
+        var instances = result.getContent();
         return instances.stream()
                 .map(i -> transformerRegistry.transform(i, JsonObject.class))
                 .filter(Result::succeeded)

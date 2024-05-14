@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.FlowTypeExtracto
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
@@ -33,8 +34,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -83,7 +86,6 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, propertiesResult.getFailureDetail());
         }
 
-        var dataPlaneInstance = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getDataDestination(), selectionStrategy, transferProcess.getTransferType());
         var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(transferProcess.getId())
@@ -97,44 +99,64 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .properties(propertiesResult.getContent())
                 .build();
 
-        var dataPlaneInstanceId = dataPlaneInstance != null ? dataPlaneInstance.getId() : null;
-
-        return clientFactory.createClient(dataPlaneInstance)
-                .start(dataFlowRequest)
-                .map(it -> DataFlowResponse.Builder.newInstance()
-                        .dataAddress(it.getDataAddress())
-                        .dataPlaneId(dataPlaneInstanceId)
-                        .build()
-                );
+        var selection = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getTransferType(), selectionStrategy);
+        if (selection.succeeded()) {
+            var dataPlaneInstance = selection.getContent();
+            return clientFactory.createClient(dataPlaneInstance)
+                    .start(dataFlowRequest)
+                    .map(it -> DataFlowResponse.Builder.newInstance()
+                            .dataAddress(it.getDataAddress())
+                            .dataPlaneId(dataPlaneInstance.getId())
+                            .build()
+                    );
+        } else {
+            // TODO: this branch works for embedded data plane but it is a potential false positive when the dataplane is not found, needs to be refactored
+            return clientFactory.createClient(null)
+                    .start(dataFlowRequest)
+                    .map(it -> DataFlowResponse.Builder.newInstance()
+                            .dataAddress(it.getDataAddress())
+                            .dataPlaneId(null)
+                            .build()
+                    );
+        }
     }
 
     @Override
     public StatusResult<Void> suspend(TransferProcess transferProcess) {
-        return selectorClient.getAll().stream()
-                .filter(dataPlaneInstanceFilter(transferProcess))
-                .map(clientFactory::createClient)
-                .map(client -> client.suspend(transferProcess.getId()))
-                .reduce(StatusResult::merge)
-                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to select the data plane for suspending the transfer process %s".formatted(transferProcess.getId())));
+        return onDataplaneInstancesDo("suspending", transferProcess, DataPlaneClient::suspend);
     }
 
     @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
-        return selectorClient.getAll().stream()
-                .filter(dataPlaneInstanceFilter(transferProcess))
-                .map(clientFactory::createClient)
-                .map(client -> client.terminate(transferProcess.getId()))
-                .reduce(StatusResult::merge)
-                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to select the data plane for terminating the transfer process %s".formatted(transferProcess.getId())));
+        return onDataplaneInstancesDo("terminating", transferProcess, DataPlaneClient::terminate);
     }
 
     @Override
     public Set<String> transferTypesFor(Asset asset) {
-        return selectorClient.getAll().stream()
+        var result = selectorClient.getAll();
+        if (result.failed()) {
+            return emptySet();
+        }
+
+        return result.getContent().stream()
                 .filter(it -> it.getAllowedSourceTypes().contains(asset.getDataAddress().getType()))
                 .map(DataPlaneInstance::getAllowedTransferTypes)
                 .flatMap(Collection::stream)
                 .collect(toSet());
+    }
+
+    private StatusResult<Void> onDataplaneInstancesDo(String name, TransferProcess transferProcess, BiFunction<DataPlaneClient, String, StatusResult<Void>> action) {
+        var result = selectorClient.getAll();
+        if (result.failed()) {
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, result.getFailureDetail());
+        }
+
+        return result.getContent().stream()
+                .filter(dataPlaneInstanceFilter(transferProcess))
+                .map(clientFactory::createClient)
+                .map(client -> action.apply(client, transferProcess.getId()))
+                .reduce(StatusResult::merge)
+                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to select the data plane for %s the transfer process %s".formatted(name, transferProcess.getId())));
     }
 
     private Predicate<DataPlaneInstance> dataPlaneInstanceFilter(TransferProcess transferProcess) {

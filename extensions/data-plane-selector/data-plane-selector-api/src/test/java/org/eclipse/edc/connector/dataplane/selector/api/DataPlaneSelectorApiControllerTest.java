@@ -48,6 +48,7 @@ import static org.hamcrest.Matchers.equalTo;
 @ComponentTest
 @ExtendWith(EdcExtension.class)
 public class DataPlaneSelectorApiControllerTest {
+
     private static final int PORT = 8181;
 
     @Test
@@ -68,7 +69,6 @@ public class DataPlaneSelectorApiControllerTest {
 
     @Test
     void getAll_noneExist() {
-
         var array = baseRequest()
                 .get()
                 .then()
@@ -195,13 +195,12 @@ public class DataPlaneSelectorApiControllerTest {
 
         var rq = createSelectionRequestJson("test-src1", "test-dst2", "notexist", "transfer-type1");
 
-
         baseRequest()
                 .body(rq)
                 .contentType(JSON)
                 .post("/select")
                 .then()
-                .statusCode(400);
+                .statusCode(204);
     }
 
     @Test

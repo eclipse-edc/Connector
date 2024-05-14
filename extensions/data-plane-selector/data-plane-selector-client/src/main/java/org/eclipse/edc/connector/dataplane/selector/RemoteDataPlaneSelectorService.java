@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.connector.dataplane.selector;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.EdcHttpClient;
@@ -31,10 +31,11 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.util.string.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static java.lang.String.format;
@@ -48,10 +49,6 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
     private static final String SELECT_PATH = "/select";
-    private static final TypeReference<JsonObject> JSON_OBJECT = new TypeReference<>() {
-    };
-    private static final TypeReference<List<JsonObject>> LIST_JSON_OBJECT = new TypeReference<>() {
-    };
     private final EdcHttpClient httpClient;
     private final String url;
     private final ObjectMapper mapper;
@@ -68,57 +65,51 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
     }
 
     @Override
-    public List<DataPlaneInstance> getAll() {
-        try {
-            var request = new Request.Builder().get().url(url).build();
-
-            try (var response = httpClient.execute(request)) {
-
-                return handleResponse(response, LIST_JSON_OBJECT, Collections.emptyList()).stream()
+    public ServiceResult<List<DataPlaneInstance>> getAll() {
+        var request = new Request.Builder().get().url(url).build();
+        return request(request)
+                .compose(this::toJsonArray)
+                .map(it -> it.stream()
                         .map(j -> typeTransformerRegistry.transform(j, DataPlaneInstance.class))
                         .filter(Result::succeeded)
                         .map(Result::getContent)
-                        .toList();
-            }
-        } catch (IOException e) {
-            throw new EdcException(e);
-        }
+                        .toList()
+                );
     }
 
     @Override
-    public DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy, String transferType) {
+    public ServiceResult<DataPlaneInstance> select(DataAddress source, String transferType, @Nullable String selectionStrategy) {
         var srcAddress = typeTransformerRegistry.transform(source, JsonObject.class).orElseThrow(f -> new EdcException(f.getFailureDetail()));
-        var dstAddress = typeTransformerRegistry.transform(destination, JsonObject.class).orElseThrow(f -> new EdcException(f.getFailureDetail()));
         var jsonObject = Json.createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(TYPE, EDC_NAMESPACE + "SelectionRequest")
                 .add(EDC_NAMESPACE + "source", srcAddress)
-                .add(EDC_NAMESPACE + "destination", dstAddress);
+                .add(EDC_NAMESPACE + "strategy", Optional.ofNullable(selectionStrategy).orElse(this.selectionStrategy))
+                .add(EDC_NAMESPACE + "transferType", transferType)
+                .build();
 
-        if (selectionStrategy != null) {
-            jsonObject.add(EDC_NAMESPACE + "strategy", selectionStrategy);
-        } else {
-            jsonObject.add(EDC_NAMESPACE + "strategy", this.selectionStrategy);
-        }
-
-        if (transferType != null) {
-            jsonObject.add(EDC_NAMESPACE + "transferType", transferType);
-        }
-
-        var body = RequestBody.create(jsonObject.build().toString(), TYPE_JSON);
+        var body = RequestBody.create(jsonObject.toString(), TYPE_JSON);
 
         var request = new Request.Builder().post(body).url(url + SELECT_PATH).build();
 
-        try {
-            try (var response = httpClient.execute(request)) {
+        return request(request).compose(this::toJsonObject)
+                .map(it -> typeTransformerRegistry.transform(it, DataPlaneInstance.class))
+                .compose(ServiceResult::from);
+    }
 
-                var jo = handleResponse(response, JSON_OBJECT, null);
-                return jo != null ?
-                        typeTransformerRegistry.transform(jo, DataPlaneInstance.class)
-                                .orElseThrow(f -> new EdcException(f.getFailureDetail())) : null;
-            }
-        } catch (IOException e) {
-            throw new EdcException(e);
+    private ServiceResult<JsonObject> toJsonObject(String it) {
+        try {
+            return ServiceResult.success(mapper.readValue(it, JsonObject.class));
+        } catch (JsonProcessingException e) {
+            return ServiceResult.unexpected("Cannot deserialize response body as JsonObject");
+        }
+    }
+
+    private ServiceResult<JsonArray> toJsonArray(String it) {
+        try {
+            return ServiceResult.success(mapper.readValue(it, JsonArray.class));
+        } catch (JsonProcessingException e) {
+            return ServiceResult.unexpected("Cannot deserialize response body as JsonObject");
         }
     }
 
@@ -136,43 +127,35 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
         var request = new Request.Builder().post(body).url(url).build();
 
-        try {
-            try (var response = httpClient.execute(request)) {
-
-                handleResponse(response, null, null);
-                return ServiceResult.success();
-            }
-        } catch (IOException e) {
-            return ServiceResult.badRequest(e.getMessage());
-        }
+        return request(request).map(it -> null);
     }
 
-    private <R> R handleResponse(Response response, TypeReference<? extends R> tr, R defaultValue) {
-        try (var responseBody = response.body()) {
+    private <R> ServiceResult<String> request(Request request) {
+        try (
+                var response = httpClient.execute(request);
+                var responseBody = response.body();
+        ) {
             var bodyAsString = responseBody == null ? null : responseBody.string();
             if (response.isSuccessful()) {
                 if (StringUtils.isNullOrEmpty(bodyAsString)) {
-                    return null;
+                    return ServiceResult.badRequest("Response body is null or empty");
                 }
 
-                if (tr != null) {
-                    var r = mapper.readValue(bodyAsString, tr);
-                    return r == null ? defaultValue : r;
-                } else {
-                    return null;
-                }
+                return ServiceResult.success(bodyAsString);
 
             } else {
                 return switch (response.code()) {
-                    case 400 -> throw new IllegalArgumentException("Remote API returned HTTP 400. " + bodyAsString);
-                    case 404 -> null;
-                    default ->
-                            throw new IllegalArgumentException(format("An unknown error happened, HTTP Status = %d", response.code()));
+                    case 400 -> ServiceResult.badRequest("Remote API returned HTTP 400. " + bodyAsString);
+                    case 401, 403 -> ServiceResult.unauthorized("Unauthorized. " + bodyAsString);
+                    case 404 -> ServiceResult.notFound("Remote API returned HTTP 404." + bodyAsString);
+                    case 409 -> ServiceResult.conflict("Remote API returned HTTP 409." + bodyAsString);
+                    default -> ServiceResult.unexpected(format("An unknown error happened, HTTP Status = %d. Body %s", response.code(), bodyAsString));
                 };
             }
-        } catch (IOException e) {
-            throw new EdcException(e);
+        } catch (IOException exception) {
+            return ServiceResult.unexpected("Unexpected IOException. " + exception.getMessage());
         }
     }
+
 
 }

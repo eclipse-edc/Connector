@@ -24,14 +24,15 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNEXPECTED;
 
 /**
  * Result type for a service invocation.
  */
 public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceResult<T>> {
 
-    protected ServiceResult(T content, ServiceFailure failure) {
-        super(content, failure);
+    public static <T> ServiceResult<T> success() {
+        return ServiceResult.success(null);
     }
 
     public static <T> ServiceResult<T> success(T content) {
@@ -54,8 +55,16 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
         return new ServiceResult<>(null, new ServiceFailure(messages, BAD_REQUEST));
     }
 
-    public static <T> ServiceResult<T> success() {
-        return ServiceResult.success(null);
+    public static <T> ServiceResult<T> unexpected(String... message) {
+        return new ServiceResult<>(null, new ServiceFailure(List.of(message), UNEXPECTED));
+    }
+
+    public static <T> ServiceResult<T> from(Result<T> result) {
+        if (result.succeeded()) {
+            return ServiceResult.success(result.getContent());
+        } else {
+            return ServiceResult.unexpected(result.getFailureDetail());
+        }
     }
 
     public static <T> ServiceResult<T> from(StoreResult<T> storeResult) {
@@ -100,6 +109,10 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
 
     public ServiceFailure.Reason reason() {
         return getFailure().getReason();
+    }
+
+    protected ServiceResult(T content, ServiceFailure failure) {
+        super(content, failure);
     }
 
     @Override

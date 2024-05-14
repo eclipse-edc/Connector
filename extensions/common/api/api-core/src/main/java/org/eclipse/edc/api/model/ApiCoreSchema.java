@@ -16,6 +16,7 @@ package org.eclipse.edc.api.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.List;
 
@@ -100,6 +101,23 @@ public interface ApiCoreSchema {
                     "type": "ErrorType",
                     "path": "object.error.path",
                     "invalidValue": "this value is not valid"
+                }
+                """;
+    }
+
+    @Schema(name = "DataAddress", additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
+    record DataAddressSchema(
+            @Schema(name = TYPE, example = DataAddress.EDC_DATA_ADDRESS_TYPE)
+            String type,
+            @Schema(name = "type")
+            String typeProperty
+    ) {
+        public static final String DATA_ADDRESS_EXAMPLE = """
+                {
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@type": "https://w3id.org/edc/v0.0.1/ns/DataAddress",
+                    "type": "HttpData",
+                    "baseUrl": "http://example.com"
                 }
                 """;
     }
