@@ -133,7 +133,8 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         public JsonObject visitAtomicConstraint(AtomicConstraint atomicConstraint) {
             var constraintBuilder = jsonFactory.createObjectBuilder();
 
-            constraintBuilder.add(ODRL_LEFT_OPERAND_ATTRIBUTE, atomicConstraint.getLeftExpression().accept(this));
+            var leftOperand = atomicConstraint.getLeftExpression().accept((expression) -> expression.getValue().toString());
+            constraintBuilder.add(ODRL_LEFT_OPERAND_ATTRIBUTE, jsonFactory.createArrayBuilder().add(jsonFactory.createObjectBuilder().add(ID, leftOperand)));
             var operator = atomicConstraint.getOperator().getOdrlRepresentation();
             constraintBuilder.add(ODRL_OPERATOR_ATTRIBUTE, jsonFactory.createArrayBuilder().add(jsonFactory.createObjectBuilder().add(ID, operator)));
             constraintBuilder.add(ODRL_RIGHT_OPERAND_ATTRIBUTE, atomicConstraint.getRightExpression().accept(this));
