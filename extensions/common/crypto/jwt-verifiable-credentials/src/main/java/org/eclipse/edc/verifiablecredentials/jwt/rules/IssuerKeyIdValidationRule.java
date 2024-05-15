@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.verifiablecredentials.jwt.rules;
 
+import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationRule;
@@ -38,7 +39,7 @@ public class IssuerKeyIdValidationRule implements TokenValidationRule {
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
-        var iss = toVerify.getStringClaim("iss");
+        var iss = toVerify.getStringClaim(JwtRegisteredClaimNames.ISSUER);
         // keyID MUST be a composite of the issuer and the key-id in the form <ISSUER>#<keyID>
         return keyId.matches("%s#.*".formatted(iss)) ? Result.success() : Result.failure("kid header '%s' expected to correlate to 'iss' claim ('%s'), but it did not.".formatted(keyId, iss));
     }
