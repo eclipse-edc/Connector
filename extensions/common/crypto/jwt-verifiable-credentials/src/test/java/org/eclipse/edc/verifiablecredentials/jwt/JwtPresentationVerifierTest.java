@@ -18,9 +18,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
@@ -34,7 +39,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Date;
+import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -48,6 +56,7 @@ import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VC_CONTENT
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_CONTENT_TEMPLATE;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_HOLDER_ID;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestFunctions.createPublicKey;
+import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -240,6 +249,105 @@ class JwtPresentationVerifierTest {
         var result = verifier.verify(vpJwt, context);
         assertThat(result).isFailed().detail().contains("Token audience claim (aud -> [invalid-vp-audience]) did not contain expected audience: did:web:myself");
     }
+
+    @Test
+    void verifyPresentation_jwtVpHasSpoofedKidClaim() throws JOSEException {
+
+        var spoofedKey = new ECKeyGenerator(Curve.P_256).keyID("did:web:attacker#violating-key").generate();
+
+        when(publicKeyResolverMock.resolveKey(endsWith("violating-key"))).thenReturn(success(createPublicKey(spoofedKey.toPublicJWK())));
+
+        // create first VC-JWT (signed by the central issuer)
+        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
+
+        var vpContent = VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"");
+
+
+        String vpJwt;
+        try {
+            var signer = new ECDSASigner(spoofedKey.toECPrivateKey());
+
+            // Prepare JWT with claims set
+            var now = Date.from(Instant.now());
+            var claimsSet = new JWTClaimsSet.Builder()
+                    .issuer(VP_HOLDER_ID)
+                    .subject("testSub")
+                    .issueTime(now)
+                    .audience(MY_OWN_DID)
+                    .notBeforeTime(now)
+                    .claim("jti", UUID.randomUUID().toString())
+                    .expirationTime(Date.from(Instant.now().plusSeconds(60)));
+
+            Map.of("vp", asMap(vpContent)).forEach(claimsSet::claim);
+
+            var signedJwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(spoofedKey.getKeyID()).build(), claimsSet.build());
+
+            signedJwt.sign(signer);
+
+            vpJwt = signedJwt.serialize();
+
+        } catch (JOSEException e) {
+            throw new RuntimeException(e);
+        }
+        var context = VerifierContext.Builder.newInstance()
+                .verifier(verifier)
+                .audience(MY_OWN_DID)
+                .build();
+        var result = verifier.verify(vpJwt, context);
+
+        assertThat(result)
+                .isFailed()
+                .detail()
+                .isEqualTo("kid header 'did:web:attacker#violating-key' expected to correlate to 'iss' claim ('did:web:test-issuer'), but it did not.");
+    }
+
+    @Test
+    void verifyCredential_jwtVpHasSpoofedKidClaim() throws JOSEException {
+
+        var spoofedKey = new ECKeyGenerator(Curve.P_256).keyID("did:web:attacker#violating-key").generate();
+
+        when(publicKeyResolverMock.resolveKey(endsWith("violating-key"))).thenReturn(success(createPublicKey(spoofedKey.toPublicJWK())));
+
+        // create first VC-JWT (signed by the central issuer)
+
+        String vcJwt1;
+        try {
+            var signer = new ECDSASigner(spoofedKey.toECPrivateKey());
+
+            // Prepare JWT with claims set
+            var now = Date.from(Instant.now());
+            var claimsSet = new JWTClaimsSet.Builder()
+                    .issuer(CENTRAL_ISSUER_DID)
+                    .subject("degreeSub")
+                    .issueTime(now)
+                    .audience(VP_HOLDER_ID)
+                    .notBeforeTime(now)
+                    .claim("jti", UUID.randomUUID().toString())
+                    .expirationTime(Date.from(Instant.now().plusSeconds(60)));
+
+            Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE).forEach(claimsSet::claim);
+
+            var signedJwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(spoofedKey.getKeyID()).build(), claimsSet.build());
+
+            signedJwt.sign(signer);
+
+            vcJwt1 = signedJwt.serialize();
+
+        } catch (JOSEException e) {
+            throw new RuntimeException(e);
+        }
+        var context = VerifierContext.Builder.newInstance()
+                .verifier(verifier)
+                .audience(MY_OWN_DID)
+                .build();
+        var result = verifier.verify(vcJwt1, context);
+
+        assertThat(result)
+                .isFailed()
+                .detail()
+                .isEqualTo("kid header 'did:web:attacker#violating-key' expected to correlate to 'iss' claim ('did:web:some-official-issuer'), but it did not.");
+    }
+
 
     private Map<String, Object> asMap(String rawContent) {
         try {
