@@ -36,6 +36,10 @@ import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import java.net.URI;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -93,6 +97,9 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         context.registerService(ControlApiConfiguration.class, new ControlApiConfiguration(config));
         context.registerService(ControlApiUrl.class, callbackAddress);
+
+        jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_SCOPE);
+        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_SCOPE);
 
         webService.registerResource(SETTINGS.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(SETTINGS.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, CONTROL_SCOPE));

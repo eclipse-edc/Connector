@@ -16,6 +16,12 @@ package org.eclipse.edc.connector.api.signaling.configuration;
 
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 
+/**
+ * Signaling api configuration
+ *
+ * @deprecated ControlApiConfiguration should be used instead.
+ */
+@Deprecated(since = "0.6.4")
 public class SignalingApiConfiguration extends WebServiceConfiguration {
 
     public SignalingApiConfiguration(String contextAlias) {
