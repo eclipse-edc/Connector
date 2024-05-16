@@ -26,6 +26,7 @@ import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -110,8 +111,11 @@ public class JwtPresentationVerifier implements CredentialVerifier {
         try {
             // obtain the actual JSON structure
             var signedJwt = SignedJWT.parse(serializedJwt);
+            var keyId = signedJwt.getHeader().getKeyID();
             if (isCredential(signedJwt)) {
-                return tokenValidationService.validate(serializedJwt, publicKeyResolver, tokenValidationRulesRegistry.getRules(JWT_VC_TOKEN_CONTEXT))
+                var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(JWT_VC_TOKEN_CONTEXT));
+                rules.add(new IssuerKeyIdValidationRule(keyId));
+                return tokenValidationService.validate(serializedJwt, publicKeyResolver, rules)
                         .mapTo();
             }
 
@@ -120,7 +124,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             }
 
             //we can be sure to have a presentation token
-            verificationResult = tokenValidationService.validate(serializedJwt, publicKeyResolver, vpValidationRules(context.getAudience()));
+            verificationResult = tokenValidationService.validate(serializedJwt, publicKeyResolver, vpValidationRules(context.getAudience(), keyId));
 
             var vpClaim = (Map<String, Object>) signedJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
 
@@ -145,16 +149,18 @@ public class JwtPresentationVerifier implements CredentialVerifier {
         return verificationResult.mapTo();
     }
 
-    private List<TokenValidationRule> vpValidationRules(String audience) {
+    private List<TokenValidationRule> vpValidationRules(String audience, String keyId) {
 
+        var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(JWT_VP_TOKEN_CONTEXT));
+        rules.add(new IssuerKeyIdValidationRule(keyId));
         return Optional.ofNullable(audience)
                 .map(aud -> {
-                    List<TokenValidationRule> r = new ArrayList<>(tokenValidationRulesRegistry.getRules(JWT_VP_TOKEN_CONTEXT));
+                    List<TokenValidationRule> r = new ArrayList<>(rules);
                     var audRule = new AudienceValidationRule(audience);
                     r.add(audRule);
                     return r;
                 })
-                .orElse(tokenValidationRulesRegistry.getRules(JWT_VP_TOKEN_CONTEXT));
+                .orElse(rules);
 
     }
 
