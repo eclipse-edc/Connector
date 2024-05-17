@@ -88,4 +88,15 @@ class DataplaneSelfRegistrationExtensionTest {
 
         assertThatThrownBy(extension::start).isInstanceOf(EdcException.class);
     }
+
+    @Test
+    void shouldUnregisterInstanceAtStartup(DataplaneSelfRegistrationExtension extension, ServiceExtensionContext context) {
+        when(context.getRuntimeId()).thenReturn("runtimeId");
+        when(dataPlaneSelectorService.delete(any())).thenReturn(ServiceResult.success());
+        extension.initialize(context);
+
+        extension.shutdown();
+
+        verify(dataPlaneSelectorService).delete("runtimeId");
+    }
 }

@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -140,6 +141,36 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
                     .post("/v1/dataplanes")
                     .then()
                     .statusCode(500);
+        }
+    }
+
+    @Nested
+    class Unregister {
+
+        @Test
+        void shouldDeleteInstance() {
+            when(service.delete(any())).thenReturn(ServiceResult.success());
+            var instanceId = UUID.randomUUID().toString();
+
+            given()
+                    .port(port)
+                    .delete("/v1/dataplanes/{id}", instanceId)
+                    .then()
+                    .statusCode(204);
+
+            verify(service).delete(instanceId);
+        }
+
+        @Test
+        void shouldReturnNotFound_whenServiceReturnsNotFound() {
+            when(service.delete(any())).thenReturn(ServiceResult.notFound("not found"));
+            var instanceId = UUID.randomUUID().toString();
+
+            given()
+                    .port(port)
+                    .delete("/v1/dataplanes/{id}", instanceId)
+                    .then()
+                    .statusCode(404);
         }
     }
 

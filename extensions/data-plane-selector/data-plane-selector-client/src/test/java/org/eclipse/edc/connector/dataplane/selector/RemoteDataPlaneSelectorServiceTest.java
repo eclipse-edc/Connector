@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -35,13 +36,16 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -92,6 +96,31 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
         var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), "transferType", "random");
 
         assertThat(result).isSucceeded().usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void shouldDelete() {
+            var instanceId = UUID.randomUUID().toString();
+            when(serverService.delete(any())).thenReturn(ServiceResult.success());
+
+            var result = service.delete(instanceId);
+
+            assertThat(result).isSucceeded();
+            verify(serverService).delete(instanceId);
+        }
+
+        @Test
+        void shouldFail_whenNotFound() {
+            var instanceId = UUID.randomUUID().toString();
+            when(serverService.delete(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            var result = service.delete(instanceId);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
     }
 
     private DataPlaneInstance createInstance(String id) {

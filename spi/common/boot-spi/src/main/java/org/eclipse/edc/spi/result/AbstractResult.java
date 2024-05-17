@@ -149,6 +149,22 @@ public abstract class AbstractResult<T, F extends Failure, R extends AbstractRes
     }
 
     /**
+     * Maps this {@link Result} into another. If this {@link Result} is successful, the content is discarded. If this
+     * {@link Result} failed, the failures are carried over.
+     */
+    public <T2, R2 extends AbstractResult<T2, F, R2>> R2 mapEmpty() {
+        return map(it -> null);
+    }
+
+    /**
+     * Maps this {@link Result} into another. The content gets discarded, this method can be used to forward failures
+     * to the caller.
+     */
+    public <T2, R2 extends AbstractResult<T2, F, R2>> R2 mapFailure() {
+        return map(it -> null);
+    }
+
+    /**
      * Maps one result into another, applying the mapping function.
      *
      * @param mappingFunction a function converting this result into another

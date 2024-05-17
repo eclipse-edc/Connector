@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.dataplane.selector.store;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.util.concurrency.LockManager;
 
 import java.util.Map;
 import java.util.Optional;
@@ -27,14 +26,11 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 
 /**
- * Default (=in-memory) implementation for the {@link DataPlaneInstanceStore}. All r/w access is secured with a {@link LockManager}.
+ * Default (=in-memory) implementation for the {@link DataPlaneInstanceStore}.
  */
 public class InMemoryDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
     private final Map<String, DataPlaneInstance> instances = new ConcurrentHashMap<>();
-
-    public InMemoryDataPlaneInstanceStore() {
-    }
 
     @Override
     public StoreResult<Void> create(DataPlaneInstance instance) {
@@ -42,7 +38,6 @@ public class InMemoryDataPlaneInstanceStore implements DataPlaneInstanceStore {
         return Optional.ofNullable(prev)
                 .map(a -> StoreResult.<Void>alreadyExists(format(DATA_PLANE_INSTANCE_EXISTS, instance.getId())))
                 .orElse(StoreResult.success());
-
     }
 
     @Override
@@ -51,6 +46,15 @@ public class InMemoryDataPlaneInstanceStore implements DataPlaneInstanceStore {
         return Optional.ofNullable(prev)
                 .map(a -> StoreResult.<Void>success())
                 .orElse(StoreResult.notFound(format(DATA_PLANE_INSTANCE_NOT_FOUND, instance.getId())));
+    }
+
+    @Override
+    public StoreResult<DataPlaneInstance> deleteById(String instanceId) {
+        var removed = instances.remove(instanceId);
+        if (removed == null) {
+            return StoreResult.notFound("DataPlane instance %s not found".formatted(instanceId));
+        }
+        return StoreResult.success(removed);
     }
 
     @Override

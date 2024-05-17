@@ -30,7 +30,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.util.string.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -97,22 +96,6 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
                 .compose(ServiceResult::from);
     }
 
-    private ServiceResult<JsonObject> toJsonObject(String it) {
-        try {
-            return ServiceResult.success(mapper.readValue(it, JsonObject.class));
-        } catch (JsonProcessingException e) {
-            return ServiceResult.unexpected("Cannot deserialize response body as JsonObject");
-        }
-    }
-
-    private ServiceResult<JsonArray> toJsonArray(String it) {
-        try {
-            return ServiceResult.success(mapper.readValue(it, JsonArray.class));
-        } catch (JsonProcessingException e) {
-            return ServiceResult.unexpected("Cannot deserialize response body as JsonObject");
-        }
-    }
-
     @Override
     public ServiceResult<Void> addInstance(DataPlaneInstance instance) {
         var transform = typeTransformerRegistry.transform(instance, JsonObject.class);
@@ -127,7 +110,14 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
         var request = new Request.Builder().post(body).url(url).build();
 
-        return request(request).map(it -> null);
+        return request(request).mapEmpty();
+    }
+
+    @Override
+    public ServiceResult<Void> delete(String instanceId) {
+        var request = new Request.Builder().delete().url(url + "/" + instanceId).build();
+
+        return request(request).mapEmpty();
     }
 
     private <R> ServiceResult<String> request(Request request) {
@@ -137,10 +127,6 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
         ) {
             var bodyAsString = responseBody == null ? null : responseBody.string();
             if (response.isSuccessful()) {
-                if (StringUtils.isNullOrEmpty(bodyAsString)) {
-                    return ServiceResult.badRequest("Response body is null or empty");
-                }
-
                 return ServiceResult.success(bodyAsString);
 
             } else {
@@ -154,6 +140,22 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
             }
         } catch (IOException exception) {
             return ServiceResult.unexpected("Unexpected IOException. " + exception.getMessage());
+        }
+    }
+
+    private ServiceResult<JsonObject> toJsonObject(String it) {
+        try {
+            return ServiceResult.success(mapper.readValue(it, JsonObject.class));
+        } catch (JsonProcessingException e) {
+            return ServiceResult.unexpected("Cannot deserialize response body as JsonObject");
+        }
+    }
+
+    private ServiceResult<JsonArray> toJsonArray(String it) {
+        try {
+            return ServiceResult.success(mapper.readValue(it, JsonArray.class));
+        } catch (JsonProcessingException e) {
+            return ServiceResult.unexpected("Cannot deserialize response body as JsonObject");
         }
     }
 

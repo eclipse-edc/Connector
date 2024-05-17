@@ -82,7 +82,7 @@ public class DataplaneSelectorControlApiController implements DataplaneSelectorC
     @DELETE
     @Path("/{id}")
     public void unregisterDataplane(@PathParam("id") String id) {
-        throw new UnsupportedOperationException("not yet implemented");
+        service.delete(id).orElseThrow(exceptionMapper(DataPlaneInstance.class));
     }
 
     @POST

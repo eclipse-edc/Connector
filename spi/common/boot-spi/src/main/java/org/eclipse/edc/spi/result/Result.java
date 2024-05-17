@@ -104,13 +104,11 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
      *
      * @see Result#map(Function)
      * @see Result#mapTo(Class)
+     * @deprecated please use {@link #mapEmpty()} or {@link #mapFailure()}.
      */
+    @Deprecated(since = "0.6.4")
     public <R> Result<R> mapTo() {
-        if (succeeded()) {
-            return new Result<>(null, null);
-        } else {
-            return Result.failure(getFailureMessages());
-        }
+        return mapEmpty();
     }
 
     /**
@@ -125,9 +123,11 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
      * @param clazz type of the result, with which the resulting {@link Result} should be parameterized
      * @see Result#map(Function)
      * @see Result#mapTo()
+     * @deprecated please use {@link #mapEmpty()} or {@link #mapFailure()}.
      */
+    @Deprecated(since = "0.6.4")
     public <R> Result<R> mapTo(Class<R> clazz) {
-        return mapTo();
+        return mapEmpty();
     }
 
     /**

@@ -88,4 +88,12 @@ public interface DataPlaneSelectorService {
      */
     ServiceResult<Void> addInstance(DataPlaneInstance instance);
 
+    /**
+     * Delete a Data Plane instance.
+     *
+     * @param instanceId the instance id.
+     * @return successful result if operation completed, failure otherwise.
+     */
+    ServiceResult<Void> delete(String instanceId);
+
 }

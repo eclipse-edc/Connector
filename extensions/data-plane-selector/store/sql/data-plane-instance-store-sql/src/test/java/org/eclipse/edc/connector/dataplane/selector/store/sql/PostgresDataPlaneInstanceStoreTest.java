@@ -32,17 +32,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTestBase {
 
-
     private final DataPlaneInstanceStatements statements = new PostgresDataPlaneInstanceStatements();
-
-    SqlDataPlaneInstanceStore store;
+    private SqlDataPlaneInstanceStore store;
 
     @BeforeAll
     static void prepare(PostgresqlLocalInstance postgres) {
@@ -51,7 +48,6 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
 
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
-
         var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(DataPlaneInstance.class);
 
@@ -62,7 +58,7 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
     }
 
     @AfterEach
-    void tearDown(PostgresqlStoreSetupExtension extension) throws SQLException {
+    void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getDataPlaneInstanceTable() + " CASCADE");
     }
 

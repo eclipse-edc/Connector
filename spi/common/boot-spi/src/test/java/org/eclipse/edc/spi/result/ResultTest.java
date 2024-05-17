@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.spi.result;
 
-import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.Test;
 
@@ -24,6 +23,7 @@ import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -97,7 +97,7 @@ class ResultTest {
         var result = Result.success("foo");
         Consumer<String> consumer = mock();
 
-        AbstractResultAssert.assertThat(result.onSuccess(consumer)).isEqualTo(result);
+        assertThat(result.onSuccess(consumer)).isEqualTo(result);
         verify(consumer).accept(eq("foo"));
     }
 
@@ -106,7 +106,7 @@ class ResultTest {
         Consumer<String> consumer = mock();
 
         Result<String> result = Result.failure("bar");
-        AbstractResultAssert.assertThat(result.onSuccess(consumer)).isEqualTo(result);
+        assertThat(result.onSuccess(consumer)).isEqualTo(result);
         verifyNoInteractions(consumer);
     }
 
@@ -115,7 +115,7 @@ class ResultTest {
         var result = Result.success("foo");
         Consumer<Failure> consumer = mock();
 
-        AbstractResultAssert.assertThat(result.onFailure(consumer)).isEqualTo(result);
+        assertThat(result.onFailure(consumer)).isEqualTo(result);
         verifyNoInteractions(consumer);
     }
 
@@ -124,8 +124,26 @@ class ResultTest {
         Consumer<Failure> consumer = mock();
 
         Result<String> result = Result.failure("bar");
-        AbstractResultAssert.assertThat(result.onFailure(consumer)).isEqualTo(result);
+        assertThat(result.onFailure(consumer)).isEqualTo(result);
         verify(consumer).accept(argThat(f -> f.getMessages().contains("bar")));
+    }
+
+    @Test
+    void mapToEmpty_succeeded() {
+        var result = Result.success("foobar");
+
+        Result<Void> mapped = result.mapEmpty();
+
+        assertThat(mapped).isSucceeded().isNull();
+    }
+
+    @Test
+    void mapToEmpty_failed() {
+        var result = Result.failure("foobar");
+
+        Result<String> mapped = result.mapEmpty();
+
+        assertThat(mapped).isFailed().detail().isEqualTo("foobar");
     }
 
     @Test
@@ -159,7 +177,6 @@ class ResultTest {
         assertThat(mapped.failed()).isTrue();
         assertThat(mapped.getFailureDetail()).isEqualTo("foobar");
     }
-
 
     @Test
     void whenSuccess_chainsSuccesses() {
@@ -226,10 +243,10 @@ class ResultTest {
                 ? Result.success("the content was good")
                 : Result.failure("the content was not good");
 
-        AbstractResultAssert.assertThat(Result.success("right content").compose(mappingFunction)).isSucceeded()
+        assertThat(Result.success("right content").compose(mappingFunction)).isSucceeded()
                 .isEqualTo("the content was good");
 
-        AbstractResultAssert.assertThat(Result.success("not right content").compose(mappingFunction)).isFailed()
+        assertThat(Result.success("not right content").compose(mappingFunction)).isFailed()
                 .extracting(Failure::getMessages).asList().contains("the content was not good");
     }
 
@@ -237,7 +254,7 @@ class ResultTest {
     void compose_doNothingIfFailed() {
         var result = Result.failure("error").compose(it -> Result.success());
 
-        AbstractResultAssert.assertThat(result).isFailed().extracting(Failure::getMessages).asList().contains("error");
+        assertThat(result).isFailed().extracting(Failure::getMessages).asList().contains("error");
     }
 
     @Test
@@ -246,8 +263,8 @@ class ResultTest {
         Function<Failure, Result<String>> successfulRecoverFunction = f -> Result.success("ok");
         Function<Failure, Result<String>> failingRecoverFunction = f -> Result.failure("error");
 
-        AbstractResultAssert.assertThat(failedResult.recover(successfulRecoverFunction)).isSucceeded().isEqualTo("ok");
-        AbstractResultAssert.assertThat(failedResult.recover(failingRecoverFunction)).isFailed().extracting(Failure::getMessages).asList().contains("error");
+        assertThat(failedResult.recover(successfulRecoverFunction)).isSucceeded().isEqualTo("ok");
+        assertThat(failedResult.recover(failingRecoverFunction)).isFailed().extracting(Failure::getMessages).asList().contains("error");
     }
 
     @Test
@@ -255,14 +272,14 @@ class ResultTest {
         var succeededResult = Result.success("ok");
         Function<Failure, Result<String>> failingRecoverFunction = f -> Result.failure("error");
 
-        AbstractResultAssert.assertThat(succeededResult.recover(failingRecoverFunction)).isSucceeded();
+        assertThat(succeededResult.recover(failingRecoverFunction)).isSucceeded();
     }
 
     @Test
     void ofThrowable_success() {
 
         var result = Result.ofThrowable(String::new);
-        AbstractResultAssert.assertThat(result).isSucceeded().isEqualTo("");
+        assertThat(result).isSucceeded().isEqualTo("");
     }
 
     @Test
@@ -271,6 +288,6 @@ class ResultTest {
         var result = Result.ofThrowable(() -> {
             throw new EdcException("Exception");
         });
-        AbstractResultAssert.assertThat(result).isFailed().detail().contains("Exception");
+        assertThat(result).isFailed().detail().contains("Exception");
     }
 }

@@ -79,8 +79,16 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
                 .build();
 
         dataPlaneSelectorService.addInstance(instance)
-                .onSuccess(it -> context.getMonitor().info("Data plane registered to control-plane"))
-                .orElseThrow(f -> new EdcException("Cannot register dataplane to the controlplane: " + f.getFailureDetail()));
+                .onSuccess(it -> context.getMonitor().info("data-plane registered to control-plane"))
+                .orElseThrow(f -> new EdcException("Cannot register data-plane to the control-plane: " + f.getFailureDetail()));
+    }
+
+    @Override
+    public void shutdown() {
+        dataPlaneSelectorService.delete(context.getRuntimeId())
+                .onSuccess(it -> context.getMonitor().info("data-plane successfully unregistered"))
+                .onFailure(failure -> context.getMonitor().severe("error during data-plane un-registration. %s: %s"
+                        .formatted(failure.getReason(), failure.getFailureDetail())));
     }
 
     private @NotNull Stream<String> toTransferTypes(FlowType pull, Set<String> types) {
