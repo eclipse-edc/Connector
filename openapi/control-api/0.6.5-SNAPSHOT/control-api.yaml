@@ -255,6 +255,22 @@ paths:
         "409":
           description: Cannot terminate the transfer
   /v1/dataplanes:
+    get:
+      tags:
+      - Dataplane Selector
+      description: Returns a list of all currently registered data plane instances
+      operationId: getAllDataPlaneInstances
+      responses:
+        "200":
+          description: A (potentially empty) list of currently registered data plane
+            instances
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/DataPlaneInstanceSchema"
     post:
       tags:
       - Dataplane Selector
@@ -283,6 +299,36 @@ paths:
                   $ref: "#/components/schemas/ApiErrorDetail"
         "409":
           description: Resource already exists
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v1/dataplanes/select:
+    post:
+      tags:
+      - Dataplane Selector
+      description: Finds the best fitting data plane instance for a particular query
+      operationId: selectDataplane
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelectionRequestSchema"
+      responses:
+        "200":
+          description: The DataPlane instance that fits best for the given selection
+            request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataPlaneInstanceSchema"
+        "204":
+          description: No suitable DataPlane instance was found
+        "400":
+          description: Request body was malformed
           content:
             application/json:
               schema:
@@ -525,6 +571,26 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@id': id-value
         createdAt: 1688465655
+    JsonArray:
+      type: array
+      properties:
+        empty:
+          type: boolean
+          example: null
+        valueType:
+          type: string
+          example: null
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+      example: null
+      items:
+        $ref: "#/components/schemas/JsonValue"
     JsonObject:
       type: object
       properties:
@@ -563,6 +629,36 @@ components:
     Properties:
       type: object
       example: null
+    SelectionRequestSchema:
+      required:
+      - source
+      - transferType
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/SelectionRequest
+        destination:
+          $ref: "#/components/schemas/DataAddress"
+        source:
+          $ref: "#/components/schemas/DataAddress"
+        strategy:
+          type: string
+          example: null
+        transferType:
+          type: string
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        source:
+          '@type': https://w3id.org/edc/v0.0.1/ns/DataAddress
+          type: test-src1
+        destination:
+          '@type': https://w3id.org/edc/v0.0.1/ns/DataAddress
+          type: test-dst2
+        strategy: you_custom_strategy
+        transferType: you_custom_transfer_type
     TransferProcessFailStateDto:
       type: object
       properties:

@@ -928,6 +928,7 @@ paths:
                 example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+      deprecated: true
   /v2/policydefinitions:
     post:
       tags:
