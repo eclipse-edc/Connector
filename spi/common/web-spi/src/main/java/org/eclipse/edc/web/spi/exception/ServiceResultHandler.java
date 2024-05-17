@@ -69,6 +69,7 @@ public class ServiceResultHandler {
             case CONFLICT -> new ObjectConflictException(failure.getMessages());
             case BAD_REQUEST -> new InvalidRequestException(failure.getMessages());
             case UNAUTHORIZED -> new NotAuthorizedException(failure.getFailureDetail());
+            case UNEXPECTED -> new EdcException(failure.getFailureDetail());
         };
     }
 

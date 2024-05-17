@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.SelectionRequ
 public interface DataplaneSelectorApi {
 
     @Operation(method = "POST",
+            deprecated = true,
             operationId = "selectDataPlaneInstance",
             description = "Finds the best fitting data plane instance for a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SelectionRequestSchema.class))),
@@ -45,8 +46,10 @@ public interface DataplaneSelectorApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
+    @Deprecated(since = "0.6.4")
     @POST
     JsonObject selectDataPlaneInstance(JsonObject request);
+
 
     @Operation(method = "POST",
             operationId = "addDataPlaneInstance",

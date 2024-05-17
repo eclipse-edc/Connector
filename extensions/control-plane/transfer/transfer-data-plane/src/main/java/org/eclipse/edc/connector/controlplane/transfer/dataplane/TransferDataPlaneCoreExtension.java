@@ -111,6 +111,8 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var monitor = context.getMonitor();
+        monitor.warning("The transfer-data-plane extension has been deprecated, please switch to the Data Plane Signaling feature.");
         var publicKeyAlias = context.getSetting(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, null);
         var privateKeyAlias = context.getSetting(TOKEN_SIGNER_PRIVATE_KEY_ALIAS, null);
 
@@ -121,7 +123,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
             var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), getPrivateKeySupplier(context, privateKeyAlias), () -> publicKeyAlias, tokenExpirationDateFunction);
             dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorService, resolver));
         } else {
-            context.getMonitor().info("One of these settings is not configured, so the connector won't be able to provide 'consumer-pull' transfers: [%s, %s]"
+            monitor.info("One of these settings is not configured, so the connector won't be able to provide 'consumer-pull' transfers: [%s, %s]"
                     .formatted(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, TOKEN_SIGNER_PRIVATE_KEY_ALIAS));
         }
 

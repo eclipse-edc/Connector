@@ -22,7 +22,7 @@ dependencies {
     implementation(project(":core:common:lib:util-lib"))
 
     testImplementation(testFixtures(project(":spi:data-plane-selector:data-plane-selector-spi")))
-
+    testImplementation(project(":core:common:junit"))
 }
 
 

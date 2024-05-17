@@ -17,6 +17,7 @@ package org.eclipse.edc.api.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.api.validation.DataAddressValidator;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -24,9 +25,11 @@ import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.validator.jsonobject.validators.model.CriterionValidator;
@@ -35,7 +38,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.map;
 import static org.eclipse.edc.api.model.ApiCoreSchema.CriterionSchema.CRITERION_EXAMPLE;
+import static org.eclipse.edc.api.model.ApiCoreSchema.DataAddressSchema.DATA_ADDRESS_EXAMPLE;
 import static org.eclipse.edc.api.model.ApiCoreSchema.IdResponseSchema.ID_RESPONSE_EXAMPLE;
 import static org.eclipse.edc.api.model.ApiCoreSchema.QuerySpecSchema.QUERY_SPEC_EXAMPLE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -54,6 +59,7 @@ class ApiCoreSchemaTest {
         transformer.register(new JsonObjectToQuerySpecTransformer());
         transformer.register(new JsonObjectToCriterionTransformer());
         transformer.register(new JsonValueToGenericTypeTransformer(objectMapper));
+        transformer.register(new JsonObjectToDataAddressTransformer());
     }
 
     @Test
@@ -113,4 +119,23 @@ class ApiCoreSchemaTest {
         assertThat(apiErrorDetail.getString("path")).isNotBlank();
         assertThat(apiErrorDetail.getString("invalidValue")).isNotBlank();
     }
+
+    @Test
+    void dataAddressExample() throws JsonProcessingException {
+        var validator = DataAddressValidator.instance();
+
+        var jsonObject = objectMapper.readValue(DATA_ADDRESS_EXAMPLE, JsonObject.class);
+        assertThat(jsonObject).isNotNull();
+
+        var expanded = jsonLd.expand(jsonObject);
+        assertThat(expanded).isSucceeded()
+                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
+                .extracting(e -> transformer.transform(e, DataAddress.class).getContent())
+                .isNotNull()
+                .satisfies(transformed -> {
+                    assertThat(transformed.getType()).isNotBlank();
+                    assertThat(transformed.getProperties()).asInstanceOf(map(String.class, Object.class)).isNotEmpty();
+                });
+    }
+
 }

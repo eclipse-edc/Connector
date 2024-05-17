@@ -88,7 +88,7 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
 
     @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
-        return selectorClient.getAll().stream()
+        return selectorClient.getAll().getContent().stream() // result is not evaluated because this class is deprecated
                 .filter(dataPlaneInstanceFilter(transferProcess))
                 .map(clientFactory::createClient)
                 .map(client -> client.terminate(transferProcess.getId()))
@@ -98,7 +98,7 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
 
     @Override
     public Set<String> transferTypesFor(Asset asset) {
-        return selectorClient.getAll().stream()
+        return selectorClient.getAll().getContent().stream() // result is not evaluated because this class is deprecated
                 .filter(it -> it.getAllowedSourceTypes().contains(asset.getDataAddress().getType()))
                 .map(DataPlaneInstance::getAllowedDestTypes)
                 .flatMap(Collection::stream)

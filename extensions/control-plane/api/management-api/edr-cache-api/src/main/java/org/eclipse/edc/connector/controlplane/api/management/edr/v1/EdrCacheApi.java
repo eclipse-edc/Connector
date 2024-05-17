@@ -25,7 +25,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -50,7 +49,7 @@ public interface EdrCacheApi {
     @Operation(description = "Gets the EDR data address with the given transfer process ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The data address",
-                            content = @Content(schema = @Schema(implementation = ManagementApiSchema.DataAddressSchema.class))),
+                            content = @Content(schema = @Schema(implementation = ApiCoreSchema.DataAddressSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An EDR data address with the given transfer process ID does not exist",

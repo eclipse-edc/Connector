@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -143,7 +144,7 @@ class ProviderPushTransferDataFlowControllerTest {
         when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
         var dataPlaneInstance = createDataPlaneInstance();
         when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-        when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance));
+        when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance)));
 
         var result = flowController.terminate(transferProcess);
 
@@ -163,7 +164,7 @@ class ProviderPushTransferDataFlowControllerTest {
         when(mockedDataPlane.getId()).thenReturn("notValidId");
         when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
         when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-        when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance, mockedDataPlane));
+        when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance, mockedDataPlane)));
 
         var result = flowController.terminate(transferProcess);
 
@@ -182,7 +183,7 @@ class ProviderPushTransferDataFlowControllerTest {
                 .build();
         when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
         when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-        when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance));
+        when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance)));
 
         var result = flowController.terminate(transferProcess);
 
@@ -191,11 +192,11 @@ class ProviderPushTransferDataFlowControllerTest {
 
     @Test
     void transferTypes_shouldReturnTypesForSpecifiedAsset() {
-        when(selectorService.getAll()).thenReturn(List.of(
+        when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
                 dataPlaneInstanceBuilder().allowedSourceType("TargetSrc").allowedDestType("TargetDest").build(),
                 dataPlaneInstanceBuilder().allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
                 dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").allowedDestType("ThisWontBeListed").build()
-        ));
+        )));
         var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
 
         var transferTypes = flowController.transferTypesFor(asset);

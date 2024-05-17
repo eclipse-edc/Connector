@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.selector.api.v2.schemas;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
+import org.eclipse.edc.api.model.ApiCoreSchema;
 
 import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.SELECTION_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -26,8 +26,8 @@ public record SelectionRequestSchema(
         String type,
         String strategy,
         String transferType,
-        ManagementApiSchema.DataAddressSchema source,
-        ManagementApiSchema.DataAddressSchema destination
+        ApiCoreSchema.DataAddressSchema source,
+        ApiCoreSchema.DataAddressSchema destination
 ) {
     public static final String SELECTION_REQUEST_INPUT_EXAMPLE = """
             {

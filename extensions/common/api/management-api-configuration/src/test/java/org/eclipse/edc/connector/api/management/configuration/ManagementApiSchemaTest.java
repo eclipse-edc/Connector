@@ -17,11 +17,9 @@ package org.eclipse.edc.connector.api.management.configuration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.validation.DataAddressValidator;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
@@ -30,10 +28,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.map;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema.ContractAgreementSchema.CONTRACT_AGREEMENT_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema.ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE;
-import static org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema.DataAddressSchema.DATA_ADDRESS_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema.PolicySchema.POLICY_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ASSET_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_CONSUMER_ID;
@@ -104,24 +100,6 @@ class ManagementApiSchemaTest {
             assertThat(content.getJsonArray(CONTRACT_NEGOTIATION_ERRORDETAIL).getJsonObject(0).getString(VALUE)).isNotBlank();
             assertThat(content.getJsonArray(CONTRACT_NEGOTIATION_CALLBACK_ADDR)).asList().isNotEmpty();
         });
-    }
-
-    @Test
-    void dataAddressExample() throws JsonProcessingException {
-        var validator = DataAddressValidator.instance();
-
-        var jsonObject = objectMapper.readValue(DATA_ADDRESS_EXAMPLE, JsonObject.class);
-        assertThat(jsonObject).isNotNull();
-
-        var expanded = jsonLd.expand(jsonObject);
-        assertThat(expanded).isSucceeded()
-                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
-                .extracting(e -> transformer.transform(e, DataAddress.class).getContent())
-                .isNotNull()
-                .satisfies(transformed -> {
-                    assertThat(transformed.getType()).isNotBlank();
-                    assertThat(transformed.getProperties()).asInstanceOf(map(String.class, Object.class)).isNotEmpty();
-                });
     }
 
     @Test

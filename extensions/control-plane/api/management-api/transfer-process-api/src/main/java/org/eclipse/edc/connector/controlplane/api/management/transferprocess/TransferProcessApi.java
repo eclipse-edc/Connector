@@ -171,7 +171,7 @@ public interface TransferProcessApi {
             String assetId,
             @Schema(requiredMode = REQUIRED)
             String transferType,
-            ManagementApiSchema.DataAddressSchema dataDestination,
+            ApiCoreSchema.DataAddressSchema dataDestination,
             @Schema(additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
             ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
@@ -215,7 +215,7 @@ public interface TransferProcessApi {
             String state,
             String contractAgreementId,
             String errorDetail,
-            ManagementApiSchema.DataAddressSchema dataDestination,
+            ApiCoreSchema.DataAddressSchema dataDestination,
             ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses
     ) {

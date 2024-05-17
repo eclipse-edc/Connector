@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector.control.api;
 
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -22,9 +23,11 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
+import org.eclipse.edc.connector.dataplane.selector.control.api.model.SelectionRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
@@ -32,6 +35,7 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import java.time.Clock;
 
+import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -80,4 +84,30 @@ public class DataplaneSelectorControlApiController implements DataplaneSelectorC
     public void unregisterDataplane(@PathParam("id") String id) {
         throw new UnsupportedOperationException("not yet implemented");
     }
+
+    @POST
+    @Path("/select")
+    @Override
+    public JsonObject selectDataplane(JsonObject request) {
+        var selectionRequest = transformerRegistry.transform(request, SelectionRequest.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        var dataPlaneInstance = service.select(selectionRequest.getSource(), selectionRequest.getTransferType(), selectionRequest.getStrategy())
+                .orElseThrow(exceptionMapper(DataPlaneInstance.class));
+
+        return transformerRegistry.transform(dataPlaneInstance, JsonObject.class)
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+    }
+
+    @Override
+    public JsonArray getAllDataPlaneInstances() {
+        var instances = service.getAll().orElseThrow(exceptionMapper(DataPlaneInstance.class));
+
+        return instances.stream()
+                .map(i -> transformerRegistry.transform(i, JsonObject.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(toJsonArray());
+    }
+
 }

@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.configuration;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.List;
@@ -77,23 +76,6 @@ public interface ManagementApiSchema {
             String authCodeId
     ) {
 
-    }
-
-    @Schema(name = "DataAddress", additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
-    record DataAddressSchema(
-            @Schema(name = TYPE, example = DataAddress.EDC_DATA_ADDRESS_TYPE)
-            String type,
-            @Schema(name = "type")
-            String typeProperty
-    ) {
-        public static final String DATA_ADDRESS_EXAMPLE = """
-                {
-                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
-                    "@type": "https://w3id.org/edc/v0.0.1/ns/DataAddress",
-                    "type": "HttpData",
-                    "baseUrl": "http://example.com"
-                }
-                """;
     }
 
     @Schema(name = "Properties", additionalProperties = Schema.AdditionalPropertiesValue.TRUE)

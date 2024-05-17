@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -43,6 +44,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -51,7 +53,6 @@ import static org.mockito.Mockito.when;
 public class DataPlaneSignalingFlowControllerTest {
 
     private static final String HTTP_DATA_PULL = "HttpData-PULL";
-    private static final String CUSTOM_PUSH = "Custom-PUSH";
     private final DataPlaneClient dataPlaneClient = mock();
     private final DataPlaneClientFactory dataPlaneClientFactory = mock();
     private final DataPlaneSelectorService selectorService = mock();
@@ -101,7 +102,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(customProperties));
             when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(mock(DataFlowResponseMessage.class)));
             var dataPlaneInstance = createDataPlaneInstance();
-            when(selectorService.select(any(), any(), any(), any())).thenReturn(dataPlaneInstance);
+            when(selectorService.select(any(), anyString(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
             var result = flowController.start(transferProcess, policy);
@@ -135,7 +136,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
             when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(response));
             var dataPlaneInstance = createDataPlaneInstance();
-            when(selectorService.select(any(), any(), any(), eq(HTTP_DATA_PULL))).thenReturn(dataPlaneInstance);
+            when(selectorService.select(any(), eq(HTTP_DATA_PULL), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
             var result = flowController.start(transferProcess, policy);
@@ -158,7 +159,7 @@ public class DataPlaneSignalingFlowControllerTest {
 
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
             when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(mock(DataFlowResponseMessage.class)));
-            when(selectorService.select(any(), any())).thenReturn(null);
+            when(selectorService.select(any(), anyString(), any())).thenReturn(ServiceResult.notFound("no dataplane found"));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
             var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
@@ -215,7 +216,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
             when(dataPlaneClient.start(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
             var dataPlaneInstance = createDataPlaneInstance();
-            when(selectorService.select(any(), any())).thenReturn(dataPlaneInstance);
+            when(selectorService.select(any(), anyString(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
             var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
@@ -227,73 +228,177 @@ public class DataPlaneSignalingFlowControllerTest {
         }
     }
 
-    @Test
-    void terminate_shouldCallTerminate() {
-        var transferProcess = transferProcessBuilder()
-                .id("transferProcessId")
-                .contentDataAddress(testDataAddress())
-                .build();
-        when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
-        var dataPlaneInstance = createDataPlaneInstance();
-        when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-        when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance));
+    @Nested
+    class Terminate {
+        @Test
+        void shouldCallTerminate() {
+            var transferProcess = transferProcessBuilder()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .build();
+            when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
+            var dataPlaneInstance = createDataPlaneInstance();
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance)));
 
-        var result = flowController.terminate(transferProcess);
+            var result = flowController.terminate(transferProcess);
 
-        assertThat(result).isSucceeded();
-        verify(dataPlaneClient).terminate("transferProcessId");
+            assertThat(result).isSucceeded();
+            verify(dataPlaneClient).terminate("transferProcessId");
+        }
+
+        @Test
+        void shouldCallTerminateOnTheRightDataPlane() {
+            var dataPlaneInstance = createDataPlaneInstance();
+            var mockedDataPlane = mock(DataPlaneInstance.class);
+            var transferProcess = transferProcessBuilder()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId(dataPlaneInstance.getId())
+                    .build();
+            when(mockedDataPlane.getId()).thenReturn("notValidId");
+            when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance, mockedDataPlane)));
+
+            var result = flowController.terminate(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verify(dataPlaneClient).terminate("transferProcessId");
+            verify(mockedDataPlane).getId();
+        }
+
+        @Test
+        void shouldFail_withInvalidDataPlaneId() {
+            var dataPlaneInstance = createDataPlaneInstance();
+            var transferProcess = transferProcessBuilder()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("invalid")
+                    .build();
+            when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance)));
+
+            var result = flowController.terminate(transferProcess);
+
+            assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
+        }
+
+        @Test
+        void shouldFail_whenCannotGetDataplaneInstances() {
+            var transferProcess = transferProcessBuilder()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("invalid")
+                    .build();
+            when(selectorService.getAll()).thenReturn(ServiceResult.unexpected("error"));
+
+            var result = flowController.terminate(transferProcess);
+
+            assertThat(result).isFailed();
+        }
     }
 
-    @Test
-    void terminate_shouldCallTerminateOnTheRightDataPlane() {
-        var dataPlaneInstance = createDataPlaneInstance();
-        var mockedDataPlane = mock(DataPlaneInstance.class);
-        var transferProcess = transferProcessBuilder()
-                .id("transferProcessId")
-                .contentDataAddress(testDataAddress())
-                .dataPlaneId(dataPlaneInstance.getId())
-                .build();
-        when(mockedDataPlane.getId()).thenReturn("notValidId");
-        when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
-        when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-        when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance, mockedDataPlane));
+    @Nested
+    class Suspend {
 
-        var result = flowController.terminate(transferProcess);
+        @Test
+        void shouldCallTerminate() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .build();
+            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
+            var dataPlaneInstance = createDataPlaneInstance();
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance)));
 
-        assertThat(result).isSucceeded();
-        verify(dataPlaneClient).terminate("transferProcessId");
-        verify(mockedDataPlane).getId();
+            var result = flowController.suspend(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verify(dataPlaneClient).suspend("transferProcessId");
+        }
+
+        @Test
+        void shouldCallTerminateOnTheRightDataPlane() {
+            var dataPlaneInstance = createDataPlaneInstance();
+            var mockedDataPlane = mock(DataPlaneInstance.class);
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId(dataPlaneInstance.getId())
+                    .build();
+            when(mockedDataPlane.getId()).thenReturn("notValidId");
+            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance, mockedDataPlane)));
+
+            var result = flowController.suspend(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verify(dataPlaneClient).suspend("transferProcessId");
+            verify(mockedDataPlane).getId();
+        }
+
+        @Test
+        void shouldFail_withInvalidDataPlaneId() {
+            var dataPlaneInstance = createDataPlaneInstance();
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("invalid")
+                    .build();
+            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance)));
+
+            var result = flowController.suspend(transferProcess);
+
+            assertThat(result).isFailed().detail().contains("Failed to select the data plane for suspending the transfer process");
+        }
+
+        @Test
+        void shouldFail_whenCannotGetDataplaneInstances() {
+            var transferProcess = transferProcessBuilder()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("invalid")
+                    .build();
+            when(selectorService.getAll()).thenReturn(ServiceResult.unexpected("error"));
+
+            var result = flowController.suspend(transferProcess);
+
+            assertThat(result).isFailed();
+        }
     }
 
-    @Test
-    void terminate_shouldFail_withInvalidDataPlaneId() {
-        var dataPlaneInstance = createDataPlaneInstance();
-        var transferProcess = transferProcessBuilder()
-                .id("transferProcessId")
-                .contentDataAddress(testDataAddress())
-                .dataPlaneId("invalid")
-                .build();
-        when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
-        when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-        when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance));
+    @Nested
+    class TransferTypes {
 
-        var result = flowController.terminate(transferProcess);
+        @Test
+        void transferTypes_shouldReturnTypesForSpecifiedAsset() {
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").allowedSourceType("TargetSrc").allowedDestType("TargetDest").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PULL").allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
+                    dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").allowedDestType("ThisWontBeListed").build()
+            )));
+            var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
 
-        assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
-    }
+            var transferTypes = flowController.transferTypesFor(asset);
 
-    @Test
-    void transferTypes_shouldReturnTypesForSpecifiedAsset() {
-        when(selectorService.getAll()).thenReturn(List.of(
-                dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").allowedSourceType("TargetSrc").allowedDestType("TargetDest").build(),
-                dataPlaneInstanceBuilder().allowedTransferType("Custom-PULL").allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
-                dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").allowedDestType("ThisWontBeListed").build()
-        ));
-        var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
+            assertThat(transferTypes).containsExactly("Custom-PUSH", "Custom-PULL");
+        }
 
-        var transferTypes = flowController.transferTypesFor(asset);
+        @Test
+        void shouldReturnEmptyList_whenCannotGetDataplaneInstances() {
+            when(selectorService.getAll()).thenReturn(ServiceResult.unexpected("error"));
+            var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
 
-        assertThat(transferTypes).containsExactly("Custom-PUSH", "Custom-PULL");
+            var transferTypes = flowController.transferTypesFor(asset);
+
+            assertThat(transferTypes).isEmpty();
+        }
     }
 
     @NotNull
@@ -326,62 +431,4 @@ public class DataPlaneSignalingFlowControllerTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("test").build());
     }
 
-    @Nested
-    class Suspend {
-
-        @Test
-        void shouldCallTerminate() {
-            var transferProcess = TransferProcess.Builder.newInstance()
-                    .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
-                    .build();
-            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
-            var dataPlaneInstance = createDataPlaneInstance();
-            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance));
-
-            var result = flowController.suspend(transferProcess);
-
-            assertThat(result).isSucceeded();
-            verify(dataPlaneClient).suspend("transferProcessId");
-        }
-
-        @Test
-        void shouldCallTerminateOnTheRightDataPlane() {
-            var dataPlaneInstance = createDataPlaneInstance();
-            var mockedDataPlane = mock(DataPlaneInstance.class);
-            var transferProcess = TransferProcess.Builder.newInstance()
-                    .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
-                    .dataPlaneId(dataPlaneInstance.getId())
-                    .build();
-            when(mockedDataPlane.getId()).thenReturn("notValidId");
-            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
-            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance, mockedDataPlane));
-
-            var result = flowController.suspend(transferProcess);
-
-            assertThat(result).isSucceeded();
-            verify(dataPlaneClient).suspend("transferProcessId");
-            verify(mockedDataPlane).getId();
-        }
-
-        @Test
-        void shouldFail_withInvalidDataPlaneId() {
-            var dataPlaneInstance = createDataPlaneInstance();
-            var transferProcess = TransferProcess.Builder.newInstance()
-                    .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
-                    .dataPlaneId("invalid")
-                    .build();
-            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
-            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance));
-
-            var result = flowController.suspend(transferProcess);
-
-            assertThat(result).isFailed().detail().contains("Failed to select the data plane for suspending the transfer process");
-        }
-    }
 }
