@@ -48,7 +48,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
@@ -248,12 +247,16 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             if (action == null) {
                 return actionBuilder.build();
             }
-            actionBuilder.add(ODRL_ACTION_TYPE_ATTRIBUTE, action.getType());
-            if (action.getIncludedIn() != null) {
-                actionBuilder.add(ODRL_INCLUDED_IN_ATTRIBUTE, action.getIncludedIn());
-            }
-            if (action.getConstraint() != null) {
-                actionBuilder.add(ODRL_REFINEMENT_ATTRIBUTE, action.getConstraint().accept(this));
+            if (action.getIncludedIn() != null || action.getConstraint() != null) {
+                actionBuilder.add(ODRL_ACTION_ATTRIBUTE, jsonFactory.createObjectBuilder().add(ID, action.getType()));
+                if (action.getIncludedIn() != null) {
+                    actionBuilder.add(ODRL_INCLUDED_IN_ATTRIBUTE, action.getIncludedIn());
+                }
+                if (action.getConstraint() != null) {
+                    actionBuilder.add(ODRL_REFINEMENT_ATTRIBUTE, action.getConstraint().accept(this));
+                }
+            } else {
+                actionBuilder.add(ID, action.getType());
             }
             return actionBuilder.build();
         }

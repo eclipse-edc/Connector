@@ -105,7 +105,7 @@ class JsonObjectToActionTransformerTest {
     }
 
     @Test
-    void transform_allAttributes_returnAction() {
+    void transform_allAttributesWithType_returnAction() {
         var constraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression("left"))
                 .operator(Operator.EQ)
@@ -115,6 +115,32 @@ class JsonObjectToActionTransformerTest {
 
         var action = jsonFactory.createObjectBuilder()
                 .add(ODRL_ACTION_TYPE_ATTRIBUTE, "use")
+                .add(ODRL_INCLUDED_IN_ATTRIBUTE, "includedIn")
+                .add(ODRL_REFINEMENT_ATTRIBUTE, jsonFactory.createObjectBuilder().build())
+                .build();
+
+        var result = transformer.transform(TestInput.getExpanded(action), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getType()).isEqualTo("use");
+        assertThat(result.getIncludedIn()).isEqualTo("includedIn");
+        assertThat(result.getConstraint()).isEqualTo(constraint);
+
+        verify(context, never()).reportProblem(anyString());
+        verify(context, times(1)).transform(any(JsonObject.class), eq(Constraint.class));
+    }
+
+    @Test
+    void transform_allAttributes_returnAction() {
+        var constraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression("left"))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression("right"))
+                .build();
+        when(context.transform(any(JsonObject.class), eq(Constraint.class))).thenReturn(constraint);
+
+        var action = jsonFactory.createObjectBuilder()
+                .add(ODRL_ACTION_ATTRIBUTE, "use")
                 .add(ODRL_INCLUDED_IN_ATTRIBUTE, "includedIn")
                 .add(ODRL_REFINEMENT_ATTRIBUTE, jsonFactory.createObjectBuilder().build())
                 .build();

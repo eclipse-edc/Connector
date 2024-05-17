@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
@@ -48,7 +49,10 @@ public class JsonObjectToActionTransformer extends AbstractJsonLdTransformer<Jso
     }
 
     private void transformProperties(String key, JsonValue value, Action.Builder builder, TransformerContext context) {
+        // we read the type for backward compatibility
         if (ODRL_ACTION_TYPE_ATTRIBUTE.equals(key)) {
+            transformString(value, builder::type, context);
+        } else if (ODRL_ACTION_ATTRIBUTE.equals(key)) {
             transformString(value, builder::type, context);
         } else if (ODRL_INCLUDED_IN_ATTRIBUTE.equals(key)) {
             transformString(value, builder::includedIn, context);
