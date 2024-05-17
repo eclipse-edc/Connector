@@ -113,7 +113,7 @@ public class PolicyDefinitionApiEndToEndTest {
                     .body(CONTEXT, hasEntry(EDC_PREFIX, EDC_NAMESPACE))
                     .body(CONTEXT, hasEntry(ODRL_PREFIX, ODRL_SCHEMA))
                     .body("policy.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"))
-                    .body("policy.'odrl:prohibition'.'odrl:remedy'.'odrl:action'.'odrl:type'", is(ODRL_SCHEMA + "anonymize"))
+                    .body("policy.'odrl:prohibition'.'odrl:remedy'.'odrl:action'.@id", is("odrl:anonymize"))
                     .body("policy.'odrl:obligation'.'odrl:consequence'.size()", is(2));
         }
 
