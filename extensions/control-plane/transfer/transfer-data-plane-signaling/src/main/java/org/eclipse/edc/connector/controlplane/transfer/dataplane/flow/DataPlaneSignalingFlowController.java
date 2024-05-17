@@ -145,7 +145,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .collect(toSet());
     }
 
-    private StatusResult<Void> onDataplaneInstancesDo(String name, TransferProcess transferProcess, BiFunction<DataPlaneClient, String, StatusResult<Void>> action) {
+    private StatusResult<Void> onDataplaneInstancesDo(String action, TransferProcess transferProcess, BiFunction<DataPlaneClient, String, StatusResult<Void>> clientAction) {
         var result = selectorClient.getAll();
         if (result.failed()) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, result.getFailureDetail());
@@ -154,9 +154,9 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
         return result.getContent().stream()
                 .filter(dataPlaneInstanceFilter(transferProcess))
                 .map(clientFactory::createClient)
-                .map(client -> action.apply(client, transferProcess.getId()))
+                .map(client -> clientAction.apply(client, transferProcess.getId()))
                 .reduce(StatusResult::merge)
-                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to select the data plane for %s the transfer process %s".formatted(name, transferProcess.getId())));
+                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to select the data plane for %s the transfer process %s".formatted(action, transferProcess.getId())));
     }
 
     private Predicate<DataPlaneInstance> dataPlaneInstanceFilter(TransferProcess transferProcess) {

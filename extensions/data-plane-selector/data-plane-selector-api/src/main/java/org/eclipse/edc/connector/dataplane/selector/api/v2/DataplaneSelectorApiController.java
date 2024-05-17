@@ -98,11 +98,7 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
     @Override
     @GET
     public JsonArray getAllDataPlaneInstances() {
-        var result = selectionService.getAll();
-        if (result.failed()) {
-            throw new EdcException(result.getFailureDetail());
-        }
-        var instances = result.getContent();
+        var instances = selectionService.getAll().orElseThrow(exceptionMapper(DataPlaneInstance.class));
         return instances.stream()
                 .map(i -> transformerRegistry.transform(i, JsonObject.class))
                 .filter(Result::succeeded)
