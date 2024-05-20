@@ -32,6 +32,7 @@ import jakarta.ws.rs.container.ContainerRequestContext;
                 "is a Rest API itself." +
                 "In the same manner, any set of arbitrary query parameters, path parameters and request body are supported " +
                 "(in the limits fixed by the HTTP server) and can also conveyed to the actual data source.")
+@Deprecated(since = "0.6.0")
 public interface DataPlanePublicApi {
 
     @Operation(description = "Send `GET` data query to the Data Plane.",

@@ -137,7 +137,7 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver {
         if (result.succeeded()) {
             cache.set(result.getContent());
         }
-        return result.map(it -> null);
+        return result.mapEmpty();
     }
 
     private Map<String, RSAPublicKey> deserializeKeys(List<JwkKey> jwkKeys) {

@@ -16,12 +16,13 @@ package org.eclipse.edc.api.auth.spi;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
+import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static jakarta.ws.rs.HttpMethod.OPTIONS;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Intercepts all requests sent to this resource and authenticates them using an {@link AuthenticationService}. In order
@@ -29,19 +30,23 @@ import static jakarta.ws.rs.HttpMethod.OPTIONS;
  * contain credentials.
  */
 public class AuthenticationRequestFilter implements ContainerRequestFilter {
-    private final AuthenticationService authenticationService;
 
-    public AuthenticationRequestFilter(AuthenticationService authenticationService) {
-        this.authenticationService = authenticationService;
+    private final ApiAuthenticationRegistry authenticationRegistry;
+    private final String context;
+
+    public AuthenticationRequestFilter(ApiAuthenticationRegistry authenticationRegistry, String context) {
+        this.authenticationRegistry = authenticationRegistry;
+        this.context = context;
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        var headers = requestContext.getHeaders();
 
         // OPTIONS requests don't have credentials - do not authenticate
         if (!OPTIONS.equalsIgnoreCase(requestContext.getMethod())) {
-            var isAuthenticated = authenticationService.isAuthenticated(headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            var headers = requestContext.getHeaders().entrySet().stream()
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+            var isAuthenticated = authenticationRegistry.resolve(context).isAuthenticated(headers);
             if (!isAuthenticated) {
                 throw new AuthenticationFailedException();
             }

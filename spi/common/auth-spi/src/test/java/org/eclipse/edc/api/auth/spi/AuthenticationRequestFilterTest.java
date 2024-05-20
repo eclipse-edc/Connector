@@ -16,11 +16,11 @@ package org.eclipse.edc.api.auth.spi;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
+import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,47 +32,48 @@ import static org.mockito.Mockito.when;
 
 class AuthenticationRequestFilterTest {
 
-    private AuthenticationRequestFilter filter;
-    private AuthenticationService authSrvMock;
+    private final AuthenticationService authenticationService = mock();
+    private final ApiAuthenticationRegistry authenticationRegistry = mock();
+
+    private final AuthenticationRequestFilter filter = new AuthenticationRequestFilter(authenticationRegistry, "context");
 
     @BeforeEach
     void setUp() {
-        authSrvMock = mock(AuthenticationService.class);
-        filter = new AuthenticationRequestFilter(authSrvMock);
+        when(authenticationRegistry.resolve("context")).thenReturn(authenticationService);
     }
 
     @Test
     void filter() {
-        when(authSrvMock.isAuthenticated(anyMap())).thenReturn(true);
+        when(authenticationService.isAuthenticated(anyMap())).thenReturn(true);
         var contextMock = mock(ContainerRequestContext.class);
         when(contextMock.getHeaders()).thenReturn(new MultivaluedHashMap<>(Map.of("foo", "bar")));
 
         filter.filter(contextMock); //should not throw an exception
-        verify(authSrvMock).isAuthenticated(anyMap());
+        verify(authenticationService).isAuthenticated(anyMap());
     }
 
     @Test
-    void filter_serviceThrowsException() throws IOException {
+    void filter_serviceThrowsException() {
         var exc = new AuthenticationFailedException("test");
-        when(authSrvMock.isAuthenticated(anyMap())).thenThrow(exc);
+        when(authenticationService.isAuthenticated(anyMap())).thenThrow(exc);
         var contextMock = mock(ContainerRequestContext.class);
 
         when(contextMock.getHeaders()).thenReturn(new MultivaluedHashMap<>(Map.of("foo", "bar")));
 
         assertThatThrownBy(() -> filter.filter(contextMock)).isInstanceOf(AuthenticationFailedException.class).hasMessage("test");
-        verify(authSrvMock).isAuthenticated(anyMap());
+        verify(authenticationService).isAuthenticated(anyMap());
     }
 
 
     @Test
     void filter_notAuthorized() {
-        when(authSrvMock.isAuthenticated(anyMap())).thenReturn(false);
+        when(authenticationService.isAuthenticated(anyMap())).thenReturn(false);
         var contextMock = mock(ContainerRequestContext.class);
 
         when(contextMock.getHeaders()).thenReturn(new MultivaluedHashMap<>(Map.of("foo", "bar")));
 
         assertThatThrownBy(() -> filter.filter(contextMock)).isInstanceOf(AuthenticationFailedException.class);
-        verify(authSrvMock).isAuthenticated(anyMap());
+        verify(authenticationService).isAuthenticated(anyMap());
     }
 
     @Test
@@ -81,6 +82,6 @@ class AuthenticationRequestFilterTest {
         when(contextMock.getMethod()).thenReturn("OPTIONS");
 
         filter.filter(contextMock);
-        verify(authSrvMock, never()).isAuthenticated(anyMap());
+        verify(authenticationService, never()).isAuthenticated(anyMap());
     }
 }

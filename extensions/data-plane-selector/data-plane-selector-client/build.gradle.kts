@@ -17,6 +17,7 @@ plugins {
 
 dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:common:auth-spi"))
     api(project(":spi:common:http-spi"))
     api(project(":spi:common:transform-spi"))
     implementation(project(":core:common:lib:transform-lib"))

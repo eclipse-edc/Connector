@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.client;
 
+import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
@@ -40,17 +41,16 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
 
     @Inject(required = false)
     private EdcHttpClient httpClient;
-
     @Inject
     private TypeManager typeManager;
-
     @Inject
     private TypeTransformerRegistry transformerRegistry;
-
     @Inject
     private JsonLd jsonLd;
     @Inject(required = false)
     private DataPlaneManager dataPlaneManager;
+    @Inject
+    private ControlClientAuthenticationProvider authenticationProvider;
 
     @Override
     public String name() {
@@ -70,7 +70,8 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
         context.getMonitor().debug(() -> "Using remote Data Plane client.");
         Objects.requireNonNull(httpClient, "To use remote Data Plane client, an EdcHttpClient instance must be registered");
         var signalingApiTypeTransformerRegistry = transformerRegistry.forContext("signaling-api");
-        return instance -> new DataPlaneSignalingClient(httpClient, signalingApiTypeTransformerRegistry, jsonLd, mapper, instance);
+        return instance -> new DataPlaneSignalingClient(httpClient, signalingApiTypeTransformerRegistry, jsonLd, mapper,
+                instance, authenticationProvider);
     }
 }
 

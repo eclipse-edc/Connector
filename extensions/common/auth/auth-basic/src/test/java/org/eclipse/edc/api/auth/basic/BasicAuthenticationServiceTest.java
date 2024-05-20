@@ -34,9 +34,9 @@ import static org.mockito.Mockito.when;
 
 class BasicAuthenticationServiceTest {
 
-    private static final List<BasicAuthenticationExtension.ConfigCredentials> TEST_CREDENTIALS = List.of(
-            new BasicAuthenticationExtension.ConfigCredentials("usera", "api-basic-auth-usera"),
-            new BasicAuthenticationExtension.ConfigCredentials("userb", "api-basic-auth-userb")
+    private static final List<ConfigCredentials> TEST_CREDENTIALS = List.of(
+            new ConfigCredentials("usera", "api-basic-auth-usera"),
+            new ConfigCredentials("userb", "api-basic-auth-userb")
     );
     private static final Base64.Encoder BASE_64_ENCODER = Base64.getEncoder();
 
@@ -143,7 +143,7 @@ class BasicAuthenticationServiceTest {
     @Test
     void isAuthorized_wrongVaultKey() {
         var wrongVaultKeyConfig = List.of(
-                new BasicAuthenticationExtension.ConfigCredentials("usera", "wrong.key")
+                new ConfigCredentials("usera", "wrong.key")
         );
         var service = new BasicAuthenticationService(vault, wrongVaultKeyConfig, mock(Monitor.class));
         var map = Map.of("authorization", List.of(testCredentialsEncoded.get(0)));

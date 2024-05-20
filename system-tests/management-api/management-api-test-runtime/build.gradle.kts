@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:iam:iam-mock"))
     implementation(project(":extensions:common:json-ld"))
+    implementation(project(":extensions:common:api:control-api-configuration"))
     implementation(project(":extensions:control-plane:api:management-api"))
     implementation(project(":extensions:control-plane:api:management-api:secrets-api"))
     implementation(project(":extensions:data-plane:data-plane-client"))

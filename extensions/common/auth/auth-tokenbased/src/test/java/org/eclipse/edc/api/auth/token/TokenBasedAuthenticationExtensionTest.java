@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.api.auth.token;
 
+import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.isNull;
@@ -37,10 +39,12 @@ public class TokenBasedAuthenticationExtensionTest {
     private static final String VAULT_KEY = "foo";
 
     private final Vault vault = mock();
+    private final ApiAuthenticationRegistry apiAuthenticationRegistry = mock();
 
     @BeforeEach
     void setup(ServiceExtensionContext context) {
         context.registerService(Vault.class, vault);
+        context.registerService(ApiAuthenticationRegistry.class, apiAuthenticationRegistry);
 
         when(vault.resolveSecret(VAULT_KEY)).thenReturn("foo");
     }
@@ -59,6 +63,7 @@ public class TokenBasedAuthenticationExtensionTest {
                 .getSetting(AUTH_SETTING_APIKEY_ALIAS, null);
 
         verify(vault).resolveSecret(VAULT_KEY);
+        verify(apiAuthenticationRegistry).register(eq("management-api"), isA(TokenBasedAuthenticationService.class));
     }
 
     @Test
@@ -75,6 +80,7 @@ public class TokenBasedAuthenticationExtensionTest {
                 .getSetting(AUTH_SETTING_APIKEY_ALIAS, null);
 
         verify(vault, never()).resolveSecret(anyString());
+        verify(apiAuthenticationRegistry).register(eq("management-api"), isA(TokenBasedAuthenticationService.class));
     }
 
 }

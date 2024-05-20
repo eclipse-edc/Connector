@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.api.management.configuration;
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.connector.api.management.configuration.transform.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToAssetTransformer;
@@ -77,7 +77,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     @Inject
     private WebServer webServer;
     @Inject
-    private AuthenticationService authenticationService;
+    private ApiAuthenticationRegistry authenticationRegistry;
     @Inject
     private WebServiceConfigurer configurator;
     @Inject
@@ -99,7 +99,9 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         var webServiceConfiguration = configurator.configure(context, webServer, SETTINGS);
 
         context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(webServiceConfiguration));
-        webService.registerResource(webServiceConfiguration.getContextAlias(), new AuthenticationRequestFilter(authenticationService));
+
+        var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, "management-api");
+        webService.registerResource(webServiceConfiguration.getContextAlias(), authenticationFilter);
 
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, MANAGEMENT_SCOPE);
         var jsonLdMapper = typeManager.getMapper(JSON_LD);

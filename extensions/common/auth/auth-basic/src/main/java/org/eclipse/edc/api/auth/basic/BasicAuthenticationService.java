@@ -29,12 +29,12 @@ public class BasicAuthenticationService implements AuthenticationService {
     private static final String BASIC_AUTH_HEADER_NAME = "Authorization";
     private final Base64.Decoder b64Decoder;
     private final Vault vault;
-    private final List<BasicAuthenticationExtension.ConfigCredentials> basicAuthUsersWithVaultKeyConfigs;
+    private final List<ConfigCredentials> basicAuthUsersWithVaultKeyConfigs;
     private final Monitor monitor;
 
     public BasicAuthenticationService(
             Vault vault,
-            List<BasicAuthenticationExtension.ConfigCredentials> basicAuthUsersWithVaultKeyConfigs,
+            List<ConfigCredentials> basicAuthUsersWithVaultKeyConfigs,
             Monitor monitor) {
         this.vault = vault;
         this.basicAuthUsersWithVaultKeyConfigs = basicAuthUsersWithVaultKeyConfigs;
@@ -105,7 +105,7 @@ public class BasicAuthenticationService implements AuthenticationService {
         var creds = authCredentials.getContent();
 
         return basicAuthUsersWithVaultKeyConfigs.stream()
-                .anyMatch(it -> it.getUsername().equals(creds.username) && Objects.equals(vault.resolveSecret(it.getVaultKey()), creds.password));
+                .anyMatch(it -> it.username().equals(creds.username) && Objects.equals(vault.resolveSecret(it.vaultKey()), creds.password));
     }
 
     static class BasicAuthCredentials {

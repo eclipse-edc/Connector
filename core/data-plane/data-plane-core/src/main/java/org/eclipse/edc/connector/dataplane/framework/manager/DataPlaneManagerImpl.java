@@ -139,7 +139,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     private StatusResult<DataFlow> stop(String dataFlowId, String reason) {
         var result = store.findByIdAndLease(dataFlowId);
         if (result.failed()) {
-            return StatusResult.from(result).map(it -> null);
+            return StatusResult.from(result).mapFailure();
         }
 
         var dataFlow = result.getContent();

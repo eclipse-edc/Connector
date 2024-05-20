@@ -22,6 +22,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
@@ -46,11 +47,14 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
     private final EdcHttpClient httpClient;
     private final ObjectMapper mapper;
     private final DataPlaneInstance dataPlane;
+    private final ControlClientAuthenticationProvider authenticationProvider;
 
-    public RemoteDataPlaneClient(EdcHttpClient httpClient, ObjectMapper mapper, DataPlaneInstance dataPlane) {
+    public RemoteDataPlaneClient(EdcHttpClient httpClient, ObjectMapper mapper, DataPlaneInstance dataPlane,
+                                 ControlClientAuthenticationProvider authenticationProvider) {
         this.httpClient = httpClient;
         this.mapper = mapper;
         this.dataPlane = dataPlane;
+        this.authenticationProvider = authenticationProvider;
     }
 
     @WithSpan
@@ -62,9 +66,10 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
         } catch (JsonProcessingException e) {
             throw new EdcException(e);
         }
-        var request = new Request.Builder().post(body).url(dataPlane.getUrl()).build();
+        var builder = new Request.Builder().post(body).url(dataPlane.getUrl());
+        authenticationProvider.authenticationHeaders().forEach(builder::header);
 
-        try (var response = httpClient.execute(request)) {
+        try (var response = httpClient.execute(builder.build())) {
             var result = handleResponse(response, dataFlowStartMessage.getId());
 
             if (result.failed()) {
@@ -84,9 +89,10 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
 
     @Override
     public StatusResult<Void> terminate(String transferProcessId) {
-        var request = new Request.Builder().delete().url(dataPlane.getUrl() + "/" + transferProcessId).build();
+        var builder = new Request.Builder().delete().url(dataPlane.getUrl() + "/" + transferProcessId);
+        authenticationProvider.authenticationHeaders().forEach(builder::header);
 
-        try (var response = httpClient.execute(request)) {
+        try (var response = httpClient.execute(builder.build())) {
             return handleResponse(response, transferProcessId);
         } catch (IOException e) {
             return StatusResult.<Void>failure(FATAL_ERROR, e.getMessage());

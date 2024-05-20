@@ -19,10 +19,10 @@ import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -41,23 +41,12 @@ import static org.mockito.Mockito.when;
 
 public class TransferProcessHttpClientTest {
 
-    private final Interceptor interceptor = mock(Interceptor.class);
+    private final Interceptor interceptor = mock();
     private final Monitor monitor = mock();
-    private TransferProcessHttpClient transferProcessHttpClient;
+    private final ControlClientAuthenticationProvider authenticationProvider = mock();
 
-    private static Response createResponse(int code, InvocationOnMock invocation) {
-        Interceptor.Chain chain = invocation.getArgument(0);
-        return new Response.Builder()
-                .request(chain.request())
-                .protocol(HTTP_1_1).code(code)
-                .body(ResponseBody.create("", MediaType.get("application/json"))).message("test")
-                .build();
-    }
-
-    @BeforeEach
-    void setup() {
-        transferProcessHttpClient = new TransferProcessHttpClient(testHttpClient(interceptor), new ObjectMapper(), monitor);
-    }
+    private final TransferProcessHttpClient transferProcessHttpClient = new TransferProcessHttpClient(
+            testHttpClient(interceptor), new ObjectMapper(), monitor, authenticationProvider);
 
     @Test
     void complete() throws IOException {
@@ -68,12 +57,12 @@ public class TransferProcessHttpClientTest {
         var result = transferProcessHttpClient.completed(req);
 
         assertThat(result).isSucceeded();
-
         verifyNoInteractions(monitor);
+        verify(authenticationProvider).authenticationHeaders();
     }
 
     @Test
-    void complete_shouldSucceed_withNoCallbacks() throws IOException {
+    void complete_shouldSucceed_withNoCallbacks() {
         var req = createRequest().build();
 
         var result = transferProcessHttpClient.completed(req);
@@ -121,8 +110,8 @@ public class TransferProcessHttpClientTest {
         var result = transferProcessHttpClient.failed(req, "failure");
 
         assertThat(result).isSucceeded();
-
         verifyNoInteractions(monitor);
+        verify(authenticationProvider).authenticationHeaders();
     }
 
     private DataFlowStartMessage.Builder createRequest() {
@@ -131,5 +120,14 @@ public class TransferProcessHttpClientTest {
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build());
+    }
+
+    private Response createResponse(int code, InvocationOnMock invocation) {
+        Interceptor.Chain chain = invocation.getArgument(0);
+        return new Response.Builder()
+                .request(chain.request())
+                .protocol(HTTP_1_1).code(code)
+                .body(ResponseBody.create("", MediaType.get("application/json"))).message("test")
+                .build();
     }
 }

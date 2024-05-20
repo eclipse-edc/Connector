@@ -14,12 +14,11 @@
 
 package org.eclipse.edc.api;
 
-import org.eclipse.edc.api.auth.spi.AllPassAuthenticationService;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.api.auth.ApiAuthenticationRegistryImpl;
+import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 /**
  * Provides default service implementations for fallback
@@ -34,10 +33,9 @@ public class ApiCoreDefaultServicesExtension implements ServiceExtension {
         return NAME;
     }
 
-    @Provider(isDefault = true)
-    public AuthenticationService authenticationService(ServiceExtensionContext context) {
-        context.getMonitor().warning("No AuthenticationService registered, an all-pass implementation will be used, not suitable for production environments");
-        return new AllPassAuthenticationService();
+    @Provider
+    public ApiAuthenticationRegistry apiAuthenticationRegistry() {
+        return new ApiAuthenticationRegistryImpl();
     }
 
 }

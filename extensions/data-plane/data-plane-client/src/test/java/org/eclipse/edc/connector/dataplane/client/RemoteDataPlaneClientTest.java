@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
@@ -42,6 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.once;
 import static org.mockserver.model.HttpResponse.response;
@@ -57,8 +60,9 @@ class RemoteDataPlaneClientTest {
     private static final String DATA_PLANE_PATH = "/transfer";
     private static final String DATA_PLANE_API_URI = "http://localhost:" + DATA_PLANE_API_PORT + DATA_PLANE_PATH;
     private static ClientAndServer dataPlane;
+    private final ControlClientAuthenticationProvider authenticationProvider = mock();
     private final DataPlaneInstance instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
-    private final DataPlaneClient dataPlaneClient = new RemoteDataPlaneClient(testHttpClient(), MAPPER, instance);
+    private final DataPlaneClient dataPlaneClient = new RemoteDataPlaneClient(testHttpClient(), MAPPER, instance, authenticationProvider);
 
     @BeforeAll
     public static void setUp() {
@@ -68,20 +72,6 @@ class RemoteDataPlaneClientTest {
     @AfterAll
     public static void tearDown() {
         stopQuietly(dataPlane);
-    }
-
-    private static HttpResponse withResponse(String errorMsg) throws JsonProcessingException {
-        return response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code())
-                .withBody(MAPPER.writeValueAsString(new TransferErrorResponse(List.of(errorMsg))), MediaType.APPLICATION_JSON);
-    }
-
-    private static DataFlowStartMessage createDataFlowRequest() {
-        return DataFlowStartMessage.Builder.newInstance()
-                .id("123")
-                .processId("456")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .build();
     }
 
     @AfterEach
@@ -140,6 +130,7 @@ class RemoteDataPlaneClientTest {
         dataPlane.verify(httpRequest, VerificationTimes.once());
 
         assertThat(result.succeeded()).isTrue();
+        verify(authenticationProvider).authenticationHeaders();
     }
 
     @Test
@@ -151,6 +142,7 @@ class RemoteDataPlaneClientTest {
 
         assertThat(result).isSucceeded();
         dataPlane.verify(httpRequest, VerificationTimes.once());
+        verify(authenticationProvider).authenticationHeaders();
     }
 
     @Test
@@ -162,4 +154,19 @@ class RemoteDataPlaneClientTest {
 
         assertThat(result).isFailed();
     }
+
+    private HttpResponse withResponse(String errorMsg) throws JsonProcessingException {
+        return response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code())
+                .withBody(MAPPER.writeValueAsString(new TransferErrorResponse(List.of(errorMsg))), MediaType.APPLICATION_JSON);
+    }
+
+    private DataFlowStartMessage createDataFlowRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
+                .id("123")
+                .processId("456")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .build();
+    }
+
 }
