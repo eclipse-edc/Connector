@@ -27,9 +27,6 @@ dependencies {
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:data-plane:data-plane-http")))
-
-    testRuntimeOnly(project(":extensions:control-plane:api:control-plane-api-client"))
-    testRuntimeOnly(project(":launchers:data-plane-server"))
 }
 
 edcBuild {

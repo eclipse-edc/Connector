@@ -123,6 +123,7 @@ public class DataPlaneHttpIntegrationTests {
             ":extensions:common:http",
             ":extensions:common:json-ld",
             ":extensions:common:configuration:configuration-filesystem",
+            ":extensions:control-plane:api:control-plane-api-client",
             ":extensions:data-plane:data-plane-http",
             ":extensions:data-plane:data-plane-control-api",
             ":extensions:data-plane:data-plane-public-api"
