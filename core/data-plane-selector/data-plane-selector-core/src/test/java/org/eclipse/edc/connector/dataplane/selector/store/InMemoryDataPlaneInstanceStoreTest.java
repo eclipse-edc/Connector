@@ -26,7 +26,6 @@ class InMemoryDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTestBase 
         store = new InMemoryDataPlaneInstanceStore();
     }
 
-
     @Override
     public InMemoryDataPlaneInstanceStore getStore() {
         return store;

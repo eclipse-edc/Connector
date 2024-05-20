@@ -48,6 +48,14 @@ public interface DataPlaneInstanceStore {
      */
     StoreResult<Void> update(DataPlaneInstance instance);
 
+    /**
+     * Delete a data plane instance by its id.
+     *
+     * @param instanceId the data plane instance id.
+     * @return the deleted data plane instance.
+     */
+    StoreResult<DataPlaneInstance> deleteById(String instanceId);
+
     DataPlaneInstance findById(String id);
 
     Stream<DataPlaneInstance> getAll();

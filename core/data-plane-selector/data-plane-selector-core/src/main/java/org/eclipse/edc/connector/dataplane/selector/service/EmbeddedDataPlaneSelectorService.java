@@ -81,4 +81,9 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
             return ServiceResult.from(result);
         });
     }
+
+    @Override
+    public ServiceResult<Void> delete(String instanceId) {
+        return transactionContext.execute(() -> ServiceResult.from(store.deleteById(instanceId))).mapEmpty();
+    }
 }

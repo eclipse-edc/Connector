@@ -40,4 +40,10 @@ public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStat
                 .jsonColumn(getDataColumn())
                 .update(getDataPlaneInstanceTable(), getIdColumn());
     }
+
+    @Override
+    public String getDeleteByIdTemplate() {
+        return executeStatement()
+                .delete(getDataPlaneInstanceTable(), getIdColumn());
+    }
 }

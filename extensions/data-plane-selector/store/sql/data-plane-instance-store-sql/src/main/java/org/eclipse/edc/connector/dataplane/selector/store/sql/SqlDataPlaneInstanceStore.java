@@ -86,6 +86,24 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     }
 
     @Override
+    public StoreResult<DataPlaneInstance> deleteById(String instanceId) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var instance = findById(instanceId);
+                if (instance == null) {
+                    return StoreResult.notFound("DataPlane instance %s not found".formatted(instanceId));
+                }
+
+                queryExecutor.execute(connection, statements.getDeleteByIdTemplate(), instanceId);
+
+                return StoreResult.success(instance);
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e.getMessage(), e);
+            }
+        });
+    }
+
+    @Override
     public DataPlaneInstance findById(String id) {
         Objects.requireNonNull(id);
         return transactionContext.execute(() -> {
@@ -125,11 +143,9 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
         queryExecutor.execute(connection, sql, toJson(instance), instance.getId());
     }
 
-
     private DataPlaneInstance mapResultSet(ResultSet resultSet) throws Exception {
         var json = resultSet.getString(statements.getDataColumn());
         return fromJson(json, DataPlaneInstance.class);
     }
-
 
 }

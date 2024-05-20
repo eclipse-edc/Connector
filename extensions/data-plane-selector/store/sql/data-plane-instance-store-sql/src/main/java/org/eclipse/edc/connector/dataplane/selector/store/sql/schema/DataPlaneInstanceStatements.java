@@ -39,5 +39,7 @@ public interface DataPlaneInstanceStatements extends SqlStatements {
 
     String getUpdateTemplate();
 
+    String getDeleteByIdTemplate();
+
 }
 
