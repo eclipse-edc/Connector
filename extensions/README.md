@@ -42,7 +42,6 @@
         - [Local](common/transaction/transaction-local/)
     - Vault
         - [Azure](common/vault/vault-azure/)
-        - [Filesystem](common/vault/vault-filesystem/)
         - [HashiCorp](common/vault/vault-hashicorp/)
 - Control Plane
     - [Management API](control-plane/api/management-api/)

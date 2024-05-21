@@ -15,16 +15,17 @@
 package org.eclipse.edc.test.e2e;
 
 import jakarta.json.JsonObject;
+import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 
 public abstract class TransferEndToEndTestBase {
-
-    protected final Duration timeout = Duration.ofSeconds(60);
 
     protected static final TransferEndToEndParticipant CONSUMER = TransferEndToEndParticipant.Builder.newInstance()
             .name("consumer")
@@ -34,6 +35,19 @@ public abstract class TransferEndToEndTestBase {
             .name("provider")
             .id("urn:connector:provider")
             .build();
+    protected final Duration timeout = Duration.ofSeconds(60);
+
+    protected static void seedVault(EdcRuntimeExtension runtime) {
+        var vault = runtime.getService(Vault.class);
+
+        var privateKeyContent = getResourceFileContentAsString("certs/key.pem");
+        vault.storeSecret("1", privateKeyContent);
+
+        var publicKey = getResourceFileContentAsString("certs/cert.pem");
+        vault.storeSecret("public-key", publicKey);
+
+        vault.storeSecret("provision-oauth-secret", "supersecret");
+    }
 
     protected void createResourcesOnProvider(String assetId, JsonObject contractPolicy, Map<String, Object> dataAddressProperties) {
         PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);

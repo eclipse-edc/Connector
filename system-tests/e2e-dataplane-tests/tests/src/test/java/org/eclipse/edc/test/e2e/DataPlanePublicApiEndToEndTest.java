@@ -84,6 +84,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
 
     @Test
     void httpPull_missingToken_expect401() {
+        seedVault();
         DATAPLANE.getDataPlanePublicEndpoint()
                 .baseRequest()
                 .contentType(ContentType.JSON)
@@ -103,6 +104,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
 
     @Test
     void httpPull_invalidToken_expect403() {
+        seedVault();
         var token = "some-invalid-token";
         DATAPLANE.getDataPlanePublicEndpoint()
                 .baseRequest()
@@ -122,6 +124,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
     @ParameterizedTest(name = "Method = {0}")
     @ValueSource(strings = { "POST", "PUT", "PATCH" })
     void request_withBody_expect200(String method) {
+        seedVault();
         backendDataAddress.getProperties().put(EDC_NAMESPACE + "proxyBody", "true");
         backendDataAddress.getProperties().put(EDC_NAMESPACE + "mediaType", "application/json");
 
@@ -153,6 +156,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
     @ParameterizedTest(name = "Method = {0}")
     @ValueSource(strings = { "GET", "DELETE", "HEAD" })
     void request_noBody_expect200(String method) {
+        seedVault();
         var token = createEdr();
         var body = DATAPLANE.getDataPlanePublicEndpoint()
                 .baseRequest()
@@ -170,6 +174,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
 
     @Test
     void request_getMultipleIdenticalQuery() {
+        seedVault();
         var token = createEdr();
         var body = DATAPLANE.getDataPlanePublicEndpoint()
                 .baseRequest()
