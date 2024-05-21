@@ -68,6 +68,7 @@ public class StsApiConfigurationExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var config = configurator.configure(context, webServer, SETTINGS);
         context.registerService(StsApiConfiguration.class, new StsApiConfiguration(config));
+        registerVersionInfo(getClass().getClassLoader());
     }
 
     private void registerVersionInfo(ClassLoader resourceClassLoader) {

@@ -19,8 +19,15 @@ import java.util.Map;
 
 /**
  * Collects version information from the runtime. API modules can add {@link VersionRecord} items to represent their version.
+ * Extensions, that register API controllers should also add a {@link VersionRecord} using their context alias.
  */
 public interface ApiVersionService {
+    /**
+     * Register a {@link VersionRecord}
+     *
+     * @param name   The name of the API, typically this is the API's context alias
+     * @param record The version record
+     */
     void addRecord(String name, VersionRecord record);
 
     Map<String, List<VersionRecord>> getRecords();
