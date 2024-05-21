@@ -22,6 +22,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.VerificationContext;
+import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,7 +54,7 @@ class DapsIntegrationTest {
             .withFileSystemBind(resourceFolder.resolve("keys").toString(), "/opt/keys");
 
     @Test
-    void retrieveTokenAndValidate(IdentityService identityService) {
+    void retrieveTokenAndValidate(IdentityService identityService, Vault vault) {
         var tokenParameters = TokenParameters.Builder.newInstance()
                 .claims(JwtRegisteredClaimNames.SCOPE, "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL")
                 .claims(JwtRegisteredClaimNames.AUDIENCE, "audience")

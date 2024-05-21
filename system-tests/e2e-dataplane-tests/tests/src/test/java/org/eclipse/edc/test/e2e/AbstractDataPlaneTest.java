@@ -15,6 +15,8 @@
 package org.eclipse.edc.test.e2e;
 
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.test.e2e.participant.DataPlaneParticipant;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -30,4 +32,16 @@ public abstract class AbstractDataPlaneTest {
                     "data-plane",
                     DATAPLANE.dataPlaneConfiguration()
             );
+
+    protected void seedVault() {
+        var vault = runtime.getService(Vault.class);
+
+        var privateKeyContent = TestUtils.getResourceFileContentAsString("certs/key.pem");
+        vault.storeSecret("1", privateKeyContent);
+
+        var publicKey = TestUtils.getResourceFileContentAsString("certs/cert.pem");
+        vault.storeSecret("public-key", publicKey);
+
+        vault.storeSecret("provision-oauth-secret", "supersecret");
+    }
 }

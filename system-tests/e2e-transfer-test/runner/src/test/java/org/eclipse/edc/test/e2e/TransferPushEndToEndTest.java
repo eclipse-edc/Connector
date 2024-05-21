@@ -19,6 +19,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
+import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,59 +49,11 @@ import static org.hamcrest.Matchers.notNullValue;
 
 class TransferPushEndToEndTest {
 
-    @Nested
-    @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
-                controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
-                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
-                dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
-                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
-        );
-
-    }
-
-    @Nested
-    @EndToEndTest
-    class EmbeddedDataPlane extends Tests {
-
-        @RegisterExtension
-        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
-                controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
-                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                controlPlaneEmbeddedDataPlane("provider-control-plane", PROVIDER.controlPlaneEmbeddedDataPlaneConfiguration()),
-                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
-        );
-
-    }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    class Postgres extends Tests {
-
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASES = context -> {
-            createDatabase(CONSUMER.getName());
-            createDatabase(PROVIDER.getName());
-        };
-
-        @RegisterExtension
-        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
-                Runtimes.Postgres.controlPlane("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration()),
-                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                Runtimes.Postgres.controlPlane("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration()),
-                Runtimes.Postgres.dataPlane("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()),
-                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
-        );
-    }
-
     abstract static class Tests extends TransferEndToEndTestBase {
 
         @Test
         void httpPushDataTransfer() {
+            seedVaults();
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
             var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
@@ -122,6 +75,7 @@ class TransferPushEndToEndTest {
 
         @Test
         void httpToHttp_oauth2Provisioning() {
+            seedVaults();
             var assetId = UUID.randomUUID().toString();
             var sourceDataAddressProperties = Map.<String, Object>of(
                     "type", "HttpData",
@@ -150,6 +104,8 @@ class TransferPushEndToEndTest {
             });
         }
 
+        protected abstract void seedVaults();
+
         private JsonObject httpDataAddress(String baseUrl) {
             return createObjectBuilder()
                     .add(TYPE, EDC_NAMESPACE + "DataAddress")
@@ -170,6 +126,82 @@ class TransferPushEndToEndTest {
 
         private JsonObject noPrivateProperty() {
             return Json.createObjectBuilder().build();
+        }
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests {
+
+        private static final EdcRuntimeExtension CONSUMER_RUNTIME = controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration());
+        private static final EdcRuntimeExtension PROVIDER_RUNTIME = controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration());
+        private static final EdcRuntimeExtension PROVIDER_DATAPLANE = dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration());
+        @RegisterExtension
+        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
+                CONSUMER_RUNTIME,
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
+                PROVIDER_RUNTIME,
+                PROVIDER_DATAPLANE,
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
+        );
+
+        @Override
+        protected void seedVaults() {
+            seedVault(CONSUMER_RUNTIME);
+            seedVault(PROVIDER_RUNTIME);
+            seedVault(PROVIDER_DATAPLANE);
+        }
+    }
+
+    @Nested
+    @EndToEndTest
+    class EmbeddedDataPlane extends Tests {
+
+        private static final EdcRuntimeExtension CONSUMER_RUNTIME = controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration());
+        private static final EdcRuntimeExtension PROVIDER_RUNTIME = controlPlaneEmbeddedDataPlane("provider-control-plane", PROVIDER.controlPlaneEmbeddedDataPlaneConfiguration());
+        @RegisterExtension
+        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
+                CONSUMER_RUNTIME,
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
+                PROVIDER_RUNTIME,
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
+        );
+
+
+        @Override
+        protected void seedVaults() {
+            seedVault(CONSUMER_RUNTIME);
+            seedVault(PROVIDER_RUNTIME);
+        }
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests {
+
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASES = context -> {
+            createDatabase(CONSUMER.getName());
+            createDatabase(PROVIDER.getName());
+        };
+
+        private static final EdcRuntimeExtension CONSUMER_RUNTIME = Runtimes.Postgres.controlPlane("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration());
+        private static final EdcRuntimeExtension PROVIDER_RUNTIME = Runtimes.Postgres.controlPlane("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration());
+        private static final EdcRuntimeExtension PROVIDER_DATAPLANE = Runtimes.Postgres.dataPlane("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration());
+        @RegisterExtension
+        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
+                CONSUMER_RUNTIME,
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
+                PROVIDER_RUNTIME,
+                PROVIDER_DATAPLANE,
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
+        );
+
+        @Override
+        protected void seedVaults() {
+            seedVault(CONSUMER_RUNTIME);
+            seedVault(PROVIDER_RUNTIME);
+            seedVault(PROVIDER_DATAPLANE);
         }
     }
 
