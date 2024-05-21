@@ -75,11 +75,12 @@ import static java.util.Optional.ofNullable;
  */
 public class CryptoConverter {
 
-    public static final String ALGORITHM_RSA = "RSA";
-    public static final String ALGORITHM_EC = "EC";
-    public static final String ALGORITHM_ECDSA = "EdDSA";
-    public static final String ALGORITHM_ED25519 = "Ed25519";
-    public static final List<String> SUPPORTED_ALGORITHMS = List.of(ALGORITHM_EC, ALGORITHM_RSA, ALGORITHM_ECDSA, ALGORITHM_ED25519);
+    public static final String ALGORITHM_RSA = "rsa";
+    public static final String ALGORITHM_EC = "ec";
+    public static final String ALGORITHM_ECDSA = "ecdsa";
+    public static final String ALGORITHM_EDDSA = "eddsa";
+    public static final String ALGORITHM_ED25519 = "ed25519";
+    public static final List<String> SUPPORTED_ALGORITHMS = List.of(ALGORITHM_EC, ALGORITHM_RSA, ALGORITHM_EDDSA, ALGORITHM_ED25519);
 
 
     /**
@@ -98,15 +99,16 @@ public class CryptoConverter {
      * @throws EdcException             if the {@link PrivateKey} is a EdDSA key and does not disclose its private bytes
      */
     public static JWSSigner createSignerFor(PrivateKey key) {
+        var algorithm = key.getAlgorithm().toLowerCase();
         try {
-            return switch (key.getAlgorithm()) {
-                case ALGORITHM_EC -> getEcdsaSigner((ECPrivateKey) key);
+            return switch (algorithm) {
+                case ALGORITHM_EC, ALGORITHM_ECDSA -> getEcdsaSigner((ECPrivateKey) key);
                 case ALGORITHM_RSA -> new RSASSASigner(key);
-                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createEdDsaVerifier(key);
-                default -> throw new IllegalArgumentException(notSupportedError(key.getAlgorithm()));
+                case ALGORITHM_EDDSA, ALGORITHM_ED25519 -> createEdDsaVerifier(key);
+                default -> throw new IllegalArgumentException(notSupportedError(algorithm));
             };
         } catch (JOSEException ex) {
-            throw new EdcException(notSupportedError(key.getAlgorithm()), ex);
+            throw new EdcException(notSupportedError(algorithm), ex);
         }
     }
 
@@ -133,15 +135,16 @@ public class CryptoConverter {
      * @throws EdcException             if the {@link PublicKey} is a EdDSA key and does not disclose its private bytes
      */
     public static JWSVerifier createVerifierFor(PublicKey publicKey) {
+        var algorithm = publicKey.getAlgorithm().toLowerCase();
         try {
-            return switch (publicKey.getAlgorithm()) {
-                case ALGORITHM_EC -> getEcdsaVerifier((ECPublicKey) publicKey);
+            return switch (algorithm) {
+                case ALGORITHM_EC, ALGORITHM_ECDSA -> getEcdsaVerifier((ECPublicKey) publicKey);
                 case ALGORITHM_RSA -> new RSASSAVerifier((RSAPublicKey) publicKey);
-                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createEdDsaVerifier(publicKey);
-                default -> throw new IllegalArgumentException(notSupportedError(publicKey.getAlgorithm()));
+                case ALGORITHM_EDDSA, ALGORITHM_ED25519 -> createEdDsaVerifier(publicKey);
+                default -> throw new IllegalArgumentException(notSupportedError(algorithm));
             };
         } catch (JOSEException e) {
-            throw new EdcException(notSupportedError(publicKey.getAlgorithm()), e);
+            throw new EdcException(notSupportedError(algorithm), e);
         }
     }
 
@@ -188,7 +191,7 @@ public class CryptoConverter {
         return switch (alg) {
             case ALGORITHM_EC -> convertEcKey(keypair, kid);
             case ALGORITHM_RSA -> convertRsaKey(keypair, kid);
-            case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> convertEdDsaKey(keypair, kid);
+            case ALGORITHM_EDDSA, ALGORITHM_ED25519 -> convertEdDsaKey(keypair, kid);
             default -> throw new IllegalArgumentException(notSupportedError(keypair.getPublic().getAlgorithm()));
         };
     }
