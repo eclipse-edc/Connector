@@ -16,11 +16,13 @@ package org.eclipse.edc.connector.api.control.configuration;
 
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
@@ -57,6 +59,7 @@ public class ControlApiConfigurationExtensionTest {
         context.registerService(WebServiceConfigurer.class, configurator);
         context.registerService(Hostname.class, () -> "localhost");
         context.registerService(WebService.class, webService);
+        context.registerService(TypeManager.class, new JacksonTypeManager());
 
         when(configurator.configure(any(), any(), any())).thenReturn(webServiceConfiguration);
     }

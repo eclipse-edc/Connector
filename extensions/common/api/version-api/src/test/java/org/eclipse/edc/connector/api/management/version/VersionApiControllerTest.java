@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 @ApiTest
 class VersionApiControllerTest extends RestControllerTestBase {
 
-
     private final ApiVersionService apiServiceMock = mock();
 
     @BeforeEach
@@ -48,7 +47,7 @@ class VersionApiControllerTest extends RestControllerTestBase {
     void getVersion() {
         when(apiServiceMock.getRecords()).thenReturn(Map.of("test-api", List.of(new VersionRecord("1.0.0", "/v1", Instant.now()))));
         var result = baseRequest()
-                .get("/version")
+                .get("/v1/version")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)

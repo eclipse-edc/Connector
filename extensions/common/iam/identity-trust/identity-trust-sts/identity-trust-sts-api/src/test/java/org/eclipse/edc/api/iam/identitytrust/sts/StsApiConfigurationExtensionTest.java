@@ -15,11 +15,13 @@
 package org.eclipse.edc.api.iam.identitytrust.sts;
 
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
@@ -47,6 +49,7 @@ public class StsApiConfigurationExtensionTest {
     void setUp(ServiceExtensionContext context) {
         context.registerService(WebService.class, webService);
         context.registerService(WebServiceConfigurer.class, configurer);
+        context.registerService(TypeManager.class, new JacksonTypeManager());
     }
 
     @Test
