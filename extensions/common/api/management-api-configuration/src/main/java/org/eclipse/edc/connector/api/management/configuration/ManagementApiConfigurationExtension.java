@@ -26,9 +26,12 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
+import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
@@ -45,6 +48,7 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
@@ -57,7 +61,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 @Provides(ManagementApiConfiguration.class)
 @Extension(value = ManagementApiConfigurationExtension.NAME)
 public class ManagementApiConfigurationExtension implements ServiceExtension {
-
+    public static final String API_VERSION_JSON_FILE = "version.json";
     public static final String NAME = "Management API configuration";
     public static final String WEB_SERVICE_NAME = "Management API";
     private static final String MANAGEMENT_CONTEXT_ALIAS = "management";
@@ -88,6 +92,9 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     private TypeTransformerRegistry transformerRegistry;
     @Inject
     private ParticipantIdMapper participantIdMapper;
+
+    @Inject
+    private ApiVersionService apiVersionService;
 
     @Override
     public String name() {
@@ -124,5 +131,19 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
         managementApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(jsonLdMapper));
+
+        registerVersionInfo(getClass().getClassLoader());
+    }
+
+    private void registerVersionInfo(ClassLoader resourceClassLoader) {
+        try (var versionContent = resourceClassLoader.getResourceAsStream(API_VERSION_JSON_FILE)) {
+            if (versionContent == null) {
+                throw new EdcException("Version file not found or not readable.");
+            }
+            var content = typeManager.getMapper().readValue(versionContent, VersionRecord.class);
+            apiVersionService.addRecord(MANAGEMENT_CONTEXT_ALIAS, content);
+        } catch (IOException e) {
+            throw new EdcException(e);
+        }
     }
 }

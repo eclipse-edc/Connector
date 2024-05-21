@@ -14,18 +14,20 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
+import io.restassured.common.mapper.TypeRef;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
+import java.util.List;
+import java.util.Map;
+
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.test.e2e.managementapi.Runtimes.inMemoryRuntime;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
@@ -42,14 +44,22 @@ public class VersionApiEndToEndTest {
         @Test
         void getVersion() {
 
-            baseRequest()
-                    .get("/version")
+            var result = given()
+                    .port(7171)
+                    .baseUri("http://localhost:%s/.well-known/api/v1/version".formatted(7171))
+                    .when()
+                    .get("/")
                     .then()
                     .statusCode(200)
                     .body(notNullValue())
-                    .body(CONTEXT, hasEntry(EDC_PREFIX, EDC_NAMESPACE))
-                    .body("version", equalTo("3.0.0"))
-                    .body("date", notNullValue());
+                    .extract().body().as(new TypeRef<Map<String, List<VersionRecord>>>() {
+                    });
+
+            assertThat(result).containsKey("management");
+            assertThat(result).containsKey("version");
+            assertThat(result).containsKey("control");
+            assertThat(result).containsKey("observability");
+            assertThat(result).containsKey("sts");
         }
     }
 

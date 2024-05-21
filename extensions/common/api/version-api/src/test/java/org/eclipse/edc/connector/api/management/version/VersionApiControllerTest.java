@@ -14,26 +14,31 @@
 
 package org.eclipse.edc.connector.api.management.version;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.restassured.common.mapper.TypeRef;
 import io.restassured.specification.RequestSpecification;
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
+import org.eclipse.edc.connector.api.management.version.v1.VersionApiController;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
+import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ApiTest
 class VersionApiControllerTest extends RestControllerTestBase {
 
+
+    private final ApiVersionService apiServiceMock = mock();
 
     @BeforeEach
     void setup() {
@@ -41,21 +46,21 @@ class VersionApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getVersion() {
+        when(apiServiceMock.getRecords()).thenReturn(Map.of("test-api", List.of(new VersionRecord("1.0.0", "/v1", Instant.now()))));
         var result = baseRequest()
                 .get("/version")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .extract().body().as(JsonObject.class);
+                .extract().body().as(new TypeRef<Map<String, List<VersionRecord>>>() {
+                });
 
-        var version = result.get(EDC_NAMESPACE + "version");
-        assertThat(version).isInstanceOf(JsonString.class);
-        assertThat(((JsonString) version).getString()).hasToString("3.0.0");
+        assertThat(result).hasSize(1);
     }
 
     @Override
     protected Object controller() {
-        return new VersionApiController(Thread.currentThread().getContextClassLoader(), Json.createBuilderFactory(Map.of()), new ObjectMapper());
+        return new VersionApiController(apiServiceMock);
     }
 
 

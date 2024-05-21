@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.version;
+package org.eclipse.edc.connector.api.management.version.v1;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +22,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.system.apiversion.VersionRecord;
+
+import java.util.List;
+import java.util.Map;
 
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -42,7 +45,7 @@ public interface VersionApi {
                             content = @Content(schema = @Schema(implementation = SecretOutputSchema.class)))
             }
     )
-    JsonObject getVersion();
+    Map<String, List<VersionRecord>> getVersion();
 
 
     @ArraySchema()

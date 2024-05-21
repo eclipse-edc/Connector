@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
@@ -89,6 +90,9 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
     @Inject
     private ApiAuthenticationRegistry authenticationRegistry;
 
+    @Inject
+    private ApiVersionService apiVersionService;
+    
     @Override
     public String name() {
         return NAME;
