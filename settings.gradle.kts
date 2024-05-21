@@ -148,7 +148,6 @@ include(":extensions:common:transaction:transaction-atomikos")
 include(":extensions:common:transaction:transaction-local")
 include(":extensions:common:validator:validator-data-address-http-data")
 include(":extensions:common:validator:validator-data-address-kafka")
-include(":extensions:common:vault:vault-filesystem")
 include(":extensions:common:vault:vault-hashicorp")
 include(":extensions:common:store:sql:edr-index-sql")
 

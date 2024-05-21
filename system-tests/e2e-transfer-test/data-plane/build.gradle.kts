@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":extensions:data-plane:data-plane-http-oauth2"))
     implementation(project(":extensions:data-plane:data-plane-control-api"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api"))
-    implementation(project(":extensions:common:vault:vault-filesystem"))
 }
 
 edcBuild {
