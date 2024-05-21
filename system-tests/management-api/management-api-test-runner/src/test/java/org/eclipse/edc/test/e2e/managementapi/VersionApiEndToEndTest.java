@@ -55,11 +55,7 @@ public class VersionApiEndToEndTest {
                     .extract().body().as(new TypeRef<Map<String, List<VersionRecord>>>() {
                     });
 
-            assertThat(result).containsKey("management");
-            assertThat(result).containsKey("version");
-            assertThat(result).containsKey("control");
-            assertThat(result).containsKey("observability");
-            assertThat(result).containsKey("sts");
+            assertThat(result).containsKeys("management", "version", "control", "observability", "sts");
         }
     }
 

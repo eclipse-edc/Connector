@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
+import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
@@ -38,6 +39,7 @@ import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 
@@ -74,6 +76,7 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
             .name(WEB_SERVICE_NAME)
             .build();
     private static final String CONTROL_SCOPE = "CONTROL_API";
+    private static final String API_VERSION_JSON_FILE = "version.json";
 
     @Inject
     private WebServer webServer;
@@ -92,7 +95,7 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
 
     @Inject
     private ApiVersionService apiVersionService;
-    
+
     @Override
     public String name() {
         return NAME;
@@ -113,6 +116,20 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
 
         webService.registerResource(SETTINGS.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(SETTINGS.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, CONTROL_SCOPE));
+
+        registerVersionInfo(getClass().getClassLoader());
+    }
+
+    private void registerVersionInfo(ClassLoader resourceClassLoader) {
+        try (var versionContent = resourceClassLoader.getResourceAsStream(API_VERSION_JSON_FILE)) {
+            if (versionContent == null) {
+                throw new EdcException("Version file not found or not readable.");
+            }
+            var content = typeManager.getMapper().readValue(versionContent, VersionRecord.class);
+            apiVersionService.addRecord(SETTINGS.getContextAlias(), content);
+        } catch (IOException e) {
+            throw new EdcException(e);
+        }
     }
 
     @Provider(isDefault = true)

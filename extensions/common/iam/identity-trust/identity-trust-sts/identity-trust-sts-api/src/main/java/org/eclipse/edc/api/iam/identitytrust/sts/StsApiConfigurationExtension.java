@@ -18,11 +18,17 @@ import org.eclipse.edc.api.iam.identitytrust.sts.configuration.StsApiConfigurati
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
+import org.eclipse.edc.spi.system.apiversion.VersionRecord;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+
+import java.io.IOException;
 
 @Extension(value = StsApiConfigurationExtension.NAME)
 @Provides({ StsApiConfiguration.class })
@@ -42,11 +48,16 @@ public class StsApiConfigurationExtension implements ServiceExtension {
             .useDefaultContext(true)
             .name(WEB_SERVICE_NAME)
             .build();
+    private static final String API_VERSION_JSON_FILE = "version.json";
 
     @Inject
     private WebServer webServer;
     @Inject
     private WebServiceConfigurer configurator;
+    @Inject
+    private TypeManager typeManager;
+    @Inject
+    private ApiVersionService apiVersionService;
 
     @Override
     public String name() {
@@ -57,5 +68,17 @@ public class StsApiConfigurationExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var config = configurator.configure(context, webServer, SETTINGS);
         context.registerService(StsApiConfiguration.class, new StsApiConfiguration(config));
+    }
+
+    private void registerVersionInfo(ClassLoader resourceClassLoader) {
+        try (var versionContent = resourceClassLoader.getResourceAsStream(API_VERSION_JSON_FILE)) {
+            if (versionContent == null) {
+                throw new EdcException("Version file not found or not readable.");
+            }
+            var content = typeManager.getMapper().readValue(versionContent, VersionRecord.class);
+            apiVersionService.addRecord(SETTINGS.getContextAlias(), content);
+        } catch (IOException e) {
+            throw new EdcException(e);
+        }
     }
 }
