@@ -188,7 +188,7 @@ public class CryptoConverter {
             throw new IllegalArgumentException("Invalid KeyPair: public and private key were both null!");
         }
         var alg = ofNullable((Key) keypair.getPrivate()).orElse(keypair.getPublic()).getAlgorithm();
-        return switch (alg) {
+        return switch (alg.toLowerCase()) {
             case ALGORITHM_EC -> convertEcKey(keypair, kid);
             case ALGORITHM_RSA -> convertRsaKey(keypair, kid);
             case ALGORITHM_EDDSA, ALGORITHM_ED25519 -> convertEdDsaKey(keypair, kid);
@@ -299,8 +299,8 @@ public class CryptoConverter {
     private static Curve getCurveAllowing(EdECKey edKey, String... allowedCurves) {
         var curveName = edKey.getParams().getName();
 
-        if (!Arrays.asList(allowedCurves).contains(curveName)) {
-            throw new IllegalArgumentException("Only the following curves is supported: %s.".formatted(String.join(",", allowedCurves)));
+        if (!Arrays.asList(allowedCurves).contains(curveName.toLowerCase())) {
+            throw new IllegalArgumentException("Unsupported curve: %s. Only the following curves is supported: %s.".formatted(curveName, String.join(",", allowedCurves)));
         }
         return Curve.parse(curveName);
     }
