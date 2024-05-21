@@ -18,18 +18,20 @@ runs:
       shell: bash
       run: |
         # main branch is not checked out by default
-        git fetch origin main:main
+        git fetch --no-tags --prune --no-recurse-submodules --depth=1 origin main:main
 
         # check if there was a change any of the API modules. the last "grep" parses the result of "wc" into a number
         apiChanges=$(git diff --name-status main | grep "${{ inputs.apiDirectory }}" | wc -l | grep -o "[0-9]\+")
         if [[ $apiChanges = 0 ]]; then
           echo "There were no changes in the API"
+          exit 0;
         else 
           echo "There are $apiChanges changed files in the API, will check if version.json was modified."
           # if so, check if the changeset also contains the `version.json` file
           changes=$(git diff --name-status main | grep "${{ inputs.apiVersionFile }}" |  wc -l | grep -o "[0-9]\+")
           if [[ $changes < 1 ]]; then
             echo "::error file=./${{ inputs.apiVersionFile }},line=1::Bumping the version is required after a change to the API"
-            exit 1;
+            exit 100;
           fi
+          exit 0;
         fi

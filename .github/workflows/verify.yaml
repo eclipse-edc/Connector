@@ -43,14 +43,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api: [ { dir: "extensions/control-plane/api/management-api", file: "extensions/common/api/management-api-configuration/src/main/resources/version.json" },
-               { dir: "extensions/data-plane/data-plane-control-api", file: "extensions/common/api/control-api-configuration/src/main/resources/version.json" },
-               { dir: "extensions/common/api/version-api", file: "extensions/common/api/version-api/src/main/resources/version.json" },
-               { dir: "extensions/common/api/api-observability", file: "extensions/common/api/api-observability/src/main/resources/version.json" },
-               { dir: "extensions/common/iam/identity-trust/identity-trust-sts/identity-trust-sts-api", file: "extensions/common/iam/identity-trust/identity-trust-sts/identity-trust-sts-api/src/main/resources/version.json" } ]
+        api: [ { dir: "extensions/control-plane/api/management-api", file: "extensions/common/api/management-api-configuration/src/main/resources/version.json", name: "Management API" },
+               { dir: "extensions/data-plane/data-plane-control-api", file: "extensions/common/api/control-api-configuration/src/main/resources/version.json", name: "Control API" },
+               { dir: "extensions/common/api/version-api", file: "extensions/common/api/version-api/src/main/resources/version.json", name: "Version API" },
+               { dir: "extensions/common/api/api-observability", file: "extensions/common/api/api-observability/src/main/resources/version.json", name: "Observability API" },
+               { dir: "extensions/common/iam/identity-trust/identity-trust-sts/identity-trust-sts-api", file: "extensions/common/iam/identity-trust/identity-trust-sts/identity-trust-sts-api/src/main/resources/version.json", name: "STS API" } ]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/check-api-version-file
+        name: "Checking ${{ matrix.api.name }}"
         with:
           apiDirectory: ${{ matrix.api.dir }}
           apiVersionFile: ${{ matrix.api.file }}
