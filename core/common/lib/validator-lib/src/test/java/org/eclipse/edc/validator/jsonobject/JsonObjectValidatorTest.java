@@ -17,6 +17,7 @@ package org.eclipse.edc.validator.jsonobject;
 import jakarta.json.JsonArrayBuilder;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryArray;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryIdArray;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.ValidationFailure;
@@ -215,6 +216,77 @@ class JsonObjectValidatorTest {
                     assertThat(violation.message()).contains("null");
                     assertThat(violation.path()).isEmpty();
                 });
+    }
+
+    @Test
+    void shouldFail_ValidateMandatoryIdArrayMinSize() {
+        var input = createObjectBuilder()
+                .add("arrayProperty", createArrayBuilder()
+                        .add(createObjectBuilder().add(ID, "value1"))
+                        .add(createObjectBuilder().add(ID, "value2"))
+                );
+
+        var result = JsonObjectValidator.newValidator()
+                .verify("arrayProperty", MandatoryIdArray.min(3))
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isFailed().satisfies(failure -> {
+            assertThat(failure.getViolations()).anySatisfy(violation -> {
+                assertThat(violation.path()).contains("arrayProperty");
+            });
+        });
+    }
+
+    @Test
+    void shouldFail_ValidateMandatoryIdArrayNoValue() {
+        var input = createObjectBuilder();
+
+        var result = JsonObjectValidator.newValidator()
+                .verify("arrayProperty", MandatoryIdArray::new)
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isFailed().satisfies(failure -> {
+            assertThat(failure.getViolations()).anySatisfy(violation -> {
+                assertThat(violation.path()).contains("arrayProperty");
+            });
+        });
+    }
+
+    @Test
+    void shouldFail_ValidateMandatoryIdArrayWrongType() {
+        var input = createObjectBuilder()
+                .add("arrayProperty", createArrayBuilder()
+                        .add(createObjectBuilder().add("subProperty", createObjectBuilder()))
+                );
+
+        var result = JsonObjectValidator.newValidator()
+                .verify("arrayProperty", MandatoryIdArray::new)
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isFailed().satisfies(failure -> {
+            assertThat(failure.getViolations()).anySatisfy(violation -> {
+                assertThat(violation.path()).contains("arrayProperty");
+            });
+        });
+    }
+
+    @Test
+    void shouldSucceed_ValidateMandatoryIdArray() {
+        var input = createObjectBuilder()
+                .add("arrayProperty", createArrayBuilder()
+                        .add(createObjectBuilder().add(ID, "value1"))
+                        .add(createObjectBuilder().add(ID, "value2"))
+                );
+
+        var result = JsonObjectValidator.newValidator()
+                .verify("arrayProperty", MandatoryIdArray::new)
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isSucceeded();
     }
 
     private JsonArrayBuilder value(String value) {

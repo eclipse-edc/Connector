@@ -225,4 +225,6 @@ class PolicyDefinitionValidatorTest {
                 .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, rightOperand));
     }
 
+
+
 }

@@ -37,6 +37,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROFILE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 
@@ -91,6 +92,7 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
             case ODRL_TARGET_ATTRIBUTE -> v -> builder.target(transformString(v, context));
             case ODRL_ASSIGNER_ATTRIBUTE -> v -> builder.assigner(participantIdMapper.fromIri(transformString(v, context)));
             case ODRL_ASSIGNEE_ATTRIBUTE -> v -> builder.assignee(participantIdMapper.fromIri(transformString(v, context)));
+            case ODRL_PROFILE_ATTRIBUTE -> v -> builder.profiles(transformArray(v, String.class, context));
             default -> v -> builder.extensibleProperty(key, transformGenericProperty(v, context));
         });
 
