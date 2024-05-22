@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import jakarta.json.Json;
+import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -50,6 +51,9 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
     @Inject
     private TypeTransformerRegistry typeTransformerRegistry;
 
+    @Inject
+    private ControlClientAuthenticationProvider authenticationProvider;
+
     @Override
     public String name() {
         return NAME;
@@ -67,6 +71,7 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
         var config = context.getConfig();
         var url = config.getString(DPF_SELECTOR_URL_SETTING);
         var selectionStrategy = config.getString(DPF_SELECTOR_STRATEGY, DataPlaneSelectorService.DEFAULT_STRATEGY);
-        return new RemoteDataPlaneSelectorService(httpClient, url, typeManager.getMapper(), typeTransformerRegistry, selectionStrategy);
+        return new RemoteDataPlaneSelectorService(httpClient, url, typeManager.getMapper(), typeTransformerRegistry,
+                selectionStrategy, authenticationProvider);
     }
 }

@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.provision.http;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.provision.http.webhook.HttpProvisionerWebhookApiController;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
@@ -37,9 +35,6 @@ public class HttpWebhookExtension implements ServiceExtension {
     private WebService webService;
 
     @Inject
-    private AuthenticationService authService;
-
-    @Inject
     private TransferProcessService transferProcessService;
 
     @Inject
@@ -53,7 +48,6 @@ public class HttpWebhookExtension implements ServiceExtension {
         registerCallbackUrl(context, managementApiConfiguration.getPath(), managementApiConfiguration.getPort());
 
         webService.registerResource(managementApiConfiguration.getContextAlias(), new HttpProvisionerWebhookApiController(transferProcessService));
-        webService.registerResource(managementApiConfiguration.getContextAlias(), new AuthenticationRequestFilter(authService));
     }
 
     private void registerCallbackUrl(ServiceExtensionContext context, String path, int port) {

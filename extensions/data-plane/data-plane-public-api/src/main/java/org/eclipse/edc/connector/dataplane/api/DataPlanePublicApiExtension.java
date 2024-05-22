@@ -36,8 +36,11 @@ import java.util.concurrent.Executors;
 /**
  * This extension provides generic endpoints which are open to public participants of the Dataspace to execute
  * requests on the actual data source.
+ *
+ * @deprecated will be replaced by v2.
  */
 @Extension(value = DataPlanePublicApiExtension.NAME)
+@Deprecated(since = "0.6.0")
 public class DataPlanePublicApiExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Public API";
     private static final int DEFAULT_PUBLIC_PORT = 8185;

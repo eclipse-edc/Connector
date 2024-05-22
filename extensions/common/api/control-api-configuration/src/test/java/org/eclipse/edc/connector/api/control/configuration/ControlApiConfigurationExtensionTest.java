@@ -14,12 +14,14 @@
 
 package org.eclipse.edc.connector.api.control.configuration;
 
+import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,13 +35,16 @@ import static org.eclipse.edc.connector.api.control.configuration.ControlApiConf
 import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.CONTROL_CONTEXT_ALIAS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class ControlApiConfigurationExtensionTest {
 
     private final WebServiceConfigurer configurator = mock();
+    private final WebService webService = mock();
 
     private final WebServiceConfiguration webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
             .contextAlias(CONTROL_CONTEXT_ALIAS)
@@ -51,6 +56,7 @@ public class ControlApiConfigurationExtensionTest {
     void setUp(ServiceExtensionContext context) {
         context.registerService(WebServiceConfigurer.class, configurator);
         context.registerService(Hostname.class, () -> "localhost");
+        context.registerService(WebService.class, webService);
 
         when(configurator.configure(any(), any(), any())).thenReturn(webServiceConfiguration);
     }
@@ -94,6 +100,12 @@ public class ControlApiConfigurationExtensionTest {
         when(context.getSetting(eq(CONTROL_API_ENDPOINT), any())).thenReturn(endpoint);
 
         assertThatThrownBy(() -> extension.initialize(context)).isInstanceOf(EdcException.class);
+    }
 
+    @Test
+    void shouldRegisterAuthenticationFilter(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
+        extension.initialize(context);
+
+        verify(webService).registerResource(any(), isA(AuthenticationRequestFilter.class));
     }
 }

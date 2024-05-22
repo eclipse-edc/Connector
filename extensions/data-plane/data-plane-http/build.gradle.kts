@@ -26,7 +26,7 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:data-plane:data-plane-core"))
-    testImplementation(project(":extensions:control-plane:api:control-plane-api-client"))
+    testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.restAssured)
     testImplementation(libs.mockserver.netty)
 

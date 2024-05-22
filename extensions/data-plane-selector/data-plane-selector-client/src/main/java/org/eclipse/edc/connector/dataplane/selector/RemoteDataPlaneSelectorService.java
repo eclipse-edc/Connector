@@ -22,6 +22,7 @@ import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.EdcHttpClient;
@@ -53,20 +54,25 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
     private final ObjectMapper mapper;
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final String selectionStrategy;
+    private final ControlClientAuthenticationProvider authenticationProvider;
 
     public RemoteDataPlaneSelectorService(EdcHttpClient httpClient, String url, ObjectMapper mapper,
-                                          TypeTransformerRegistry typeTransformerRegistry, String selectionStrategy) {
+                                          TypeTransformerRegistry typeTransformerRegistry, String selectionStrategy,
+                                          ControlClientAuthenticationProvider authenticationProvider) {
         this.httpClient = httpClient;
         this.url = url;
         this.mapper = mapper;
         this.typeTransformerRegistry = typeTransformerRegistry;
         this.selectionStrategy = selectionStrategy;
+        this.authenticationProvider = authenticationProvider;
     }
 
     @Override
     public ServiceResult<List<DataPlaneInstance>> getAll() {
-        var request = new Request.Builder().get().url(url).build();
-        return request(request)
+        var builder = new Request.Builder().get().url(url);
+        authenticationProvider.authenticationHeaders().forEach(builder::header);
+
+        return request(builder.build())
                 .compose(this::toJsonArray)
                 .map(it -> it.stream()
                         .map(j -> typeTransformerRegistry.transform(j, DataPlaneInstance.class))
@@ -89,9 +95,10 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
         var body = RequestBody.create(jsonObject.toString(), TYPE_JSON);
 
-        var request = new Request.Builder().post(body).url(url + SELECT_PATH).build();
+        var builder = new Request.Builder().post(body).url(url + SELECT_PATH);
+        authenticationProvider.authenticationHeaders().forEach(builder::header);
 
-        return request(request).compose(this::toJsonObject)
+        return request(builder.build()).compose(this::toJsonObject)
                 .map(it -> typeTransformerRegistry.transform(it, DataPlaneInstance.class))
                 .compose(ServiceResult::from);
     }
@@ -108,9 +115,10 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
                 .build();
         var body = RequestBody.create(requestBody.toString(), TYPE_JSON);
 
-        var request = new Request.Builder().post(body).url(url).build();
+        var builder = new Request.Builder().post(body).url(url);
+        authenticationProvider.authenticationHeaders().forEach(builder::header);
 
-        return request(request).mapEmpty();
+        return request(builder.build()).mapEmpty();
     }
 
     @Override

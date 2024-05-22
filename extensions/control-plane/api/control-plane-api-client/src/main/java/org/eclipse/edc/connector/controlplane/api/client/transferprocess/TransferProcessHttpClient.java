@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.controlplane.api.client.transferprocess.model.TransferProcessFailRequest;
 import org.eclipse.edc.http.spi.EdcHttpClient;
@@ -42,11 +43,14 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
     private final EdcHttpClient httpClient;
     private final ObjectMapper mapper;
     private final Monitor monitor;
+    private final ControlClientAuthenticationProvider authenticationProvider;
 
-    public TransferProcessHttpClient(EdcHttpClient httpClient, ObjectMapper mapper, Monitor monitor) {
+    public TransferProcessHttpClient(EdcHttpClient httpClient, ObjectMapper mapper, Monitor monitor,
+                                     ControlClientAuthenticationProvider authenticationProvider) {
         this.httpClient = httpClient;
         this.mapper = mapper;
         this.monitor = monitor;
+        this.authenticationProvider = authenticationProvider;
     }
 
     @Override
@@ -63,8 +67,12 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
 
         if (dataFlowStartMessage.getCallbackAddress() != null) {
             try {
-                var request = createRequest(buildUrl(dataFlowStartMessage, action), body);
-                try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNotIn(200, 204)))) {
+                var builder = new Request.Builder()
+                        .url(buildUrl(dataFlowStartMessage, action))
+                        .post(createRequestBody(body));
+                authenticationProvider.authenticationHeaders().forEach(builder::header);
+
+                try (var response = httpClient.execute(builder.build(), List.of(retryWhenStatusIsNotIn(200, 204)))) {
                     if (!response.isSuccessful()) {
                         var message = "Failed to send callback request: received %s from the TransferProcess API"
                                 .formatted(response.code());
@@ -91,17 +99,11 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
         return url.toString();
     }
 
-    private Request createRequest(String url, Object body) throws JsonProcessingException {
-        RequestBody requestBody;
+    private @NotNull RequestBody createRequestBody(Object body) throws JsonProcessingException {
         if (body != null) {
-            requestBody =
-                    RequestBody.create(mapper.writeValueAsString(body), TYPE_JSON);
+            return RequestBody.create(mapper.writeValueAsString(body), TYPE_JSON);
         } else {
-            requestBody = RequestBody.create("", null);
+            return RequestBody.create("", null);
         }
-        return new Request.Builder()
-                .url(url)
-                .post(requestBody)
-                .build();
     }
 }

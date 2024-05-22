@@ -23,6 +23,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
@@ -51,17 +52,21 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
     private final EdcHttpClient httpClient;
     private final DataPlaneInstance dataPlane;
+    private final ControlClientAuthenticationProvider authenticationProvider;
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonLd jsonLd;
 
     private final ObjectMapper mapper;
 
-    public DataPlaneSignalingClient(EdcHttpClient httpClient, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, ObjectMapper mapper, DataPlaneInstance dataPlane) {
+    public DataPlaneSignalingClient(EdcHttpClient httpClient, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd,
+                                    ObjectMapper mapper, DataPlaneInstance dataPlane,
+                                    ControlClientAuthenticationProvider authenticationProvider) {
         this.httpClient = httpClient;
         this.transformerRegistry = transformerRegistry;
         this.jsonLd = jsonLd;
         this.mapper = mapper;
         this.dataPlane = dataPlane;
+        this.authenticationProvider = authenticationProvider;
     }
 
     @WithSpan
@@ -98,11 +103,12 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
                 .compose(jsonLd::compact)
                 .compose(this::serializeMessage)
                 .map(rawBody -> RequestBody.create(rawBody, TYPE_JSON))
-                .map(body -> new Request.Builder().post(body).url(url).build());
+                .map(body -> new Request.Builder().post(body).url(url));
 
         if (requestBuilder.succeeded()) {
-            var request = requestBuilder.getContent();
-            try (var response = httpClient.execute(request)) {
+            var builder = requestBuilder.getContent();
+            authenticationProvider.authenticationHeaders().forEach(builder::header);
+            try (var response = httpClient.execute(builder.build())) {
                 if (response.isSuccessful()) {
                     return handleStartResponse.apply(response);
                 } else {

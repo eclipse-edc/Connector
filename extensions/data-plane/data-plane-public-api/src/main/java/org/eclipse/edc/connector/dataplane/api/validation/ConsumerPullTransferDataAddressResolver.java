@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import static java.lang.String.format;
 
+@Deprecated(since = "0.6.0")
 public class ConsumerPullTransferDataAddressResolver implements DataAddressResolver {
 
     private final EdcHttpClient httpClient;

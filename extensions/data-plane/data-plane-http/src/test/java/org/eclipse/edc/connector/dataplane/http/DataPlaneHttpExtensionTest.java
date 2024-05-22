@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.http;
 
+import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
@@ -33,6 +34,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.stop.Stop.stopQuietly;
@@ -46,7 +48,8 @@ public class DataPlaneHttpExtensionTest {
     private static final int DESTINATION_PORT = getFreePort();
 
     @BeforeAll
-    public static void setUp() {
+    public static void setUp(EdcExtension extension) {
+        extension.registerServiceMock(TransferProcessApiClient.class, mock());
         sourceServer = startClientAndServer(SOURCE_PORT);
         destinationServer = startClientAndServer(DESTINATION_PORT);
     }

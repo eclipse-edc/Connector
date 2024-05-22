@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.provision.http.webhook;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerWebhookUrl;
@@ -58,7 +56,6 @@ class HttpWebhookExtensionTest {
         context.registerService(WebService.class, webService);
         context.registerService(Hostname.class, () -> "localhost");
         context.registerService(TransferProcessService.class, mock(TransferProcessService.class));
-        context.registerService(AuthenticationService.class, mock(AuthenticationService.class));
         context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(webServiceConfiguration));
 
         when(context.getMonitor()).thenReturn(monitor);
@@ -73,7 +70,6 @@ class HttpWebhookExtensionTest {
         extension.initialize(context);
 
         verify(webService).registerResource(eq("management"), isA(HttpProvisionerWebhookApiController.class));
-        verify(webService).registerResource(eq("management"), isA(AuthenticationRequestFilter.class));
         assertThat(context.getService(HttpProvisionerWebhookUrl.class))
                 .extracting(HttpProvisionerWebhookUrl::get).extracting(URL::toString)
                 .isEqualTo("http://localhost:8888/management/callback");

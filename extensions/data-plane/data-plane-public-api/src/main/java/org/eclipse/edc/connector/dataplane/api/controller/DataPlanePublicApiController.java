@@ -48,6 +48,7 @@ import static jakarta.ws.rs.core.Response.status;
 
 @Path("{any:.*}")
 @Produces(WILDCARD)
+@Deprecated(since = "0.6.0")
 public class DataPlanePublicApiController implements DataPlanePublicApi {
 
     private final PipelineService pipelineService;
