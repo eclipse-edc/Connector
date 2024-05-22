@@ -1,0 +1,94 @@
+openapi: 3.0.1
+info:
+  title: public-api
+  description: REST API documentation for the public-api
+  version: 0.7.1-SNAPSHOT
+servers:
+- url: /
+tags:
+- name: Data Plane public API
+  description: "The public API of the Data Plane is a data proxy enabling a data consumer\
+    \ to actively querydata from the provider data source (e.g. backend Rest API,\
+    \ internal database...) through its Data Planeinstance. Thus the Data Plane is\
+    \ the only entry/output door for the data, which avoids the provider to exposedirectly\
+    \ its data externally.The Data Plane public API being a proxy, it supports all\
+    \ verbs (i.e. GET, POST, PUT, PATCH, DELETE), whichcan then conveyed until the\
+    \ data source is required. This is especially useful when the actual data sourceis\
+    \ a Rest API itself.In the same manner, any set of arbitrary query parameters,\
+    \ path parameters and request body are supported (in the limits fixed by the HTTP\
+    \ server) and can also conveyed to the actual data source."
+paths:
+  /{any}:
+    get:
+      tags:
+      - Data Plane public API
+      description: Send `GET` data query to the Data Plane.
+      operationId: get
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+    put:
+      tags:
+      - Data Plane public API
+      description: Send `PUT` data query to the Data Plane.
+      operationId: put
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+    post:
+      tags:
+      - Data Plane public API
+      description: Send `POST` data query to the Data Plane.
+      operationId: post
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+    delete:
+      tags:
+      - Data Plane public API
+      description: Send `DELETE` data query to the Data Plane.
+      operationId: delete
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+    head:
+      tags:
+      - Data Plane public API
+      description: Send `HEAD` data query to the Data Plane.
+      operationId: head
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+    patch:
+      tags:
+      - Data Plane public API
+      description: Send `PATCH` data query to the Data Plane.
+      operationId: patch
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+components: {}
