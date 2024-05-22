@@ -30,7 +30,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
@@ -64,7 +63,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
-import static org.mockito.Mockito.mock;
 
 class TransferProcessApiTest {
 
@@ -84,7 +82,7 @@ class TransferProcessApiTest {
 
     @Test
     void transferRequestExample() throws JsonProcessingException {
-        var validator = TransferRequestValidator.instance(mock(Monitor.class));
+        var validator = TransferRequestValidator.instance();
 
         var jsonObject = objectMapper.readValue(TRANSFER_REQUEST_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();

@@ -34,7 +34,6 @@ import static jakarta.json.JsonValue.ValueType.ARRAY;
 import static jakarta.json.JsonValue.ValueType.OBJECT;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CALLBACK_ADDRESSES;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
@@ -54,7 +53,7 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
 
         builder.id(nodeId(input));
         visitProperties(input, k -> switch (k) {
-            case TRANSFER_REQUEST_CONNECTOR_ADDRESS, TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS ->
+            case TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS ->
                     v -> builder.counterPartyAddress(transformString(v, context));
             case TRANSFER_REQUEST_CONTRACT_ID -> (v) -> builder.contractId(transformString(v, context));
             case TRANSFER_REQUEST_DATA_DESTINATION ->

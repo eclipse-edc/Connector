@@ -28,13 +28,9 @@ import static jakarta.json.Json.createObjectBuilder;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.ContractOfferDescription.ASSET_ID;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.ContractOfferDescription.OFFER_ID;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.ContractOfferDescription.POLICY;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.OFFER;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -44,7 +40,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTR
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -122,7 +117,7 @@ class ContractRequestValidatorTest {
 
     @Test
     void shouldSucceed_whenDeprecatedProviderIdIsUsedWarningLogged() {
-        String expectedLogMessage = format("The attribute %s has been deprecated in type %s, please use %s",
+        var expectedLogMessage = format("The attribute %s has been deprecated in type %s, please use %s",
                 PROVIDER_ID, CONTRACT_REQUEST_TYPE, ODRL_ASSIGNER_ATTRIBUTE);
 
         var input = Json.createObjectBuilder()
@@ -132,60 +127,6 @@ class ContractRequestValidatorTest {
         validator.validate(input);
 
         verify(monitor).warning(expectedLogMessage);
-    }
-
-    @Deprecated(since = "0.3.2")
-    @Test
-    void shouldFail_whenOfferMandatoryPropertiesAreMissing() {
-        var input = Json.createObjectBuilder()
-                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
-                .add(CONNECTOR_ADDRESS, value("http://connector-address"))
-                .add(PROTOCOL, value("protocol"))
-                .add(OFFER, createArrayBuilder().add(createObjectBuilder()))
-                .build();
-
-        var result = validator.validate(input);
-
-        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).contains(OFFER_ID))
-                .anySatisfy(violation -> assertThat(violation.path()).contains(ASSET_ID))
-                .anySatisfy(violation -> assertThat(violation.path()).contains(POLICY));
-    }
-
-    @Deprecated(since = "0.3.2")
-    @Test
-    void shouldSucceed_whenDeprecatedOfferIsUsed() {
-        var input = Json.createObjectBuilder()
-                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
-                .add(PROTOCOL, value("protocol"))
-                .add(OFFER, createArrayBuilder().add(createObjectBuilder()
-                        .add(OFFER_ID, value("offerId"))
-                        .add(ASSET_ID, value("offerId"))
-                        .add(POLICY, createArrayBuilder().add(createObjectBuilder()))))
-                .build();
-
-        var result = validator.validate(input);
-        assertThat(result).isSucceeded();
-        verify(monitor).warning(anyString());
-    }
-
-    @Deprecated(since = "0.3.2")
-    @Test
-    void shouldSucceed_whenDeprecatedConnectorAddressIsUsed() {
-        var input = Json.createObjectBuilder()
-                .add(CONNECTOR_ADDRESS, value("http://connector-address"))
-                .add(PROTOCOL, value("protocol"))
-                .add(POLICY, createArrayBuilder().add(createObjectBuilder()
-                        .add(ID, "offer-id")
-                        .add(TYPE, createArrayBuilder().add(ODRL_POLICY_TYPE_OFFER))
-                        .add(ODRL_ASSIGNER_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "assigner")))
-                        .add(ODRL_TARGET_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "target")))))
-                .build();
-
-        var result = validator.validate(input);
-        assertThat(result).isSucceeded();
-        verify(monitor).warning(anyString());
     }
 
     private JsonArrayBuilder value(String value) {

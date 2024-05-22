@@ -28,16 +28,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class TransferRequest {
 
     public static final String TRANSFER_REQUEST_TYPE = EDC_NAMESPACE + "TransferRequest";
-    @Deprecated(since = "0.3.2")
-    public static final String TRANSFER_REQUEST_CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
     public static final String TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String TRANSFER_REQUEST_CONTRACT_ID = EDC_NAMESPACE + "contractId";
     public static final String TRANSFER_REQUEST_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_REQUEST_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
-    @Deprecated(since = "0.3.2")
-    public static final String TRANSFER_REQUEST_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
     public static final String TRANSFER_REQUEST_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String TRANSFER_REQUEST_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
 

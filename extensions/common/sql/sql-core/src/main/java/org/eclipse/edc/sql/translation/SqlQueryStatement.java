@@ -128,28 +128,6 @@ public class SqlQueryStatement {
         return this;
     }
 
-    /**
-     * Add where clause. If it contains multiple clauses better wrap it with parenthesis
-     *
-     * @param clause the SQL where clause.
-     * @deprecated please use {@link #addWhereClause(String, Object...)}
-     */
-    @Deprecated(since = "0.3.1")
-    public void addWhereClause(String clause) {
-        whereClauses.add(clause);
-    }
-
-    /**
-     * Add parameter.
-     *
-     * @param parameter the parameter.
-     * @deprecated please use {@link #addWhereClause(String, Object...)}
-     */
-    @Deprecated(since = "0.3.1")
-    public void addParameter(Object parameter) {
-        parameters.add(parameter);
-    }
-
     private void initialize(QuerySpec query) {
         query.getFilterExpression().stream()
                 .map(criterion -> criterionToWhereConditionConverter.convert(criterion))

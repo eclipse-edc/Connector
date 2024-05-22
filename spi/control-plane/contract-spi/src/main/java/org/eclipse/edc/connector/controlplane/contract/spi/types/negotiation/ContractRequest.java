@@ -29,14 +29,10 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class ContractRequest {
 
     public static final String CONTRACT_REQUEST_TYPE = EDC_NAMESPACE + "ContractRequest";
-    @Deprecated(since = "0.3.2")
-    public static final String CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
     public static final String CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String PROTOCOL = EDC_NAMESPACE + "protocol";
     @Deprecated(since = "0.5.1")
     public static final String PROVIDER_ID = EDC_NAMESPACE + "providerId";
-    @Deprecated(since = "0.3.2")
-    public static final String OFFER = EDC_NAMESPACE + "offer";
     public static final String POLICY = EDC_NAMESPACE + "policy";
     public static final String CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
 

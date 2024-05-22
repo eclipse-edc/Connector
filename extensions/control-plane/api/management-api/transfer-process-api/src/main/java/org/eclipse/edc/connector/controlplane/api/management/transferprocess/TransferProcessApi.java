@@ -157,14 +157,8 @@ public interface TransferProcessApi {
             String type,
             @Schema(requiredMode = REQUIRED)
             String protocol,
-            @Deprecated(since = "0.3.2")
-            @Schema(deprecated = true, description = "please use counterPartyAddress instead")
-            String connectorAddress,
             @Schema(requiredMode = REQUIRED)
             String counterPartyAddress,
-            @Deprecated(since = "0.3.2")
-            @Schema(deprecated = true, description = "Provider connector id is stored in the contract agreement")
-            String connectorId,
             @Schema(requiredMode = REQUIRED)
             String contractId,
             @Schema(requiredMode = REQUIRED)

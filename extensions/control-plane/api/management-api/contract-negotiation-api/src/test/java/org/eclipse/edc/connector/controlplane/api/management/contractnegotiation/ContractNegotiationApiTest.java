@@ -18,7 +18,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferDescriptionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
@@ -64,7 +63,6 @@ class ContractNegotiationApiTest {
     void setUp() {
         transformer.register(new JsonObjectToContractRequestTransformer());
         transformer.register(new JsonObjectToContractOfferTransformer());
-        transformer.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformer.register(new JsonObjectToCallbackAddressTransformer());
         transformer.register(new JsonObjectToTerminateNegotiationCommandTransformer());
         ParticipantIdMapper participantIdMapper = mock();

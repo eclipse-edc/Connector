@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
@@ -25,9 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 
@@ -40,7 +37,7 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
     @Override
     public @Nullable ContractRequest transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var contractRequestBuilder = ContractRequest.Builder.newInstance()
-                .counterPartyAddress(counterPartyAddressOrConnectorAddress(jsonObject, context))
+                .counterPartyAddress(transformString(jsonObject.get(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS), context))
                 .protocol(transformString(jsonObject.get(PROTOCOL), context));
 
         contractRequestBuilder.contractOffer(contractOffer(jsonObject, context));
@@ -59,24 +56,7 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
             return transformObject(policy, ContractOffer.class, context);
         }
 
-        var offerJson = jsonObject.get(OFFER);
-        if (offerJson != null) {
-            var contractOfferDescription = transformObject(jsonObject.get(OFFER), ContractOfferDescription.class, context);
-            return ContractOffer.Builder.newInstance()
-                    .id(contractOfferDescription.getOfferId())
-                    .assetId(contractOfferDescription.getAssetId())
-                    .policy(contractOfferDescription.getPolicy())
-                    .build();
-        }
-
         return null;
     }
 
-    /**
-    * This method can be removed once `connectorAddress` is deleted and exists only for legacy reasons
-    */
-    private String counterPartyAddressOrConnectorAddress(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var counterPartyAddress = transformString(jsonObject.get(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS), context);
-        return counterPartyAddress != null ? counterPartyAddress : transformString(jsonObject.get(CONNECTOR_ADDRESS), context);
-    }
 }
