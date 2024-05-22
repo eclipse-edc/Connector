@@ -119,6 +119,7 @@ public interface PolicyDefinitionApiV3 {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
                         "@type": "Set",
                         "uid": "http://example.com/policy:1010",
+                        "profile": "http://example.com/odrl:profile:02",
                         "permission": [{
                             "target": "http://example.com/asset:9898.movie",
                             "action": "display",
