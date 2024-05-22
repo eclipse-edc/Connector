@@ -28,9 +28,12 @@ import static java.lang.String.format;
 
 /**
  * Extension that registers an AuthenticationService that uses API Keys
+ *
+ * @deprecated this module is not supported anymore and it will be removed in the next iterations.
  */
 @Provides(AuthenticationService.class)
 @Extension(value = "Basic authentication")
+@Deprecated(since = "0.6.5")
 public class BasicAuthenticationExtension implements ServiceExtension {
 
     @Setting(value = "Key-value object defining authentication credentials stored in the vault", type = "map", required = true)
@@ -43,6 +46,8 @@ public class BasicAuthenticationExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
+
+        monitor.warning("The 'auth-basic' module has been deprecated and it will removed in the next iterations.");
 
         var credentials = context.getConfig(BASIC_AUTH)
                 .getRelativeEntries().entrySet().stream()

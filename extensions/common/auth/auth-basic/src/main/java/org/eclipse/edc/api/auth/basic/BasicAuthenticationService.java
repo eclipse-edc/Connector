@@ -32,7 +32,7 @@ public class BasicAuthenticationService implements AuthenticationService {
     private final List<ConfigCredentials> basicAuthUsersWithVaultKeyConfigs;
     private final Monitor monitor;
 
-    public BasicAuthenticationService(
+    BasicAuthenticationService(
             Vault vault,
             List<ConfigCredentials> basicAuthUsersWithVaultKeyConfigs,
             Monitor monitor) {

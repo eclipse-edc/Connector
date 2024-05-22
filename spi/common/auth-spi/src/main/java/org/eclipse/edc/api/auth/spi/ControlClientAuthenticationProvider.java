@@ -19,6 +19,7 @@ import java.util.Map;
 /**
  * Provide headers to be used in intra-components (control-api) communication.
  */
+@FunctionalInterface
 public interface ControlClientAuthenticationProvider {
 
     /**

@@ -14,5 +14,5 @@
 
 package org.eclipse.edc.api.auth.basic;
 
-public record ConfigCredentials(String username, String vaultKey) {
+record ConfigCredentials(String username, String vaultKey) {
 }
