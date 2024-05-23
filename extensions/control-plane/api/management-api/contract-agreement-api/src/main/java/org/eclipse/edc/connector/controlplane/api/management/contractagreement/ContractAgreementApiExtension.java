@@ -16,6 +16,8 @@
 package org.eclipse.edc.connector.controlplane.api.management.contractagreement;
 
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
+import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v2.ContractAgreementApiV2Controller;
+import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v3.ContractAgreementApiV3Controller;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -55,7 +57,7 @@ public class ContractAgreementApiExtension implements ServiceExtension {
 
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
 
-        var controller = new ContractAgreementApiController(service, managementApiTransformerRegistry, monitor, validatorRegistry);
-        webService.registerResource(config.getContextAlias(), controller);
+        webService.registerResource(config.getContextAlias(), new ContractAgreementApiV2Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
+        webService.registerResource(config.getContextAlias(), new ContractAgreementApiV3Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
     }
 }

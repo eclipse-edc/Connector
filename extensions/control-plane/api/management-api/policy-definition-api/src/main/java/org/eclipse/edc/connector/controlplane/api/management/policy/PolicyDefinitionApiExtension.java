@@ -18,6 +18,8 @@ import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectToPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.policy.v2.PolicyDefinitionApiV2Controller;
+import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.policy.validation.PolicyDefinitionValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -74,6 +76,7 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         validatorRegistry.register(EDC_POLICY_DEFINITION_TYPE, PolicyDefinitionValidator.instance());
 
         var monitor = context.getMonitor();
-        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, managementApiTransformerRegistry, service, validatorRegistry));
+        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiV2Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
+        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiV3Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
     }
 }
