@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,6 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       ZF Friedrichshafen AG - Initial API and Implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
@@ -17,21 +16,13 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectFromContractNegotiationTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectFromNegotiationStateTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToContractOfferDescriptionTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToContractOfferTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToContractRequestTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToTerminateNegotiationCommandTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.v2.ContractNegotiationApiV2Controller;
-import org.eclipse.edc.connector.controlplane.api.management.v3.ContractNegotiationApiV3Controller;
-import org.eclipse.edc.connector.controlplane.api.management.validation.ContractRequestValidator;
-import org.eclipse.edc.connector.controlplane.api.management.validation.TerminateNegotiationValidator;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v2.ContractNegotiationApiV2Controller;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation.ContractRequestValidator;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;

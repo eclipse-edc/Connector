@@ -14,15 +14,12 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation;
 
-import org.eclipse.edc.connector.controlplane.api.management.ContractNegotiationApiExtension;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectFromContractNegotiationTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectFromNegotiationStateTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToContractOfferDescriptionTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToContractOfferTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToContractRequestTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToTerminateNegotiationCommandTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.v2.ContractNegotiationApiV2Controller;
-import org.eclipse.edc.connector.controlplane.api.management.v3.ContractNegotiationApiV3Controller;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v2.ContractNegotiationApiV2Controller;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3Controller;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -78,9 +75,7 @@ class ContractNegotiationApiExtensionTest {
         when(typeTransformerRegistry.forContext(eq("management-api"))).thenReturn(scopedRegistry);
         extension.initialize(context);
 
-        verify(scopedRegistry).register(isA(JsonObjectToContractRequestTransformer.class));
         verify(scopedRegistry).register(isA(JsonObjectToContractOfferTransformer.class));
-        verify(scopedRegistry).register(isA(JsonObjectToContractOfferDescriptionTransformer.class));
         verify(scopedRegistry).register(isA(JsonObjectToTerminateNegotiationCommandTransformer.class));
         verify(scopedRegistry).register(isA(JsonObjectFromContractNegotiationTransformer.class));
         verify(scopedRegistry).register(isA(JsonObjectFromNegotiationStateTransformer.class));

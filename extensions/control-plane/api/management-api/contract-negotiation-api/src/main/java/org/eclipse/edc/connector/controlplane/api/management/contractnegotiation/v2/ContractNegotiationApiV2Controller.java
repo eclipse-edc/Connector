@@ -12,13 +12,13 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.v2;
+package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v2;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Path;
 import org.eclipse.edc.api.ApiWarnings;
-import org.eclipse.edc.connector.controlplane.api.management.BaseContractNegotiationApiController;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.BaseContractNegotiationApiController;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;

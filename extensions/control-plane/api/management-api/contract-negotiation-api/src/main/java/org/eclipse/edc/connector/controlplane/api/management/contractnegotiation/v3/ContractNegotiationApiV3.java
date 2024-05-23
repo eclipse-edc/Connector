@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v2;
+package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,7 +29,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
-import org.eclipse.edc.connector.controlplane.api.management.model.NegotiationState;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
 
 import java.util.List;
 
@@ -41,25 +41,23 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 
-@OpenAPIDefinition(info = @Info(version = "v2"))
-@Tag(name = "Contract Negotiation V2")
-public interface ContractNegotiationApiV2 {
+@OpenAPIDefinition(info = @Info(version = "v3"))
+@Tag(name = "Contract Negotiation V3")
+public interface ContractNegotiationApiV3 {
 
     @Operation(description = "Returns all contract negotiations according to a query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
-            operationId = "queryNegotiationsV2",
+            operationId = "queryNegotiationsV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiations that match the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) },
-            deprecated = true
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
     )
-    @Deprecated(since = "0.7.0")
     JsonArray queryNegotiations(JsonObject querySpecJson);
 
     @Operation(description = "Gets a contract negotiation with the given ID",
-            operationId = "getNegotiationV2",
+            operationId = "getNegotiationsV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class))),
@@ -67,14 +65,12 @@ public interface ContractNegotiationApiV2 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "0.7.0")
     JsonObject getNegotiation(String id);
 
     @Operation(description = "Gets the state of a contract negotiation with the given ID",
-            operationId = "getNegotiationStateV2",
+            operationId = "getNegotiationStateV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation's state",
                             content = @Content(schema = @Schema(implementation = NegotiationState.class))),
@@ -82,13 +78,12 @@ public interface ContractNegotiationApiV2 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "0.7.0")
     JsonObject getNegotiationState(String id);
 
     @Operation(description = "Gets a contract agreement for a contract negotiation with the given ID",
+            operationId = "getAgreementForNegotiationV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract agreement that is attached to the negotiation, or null",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractAgreementSchema.class))),
@@ -96,17 +91,14 @@ public interface ContractNegotiationApiV2 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
-            },
-            operationId = "getAgreementForNegotiationV2",
-            deprecated = true
+            }
     )
-    @Deprecated(since = "0.7.0")
     JsonObject getAgreementForNegotiation(String negotiationId);
 
     @Operation(description = "Initiates a contract negotiation for a given offer and with the given counter part. Please note that successfully invoking this endpoint " +
             "only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractRequestSchema.class))),
-            operationId = "initiateNegotiationV2",
+            operationId = "initiateNegotiationV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class)),
@@ -116,14 +108,12 @@ public interface ContractNegotiationApiV2 {
                     ),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
-            },
-            deprecated = true)
-    @Deprecated(since = "0.7.0")
+            })
     JsonObject initiateContractNegotiation(JsonObject requestDto);
 
     @Operation(description = "Terminates the contract negotiation.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = TerminateNegotiationSchema.class))),
-            operationId = "terminateNegotiationV2",
+            operationId = "terminateNegotiationV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "ContractNegotiation is terminating",
                             links = @Link(name = "poll-state", operationId = "getNegotiationState")),
@@ -131,10 +121,8 @@ public interface ContractNegotiationApiV2 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "0.7.0")
     void terminateNegotiation(String id, JsonObject terminateNegotiation);
 
     @Schema(name = "ContractRequest", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
@@ -147,9 +135,6 @@ public interface ContractNegotiationApiV2 {
             String protocol,
             @Schema(requiredMode = REQUIRED)
             String counterPartyAddress,
-            @Deprecated(since = "0.5.1")
-            @Schema(deprecated = true, description = "please use policy.assigner instead")
-            String providerId,
             @Schema(requiredMode = REQUIRED)
             OfferSchema policy,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
@@ -203,21 +188,6 @@ public interface ContractNegotiationApiV2 {
                     "permission": [],
                     "prohibition": [],
                     "obligation": []
-                }
-                """;
-    }
-
-    @Schema(name = "NegotiationState", example = NegotiationStateSchema.NEGOTIATION_STATE_EXAMPLE)
-    record NegotiationStateSchema(
-            @Schema(name = TYPE, example = NegotiationState.NEGOTIATION_STATE_TYPE)
-            String ldType,
-            String state
-    ) {
-        public static final String NEGOTIATION_STATE_EXAMPLE = """
-                {
-                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
-                    "@type": "https://w3id.org/edc/v0.0.1/ns/NegotiationState",
-                    "state": "REQUESTED"
                 }
                 """;
     }

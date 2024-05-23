@@ -32,9 +32,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.model.ContractOfferDescription.ASSET_ID;
-import static org.eclipse.edc.connector.controlplane.api.management.model.ContractOfferDescription.OFFER_ID;
-import static org.eclipse.edc.connector.controlplane.api.management.model.ContractOfferDescription.POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.POLICY;

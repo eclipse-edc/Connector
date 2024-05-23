@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.validation.TerminateNegotiationValidator;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;

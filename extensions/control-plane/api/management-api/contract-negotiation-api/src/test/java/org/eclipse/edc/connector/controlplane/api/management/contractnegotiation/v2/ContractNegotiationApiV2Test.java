@@ -16,10 +16,9 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.BaseContractNegotiationApiTest;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToContractOfferDescriptionTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToContractOfferTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToContractRequestTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.transform.JsonObjectToTerminateNegotiationCommandTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +33,6 @@ class ContractNegotiationApiV2Test extends BaseContractNegotiationApiTest {
     void setUp() {
         transformer.register(new JsonObjectToContractRequestTransformer());
         transformer.register(new JsonObjectToContractOfferTransformer());
-        transformer.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformer.register(new JsonObjectToCallbackAddressTransformer());
         transformer.register(new JsonObjectToTerminateNegotiationCommandTransformer());
         ParticipantIdMapper participantIdMapper = mock();

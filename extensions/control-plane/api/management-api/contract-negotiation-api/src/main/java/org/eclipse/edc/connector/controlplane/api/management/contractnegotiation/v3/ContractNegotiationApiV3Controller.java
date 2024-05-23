@@ -12,10 +12,10 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.v3;
+package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3;
 
 import jakarta.ws.rs.Path;
-import org.eclipse.edc.connector.controlplane.api.management.BaseContractNegotiationApiController;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.BaseContractNegotiationApiController;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;

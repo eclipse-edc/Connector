@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.validation;
+package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;

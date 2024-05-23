@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.BaseContractNegotiationApiControllerTest;
-import org.eclipse.edc.connector.controlplane.api.management.v2.ContractNegotiationApiV2Controller;
 import org.eclipse.edc.junit.annotations.ApiTest;
 
 import static io.restassured.RestAssured.given;
