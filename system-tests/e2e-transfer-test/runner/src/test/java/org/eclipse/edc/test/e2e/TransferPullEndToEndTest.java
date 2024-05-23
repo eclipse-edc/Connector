@@ -342,6 +342,7 @@ class TransferPullEndToEndTest {
 
         private static final EdcRuntimeExtension CONSUMER_RUNTIME = Runtimes.InMemory.controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration());
         private static final EdcRuntimeExtension PROVIDER_RUNTIME = Runtimes.InMemory.controlPlaneEmbeddedDataPlane("provider-control-plane", PROVIDER.controlPlaneEmbeddedDataPlaneConfiguration());
+
         @RegisterExtension
         static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
                 CONSUMER_RUNTIME,
