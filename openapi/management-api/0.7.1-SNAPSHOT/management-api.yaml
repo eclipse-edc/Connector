@@ -2032,23 +2032,6 @@ components:
           - transfer.process
           authKey: auth-key
           authCodeId: auth-code-id
-    ContractOfferDescription:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/ContractOfferDescription
-        assetId:
-          type: string
-          example: null
-        offerId:
-          type: string
-          example: null
-        policy:
-          $ref: "#/components/schemas/Policy"
-      description: please use policy instead of offer
-      example: null
-      deprecated: true
     ContractRequest:
       required:
       - '@context'
@@ -2068,16 +2051,9 @@ components:
           example: null
           items:
             $ref: "#/components/schemas/CallbackAddress"
-        connectorAddress:
-          type: string
-          description: please use counterPartyAddress instead
-          example: null
-          deprecated: true
         counterPartyAddress:
           type: string
           example: null
-        offer:
-          $ref: "#/components/schemas/ContractOfferDescription"
         policy:
           $ref: "#/components/schemas/Offer"
         protocol:
@@ -2754,16 +2730,6 @@ components:
           example: null
           items:
             $ref: "#/components/schemas/CallbackAddress"
-        connectorAddress:
-          type: string
-          description: please use counterPartyAddress instead
-          example: null
-          deprecated: true
-        connectorId:
-          type: string
-          description: Provider connector id is stored in the contract agreement
-          example: null
-          deprecated: true
         contractId:
           type: string
           example: null
