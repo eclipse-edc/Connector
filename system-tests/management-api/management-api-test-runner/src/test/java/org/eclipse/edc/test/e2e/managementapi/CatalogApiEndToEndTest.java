@@ -50,34 +50,6 @@ import static org.hamcrest.Matchers.is;
 
 public class CatalogApiEndToEndTest {
 
-    @Nested
-    @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    class Postgres extends Tests {
-
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
-
-        Postgres() {
-            super(RUNTIME);
-        }
-    }
-
     abstract static class Tests extends ManagementApiEndToEndTestBase {
         // requests the catalog to itself, to save another connector.
         private final String providerUrl = "http://localhost:" + PROTOCOL_PORT + "/protocol";
@@ -98,7 +70,7 @@ public class CatalogApiEndToEndTest {
             baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v2/catalog/request")
+                    .post("/v3/catalog/request")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -155,7 +127,7 @@ public class CatalogApiEndToEndTest {
             baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v2/catalog/request")
+                    .post("/v3/catalog/request")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -182,7 +154,7 @@ public class CatalogApiEndToEndTest {
             baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v2/catalog/dataset/request")
+                    .post("/v3/catalog/dataset/request")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -198,6 +170,33 @@ public class CatalogApiEndToEndTest {
                     .id(id);
         }
 
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
+
+        InMemory() {
+            super(RUNTIME);
+        }
+
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
+
+        Postgres() {
+            super(RUNTIME);
+        }
     }
 
 }

@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.BaseContractNegotiationApiControllerTest;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v2.ContractNegotiationApiV2Controller;
 import org.eclipse.edc.junit.annotations.ApiTest;
 
 import static io.restassured.RestAssured.given;
@@ -26,12 +25,12 @@ class ContractNegotiationApiV3ControllerTest extends BaseContractNegotiationApiC
 
     @Override
     protected Object controller() {
-        return new ContractNegotiationApiV2Controller(service, transformerRegistry, monitor, validatorRegistry);
+        return new ContractNegotiationApiV3Controller(service, transformerRegistry, monitor, validatorRegistry);
     }
 
     protected RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port + "/v2/contractnegotiations")
+                .baseUri("http://localhost:" + port + "/v3/contractnegotiations")
                 .when();
     }
 }

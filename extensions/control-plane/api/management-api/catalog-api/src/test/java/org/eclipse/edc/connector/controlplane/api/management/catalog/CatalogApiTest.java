@@ -33,10 +33,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.catalog.v2.CatalogApiV2.CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.catalog.v2.CatalogApiV2.CatalogSchema.CATALOG_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.catalog.v2.CatalogApiV2.DatasetRequestSchema.DATASET_REQUEST_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.catalog.v2.CatalogApiV2.DatasetSchema.DATASET_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3.CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3.CatalogSchema.CATALOG_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3.DatasetRequestSchema.DATASET_REQUEST_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3.DatasetSchema.DATASET_EXAMPLE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;

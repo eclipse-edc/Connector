@@ -59,34 +59,6 @@ import static org.hamcrest.Matchers.is;
 
 public class ContractNegotiationApiEndToEndTest {
 
-    @Nested
-    @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    class Postgres extends Tests {
-
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
-
-        Postgres() {
-            super(RUNTIME);
-        }
-    }
-
     abstract static class Tests extends ManagementApiEndToEndTestBase {
 
         private final String protocolUrl = "http://localhost:" + PROTOCOL_PORT + "/protocol";
@@ -116,7 +88,7 @@ public class ContractNegotiationApiEndToEndTest {
                             )
                             .build()
                     )
-                    .post("/v2/contractnegotiations/request")
+                    .post("/v3/contractnegotiations/request")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -137,7 +109,7 @@ public class ContractNegotiationApiEndToEndTest {
 
             var json = baseRequest()
                     .contentType(JSON)
-                    .get("/v2/contractnegotiations/cn1")
+                    .get("/v3/contractnegotiations/cn1")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -155,7 +127,7 @@ public class ContractNegotiationApiEndToEndTest {
 
             baseRequest()
                     .contentType(JSON)
-                    .get("/v2/contractnegotiations/cn1/state")
+                    .get("/v3/contractnegotiations/cn1/state")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -170,7 +142,7 @@ public class ContractNegotiationApiEndToEndTest {
 
             var json = baseRequest()
                     .contentType(JSON)
-                    .get("/v2/contractnegotiations/cn1/agreement")
+                    .get("/v3/contractnegotiations/cn1/agreement")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -197,7 +169,7 @@ public class ContractNegotiationApiEndToEndTest {
             var id = baseRequest()
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v2/contractnegotiations")
+                    .post("/v3/contractnegotiations")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -221,7 +193,7 @@ public class ContractNegotiationApiEndToEndTest {
             baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v2/contractnegotiations/cn1/terminate")
+                    .post("/v3/contractnegotiations/cn1/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(204);
@@ -290,6 +262,33 @@ public class ContractNegotiationApiEndToEndTest {
 
         private ContractNegotiationStore getContractNegotiationStore() {
             return runtime.getContext().getService(ContractNegotiationStore.class);
+        }
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
+
+        InMemory() {
+            super(RUNTIME);
+        }
+
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
+
+        Postgres() {
+            super(RUNTIME);
         }
     }
 

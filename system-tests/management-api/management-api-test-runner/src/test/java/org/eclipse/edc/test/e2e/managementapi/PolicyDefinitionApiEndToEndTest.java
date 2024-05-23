@@ -51,34 +51,6 @@ import static org.hamcrest.Matchers.is;
 
 public class PolicyDefinitionApiEndToEndTest {
 
-    @Nested
-    @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    class Postgres extends Tests {
-
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
-
-        Postgres() {
-            super(RUNTIME);
-        }
-    }
-
     abstract static class Tests extends ManagementApiEndToEndTestBase {
 
         Tests(EdcRuntimeExtension runtime) {
@@ -98,13 +70,13 @@ public class PolicyDefinitionApiEndToEndTest {
             var id = baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v2/policydefinitions")
+                    .post("/v3/policydefinitions")
                     .then()
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
 
             baseRequest()
-                    .get("/v2/policydefinitions/" + id)
+                    .get("/v3/policydefinitions/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -133,7 +105,7 @@ public class PolicyDefinitionApiEndToEndTest {
             var id = baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v2/policydefinitions")
+                    .post("/v3/policydefinitions")
                     .then()
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
@@ -149,7 +121,7 @@ public class PolicyDefinitionApiEndToEndTest {
                     .extracting(PolicyDefinition::getPrivateProperties).isEqualTo(privateProp);
 
             baseRequest()
-                    .get("/v2/policydefinitions/" + id)
+                    .get("/v3/policydefinitions/" + id)
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -176,7 +148,7 @@ public class PolicyDefinitionApiEndToEndTest {
             var id = baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v2/policydefinitions")
+                    .post("/v3/policydefinitions")
                     .then()
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
@@ -189,7 +161,7 @@ public class PolicyDefinitionApiEndToEndTest {
             baseRequest()
                     .body(matchingQuery)
                     .contentType(JSON)
-                    .post("/v2/policydefinitions/request")
+                    .post("/v3/policydefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -204,7 +176,7 @@ public class PolicyDefinitionApiEndToEndTest {
             baseRequest()
                     .body(nonMatchingQuery)
                     .contentType(JSON)
-                    .post("/v2/policydefinitions/request")
+                    .post("/v3/policydefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -224,14 +196,14 @@ public class PolicyDefinitionApiEndToEndTest {
             var id = baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v2/policydefinitions")
+                    .post("/v3/policydefinitions")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             baseRequest()
                     .contentType(JSON)
-                    .get("/v2/policydefinitions/" + id)
+                    .get("/v3/policydefinitions/" + id)
                     .then()
                     .statusCode(200);
 
@@ -241,7 +213,7 @@ public class PolicyDefinitionApiEndToEndTest {
                             .add(ID, id)
                             .add("privateProperties", createObjectBuilder().add("privateProperty", "value"))
                             .build())
-                    .put("/v2/policydefinitions/" + id)
+                    .put("/v3/policydefinitions/" + id)
                     .then()
                     .statusCode(204);
 
@@ -264,18 +236,18 @@ public class PolicyDefinitionApiEndToEndTest {
             var id = baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v2/policydefinitions")
+                    .post("/v3/policydefinitions")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             baseRequest()
-                    .delete("/v2/policydefinitions/" + id)
+                    .delete("/v3/policydefinitions/" + id)
                     .then()
                     .statusCode(204);
 
             baseRequest()
-                    .get("/v2/policydefinitions/" + id)
+                    .get("/v3/policydefinitions/" + id)
                     .then()
                     .statusCode(404);
         }
@@ -297,18 +269,18 @@ public class PolicyDefinitionApiEndToEndTest {
             var id = baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v2/policydefinitions")
+                    .post("/v3/policydefinitions")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             baseRequest()
-                    .delete("/v2/policydefinitions/" + id)
+                    .delete("/v3/policydefinitions/" + id)
                     .then()
                     .statusCode(204);
 
             baseRequest()
-                    .get("/v2/policydefinitions/" + id)
+                    .get("/v3/policydefinitions/" + id)
                     .then()
                     .statusCode(404);
         }
@@ -351,6 +323,33 @@ public class PolicyDefinitionApiEndToEndTest {
             return runtime.getContext().getService(PolicyDefinitionStore.class);
         }
 
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
+
+        InMemory() {
+            super(RUNTIME);
+        }
+
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
+
+        Postgres() {
+            super(RUNTIME);
+        }
     }
 
 }

@@ -81,7 +81,7 @@ public interface AssetApi {
     @Operation(description = "Removes an asset with the given ID if possible. Deleting an asset is only possible if that asset is not yet referenced " +
             "by a contract agreement, in which case an error is returned. " +
             "DANGER ZONE: Note that deleting assets can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
-            operationId = "removeAssetV2",
+            operationId = "removeAssetV3",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Asset was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",

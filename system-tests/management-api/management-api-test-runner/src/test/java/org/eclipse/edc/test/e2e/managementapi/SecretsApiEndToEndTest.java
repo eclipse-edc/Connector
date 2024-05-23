@@ -44,19 +44,6 @@ import static org.hamcrest.Matchers.notNullValue;
  */
 public class SecretsApiEndToEndTest {
 
-    @Nested
-    @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
-
     abstract static class Tests extends ManagementApiEndToEndTestBase {
 
         Tests(EdcRuntimeExtension runtime) {
@@ -70,7 +57,7 @@ public class SecretsApiEndToEndTest {
             getVault().storeSecret(id, value);
 
             baseRequest()
-                    .get("/v1/secrets/" + id)
+                    .get("/v3/secrets/" + id)
                     .then()
                     .statusCode(200)
                     .body(notNullValue())
@@ -93,7 +80,7 @@ public class SecretsApiEndToEndTest {
             baseRequest()
                     .contentType(ContentType.JSON)
                     .body(secretJson)
-                    .post("/v1/secrets")
+                    .post("/v3/secrets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -116,7 +103,7 @@ public class SecretsApiEndToEndTest {
             baseRequest()
                     .contentType(ContentType.JSON)
                     .body(secretJson)
-                    .post("/v1/secrets")
+                    .post("/v3/secrets")
                     .then()
                     .log().ifError()
                     .statusCode(400);
@@ -138,7 +125,7 @@ public class SecretsApiEndToEndTest {
             baseRequest()
                     .contentType(ContentType.JSON)
                     .body(secretJson)
-                    .put("/v1/secrets")
+                    .put("/v3/secrets")
                     .then()
                     .log().all()
                     .statusCode(204)
@@ -151,5 +138,18 @@ public class SecretsApiEndToEndTest {
         private Vault getVault() {
             return runtime.getContext().getService(Vault.class);
         }
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
+
+        InMemory() {
+            super(RUNTIME);
+        }
+
     }
 }

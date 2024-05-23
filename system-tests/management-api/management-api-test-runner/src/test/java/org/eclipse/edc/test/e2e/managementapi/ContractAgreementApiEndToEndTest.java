@@ -42,34 +42,6 @@ import static org.hamcrest.Matchers.is;
 
 public class ContractAgreementApiEndToEndTest {
 
-    @Nested
-    @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    class Postgres extends Tests {
-
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
-
-        Postgres() {
-            super(RUNTIME);
-        }
-    }
-
     abstract static class Tests extends ManagementApiEndToEndTestBase {
 
         Tests(EdcRuntimeExtension runtime) {
@@ -84,7 +56,7 @@ public class ContractAgreementApiEndToEndTest {
 
             var jsonPath = baseRequest()
                     .contentType(JSON)
-                    .post("/v2/contractagreements/request")
+                    .post("/v3/contractagreements/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -105,7 +77,7 @@ public class ContractAgreementApiEndToEndTest {
 
             var json = baseRequest()
                     .contentType(JSON)
-                    .get("/v2/contractagreements/cn1")
+                    .get("/v3/contractagreements/cn1")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -124,7 +96,7 @@ public class ContractAgreementApiEndToEndTest {
 
             var json = baseRequest()
                     .contentType(JSON)
-                    .get("/v2/contractagreements/agreement-id/negotiation")
+                    .get("/v3/contractagreements/agreement-id/negotiation")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -162,6 +134,33 @@ public class ContractAgreementApiEndToEndTest {
                     .providerId(UUID.randomUUID() + "-provider")
                     .policy(Policy.Builder.newInstance().build())
                     .build();
+        }
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
+
+        InMemory() {
+            super(RUNTIME);
+        }
+
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
+
+        Postgres() {
+            super(RUNTIME);
         }
     }
 }

@@ -207,21 +207,6 @@ public interface ContractNegotiationApiV2 {
                 """;
     }
 
-    @Schema(name = "NegotiationState", example = NegotiationStateSchema.NEGOTIATION_STATE_EXAMPLE)
-    record NegotiationStateSchema(
-            @Schema(name = TYPE, example = NegotiationState.NEGOTIATION_STATE_TYPE)
-            String ldType,
-            String state
-    ) {
-        public static final String NEGOTIATION_STATE_EXAMPLE = """
-                {
-                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
-                    "@type": "https://w3id.org/edc/v0.0.1/ns/NegotiationState",
-                    "state": "REQUESTED"
-                }
-                """;
-    }
-
     @Schema(example = TerminateNegotiationSchema.TERMINATE_NEGOTIATION_EXAMPLE)
     record TerminateNegotiationSchema(
             @Schema(name = TYPE, example = TERMINATE_NEGOTIATION_TYPE)

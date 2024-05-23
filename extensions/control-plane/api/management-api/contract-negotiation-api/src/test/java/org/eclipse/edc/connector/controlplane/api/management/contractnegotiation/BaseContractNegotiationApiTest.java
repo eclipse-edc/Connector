@@ -41,13 +41,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_STATE;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_TYPE;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v2.ContractNegotiationApiV2.NegotiationStateSchema.NEGOTIATION_STATE_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3.ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3.TerminateNegotiationSchema.TERMINATE_NEGOTIATION_EXAMPLE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -116,16 +111,5 @@ public abstract class BaseContractNegotiationApiTest {
                             assertThat(transformed.getEntityId()).isNotBlank();
                             assertThat(transformed.getReason()).isNotBlank();
                         }));
-    }
-
-    @Test
-    void negotiationStateExample() throws JsonProcessingException {
-        var jsonObject = objectMapper.readValue(NEGOTIATION_STATE_EXAMPLE, JsonObject.class);
-        var expanded = jsonLd.expand(jsonObject);
-
-        AbstractResultAssert.assertThat(expanded).isSucceeded().satisfies(content -> {
-            assertThat(content.getJsonArray(TYPE).getString(0)).isEqualTo(NEGOTIATION_STATE_TYPE);
-            assertThat(content.getJsonArray(NEGOTIATION_STATE_STATE).getJsonObject(0).getString(VALUE)).isNotBlank();
-        });
     }
 }
