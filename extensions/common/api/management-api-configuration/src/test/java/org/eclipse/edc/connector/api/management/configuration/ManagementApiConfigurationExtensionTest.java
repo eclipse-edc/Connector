@@ -17,11 +17,13 @@ package org.eclipse.edc.connector.api.management.configuration;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
@@ -56,6 +58,7 @@ class ManagementApiConfigurationExtensionTest {
         context.registerService(WebService.class, webService);
         context.registerService(WebServiceConfigurer.class, configurer);
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
+        context.registerService(TypeManager.class, new JacksonTypeManager());
         extension = factory.constructInstance(ManagementApiConfigurationExtension.class);
     }
 

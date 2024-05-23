@@ -6,10 +6,10 @@ on:
   pull_request:
     branches: [ main, refactor/* ]
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'CODEOWNERS'
-      - 'LICENSE'
+      - "**.md"
+      - "docs/**"
+      - "CODEOWNERS"
+      - "LICENSE"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
