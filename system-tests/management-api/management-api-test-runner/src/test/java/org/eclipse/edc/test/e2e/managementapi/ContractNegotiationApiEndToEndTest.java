@@ -208,38 +208,6 @@ public class ContractNegotiationApiEndToEndTest {
             assertThat(store.findById(id)).isNotNull();
         }
 
-        @Deprecated(since = "0.3.2")
-        @Test
-        void deprecated_initiateNegotiation() {
-
-            var requestJson = createObjectBuilder()
-                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                    .add(TYPE, "ContractRequest")
-                    .add("counterPartyAddress", "test-address")
-                    .add("protocol", "test-protocol")
-                    .add("providerId", "test-provider-id")
-                    .add("callbackAddresses", createCallbackAddress())
-                    .add("offer", createObjectBuilder()
-                            .add("offerId", "offer-id")
-                            .add("assetId", "assetId")
-                            .add("policy", createPolicy()))
-                    .build();
-
-            var id = baseRequest()
-                    .contentType(JSON)
-                    .body(requestJson)
-                    .post("/v2/contractnegotiations")
-                    .then()
-                    .log().ifError()
-                    .statusCode(200)
-                    .contentType(JSON)
-                    .extract().jsonPath().getString(ID);
-
-            var store = getContractNegotiationStore();
-
-            assertThat(store.findById(id)).isNotNull();
-        }
-
         @Test
         void terminate() {
             var store = getContractNegotiationStore();

@@ -18,7 +18,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
@@ -26,7 +25,6 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,12 +32,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.ContractOfferDescription.ASSET_ID;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.ContractOfferDescription.OFFER_ID;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.ContractOfferDescription.POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.OFFER;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -93,52 +88,6 @@ class JsonObjectToContractRequestTransformerTest {
         assertThat(request.getProtocol()).isEqualTo("test-protocol");
         assertThat(request.getCounterPartyAddress()).isEqualTo("test-address");
         assertThat(request.getContractOffer()).isSameAs(offer);
-    }
-
-    @Deprecated(since = "0.3.2")
-    @Test
-    void deprecated_transform_contractOfferFromOfferAttribute() {
-        var jsonObject = Json.createObjectBuilder()
-                .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
-                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
-                .add(PROTOCOL, "test-protocol")
-                .add(CALLBACK_ADDRESSES, createCallbackAddress())
-                .add(OFFER, Json.createObjectBuilder()
-                        .add(OFFER_ID, "test-offer-id")
-                        .add(ASSET_ID, "test-asset")
-                        .add(POLICY, createPolicy())
-                        .build())
-                .build();
-
-        var policy = Policy.Builder.newInstance().assigner("test-provider-id").build();
-        var contractOfferDescription = ContractOfferDescription.Builder.newInstance()
-                .offerId("offerId")
-                .assetId("assetId")
-                .policy(policy)
-                .build();
-        when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(null);
-        when(context.problem()).thenReturn(new ProblemBuilder(context));
-        when(context.transform(any(JsonValue.class), eq(ContractOfferDescription.class))).thenReturn(contractOfferDescription);
-
-        when(context.transform(any(JsonObject.class), eq(CallbackAddress.class))).thenReturn(CallbackAddress.Builder.newInstance()
-                .uri("http://test.local")
-                .events(Set.of("foo", "bar"))
-                .transactional(true)
-                .build());
-
-        var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
-
-        assertThat(request).isNotNull();
-        assertThat(request.getProviderId()).isEqualTo("test-provider-id");
-        assertThat(request.getCallbackAddresses()).isNotEmpty();
-        assertThat(request.getProtocol()).isEqualTo("test-protocol");
-        assertThat(request.getCounterPartyAddress()).isEqualTo("test-address");
-        assertThat(request.getContractOffer()).isNotNull().satisfies(contractOffer -> {
-            assertThat(contractOffer.getId()).isEqualTo("offerId");
-            assertThat(contractOffer.getAssetId()).isEqualTo("assetId");
-            assertThat(contractOffer.getPolicy()).isSameAs(policy);
-        });
-
     }
 
     @Test

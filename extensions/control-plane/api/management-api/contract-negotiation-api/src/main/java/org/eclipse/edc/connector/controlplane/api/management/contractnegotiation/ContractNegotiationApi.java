@@ -28,7 +28,6 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
 
 import java.util.List;
@@ -128,17 +127,11 @@ public interface ContractNegotiationApi {
             String type,
             @Schema(requiredMode = REQUIRED)
             String protocol,
-            @Deprecated(since = "0.3.2")
-            @Schema(deprecated = true, description = "please use counterPartyAddress instead")
-            String connectorAddress,
             @Schema(requiredMode = REQUIRED)
             String counterPartyAddress,
             @Deprecated(since = "0.5.1")
             @Schema(deprecated = true, description = "please use policy.assigner instead")
             String providerId,
-            @Deprecated(since = "0.3.2")
-            @Schema(deprecated = true, description = "please use policy instead of offer")
-            ContractOfferDescriptionSchema offer,
             @Schema(requiredMode = REQUIRED)
             OfferSchema policy,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
@@ -209,17 +202,6 @@ public interface ContractNegotiationApi {
                     "state": "REQUESTED"
                 }
                 """;
-    }
-
-    @Schema(name = "ContractOfferDescription")
-    record ContractOfferDescriptionSchema(
-            @Schema(name = TYPE, example = ContractOfferDescription.CONTRACT_OFFER_DESCRIPTION_TYPE)
-            String type,
-            String offerId,
-            String assetId,
-            ManagementApiSchema.PolicySchema policy
-    ) {
-
     }
 
     @Schema(example = TerminateNegotiationSchema.TERMINATE_NEGOTIATION_EXAMPLE)
