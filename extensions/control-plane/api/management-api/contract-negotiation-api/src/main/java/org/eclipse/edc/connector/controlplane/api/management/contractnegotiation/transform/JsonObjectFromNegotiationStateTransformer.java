@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -22,8 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_STATE;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 public class JsonObjectFromNegotiationStateTransformer extends AbstractJsonLdTransformer<NegotiationState, JsonObject> {
@@ -37,8 +35,8 @@ public class JsonObjectFromNegotiationStateTransformer extends AbstractJsonLdTra
     @Override
     public @Nullable JsonObject transform(@NotNull NegotiationState negotiationState, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
-                .add(TYPE, NEGOTIATION_STATE_TYPE)
-                .add(NEGOTIATION_STATE_STATE, negotiationState.state())
+                .add(TYPE, NegotiationState.NEGOTIATION_STATE_TYPE)
+                .add(NegotiationState.NEGOTIATION_STATE_STATE, negotiationState.state())
                 .build();
     }
 }

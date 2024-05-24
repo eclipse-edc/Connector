@@ -39,13 +39,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.map;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi.SuspendTransferSchema.SUSPEND_TRANSFER_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi.TerminateTransferSchema.TERMINATE_TRANSFER_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi.TransferProcessSchema.TRANSFER_PROCESS_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi.TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi.TransferStateSchema.TRANSFER_STATE_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState.TRANSFER_STATE_STATE;
 import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState.TRANSFER_STATE_TYPE;
+import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3.SuspendTransferSchema.SUSPEND_TRANSFER_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3.TerminateTransferSchema.TERMINATE_TRANSFER_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3.TransferProcessSchema.TRANSFER_PROCESS_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3.TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3.TransferStateSchema.TRANSFER_STATE_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_ASSET_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CONTRACT_ID;

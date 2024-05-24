@@ -30,8 +30,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApi.PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApi.PolicyDefinitionOutputSchema.POLICY_DEFINITION_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.v2.PolicyDefinitionApiV2.PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.v2.PolicyDefinitionApiV2.PolicyDefinitionOutputSchema.POLICY_DEFINITION_OUTPUT_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;

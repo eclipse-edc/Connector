@@ -79,7 +79,7 @@ public class TransferProcessApiEndToEndTest {
             baseRequest()
                     .contentType(JSON)
                     .body(query(criterion("id", "in", List.of(id1, id2))))
-                    .post("/v2/transferprocesses/request")
+                    .post("/v3/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -94,7 +94,7 @@ public class TransferProcessApiEndToEndTest {
             getStore().save(createTransferProcess("tp2"));
 
             baseRequest()
-                    .get("/v2/transferprocesses/tp2")
+                    .get("/v3/transferprocesses/tp2")
                     .then()
                     .statusCode(200)
                     .body("@id", is("tp2"))
@@ -106,7 +106,7 @@ public class TransferProcessApiEndToEndTest {
             getStore().save(createTransferProcessBuilder("tp2").state(COMPLETED.code()).build());
 
             baseRequest()
-                    .get("/v2/transferprocesses/tp2/state")
+                    .get("/v3/transferprocesses/tp2/state")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -138,7 +138,7 @@ public class TransferProcessApiEndToEndTest {
             var id = baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v2/transferprocesses/")
+                    .post("/v3/transferprocesses/")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -154,7 +154,7 @@ public class TransferProcessApiEndToEndTest {
 
             baseRequest()
                     .contentType(JSON)
-                    .post("/v2/transferprocesses/" + id + "/deprovision")
+                    .post("/v3/transferprocesses/" + id + "/deprovision")
                     .then()
                     .statusCode(204);
         }
@@ -171,7 +171,7 @@ public class TransferProcessApiEndToEndTest {
             baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v2/transferprocesses/" + id + "/terminate")
+                    .post("/v3/transferprocesses/" + id + "/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(204);
@@ -210,7 +210,7 @@ public class TransferProcessApiEndToEndTest {
             var result = baseRequest()
                     .contentType(JSON)
                     .body(query)
-                    .post("/v2/transferprocesses/request")
+                    .post("/v3/transferprocesses/request")
                     .then()
                     .statusCode(200)
                     .extract().body().as(JsonArray.class);
@@ -247,7 +247,7 @@ public class TransferProcessApiEndToEndTest {
             var result = baseRequest()
                     .contentType(JSON)
                     .body(query)
-                    .post("/v2/transferprocesses/request")
+                    .post("/v3/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)

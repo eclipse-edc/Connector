@@ -49,34 +49,6 @@ import static org.hamcrest.Matchers.is;
 
 public class ContractDefinitionApiEndToEndTest {
 
-    @Nested
-    @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    class Postgres extends Tests {
-
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
-
-        Postgres() {
-            super(RUNTIME);
-        }
-    }
-
     abstract static class Tests extends ManagementApiEndToEndTestBase {
 
         Tests(EdcRuntimeExtension runtime) {
@@ -91,7 +63,7 @@ public class ContractDefinitionApiEndToEndTest {
 
             var body = baseRequest()
                     .contentType(JSON)
-                    .post("/v2/contractdefinitions/request")
+                    .post("/v3/contractdefinitions/request")
                     .then()
                     .statusCode(200)
                     .body("size()", greaterThan(0))
@@ -117,7 +89,7 @@ public class ContractDefinitionApiEndToEndTest {
             baseRequest()
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v2/contractdefinitions")
+                    .post("/v3/contractdefinitions")
                     .then()
                     .statusCode(200)
                     .body("@id", equalTo(id));
@@ -130,7 +102,7 @@ public class ContractDefinitionApiEndToEndTest {
             baseRequest()
                     .body(matchingQuery)
                     .contentType(JSON)
-                    .post("/v2/contractdefinitions/request")
+                    .post("/v3/contractdefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -145,7 +117,7 @@ public class ContractDefinitionApiEndToEndTest {
             baseRequest()
                     .body(nonMatchingQuery)
                     .contentType(JSON)
-                    .post("/v2/contractdefinitions/request")
+                    .post("/v3/contractdefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -161,7 +133,7 @@ public class ContractDefinitionApiEndToEndTest {
             baseRequest()
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v2/contractdefinitions")
+                    .post("/v3/contractdefinitions")
                     .then()
                     .statusCode(200)
                     .body("@id", equalTo(id));
@@ -178,7 +150,7 @@ public class ContractDefinitionApiEndToEndTest {
             getContractDefinitionStore().save(entity);
 
             baseRequest()
-                    .delete("/v2/contractdefinitions/" + id)
+                    .delete("/v3/contractdefinitions/" + id)
                     .then()
                     .statusCode(204);
 
@@ -201,7 +173,7 @@ public class ContractDefinitionApiEndToEndTest {
             baseRequest()
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v2/contractdefinitions")
+                    .put("/v3/contractdefinitions")
                     .then()
                     .statusCode(204);
 
@@ -219,7 +191,7 @@ public class ContractDefinitionApiEndToEndTest {
             baseRequest()
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v2/contractdefinitions")
+                    .put("/v3/contractdefinitions")
                     .then()
                     .statusCode(404);
         }
@@ -255,6 +227,33 @@ public class ContractDefinitionApiEndToEndTest {
                     .contractPolicyId(UUID.randomUUID().toString())
                     .assetsSelectorCriterion(criterion("foo", "=", "bar"))
                     .assetsSelectorCriterion(criterion("bar", "=", "baz"));
+        }
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
+
+        InMemory() {
+            super(RUNTIME);
+        }
+
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests {
+
+        @RegisterExtension
+        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
+
+        Postgres() {
+            super(RUNTIME);
         }
     }
 

@@ -36,11 +36,11 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @OpenAPIDefinition(
         info = @Info(description = "This contains both the current and the new Asset API, which accepts JSON-LD and will " +
-                "become the standard API once the Dataspace Protocol is stable.", title = "Asset API"))
-@Tag(name = "Asset")
+                "become the standard API once the Dataspace Protocol is stable.", title = "Asset API", version = "v3"))
+@Tag(name = "Asset V3")
 public interface AssetApi {
-
     @Operation(description = "Creates a new asset together with a data address",
+            operationId = "createAssetV3",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AssetInputSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Asset was created successfully. Returns the asset Id and created timestamp",
@@ -53,6 +53,7 @@ public interface AssetApi {
     JsonObject createAsset(JsonObject asset);
 
     @Operation(description = "Request all assets according to a particular query",
+            operationId = "requestAssetV3",
             requestBody = @RequestBody(
                     content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))
             ),
@@ -65,6 +66,7 @@ public interface AssetApi {
     JsonArray requestAssets(JsonObject querySpecJson);
 
     @Operation(description = "Gets an asset with the given ID",
+            operationId = "getAssetV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The asset",
                             content = @Content(schema = @Schema(implementation = AssetOutputSchema.class))),
@@ -79,6 +81,7 @@ public interface AssetApi {
     @Operation(description = "Removes an asset with the given ID if possible. Deleting an asset is only possible if that asset is not yet referenced " +
             "by a contract agreement, in which case an error is returned. " +
             "DANGER ZONE: Note that deleting assets can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
+            operationId = "removeAssetV3",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Asset was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -92,6 +95,7 @@ public interface AssetApi {
 
     @Operation(description = "Updates an asset with the given ID if it exists. If the asset is not found, no further action is taken. " +
             "DANGER ZONE: Note that updating assets can have unexpected results, especially for contract offers that have been sent out or are ongoing in contract negotiations.",
+            operationId = "updateAssetV3",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AssetInputSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "204", description = "Asset was updated successfully"),
