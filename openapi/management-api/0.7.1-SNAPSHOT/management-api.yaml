@@ -57,38 +57,60 @@ paths:
   /v1/edrs/request:
     post:
       tags:
-      - EDR Cache
-      description: Request all Edr entries according to a particular query
+      - EDR Cache V1
       operationId: requestEdrEntries
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/QuerySpec"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: The edr entries matching the query
+        default:
+          description: default response
           content:
             application/json:
               schema:
                 type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
                 example: null
                 items:
-                  $ref: "#/components/schemas/EndpointDataReferenceEntry"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                  $ref: "#/components/schemas/JsonValue"
   /v1/edrs/{transferProcessId}:
     delete:
       tags:
-      - EDR Cache
-      description: Removes an EDR entry given the transfer process ID
+      - EDR Cache V1
       operationId: removeEdrEntry
       parameters:
       - name: transferProcessId
@@ -100,31 +122,14 @@ paths:
           type: string
           example: null
       responses:
-        "204":
-          description: EDR entry was deleted successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An EDR entry with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
   /v1/edrs/{transferProcessId}/dataaddress:
     get:
       tags:
-      - EDR Cache
-      description: Gets the EDR data address with the given transfer process ID
+      - EDR Cache V1
       operationId: getEdrEntryDataAddress
       parameters:
       - name: transferProcessId
@@ -136,99 +141,113 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: The data address
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DataAddress"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An EDR data address with the given transfer process ID does
-            not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v1/secrets:
     put:
-      tags:
-      - Secret
-      description: "Updates a secret with the given ID if it exists. If the secret\
-        \ is not found, no further action is taken. "
       operationId: updateSecret
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SecretInput"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "204":
-          description: Secret was updated successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: "Secret could not be updated, because it does not exist."
+            application/json: {}
     post:
-      tags:
-      - Secret
-      description: Creates a new secret.
       operationId: createSecret
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SecretInput"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: Secret was created successfully. Returns the secret Id and
-            created timestamp
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/IdResponse"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "409":
-          description: "Could not create secret, because a secret with that ID already\
-            \ exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v1/secrets/{id}:
     get:
-      tags:
-      - Secret
-      description: Gets a secret with the given ID
       operationId: getSecret
       parameters:
       - name: id
@@ -240,34 +259,31 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: The secret
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SecretOutput"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A secret with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
     delete:
-      tags:
-      - Secret
-      description: Removes a secret with the given ID if possible.
       operationId: removeSecret
       parameters:
       - name: id
@@ -279,26 +295,10 @@ paths:
           type: string
           example: null
       responses:
-        "204":
-          description: Secret was deleted successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A secret with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
   /v1/version:
     get:
       tags:
@@ -315,72 +315,126 @@ paths:
   /v2/catalog/dataset/request:
     post:
       tags:
-      - Catalog
+      - Catalog V2
       operationId: getDataset
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DatasetRequest"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
         default:
-          description: Gets single dataset from a connector
+          description: default response
           content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Dataset"
+            application/json: {}
   /v2/catalog/request:
     post:
       tags:
-      - Catalog
+      - Catalog V2
       operationId: requestCatalog
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CatalogRequest"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
         default:
-          description: Gets contract offers (=catalog) of a single connector
+          description: default response
           content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Catalog"
+            application/json: {}
   /v2/contractagreements/request:
     post:
       tags:
-      - Contract Agreement
-      description: Gets all contract agreements according to a particular query
+      - Contract Agreement V2
       operationId: queryAgreements
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/QuerySpec"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: The contract agreements matching the query
+        default:
+          description: default response
           content:
             application/json:
               schema:
                 type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
                 example: null
                 items:
-                  $ref: "#/components/schemas/ContractAgreement"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                  $ref: "#/components/schemas/JsonValue"
   /v2/contractagreements/{id}:
     get:
       tags:
-      - Contract Agreement
-      description: Gets an contract agreement with the given ID
+      - Contract Agreement V2
       operationId: getAgreementById
       parameters:
       - name: id
@@ -392,35 +446,34 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: The contract agreement
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ContractAgreement"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An contract agreement with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractagreements/{id}/negotiation:
     get:
       tags:
-      - Contract Agreement
-      description: Gets a contract negotiation with the given contract agreement ID
+      - Contract Agreement V2
       operationId: getNegotiationByAgreementId
       parameters:
       - name: id
@@ -432,135 +485,164 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: The contract negotiation
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ContractNegotiation"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An contract agreement with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractdefinitions:
     put:
-      tags:
-      - Contract Definition
-      description: Updated a contract definition with the given ID. The supplied JSON
-        structure must be a valid JSON-LD object
       operationId: updateContractDefinition
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ContractDefinitionInput"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "204":
-          description: Contract definition was updated successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A contract definition with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
     post:
-      tags:
-      - Contract Definition
-      description: Creates a new contract definition
       operationId: createContractDefinition
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ContractDefinitionInput"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: contract definition was created successfully. Returns the Contract
-            Definition Id and created timestamp
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/IdResponse"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "409":
-          description: "Could not create contract definition, because a contract definition\
-            \ with that ID already exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractdefinitions/request:
     post:
-      tags:
-      - Contract Definition
-      description: Returns all contract definitions according to a query
       operationId: queryContractDefinitions
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/QuerySpec"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: The contract definitions matching the query
+        default:
+          description: default response
           content:
             application/json:
               schema:
                 type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
                 example: null
                 items:
-                  $ref: "#/components/schemas/ContractDefinitionOutput"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                  $ref: "#/components/schemas/JsonValue"
   /v2/contractdefinitions/{id}:
     get:
-      tags:
-      - Contract Definition
-      description: Gets an contract definition with the given ID
       operationId: getContractDefinition
       parameters:
       - name: id
@@ -572,37 +654,31 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: The contract definition
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ContractDefinitionOutput"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An contract agreement with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
     delete:
-      tags:
-      - Contract Definition
-      description: "Removes a contract definition with the given ID if possible. DANGER\
-        \ ZONE: Note that deleting contract definitions can have unexpected results,\
-        \ especially for contract offers that have been sent out or ongoing or contract\
-        \ negotiations."
       operationId: deleteContractDefinition
       parameters:
       - name: id
@@ -614,97 +690,120 @@ paths:
           type: string
           example: null
       responses:
-        "204":
-          description: Contract definition was deleted successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A contract definition with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
   /v2/contractnegotiations:
     post:
       tags:
-      - Contract Negotiation
-      description: "Initiates a contract negotiation for a given offer and with the\
-        \ given counter part. Please note that successfully invoking this endpoint\
-        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
-        \ endpoint to track the state"
+      - Contract Negotiation V2
       operationId: initiateContractNegotiation
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ContractRequest"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: The negotiation was successfully initiated. Returns the contract
-            negotiation ID and created timestamp
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/IdResponse"
-          links:
-            poll-state:
-              operationId: getNegotiationState
-              parameters:
-                id: $response.body#/id
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractnegotiations/request:
     post:
       tags:
-      - Contract Negotiation
-      description: Returns all contract negotiations according to a query
+      - Contract Negotiation V2
       operationId: queryNegotiations
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/QuerySpec"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: The contract negotiations that match the query
+        default:
+          description: default response
           content:
             application/json:
               schema:
                 type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
                 example: null
                 items:
-                  $ref: "#/components/schemas/ContractNegotiation"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                  $ref: "#/components/schemas/JsonValue"
   /v2/contractnegotiations/{id}:
     get:
       tags:
-      - Contract Negotiation
-      description: Gets a contract negotiation with the given ID
+      - Contract Negotiation V2
       operationId: getNegotiation
       parameters:
       - name: id
@@ -716,36 +815,34 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: The contract negotiation
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ContractNegotiation"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractnegotiations/{id}/agreement:
     get:
       tags:
-      - Contract Negotiation
-      description: Gets a contract agreement for a contract negotiation with the given
-        ID
+      - Contract Negotiation V2
       operationId: getAgreementForNegotiation
       parameters:
       - name: id
@@ -757,36 +854,34 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: "The contract agreement that is attached to the negotiation,\
-            \ or null"
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ContractAgreement"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractnegotiations/{id}/state:
     get:
       tags:
-      - Contract Negotiation
-      description: Gets the state of a contract negotiation with the given ID
+      - Contract Negotiation V2
       operationId: getNegotiationState
       parameters:
       - name: id
@@ -798,35 +893,34 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: The contract negotiation's state
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NegotiationState"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/contractnegotiations/{id}/terminate:
     post:
       tags:
-      - Contract Negotiation
-      description: Terminates the contract negotiation.
+      - Contract Negotiation V2
       operationId: terminateNegotiation
       parameters:
       - name: id
@@ -841,31 +935,30 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TerminateNegotiationSchema"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: ContractNegotiation is terminating
-          links:
-            poll-state:
-              operationId: getNegotiationState
-        "400":
-          description: Request was malformed
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
   /v2/dataplanes:
     get:
       tags:
@@ -945,76 +1038,113 @@ paths:
   /v2/policydefinitions:
     post:
       tags:
-      - Policy Definition
-      description: Creates a new policy definition
+      - Policy Definition V2
       operationId: createPolicyDefinition
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PolicyDefinitionInput"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: policy definition was created successfully. Returns the Policy
-            Definition Id and created timestamp
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/IdResponse"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "409":
-          description: "Could not create policy definition, because a contract definition\
-            \ with that ID already exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/policydefinitions/request:
     post:
       tags:
-      - Policy Definition
-      description: Returns all policy definitions according to a query
+      - Policy Definition V2
       operationId: queryPolicyDefinitions
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/QuerySpec"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: The policy definitions matching the query
+        default:
+          description: default response
           content:
             application/json:
               schema:
                 type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
                 example: null
                 items:
-                  $ref: "#/components/schemas/PolicyDefinitionOutput"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                  $ref: "#/components/schemas/JsonValue"
   /v2/policydefinitions/{id}:
     get:
       tags:
-      - Policy Definition
-      description: Gets a policy definition with the given ID
+      - Policy Definition V2
       operationId: getPolicyDefinition
       parameters:
       - name: id
@@ -1026,35 +1156,33 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: The  policy definition
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PolicyDefinitionOutput"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An  policy definition with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
     put:
       tags:
-      - Policy Definition
-      description: "Updates an existing Policy, If the Policy is not found, an error\
-        \ is reported"
+      - Policy Definition V2
       operationId: updatePolicyDefinition
       parameters:
       - name: id
@@ -1069,34 +1197,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PolicyDefinitionInput"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "204":
-          description: policy definition was updated successfully.
-        "400":
-          description: Request body was malformed
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: "policy definition could not be updated, because it does not\
-            \ exists"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
     delete:
       tags:
-      - Policy Definition
-      description: "Removes a policy definition with the given ID if possible. Deleting\
-        \ a policy definition is only possible if that policy definition is not yet\
-        \ referenced by a contract definition, in which case an error is returned.\
-        \ DANGER ZONE: Note that deleting policy definitions can have unexpected results,\
-        \ do this at your own risk!"
+      - Policy Definition V2
       operationId: deletePolicyDefinition
       parameters:
       - name: id
@@ -1108,107 +1235,120 @@ paths:
           type: string
           example: null
       responses:
-        "204":
-          description: Policy definition was deleted successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An policy definition with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "409":
-          description: "The policy definition cannot be deleted, because it is referenced\
-            \ by a contract definition"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
   /v2/transferprocesses:
     post:
       tags:
-      - Transfer Process
-      description: "Initiates a data transfer with the given parameters. Due to the\
-        \ asynchronous nature of transfers, a successful response only indicates that\
-        \ the request was successfully received. This may take a long time, so clients\
-        \ must poll the /{id}/state endpoint to track the state."
+      - Transfer Process V2
       operationId: initiateTransferProcess
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TransferRequest"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: The transfer was successfully initiated. Returns the transfer
-            process ID and created timestamp
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/IdResponse"
-          links:
-            poll-state:
-              operationId: getTransferProcessState
-              parameters:
-                id: $response.body#/id
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses/request:
     post:
       tags:
-      - Transfer Process
-      description: Returns all transfer process according to a query
+      - Transfer Process V2
       operationId: queryTransferProcesses
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/QuerySpec"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "200":
-          description: The transfer processes matching the query
+        default:
+          description: default response
           content:
             application/json:
               schema:
                 type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
                 example: null
                 items:
-                  $ref: "#/components/schemas/TransferProcess"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                  $ref: "#/components/schemas/JsonValue"
   /v2/transferprocesses/{id}:
     get:
       tags:
-      - Transfer Process
-      description: Gets an transfer process with the given ID
+      - Transfer Process V2
       operationId: getTransferProcess
       parameters:
       - name: id
@@ -1220,39 +1360,34 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: The transfer process
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TransferProcess"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses/{id}/deprovision:
     post:
       tags:
-      - Transfer Process
-      description: "Requests the deprovisioning of resources associated with a transfer\
-        \ process. Due to the asynchronous nature of transfers, a successful response\
-        \ only indicates that the request was successfully received. This may take\
-        \ a long time, so clients must poll the /{id}/state endpoint to track the\
-        \ state."
+      - Transfer Process V2
       operationId: deprovisionTransferProcess
       parameters:
       - name: id
@@ -1264,38 +1399,14 @@ paths:
           type: string
           example: null
       responses:
-        "204":
-          description: Request to deprovision the transfer process was successfully
-            received
-          links:
-            poll-state:
-              operationId: deprovisionTransferProcess
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
   /v2/transferprocesses/{id}/resume:
     post:
       tags:
-      - Transfer Process
-      description: "Requests the resumption of a suspended transfer process. Due to\
-        \ the asynchronous nature of transfers, a successful response only indicates\
-        \ that the request was successfully received. This may take a long time, so\
-        \ clients must poll the /{id}/state endpoint to track the state."
+      - Transfer Process V2
       operationId: resumeTransferProcess
       parameters:
       - name: id
@@ -1307,34 +1418,14 @@ paths:
           type: string
           example: null
       responses:
-        "204":
-          description: Request to resume the transfer process was successfully received
-          links:
-            poll-state:
-              operationId: resumeTransferProcess
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
   /v2/transferprocesses/{id}/state:
     get:
       tags:
-      - Transfer Process
-      description: Gets the state of a transfer process with the given ID
+      - Transfer Process V2
       operationId: getTransferProcessState
       parameters:
       - name: id
@@ -1346,38 +1437,34 @@ paths:
           type: string
           example: null
       responses:
-        "200":
-          description: The  transfer process's state
+        default:
+          description: default response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TransferState"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
                 example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An  transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v2/transferprocesses/{id}/suspend:
     post:
       tags:
-      - Transfer Process
-      description: "Requests the suspension of a transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received. This may take a long time, so clients must poll\
-        \ the /{id}/state endpoint to track the state."
+      - Transfer Process V2
       operationId: suspendTransferProcess
       parameters:
       - name: id
@@ -1392,49 +1479,34 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SuspendTransfer"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "204":
-          description: Request to suspend the transfer process was successfully received
-          links:
-            poll-state:
-              operationId: suspendTransferProcess
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "409":
-          description: "Could not suspend the transfer process, because it is already\
-            \ completed or terminated."
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
   /v2/transferprocesses/{id}/terminate:
     post:
       tags:
-      - Transfer Process
-      description: "Requests the termination of a transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received. This may take a long time, so clients must poll\
-        \ the /{id}/state endpoint to track the state."
+      - Transfer Process V2
       operationId: terminateTransferProcess
       parameters:
       - name: id
@@ -1449,51 +1521,39 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TerminateTransfer"
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
       responses:
-        "204":
-          description: Request to terminate the transfer process was successfully
-            received
-          links:
-            poll-state:
-              operationId: terminateTransferProcess
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "409":
-          description: "Could not terminate transfer process, because it is already\
-            \ completed or terminated."
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+            application/json: {}
   /v3/assets:
     put:
       tags:
-      - Asset
+      - Asset V3
       description: "Updates an asset with the given ID if it exists. If the asset\
         \ is not found, no further action is taken. DANGER ZONE: Note that updating\
         \ assets can have unexpected results, especially for contract offers that\
         \ have been sent out or are ongoing in contract negotiations."
-      operationId: updateAsset
+      operationId: updateAssetV3
       requestBody:
         content:
           application/json:
@@ -1515,9 +1575,9 @@ paths:
           description: "Asset could not be updated, because it does not exist."
     post:
       tags:
-      - Asset
+      - Asset V3
       description: Creates a new asset together with a data address
-      operationId: createAsset
+      operationId: createAssetV3
       requestBody:
         content:
           application/json:
@@ -1553,9 +1613,9 @@ paths:
   /v3/assets/request:
     post:
       tags:
-      - Asset
+      - Asset V3
       description: Request all assets according to a particular query
-      operationId: requestAssets
+      operationId: requestAssetV3
       requestBody:
         content:
           application/json:
@@ -1583,9 +1643,9 @@ paths:
   /v3/assets/{id}:
     get:
       tags:
-      - Asset
+      - Asset V3
       description: Gets an asset with the given ID
-      operationId: getAsset
+      operationId: getAssetV3
       parameters:
       - name: id
         in: path
@@ -1622,13 +1682,13 @@ paths:
                   $ref: "#/components/schemas/ApiErrorDetail"
     delete:
       tags:
-      - Asset
+      - Asset V3
       description: "Removes an asset with the given ID if possible. Deleting an asset\
         \ is only possible if that asset is not yet referenced by a contract agreement,\
         \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
         \ can have unexpected results, especially for contract offers that have been\
         \ sent out or ongoing or contract negotiations."
-      operationId: removeAsset
+      operationId: removeAssetV3
       parameters:
       - name: id
         in: path
@@ -1669,6 +1729,1408 @@ paths:
                 example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v3/catalog/dataset/request:
+    post:
+      tags:
+      - Catalog V3
+      operationId: getDataset_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /v3/catalog/request:
+    post:
+      tags:
+      - Catalog V3
+      operationId: requestCatalog_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /v3/contractagreements/request:
+    post:
+      tags:
+      - Contract Agreement V3
+      operationId: queryAgreements_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                example: null
+                items:
+                  $ref: "#/components/schemas/JsonValue"
+  /v3/contractagreements/{id}:
+    get:
+      tags:
+      - Contract Agreement V3
+      operationId: getAgreementById_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/contractagreements/{id}/negotiation:
+    get:
+      tags:
+      - Contract Agreement V3
+      operationId: getNegotiationByAgreementId_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/contractdefinitions:
+    put:
+      tags:
+      - Contract Definition V3
+      operationId: updateContractDefinition_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    post:
+      tags:
+      - Contract Definition V3
+      operationId: createContractDefinition_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/contractdefinitions/request:
+    post:
+      tags:
+      - Contract Definition V3
+      operationId: queryContractDefinitions_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                example: null
+                items:
+                  $ref: "#/components/schemas/JsonValue"
+  /v3/contractdefinitions/{id}:
+    get:
+      tags:
+      - Contract Definition V3
+      operationId: getContractDefinition_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+    delete:
+      tags:
+      - Contract Definition V3
+      operationId: deleteContractDefinition_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /v3/contractnegotiations:
+    post:
+      tags:
+      - Contract Negotiation V3
+      operationId: initiateContractNegotiation_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/contractnegotiations/request:
+    post:
+      tags:
+      - Contract Negotiation V3
+      operationId: queryNegotiations_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                example: null
+                items:
+                  $ref: "#/components/schemas/JsonValue"
+  /v3/contractnegotiations/{id}:
+    get:
+      tags:
+      - Contract Negotiation V3
+      operationId: getNegotiation_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/contractnegotiations/{id}/agreement:
+    get:
+      tags:
+      - Contract Negotiation V3
+      operationId: getAgreementForNegotiation_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/contractnegotiations/{id}/state:
+    get:
+      tags:
+      - Contract Negotiation V3
+      operationId: getNegotiationState_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/contractnegotiations/{id}/terminate:
+    post:
+      tags:
+      - Contract Negotiation V3
+      operationId: terminateNegotiation_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /v3/edrs/request:
+    post:
+      tags:
+      - EDR Cache V3
+      operationId: requestEdrEntries_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                example: null
+                items:
+                  $ref: "#/components/schemas/JsonValue"
+  /v3/edrs/{transferProcessId}:
+    delete:
+      tags:
+      - EDR Cache V3
+      operationId: removeEdrEntry_1
+      parameters:
+      - name: transferProcessId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /v3/edrs/{transferProcessId}/dataaddress:
+    get:
+      tags:
+      - EDR Cache V3
+      operationId: getEdrEntryDataAddress_1
+      parameters:
+      - name: transferProcessId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/policydefinitions:
+    post:
+      operationId: createPolicyDefinition_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/policydefinitions/request:
+    post:
+      operationId: queryPolicyDefinitions_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                example: null
+                items:
+                  $ref: "#/components/schemas/JsonValue"
+  /v3/policydefinitions/{id}:
+    get:
+      operationId: getPolicyDefinition_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+    put:
+      operationId: updatePolicyDefinition_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      operationId: deletePolicyDefinition_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /v3/secrets:
+    put:
+      operationId: updateSecret_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    post:
+      operationId: createSecret_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/secrets/{id}:
+    get:
+      operationId: getSecret_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+    delete:
+      operationId: removeSecret_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /v3/transferprocesses:
+    post:
+      tags:
+      - Transfer Process V3
+      operationId: initiateTransferProcess_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/transferprocesses/request:
+    post:
+      tags:
+      - Transfer Process V3
+      operationId: queryTransferProcesses_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                example: null
+                items:
+                  $ref: "#/components/schemas/JsonValue"
+  /v3/transferprocesses/{id}:
+    get:
+      tags:
+      - Transfer Process V3
+      operationId: getTransferProcess_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/transferprocesses/{id}/deprovision:
+    post:
+      tags:
+      - Transfer Process V3
+      operationId: deprovisionTransferProcess_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /v3/transferprocesses/{id}/resume:
+    post:
+      tags:
+      - Transfer Process V3
+      operationId: resumeTransferProcess_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /v3/transferprocesses/{id}/state:
+    get:
+      tags:
+      - Transfer Process V3
+      operationId: getTransferProcessState_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  empty:
+                    type: boolean
+                    example: null
+                  valueType:
+                    type: string
+                    example: null
+                    enum:
+                    - ARRAY
+                    - OBJECT
+                    - STRING
+                    - NUMBER
+                    - "TRUE"
+                    - "FALSE"
+                    - "NULL"
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonValue"
+                example: null
+  /v3/transferprocesses/{id}/suspend:
+    post:
+      tags:
+      - Transfer Process V3
+      operationId: suspendTransferProcess_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /v3/transferprocesses/{id}/terminate:
+    post:
+      tags:
+      - Transfer Process V3
+      operationId: terminateTransferProcess_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: "#/components/schemas/JsonValue"
+              example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
 components:
   schemas:
     ApiErrorDetail:
@@ -1755,338 +3217,6 @@ components:
           type: HttpData
           baseUrl: https://jsonplaceholder.typicode.com/todos
         createdAt: 1688465655
-    CallbackAddress:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/CallbackAddress
-        authCodeId:
-          type: string
-          example: null
-        authKey:
-          type: string
-          example: null
-        events:
-          uniqueItems: true
-          type: array
-          example: null
-          items:
-            type: string
-            example: null
-        transactional:
-          type: boolean
-          example: null
-        uri:
-          type: string
-          example: null
-      example: null
-    Catalog:
-      type: object
-      description: DCAT catalog
-      example:
-        '@id': 7df65569-8c59-4013-b1c0-fa14f6641bf2
-        '@type': dcat:Catalog
-        dcat:dataset:
-          '@id': bcca61be-e82e-4da6-bfec-9716a56cef35
-          '@type': dcat:Dataset
-          odrl:hasPolicy:
-            '@id': OGU0ZTMzMGMtODQ2ZS00ZWMxLThmOGQtNWQxNWM0NmI2NmY4:YmNjYTYxYmUtZTgyZS00ZGE2LWJmZWMtOTcxNmE1NmNlZjM1:NDY2ZTZhMmEtNjQ1Yy00ZGQ0LWFlZDktMjdjNGJkZTU4MDNj
-            '@type': odrl:Set
-            odrl:permission:
-              odrl:target: bcca61be-e82e-4da6-bfec-9716a56cef35
-              odrl:action:
-                odrl:type: http://www.w3.org/ns/odrl/2/use
-              odrl:constraint:
-                odrl:and:
-                - odrl:leftOperand: https://w3id.org/edc/v0.0.1/ns/inForceDate
-                  odrl:operator:
-                    '@id': odrl:gteq
-                  odrl:rightOperand: 2023-07-07T07:19:58.585601395Z
-                - odrl:leftOperand: https://w3id.org/edc/v0.0.1/ns/inForceDate
-                  odrl:operator:
-                    '@id': odrl:lteq
-                  odrl:rightOperand: 2023-07-12T07:19:58.585601395Z
-            odrl:prohibition: []
-            odrl:obligation: []
-          dcat:distribution:
-          - '@type': dcat:Distribution
-            dct:format:
-              '@id': HttpData
-            dcat:accessService: 5e839777-d93e-4785-8972-1005f51cf367
-          description: description
-          id: bcca61be-e82e-4da6-bfec-9716a56cef35
-        dcat:service:
-          '@id': 5e839777-d93e-4785-8972-1005f51cf367
-          '@type': dcat:DataService
-          dct:terms: connector
-          dct:endpointUrl: http://localhost:16806/protocol
-        dspace:participantId: urn:connector:provider
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-          dct: http://purl.org/dc/terms/
-          edc: https://w3id.org/edc/v0.0.1/ns/
-          dcat: http://www.w3.org/ns/dcat#
-          odrl: http://www.w3.org/ns/odrl/2/
-          dspace: https://w3id.org/dspace/v0.8/
-    CatalogRequest:
-      required:
-      - '@context'
-      - counterPartyAddress
-      - protocol
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/CatalogRequest
-        counterPartyAddress:
-          type: string
-          example: null
-        counterPartyId:
-          type: string
-          example: null
-        protocol:
-          type: string
-          example: null
-        querySpec:
-          $ref: "#/components/schemas/QuerySpec"
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': CatalogRequest
-        counterPartyAddress: http://provider-address
-        counterPartyId: providerId
-        protocol: dataspace-protocol-http
-        querySpec:
-          offset: 0
-          limit: 50
-          sortOrder: DESC
-          sortField: fieldName
-          filterExpression: []
-    ContractAgreement:
-      type: object
-      properties:
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/ContractAgreement
-        assetId:
-          type: string
-          example: null
-        consumerId:
-          type: string
-          example: null
-        contractSigningDate:
-          type: integer
-          format: int64
-          example: null
-        policy:
-          $ref: "#/components/schemas/Policy"
-        providerId:
-          type: string
-          example: null
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/ContractAgreement
-        '@id': negotiation-id
-        providerId: provider-id
-        consumerId: consumer-id
-        assetId: asset-id
-        contractSigningDate: 1688465655
-        policy:
-          '@context': http://www.w3.org/ns/odrl.jsonld
-          '@type': Set
-          '@id': offer-id
-          permission:
-          - target: asset-id
-            action: display
-    ContractDefinitionInput:
-      required:
-      - '@context'
-      - accessPolicyId
-      - assetsSelector
-      - contractPolicyId
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/ContractDefinition
-        accessPolicyId:
-          type: string
-          example: null
-        assetsSelector:
-          type: array
-          example: null
-          items:
-            $ref: "#/components/schemas/Criterion"
-        contractPolicyId:
-          type: string
-          example: null
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@id': definition-id
-        accessPolicyId: asset-policy-id
-        contractPolicyId: contract-policy-id
-        assetsSelector: []
-    ContractDefinitionOutput:
-      type: object
-      properties:
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/ContractDefinition
-        accessPolicyId:
-          type: string
-          example: null
-        assetsSelector:
-          type: array
-          example: null
-          items:
-            $ref: "#/components/schemas/Criterion"
-        contractPolicyId:
-          type: string
-          example: null
-        createdAt:
-          type: integer
-          format: int64
-          example: null
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@id': definition-id
-        accessPolicyId: asset-policy-id
-        contractPolicyId: contract-policy-id
-        assetsSelector: []
-        createdAt: 1688465655
-    ContractNegotiation:
-      type: object
-      properties:
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/ContractNegotiation
-        callbackAddresses:
-          type: array
-          example: null
-          items:
-            $ref: "#/components/schemas/CallbackAddress"
-        contractAgreementId:
-          type: string
-          example: null
-        counterPartyAddress:
-          type: string
-          example: null
-        counterPartyId:
-          type: string
-          example: null
-        errorDetail:
-          type: string
-          example: null
-        protocol:
-          type: string
-          example: null
-        state:
-          type: string
-          example: null
-        type:
-          type: string
-          example: null
-          enum:
-          - CONSUMER
-          - PROVIDER
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/ContractNegotiation
-        '@id': negotiation-id
-        type: PROVIDER
-        protocol: dataspace-protocol-http
-        counterPartyId: counter-party-id
-        counterPartyAddress: http://counter/party/address
-        state: VERIFIED
-        contractAgreementId: contract:agreement:id
-        errorDetail: eventual-error-detail
-        createdAt: 1688465655
-        callbackAddresses:
-        - transactional: false
-          uri: http://callback/url
-          events:
-          - contract.negotiation
-          - transfer.process
-          authKey: auth-key
-          authCodeId: auth-code-id
-    ContractRequest:
-      required:
-      - '@context'
-      - counterPartyAddress
-      - policy
-      - protocol
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/ContractRequest
-        callbackAddresses:
-          type: array
-          example: null
-          items:
-            $ref: "#/components/schemas/CallbackAddress"
-        counterPartyAddress:
-          type: string
-          example: null
-        policy:
-          $ref: "#/components/schemas/Offer"
-        protocol:
-          type: string
-          example: null
-        providerId:
-          type: string
-          description: please use policy.assigner instead
-          example: null
-          deprecated: true
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/ContractRequest
-        counterPartyAddress: http://provider-address
-        protocol: dataspace-protocol-http
-        policy:
-          '@context': http://www.w3.org/ns/odrl.jsonld
-          '@type': odrl:Offer
-          '@id': offer-id
-          assigner: providerId
-          permission: []
-          prohibition: []
-          obligation: []
-          target: assetId
-        callbackAddresses:
-        - transactional: false
-          uri: http://callback/url
-          events:
-          - contract.negotiation
-          - transfer.process
-          authKey: auth-key
-          authCodeId: auth-code-id
     Criterion:
       required:
       - operandLeft
@@ -2178,71 +3308,6 @@ components:
         - your-dest-type
         allowedTransferTypes:
         - transfer-type
-    Dataset:
-      type: object
-      description: DCAT dataset
-      example:
-        '@id': bcca61be-e82e-4da6-bfec-9716a56cef35
-        '@type': dcat:Dataset
-        odrl:hasPolicy:
-          '@id': OGU0ZTMzMGMtODQ2ZS00ZWMxLThmOGQtNWQxNWM0NmI2NmY4:YmNjYTYxYmUtZTgyZS00ZGE2LWJmZWMtOTcxNmE1NmNlZjM1:NDY2ZTZhMmEtNjQ1Yy00ZGQ0LWFlZDktMjdjNGJkZTU4MDNj
-          '@type': odrl:Set
-          odrl:permission:
-            odrl:target: bcca61be-e82e-4da6-bfec-9716a56cef35
-            odrl:action:
-              odrl:type: http://www.w3.org/ns/odrl/2/use
-            odrl:constraint:
-              odrl:and:
-              - odrl:leftOperand: https://w3id.org/edc/v0.0.1/ns/inForceDate
-                odrl:operator:
-                  '@id': odrl:gteq
-                odrl:rightOperand: 2023-07-07T07:19:58.585601395Z
-              - odrl:leftOperand: https://w3id.org/edc/v0.0.1/ns/inForceDate
-                odrl:operator:
-                  '@id': odrl:lteq
-                odrl:rightOperand: 2023-07-12T07:19:58.585601395Z
-          odrl:prohibition: []
-          odrl:obligation: []
-          odrl:target: bcca61be-e82e-4da6-bfec-9716a56cef35
-        dcat:distribution:
-        - '@type': dcat:Distribution
-          dct:format:
-            '@id': HttpData
-          dcat:accessService: 5e839777-d93e-4785-8972-1005f51cf367
-        description: description
-        id: bcca61be-e82e-4da6-bfec-9716a56cef35
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-          dct: http://purl.org/dc/terms/
-          edc: https://w3id.org/edc/v0.0.1/ns/
-          dcat: http://www.w3.org/ns/dcat#
-          odrl: http://www.w3.org/ns/odrl/2/
-          dspace: https://w3id.org/dspace/v0.8/
-    DatasetRequest:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/CatalogRequest
-        counterPartyAddress:
-          type: string
-          example: null
-        counterPartyId:
-          type: string
-          example: null
-        protocol:
-          type: string
-          example: null
-        querySpec:
-          $ref: "#/components/schemas/QuerySpec"
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': DatasetRequest
-        '@id': dataset-id
-        counterPartyAddress: http://counter-party-address
-        counterPartyId: counter-party-id
-        protocol: dataspace-protocol-http
     DeprovisionedResource:
       type: object
       properties:
@@ -2259,25 +3324,6 @@ components:
           type: string
           example: null
       example: null
-    EndpointDataReferenceEntry:
-      type: object
-      properties:
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/EndpointDataReferenceEntry
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@id': transfer-process-id
-        transferProcessId: transfer-process-id
-        agreementId: agreement-id
-        contractNegotiationId: contract-negotiation-id
-        assetId: asset-id
-        providerId: provider-id
-        createdAt: 1688465655
     IdResponse:
       type: object
       properties:
@@ -2348,120 +3394,6 @@ components:
           - "FALSE"
           - "NULL"
       example: null
-    NegotiationState:
-      type: object
-      properties:
-        state:
-          type: string
-          example: null
-      example: null
-    Offer:
-      required:
-      - '@id'
-      - assigner
-      - target
-      type: object
-      properties:
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: http://www.w3.org/ns/odrl/2/Offer
-        assigner:
-          type: string
-          example: null
-        target:
-          type: string
-          example: null
-      description: ODRL offer
-      example:
-        '@context': http://www.w3.org/ns/odrl.jsonld
-        '@type': odrl:Offer
-        '@id': offer-id
-        assigner: providerId
-        target: assetId
-        permission: []
-        prohibition: []
-        obligation: []
-    Policy:
-      type: object
-      description: ODRL policy
-      example:
-        '@context': http://www.w3.org/ns/odrl.jsonld
-        '@id': 0949ba30-680c-44e6-bc7d-1688cbe1847e
-        '@type': odrl:Set
-        permission:
-          target: http://example.com/asset:9898.movie
-          action:
-            type: http://www.w3.org/ns/odrl/2/use
-          constraint:
-            leftOperand: https://w3id.org/edc/v0.0.1/ns/left
-            operator: eq
-            rightOperand: value
-        prohibition: []
-        obligation: []
-    PolicyDefinitionInput:
-      required:
-      - '@context'
-      - policy
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
-        policy:
-          $ref: "#/components/schemas/Policy"
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@id': definition-id
-        policy:
-          '@context': http://www.w3.org/ns/odrl.jsonld
-          '@type': Set
-          uid: http://example.com/policy:1010
-          permission:
-          - target: http://example.com/asset:9898.movie
-            action: display
-            constraint:
-            - leftOperand: spatial
-              operator: eq
-              rightOperand: https://www.wikidata.org/wiki/Q183
-              comment: i.e Germany
-    PolicyDefinitionOutput:
-      type: object
-      properties:
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
-        policy:
-          $ref: "#/components/schemas/Policy"
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@id': definition-id
-        policy:
-          '@context': http://www.w3.org/ns/odrl.jsonld
-          '@type': Set
-          uid: http://example.com/policy:1010
-          permission:
-          - target: http://example.com/asset:9898.movie
-            action: display
-            constraint:
-            - leftOperand: spatial
-              operator: eq
-              rightOperand: https://www.wikidata.org/wiki/Q183
-              comment: i.e Germany
-        createdAt: 1688465655
     Properties:
       type: object
       example: null
@@ -2523,32 +3455,9 @@ components:
         sortOrder: DESC
         sortField: fieldName
         filterExpression: []
-    SecretInput:
-      required:
-      - '@context'
-      - value
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/Secret
-        value:
-          type: string
-          example: null
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@id': secret-id
-        value: secret-value
     SecretOutput:
       required:
-      - value
+      - https://w3id.org/edc/v0.0.1/ns/value
       type: object
       properties:
         '@id':
@@ -2557,7 +3466,7 @@ components:
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/Secret
-        value:
+        https://w3id.org/edc/v0.0.1/ns/value:
           type: string
           example: null
       example:
@@ -2593,194 +3502,6 @@ components:
           type: test-dst2
         strategy: you_custom_strategy
         transferType: you_custom_transfer_type
-    SuspendTransfer:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/SuspendTransfer
-        state:
-          type: string
-          example: null
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/SuspendTransfer
-        reason: a reason to suspend
-    TerminateNegotiationSchema:
-      type: object
-      properties:
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/TerminateNegotiation
-        reason:
-          type: string
-          example: null
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/TerminateNegotiation
-        '@id': negotiation-id
-        reason: a reason to terminate
-    TerminateTransfer:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/TerminateTransfer
-        state:
-          type: string
-          example: null
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/TerminateTransfer
-        reason: a reason to terminate
-    TransferProcess:
-      type: object
-      properties:
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/TransferProcess
-        callbackAddresses:
-          type: array
-          example: null
-          items:
-            $ref: "#/components/schemas/CallbackAddress"
-        contractAgreementId:
-          type: string
-          example: null
-        counterPartyAddress:
-          type: string
-          example: null
-        counterPartyId:
-          type: string
-          example: null
-        dataDestination:
-          $ref: "#/components/schemas/DataAddress"
-        errorDetail:
-          type: string
-          example: null
-        privateProperties:
-          $ref: "#/components/schemas/Properties"
-        protocol:
-          type: string
-          example: null
-        state:
-          type: string
-          example: null
-        type:
-          type: string
-          example: null
-          enum:
-          - CONSUMER
-          - PROVIDER
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/TransferProcess
-        '@id': process-id
-        correlationId: correlation-id
-        type: PROVIDER
-        state: STARTED
-        stateTimestamp: 1688465655
-        assetId: asset-id
-        contractId: contractId
-        dataDestination:
-          type: data-destination-type
-        privateProperties:
-          private-key: private-value
-        errorDetail: eventual-error-detail
-        createdAt: 1688465655
-        callbackAddresses:
-        - transactional: false
-          uri: http://callback/url
-          events:
-          - contract.negotiation
-          - transfer.process
-          authKey: auth-key
-          authCodeId: auth-code-id
-    TransferRequest:
-      required:
-      - '@context'
-      - assetId
-      - contractId
-      - counterPartyAddress
-      - protocol
-      - transferType
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/TransferRequest
-        assetId:
-          type: string
-          example: null
-        callbackAddresses:
-          type: array
-          example: null
-          items:
-            $ref: "#/components/schemas/CallbackAddress"
-        contractId:
-          type: string
-          example: null
-        counterPartyAddress:
-          type: string
-          example: null
-        dataDestination:
-          $ref: "#/components/schemas/DataAddress"
-        privateProperties:
-          $ref: "#/components/schemas/Properties"
-        protocol:
-          type: string
-          example: null
-        transferType:
-          type: string
-          example: null
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/TransferRequest
-        protocol: dataspace-protocol-http
-        counterPartyAddress: http://provider-address
-        contractId: contract-id
-        assetId: asset-id
-        transferType: transferType
-        dataDestination:
-          type: data-destination-type
-        privateProperties:
-          private-key: private-value
-        callbackAddresses:
-        - transactional: false
-          uri: http://callback/url
-          events:
-          - contract.negotiation
-          - transfer.process
-          authKey: auth-key
-          authCodeId: auth-code-id
-    TransferState:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/TransferState
-        state:
-          type: string
-          example: null
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/TransferState
-        state: STARTED
     VersionRecord:
       type: object
       properties:
