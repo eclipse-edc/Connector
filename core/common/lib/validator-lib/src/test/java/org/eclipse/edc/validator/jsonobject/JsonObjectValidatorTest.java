@@ -16,9 +16,9 @@ package org.eclipse.edc.validator.jsonobject;
 
 import jakarta.json.JsonArrayBuilder;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryArray;
-import org.eclipse.edc.validator.jsonobject.validators.OptionalIdArray;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
+import org.eclipse.edc.validator.jsonobject.validators.OptionalIdArray;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Violation;
