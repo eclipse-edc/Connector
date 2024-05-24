@@ -219,7 +219,7 @@ class JsonObjectValidatorTest {
     }
 
     @Test
-    void shouldFail_ValidateMandatoryIdArrayMinSize() {
+    void shouldFail_ValidateOptionalIdArrayMinSize() {
         var input = createObjectBuilder()
                 .add("arrayProperty", createArrayBuilder()
                         .add(createObjectBuilder().add(ID, "value1"))
@@ -239,7 +239,7 @@ class JsonObjectValidatorTest {
     }
 
     @Test
-    void shouldFail_ValidateMandatoryIdArrayNoValue() {
+    void shouldSucceed_ValidateOptionalIdArrayNoValue() {
         var input = createObjectBuilder();
 
         var result = JsonObjectValidator.newValidator()
@@ -247,15 +247,11 @@ class JsonObjectValidatorTest {
                 .build()
                 .validate(input.build());
 
-        assertThat(result).isFailed().satisfies(failure -> {
-            assertThat(failure.getViolations()).anySatisfy(violation -> {
-                assertThat(violation.path()).contains("arrayProperty");
-            });
-        });
+        assertThat(result).isSucceeded();
     }
 
     @Test
-    void shouldFail_ValidateMandatoryIdArrayWrongType() {
+    void shouldFail_ValidateOptionalIdArrayWrongType() {
         var input = createObjectBuilder()
                 .add("arrayProperty", createArrayBuilder()
                         .add(createObjectBuilder().add("subProperty", createObjectBuilder()))
@@ -274,7 +270,7 @@ class JsonObjectValidatorTest {
     }
 
     @Test
-    void shouldSucceed_ValidateMandatoryIdArray() {
+    void shouldSucceed_ValidateOptionalIdArray() {
         var input = createObjectBuilder()
                 .add("arrayProperty", createArrayBuilder()
                         .add(createObjectBuilder().add(ID, "value1"))
