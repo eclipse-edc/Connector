@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.dataplane;
 
-import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.api.ConsumerPullTransferTokenValidationApiController;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.ConsumerPullTransferDataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.ProviderPushTransferDataFlowController;
@@ -25,6 +24,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,8 +46,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class TransferDataPlaneCoreExtensionTest {
 
-    private static final String CONTROL_PLANE_API_CONTEXT = "control";
-
     private final Vault vault = mock();
     private final WebService webService = mock();
     private final DataFlowManager dataFlowManager = mock();
@@ -55,12 +53,8 @@ class TransferDataPlaneCoreExtensionTest {
 
     @BeforeEach
     public void setUp(ServiceExtensionContext context) {
-        var controlApiConfigurationMock = mock(ControlApiConfiguration.class);
-        when(controlApiConfigurationMock.getContextAlias()).thenReturn(CONTROL_PLANE_API_CONTEXT);
-
         context.registerService(WebService.class, webService);
         context.registerService(DataFlowManager.class, dataFlowManager);
-        context.registerService(ControlApiConfiguration.class, controlApiConfigurationMock);
         context.registerService(Vault.class, vault);
 
         when(context.getMonitor()).thenReturn(monitor);
@@ -80,7 +74,7 @@ class TransferDataPlaneCoreExtensionTest {
 
         verify(dataFlowManager).register(any(ConsumerPullTransferDataFlowController.class));
         verify(dataFlowManager).register(any(ProviderPushTransferDataFlowController.class));
-        verify(webService).registerResource(eq(CONTROL_PLANE_API_CONTEXT), any(ConsumerPullTransferTokenValidationApiController.class));
+        verify(webService).registerResource(eq(ApiContext.CONTROL), any(ConsumerPullTransferTokenValidationApiController.class));
     }
 
     @Test

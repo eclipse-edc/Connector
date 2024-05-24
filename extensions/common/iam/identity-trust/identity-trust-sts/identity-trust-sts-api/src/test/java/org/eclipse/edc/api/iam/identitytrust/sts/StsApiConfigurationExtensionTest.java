@@ -55,7 +55,7 @@ public class StsApiConfigurationExtensionTest {
     @Test
     void initialize_shouldConfigureAndRegisterResource(StsApiConfigurationExtension extension) {
         var context = contextWithConfig(ConfigFactory.empty());
-        var configuration = WebServiceConfiguration.Builder.newInstance().contextAlias("alias").path("/path").port(1234).build();
+        var configuration = WebServiceConfiguration.Builder.newInstance().path("/path").port(1234).build();
         when(configurer.configure(any(), any(), any())).thenReturn(configuration);
 
         extension.initialize(context);

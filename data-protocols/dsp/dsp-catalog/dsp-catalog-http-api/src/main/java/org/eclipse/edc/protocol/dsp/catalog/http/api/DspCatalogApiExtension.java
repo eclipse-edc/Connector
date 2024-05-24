@@ -24,16 +24,17 @@ import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiCon
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.Base64continuationTokenSerDes;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.ContinuationTokenManagerImpl;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.validation.CatalogRequestMessageValidator;
-import org.eclipse.edc.protocol.dsp.http.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
@@ -49,7 +50,7 @@ public class DspCatalogApiExtension implements ServiceExtension {
     @Inject
     private WebService webService;
     @Inject
-    private DspApiConfiguration apiConfiguration;
+    private ProtocolWebhook protocolWebhook;
     @Inject
     private CatalogProtocolService service;
     @Inject
@@ -78,12 +79,12 @@ public class DspCatalogApiExtension implements ServiceExtension {
 
         var continuationTokenSerDes = new Base64continuationTokenSerDes(typeTransformerRegistry.forContext("dsp-api"), jsonLd);
         var catalogPaginationResponseDecoratorFactory = new ContinuationTokenManagerImpl(continuationTokenSerDes, context.getMonitor());
-        webService.registerResource(apiConfiguration.getContextAlias(), new DspCatalogApiController(service, dspRequestHandler, catalogPaginationResponseDecoratorFactory));
-        webService.registerResource(apiConfiguration.getContextAlias(), new DspCatalogApiController20241(service, dspRequestHandler, catalogPaginationResponseDecoratorFactory));
+        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController(service, dspRequestHandler, catalogPaginationResponseDecoratorFactory));
+        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController20241(service, dspRequestHandler, catalogPaginationResponseDecoratorFactory));
 
         dataServiceRegistry.register(DataService.Builder.newInstance()
                 .endpointDescription("dspace:connector")
-                .endpointUrl(apiConfiguration.getDspCallbackAddress())
+                .endpointUrl(protocolWebhook.url())
                 .build());
 
         versionRegistry.register(V_2024_1);

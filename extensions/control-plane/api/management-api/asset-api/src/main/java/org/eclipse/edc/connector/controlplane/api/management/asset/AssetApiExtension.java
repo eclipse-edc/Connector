@@ -17,7 +17,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.asset;
 
 import org.eclipse.edc.api.validation.DataAddressValidator;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApiController;
 import org.eclipse.edc.connector.controlplane.api.management.asset.validation.AssetValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -28,6 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
@@ -39,9 +39,6 @@ public class AssetApiExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
-
-    @Inject
-    private ManagementApiConfiguration config;
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;
@@ -66,7 +63,7 @@ public class AssetApiExtension implements ServiceExtension {
 
         var managementTypeTransformerRegistry = transformerRegistry.forContext("management-api");
 
-        webService.registerResource(config.getContextAlias(), new AssetApiController(assetService,
+        webService.registerResource(ApiContext.MANAGEMENT, new AssetApiController(assetService,
                 managementTypeTransformerRegistry, monitor, validator));
     }
 }

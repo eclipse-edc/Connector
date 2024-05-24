@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.api.iam.identitytrust.sts;
 
-import org.eclipse.edc.api.iam.identitytrust.sts.configuration.StsApiConfiguration;
 import org.eclipse.edc.api.iam.identitytrust.sts.controller.SecureTokenServiceApiController;
 import org.eclipse.edc.api.iam.identitytrust.sts.exception.StsTokenExceptionMapper;
 import org.eclipse.edc.api.iam.identitytrust.sts.validation.StsTokenRequestValidator;
@@ -22,10 +21,10 @@ import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 @Extension(SecureTokenServiceApiExtension.NAME)
 public class SecureTokenServiceApiExtension implements ServiceExtension {
@@ -33,16 +32,10 @@ public class SecureTokenServiceApiExtension implements ServiceExtension {
     public static final String NAME = "Secure Token Service API";
 
     @Inject
-    private StsApiConfiguration stsApiConfiguration;
-
-    @Inject
     private StsClientService clientService;
 
     @Inject
     private StsClientTokenGeneratorService tokenService;
-
-    @Inject
-    private Monitor monitor;
 
     @Inject
     private WebService webService;
@@ -54,7 +47,7 @@ public class SecureTokenServiceApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        webService.registerResource(stsApiConfiguration.getContextAlias(), new SecureTokenServiceApiController(clientService, tokenService, new StsTokenRequestValidator()));
-        webService.registerResource(stsApiConfiguration.getContextAlias(), new StsTokenExceptionMapper());
+        webService.registerResource(ApiContext.STS, new SecureTokenServiceApiController(clientService, tokenService, new StsTokenRequestValidator()));
+        webService.registerResource(ApiContext.STS, new StsTokenExceptionMapper());
     }
 }

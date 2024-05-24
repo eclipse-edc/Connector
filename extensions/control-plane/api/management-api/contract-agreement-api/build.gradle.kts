@@ -21,8 +21,9 @@ plugins {
 
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
+
     implementation(project(":extensions:common:api:api-core"))
-    implementation(project(":extensions:common:api:management-api-configuration"))
+    implementation(project(":extensions:common:api:lib:management-api-lib"))
 
     implementation(libs.jakarta.rsApi)
 

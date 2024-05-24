@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector.control.api;
 
-import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -24,6 +23,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.time.Clock;
 
@@ -37,9 +37,6 @@ public class DataplaneSelectorControlApiExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
-
-    @Inject
-    private ControlApiConfiguration controlApiConfiguration;
 
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
@@ -65,6 +62,6 @@ public class DataplaneSelectorControlApiExtension implements ServiceExtension {
         typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
 
         var controller = new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, dataPlaneSelectorService, clock);
-        webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
+        webService.registerResource(ApiContext.CONTROL, controller);
     }
 }

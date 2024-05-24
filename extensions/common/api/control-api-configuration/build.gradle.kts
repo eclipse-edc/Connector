@@ -18,6 +18,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:transfer-spi"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))

@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.edr;
 
 import jakarta.json.Json;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.api.management.edr.transform.JsonObjectFromEndpointDataReferenceEntryTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.edr.v1.EdrCacheApiV1Controller;
 import org.eclipse.edc.connector.controlplane.api.management.edr.v3.EdrCacheApiV3Controller;
@@ -28,6 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.util.Map;
 
@@ -40,18 +40,12 @@ public class EdrCacheApiExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
-
-    @Inject
-    private ManagementApiConfiguration config;
-
     @Inject
     private TypeTransformerRegistry transformerRegistry;
     @Inject
     private JsonObjectValidatorRegistry validator;
-
     @Inject
     private EndpointDataReferenceStore edrStore;
-
     @Inject
     private Monitor monitor;
 
@@ -67,7 +61,7 @@ public class EdrCacheApiExtension implements ServiceExtension {
 
         managementTypeTransformerRegistry.register(new JsonObjectFromEndpointDataReferenceEntryTransformer(jsonFactory));
 
-        webService.registerResource(config.getContextAlias(), new EdrCacheApiV1Controller(edrStore, managementTypeTransformerRegistry, validator, monitor));
-        webService.registerResource(config.getContextAlias(), new EdrCacheApiV3Controller(edrStore, managementTypeTransformerRegistry, validator, monitor));
+        webService.registerResource(ApiContext.MANAGEMENT, new EdrCacheApiV1Controller(edrStore, managementTypeTransformerRegistry, validator, monitor));
+        webService.registerResource(ApiContext.MANAGEMENT, new EdrCacheApiV3Controller(edrStore, managementTypeTransformerRegistry, validator, monitor));
     }
 }

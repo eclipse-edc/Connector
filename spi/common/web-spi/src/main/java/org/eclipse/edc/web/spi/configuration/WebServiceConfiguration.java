@@ -17,15 +17,14 @@ package org.eclipse.edc.web.spi.configuration;
 import java.util.Objects;
 
 /**
- * WebService configuration returned from {@link WebServiceConfigurer#configure}
+ * WebService configuration returned from {@link WebServiceConfigurer}
  */
 public class WebServiceConfiguration {
 
-    protected String contextAlias;
-    protected Integer port;
-    protected String path;
+    private Integer port;
+    private String path;
 
-    protected WebServiceConfiguration() {
+    private WebServiceConfiguration() {
     }
 
     public String getPath() {
@@ -34,10 +33,6 @@ public class WebServiceConfiguration {
 
     public Integer getPort() {
         return port;
-    }
-
-    public String getContextAlias() {
-        return contextAlias;
     }
 
     public static class Builder {
@@ -51,14 +46,8 @@ public class WebServiceConfiguration {
             return new Builder();
         }
 
-
         public Builder path(String path) {
             config.path = path;
-            return this;
-        }
-
-        public Builder contextAlias(String contextAlias) {
-            config.contextAlias = contextAlias;
             return this;
         }
 
@@ -68,7 +57,6 @@ public class WebServiceConfiguration {
         }
 
         public WebServiceConfiguration build() {
-            Objects.requireNonNull(config.contextAlias);
             Objects.requireNonNull(config.path);
             Objects.requireNonNull(config.port);
             return config;

@@ -14,13 +14,12 @@
 
 package org.eclipse.edc.connector.controlplane.api;
 
-import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.controlplane.api.transferprocess.TransferProcessControlApiController;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.web.spi.WebService;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,13 +37,7 @@ class ControlPlaneApiExtensionTest {
 
     @BeforeEach
     void setup(ServiceExtensionContext context) {
-        var webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
-                .contextAlias("control")
-                .path("/control")
-                .port(8888)
-                .build();
         context.registerService(WebService.class, webService);
-        context.registerService(ControlApiConfiguration.class, new ControlApiConfiguration(webServiceConfiguration));
     }
 
     @Test
@@ -53,7 +46,7 @@ class ControlPlaneApiExtensionTest {
 
         extension.initialize(context);
 
-        verify(webService).registerResource(eq("control"), isA(TransferProcessControlApiController.class));
+        verify(webService).registerResource(eq(ApiContext.CONTROL), isA(TransferProcessControlApiController.class));
     }
 
 }

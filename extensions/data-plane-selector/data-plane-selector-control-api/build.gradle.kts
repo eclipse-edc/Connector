@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":core:common:lib:validator-lib"))
     implementation(project(":extensions:common:api:api-core"))
-    implementation(project(":extensions:common:api:control-api-configuration"))
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))

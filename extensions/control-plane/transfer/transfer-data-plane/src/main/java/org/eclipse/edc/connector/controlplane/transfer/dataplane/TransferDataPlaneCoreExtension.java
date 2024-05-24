@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.dataplane;
 
-import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.api.ConsumerPullTransferTokenValidationApiController;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.ConsumerPullTransferDataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.ProviderPushTransferDataFlowController;
@@ -23,7 +22,6 @@ import org.eclipse.edc.connector.controlplane.transfer.dataplane.proxy.ConsumerP
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.validation.ExpirationDateValidationRule;
-import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
@@ -41,6 +39,8 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
+import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.PrivateKey;
@@ -70,9 +70,6 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
     @Inject
     private DataEncrypter dataEncrypter;
-
-    @Inject
-    private ControlApiConfiguration controlApiConfiguration;
 
     @Inject
     private DataPlaneSelectorService selectorService;
@@ -118,7 +115,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
         if (publicKeyAlias != null && privateKeyAlias != null) {
             var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager, (i) -> publicKeyService.resolveKey(publicKeyAlias));
-            webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
+            webService.registerResource(ApiContext.CONTROL, controller);
 
             var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), getPrivateKeySupplier(context, privateKeyAlias), () -> publicKeyAlias, tokenExpirationDateFunction);
             dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorService, resolver));

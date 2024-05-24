@@ -16,37 +16,41 @@ package org.eclipse.edc.connector.dataplane.selector.api.v3;
 
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.connector.dataplane.selector.api.model.SelectionRequest;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
-import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstance;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 @ComponentTest
 @ExtendWith(EdcExtension.class)
 public class DataPlaneSelectorApiV3ControllerTest {
 
-    private static final int PORT = 8181;
+    private final int port = 8181;
+
+    @BeforeEach
+    void setup(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.management.port", String.valueOf(port),
+                "web.http.management.path", "/management"
+        ));
+    }
 
     @Test
     void getAll(DataPlaneInstanceStore store) {
         var list = List.of(createInstance("test-id1"), createInstance("test-id2"), createInstance("test-id3"));
-        saveInstances(list, store);
+        list.forEach(store::create);
 
         var array = baseRequest()
                 .get()
@@ -70,34 +74,11 @@ public class DataPlaneSelectorApiV3ControllerTest {
         assertThat(array).isNotNull().isEmpty();
     }
 
-    public JsonObject createSelectionRequestJson(String srcType, String destType, String strategy, String transferType) {
-        var builder = createObjectBuilder()
-                .add(SelectionRequest.SOURCE_ADDRESS, createDataAddress(srcType))
-                .add(SelectionRequest.DEST_ADDRESS, createDataAddress(destType))
-                .add(SelectionRequest.TRANSFER_TYPE, transferType);
-
-        if (strategy != null) {
-            builder.add(SelectionRequest.STRATEGY, strategy);
-        }
-        return builder.build();
-    }
-
     protected RequestSpecification baseRequest() {
         return given()
-                .port(PORT)
-                .baseUri("http://localhost:" + PORT + "/api/v3/dataplanes")
+                .port(port)
+                .baseUri("http://localhost:" + port + "/management/v3/dataplanes")
                 .when();
     }
 
-    private JsonObjectBuilder createDataAddress(String type) {
-        return createObjectBuilder()
-                .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, type);
-    }
-
-    private void saveInstances(List<DataPlaneInstance> instances, DataPlaneInstanceStore store) {
-        for (var instance : instances) {
-            store.create(instance);
-        }
-    }
 }

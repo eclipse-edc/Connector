@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.contractagreement;
 
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v2.ContractAgreementApiV2Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v3.ContractAgreementApiV3Controller;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
@@ -26,6 +25,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 @Extension(value = ContractAgreementApiExtension.NAME)
 public class ContractAgreementApiExtension implements ServiceExtension {
@@ -33,9 +33,6 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     public static final String NAME = "Management API: Contract Agreement";
     @Inject
     private WebService webService;
-
-    @Inject
-    private ManagementApiConfiguration config;
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;
@@ -57,7 +54,7 @@ public class ContractAgreementApiExtension implements ServiceExtension {
 
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
 
-        webService.registerResource(config.getContextAlias(), new ContractAgreementApiV2Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
-        webService.registerResource(config.getContextAlias(), new ContractAgreementApiV3Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV2Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV3Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
     }
 }

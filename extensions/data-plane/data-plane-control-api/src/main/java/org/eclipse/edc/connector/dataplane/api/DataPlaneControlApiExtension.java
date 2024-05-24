@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.dataplane.api;
 
-import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlaneControlApiController;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -23,6 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 /**
  * This extension provides set of endpoints to trigger/monitor/cancel data transfers that should be accessible only
@@ -38,9 +38,6 @@ public class DataPlaneControlApiExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
-    @Inject
-    private ControlApiConfiguration controlApiConfiguration;
-
     @Override
     public String name() {
         return NAME;
@@ -48,6 +45,6 @@ public class DataPlaneControlApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        webService.registerResource(controlApiConfiguration.getContextAlias(), new DataPlaneControlApiController(dataPlaneManager));
+        webService.registerResource(ApiContext.CONTROL, new DataPlaneControlApiController(dataPlaneManager));
     }
 }

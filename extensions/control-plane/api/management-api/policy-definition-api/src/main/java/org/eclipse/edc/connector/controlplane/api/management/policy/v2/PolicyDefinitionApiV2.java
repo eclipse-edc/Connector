@@ -25,8 +25,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.api.management.schema.ManagementApiSchema;
 import org.eclipse.edc.api.model.ApiCoreSchema;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;

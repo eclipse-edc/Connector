@@ -29,7 +29,6 @@ dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
     implementation(project(":spi:common:keys-spi"))
-    implementation(project(":extensions:common:api:control-api-configuration"))
     implementation(project(":core:common:token-core"))
 
     api(libs.jakarta.rsApi)

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.configuration;
+package org.eclipse.edc.api.management.schema;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,9 +28,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema.ContractAgreementSchema.CONTRACT_AGREEMENT_EXAMPLE;
-import static org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema.ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE;
-import static org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema.PolicySchema.POLICY_EXAMPLE;
+import static org.eclipse.edc.api.management.schema.ManagementApiSchema.ContractAgreementSchema.CONTRACT_AGREEMENT_EXAMPLE;
+import static org.eclipse.edc.api.management.schema.ManagementApiSchema.ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE;
+import static org.eclipse.edc.api.management.schema.ManagementApiSchema.PolicySchema.POLICY_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ASSET_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_CONSUMER_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;

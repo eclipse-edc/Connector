@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.transferprocess;
 
 import jakarta.json.Json;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.transform.JsonObjectFromTransferProcessTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.transform.JsonObjectFromTransferStateTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.transform.JsonObjectToSuspendTransferTransformer;
@@ -33,6 +32,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
@@ -45,9 +45,6 @@ public class TransferProcessApiExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
-
-    @Inject
-    private ManagementApiConfiguration configuration;
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;
@@ -78,7 +75,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
         validatorRegistry.register(TRANSFER_REQUEST_TYPE, TransferRequestValidator.instance());
         validatorRegistry.register(TERMINATE_TRANSFER_TYPE, TerminateTransferValidator.instance());
 
-        webService.registerResource(configuration.getContextAlias(), new TransferProcessApiV2Controller(context.getMonitor(), service, managementApiTransformerRegistry, validatorRegistry));
-        webService.registerResource(configuration.getContextAlias(), new TransferProcessApiV3Controller(context.getMonitor(), service, managementApiTransformerRegistry, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV2Controller(context.getMonitor(), service, managementApiTransformerRegistry, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV3Controller(context.getMonitor(), service, managementApiTransformerRegistry, validatorRegistry));
     }
 }

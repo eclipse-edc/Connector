@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector;
 
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiV2Controller;
 import org.eclipse.edc.connector.dataplane.selector.api.v3.DataplaneSelectorApiV3Controller;
 import org.eclipse.edc.connector.dataplane.selector.api.validation.DataPlaneInstanceValidator;
@@ -31,6 +30,7 @@ import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataPlaneIns
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.time.Clock;
 import java.util.Map;
@@ -47,9 +47,6 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
     @Inject
     private DataPlaneSelectorService selectionService;
-
-    @Inject
-    private ManagementApiConfiguration managementApiConfiguration;
 
     @Inject
     private TypeManager typeManager;
@@ -73,7 +70,7 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
         managementApiTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager.getMapper(JSON_LD)));
 
-        webservice.registerResource(managementApiConfiguration.getContextAlias(), new DataplaneSelectorApiV2Controller(selectionService, managementApiTransformerRegistry, validatorRegistry, clock));
-        webservice.registerResource(managementApiConfiguration.getContextAlias(), new DataplaneSelectorApiV3Controller(selectionService, managementApiTransformerRegistry));
+        webservice.registerResource(ApiContext.MANAGEMENT, new DataplaneSelectorApiV2Controller(selectionService, managementApiTransformerRegistry, validatorRegistry, clock));
+        webservice.registerResource(ApiContext.MANAGEMENT, new DataplaneSelectorApiV3Controller(selectionService, managementApiTransformerRegistry));
     }
 }

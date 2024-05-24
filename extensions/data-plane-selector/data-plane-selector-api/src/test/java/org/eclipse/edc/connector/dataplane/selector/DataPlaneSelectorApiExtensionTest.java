@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiV2Controller;
 import org.eclipse.edc.connector.dataplane.selector.api.v3.DataplaneSelectorApiV3Controller;
 import org.eclipse.edc.connector.dataplane.selector.service.EmbeddedDataPlaneSelectorService;
@@ -36,6 +35,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataPlaneInstanceTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,6 @@ import static org.mockito.Mockito.when;
 class DataPlaneSelectorApiExtensionTest {
 
     private final WebService webService = mock(WebService.class);
-    private final ManagementApiConfiguration managementApiConfiguration = mock(ManagementApiConfiguration.class);
     private final Monitor monitor = mock(Monitor.class);
     private final TypeTransformerRegistry transformerRegistry = mock();
     private DataPlaneSelectorApiExtension extension;
@@ -62,7 +61,6 @@ class DataPlaneSelectorApiExtensionTest {
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(TypeManager.class, new JacksonTypeManager());
         context.registerService(WebService.class, webService);
-        context.registerService(ManagementApiConfiguration.class, managementApiConfiguration);
         context.registerService(DataPlaneSelectorService.class, new EmbeddedDataPlaneSelectorService(
                 mock(DataPlaneInstanceStore.class), mock(SelectionStrategyRegistry.class), new NoopTransactionContext()));
 
@@ -75,10 +73,9 @@ class DataPlaneSelectorApiExtensionTest {
     @Test
     void shouldRegisterManagementContext() {
         var config = ConfigFactory.fromMap(Collections.emptyMap());
-        when(managementApiConfiguration.getContextAlias()).thenReturn("management");
 
         extension.initialize(contextWithConfig(config));
-        verify(webService).registerResource(eq("management"), isA(DataplaneSelectorApiV2Controller.class));
+        verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(DataplaneSelectorApiV2Controller.class));
         verify(transformerRegistry).register(isA(JsonObjectFromDataPlaneInstanceTransformer.class));
         verify(transformerRegistry).register(isA(JsonObjectToDataPlaneInstanceTransformer.class));
         verify(transformerRegistry).register(isA(JsonObjectToSelectionRequestTransformer.class));
@@ -87,12 +84,11 @@ class DataPlaneSelectorApiExtensionTest {
     @Test
     void shouldRegisterControllers() {
         var config = ConfigFactory.fromMap(Collections.emptyMap());
-        when(managementApiConfiguration.getContextAlias()).thenReturn("management");
 
         extension.initialize(contextWithConfig(config));
 
-        verify(webService).registerResource(eq("management"), isA(DataplaneSelectorApiV2Controller.class));
-        verify(webService).registerResource(eq("management"), isA(DataplaneSelectorApiV3Controller.class));
+        verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(DataplaneSelectorApiV2Controller.class));
+        verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(DataplaneSelectorApiV3Controller.class));
     }
 
     @NotNull

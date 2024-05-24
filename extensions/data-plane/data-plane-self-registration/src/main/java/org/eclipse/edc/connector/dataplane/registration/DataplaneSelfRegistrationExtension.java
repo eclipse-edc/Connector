@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.registration;
 
-import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
@@ -30,6 +29,7 @@ import org.eclipse.edc.spi.system.health.LivenessProvider;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
 import org.eclipse.edc.spi.system.health.StartupStatusProvider;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;

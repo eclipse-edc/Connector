@@ -16,7 +16,7 @@ package org.eclipse.edc.web.spi.configuration;
 
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.web.spi.WebServer;
 
 /**
@@ -28,10 +28,10 @@ public interface WebServiceConfigurer {
     /**
      * Build the configuration for an API
      *
-     * @param context The context
+     * @param config The context configuration
      * @param webServer The WebServer
      * @param settings WebService settings
      * @return The final webservice configuration
      */
-    WebServiceConfiguration configure(ServiceExtensionContext context, WebServer webServer, WebServiceSettings settings);
+    WebServiceConfiguration configure(Config config, WebServer webServer, WebServiceSettings settings);
 }

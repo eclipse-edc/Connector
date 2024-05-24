@@ -24,9 +24,7 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
 
     implementation(project(":core:common:lib:transform-lib"))
-    implementation(project(":extensions:common:api:control-api-configuration"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
-    implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api-configuration"))
     implementation(libs.jakarta.rsApi)
 
     testImplementation(libs.restAssured)

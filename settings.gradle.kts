@@ -100,6 +100,7 @@ include(":data-protocols:dsp:dsp-version:dsp-version-http-api")
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
 include(":extensions:common:api:api-observability")
+include(":extensions:common:api:lib:management-api-lib")
 include(":extensions:common:api:version-api")
 include(":extensions:common:auth:auth-basic")
 include(":extensions:common:auth:auth-tokenbased")

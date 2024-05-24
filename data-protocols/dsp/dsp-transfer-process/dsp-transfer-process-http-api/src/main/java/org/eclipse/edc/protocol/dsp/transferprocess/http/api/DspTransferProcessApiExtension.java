@@ -16,7 +16,6 @@ package org.eclipse.edc.protocol.dsp.transferprocess.http.api;
 
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
-import org.eclipse.edc.protocol.dsp.http.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.transferprocess.http.api.controller.DspTransferProcessApiController;
 import org.eclipse.edc.protocol.dsp.transferprocess.http.api.controller.DspTransferProcessApiController20241;
@@ -30,6 +29,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
@@ -44,8 +44,6 @@ import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 public class DspTransferProcessApiExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol: TransferProcess API Extension";
-    @Inject
-    private DspApiConfiguration config;
     @Inject
     private WebService webService;
     @Inject
@@ -64,8 +62,8 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
         validatorRegistry.register(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE, TransferCompletionMessageValidator.instance());
         validatorRegistry.register(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE, TransferTerminationMessageValidator.instance());
 
-        webService.registerResource(config.getContextAlias(), new DspTransferProcessApiController(transferProcessProtocolService, dspRequestHandler));
-        webService.registerResource(config.getContextAlias(), new DspTransferProcessApiController20241(transferProcessProtocolService, dspRequestHandler));
+        webService.registerResource(ApiContext.PROTOCOL, new DspTransferProcessApiController(transferProcessProtocolService, dspRequestHandler));
+        webService.registerResource(ApiContext.PROTOCOL, new DspTransferProcessApiController20241(transferProcessProtocolService, dspRequestHandler));
 
         versionRegistry.register(V_2024_1);
     }
