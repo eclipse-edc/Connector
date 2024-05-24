@@ -16,8 +16,8 @@ package org.eclipse.edc.validator.jsonobject;
 
 import jakarta.json.JsonArrayBuilder;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryArray;
+import org.eclipse.edc.validator.jsonobject.validators.OptionalIdArray;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
-import org.eclipse.edc.validator.jsonobject.validators.MandatoryIdArray;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.ValidationFailure;
@@ -227,7 +227,7 @@ class JsonObjectValidatorTest {
                 );
 
         var result = JsonObjectValidator.newValidator()
-                .verify("arrayProperty", MandatoryIdArray.min(3))
+                .verify("arrayProperty", OptionalIdArray.min(3))
                 .build()
                 .validate(input.build());
 
@@ -243,7 +243,7 @@ class JsonObjectValidatorTest {
         var input = createObjectBuilder();
 
         var result = JsonObjectValidator.newValidator()
-                .verify("arrayProperty", MandatoryIdArray::new)
+                .verify("arrayProperty", OptionalIdArray::new)
                 .build()
                 .validate(input.build());
 
@@ -262,7 +262,7 @@ class JsonObjectValidatorTest {
                 );
 
         var result = JsonObjectValidator.newValidator()
-                .verify("arrayProperty", MandatoryIdArray::new)
+                .verify("arrayProperty", OptionalIdArray::new)
                 .build()
                 .validate(input.build());
 
@@ -282,7 +282,7 @@ class JsonObjectValidatorTest {
                 );
 
         var result = JsonObjectValidator.newValidator()
-                .verify("arrayProperty", MandatoryIdArray::new)
+                .verify("arrayProperty", OptionalIdArray::new)
                 .build()
                 .validate(input.build());
 
