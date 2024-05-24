@@ -17,9 +17,9 @@ package org.eclipse.edc.connector.controlplane.api.management.policy.validation;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
-import org.eclipse.edc.validator.jsonobject.validators.MandatoryIdArray;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
+import org.eclipse.edc.validator.jsonobject.validators.OptionalIdArray;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.ValidationResult;
@@ -65,7 +65,7 @@ public class PolicyDefinitionValidator {
                     .verifyArrayItem(ODRL_PERMISSION_ATTRIBUTE, PermissionValidator::instance)
                     .verifyArrayItem(ODRL_OBLIGATION_ATTRIBUTE, DutyValidator::instance)
                     .verifyArrayItem(ODRL_PROHIBITION_ATTRIBUTE, ProhibitionValidator::instance)
-                    .verifyArrayItem(ODRL_PROFILE_ATTRIBUTE, ProfileValidator::instance);
+                    .verify(ProfileValidator::new);
         }
     }
 
@@ -105,11 +105,13 @@ public class PolicyDefinitionValidator {
 
     }
 
-    private static class ProfileValidator {
-        public static JsonObjectValidator.Builder instance(JsonObjectValidator.Builder builder) {
-
-            return builder
-                    .verify(MandatoryIdArray.min(1));
+    private record ProfileValidator(JsonLdPath path) implements Validator<JsonObject> {
+        @Override
+        public ValidationResult validate(JsonObject input) {
+            return JsonObjectValidator.newValidator()
+                    .verify(ODRL_PROFILE_ATTRIBUTE, OptionalIdArray.min(1))
+                    .build()
+                    .validate(input);
         }
     }
 

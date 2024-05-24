@@ -29,23 +29,23 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 /**
- * Verifies that an array is present and the key:value pairs are of type @id:string with optional constraint on min size.
+ * Verifies that if an array is present the key:value pairs are of type @id:string with optional constraint on min size.
  */
-public class MandatoryIdArray implements Validator<JsonObject> {
+public class OptionalIdArray implements Validator<JsonObject> {
     private final JsonLdPath path;
     private final Integer min;
 
-    public MandatoryIdArray(JsonLdPath path) {
+    public OptionalIdArray(JsonLdPath path) {
         this(path, null);
     }
 
-    public MandatoryIdArray(JsonLdPath path, Integer min) {
+    public OptionalIdArray(JsonLdPath path, Integer min) {
         this.path = path;
         this.min = min;
     }
 
     public static Function<JsonLdPath, Validator<JsonObject>> min(Integer min) {
-        return path -> new MandatoryArray(path, min);
+        return path -> new OptionalIdArray(path, min);
     }
 
     @Override
@@ -54,13 +54,13 @@ public class MandatoryIdArray implements Validator<JsonObject> {
 
         sizeResult = Optional.ofNullable(input.getJsonArray(path.last()))
                 .map(this::validateMin)
-                .orElse(ValidationResult.failure(violation(format("mandatory array '%s' is missing", path), path.toString())));
+                .orElse(ValidationResult.success());
 
         if (sizeResult.failed()) return sizeResult;
 
         return Optional.ofNullable(input.getJsonArray(path.last()))
                 .map(this::validateType)
-                .orElse(ValidationResult.failure(violation(format("mandatory array '%s' is missing", path), path.toString())));
+                .orElse(ValidationResult.success());
     }
 
     private ValidationResult validateMin(JsonArray array) {
@@ -72,9 +72,13 @@ public class MandatoryIdArray implements Validator<JsonObject> {
 
     private ValidationResult validateType(JsonArray array) {
         for (JsonValue value : array) {
-            var id = value.asJsonObject().getJsonString(ID);
-            if (id == null || id.getString().isBlank()) {
-                return ValidationResult.failure(violation(format("contents of array '%s' should be of type string and not blank", path), path.toString()));
+            try {
+                var id = value.asJsonObject().getJsonString(ID);
+                if (id == null || id.getString().isBlank() || id.getString().isEmpty()) {
+                    return ValidationResult.failure(violation(format("contents of array '%s' should not be blank or empty", path), path.toString()));
+                }
+            } catch (ClassCastException e) {
+                return ValidationResult.failure(violation(format("contents of array '%s' should be of type string", path), path.toString()));
             }
         }
         return ValidationResult.success();
