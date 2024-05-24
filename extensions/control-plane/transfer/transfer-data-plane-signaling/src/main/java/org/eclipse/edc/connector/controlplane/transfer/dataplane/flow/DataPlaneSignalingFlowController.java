@@ -26,7 +26,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
@@ -34,11 +33,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * Implementation of {@link DataFlowController} that is compliant with the data plane signaling.
@@ -78,12 +76,17 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
         var flowType = flowTypeExtractor.extract(transferProcess.getTransferType());
         if (flowType.failed()) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, flowType.getFailureDetail());
+            return StatusResult.failure(FATAL_ERROR, flowType.getFailureDetail());
         }
 
         var propertiesResult = propertiesProvider.propertiesFor(transferProcess, policy);
         if (propertiesResult.failed()) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, propertiesResult.getFailureDetail());
+            return StatusResult.failure(FATAL_ERROR, propertiesResult.getFailureDetail());
+        }
+
+        var selection = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getTransferType(), selectionStrategy);
+        if (!selection.succeeded()) {
+            return StatusResult.failure(FATAL_ERROR, selection.getFailureDetail());
         }
 
         var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
@@ -99,36 +102,37 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .properties(propertiesResult.getContent())
                 .build();
 
-        var selection = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getTransferType(), selectionStrategy);
-        if (selection.succeeded()) {
-            var dataPlaneInstance = selection.getContent();
-            return clientFactory.createClient(dataPlaneInstance)
-                    .start(dataFlowRequest)
-                    .map(it -> DataFlowResponse.Builder.newInstance()
-                            .dataAddress(it.getDataAddress())
-                            .dataPlaneId(dataPlaneInstance.getId())
-                            .build()
-                    );
-        } else {
-            // TODO: this branch works for embedded data plane but it is a potential false positive when the dataplane is not found, needs to be refactored
-            return clientFactory.createClient(null)
-                    .start(dataFlowRequest)
-                    .map(it -> DataFlowResponse.Builder.newInstance()
-                            .dataAddress(it.getDataAddress())
-                            .dataPlaneId(null)
-                            .build()
-                    );
-        }
+        var dataPlaneInstance = selection.getContent();
+        return clientFactory.createClient(dataPlaneInstance)
+                .start(dataFlowRequest)
+                .map(it -> DataFlowResponse.Builder.newInstance()
+                        .dataAddress(it.getDataAddress())
+                        .dataPlaneId(dataPlaneInstance.getId())
+                        .build()
+                );
+
     }
 
     @Override
     public StatusResult<Void> suspend(TransferProcess transferProcess) {
-        return onDataplaneInstancesDo("suspending", transferProcess, DataPlaneClient::suspend);
+        return getClientForDataplane(transferProcess.getDataPlaneId())
+                .map(client -> client.suspend(transferProcess.getId()))
+                .orElse(f -> {
+                    var message = "Failed to select the data plane for suspending the transfer process %s. %s"
+                            .formatted(transferProcess.getId(), f.getFailureDetail());
+                    return StatusResult.failure(FATAL_ERROR, message);
+                });
     }
 
     @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
-        return onDataplaneInstancesDo("terminating", transferProcess, DataPlaneClient::terminate);
+        return getClientForDataplane(transferProcess.getDataPlaneId())
+                .map(client -> client.terminate(transferProcess.getId()))
+                .orElse(f -> {
+                    var message = "Failed to select the data plane for terminating the transfer process %s. %s"
+                            .formatted(transferProcess.getId(), f.getFailureDetail());
+                    return StatusResult.failure(FATAL_ERROR, message);
+                });
     }
 
     @Override
@@ -145,25 +149,18 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .collect(toSet());
     }
 
-    private StatusResult<Void> onDataplaneInstancesDo(String action, TransferProcess transferProcess, BiFunction<DataPlaneClient, String, StatusResult<Void>> clientAction) {
+    private StatusResult<DataPlaneClient> getClientForDataplane(String id) {
         var result = selectorClient.getAll();
         if (result.failed()) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, result.getFailureDetail());
+            return StatusResult.failure(FATAL_ERROR, result.getFailureDetail());
         }
 
         return result.getContent().stream()
-                .filter(dataPlaneInstanceFilter(transferProcess))
+                .filter(instance -> instance.getId().equals(id))
+                .findFirst()
                 .map(clientFactory::createClient)
-                .map(client -> clientAction.apply(client, transferProcess.getId()))
-                .reduce(StatusResult::merge)
-                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to select the data plane for %s the transfer process %s".formatted(action, transferProcess.getId())));
+                .map(StatusResult::success)
+                .orElseGet(() -> StatusResult.failure(FATAL_ERROR, "No data-plane found with id %s".formatted(id)));
     }
 
-    private Predicate<DataPlaneInstance> dataPlaneInstanceFilter(TransferProcess transferProcess) {
-        if (transferProcess.getDataPlaneId() != null) {
-            return dataPlaneInstance -> dataPlaneInstance.getId().equals(transferProcess.getDataPlaneId());
-        } else {
-            return d -> true;
-        }
-    }
 }
