@@ -962,9 +962,9 @@ paths:
   /v2/dataplanes:
     get:
       tags:
-      - Dataplane Selector
+      - Dataplane Selector V2
       description: Returns a list of all currently registered data plane instances
-      operationId: getAllDataPlaneInstances
+      operationId: getAllDataPlaneInstancesV2
       responses:
         "200":
           description: A (potentially empty) list of currently registered data plane
@@ -976,12 +976,13 @@ paths:
                 example: null
                 items:
                   $ref: "#/components/schemas/DataPlaneInstanceSchema"
+      deprecated: true
     post:
       tags:
-      - Dataplane Selector
+      - Dataplane Selector V2
       description: "Adds one dataplane instance to the internal database of the selector.\
         \ DEPRECATED: dataplanes should register themselves through control-api"
-      operationId: addDataPlaneInstance
+      operationId: addDataPlaneInstanceV2
       requestBody:
         content:
           application/json:
@@ -1007,9 +1008,9 @@ paths:
   /v2/dataplanes/select:
     post:
       tags:
-      - Dataplane Selector
+      - Dataplane Selector V2
       description: Finds the best fitting data plane instance for a particular query
-      operationId: selectDataPlaneInstance
+      operationId: selectDataPlaneInstanceV2
       requestBody:
         content:
           application/json:
@@ -2386,6 +2387,23 @@ paths:
           description: default response
           content:
             application/json: {}
+  /v3/dataplanes:
+    get:
+      tags:
+      - Dataplane Selector V3
+      description: Returns a list of all currently registered data plane instances
+      operationId: getAllDataPlaneInstancesV3
+      responses:
+        "200":
+          description: A (potentially empty) list of currently registered data plane
+            instances
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/DataPlaneInstanceSchema"
   /v3/edrs/request:
     post:
       tags:
