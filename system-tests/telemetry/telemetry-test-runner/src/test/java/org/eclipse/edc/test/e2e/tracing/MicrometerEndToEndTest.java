@@ -43,7 +43,7 @@ public class MicrometerEndToEndTest extends BaseTelemetryEndToEndTest {
                 .port(MANAGEMENT_PORT)
                 .contentType(JSON)
                 .body(requestBody)
-                .post("/management/v2/catalog/request")
+                .post("/management/v3/catalog/request")
                 .then()
                 .statusCode(200);
 

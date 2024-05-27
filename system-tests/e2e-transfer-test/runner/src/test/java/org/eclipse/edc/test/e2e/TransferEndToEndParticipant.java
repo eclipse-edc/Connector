@@ -201,7 +201,7 @@ public class TransferEndToEndParticipant extends Participant {
         var dataAddressRaw = managementEndpoint.baseRequest()
                 .contentType(JSON)
                 .when()
-                .get("/v1/edrs/{id}/dataaddress", transferProcessId)
+                .get("/v3/edrs/{id}/dataaddress", transferProcessId)
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -243,12 +243,12 @@ public class TransferEndToEndParticipant extends Participant {
 
     public static class Builder extends Participant.Builder<TransferEndToEndParticipant, Builder> {
 
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
         protected Builder() {
             super(new TransferEndToEndParticipant());
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         @Override

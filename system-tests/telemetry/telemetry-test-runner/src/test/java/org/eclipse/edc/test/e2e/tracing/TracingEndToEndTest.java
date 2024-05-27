@@ -92,7 +92,7 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
                 .when()
                 .contentType(JSON)
                 .body(requestJson)
-                .post("/management/v2/contractnegotiations")
+                .post("/management/v3/contractnegotiations")
                 .then()
                 .log().ifError()
                 .statusCode(200)
