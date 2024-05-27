@@ -15,8 +15,9 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.validation.DataPlaneInstanceValidator;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiV2Controller;
+import org.eclipse.edc.connector.dataplane.selector.api.v3.DataplaneSelectorApiV3Controller;
+import org.eclipse.edc.connector.dataplane.selector.api.validation.DataPlaneInstanceValidator;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
@@ -71,8 +72,8 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
         managementApiTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager.getMapper(JSON_LD)));
-        var controller = new DataplaneSelectorApiController(selectionService, managementApiTransformerRegistry, validatorRegistry, clock);
 
-        webservice.registerResource(managementApiConfiguration.getContextAlias(), controller);
+        webservice.registerResource(managementApiConfiguration.getContextAlias(), new DataplaneSelectorApiV2Controller(selectionService, managementApiTransformerRegistry, validatorRegistry, clock));
+        webservice.registerResource(managementApiConfiguration.getContextAlias(), new DataplaneSelectorApiV3Controller(selectionService, managementApiTransformerRegistry));
     }
 }

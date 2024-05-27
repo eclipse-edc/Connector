@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,15 +12,15 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.api.v2.model;
+package org.eclipse.edc.connector.dataplane.selector.api.model;
 
-import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiV2;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
- * Represents the request body that the {@link DataplaneSelectorApi#selectDataPlaneInstance(jakarta.json.JsonObject)} endpoint requires
+ * Represents the request body that the {@link DataplaneSelectorApiV2#selectDataPlaneInstance(jakarta.json.JsonObject)} endpoint requires
  * Contains source and destination address and optionally the name of a selection strategy
  */
 public class SelectionRequest {

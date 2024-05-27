@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.dataplane.selector.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest;
+import org.eclipse.edc.connector.dataplane.selector.api.model.SelectionRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
@@ -33,8 +33,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.DataPlaneInstanceSchema.DATAPLANE_INSTANCE_EXAMPLE;
-import static org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.SelectionRequestSchema.SELECTION_REQUEST_INPUT_EXAMPLE;
+import static org.eclipse.edc.connector.dataplane.selector.api.schemas.DataPlaneInstanceSchema.DATAPLANE_INSTANCE_EXAMPLE;
+import static org.eclipse.edc.connector.dataplane.selector.api.schemas.SelectionRequestSchema.SELECTION_REQUEST_INPUT_EXAMPLE;
 import static org.mockito.Mockito.mock;
 
 public class DataPlaneApiSelectorTest {
