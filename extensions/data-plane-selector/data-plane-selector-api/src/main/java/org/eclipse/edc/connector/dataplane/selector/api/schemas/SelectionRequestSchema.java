@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,12 +12,12 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.api.v2.schemas;
+package org.eclipse.edc.connector.dataplane.selector.api.schemas;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 
-import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.SELECTION_REQUEST_TYPE;
+import static org.eclipse.edc.connector.dataplane.selector.api.model.SelectionRequest.SELECTION_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @Schema(example = SelectionRequestSchema.SELECTION_REQUEST_INPUT_EXAMPLE)

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,17 +12,18 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.api.v2.validation;
+package org.eclipse.edc.connector.dataplane.selector.validation;
 
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
-import org.assertj.core.api.Assertions;
+import org.eclipse.edc.connector.dataplane.selector.api.validation.DataPlaneInstanceValidator;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
 import org.junit.jupiter.api.Test;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
@@ -57,11 +58,7 @@ public class DataPlaneInstanceValidatorTest {
 
         var result = validator.validate(input);
 
-        assertThat(result).isFailed().satisfies(failure -> {
-            Assertions.assertThat(failure.getViolations()).hasSize(1).anySatisfy(v -> {
-                Assertions.assertThat(v.path()).isEqualTo(ID);
-            });
-        });
+        assertThat(result).isFailed().satisfies(failure -> assertThat(failure.getViolations()).hasSize(1).anySatisfy(v -> assertThat(v.path()).isEqualTo(ID)));
     }
 
     @Test
@@ -74,11 +71,7 @@ public class DataPlaneInstanceValidatorTest {
 
         var result = validator.validate(input);
 
-        assertThat(result).isFailed().satisfies(failure -> {
-            Assertions.assertThat(failure.getViolations()).hasSize(1).anySatisfy(v -> {
-                Assertions.assertThat(v.path()).isEqualTo(URL);
-            });
-        });
+        assertThat(result).isFailed().satisfies(failure -> assertThat(failure.getViolations()).hasSize(1).anySatisfy(v -> assertThat(v.path()).isEqualTo(URL)));
     }
 
     @Test
@@ -92,11 +85,9 @@ public class DataPlaneInstanceValidatorTest {
 
         var result = validator.validate(input);
 
-        assertThat(result).isFailed().satisfies(failure -> {
-            Assertions.assertThat(failure.getViolations()).hasSize(2)
-                    .map(Violation::path)
-                    .contains(ALLOWED_DEST_TYPES, ALLOWED_SOURCE_TYPES);
-        });
+        assertThat(result).isFailed().satisfies(failure -> assertThat(failure.getViolations()).hasSize(2)
+                .map(Violation::path)
+                .contains(ALLOWED_DEST_TYPES, ALLOWED_SOURCE_TYPES));
     }
 
     private JsonArrayBuilder value(String value) {

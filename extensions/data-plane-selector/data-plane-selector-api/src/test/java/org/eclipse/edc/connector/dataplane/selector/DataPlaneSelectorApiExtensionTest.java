@@ -17,7 +17,8 @@ package org.eclipse.edc.connector.dataplane.selector;
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiV2Controller;
+import org.eclipse.edc.connector.dataplane.selector.api.v3.DataplaneSelectorApiV3Controller;
 import org.eclipse.edc.connector.dataplane.selector.service.EmbeddedDataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
@@ -77,10 +78,21 @@ class DataPlaneSelectorApiExtensionTest {
         when(managementApiConfiguration.getContextAlias()).thenReturn("management");
 
         extension.initialize(contextWithConfig(config));
-        verify(webService).registerResource(eq("management"), isA(DataplaneSelectorApiController.class));
+        verify(webService).registerResource(eq("management"), isA(DataplaneSelectorApiV2Controller.class));
         verify(transformerRegistry).register(isA(JsonObjectFromDataPlaneInstanceTransformer.class));
         verify(transformerRegistry).register(isA(JsonObjectToDataPlaneInstanceTransformer.class));
         verify(transformerRegistry).register(isA(JsonObjectToSelectionRequestTransformer.class));
+    }
+
+    @Test
+    void shouldRegisterControllers() {
+        var config = ConfigFactory.fromMap(Collections.emptyMap());
+        when(managementApiConfiguration.getContextAlias()).thenReturn("management");
+
+        extension.initialize(contextWithConfig(config));
+
+        verify(webService).registerResource(eq("management"), isA(DataplaneSelectorApiV2Controller.class));
+        verify(webService).registerResource(eq("management"), isA(DataplaneSelectorApiV3Controller.class));
     }
 
     @NotNull

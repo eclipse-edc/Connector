@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,14 +12,14 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.api;
+package org.eclipse.edc.connector.dataplane.selector.api.v2;
 
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest;
+import org.eclipse.edc.connector.dataplane.selector.api.model.SelectionRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategy;
@@ -47,7 +47,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 @ComponentTest
 @ExtendWith(EdcExtension.class)
-public class DataPlaneSelectorApiControllerTest {
+public class DataPlaneSelectorApiV2ControllerTest {
 
     private static final int PORT = 8181;
 
@@ -220,7 +220,7 @@ public class DataPlaneSelectorApiControllerTest {
         var myCustomStrategy = new SelectionStrategy() {
             @Override
             public DataPlaneInstance apply(List<DataPlaneInstance> instances) {
-                return instances.stream().filter(i -> i.getId().equals("test-id1")).findFirst().get();
+                return instances.stream().filter(i -> i.getId().equals("test-id1")).findFirst().orElseThrow();
             }
 
             @Override
@@ -245,13 +245,6 @@ public class DataPlaneSelectorApiControllerTest {
         assertThat(result.getString(ID)).isEqualTo("test-id1");
     }
 
-    protected RequestSpecification baseRequest() {
-        return given()
-                .port(PORT)
-                .baseUri("http://localhost:" + PORT + "/api/v2/dataplanes")
-                .when();
-    }
-
     public JsonObject createSelectionRequestJson(String srcType, String destType, String strategy, String transferType) {
         var builder = createObjectBuilder()
                 .add(SelectionRequest.SOURCE_ADDRESS, createDataAddress(srcType))
@@ -262,6 +255,13 @@ public class DataPlaneSelectorApiControllerTest {
             builder.add(SelectionRequest.STRATEGY, strategy);
         }
         return builder.build();
+    }
+
+    protected RequestSpecification baseRequest() {
+        return given()
+                .port(PORT)
+                .baseUri("http://localhost:" + PORT + "/api/v2/dataplanes")
+                .when();
     }
 
     private JsonObjectBuilder createDataAddress(String type) {

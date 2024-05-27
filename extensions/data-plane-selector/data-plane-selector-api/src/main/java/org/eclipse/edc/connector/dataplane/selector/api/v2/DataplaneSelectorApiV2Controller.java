@@ -23,7 +23,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponse;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest;
+import org.eclipse.edc.connector.dataplane.selector.api.model.SelectionRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.EdcException;
@@ -34,16 +34,15 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import java.time.Clock;
-import java.util.function.Supplier;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/v2/dataplanes")
-public class DataplaneSelectorApiController implements DataplaneSelectorApi {
+public class DataplaneSelectorApiV2Controller implements DataplaneSelectorApiV2 {
 
     private final DataPlaneSelectorService selectionService;
     private final TypeTransformerRegistry transformerRegistry;
@@ -52,7 +51,7 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
 
     private final Clock clock;
 
-    public DataplaneSelectorApiController(DataPlaneSelectorService selectionService, TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validatorRegistry, Clock clock) {
+    public DataplaneSelectorApiV2Controller(DataPlaneSelectorService selectionService, TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validatorRegistry, Clock clock) {
         this.selectionService = selectionService;
         this.transformerRegistry = transformerRegistry;
         this.validatorRegistry = validatorRegistry;
@@ -106,11 +105,4 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
                 .collect(toJsonArray());
     }
 
-    private DataPlaneInstance catchException(Supplier<DataPlaneInstance> supplier) {
-        try {
-            return supplier.get();
-        } catch (IllegalArgumentException ex) {
-            throw new InvalidRequestException(ex.getMessage());
-        }
-    }
 }

@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.selector.transformer;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest;
+import org.eclipse.edc.connector.dataplane.selector.api.model.SelectionRequest;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;

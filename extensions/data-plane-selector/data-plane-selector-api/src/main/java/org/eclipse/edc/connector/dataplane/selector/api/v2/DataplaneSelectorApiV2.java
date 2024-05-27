@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector.api.v2;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,16 +28,16 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import org.eclipse.edc.api.model.ApiCoreSchema;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.DataPlaneInstanceSchema;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.SelectionRequestSchema;
+import org.eclipse.edc.connector.dataplane.selector.api.schemas.DataPlaneInstanceSchema;
+import org.eclipse.edc.connector.dataplane.selector.api.schemas.SelectionRequestSchema;
 
-@OpenAPIDefinition
-@Tag(name = "Dataplane Selector")
-public interface DataplaneSelectorApi {
+@OpenAPIDefinition(info = @Info(version = "v2"))
+@Tag(name = "Dataplane Selector V2")
+public interface DataplaneSelectorApiV2 {
 
     @Operation(method = "POST",
             deprecated = true,
-            operationId = "selectDataPlaneInstance",
+            operationId = "selectDataPlaneInstanceV2",
             description = "Finds the best fitting data plane instance for a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SelectionRequestSchema.class))),
             responses = {
@@ -52,7 +53,7 @@ public interface DataplaneSelectorApi {
 
 
     @Operation(method = "POST",
-            operationId = "addDataPlaneInstance",
+            operationId = "addDataPlaneInstanceV2",
             description = "Adds one dataplane instance to the internal database of the selector. DEPRECATED: dataplanes should register themselves through control-api",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataPlaneInstanceSchema.class))),
             responses = {
@@ -66,14 +67,16 @@ public interface DataplaneSelectorApi {
     JsonObject addDataPlaneInstance(JsonObject instance);
 
     @Operation(method = "GET",
-            operationId = "getAllDataPlaneInstances",
+            operationId = "getAllDataPlaneInstancesV2",
             description = "Returns a list of all currently registered data plane instances",
             responses = {
                     @ApiResponse(responseCode = "200", description = "A (potentially empty) list of currently registered data plane instances",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = DataPlaneInstanceSchema.class))))
-            }
+            },
+            deprecated = true
     )
     @GET
+    @Deprecated(since = "0.7.0")
     JsonArray getAllDataPlaneInstances();
 
 }
