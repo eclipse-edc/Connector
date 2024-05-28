@@ -72,19 +72,9 @@ public class BootServicesExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var config = getHealthCheckConfig(context);
-        healthCheckService = new HealthCheckServiceImpl(config, instrumentation);
+        healthCheckService = new HealthCheckServiceImpl();
     }
 
-    @Override
-    public void start() {
-        healthCheckService.start();
-    }
-
-    @Override
-    public void shutdown() {
-        healthCheckService.stop();
-        ServiceExtension.super.shutdown();
-    }
 
     @Provider
     public Clock clock() {

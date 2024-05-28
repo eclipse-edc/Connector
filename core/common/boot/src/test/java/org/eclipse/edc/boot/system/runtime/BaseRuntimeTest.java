@@ -47,6 +47,16 @@ public class BaseRuntimeTest {
     private final ServiceLocator serviceLocator = mock();
     private final BaseRuntime runtime = new BaseRuntimeFixture(monitor, serviceLocator);
 
+    @NotNull
+    private static ServiceExtension registerService(Class<HealthCheckService> serviceClass, HealthCheckService healthCheckService) {
+        return new ServiceExtension() {
+            @Override
+            public void initialize(ServiceExtensionContext context) {
+                context.registerService(serviceClass, healthCheckService);
+            }
+        };
+    }
+
     @Test
     void baseRuntime_shouldBoot() {
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(List.of(new BaseExtension()));
@@ -76,7 +86,6 @@ public class BaseRuntimeTest {
         runtime.boot();
 
         verify(healthCheckService).addStartupStatusProvider(any());
-        verify(healthCheckService).refresh();
     }
 
     @Test
@@ -86,16 +95,6 @@ public class BaseRuntimeTest {
         runtime.boot();
 
         verify(serviceLocator).loadImplementors(ConfigurationExtension.class, false);
-    }
-
-    @NotNull
-    private static ServiceExtension registerService(Class<HealthCheckService> serviceClass, HealthCheckService healthCheckService) {
-        return new ServiceExtension() {
-            @Override
-            public void initialize(ServiceExtensionContext context) {
-                context.registerService(serviceClass, healthCheckService);
-            }
-        };
     }
 
     private static class BaseRuntimeFixture extends BaseRuntime {

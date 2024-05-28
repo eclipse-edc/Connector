@@ -20,6 +20,8 @@ import org.eclipse.edc.spi.result.Failure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -35,21 +37,32 @@ public class HealthCheckResult extends AbstractResult<Boolean, Failure, HealthCh
         super(successful, failure);
     }
 
+    /*
+     * @deprecated Use the Builder instead
+     */
+    @Deprecated(since = "0.7.0")
     public static HealthCheckResult success() {
         return new HealthCheckResult(true, null);
     }
 
+    /*
+     * @deprecated Use the Builder instead
+     */
+    @Deprecated(since = "0.7.0")
     public static HealthCheckResult failed(String... errors) {
         var errorList = Stream.of(errors).filter(Objects::nonNull).collect(Collectors.toList());
         return new HealthCheckResult(false, new Failure(errorList));
     }
 
+    /*
+     * @deprecated Use the Builder instead
+     */
+    @Deprecated(since = "0.7.0")
     public static HealthCheckResult failed(List<String> errors) {
         return new HealthCheckResult(false, new Failure(errors));
     }
 
     @JsonProperty("isHealthy")
-
     @Override
     public @NotNull Boolean getContent() {
         return super.getContent();
@@ -98,7 +111,11 @@ public class HealthCheckResult extends AbstractResult<Boolean, Failure, HealthCh
         }
 
         public Builder failure(String... errors) {
-            var errorList = Stream.of(errors).filter(Objects::nonNull).collect(Collectors.toList());
+            return failure(Arrays.asList(errors));
+        }
+
+        public Builder failure(Collection<String> errors) {
+            var errorList = errors.stream().filter(Objects::nonNull).toList();
             failure = new Failure(errorList);
             success = false;
             return this;
@@ -111,8 +128,7 @@ public class HealthCheckResult extends AbstractResult<Boolean, Failure, HealthCh
 
         public HealthCheckResult build() {
             var hc = new HealthCheckResult(success, failure);
-            hc.component = component;
-
+            hc.component = Objects.requireNonNull(component, "Component name cannot be null");
             return hc;
         }
     }
