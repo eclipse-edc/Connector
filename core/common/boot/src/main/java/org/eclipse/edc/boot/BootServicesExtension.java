@@ -15,13 +15,11 @@
 package org.eclipse.edc.boot;
 
 import org.eclipse.edc.boot.apiversion.ApiVersionServiceImpl;
-import org.eclipse.edc.boot.health.HealthCheckServiceConfiguration;
 import org.eclipse.edc.boot.health.HealthCheckServiceImpl;
 import org.eclipse.edc.boot.system.ExtensionLoader;
 import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.security.Vault;
@@ -33,7 +31,6 @@ import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 
 import java.time.Clock;
-import java.time.Duration;
 
 
 @BaseExtension
@@ -42,25 +39,11 @@ public class BootServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Boot Services";
 
-    @Setting
-    public static final String LIVENESS_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.liveness-period";
-    @Setting
-    public static final String STARTUP_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.startup-period";
-    @Setting
-    public static final String READINESS_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.readiness-period";
-    @Setting
-    public static final String THREADPOOL_SIZE_SETTING = "edc.core.system.health.check.threadpool-size";
     @Setting(value = "Configures the participant id this runtime is operating on behalf of")
     public static final String PARTICIPANT_ID = "edc.participant.id";
 
     @Setting(value = "Configures the runtime id", defaultValue = "<random UUID>")
     public static final String RUNTIME_ID = "edc.runtime.id";
-
-    private static final long DEFAULT_DURATION = 60;
-    private static final int DEFAULT_TP_SIZE = 3;
-
-    @Inject
-    private ExecutorInstrumentation instrumentation;
 
     private HealthCheckServiceImpl healthCheckService;
 
@@ -71,7 +54,6 @@ public class BootServicesExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = getHealthCheckConfig(context);
         healthCheckService = new HealthCheckServiceImpl();
     }
 
@@ -110,16 +92,6 @@ public class BootServicesExtension implements ServiceExtension {
     @Provider
     public ApiVersionService apiVersionService() {
         return new ApiVersionServiceImpl();
-    }
-
-    private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
-        return HealthCheckServiceConfiguration.Builder.newInstance()
-                .livenessPeriod(Duration.ofSeconds(context.getSetting(LIVENESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION)))
-                .startupStatusPeriod(Duration.ofSeconds(context.getSetting(STARTUP_PERIOD_SECONDS_SETTING, DEFAULT_DURATION)))
-                .readinessPeriod(Duration.ofSeconds(context.getSetting(READINESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION)))
-                .readinessPeriod(Duration.ofSeconds(context.getSetting(READINESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION)))
-                .threadPoolSize(context.getSetting(THREADPOOL_SIZE_SETTING, DEFAULT_TP_SIZE))
-                .build();
     }
 
 

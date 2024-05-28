@@ -39,16 +39,6 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         startupStatusProviders = new CopyOnWriteArrayList<>();
     }
 
-    private static @NotNull Function<Supplier<HealthCheckResult>, HealthCheckResult> getSilent() {
-        return supplier -> {
-            try {
-                return supplier.get();
-            } catch (Exception e) {
-                return HealthCheckResult.Builder.newInstance().component(supplier.getClass().getName()).failure(e.getMessage()).build();
-            }
-        };
-    }
-
     @Override
     public void addLivenessProvider(LivenessProvider provider) {
         livenessProviders.add(provider);
@@ -77,5 +67,15 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     @Override
     public HealthStatus getStartupStatus() {
         return new HealthStatus(startupStatusProviders.stream().map(getSilent()).toList());
+    }
+
+    private @NotNull Function<Supplier<HealthCheckResult>, HealthCheckResult> getSilent() {
+        return supplier -> {
+            try {
+                return supplier.get();
+            } catch (Exception e) {
+                return HealthCheckResult.Builder.newInstance().component(supplier.getClass().getName()).failure(e.getMessage()).build();
+            }
+        };
     }
 }
