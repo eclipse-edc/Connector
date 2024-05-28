@@ -150,7 +150,7 @@ public class BaseRuntime {
      * this would likely need to be overridden.
      *
      * @param monitor a Monitor
-     * @param config the cofiguratiohn
+     * @param config  the cofiguratiohn
      * @return a {@code ServiceExtensionContext}
      */
     @NotNull
@@ -184,13 +184,12 @@ public class BaseRuntime {
             }
 
             if (context.hasService(HealthCheckService.class)) {
-                var startupStatus = new AtomicReference<>(HealthCheckResult.failed("Startup not complete"));
+                var statusbuilder = HealthCheckResult.Builder.newInstance().component("BaseRuntime");
+                var startupStatus = new AtomicReference<>(statusbuilder.failure("Startup not complete").build());
                 var healthCheckService = context.getService(HealthCheckService.class);
                 healthCheckService.addStartupStatusProvider(startupStatus::get);
 
-                startupStatus.set(HealthCheckResult.success());
-
-                healthCheckService.refresh();
+                startupStatus.set(statusbuilder.success().build());
             }
 
         } catch (Exception e) {

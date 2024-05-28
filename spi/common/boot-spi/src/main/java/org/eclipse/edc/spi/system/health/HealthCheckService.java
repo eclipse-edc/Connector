@@ -38,6 +38,4 @@ public interface HealthCheckService {
     HealthStatus isReady();
 
     HealthStatus getStartupStatus();
-
-    void refresh();
 }

@@ -14,17 +14,12 @@
 
 package org.eclipse.edc.boot.health;
 
-import org.awaitility.Awaitility;
-import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.LivenessProvider;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
 import org.eclipse.edc.spi.system.health.StartupStatusProvider;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
@@ -35,195 +30,123 @@ import static org.mockito.Mockito.when;
 
 class HealthCheckServiceImplTest {
 
-    private static final Duration PERIOD = Duration.ofMillis(500);
-    private static final Duration POLL_INTERVAL = Duration.ofMillis(50);
-    private static final Duration AWAIT_TIMEOUT = Duration.ofSeconds(10);
+    private final HealthCheckResult.Builder statusBuilder = HealthCheckResult.Builder.newInstance().component("test status");
     private HealthCheckServiceImpl service;
 
     @BeforeEach
     void setup() {
-        var config = HealthCheckServiceConfiguration.Builder.newInstance()
-                .livenessPeriod(PERIOD)
-                .readinessPeriod(PERIOD)
-                .startupStatusPeriod(PERIOD)
-                .build();
-        service = new HealthCheckServiceImpl(config, ExecutorInstrumentation.noop());
-        service.start();
-    }
-
-    @AfterEach
-    void tearDown() {
-        service.stop();
+        service = new HealthCheckServiceImpl();
     }
 
     @Test
     void isLive() {
-        LivenessProvider lpm = mock(LivenessProvider.class);
+        var lpm = mock(LivenessProvider.class);
         when(lpm.get()).thenReturn(successResult());
         service.addLivenessProvider(lpm);
-
-        Awaitility.await().pollInterval(POLL_INTERVAL)
-                .atMost(AWAIT_TIMEOUT)
-                .untilAsserted(() -> {
-                    assertThat(service.isLive().isHealthy()).isTrue();
-                    verify(lpm, atLeastOnce()).get();
-                    verifyNoMoreInteractions(lpm);
-                });
+        assertThat(service.isLive().isHealthy()).isTrue();
+        verify(lpm, atLeastOnce()).get();
+        verifyNoMoreInteractions(lpm);
     }
 
     @Test
     void isLive_throwsException() {
-        LivenessProvider lpm = mock(LivenessProvider.class);
-        when(lpm.get()).thenReturn(successResult()).thenThrow(new RuntimeException("test exception"));
+        var lpm = mock(LivenessProvider.class);
+        when(lpm.get()).thenThrow(new RuntimeException("test exception"));
         service.addLivenessProvider(lpm);
 
-        Awaitility.await().pollInterval(POLL_INTERVAL)
-                .atMost(AWAIT_TIMEOUT)
-                .untilAsserted(() -> {
-                    assertThat(service.isLive().isHealthy()).isFalse();
-                    verify(lpm, atLeastOnce()).get();
-                    verifyNoMoreInteractions(lpm);
-                });
+        assertThat(service.isLive().isHealthy()).isFalse();
+        verify(lpm, atLeastOnce()).get();
+        verifyNoMoreInteractions(lpm);
     }
 
     @Test
     void isLive_failed() {
-        LivenessProvider lpm = mock(LivenessProvider.class);
+        var lpm = mock(LivenessProvider.class);
         when(lpm.get()).thenReturn(failedResult());
         service.addLivenessProvider(lpm);
 
-
-        Awaitility.await().pollInterval(POLL_INTERVAL)
-                .atMost(AWAIT_TIMEOUT)
-                .untilAsserted(() -> {
-                    assertThat(service.isLive().isHealthy()).isFalse();
-                    verify(lpm, atLeastOnce()).get();
-                    verifyNoMoreInteractions(lpm);
-                });
+        assertThat(service.isLive().isHealthy()).isFalse();
+        verify(lpm, atLeastOnce()).get();
+        verifyNoMoreInteractions(lpm);
     }
 
     @Test
     void isReady() {
-        ReadinessProvider provider = mock(ReadinessProvider.class);
+        var provider = mock(ReadinessProvider.class);
         when(provider.get()).thenReturn(successResult());
         service.addReadinessProvider(provider);
 
-        Awaitility.await().pollInterval(POLL_INTERVAL)
-                .atMost(AWAIT_TIMEOUT)
-                .untilAsserted(() -> {
-                    assertThat(service.isReady().isHealthy()).isTrue();
+        assertThat(service.isReady().isHealthy()).isTrue();
 
-                    verify(provider, atLeastOnce()).get();
-                    verifyNoMoreInteractions(provider);
-                });
+        verify(provider, atLeastOnce()).get();
+        verifyNoMoreInteractions(provider);
     }
 
     @Test
     void isReady_throwsException() {
-        ReadinessProvider provider = mock(ReadinessProvider.class);
-        when(provider.get()).thenReturn(successResult()).thenThrow(new RuntimeException("test-exception"));
+        var provider = mock(ReadinessProvider.class);
+        when(provider.get()).thenThrow(new RuntimeException("test-exception"));
         service.addReadinessProvider(provider);
 
-        Awaitility.await().pollInterval(POLL_INTERVAL)
-                .atMost(AWAIT_TIMEOUT)
-                .untilAsserted(() -> {
-                    assertThat(service.isReady().isHealthy()).isFalse();
-
-                    verify(provider, atLeastOnce()).get();
-                    verifyNoMoreInteractions(provider);
-                });
+        assertThat(service.isReady().isHealthy()).isFalse();
+        verify(provider, atLeastOnce()).get();
+        verifyNoMoreInteractions(provider);
     }
 
     @Test
     void isReady_failed() {
-        ReadinessProvider provider = mock(ReadinessProvider.class);
+        var provider = mock(ReadinessProvider.class);
         when(provider.get()).thenReturn(failedResult());
         service.addReadinessProvider(provider);
 
-        Awaitility.await().pollInterval(POLL_INTERVAL)
-                .atMost(AWAIT_TIMEOUT)
-                .untilAsserted(() -> {
-                    assertThat(service.isReady().isHealthy()).isFalse();
-
-                    verify(provider, atLeastOnce()).get();
-                    verifyNoMoreInteractions(provider);
-                });
+        assertThat(service.isReady().isHealthy()).isFalse();
+        verify(provider, atLeastOnce()).get();
+        verifyNoMoreInteractions(provider);
     }
 
     @Test
     void hasStartupFinished() {
-        StartupStatusProvider provider = mock(StartupStatusProvider.class);
+        var provider = mock(StartupStatusProvider.class);
         when(provider.get()).thenReturn(successResult());
         service.addStartupStatusProvider(provider);
 
-        Awaitility.await().pollInterval(POLL_INTERVAL)
-                .atMost(AWAIT_TIMEOUT)
-                .untilAsserted(() -> {
-                    assertThat(service.getStartupStatus().isHealthy()).isTrue();
+        assertThat(service.getStartupStatus().isHealthy()).isTrue();
 
-                    verify(provider, atLeastOnce()).get();
-                    verifyNoMoreInteractions(provider);
-                });
-
-    }
-
-    @Test
-    void cacheCanBeRefreshed() {
-        StartupStatusProvider provider = mock(StartupStatusProvider.class);
-        when(provider.get()).thenReturn(failedResult(), successResult());
-        service.addStartupStatusProvider(provider);
-
-        service.refresh();
-
-        Awaitility.await().pollInterval(POLL_INTERVAL)
-                .atMost(PERIOD.multipliedBy(2))
-                .untilAsserted(() -> {
-                    assertThat(service.getStartupStatus().isHealthy()).isTrue();
-
-                    verify(provider, atLeastOnce()).get();
-                    verifyNoMoreInteractions(provider);
-                });
+        verify(provider, atLeastOnce()).get();
+        verifyNoMoreInteractions(provider);
 
     }
 
     @Test
     void hasStartupFinished_throwsException() {
-        StartupStatusProvider provider = mock(StartupStatusProvider.class);
-        when(provider.get()).thenReturn(successResult()).thenThrow(new RuntimeException("test-exception"));
+        var provider = mock(StartupStatusProvider.class);
+        when(provider.get()).thenThrow(new RuntimeException("test-exception"));
         service.addStartupStatusProvider(provider);
 
-        Awaitility.await().pollInterval(POLL_INTERVAL)
-                .atMost(AWAIT_TIMEOUT)
-                .untilAsserted(() -> {
-                    assertThat(service.getStartupStatus().isHealthy()).isFalse();
+        assertThat(service.getStartupStatus().isHealthy()).isFalse();
 
-                    verify(provider, atLeastOnce()).get();
-                    verifyNoMoreInteractions(provider);
-                });
+        verify(provider, atLeastOnce()).get();
+        verifyNoMoreInteractions(provider);
 
     }
 
     @Test
     void hasStartupFinished_failed() {
-        StartupStatusProvider provider = mock(StartupStatusProvider.class);
+        var provider = mock(StartupStatusProvider.class);
         when(provider.get()).thenReturn(failedResult());
         service.addStartupStatusProvider(provider);
 
-        Awaitility.await().pollInterval(POLL_INTERVAL)
-                .atMost(AWAIT_TIMEOUT)
-                .untilAsserted(() -> {
-                    assertThat(service.getStartupStatus().isHealthy()).isFalse();
+        assertThat(service.getStartupStatus().isHealthy()).isFalse();
 
-                    verify(provider, atLeastOnce()).get();
-                    verifyNoMoreInteractions(provider);
-                });
+        verify(provider, atLeastOnce()).get();
+        verifyNoMoreInteractions(provider);
     }
 
     private HealthCheckResult failedResult() {
-        return HealthCheckResult.failed("test-error");
+        return statusBuilder.failure("test-error").build();
     }
 
     private HealthCheckResult successResult() {
-        return HealthCheckResult.success();
+        return statusBuilder.success().build();
     }
 }

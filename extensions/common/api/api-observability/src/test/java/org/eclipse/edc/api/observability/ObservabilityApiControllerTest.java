@@ -22,6 +22,11 @@ import org.eclipse.edc.spi.system.health.HealthStatus;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Stream;
+
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.mockito.Mockito.mock;
@@ -37,7 +42,7 @@ class ObservabilityApiControllerTest extends RestControllerTestBase {
 
     @Test
     void checkHealth() {
-        when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(HealthCheckResult.success()));
+        when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(successResult()));
 
         baseRequest()
                 .get("/health")
@@ -51,7 +56,7 @@ class ObservabilityApiControllerTest extends RestControllerTestBase {
 
     @Test
     void checkHealth_mixedResults() {
-        when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(HealthCheckResult.success(), HealthCheckResult.failed("test failure")));
+        when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(Stream.concat(successResult().stream(), failedResult().stream()).toList()));
 
         baseRequest()
                 .get("/health")
@@ -79,7 +84,7 @@ class ObservabilityApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getLiveness() {
-        when(healthCheckService.isLive()).thenReturn(new HealthStatus(HealthCheckResult.success()));
+        when(healthCheckService.isLive()).thenReturn(new HealthStatus(successResult()));
 
         baseRequest()
                 .get("/liveness")
@@ -93,7 +98,7 @@ class ObservabilityApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getLiveness_mixedResults() {
-        when(healthCheckService.isLive()).thenReturn(new HealthStatus(HealthCheckResult.success(), HealthCheckResult.failed("test failure")));
+        when(healthCheckService.isLive()).thenReturn(new HealthStatus(Stream.concat(successResult().stream(), failedResult().stream()).toList()));
 
         baseRequest()
                 .get("/liveness")
@@ -121,7 +126,7 @@ class ObservabilityApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getReadiness() {
-        when(healthCheckService.isReady()).thenReturn(new HealthStatus(HealthCheckResult.success()));
+        when(healthCheckService.isReady()).thenReturn(new HealthStatus(successResult()));
 
         baseRequest()
                 .get("/readiness")
@@ -135,7 +140,7 @@ class ObservabilityApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getReadiness_mixedResults() {
-        when(healthCheckService.isReady()).thenReturn(new HealthStatus(HealthCheckResult.success(), HealthCheckResult.failed("test failure")));
+        when(healthCheckService.isReady()).thenReturn(new HealthStatus(Stream.concat(successResult().stream(), failedResult().stream()).toList()));
 
         baseRequest()
                 .get("/readiness")
@@ -163,7 +168,7 @@ class ObservabilityApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getStartup() {
-        when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(HealthCheckResult.success()));
+        when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(successResult()));
 
         baseRequest()
                 .get("/startup")
@@ -177,7 +182,8 @@ class ObservabilityApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getStartup_mixedResults() {
-        when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(HealthCheckResult.success(), HealthCheckResult.failed("test failure")));
+
+        when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(Stream.concat(successResult().stream(), failedResult().stream()).toList()));
 
         baseRequest()
                 .get("/startup")
@@ -206,6 +212,14 @@ class ObservabilityApiControllerTest extends RestControllerTestBase {
     @Override
     protected Object controller() {
         return new ObservabilityApiController(healthCheckService);
+    }
+
+    private List<HealthCheckResult> failedResult() {
+        return Collections.singletonList(HealthCheckResult.Builder.newInstance().component("test component").failure("test failure").build());
+    }
+
+    private Collection<HealthCheckResult> successResult() {
+        return Collections.singletonList(HealthCheckResult.Builder.newInstance().component("test component").success().build());
     }
 
     private RequestSpecification baseRequest() {

@@ -45,11 +45,12 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
                 .doHealthCheck()
                 .merge(client.isTokenRenewable())
                 .flatMap(result -> {
+                    var statusBuilder = HealthCheckResult.Builder.newInstance().component("HashicorpVault");
                     if (result.succeeded()) {
-                        return HealthCheckResult.success();
+                        return statusBuilder.success().build();
                     } else {
                         monitor.debug("Vault health check failed with reason(s): " + result.getFailureDetail());
-                        return HealthCheckResult.failed(result.getFailureMessages());
+                        return statusBuilder.failure(result.getFailureMessages()).build();
                     }
                 }).forComponent(HashicorpVaultHealthExtension.NAME);
     }
