@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -31,36 +31,30 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-public abstract class ManagementApiEndToEndTestBase {
+public record ManagementEndToEndTestContext(EdcRuntimeExtension runtime, int managementPort, int protocolPort) {
 
-    public static final int PORT = getFreePort();
-    public static final int PROTOCOL_PORT = getFreePort();
-
-    protected final EdcRuntimeExtension runtime;
-
-    public ManagementApiEndToEndTestBase(EdcRuntimeExtension runtime) {
-        this.runtime = runtime;
-    }
-
-    protected RequestSpecification baseRequest() {
+    public RequestSpecification baseRequest() {
         return given()
-                .port(PORT)
-                .baseUri("http://localhost:%s/management".formatted(PORT))
+                .port(managementPort)
+                .baseUri("http://localhost:%s/management".formatted(managementPort))
                 .when();
     }
 
-    protected JsonObject query(Criterion... criteria) {
+    public String providerProtocolUrl() {
+        return "http://localhost:" + protocolPort + "/protocol";
+    }
+
+    public JsonObject query(Criterion... criteria) {
         var criteriaJson = Arrays.stream(criteria)
                 .map(it -> {
-                    JsonValue operandRight;
-                    if (it.getOperandRight() instanceof Collection<?> collection) {
-                        operandRight = Json.createArrayBuilder(collection).build();
-                    } else {
-                        operandRight = Json.createValue(it.getOperandRight().toString());
-                    }
-                    return createObjectBuilder()
+                            JsonValue operandRight;
+                            if (it.getOperandRight() instanceof Collection<?> collection) {
+                                operandRight = Json.createArrayBuilder(collection).build();
+                            } else {
+                                operandRight = Json.createValue(it.getOperandRight().toString());
+                            }
+                            return createObjectBuilder()
                                     .add("operandLeft", it.getOperandLeft().toString())
                                     .add("operator", it.getOperator())
                                     .add("operandRight", operandRight)
@@ -74,4 +68,5 @@ public abstract class ManagementApiEndToEndTestBase {
                 .add("filterExpression", criteriaJson)
                 .build();
     }
+
 }

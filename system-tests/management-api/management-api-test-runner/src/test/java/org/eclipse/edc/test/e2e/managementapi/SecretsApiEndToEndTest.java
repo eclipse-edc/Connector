@@ -16,11 +16,10 @@ package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.http.ContentType;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.UUID;
 
@@ -33,7 +32,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
-import static org.eclipse.edc.test.e2e.managementapi.Runtimes.inMemoryRuntime;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
@@ -44,19 +42,15 @@ import static org.hamcrest.Matchers.notNullValue;
  */
 public class SecretsApiEndToEndTest {
 
-    abstract static class Tests extends ManagementApiEndToEndTestBase {
-
-        Tests(EdcRuntimeExtension runtime) {
-            super(runtime);
-        }
+    abstract static class Tests {
 
         @Test
-        void getSecretById() {
+        void getSecretById(ManagementEndToEndTestContext context, Vault vault) {
             var id = UUID.randomUUID().toString();
             var value = "secret-value";
-            getVault().storeSecret(id, value);
+            vault.storeSecret(id, value);
 
-            baseRequest()
+            context.baseRequest()
                     .get("/v3/secrets/" + id)
                     .then()
                     .statusCode(200)
@@ -67,7 +61,7 @@ public class SecretsApiEndToEndTest {
         }
 
         @Test
-        void createSecret_shouldBeStored() {
+        void createSecret_shouldBeStored(ManagementEndToEndTestContext context, Vault vault) {
             var id = UUID.randomUUID().toString();
             var value = "secret-value";
             var secretJson = createObjectBuilder()
@@ -77,7 +71,7 @@ public class SecretsApiEndToEndTest {
                     .add(EDC_SECRET_VALUE, value)
                     .build();
 
-            baseRequest()
+            context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(secretJson)
                     .post("/v3/secrets")
@@ -86,13 +80,13 @@ public class SecretsApiEndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            assertThat(getVault().resolveSecret(id))
+            assertThat(vault.resolveSecret(id))
                     .isNotNull()
                     .isEqualTo(value);
         }
 
         @Test
-        void createSecret_shouldFail_whenBodyIsNotValid() {
+        void createSecret_shouldFail_whenBodyIsNotValid(ManagementEndToEndTestContext context) {
             var secretJson = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, EDC_SECRET_TYPE)
@@ -100,7 +94,7 @@ public class SecretsApiEndToEndTest {
                     .add(EDC_SECRET_VALUE, "secret-value")
                     .build();
 
-            baseRequest()
+            context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(secretJson)
                     .post("/v3/secrets")
@@ -110,10 +104,10 @@ public class SecretsApiEndToEndTest {
         }
 
         @Test
-        void updateSecret() {
+        void updateSecret(ManagementEndToEndTestContext context, Vault vault) {
             var id = UUID.randomUUID().toString();
             var newValue = "new-value";
-            getVault().storeSecret(id, "secret-value");
+            vault.storeSecret(id, "secret-value");
 
             var secretJson = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
@@ -122,7 +116,7 @@ public class SecretsApiEndToEndTest {
                     .add(EDC_SECRET_VALUE, newValue)
                     .build();
 
-            baseRequest()
+            context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(secretJson)
                     .put("/v3/secrets")
@@ -131,25 +125,14 @@ public class SecretsApiEndToEndTest {
                     .statusCode(204)
                     .body(notNullValue());
 
-            var vaultSecret = getVault().resolveSecret(id);
+            var vaultSecret = vault.resolveSecret(id);
             assertThat(vaultSecret).isNotNull().isEqualTo(newValue);
         }
 
-        private Vault getVault() {
-            return runtime.getContext().getService(Vault.class);
-        }
     }
 
     @Nested
     @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
+    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
+    class InMemory extends Tests { }
 }
