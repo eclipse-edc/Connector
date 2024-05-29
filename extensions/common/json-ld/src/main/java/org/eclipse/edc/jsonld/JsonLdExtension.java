@@ -93,7 +93,7 @@ public class JsonLdExtension implements ServiceExtension {
         Stream.of(
                 new JsonLdContext("odrl.jsonld", "http://www.w3.org/ns/odrl.jsonld"),
                 new JsonLdContext("dspace.jsonld", "https://w3id.org/dspace/2024/1/context.json")
-        ).forEach(jsonLdContext -> getResourceUri("document" + File.separator + jsonLdContext.fileName())
+        ).forEach(jsonLdContext -> getResourceUri("document/" + jsonLdContext.fileName())
                 .onSuccess(uri -> service.registerCachedDocument(jsonLdContext.url(), uri))
                 .onFailure(failure -> monitor.warning("Failed to register cached json-ld document: " + failure.getFailureDetail()))
         );
@@ -131,6 +131,7 @@ public class JsonLdExtension implements ServiceExtension {
         }
     }
 
-    record JsonLdContext(String fileName, String url) { }
+    record JsonLdContext(String fileName, String url) {
+    }
 
 }
