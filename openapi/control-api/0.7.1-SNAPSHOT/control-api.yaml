@@ -337,6 +337,36 @@ paths:
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
   /v1/dataplanes/{id}:
+    get:
+      tags:
+      - Dataplane Selector
+      description: Returns the Data Plane Instance with the specified id.
+      operationId: findDataPlaneById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: The Data Plane Instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataPlaneInstanceSchema"
+        "404":
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
     delete:
       tags:
       - Dataplane Selector
