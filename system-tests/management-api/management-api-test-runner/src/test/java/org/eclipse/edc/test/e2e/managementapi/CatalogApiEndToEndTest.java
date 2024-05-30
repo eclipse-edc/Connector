@@ -24,13 +24,11 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.UUID;
 
@@ -42,32 +40,33 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
-import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
-import static org.eclipse.edc.test.e2e.managementapi.Runtimes.inMemoryRuntime;
-import static org.eclipse.edc.test.e2e.managementapi.Runtimes.postgresRuntime;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.is;
 
 public class CatalogApiEndToEndTest {
 
-    abstract static class Tests extends ManagementApiEndToEndTestBase {
-        // requests the catalog to itself, to save another connector.
-        private final String providerUrl = "http://localhost:" + PROTOCOL_PORT + "/protocol";
+    @Nested
+    @EndToEndTest
+    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
+    class InMemory extends Tests { }
 
-        Tests(EdcRuntimeExtension runtime) {
-            super(runtime);
-        }
+    @Nested
+    @PostgresqlIntegrationTest
+    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
+    class Postgres extends Tests { }
+
+    abstract static class Tests {
 
         @Test
-        void requestCatalog_shouldReturnCatalog_withoutQuerySpec() {
+        void requestCatalog_shouldReturnCatalog_withoutQuerySpec(ManagementEndToEndTestContext context) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", providerUrl)
+                    .add("counterPartyAddress", context.providerProtocolUrl())
                     .add("protocol", "dataspace-protocol-http")
                     .build();
 
-            baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
                     .post("/v3/catalog/request")
@@ -79,11 +78,9 @@ public class CatalogApiEndToEndTest {
         }
 
         @Test
-        void requestCatalog_shouldReturnCatalog_withQuerySpec() {
-            var assetIndex = runtime.getContext().getService(AssetIndex.class);
-            var policyDefinitionStore = runtime.getContext().getService(PolicyDefinitionStore.class);
-            var contractDefinitionStore = runtime.getContext().getService(ContractDefinitionStore.class);
-
+        void requestCatalog_shouldReturnCatalog_withQuerySpec(ManagementEndToEndTestContext context, AssetIndex assetIndex,
+                                                              PolicyDefinitionStore policyDefinitionStore,
+                                                              ContractDefinitionStore contractDefinitionStore) {
             var policyId = UUID.randomUUID().toString();
 
             var cd = ContractDefinition.Builder.newInstance()
@@ -119,12 +116,12 @@ public class CatalogApiEndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", providerUrl)
+                    .add("counterPartyAddress", context.providerProtocolUrl())
                     .add("protocol", "dataspace-protocol-http")
                     .add("querySpec", querySpec)
                     .build();
 
-            baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
                     .post("/v3/catalog/request")
@@ -136,22 +133,22 @@ public class CatalogApiEndToEndTest {
         }
 
         @Test
-        void getDataset_shouldReturnDataset() {
+        void getDataset_shouldReturnDataset(ManagementEndToEndTestContext context, AssetIndex assetIndex,
+                                            DataPlaneInstanceStore dataPlaneInstanceStore) {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
                     .allowedDestType("any").allowedSourceType("test-type").allowedTransferType("any").build();
-            runtime.getContext().getService(DataPlaneInstanceStore.class).create(dataPlaneInstance);
+            dataPlaneInstanceStore.create(dataPlaneInstance);
 
-            var assetIndex = runtime.getContext().getService(AssetIndex.class);
             assetIndex.create(createAsset("asset-id", "test-type").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-id")
-                    .add("counterPartyAddress", providerUrl)
+                    .add("counterPartyAddress", context.providerProtocolUrl())
                     .add("protocol", "dataspace-protocol-http")
                     .build();
 
-            baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
                     .post("/v3/catalog/dataset/request")
@@ -170,33 +167,6 @@ public class CatalogApiEndToEndTest {
                     .id(id);
         }
 
-    }
-
-    @Nested
-    @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    class Postgres extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
-
-        Postgres() {
-            super(RUNTIME);
-        }
     }
 
 }

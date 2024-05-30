@@ -20,13 +20,11 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.Set;
@@ -35,26 +33,18 @@ import java.util.UUID;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
-import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
-import static org.eclipse.edc.test.e2e.managementapi.Runtimes.inMemoryRuntime;
-import static org.eclipse.edc.test.e2e.managementapi.Runtimes.postgresRuntime;
 import static org.hamcrest.Matchers.is;
 
 public class ContractAgreementApiEndToEndTest {
 
-    abstract static class Tests extends ManagementApiEndToEndTestBase {
-
-        Tests(EdcRuntimeExtension runtime) {
-            super(runtime);
-        }
+    abstract static class Tests {
 
         @Test
-        void getAll() {
-            var store = runtime.getContext().getService(ContractNegotiationStore.class);
+        void getAll(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
             store.save(createContractNegotiationBuilder("cn2").contractAgreement(createContractAgreement("cn2")).build());
 
-            var jsonPath = baseRequest()
+            var jsonPath = context.baseRequest()
                     .contentType(JSON)
                     .post("/v3/contractagreements/request")
                     .then()
@@ -71,11 +61,10 @@ public class ContractAgreementApiEndToEndTest {
         }
 
         @Test
-        void getById() {
-            var store = runtime.getContext().getService(ContractNegotiationStore.class);
+        void getById(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
 
-            var json = baseRequest()
+            var json = context.baseRequest()
                     .contentType(JSON)
                     .get("/v3/contractagreements/cn1")
                     .then()
@@ -88,13 +77,12 @@ public class ContractAgreementApiEndToEndTest {
         }
 
         @Test
-        void getNegotiationByAgreementId() {
-            var store = runtime.getContext().getService(ContractNegotiationStore.class);
+        void getNegotiationByAgreementId(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             store.save(createContractNegotiationBuilder("negotiation-id")
                     .contractAgreement(createContractAgreement("agreement-id"))
                     .build());
 
-            var json = baseRequest()
+            var json = context.baseRequest()
                     .contentType(JSON)
                     .get("/v3/contractagreements/agreement-id/negotiation")
                     .then()
@@ -139,28 +127,11 @@ public class ContractAgreementApiEndToEndTest {
 
     @Nested
     @EndToEndTest
-    class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
-
-    }
+    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
+    class InMemory extends Tests { }
 
     @Nested
     @PostgresqlIntegrationTest
-    class Postgres extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
-
-        Postgres() {
-            super(RUNTIME);
-        }
-    }
+    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
+    class Postgres extends Tests { }
 }

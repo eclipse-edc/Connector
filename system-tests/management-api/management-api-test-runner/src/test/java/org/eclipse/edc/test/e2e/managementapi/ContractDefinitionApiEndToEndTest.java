@@ -21,11 +21,9 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.UUID;
 
@@ -40,28 +38,20 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
-import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
-import static org.eclipse.edc.test.e2e.managementapi.Runtimes.inMemoryRuntime;
-import static org.eclipse.edc.test.e2e.managementapi.Runtimes.postgresRuntime;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 
 public class ContractDefinitionApiEndToEndTest {
 
-    abstract static class Tests extends ManagementApiEndToEndTestBase {
-
-        Tests(EdcRuntimeExtension runtime) {
-            super(runtime);
-        }
+    abstract static class Tests {
 
         @Test
-        void queryContractDefinitions_noQuerySpec() {
-            var contractDefStore = getContractDefinitionStore();
+        void queryContractDefinitions_noQuerySpec(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
-            contractDefStore.save(createContractDefinition(id).build());
+            store.save(createContractDefinition(id).build());
 
-            var body = baseRequest()
+            var body = context.baseRequest()
                     .contentType(JSON)
                     .post("/v3/contractdefinitions/request")
                     .then()
@@ -78,7 +68,7 @@ public class ContractDefinitionApiEndToEndTest {
         }
 
         @Test
-        void queryPolicyDefinitionWithSimplePrivateProperties() {
+        void queryPolicyDefinitionWithSimplePrivateProperties(ManagementEndToEndTestContext context) {
             var id = UUID.randomUUID().toString();
             var requestJson = createDefinitionBuilder(id)
                     .add("privateProperties", createObjectBuilder()
@@ -86,7 +76,7 @@ public class ContractDefinitionApiEndToEndTest {
                             .build())
                     .build();
 
-            baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
                     .body(requestJson)
                     .post("/v3/contractdefinitions")
@@ -94,12 +84,12 @@ public class ContractDefinitionApiEndToEndTest {
                     .statusCode(200)
                     .body("@id", equalTo(id));
 
-            var matchingQuery = query(
+            var matchingQuery = context.query(
                     criterion("id", "=", id),
                     criterion("privateProperties.'%snewKey'.@id".formatted(EDC_NAMESPACE), "=", "newValue")
             );
 
-            baseRequest()
+            context.baseRequest()
                     .body(matchingQuery)
                     .contentType(JSON)
                     .post("/v3/contractdefinitions/request")
@@ -109,12 +99,12 @@ public class ContractDefinitionApiEndToEndTest {
                     .body("size()", is(1));
 
 
-            var nonMatchingQuery = query(
+            var nonMatchingQuery = context.query(
                     criterion("id", "=", id),
                     criterion("privateProperties.'%snewKey'.@id".formatted(EDC_NAMESPACE), "=", "anything-else")
             );
 
-            baseRequest()
+            context.baseRequest()
                     .body(nonMatchingQuery)
                     .contentType(JSON)
                     .post("/v3/contractdefinitions/request")
@@ -125,12 +115,12 @@ public class ContractDefinitionApiEndToEndTest {
         }
 
         @Test
-        void shouldCreateAndRetrieve() {
+        void shouldCreateAndRetrieve(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             var requestJson = createDefinitionBuilder(id)
                     .build();
 
-            baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
                     .body(requestJson)
                     .post("/v3/contractdefinitions")
@@ -138,30 +128,29 @@ public class ContractDefinitionApiEndToEndTest {
                     .statusCode(200)
                     .body("@id", equalTo(id));
 
-            var actual = getContractDefinitionStore().findById(id);
+            var actual = store.findById(id);
 
             assertThat(actual.getId()).matches(id);
         }
 
         @Test
-        void delete() {
+        void delete(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             var entity = createContractDefinition(id).build();
-            getContractDefinitionStore().save(entity);
+            store.save(entity);
 
-            baseRequest()
+            context.baseRequest()
                     .delete("/v3/contractdefinitions/" + id)
                     .then()
                     .statusCode(204);
 
-            var actual = getContractDefinitionStore().findById(id);
+            var actual = store.findById(id);
 
             assertThat(actual).isNull();
         }
 
         @Test
-        void update_whenExists() {
-            var store = getContractDefinitionStore();
+        void update_whenExists(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             var entity = createContractDefinition(id).build();
             store.save(entity);
@@ -170,7 +159,7 @@ public class ContractDefinitionApiEndToEndTest {
                     .add("accessPolicyId", "new-policy")
                     .build();
 
-            baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
                     .body(updated)
                     .put("/v3/contractdefinitions")
@@ -183,21 +172,17 @@ public class ContractDefinitionApiEndToEndTest {
         }
 
         @Test
-        void update_whenNotExists() {
+        void update_whenNotExists(ManagementEndToEndTestContext context) {
             var updated = createDefinitionBuilder(UUID.randomUUID().toString())
                     .add("accessPolicyId", "new-policy")
                     .build();
 
-            baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
                     .body(updated)
                     .put("/v3/contractdefinitions")
                     .then()
                     .statusCode(404);
-        }
-
-        private ContractDefinitionStore getContractDefinitionStore() {
-            return runtime.getContext().getService(ContractDefinitionStore.class);
         }
 
         private JsonObjectBuilder createDefinitionBuilder(String id) {
@@ -232,29 +217,16 @@ public class ContractDefinitionApiEndToEndTest {
 
     @Nested
     @EndToEndTest
+    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
     class InMemory extends Tests {
-
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = inMemoryRuntime();
-
-        InMemory() {
-            super(RUNTIME);
-        }
 
     }
 
     @Nested
     @PostgresqlIntegrationTest
+    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
     class Postgres extends Tests {
 
-        @RegisterExtension
-        public static final EdcRuntimeExtension RUNTIME = postgresRuntime();
-        @RegisterExtension
-        static final BeforeAllCallback CREATE_DATABASE = context -> createDatabase("runtime");
-
-        Postgres() {
-            super(RUNTIME);
-        }
     }
 
 }
