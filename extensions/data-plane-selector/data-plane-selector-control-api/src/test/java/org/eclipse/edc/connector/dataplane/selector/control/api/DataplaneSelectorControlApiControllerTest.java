@@ -324,6 +324,56 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
         }
     }
 
+    @Nested
+    class FindById {
+
+        @Test
+        void shouldReturnDataPlaneInstance() {
+            var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
+            var output = Json.createObjectBuilder().add(ID, "anId").build();
+            when(service.findById(any())).thenReturn(ServiceResult.success(instance));
+            when(typeTransformerRegistry.transform(any(), any())).thenReturn(Result.success(output));
+
+            given()
+                    .port(port)
+                    .get("/v1/dataplanes/anId")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body(ID, is("anId"));
+
+            verify(service).findById("anId");
+            verify(typeTransformerRegistry).transform(instance, JsonObject.class);
+        }
+
+        @Test
+        void shouldReturnNotFound_whenInstanceDoesNotExist() {
+            when(service.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            given()
+                    .port(port)
+                    .get("/v1/dataplanes/anId")
+                    .then()
+                    .statusCode(404)
+                    .contentType(JSON);
+
+            verifyNoInteractions(typeTransformerRegistry);
+        }
+
+        @Test
+        void shouldReturnInternalServerError_whenTransformationFails() {
+            var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
+            when(service.findById(any())).thenReturn(ServiceResult.success(instance));
+            when(typeTransformerRegistry.transform(any(), any())).thenReturn(Result.failure("an error"));
+
+            given()
+                    .port(port)
+                    .get("/v1/dataplanes/anId")
+                    .then()
+                    .statusCode(500);
+        }
+    }
+
     @Override
     protected Object controller() {
         return new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, service, clock);

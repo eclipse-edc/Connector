@@ -223,7 +223,6 @@ public class DataPlaneSignalingFlowControllerTest {
         @Test
         void shouldCallTerminateOnTheRightDataPlane() {
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
-            var anotherDataPlane = dataPlaneInstanceBuilder().id("anotherId").build();
             var transferProcess = transferProcessBuilder()
                     .id("transferProcessId")
                     .contentDataAddress(testDataAddress())
@@ -231,7 +230,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .build();
             when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance, anotherDataPlane)));
+            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
 
             var result = flowController.terminate(transferProcess);
 
@@ -241,8 +240,7 @@ public class DataPlaneSignalingFlowControllerTest {
         }
 
         @Test
-        void shouldFail_withInvalidDataPlaneId() {
-            var dataPlaneInstance = createDataPlaneInstance();
+        void shouldFail_whenDataPlaneNotFound() {
             var transferProcess = transferProcessBuilder()
                     .id("transferProcessId")
                     .contentDataAddress(testDataAddress())
@@ -250,25 +248,11 @@ public class DataPlaneSignalingFlowControllerTest {
                     .build();
             when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance)));
+            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
 
             var result = flowController.terminate(transferProcess);
 
             assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
-        }
-
-        @Test
-        void shouldFail_whenCannotGetDataplaneInstances() {
-            var transferProcess = transferProcessBuilder()
-                    .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
-                    .dataPlaneId("invalid")
-                    .build();
-            when(selectorService.getAll()).thenReturn(ServiceResult.unexpected("error"));
-
-            var result = flowController.terminate(transferProcess);
-
-            assertThat(result).isFailed();
         }
     }
 
@@ -285,26 +269,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance)));
-
-            var result = flowController.suspend(transferProcess);
-
-            assertThat(result).isSucceeded();
-            verify(dataPlaneClient).suspend("transferProcessId");
-        }
-
-        @Test
-        void shouldCallSuspendOnTheRightDataPlane() {
-            var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
-            var anotherDataPlane = dataPlaneInstanceBuilder().id("anotherDataPlaneId").build();
-            var transferProcess = TransferProcess.Builder.newInstance()
-                    .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
-                    .dataPlaneId(dataPlaneInstance.getId())
-                    .build();
-            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
-            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance, anotherDataPlane)));
+            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
 
             var result = flowController.suspend(transferProcess);
 
@@ -314,8 +279,7 @@ public class DataPlaneSignalingFlowControllerTest {
         }
 
         @Test
-        void shouldFail_withInvalidDataPlaneId() {
-            var dataPlaneInstance = createDataPlaneInstance();
+        void shouldFail_whenDataPlaneDoesNotExist() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
                     .contentDataAddress(testDataAddress())
@@ -323,26 +287,13 @@ public class DataPlaneSignalingFlowControllerTest {
                     .build();
             when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(dataPlaneInstance)));
+            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
 
             var result = flowController.suspend(transferProcess);
 
             assertThat(result).isFailed().detail().contains("Failed to select the data plane for suspending the transfer process");
         }
 
-        @Test
-        void shouldFail_whenCannotGetDataplaneInstances() {
-            var transferProcess = transferProcessBuilder()
-                    .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
-                    .dataPlaneId("invalid")
-                    .build();
-            when(selectorService.getAll()).thenReturn(ServiceResult.unexpected("error"));
-
-            var result = flowController.suspend(transferProcess);
-
-            assertThat(result).isFailed();
-        }
     }
 
     @Nested

@@ -69,10 +69,9 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
     @Override
     public ServiceResult<List<DataPlaneInstance>> getAll() {
-        var builder = new Request.Builder().get().url(url);
-        authenticationProvider.authenticationHeaders().forEach(builder::header);
+        var requestBuilder = new Request.Builder().get().url(url);
 
-        return request(builder.build())
+        return request(requestBuilder)
                 .compose(this::toJsonArray)
                 .map(it -> it.stream()
                         .map(j -> typeTransformerRegistry.transform(j, DataPlaneInstance.class))
@@ -95,10 +94,9 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
         var body = RequestBody.create(jsonObject.toString(), TYPE_JSON);
 
-        var builder = new Request.Builder().post(body).url(url + SELECT_PATH);
-        authenticationProvider.authenticationHeaders().forEach(builder::header);
+        var requestBuilder = new Request.Builder().post(body).url(url + SELECT_PATH);
 
-        return request(builder.build()).compose(this::toJsonObject)
+        return request(requestBuilder).compose(this::toJsonObject)
                 .map(it -> typeTransformerRegistry.transform(it, DataPlaneInstance.class))
                 .compose(ServiceResult::from);
     }
@@ -115,22 +113,30 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
                 .build();
         var body = RequestBody.create(requestBody.toString(), TYPE_JSON);
 
-        var builder = new Request.Builder().post(body).url(url);
-        authenticationProvider.authenticationHeaders().forEach(builder::header);
+        var requestBuilder = new Request.Builder().post(body).url(url);
 
-        return request(builder.build()).mapEmpty();
+        return request(requestBuilder).mapEmpty();
     }
 
     @Override
     public ServiceResult<Void> delete(String instanceId) {
-        var request = new Request.Builder().delete().url(url + "/" + instanceId).build();
+        var requestBuilder = new Request.Builder().delete().url(url + "/" + instanceId);
 
-        return request(request).mapEmpty();
+        return request(requestBuilder).mapEmpty();
     }
 
-    private <R> ServiceResult<String> request(Request request) {
+    @Override
+    public ServiceResult<DataPlaneInstance> findById(String id) {
+        var requestBuilder = new Request.Builder().get().url(url + "/" + id);
+
+        return request(requestBuilder).compose(this::toJsonObject)
+                .map(it -> typeTransformerRegistry.transform(it, DataPlaneInstance.class).getContent());
+    }
+
+    private <R> ServiceResult<String> request(Request.Builder requestBuilder) {
+        authenticationProvider.authenticationHeaders().forEach(requestBuilder::header);
         try (
-                var response = httpClient.execute(request);
+                var response = httpClient.execute(requestBuilder.build());
                 var responseBody = response.body();
         ) {
             var bodyAsString = responseBody == null ? null : responseBody.string();

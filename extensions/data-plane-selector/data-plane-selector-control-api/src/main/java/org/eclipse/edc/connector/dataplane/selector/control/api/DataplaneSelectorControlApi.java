@@ -24,9 +24,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HttpMethod;
-import jakarta.ws.rs.POST;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 
 import java.net.URL;
@@ -55,7 +53,6 @@ public interface DataplaneSelectorControlApi {
                     @ApiResponse(responseCode = "409", description = "Resource already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
-    @POST
     JsonObject registerDataplane(JsonObject request);
 
     @Operation(method = HttpMethod.DELETE,
@@ -69,7 +66,6 @@ public interface DataplaneSelectorControlApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    @POST
     void unregisterDataplane(String id);
 
     @Operation(method = "POST",
@@ -83,7 +79,6 @@ public interface DataplaneSelectorControlApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
-    @POST
     JsonObject selectDataplane(JsonObject request);
 
     @Operation(method = "GET",
@@ -94,8 +89,20 @@ public interface DataplaneSelectorControlApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = DataPlaneInstanceSchema.class))))
             }
     )
-    @GET
     JsonArray getAllDataPlaneInstances();
+
+
+    @Operation(method = "GET",
+            operationId = "findDataPlaneById",
+            description = "Returns the Data Plane Instance with the specified id.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "The Data Plane Instance",
+                            content = @Content(schema = @Schema(implementation = DataPlaneInstanceSchema.class))),
+                    @ApiResponse(responseCode = "404", description = "Resource not found",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+            }
+    )
+    JsonObject findDataPlaneById(String id);
 
     @Schema(example = DataPlaneInstanceSchema.DATAPLANE_INSTANCE_EXAMPLE)
     record DataPlaneInstanceSchema(

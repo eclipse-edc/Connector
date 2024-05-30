@@ -110,7 +110,6 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                         .dataPlaneId(dataPlaneInstance.getId())
                         .build()
                 );
-
     }
 
     @Override
@@ -150,17 +149,10 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     }
 
     private StatusResult<DataPlaneClient> getClientForDataplane(String id) {
-        var result = selectorClient.getAll();
-        if (result.failed()) {
-            return StatusResult.failure(FATAL_ERROR, result.getFailureDetail());
-        }
-
-        return result.getContent().stream()
-                .filter(instance -> instance.getId().equals(id))
-                .findFirst()
+        return selectorClient.findById(id)
                 .map(clientFactory::createClient)
                 .map(StatusResult::success)
-                .orElseGet(() -> StatusResult.failure(FATAL_ERROR, "No data-plane found with id %s".formatted(id)));
+                .orElse(f -> StatusResult.failure(FATAL_ERROR, "No data-plane found with id %s. %s".formatted(id, f.getFailureDetail())));
     }
 
 }
