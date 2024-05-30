@@ -134,7 +134,7 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
         }
     }
 
-    @Provider(isDefault = true)
+    @Provider(isDefault = true) // TODO: this is not the correct extensions in which to provide this service
     public ControlClientAuthenticationProvider controlClientAuthenticationProvider() {
         return Collections::emptyMap;
     }

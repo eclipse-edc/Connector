@@ -58,6 +58,9 @@ public class DataFlowManagerImpl implements DataFlowManager {
         try {
             return chooseControllerAndApply(transferProcess, controller -> controller.start(transferProcess, policy));
         } catch (Exception e) {
+            // TODO: monitor and log the exception
+            e.printStackTrace();
+            // TODO: remove this printstacktrace
             return StatusResult.failure(FATAL_ERROR, runtimeException(transferProcess.getId(), e.getLocalizedMessage()));
         }
     }

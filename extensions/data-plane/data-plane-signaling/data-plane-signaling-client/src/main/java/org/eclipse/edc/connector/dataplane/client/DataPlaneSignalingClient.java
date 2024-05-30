@@ -112,6 +112,9 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
                 if (response.isSuccessful()) {
                     return handleStartResponse.apply(response);
                 } else {
+                    // TODO: extract body and add it on t
+                    var string = response.body().string();
+
                     return StatusResult.failure(FATAL_ERROR, format("Transfer request failed with status code %s for request %s", response.code(), processId));
                 }
             } catch (IOException e) {
