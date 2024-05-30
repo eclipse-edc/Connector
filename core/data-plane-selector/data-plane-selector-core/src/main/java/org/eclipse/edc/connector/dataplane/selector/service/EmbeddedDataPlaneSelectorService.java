@@ -68,7 +68,6 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
         });
     }
 
-
     @Override
     public ServiceResult<Void> addInstance(DataPlaneInstance instance) {
         return transactionContext.execute(() -> {
@@ -85,5 +84,16 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
     @Override
     public ServiceResult<Void> delete(String instanceId) {
         return transactionContext.execute(() -> ServiceResult.from(store.deleteById(instanceId))).mapEmpty();
+    }
+
+    @Override
+    public ServiceResult<DataPlaneInstance> findById(String id) {
+        return transactionContext.execute(() -> {
+            var instance = store.findById(id);
+            if (instance == null) {
+                return ServiceResult.notFound("Data Plane instance with id %s not found".formatted(id));
+            }
+            return ServiceResult.success(instance);
+        });
     }
 }

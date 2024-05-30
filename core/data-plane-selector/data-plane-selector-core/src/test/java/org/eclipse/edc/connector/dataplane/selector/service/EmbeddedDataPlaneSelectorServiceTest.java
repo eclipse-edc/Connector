@@ -27,9 +27,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.util.stream.IntStream.range;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
@@ -44,39 +44,47 @@ public class EmbeddedDataPlaneSelectorServiceTest {
     private final SelectionStrategyRegistry selectionStrategyRegistry = mock();
     private final DataPlaneSelectorService service = new EmbeddedDataPlaneSelectorService(store, selectionStrategyRegistry, new NoopTransactionContext());
 
-    @Test
-    void select_shouldUseChosenSelector() {
-        var instances = IntStream.range(0, 10).mapToObj(i -> createInstanceMock("instance" + i, "srcTestType", "destTestType")).toList();
-        when(store.getAll()).thenReturn(instances.stream());
-        SelectionStrategy selectionStrategy = mock();
-        when(selectionStrategy.apply(any())).thenAnswer(it -> instances.get(0));
-        when(selectionStrategyRegistry.find(any())).thenReturn(selectionStrategy);
+    @Nested
+    class Select {
 
-        var result = service.select(createAddress("srcTestType"), "transferType", "strategy");
+        @Test
+        void select_shouldUseChosenSelector() {
+            var instances = range(0, 10)
+                    .mapToObj(i -> createInstanceBuilder("instance" + i).build())
+                    .toList();
+            when(store.getAll()).thenReturn(instances.stream());
+            SelectionStrategy selectionStrategy = mock();
+            when(selectionStrategy.apply(any())).thenAnswer(it -> instances.get(0));
+            when(selectionStrategyRegistry.find(any())).thenReturn(selectionStrategy);
 
-        assertThat(result).isSucceeded().extracting(DataPlaneInstance::getId).isEqualTo("instance0");
-        verify(selectionStrategyRegistry).find("strategy");
-    }
+            var result = service.select(createAddress("srcTestType"), "transferType", "strategy");
 
-    @Test
-    void select_shouldReturnBadRequest_whenStrategyNotFound() {
-        var instances = IntStream.range(0, 10).mapToObj(i -> createInstanceMock("instance" + i, "srcTestType", "destTestType")).toList();
-        when(store.getAll()).thenReturn(instances.stream());
-        when(selectionStrategyRegistry.find(any())).thenReturn(null);
+            assertThat(result).isSucceeded().extracting(DataPlaneInstance::getId).isEqualTo("instance0");
+            verify(selectionStrategyRegistry).find("strategy");
+        }
 
-        var result = service.select(createAddress("srcTestType"), "transferType", "strategy");
+        @Test
+        void select_shouldReturnBadRequest_whenStrategyNotFound() {
+            var instances = range(0, 10)
+                    .mapToObj(i -> createInstanceBuilder("instance" + i).build())
+                    .toList();
+            when(store.getAll()).thenReturn(instances.stream());
+            when(selectionStrategyRegistry.find(any())).thenReturn(null);
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-    }
+            var result = service.select(createAddress("srcTestType"), "transferType", "strategy");
 
-    @Test
-    void select_shouldReturnNotFound_whenInstanceNotFound() {
-        when(store.getAll()).thenReturn(Stream.empty());
-        when(selectionStrategyRegistry.find(any())).thenReturn(mock());
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+        }
 
-        var result = service.select(createAddress("srcTestType"), "transferType", "strategy");
+        @Test
+        void select_shouldReturnNotFound_whenInstanceNotFound() {
+            when(store.getAll()).thenReturn(Stream.empty());
+            when(selectionStrategyRegistry.find(any())).thenReturn(mock());
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+            var result = service.select(createAddress("srcTestType"), "transferType", "strategy");
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
     }
 
     @Nested
@@ -105,11 +113,27 @@ public class EmbeddedDataPlaneSelectorServiceTest {
 
     }
 
-    private DataPlaneInstance createInstanceMock(String id, String srcType, String destType) {
-        return createInstanceBuilder(id)
-                .allowedSourceType(srcType)
-                .allowedDestType(destType)
-                .build();
+    @Nested
+    class FindById {
+
+        @Test
+        void shouldReturnInstance() {
+            var instance = createInstanceBuilder("instanceId").build();
+            when(store.findById(any())).thenReturn(instance);
+
+            var result = service.findById("instanceId");
+
+            assertThat(result).isSucceeded().isSameAs(instance);
+        }
+
+        @Test
+        void shouldFail_whenInstanceDoesNotExist() {
+            when(store.findById(any())).thenReturn(null);
+
+            var result = service.findById("any");
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
     }
 
     private DataPlaneInstance.Builder createInstanceBuilder(String id) {

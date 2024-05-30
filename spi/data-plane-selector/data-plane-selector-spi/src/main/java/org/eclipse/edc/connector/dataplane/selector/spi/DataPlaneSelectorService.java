@@ -46,6 +46,27 @@ public interface DataPlaneSelectorService {
     ServiceResult<DataPlaneInstance> select(DataAddress source, String transferType, @Nullable String selectionStrategy);
 
     /**
+     * Add a data plane instance
+     */
+    ServiceResult<Void> addInstance(DataPlaneInstance instance);
+
+    /**
+     * Delete a Data Plane instance.
+     *
+     * @param instanceId the instance id.
+     * @return successful result if operation completed, failure otherwise.
+     */
+    ServiceResult<Void> delete(String instanceId);
+
+    /**
+     * Find a Data Plane instance by id.
+     *
+     * @param id the id.
+     * @return the {@link DataPlaneInstance} if operation is successful, failure otherwise.
+     */
+    ServiceResult<DataPlaneInstance> findById(String id);
+
+    /**
      * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the configured
      * strategy.
      *
@@ -83,17 +104,5 @@ public interface DataPlaneSelectorService {
         }
     }
 
-    /**
-     * Add a data plane instance
-     */
-    ServiceResult<Void> addInstance(DataPlaneInstance instance);
-
-    /**
-     * Delete a Data Plane instance.
-     *
-     * @param instanceId the instance id.
-     * @return successful result if operation completed, failure otherwise.
-     */
-    ServiceResult<Void> delete(String instanceId);
 
 }

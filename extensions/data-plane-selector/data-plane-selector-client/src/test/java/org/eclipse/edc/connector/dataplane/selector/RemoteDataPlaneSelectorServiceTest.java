@@ -127,15 +127,40 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
         }
     }
 
-    private DataPlaneInstance createInstance(String id) {
-        return DataPlaneInstance.Builder.newInstance()
-                .id(id)
-                .url("http://somewhere.com:1234/api/v1")
-                .build();
+    @Nested
+    class FindById {
+        @Test
+        void shouldReturnInstanceById() {
+            var instanceId = UUID.randomUUID().toString();
+            var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
+            when(serverService.findById(any())).thenReturn(ServiceResult.success(instance));
+
+            var result = service.findById(instanceId);
+
+            assertThat(result).isSucceeded().usingRecursiveComparison().isEqualTo(instance);
+            verify(authenticationProvider).authenticationHeaders();
+        }
+
+        @Test
+        void shouldReturnNotFound_whenInstanceDoesNotExist() {
+            var instanceId = UUID.randomUUID().toString();
+            when(serverService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            var result = service.findById(instanceId);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
     }
 
     @Override
     protected Object controller() {
         return new DataplaneSelectorControlApiController(validator, typeTransformerRegistry, serverService, Clock.systemUTC());
+    }
+
+    private DataPlaneInstance createInstance(String id) {
+        return DataPlaneInstance.Builder.newInstance()
+                .id(id)
+                .url("http://somewhere.com:1234/api/v1")
+                .build();
     }
 }
