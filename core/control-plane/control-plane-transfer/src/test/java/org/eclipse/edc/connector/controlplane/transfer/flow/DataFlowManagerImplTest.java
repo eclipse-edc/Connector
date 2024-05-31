@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 class DataFlowManagerImplTest {
 
-    private final DataFlowManagerImpl manager = new DataFlowManagerImpl();
+    private final DataFlowManagerImpl manager = new DataFlowManagerImpl(mock());
 
     @Nested
     class Initiate {

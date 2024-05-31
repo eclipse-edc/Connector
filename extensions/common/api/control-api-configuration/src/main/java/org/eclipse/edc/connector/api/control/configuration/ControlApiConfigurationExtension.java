@@ -134,11 +134,6 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
         }
     }
 
-    @Provider(isDefault = true) // TODO: this is not the correct extensions in which to provide this service
-    public ControlClientAuthenticationProvider controlClientAuthenticationProvider() {
-        return Collections::emptyMap;
-    }
-
     private ControlApiUrl controlApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {
         var callbackAddress = context.getSetting(CONTROL_API_ENDPOINT, format("http://%s:%s%s", hostname.get(), config.getPort(), config.getPath()));
         try {

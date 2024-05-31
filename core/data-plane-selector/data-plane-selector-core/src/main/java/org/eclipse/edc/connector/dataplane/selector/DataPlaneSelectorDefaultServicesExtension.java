@@ -20,8 +20,12 @@ import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrate
 import org.eclipse.edc.connector.dataplane.selector.store.InMemoryDataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
+
+import java.time.Clock;
 
 /**
  * Provides default service implementations for fallback
@@ -31,6 +35,12 @@ public class DataPlaneSelectorDefaultServicesExtension implements ServiceExtensi
 
     public static final String NAME = "Data Plane Selector Default Services";
 
+    @Inject
+    private Clock clock;
+
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -38,7 +48,7 @@ public class DataPlaneSelectorDefaultServicesExtension implements ServiceExtensi
 
     @Provider(isDefault = true)
     public DataPlaneInstanceStore instanceStore() {
-        return new InMemoryDataPlaneInstanceStore();
+        return new InMemoryDataPlaneInstanceStore(clock, criterionOperatorRegistry);
     }
 
     @Provider(isDefault = true)

@@ -20,10 +20,10 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategy;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -35,6 +35,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.e2e.DataPlaneSelectorEndToEndTest.SelectFirst.SELECT_FIRST;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
+@EndToEndTest
 public class DataPlaneSelectorEndToEndTest {
 
     @RegisterExtension
@@ -48,7 +49,7 @@ public class DataPlaneSelectorEndToEndTest {
             ),
             ":extensions:control-plane:transfer:transfer-data-plane-signaling",
             ":core:data-plane-selector:data-plane-selector-core",
-            ":core:control-plane:control-plane-core", // TODO: why do we need all this modules?
+            ":core:control-plane:control-plane-core",
             ":data-protocols:dsp",
             ":extensions:common:iam:iam-mock",
             ":extensions:common:http",
@@ -74,11 +75,6 @@ public class DataPlaneSelectorEndToEndTest {
             ":extensions:common:http"
     );
 
-    @BeforeEach
-    void setUp() {
-        controlPlane.getService(SelectionStrategyRegistry.class).add(new SelectFirst());
-    }
-
     @Test
     void shouldNotSelectUnavailableDataPlanes() {
         var policy = Policy.Builder.newInstance()
@@ -90,6 +86,9 @@ public class DataPlaneSelectorEndToEndTest {
                 .contentDataAddress(createHttpDataAddress())
                 .dataDestination(createHttpDataAddress())
                 .transferType("HttpData-PUSH").build();
+
+        controlPlane.getService(SelectionStrategyRegistry.class).add(new SelectFirst());
+
 
         var selectorService = controlPlane.getService(DataPlaneSelectorService.class);
         selectorService.addInstance(createDataPlaneInstance("not-available", "http://localhost:" + getFreePort()));

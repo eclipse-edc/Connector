@@ -31,7 +31,7 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
  * @deprecated please use data-plane signaling feature.
  */
 @Extension(value = DataPlaneControlApiExtension.NAME)
-@Deprecated(since = "0.6.0") // TODO: pls verify if that's correct
+@Deprecated(since = "0.6.0")
 public class DataPlaneControlApiExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Control API";
 

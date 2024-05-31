@@ -28,6 +28,7 @@ dependencies {
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.mockito.core)
     testFixturesImplementation(libs.assertj)
+    testFixturesImplementation(libs.awaitility)
     testFixturesRuntimeOnly(libs.junit.jupiter.engine)
 }
 
