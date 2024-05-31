@@ -19,6 +19,6 @@ import org.eclipse.edc.spi.entity.StateEntityManager;
 /**
  * Manage data plane instances.
  */
-public interface DataPlaneInstanceManager extends StateEntityManager {
+public interface DataPlaneSelectorManager extends StateEntityManager {
 
 }

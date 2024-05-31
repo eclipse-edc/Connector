@@ -51,7 +51,9 @@ public interface DataPlaneInstanceStore extends StateEntityStore<DataPlaneInstan
      *
      * @return {@link StoreResult#success()} if the data plane instance was updated, {@link StoreResult#notFound(String)} if a data
      *         plane instance with the same ID was not found
+     * @deprecated please use {@link #save(Object)}
      */
+    @Deprecated(since = "0.7.0")
     default StoreResult<Void> update(DataPlaneInstance instance) {
         save(instance);
         return StoreResult.success();

@@ -33,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -153,7 +154,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .allowedDestType("test-dst2")
                 .allowedTransferType("transfer-type-2")
                 .build();
-        List.of(dpi, dpi2).forEach(store::save);
+        Stream.of(dpi, dpi2).peek(DataPlaneInstance::transitionToAvailable).forEach(store::save);
 
         var rq = createSelectionRequestJson("test-src1", "test-dst1", null, "transfer-type-1");
 
@@ -224,7 +225,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .allowedDestType("test-dst1")
                 .allowedTransferType("transfer-type-2")
                 .build();
-        List.of(dpi, dpi2).forEach(store::save);
+        Stream.of(dpi, dpi2).peek(DataPlaneInstance::transitionToAvailable).forEach(store::save);
 
         var myCustomStrategy = new SelectionStrategy() {
             @Override

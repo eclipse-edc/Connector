@@ -31,10 +31,13 @@ import java.util.Objects;
  * This extension provides the Data Plane API:
  * - Control API: set of endpoints to trigger/monitor/cancel data transfers that should be accessible only from the Control Plane.
  * - Public API: generic endpoint open to other participants of the Dataspace and used to proxy a data request to the actual data source.
+ *
+ * @deprecated replaced by data-plane-signaling.
  */
 @Extension(value = DataPlaneClientExtension.NAME)
+@Deprecated(since = "0.6.0")
 public class DataPlaneClientExtension implements ServiceExtension {
-    public static final String NAME = "Data Plane Client";
+    public static final String NAME = "DEPRECATED: Data Plane Client";
 
     @Inject(required = false)
     private DataPlaneManager dataPlaneManager;
@@ -52,6 +55,7 @@ public class DataPlaneClientExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneClientFactory dataPlaneClientFactory(ServiceExtensionContext context) {
+        context.getMonitor().warning("the `data-plane-client` extension has been deprecated, please switch to data-plane-signaling");
         if (dataPlaneManager != null) {
             // Data plane manager is embedded in the current runtime
             context.getMonitor().debug(() -> "Using embedded Data Plane client.");

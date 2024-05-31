@@ -105,4 +105,11 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
 
         dataPlaneManager.suspend(id).orElseThrow(InvalidRequestException::new);
     }
+
+    @Override
+    @Path("/check")
+    @GET
+    public void checkAvailability() {
+
+    }
 }

@@ -50,7 +50,7 @@ public class DataPlaneSelectorApiV3ControllerTest {
     @Test
     void getAll(DataPlaneInstanceStore store) {
         var list = List.of(createInstance("test-id1"), createInstance("test-id2"), createInstance("test-id3"));
-        list.forEach(store::create);
+        list.forEach(store::save);
 
         var array = baseRequest()
                 .get()

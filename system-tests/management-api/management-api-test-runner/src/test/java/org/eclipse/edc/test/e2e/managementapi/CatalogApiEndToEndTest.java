@@ -137,7 +137,7 @@ public class CatalogApiEndToEndTest {
                                             DataPlaneInstanceStore dataPlaneInstanceStore) {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
                     .allowedDestType("any").allowedSourceType("test-type").allowedTransferType("any").build();
-            dataPlaneInstanceStore.create(dataPlaneInstance);
+            dataPlaneInstanceStore.save(dataPlaneInstance);
 
             assetIndex.create(createAsset("asset-id", "test-type").build());
             var requestBody = createObjectBuilder()

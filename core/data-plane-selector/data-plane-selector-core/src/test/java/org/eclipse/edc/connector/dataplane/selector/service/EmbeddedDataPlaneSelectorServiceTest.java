@@ -26,14 +26,19 @@ import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.range;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.REGISTERED;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNAVAILABLE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -61,6 +66,22 @@ public class EmbeddedDataPlaneSelectorServiceTest {
 
             assertThat(result).isSucceeded().extracting(DataPlaneInstance::getId).isEqualTo("instance0");
             verify(selectionStrategyRegistry).find("strategy");
+        }
+
+        @Test
+        void select_shouldExcludeInstancesNotAvailable() {
+            var availableInstance = createInstanceBuilder("available").state(AVAILABLE.code())
+                    .allowedSourceType("srcTestType").allowedTransferType("transferType").build();
+            var unavailableInstance = createInstanceBuilder("unavailable").state(UNAVAILABLE.code())
+                    .allowedSourceType("srcTestType").allowedTransferType("transferType").build();
+            when(store.getAll()).thenReturn(Stream.of(availableInstance, unavailableInstance));
+            SelectionStrategy selectionStrategy = mock();
+            when(selectionStrategy.apply(any())).thenAnswer(it -> availableInstance);
+            when(selectionStrategyRegistry.find(any())).thenReturn(selectionStrategy);
+
+            service.select(createAddress("srcTestType"), "transferType", "strategy");
+
+            verify(selectionStrategy).apply(List.of(availableInstance));
         }
 
         @Test
@@ -136,6 +157,19 @@ public class EmbeddedDataPlaneSelectorServiceTest {
         }
     }
 
+    @Nested
+    class AddInstance {
+        @Test
+        void shouldSaveRegisteredInstance() {
+            var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
+
+            var result = service.addInstance(instance);
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(it -> it.getState() == REGISTERED.code()));
+        }
+    }
+
     private DataPlaneInstance.Builder createInstanceBuilder(String id) {
         return DataPlaneInstance.Builder.newInstance()
                 .id(id)
@@ -144,8 +178,8 @@ public class EmbeddedDataPlaneSelectorServiceTest {
 
     private DataAddress createAddress(String type) {
         return DataAddress.Builder.newInstance()
-                .type("test-type")
-                .keyName(type)
+                .type(type)
+                .keyName("key-name")
                 .property("someprop", "someval")
                 .build();
     }

@@ -23,17 +23,22 @@ import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrate
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
 import java.util.Map;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.e2e.DataPlaneSelectorEndToEndTest.SelectFirst.SELECT_FIRST;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.mockito.Mockito.mock;
 
 @EndToEndTest
 public class DataPlaneSelectorEndToEndTest {
@@ -47,10 +52,9 @@ public class DataPlaneSelectorEndToEndTest {
                     "edc.dataplane.client.selector.strategy", SELECT_FIRST
 
             ),
-            ":extensions:control-plane:transfer:transfer-data-plane-signaling",
-            ":core:data-plane-selector:data-plane-selector-core",
             ":core:control-plane:control-plane-core",
-            ":data-protocols:dsp",
+            ":core:data-plane-selector:data-plane-selector-core",
+            ":extensions:control-plane:transfer:transfer-data-plane-signaling",
             ":extensions:common:iam:iam-mock",
             ":extensions:common:http",
             ":extensions:common:api:control-api-configuration"
@@ -75,6 +79,11 @@ public class DataPlaneSelectorEndToEndTest {
             ":extensions:common:http"
     );
 
+    @BeforeEach
+    void setUp() {
+        controlPlane.registerServiceMock(ProtocolWebhook.class, mock());
+    }
+
     @Test
     void shouldNotSelectUnavailableDataPlanes() {
         var policy = Policy.Builder.newInstance()
@@ -89,14 +98,14 @@ public class DataPlaneSelectorEndToEndTest {
 
         controlPlane.getService(SelectionStrategyRegistry.class).add(new SelectFirst());
 
-
         var selectorService = controlPlane.getService(DataPlaneSelectorService.class);
         selectorService.addInstance(createDataPlaneInstance("not-available", "http://localhost:" + getFreePort()));
         selectorService.addInstance(createDataPlaneInstance("available", "http://localhost:" + dataPlaneControlPort + "/control/v1/dataflows"));
 
-        var start = controlPlane.getService(DataFlowManager.class).start(transferProcess, policy);
-
-        assertThat(start).isSucceeded();
+        await().atMost(30, SECONDS).untilAsserted(() -> {
+            var start = controlPlane.getService(DataFlowManager.class).start(transferProcess, policy);
+            assertThat(start).isSucceeded();
+        });
     }
 
     private DataAddress createHttpDataAddress() {

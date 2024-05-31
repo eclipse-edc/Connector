@@ -27,7 +27,8 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":spi:data-plane-selector:data-plane-selector-spi")))
-    testImplementation(project(":core:common:junit"))
+
+    testImplementation(libs.awaitility)
 }
 
 

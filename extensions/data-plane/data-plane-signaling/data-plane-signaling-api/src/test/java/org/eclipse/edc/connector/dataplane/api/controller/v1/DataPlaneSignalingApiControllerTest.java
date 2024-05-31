@@ -262,6 +262,17 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
 
     }
 
+    @Nested
+    class CheckAvailability {
+        @Test
+        void shouldReturn204_whenDataPlaneIsAvailable() {
+            baseRequest()
+                    .get("/v1/dataflows/check")
+                    .then()
+                    .statusCode(204);
+        }
+    }
+
     @Override
     protected Object controller() {
         return new DataPlaneSignalingApiController(transformerRegistry, dataplaneManager, mock());

@@ -41,7 +41,10 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * Implementation of a {@link DataPlaneClient} that uses a remote {@link DataPlaneManager} accessible from a REST API.
+ *
+ * @deprecated replaced by data-plane-signaling.
  */
+@Deprecated(since = "0.6.0")
 public class RemoteDataPlaneClient implements DataPlaneClient {
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
     private final EdcHttpClient httpClient;
@@ -97,6 +100,11 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
         } catch (IOException e) {
             return StatusResult.<Void>failure(FATAL_ERROR, e.getMessage());
         }
+    }
+
+    @Override
+    public StatusResult<Void> checkAvailability() {
+        throw new UnsupportedOperationException("feature not implemented for deprecated client");
     }
 
     private StatusResult<Void> handleResponse(Response response, String requestId) {

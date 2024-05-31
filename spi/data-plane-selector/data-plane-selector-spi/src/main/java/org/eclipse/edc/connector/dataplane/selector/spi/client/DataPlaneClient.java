@@ -45,4 +45,11 @@ public interface DataPlaneClient {
      * @return success if the transfer has been terminated, failure otherwise.
      */
     StatusResult<Void> terminate(String transferProcessId);
+
+    /**
+     * Check Data Plane availability to accept new transfer flows.
+     *
+     * @return success if available, failure if not available.
+     */
+    StatusResult<Void> checkAvailability();
 }

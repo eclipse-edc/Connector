@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.secret;
 
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.secret.spi.event.SecretCreated;
 import org.eclipse.edc.connector.secret.spi.event.SecretDeleted;
@@ -41,13 +42,14 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(EdcExtension.class)
 public class SecretEventDispatchTest {
 
-    private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
+    private final EventSubscriber eventSubscriber = mock();
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
-        extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock());
+        extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, mock());
+        extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api"

@@ -42,77 +42,39 @@ public abstract class DataPlaneInstanceStoreTestBase {
 
     protected static final String CONNECTOR_NAME = "test-connector";
 
-    @Test
-    void save() {
-        var inst = createInstanceBuilder("test-id").build();
-        getStore().create(inst);
-        assertThat(getStore().getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(inst);
+    @Nested
+    class FindById {
+        @Test
+        void findById() {
+            var inst = createInstanceBuilder("test-id").build();
+            getStore().save(inst);
+
+            assertThat(getStore().findById("test-id")).usingRecursiveComparison().isEqualTo(inst);
+        }
+
+        @Test
+        void findById_notExists() {
+            assertThat(getStore().findById("not-exist")).isNull();
+        }
+
     }
 
-    @Test
-    void save_withAllowedTransferTypes() {
-        var inst = createInstanceBuilder("test-id").allowedTransferType("transfer-type").build();
-        getStore().create(inst);
-        assertThat(getStore().getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(inst);
-    }
+    @Nested
+    class GetAll {
+        @Test
+        void getAll() {
+            var doc1 = createInstanceWithProperty("test-id", "name");
+            var doc2 = createInstanceWithProperty("test-id-2", "name");
 
-    @Test
-    void update_whenExists_shouldUpdate() {
-        var inst = createInstanceBuilder("test-id").build();
-        getStore().create(inst);
+            var store = getStore();
 
+            store.save(doc1);
+            store.save(doc2);
 
-        var inst2 = DataPlaneInstance.Builder.newInstance()
-                .id("test-id")
-                .url("http://somewhere.other:9876/api/v2") //different URL
-                .build();
+            var foundItems = store.getAll();
 
-        var result = getStore().update(inst2);
-
-        assertThat(result.succeeded()).isTrue();
-        assertThat(getStore().getAll()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(inst2);
-    }
-
-    @Test
-    void save_shouldReturnCustomInstance() {
-        var custom = createInstanceWithProperty("test-id", "name");
-
-        getStore().create(custom);
-
-        var customInstance = getStore().findById(custom.getId());
-
-        assertThat(customInstance)
-                .isInstanceOf(DataPlaneInstance.class)
-                .usingRecursiveComparison()
-                .isEqualTo(custom);
-    }
-
-    @Test
-    void findById() {
-        var inst = createInstanceBuilder("test-id").build();
-        getStore().create(inst);
-
-        assertThat(getStore().findById("test-id")).usingRecursiveComparison().isEqualTo(inst);
-    }
-
-    @Test
-    void findById_notExists() {
-        assertThat(getStore().findById("not-exist")).isNull();
-    }
-
-    @Test
-    void getAll() {
-        var doc1 = createInstanceWithProperty("test-id", "name");
-        var doc2 = createInstanceWithProperty("test-id-2", "name");
-
-        var store = getStore();
-
-        store.create(doc1);
-        store.create(doc2);
-
-        var foundItems = store.getAll();
-
-        assertThat(foundItems).isNotNull().hasSize(2);
+            assertThat(foundItems).isNotNull().hasSize(2);
+        }
     }
 
     @Nested
@@ -120,7 +82,10 @@ public abstract class DataPlaneInstanceStoreTestBase {
 
         @Test
         void shouldStoreEntity_whenItDoesNotAlreadyExist() {
-            var entry = createInstanceBuilder(UUID.randomUUID().toString()).build();
+            var entry = createInstanceBuilder(UUID.randomUUID().toString())
+                    .allowedTransferType("transfer-type")
+                    .allowedSourceType("source-type")
+                    .build();
             getStore().save(entry);
 
             var result = getStore().findById(entry.getId());
@@ -268,7 +233,7 @@ public abstract class DataPlaneInstanceStoreTestBase {
         void shouldDeleteDataPlaneInstanceById() {
             var id = UUID.randomUUID().toString();
             var instance = createInstanceBuilder(id).build();
-            getStore().create(instance);
+            getStore().save(instance);
 
             var result = getStore().deleteById(id);
 

@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.Termina
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
@@ -86,7 +87,7 @@ import static org.mockito.Mockito.when;
 public class TransferProcessEventDispatchTest {
 
     public static final Duration TIMEOUT = Duration.ofSeconds(30);
-    private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
+    private final EventSubscriber eventSubscriber = mock();
     private final IdentityService identityService = mock();
 
     @NotNull
@@ -112,9 +113,10 @@ public class TransferProcessEventDispatchTest {
         extension.registerServiceMock(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(newSingleThreadExecutor()));
         extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(ProtocolWebhook.class, () -> "http://dummy");
-        extension.registerServiceMock(PolicyArchive.class, mock(PolicyArchive.class));
-        extension.registerServiceMock(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
-        extension.registerServiceMock(ParticipantAgentService.class, mock(ParticipantAgentService.class));
+        extension.registerServiceMock(PolicyArchive.class, mock());
+        extension.registerServiceMock(ContractNegotiationStore.class, mock());
+        extension.registerServiceMock(ParticipantAgentService.class, mock());
+        extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         var dataAddressValidatorRegistry = mock(DataAddressValidatorRegistry.class);
         when(dataAddressValidatorRegistry.validateSource(any())).thenReturn(ValidationResult.success());
         when(dataAddressValidatorRegistry.validateDestination(any())).thenReturn(ValidationResult.success());
