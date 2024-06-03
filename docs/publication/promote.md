@@ -1,6 +1,6 @@
 # Promoting an artifact in Azure Devops
 
-After the artifacts are published, they must be [promoted](https://learn.microsoft.com/en-us/azure/devops/artifacts/feeds/views?view=azure-devops&tabs=nuget) to indicate that they are ready to use.
+After the artifacts are published, they must be [promoted](https://learn.microsoft.com/en-us/azure/devops/artifacts/feeds/views?view=azure-devops&tabs=maven) to indicate that they are ready to use.
 
 This can either be done manually or via the web API.
 
