@@ -184,12 +184,9 @@ public class BaseRuntime {
             }
 
             if (context.hasService(HealthCheckService.class)) {
-                var statusbuilder = HealthCheckResult.Builder.newInstance().component("BaseRuntime");
-                var startupStatus = new AtomicReference<>(statusbuilder.failure("Startup not complete").build());
+                var startupStatusRef = new AtomicReference<>(HealthCheckResult.Builder.newInstance().component("BaseRuntime").success().build());
                 var healthCheckService = context.getService(HealthCheckService.class);
-                healthCheckService.addStartupStatusProvider(startupStatus::get);
-
-                startupStatus.set(statusbuilder.success().build());
+                healthCheckService.addStartupStatusProvider(startupStatusRef::get);
             }
 
         } catch (Exception e) {
