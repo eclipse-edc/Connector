@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.version;
 import org.eclipse.edc.connector.api.management.version.v1.VersionApiController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -25,6 +26,7 @@ import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
@@ -34,18 +36,20 @@ import java.io.IOException;
 public class VersionApiExtension implements ServiceExtension {
 
     public static final String NAME = "Management API: Version Information";
-    private static final String VERSION_CONTEXT_ALIAS = "version";
     private static final String WEB_SERVICE_NAME = "Version Information API";
-    private static final String DEFAULT_VERSION_API_CONTEXT_PATH = "/.well-known/api";
-    private static final int DEFAULT_VERSION_API_PORT = 7171;
+
+    @SettingContext("Version API context setting key")
+    private static final String VERSION_CONFIG_KEY = "web.http." + ApiContext.VERSION;
+
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey("web.http." + VERSION_CONTEXT_ALIAS)
-            .contextAlias(VERSION_CONTEXT_ALIAS)
-            .defaultPath(DEFAULT_VERSION_API_CONTEXT_PATH)
-            .defaultPort(DEFAULT_VERSION_API_PORT)
+            .apiConfigKey(VERSION_CONFIG_KEY)
+            .contextAlias(ApiContext.VERSION)
+            .defaultPath("/.well-known/api")
+            .defaultPort(7171)
             .useDefaultContext(false)
             .name(WEB_SERVICE_NAME)
             .build();
+
     private static final String API_VERSION_JSON_FILE = "version.json";
     @Inject
     private WebService webService;
@@ -67,12 +71,11 @@ public class VersionApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var config = context.getConfig(VERSION_CONFIG_KEY);
+        configurator.configure(config, webServer, SETTINGS);
 
-        var webServiceConfiguration = configurator.configure(context, webServer, SETTINGS);
-
-        webService.registerResource(webServiceConfiguration.getContextAlias(), new VersionApiController(apiVersionService));
+        webService.registerResource(ApiContext.VERSION, new VersionApiController(apiVersionService));
         registerVersionInfo(getClass().getClassLoader());
-
     }
 
     private void registerVersionInfo(ClassLoader resourceClassLoader) {
@@ -81,7 +84,7 @@ public class VersionApiExtension implements ServiceExtension {
                 throw new EdcException("Version file not found or not readable.");
             }
             var content = typeManager.getMapper().readValue(versionContent, VersionRecord.class);
-            apiVersionService.addRecord(VERSION_CONTEXT_ALIAS, content);
+            apiVersionService.addRecord(ApiContext.VERSION, content);
         } catch (IOException e) {
             throw new EdcException(e);
         }

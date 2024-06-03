@@ -76,10 +76,6 @@ import static org.mockserver.stop.Stop.stopQuietly;
 
 /**
  * System Test for Data Plane HTTP extension.
- * <p/>
- * Note that {@link #transfer_toHttpSink_sourceTemporaryDropConnection_success(TypeManager)} verifies retry attempts are made if the source connection is temporarily dropped when the connection is
- * established. However, sink retry attempts are not supported since the source is streamed and would need a rewind mechanism to replay the source stream when a new sink connection
- * is established. In this case, it is more efficient to simply retry the transfer or use a wire protocol that natively supports resume-on-failure.
  */
 @ComponentTest
 public class DataPlaneHttpIntegrationTests {
@@ -120,6 +116,7 @@ public class DataPlaneHttpIntegrationTests {
             ),
             ":extensions:common:metrics:micrometer-core",
             ":core:data-plane:data-plane-core",
+            ":extensions:common:api:control-api-configuration",
             ":extensions:common:http",
             ":extensions:common:json-ld",
             ":extensions:common:configuration:configuration-filesystem",

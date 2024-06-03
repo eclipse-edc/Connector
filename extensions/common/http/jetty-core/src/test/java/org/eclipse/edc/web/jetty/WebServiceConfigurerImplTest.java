@@ -14,12 +14,10 @@
 
 package org.eclipse.edc.web.jetty;
 
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.web.spi.WebServer;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -33,22 +31,17 @@ import static org.mockito.Mockito.when;
 
 public class WebServiceConfigurerImplTest {
 
-
     private static final String CONFIG = "web.http.test";
     private static final String PATH = "/api";
     private static final String ALIAS = "test";
     private static final int PORT = 8080;
-    private ServiceExtensionContext context;
-    private WebServer server;
+    private final WebServer server = mock();
 
-    private WebServiceConfigurerImpl configurator;
+    private final WebServiceConfigurer configurator = new WebServiceConfigurerImpl(mock());
 
     @Test
     void verifyConfigure_whenDefaultConfig() {
-
         var config = ConfigFactory.fromMap(new HashMap<>());
-        when(context.getConfig(CONFIG)).thenReturn(config);
-        when(context.getMonitor()).thenReturn(new ConsoleMonitor());
 
         var settings = WebServiceSettings.Builder.newInstance()
                 .apiConfigKey(CONFIG)
@@ -59,12 +52,11 @@ public class WebServiceConfigurerImplTest {
                 .name("TEST")
                 .build();
 
-        var actualConfig = configurator.configure(context, server, settings);
+        var actualConfig = configurator.configure(config, server, settings);
 
         verify(server, times(1))
                 .addPortMapping(ALIAS, PORT, PATH);
 
-        assertThat(actualConfig.getContextAlias()).isEqualTo(ALIAS);
         assertThat(actualConfig.getPort()).isEqualTo(PORT);
         assertThat(actualConfig.getPath()).isEqualTo(PATH);
 
@@ -74,10 +66,8 @@ public class WebServiceConfigurerImplTest {
     void verifyConfigure_whenDefaultAlias() {
 
         var config = ConfigFactory.fromMap(new HashMap<>());
-        when(context.getConfig(CONFIG)).thenReturn(config);
-        String defValue = "default";
+        var defValue = "default";
         when(server.getDefaultContextName()).thenReturn(defValue);
-        when(context.getMonitor()).thenReturn(new ConsoleMonitor());
 
         var settings = WebServiceSettings.Builder.newInstance()
                 .apiConfigKey(CONFIG)
@@ -88,12 +78,9 @@ public class WebServiceConfigurerImplTest {
                 .name("TEST")
                 .build();
 
-        var actualConfig = configurator.configure(context, server, settings);
+        var actualConfig = configurator.configure(config, server, settings);
 
-        verify(server, times(1))
-                .getDefaultContextName();
-
-        assertThat(actualConfig.getContextAlias()).isEqualTo(defValue);
+        verifyNoInteractions(server);
         assertThat(actualConfig.getPort()).isEqualTo(PORT);
         assertThat(actualConfig.getPath()).isEqualTo(PATH);
 
@@ -109,8 +96,6 @@ public class WebServiceConfigurerImplTest {
         apiConfig.put("path", path);
 
         var config = ConfigFactory.fromMap(apiConfig);
-        when(context.getConfig(CONFIG)).thenReturn(config);
-        when(context.getMonitor()).thenReturn(new ConsoleMonitor());
 
         var settings = WebServiceSettings.Builder.newInstance()
                 .apiConfigKey(CONFIG)
@@ -121,22 +106,11 @@ public class WebServiceConfigurerImplTest {
                 .name("TEST")
                 .build();
 
-        var actualConfig = configurator.configure(context, server, settings);
+        var actualConfig = configurator.configure(config, server, settings);
 
         verifyNoInteractions(server);
-        assertThat(actualConfig.getContextAlias()).isEqualTo(ALIAS);
         assertThat(actualConfig.getPort()).isEqualTo(port);
         assertThat(actualConfig.getPath()).isEqualTo(path);
-
     }
-
-
-    @BeforeEach
-    void setup() {
-        context = mock(ServiceExtensionContext.class);
-        server = mock(WebServer.class);
-        configurator = new WebServiceConfigurerImpl();
-    }
-
 
 }

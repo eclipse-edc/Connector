@@ -16,7 +16,6 @@ package org.eclipse.edc.protocol.dsp.negotiation.http.api;
 
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
-import org.eclipse.edc.protocol.dsp.http.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.DspNegotiationApiController;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.DspNegotiationApiController20241;
@@ -32,6 +31,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
@@ -51,8 +51,6 @@ public class DspNegotiationApiExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
-    @Inject
-    private DspApiConfiguration apiConfiguration;
     @Inject
     private ContractNegotiationProtocolService protocolService;
     @Inject
@@ -76,8 +74,8 @@ public class DspNegotiationApiExtension implements ServiceExtension {
         validatorRegistry.register(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE, ContractAgreementVerificationMessageValidator.instance());
         validatorRegistry.register(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE, ContractNegotiationTerminationMessageValidator.instance());
 
-        webService.registerResource(apiConfiguration.getContextAlias(), new DspNegotiationApiController(protocolService, dspRequestHandler));
-        webService.registerResource(apiConfiguration.getContextAlias(), new DspNegotiationApiController20241(protocolService, dspRequestHandler));
+        webService.registerResource(ApiContext.PROTOCOL, new DspNegotiationApiController(protocolService, dspRequestHandler));
+        webService.registerResource(ApiContext.PROTOCOL, new DspNegotiationApiController20241(protocolService, dspRequestHandler));
 
         versionRegistry.register(V_2024_1);
     }

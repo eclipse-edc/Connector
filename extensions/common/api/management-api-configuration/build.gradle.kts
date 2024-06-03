@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:contract-spi"))
 
+    implementation(project(":extensions:common:api:lib:management-api-lib"))
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":core:common:lib:transform-lib"))

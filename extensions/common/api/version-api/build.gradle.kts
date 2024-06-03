@@ -20,7 +20,6 @@ plugins {
 
 dependencies {
     implementation(project(":extensions:common:api:api-core"))
-    implementation(project(":extensions:common:api:management-api-configuration"))
 
     implementation(libs.jakarta.rsApi)
 

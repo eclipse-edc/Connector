@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.api.control.configuration;
 
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
-import org.eclipse.edc.connector.controlplane.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
@@ -26,15 +25,14 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.CONTROL_API_ENDPOINT;
-import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.CONTROL_CONTEXT_ALIAS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -49,7 +47,6 @@ public class ControlApiConfigurationExtensionTest {
     private final WebService webService = mock();
 
     private final WebServiceConfiguration webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
-            .contextAlias(CONTROL_CONTEXT_ALIAS)
             .path("/path")
             .port(1234)
             .build();
@@ -57,7 +54,7 @@ public class ControlApiConfigurationExtensionTest {
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(WebServiceConfigurer.class, configurator);
-        context.registerService(Hostname.class, () -> "localhost");
+        context.registerService(Hostname.class, () -> "hostname");
         context.registerService(WebService.class, webService);
         context.registerService(TypeManager.class, new JacksonTypeManager());
 
@@ -65,39 +62,29 @@ public class ControlApiConfigurationExtensionTest {
     }
 
     @Test
-    void initialize(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
+    void shouldComposeControlApiUrl(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
         when(context.getConfig()).thenReturn(ConfigFactory.empty());
 
         extension.initialize(context);
 
-        var config = context.getService(ControlApiConfiguration.class);
-        assertThat(config.getContextAlias()).isEqualTo(webServiceConfiguration.getContextAlias());
-        assertThat(config.getPath()).isEqualTo(webServiceConfiguration.getPath());
-        assertThat(config.getPort()).isEqualTo(webServiceConfiguration.getPort());
-
         var url = context.getService(ControlApiUrl.class);
-        assertThat(url.get().toString()).isEqualTo(format("http://localhost:%s%s", config.getPort(), config.getPath()));
+        assertThat(url.get().toString()).isEqualTo("http://hostname:1234/path");
     }
 
     @Test
-    void initialize_withValidEndpoint(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
-        var endpoint = "http://localhost:8080/test";
+    void shouldUseConfiguredControlApiUrl(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
+        var configuredEndpoint = "http://localhost:8080/test";
         when(context.getConfig()).thenReturn(ConfigFactory.empty());
-        when(context.getSetting(eq(CONTROL_API_ENDPOINT), any())).thenReturn(endpoint);
+        when(context.getSetting(eq(CONTROL_API_ENDPOINT), any())).thenReturn(configuredEndpoint);
 
         extension.initialize(context);
 
-        var config = context.getService(ControlApiConfiguration.class);
-        assertThat(config.getContextAlias()).isEqualTo(webServiceConfiguration.getContextAlias());
-        assertThat(config.getPath()).isEqualTo(webServiceConfiguration.getPath());
-        assertThat(config.getPort()).isEqualTo(webServiceConfiguration.getPort());
-
         var url = context.getService(ControlApiUrl.class);
-        assertThat(url.get().toString()).isEqualTo(endpoint);
+        assertThat(url.get().toString()).isEqualTo(configuredEndpoint);
     }
 
     @Test
-    void initialize_withInvalidEndpoint(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
+    void shouldThrowError_whenUrlIsNotValid(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
         var endpoint = "http:// invalid";
         when(context.getConfig()).thenReturn(ConfigFactory.empty());
         when(context.getSetting(eq(CONTROL_API_ENDPOINT), any())).thenReturn(endpoint);

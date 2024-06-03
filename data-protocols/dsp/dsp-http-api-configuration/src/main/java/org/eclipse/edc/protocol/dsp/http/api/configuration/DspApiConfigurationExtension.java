@@ -22,12 +22,14 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFrom
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.protocol.dsp.http.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -43,11 +45,13 @@ import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
 import java.util.Map;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
@@ -60,32 +64,28 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
- * Provides the configuration for the Dataspace Protocol API context. Creates the API context
- * using {@link #DEFAULT_PROTOCOL_PORT} and {@link #DEFAULT_PROTOCOL_API_PATH}, if no respective
- * settings are provided. Configures the API context to allow Jakarta JSON-API types as endpoint
- * parameters.
+ * Configure 'protocol' api context.
  */
 @Extension(value = DspApiConfigurationExtension.NAME)
-@Provides({ DspApiConfiguration.class, ProtocolWebhook.class })
+@Provides(ProtocolWebhook.class)
 public class DspApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
 
-    public static final String CONTEXT_ALIAS = "protocol";
-
-    public static final String DEFAULT_DSP_CALLBACK_ADDRESS = "http://localhost:8282/api/v1/dsp";
+    @Setting(value = "Configures endpoint for reaching the Protocol API.", defaultValue = "<hostname:protocol.port/protocol.path>")
     public static final String DSP_CALLBACK_ADDRESS = "edc.dsp.callback.address";
 
-    public static final int DEFAULT_PROTOCOL_PORT = 8282;
-    public static final String DEFAULT_PROTOCOL_API_PATH = "/api/v1/dsp";
+    @SettingContext("Protocol API context setting key")
+    private static final String PROTOCOL_CONFIG_KEY = "web.http." + ApiContext.PROTOCOL;
 
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey("web.http.protocol")
-            .contextAlias(CONTEXT_ALIAS)
-            .defaultPath(DEFAULT_PROTOCOL_API_PATH)
-            .defaultPort(DEFAULT_PROTOCOL_PORT)
+            .apiConfigKey(PROTOCOL_CONFIG_KEY)
+            .contextAlias(ApiContext.PROTOCOL)
+            .defaultPath("/api/v1/dsp")
+            .defaultPort(8282)
             .name("Protocol API")
             .build();
+
     @Inject
     private TypeManager typeManager;
     @Inject
@@ -100,6 +100,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     private TypeTransformerRegistry transformerRegistry;
     @Inject
     private ParticipantIdMapper participantIdMapper;
+    @Inject
+    private Hostname hostname;
 
     @Override
     public String name() {
@@ -108,13 +110,12 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = configurator.configure(context, webServer, SETTINGS);
-        var dspWebhookAddress = context.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS);
-        context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), dspWebhookAddress));
+        var contextConfig = context.getConfig(PROTOCOL_CONFIG_KEY);
+        var apiConfiguration = configurator.configure(contextConfig, webServer, SETTINGS);
+        var dspWebhookAddress = context.getSetting(DSP_CALLBACK_ADDRESS, format("http://%s:%s%s", hostname.get(), apiConfiguration.getPort(), apiConfiguration.getPath()));
         context.registerService(ProtocolWebhook.class, () -> dspWebhookAddress);
 
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
-
 
         // registers ns for DSP scope
         jsonLd.registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, DSP_SCOPE);
@@ -122,8 +123,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE);
         jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, DSP_SCOPE);
 
-        webService.registerResource(config.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
-        webService.registerResource(config.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE));
+        webService.registerResource(ApiContext.PROTOCOL, new ObjectMapperProvider(jsonLdMapper));
+        webService.registerResource(ApiContext.PROTOCOL, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE));
 
         registerTransformers();
     }

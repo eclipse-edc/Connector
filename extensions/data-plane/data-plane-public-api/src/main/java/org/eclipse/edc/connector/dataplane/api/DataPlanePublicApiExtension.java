@@ -22,12 +22,14 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
@@ -43,10 +45,9 @@ import java.util.concurrent.Executors;
 @Deprecated(since = "0.6.0")
 public class DataPlanePublicApiExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Public API";
-    private static final int DEFAULT_PUBLIC_PORT = 8185;
-    private static final String PUBLIC_API_CONFIG = "web.http.public";
-    private static final String PUBLIC_CONTEXT_ALIAS = "public";
-    private static final String PUBLIC_CONTEXT_PATH = "/api/v1/public";
+
+    @SettingContext("Public API context setting key")
+    private static final String PUBLIC_CONFIG_KEY = "web.http." + ApiContext.PUBLIC;
 
     @Setting(value = "Token validation server endpoint", required = true)
     private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
@@ -54,10 +55,10 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
     private static final int DEFAULT_THREAD_POOL = 10;
 
     private static final WebServiceSettings PUBLIC_SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey(PUBLIC_API_CONFIG)
-            .contextAlias(PUBLIC_CONTEXT_ALIAS)
-            .defaultPath(PUBLIC_CONTEXT_PATH)
-            .defaultPort(DEFAULT_PUBLIC_PORT)
+            .apiConfigKey(PUBLIC_CONFIG_KEY)
+            .contextAlias(ApiContext.PUBLIC)
+            .defaultPath("/api/v1/public")
+            .defaultPort(8185)
             .name(NAME)
             .build();
 
@@ -89,16 +90,17 @@ public class DataPlanePublicApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var config = context.getConfig(PUBLIC_CONFIG_KEY);
         var validationEndpoint = context.getConfig().getString(CONTROL_PLANE_VALIDATION_ENDPOINT);
         var dataAddressResolver = new ConsumerPullTransferDataAddressResolver(httpClient, validationEndpoint, typeManager.getMapper());
-        var configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
+        webServiceConfigurer.configure(config, webServer, PUBLIC_SETTINGS);
         var executorService = executorInstrumentation.instrument(
                 Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
                 "Data plane proxy transfers"
         );
         var monitor = context.getMonitor().withPrefix("DataPlane Public API");
         var publicApiController = new DataPlanePublicApiController(pipelineService, dataAddressResolver, executorService, monitor);
-        webService.registerResource(configuration.getContextAlias(), publicApiController);
+        webService.registerResource(ApiContext.PUBLIC, publicApiController);
 
         monitor.warning("This public API controller is scheduled for removal. Please consider upgrading your deployment " +
                 "to the data-plane-public-api-v2 module. The Data Plane Public API will then be available under at /v2/ prefix.");

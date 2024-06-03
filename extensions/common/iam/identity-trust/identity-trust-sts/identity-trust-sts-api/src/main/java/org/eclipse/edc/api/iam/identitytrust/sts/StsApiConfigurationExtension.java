@@ -14,10 +14,9 @@
 
 package org.eclipse.edc.api.iam.identitytrust.sts;
 
-import org.eclipse.edc.api.iam.identitytrust.sts.configuration.StsApiConfiguration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -25,27 +24,29 @@ import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
 import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebServer;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
 import java.io.IOException;
 
 @Extension(value = StsApiConfigurationExtension.NAME)
-@Provides({ StsApiConfiguration.class })
 public class StsApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Secure Token Service API configuration";
-    public static final String STS_CONTEXT_ALIAS = "sts";
     private static final String WEB_SERVICE_NAME = "STS API";
     private static final int DEFAULT_STS_API_PORT = 9292;
     private static final String DEFAULT_STS_API_CONTEXT_PATH = "/api/v1/sts";
 
+    @SettingContext("Sts API context setting key")
+    private static final String STS_CONFIG_KEY = "web.http." + ApiContext.STS;
+
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey("web.http." + STS_CONTEXT_ALIAS)
-            .contextAlias(STS_CONTEXT_ALIAS)
+            .apiConfigKey(STS_CONFIG_KEY)
+            .contextAlias(ApiContext.STS)
             .defaultPath(DEFAULT_STS_API_CONTEXT_PATH)
             .defaultPort(DEFAULT_STS_API_PORT)
-            .useDefaultContext(true)
+            .useDefaultContext(false)
             .name(WEB_SERVICE_NAME)
             .build();
     private static final String API_VERSION_JSON_FILE = "version.json";
@@ -66,8 +67,8 @@ public class StsApiConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = configurator.configure(context, webServer, SETTINGS);
-        context.registerService(StsApiConfiguration.class, new StsApiConfiguration(config));
+        var config = context.getConfig(STS_CONFIG_KEY);
+        configurator.configure(config, webServer, SETTINGS);
         registerVersionInfo(getClass().getClassLoader());
     }
 
@@ -77,7 +78,7 @@ public class StsApiConfigurationExtension implements ServiceExtension {
                 throw new EdcException("Version file not found or not readable.");
             }
             var content = typeManager.getMapper().readValue(versionContent, VersionRecord.class);
-            apiVersionService.addRecord(SETTINGS.getContextAlias(), content);
+            apiVersionService.addRecord(ApiContext.STS, content);
         } catch (IOException e) {
             throw new EdcException(e);
         }

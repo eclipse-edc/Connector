@@ -18,7 +18,6 @@ import java.util.Objects;
 
 public class WebServiceSettings {
 
-
     private boolean useDefaultContext = false;
     private String apiConfigKey;
     private Integer defaultPort;

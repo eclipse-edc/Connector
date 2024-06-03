@@ -87,8 +87,8 @@ public class JettyExtension implements ServiceExtension {
     }
 
     @Provider
-    public WebServiceConfigurer webServiceContextConfigurator() {
-        return new WebServiceConfigurerImpl();
+    public WebServiceConfigurer webServiceContextConfigurator(ServiceExtensionContext context) {
+        return new WebServiceConfigurerImpl(context.getMonitor());
     }
 
 }

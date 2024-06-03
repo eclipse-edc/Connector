@@ -27,10 +27,12 @@ import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrate
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -43,18 +45,28 @@ import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createI
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.Matchers.equalTo;
 
 @ComponentTest
 @ExtendWith(EdcExtension.class)
 public class DataPlaneSelectorApiV2ControllerTest {
 
-    private static final int PORT = 8181;
+    private final int port = getFreePort();
+
+    @BeforeEach
+    void setup(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.management.port", String.valueOf(port),
+                "web.http.management.path", "/management"
+        ));
+    }
 
     @Test
     void getAll(DataPlaneInstanceStore store) {
-        var list = List.of(createInstance("test-id1"), createInstance("test-id2"), createInstance("test-id3"));
-        saveInstances(list, store);
+        List.of(createInstance("test-id1"), createInstance("test-id2"), createInstance("test-id3"))
+                .forEach(store::create);
 
         var array = baseRequest()
                 .get()
@@ -112,8 +124,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
         var dpi1 = createInstance("test-id1");
         var dpi2 = createInstance("test-id2");
         var dpi3 = createInstance("test-id3");
-        saveInstances(List.of(dpi1, dpi2, dpi3), store);
-
+        List.of(dpi1, dpi2, dpi3).forEach(store::create);
 
         var newDpi = Json.createObjectBuilder(createInstanceJson("test-id2"))
                 .add(DataPlaneInstance.ALLOWED_DEST_TYPES, Json.createValue("test-dest-type"))
@@ -144,7 +155,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .allowedDestType("test-dst2")
                 .allowedTransferType("transfer-type-2")
                 .build();
-        saveInstances(List.of(dpi, dpi2), store);
+        List.of(dpi, dpi2).forEach(store::create);
 
         var rq = createSelectionRequestJson("test-src1", "test-dst1", null, "transfer-type-1");
 
@@ -168,7 +179,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .allowedSourceType("test-src2")
                 .allowedDestType("test-dst2")
                 .build();
-        saveInstances(List.of(dpi, dpi2), store);
+        List.of(dpi, dpi2).forEach(store::create);
 
         var rq = createSelectionRequestJson("notexist-src", "test-dst2", null, "transfer-type");
 
@@ -191,7 +202,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .allowedSourceType("test-src2")
                 .allowedDestType("test-dst2")
                 .build();
-        saveInstances(List.of(dpi, dpi2), store);
+        List.of(dpi, dpi2).forEach(store::create);
 
         var rq = createSelectionRequestJson("test-src1", "test-dst2", "notexist", "transfer-type1");
 
@@ -215,7 +226,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .allowedDestType("test-dst1")
                 .allowedTransferType("transfer-type-2")
                 .build();
-        saveInstances(List.of(dpi, dpi2), store);
+        List.of(dpi, dpi2).forEach(store::create);
 
         var myCustomStrategy = new SelectionStrategy() {
             @Override
@@ -238,6 +249,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .contentType(JSON)
                 .post("/select")
                 .then()
+                .log().ifValidationFails()
                 .statusCode(200)
                 .extract().body().as(JsonObject.class);
 
@@ -245,7 +257,14 @@ public class DataPlaneSelectorApiV2ControllerTest {
         assertThat(result.getString(ID)).isEqualTo("test-id1");
     }
 
-    public JsonObject createSelectionRequestJson(String srcType, String destType, String strategy, String transferType) {
+    private RequestSpecification baseRequest() {
+        return given()
+                .port(port)
+                .basePath("/management/v2/dataplanes")
+                .when();
+    }
+
+    private JsonObject createSelectionRequestJson(String srcType, String destType, String strategy, String transferType) {
         var builder = createObjectBuilder()
                 .add(SelectionRequest.SOURCE_ADDRESS, createDataAddress(srcType))
                 .add(SelectionRequest.DEST_ADDRESS, createDataAddress(destType))
@@ -257,22 +276,10 @@ public class DataPlaneSelectorApiV2ControllerTest {
         return builder.build();
     }
 
-    protected RequestSpecification baseRequest() {
-        return given()
-                .port(PORT)
-                .baseUri("http://localhost:" + PORT + "/api/v2/dataplanes")
-                .when();
-    }
-
     private JsonObjectBuilder createDataAddress(String type) {
         return createObjectBuilder()
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
                 .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, type);
     }
 
-    private void saveInstances(List<DataPlaneInstance> instances, DataPlaneInstanceStore store) {
-        for (var instance : instances) {
-            store.create(instance);
-        }
-    }
 }

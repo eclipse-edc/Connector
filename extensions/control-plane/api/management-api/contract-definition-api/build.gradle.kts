@@ -20,8 +20,9 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:common:transaction-spi"))
+
     implementation(project(":extensions:common:api:api-core"))
-    implementation(project(":extensions:common:api:management-api-configuration"))
+    implementation(project(":extensions:common:api:lib:management-api-lib"))
     implementation(project(":core:common:lib:validator-lib"))
 
     implementation(libs.jakarta.rsApi)

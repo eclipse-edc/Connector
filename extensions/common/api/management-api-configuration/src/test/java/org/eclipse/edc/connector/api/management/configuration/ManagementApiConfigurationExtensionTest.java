@@ -28,6 +28,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.jetbrains.annotations.NotNull;
@@ -65,15 +66,15 @@ class ManagementApiConfigurationExtensionTest {
     @Test
     void initialize_shouldConfigureAndRegisterResource() {
         var context = contextWithConfig(ConfigFactory.empty());
-        var configuration = WebServiceConfiguration.Builder.newInstance().contextAlias("alias").path("/path").port(1234).build();
+        var configuration = WebServiceConfiguration.Builder.newInstance().path("/path").port(1234).build();
         when(configurer.configure(any(), any(), any())).thenReturn(configuration);
 
         extension.initialize(context);
 
         verify(configurer).configure(any(), any(), eq(SETTINGS));
-        verify(webService).registerResource(eq("alias"), isA(AuthenticationRequestFilter.class));
-        verify(webService).registerResource(eq("alias"), isA(JerseyJsonLdInterceptor.class));
-        verify(webService).registerResource(eq("alias"), isA(ObjectMapperProvider.class));
+        verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(AuthenticationRequestFilter.class));
+        verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(JerseyJsonLdInterceptor.class));
+        verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(ObjectMapperProvider.class));
     }
 
     @NotNull

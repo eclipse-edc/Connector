@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.version.http.api;
 
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
-import org.eclipse.edc.protocol.dsp.http.spi.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.version.http.api.transformer.JsonObjectFromProtocolVersionsTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -24,6 +23,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.protocol.dsp.version.http.api.DspVersionApiExtension.NAME;
 
@@ -37,9 +37,6 @@ public class DspVersionApiExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
-
-    @Inject
-    private DspApiConfiguration configuration;
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;
@@ -59,7 +56,7 @@ public class DspVersionApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         transformerRegistry.register(new JsonObjectFromProtocolVersionsTransformer());
 
-        webService.registerResource(configuration.getContextAlias(), new DspVersionApiController(requestHandler, service));
+        webService.registerResource(ApiContext.PROTOCOL, new DspVersionApiController(requestHandler, service));
     }
 
 }

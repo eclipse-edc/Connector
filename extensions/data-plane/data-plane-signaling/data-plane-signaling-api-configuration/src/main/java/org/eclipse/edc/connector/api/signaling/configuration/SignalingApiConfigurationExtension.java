@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlow
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -34,6 +34,7 @@ import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import org.jetbrains.annotations.NotNull;
@@ -48,24 +49,23 @@ import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Deprecated(since = "0.6.4")
-@Provides(SignalingApiConfiguration.class)
 @Extension(value = NAME)
 public class SignalingApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "DataPlane Signaling API Configuration Extension";
-    public static final String WEB_SERVICE_NAME = "DataPlane Signaling API";
 
-    private static final String SIGNALING_CONTEXT_ALIAS = "signaling";
-    private static final String DEFAULT_SIGNALING_API_CONTEXT_PATH = "/api/signaling";
-    private static final int DEFAULT_SIGNALING_API_PORT = 10080;
+    @SettingContext("Signaling API context setting key")
+    private static final String SIGNALING_CONFIG_KEY = "web.http." + ApiContext.SIGNALING;
+
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey("web.http." + SIGNALING_CONTEXT_ALIAS)
-            .contextAlias(SIGNALING_CONTEXT_ALIAS)
-            .defaultPath(DEFAULT_SIGNALING_API_CONTEXT_PATH)
-            .defaultPort(DEFAULT_SIGNALING_API_PORT)
-            .useDefaultContext(true)
-            .name(WEB_SERVICE_NAME)
+            .apiConfigKey(SIGNALING_CONFIG_KEY)
+            .contextAlias(ApiContext.SIGNALING)
+            .defaultPath("/api/signaling")
+            .defaultPort(10080)
+            .useDefaultContext(false)
+            .name("DataPlane Signaling API")
             .build();
+
     private static final String SIGNALING_SCOPE = "SIGNALING_API";
 
     @Inject
@@ -93,15 +93,15 @@ public class SignalingApiConfigurationExtension implements ServiceExtension {
                 settings, please exclude from your build and configure your endpoints to the control-api context
                 """;
         context.getMonitor().warning(warningMessage);
-        var webServiceConfiguration = configurer.configure(context, webServer, SETTINGS);
-        context.registerService(SignalingApiConfiguration.class, new SignalingApiConfiguration(webServiceConfiguration));
+        var config = context.getConfig(SIGNALING_CONFIG_KEY);
+        configurer.configure(config, webServer, SETTINGS);
 
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, SIGNALING_SCOPE);
         jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, SIGNALING_SCOPE);
 
         var jsonLdMapper = getJsonLdMapper();
-        webService.registerResource(webServiceConfiguration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
-        webService.registerResource(webServiceConfiguration.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, SIGNALING_SCOPE));
+        webService.registerResource(ApiContext.SIGNALING, new ObjectMapperProvider(jsonLdMapper));
+        webService.registerResource(ApiContext.SIGNALING, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, SIGNALING_SCOPE));
 
         var factory = Json.createBuilderFactory(Map.of());
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,19 +12,18 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.configuration;
+package org.eclipse.edc.api.management.schema;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.List;
 import java.util.Set;
 
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_TYPE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 /**
  * Schema records that are shared between multiple management modules
@@ -33,9 +32,9 @@ public interface ManagementApiSchema {
 
     @Schema(name = "ContractAgreement", example = ContractAgreementSchema.CONTRACT_AGREEMENT_EXAMPLE)
     record ContractAgreementSchema(
-            @Schema(name = TYPE, example = ContractAgreement.CONTRACT_AGREEMENT_TYPE)
+            @Schema(name = JsonLdKeywords.TYPE, example = ContractAgreement.CONTRACT_AGREEMENT_TYPE)
             String ldType,
-            @Schema(name = ID)
+            @Schema(name = JsonLdKeywords.ID)
             String id,
             String providerId,
             String consumerId,
@@ -67,7 +66,7 @@ public interface ManagementApiSchema {
 
     @Schema(name = "CallbackAddress")
     record CallbackAddressSchema(
-            @Schema(name = TYPE, example = CallbackAddress.CALLBACKADDRESS_TYPE)
+            @Schema(name = JsonLdKeywords.TYPE, example = CallbackAddress.CALLBACKADDRESS_TYPE)
             String type,
             String uri,
             Set<String> events,
@@ -107,9 +106,9 @@ public interface ManagementApiSchema {
 
     @Schema(name = "ContractNegotiation", example = ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE)
     record ContractNegotiationSchema(
-            @Schema(name = TYPE, example = CONTRACT_NEGOTIATION_TYPE)
+            @Schema(name = JsonLdKeywords.TYPE, example = CONTRACT_NEGOTIATION_TYPE)
             String ldType,
-            @Schema(name = ID)
+            @Schema(name = JsonLdKeywords.ID)
             String id,
             ContractNegotiation.Type type,
             String protocol,

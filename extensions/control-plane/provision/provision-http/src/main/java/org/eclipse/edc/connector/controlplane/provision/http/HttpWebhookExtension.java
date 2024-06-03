@@ -14,16 +14,16 @@
 
 package org.eclipse.edc.connector.controlplane.provision.http;
 
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.provision.http.webhook.HttpProvisionerWebhookApiController;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
+import org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,30 +38,18 @@ public class HttpWebhookExtension implements ServiceExtension {
     private TransferProcessService transferProcessService;
 
     @Inject
-    private Hostname hostname;
-
-    @Inject
-    private ManagementApiConfiguration managementApiConfiguration;
+    private ManagementApiUrl managementApiUrl;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerCallbackUrl(context, managementApiConfiguration.getPath(), managementApiConfiguration.getPort());
+        registerCallbackUrl(context);
 
-        webService.registerResource(managementApiConfiguration.getContextAlias(), new HttpProvisionerWebhookApiController(transferProcessService));
+        webService.registerResource(ApiContext.MANAGEMENT, new HttpProvisionerWebhookApiController(transferProcessService));
     }
 
-    private void registerCallbackUrl(ServiceExtensionContext context, String path, int port) {
-        var s = hostname.get();
-
-        if (!s.startsWith("http")) { // a hostname should never have a protocol prefix, but just to be safe
-            s = "http://" + s;
-        }
-        if (!s.matches(".*:([0-9]){1,5}$")) { // a hostname also shouldn't have a port, but again, to be sure
-            s += ":" + port;
-        }
-        s += path + "/callback";
+    private void registerCallbackUrl(ServiceExtensionContext context) {
         try {
-            var url = new URL(s);
+            var url = new URL(managementApiUrl.get() + "/callback");
             context.registerService(HttpProvisionerWebhookUrl.class, () -> url);
         } catch (MalformedURLException e) {
             context.getMonitor().severe("Error creating callback endpoint", e);

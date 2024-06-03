@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation;
 
 import jakarta.json.Json;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
@@ -33,6 +32,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.util.Map;
 
@@ -46,9 +46,6 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
-
-    @Inject
-    private ManagementApiConfiguration config;
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;
@@ -80,7 +77,7 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance(monitor));
         validatorRegistry.register(TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instance());
 
-        webService.registerResource(config.getContextAlias(), new ContractNegotiationApiV2Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
-        webService.registerResource(config.getContextAlias(), new ContractNegotiationApiV3Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV2Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV3Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
     }
 }
