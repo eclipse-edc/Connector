@@ -62,7 +62,7 @@ public class DspVersionApiEndToEndTest {
 
     @Test
     void shouldReturnValidJsonLd() {
-        runtime.getContext().getService(ProtocolVersionRegistry.class)
+        runtime.getService(ProtocolVersionRegistry.class)
                 .register(new ProtocolVersion("1.0", "/v1/path"));
 
         var compacted = given()

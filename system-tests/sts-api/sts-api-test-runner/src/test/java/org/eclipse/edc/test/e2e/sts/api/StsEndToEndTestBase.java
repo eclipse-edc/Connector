@@ -60,11 +60,11 @@ public abstract class StsEndToEndTestBase {
     }
 
     private StsClientStore getClientStore() {
-        return getRuntime().getContext().getService(StsClientStore.class);
+        return getRuntime().getService(StsClientStore.class);
     }
 
     private Vault getVault() {
-        return getRuntime().getContext().getService(Vault.class);
+        return getRuntime().getService(Vault.class);
     }
 
     /**

@@ -20,7 +20,10 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * Utility class that permits to run multiple EDC runtimes statically
+ *
+ * @deprecated please use either {@link RuntimePerMethodExtension} or {@link RuntimePerClassExtension}.
  */
+@Deprecated(since = "0.7.0")
 public class EdcClassRuntimesExtension implements BeforeAllCallback, AfterAllCallback {
 
     public final EdcRuntimeExtension[] extensions;

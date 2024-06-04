@@ -14,55 +14,43 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
-import org.junit.jupiter.api.extension.AfterAllCallback;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
-import org.junit.jupiter.api.extension.ParameterResolver;
 
 import java.util.HashMap;
 
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-public abstract class ManagementEndToEndExtension implements ParameterResolver, BeforeAllCallback, AfterAllCallback {
+public abstract class ManagementEndToEndExtension extends RuntimePerClassExtension {
 
-    protected final EdcRuntimeExtension runtime;
     private final ManagementEndToEndTestContext context;
 
     protected ManagementEndToEndExtension(ManagementEndToEndTestContext context) {
+        super(context.runtime());
         this.context = context;
-        this.runtime = context.runtime();
     }
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return true;
+        var type = parameterContext.getParameter().getParameterizedType();
+        if (type.equals(ManagementEndToEndTestContext.class)) {
+            return true;
+        }
+        return super.supportsParameter(parameterContext, extensionContext);
     }
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getParameterizedType();
-        if (type.equals(EdcRuntimeExtension.class)) {
-            return runtime;
-        }
         if (type.equals(ManagementEndToEndTestContext.class)) {
             return context;
         }
-        return runtime.getService((Class<?>) type);
-    }
-
-    @Override
-    public void beforeAll(ExtensionContext extensionContext) throws Exception {
-        runtime.beforeTestExecution(extensionContext);
-    }
-
-    @Override
-    public void afterAll(ExtensionContext extensionContext) throws Exception {
-        runtime.afterTestExecution(extensionContext);
+        return super.resolveParameter(parameterContext, extensionContext);
     }
 
     static class InMemory extends ManagementEndToEndExtension {
@@ -71,7 +59,7 @@ public abstract class ManagementEndToEndExtension implements ParameterResolver, 
             var managementPort = getFreePort();
             var protocolPort = getFreePort();
 
-            var runtime = new EdcRuntimeExtension(
+            var runtime = new EmbeddedRuntime(
                     "control-plane",
                     new HashMap<>() {
                         {
@@ -103,7 +91,7 @@ public abstract class ManagementEndToEndExtension implements ParameterResolver, 
             var managementPort = getFreePort();
             var protocolPort = getFreePort();
 
-            var runtime = new EdcRuntimeExtension(
+            var runtime = new EmbeddedRuntime(
                     "control-plane",
                     new HashMap<>() {
                         {
@@ -134,7 +122,7 @@ public abstract class ManagementEndToEndExtension implements ParameterResolver, 
         }
 
         @Override
-        public void beforeAll(ExtensionContext extensionContext) throws Exception {
+        public void beforeAll(ExtensionContext extensionContext) {
             createDatabase("runtime");
             super.beforeAll(extensionContext);
         }
