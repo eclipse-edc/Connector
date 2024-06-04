@@ -18,6 +18,7 @@ public class JsonLdConfiguration {
 
     private boolean httpEnabled = false;
     private boolean httpsEnabled = false;
+    private boolean checkPrefixes = true;
 
     private JsonLdConfiguration() {
 
@@ -29,6 +30,10 @@ public class JsonLdConfiguration {
 
     public boolean isHttpsEnabled() {
         return httpsEnabled;
+    }
+
+    public boolean isCheckPrefixes() {
+        return checkPrefixes;
     }
 
     public static class Builder {
@@ -46,6 +51,11 @@ public class JsonLdConfiguration {
 
         public Builder httpsEnabled(boolean httpsEnabled) {
             configuration.httpsEnabled = httpsEnabled;
+            return this;
+        }
+
+        public Builder checkPrefixes(boolean checkPrefixes) {
+            configuration.checkPrefixes = checkPrefixes;
             return this;
         }
 

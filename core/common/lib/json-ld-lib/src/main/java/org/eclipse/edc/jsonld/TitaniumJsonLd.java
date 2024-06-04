@@ -31,6 +31,8 @@ import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.spi.constants.CoreConstants;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
+import org.eclipse.edc.validator.jsonobject.validators.MissingPrefixes;
 
 import java.net.URI;
 import java.util.Collections;
@@ -61,6 +63,10 @@ public class TitaniumJsonLd implements JsonLd {
     private final Map<String, Set<String>> scopedContexts = new HashMap<>();
     private final CachedDocumentLoader documentLoader;
 
+    private final JsonObjectValidator validator;
+
+    private final boolean shouldCheckPrefixes;
+
     public TitaniumJsonLd(Monitor monitor) {
         this(monitor, JsonLdConfiguration.Builder.newInstance().build());
     }
@@ -68,6 +74,10 @@ public class TitaniumJsonLd implements JsonLd {
     public TitaniumJsonLd(Monitor monitor, JsonLdConfiguration configuration) {
         this.monitor = monitor;
         this.documentLoader = new CachedDocumentLoader(configuration, monitor);
+        this.shouldCheckPrefixes = configuration.isCheckPrefixes();
+        this.validator = JsonObjectValidator.newValidator()
+                .verify((path) -> new MissingPrefixes(path, this::getAllPrefixes))
+                .build();
     }
 
     @Override
@@ -77,8 +87,15 @@ public class TitaniumJsonLd implements JsonLd {
             var expanded = com.apicatalog.jsonld.JsonLd.expand(document)
                     .options(new JsonLdOptions(documentLoader))
                     .get();
-            if (expanded.size() > 0) {
-                return Result.success(expanded.getJsonObject(0));
+            if (!expanded.isEmpty()) {
+                var object = expanded.getJsonObject(0);
+                if (shouldCheckPrefixes) {
+                    var result = validator.validate(object);
+                    if (result.failed()) {
+                        return Result.failure(result.getFailureDetail());
+                    }
+                }
+                return Result.success(object);
             }
             return Result.failure("Error expanding JSON-LD structure: result was empty, it could be caused by missing '@context'");
         } catch (JsonLdError error) {
@@ -172,6 +189,13 @@ public class TitaniumJsonLd implements JsonLd {
 
     private Stream<String> contextsForScope(String scope) {
         return scopedContexts.getOrDefault(scope, EMPTY_CONTEXTS).stream();
+    }
+
+    private Set<String> getAllPrefixes() {
+        return scopedNamespaces.values().stream()
+                .flatMap(v -> v.entrySet().stream())
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
     }
 
     private static class CachedDocumentLoader implements DocumentLoader {

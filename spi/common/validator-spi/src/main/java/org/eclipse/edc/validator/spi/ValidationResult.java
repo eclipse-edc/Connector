@@ -19,12 +19,18 @@ import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Result class for {@link Validator}
  */
 public class ValidationResult extends AbstractResult<Void, ValidationFailure, ValidationResult> {
+
+    protected ValidationResult(Void content, ValidationFailure failure) {
+        super(content, failure);
+    }
 
     public static ValidationResult success() {
         return new ValidationResult(null, null);
@@ -38,15 +44,15 @@ public class ValidationResult extends AbstractResult<Void, ValidationFailure, Va
         return new ValidationResult(null, new ValidationFailure(violations));
     }
 
-    protected ValidationResult(Void content, ValidationFailure failure) {
-        super(content, failure);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    @NotNull
-    protected <R1 extends AbstractResult<C1, ValidationFailure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable ValidationFailure failure) {
-        return (R1) new ValidationResult(null, failure);
+    public ValidationResult merge(ValidationResult other) {
+        if (succeeded() && other.succeeded()) {
+            return ValidationResult.success();
+        } else {
+            var violations = new ArrayList<Violation>();
+            violations.addAll(Optional.ofNullable(getFailure()).map(ValidationFailure::getViolations).orElse(List.of()));
+            violations.addAll(Optional.ofNullable(other.getFailure()).map(ValidationFailure::getViolations).orElse(List.of()));
+            return ValidationResult.failure(violations);
+        }
     }
 
     public Result<Void> toResult() {
@@ -58,5 +64,12 @@ public class ValidationResult extends AbstractResult<Void, ValidationFailure, Va
                     .toList();
             return Result.failure(messages);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    @NotNull
+    protected <R1 extends AbstractResult<C1, ValidationFailure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable ValidationFailure failure) {
+        return (R1) new ValidationResult(null, failure);
     }
 }

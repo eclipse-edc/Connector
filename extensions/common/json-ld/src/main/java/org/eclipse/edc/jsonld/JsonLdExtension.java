@@ -63,6 +63,10 @@ public class JsonLdExtension implements ServiceExtension {
     private static final String DEFAULT_AVOID_VOCAB_CONTEXT = "false";
     @Setting(value = "If true disable the @vocab context definition. This could be used to avoid api breaking changes", type = "boolean", defaultValue = DEFAULT_AVOID_VOCAB_CONTEXT)
     private static final String AVOID_VOCAB_CONTEXT = "edc.jsonld.vocab.disable";
+    private static final boolean DEFAULT_CHECK_PREFIXES = true;
+    @Setting(value = "If true a validation on expended object will be made against configured prefixes", type = "boolean", defaultValue = DEFAULT_CHECK_PREFIXES + "")
+    private static final String CHECK_PREFIXES = "edc.jsonld.prefixes.check";
+
     @Inject
     private TypeManager typeManager;
 
@@ -82,6 +86,7 @@ public class JsonLdExtension implements ServiceExtension {
         var configuration = JsonLdConfiguration.Builder.newInstance()
                 .httpEnabled(config.getBoolean(HTTP_ENABLE_SETTING, DEFAULT_HTTP_HTTPS_RESOLUTION))
                 .httpsEnabled(config.getBoolean(HTTPS_ENABLE_SETTING, DEFAULT_HTTP_HTTPS_RESOLUTION))
+                .checkPrefixes(config.getBoolean(CHECK_PREFIXES, DEFAULT_CHECK_PREFIXES))
                 .build();
         var monitor = context.getMonitor();
         var service = new TitaniumJsonLd(monitor, configuration);

@@ -77,6 +77,36 @@ class TitaniumJsonLdTest {
     }
 
     @Test
+    void expand_shouldFail_whenMissingRegisteredPrefix() {
+        var jsonObject = createObjectBuilder()
+                .add(JsonLdKeywords.CONTEXT, createObjectBuilder().build())
+                .add("custom:item", "foo")
+                .build();
+        var jsonLd = defaultService(JsonLdConfiguration.Builder.newInstance().checkPrefixes(false).build());
+
+        jsonLd.registerNamespace("custom", "https://custom.namespace.org/schema/");
+
+        var expanded = jsonLd.expand(jsonObject);
+
+        AbstractResultAssert.assertThat(expanded).isSucceeded();
+    }
+
+    @Test
+    void expand_shouldSucceed_whenMissingRegisteredPrefix() {
+        var jsonObject = createObjectBuilder()
+                .add(JsonLdKeywords.CONTEXT, createObjectBuilder().build())
+                .add("custom:item", "foo")
+                .build();
+        var jsonLd = defaultService();
+
+        jsonLd.registerNamespace("custom", "https://custom.namespace.org/schema/");
+
+        var expanded = jsonLd.expand(jsonObject);
+
+        AbstractResultAssert.assertThat(expanded).isFailed();
+    }
+
+    @Test
     void expand_withCustomContext() {
         var jsonObject = createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, createObjectBuilder().add("custom", "https://custom.namespace.org/schema/").build())
@@ -96,6 +126,7 @@ class TitaniumJsonLdTest {
                 .contains("https://custom.namespace.org/schema/key2")
                 .contains("@value\":\"value2\"");
     }
+
 
     @Test
     void compact() {
@@ -313,6 +344,10 @@ class TitaniumJsonLdTest {
     }
 
     private JsonLd defaultService() {
-        return new TitaniumJsonLd(monitor);
+        return defaultService(JsonLdConfiguration.Builder.newInstance().build());
+    }
+
+    private JsonLd defaultService(JsonLdConfiguration configuration) {
+        return new TitaniumJsonLd(monitor, configuration);
     }
 }
