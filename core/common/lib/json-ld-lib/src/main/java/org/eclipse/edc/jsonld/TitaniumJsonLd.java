@@ -196,8 +196,12 @@ public class TitaniumJsonLd implements JsonLd {
                     .map(uriCache::get)
                     .orElse(url);
 
-            return Optional.ofNullable(documentCache.get(uri))
-                    .orElse(loader.loadDocument(uri, options));
+            var document = documentCache.get(uri);
+            if (document != null) {
+                return document;
+            } else {
+                return loader.loadDocument(uri, options);
+            }
         }
 
         public void register(String contextUrl, URI uri) {
