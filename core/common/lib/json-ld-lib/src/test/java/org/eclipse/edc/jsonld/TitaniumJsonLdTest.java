@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
+import org.mockserver.verify.VerificationTimes;
 
 import java.net.URI;
 
@@ -285,6 +286,26 @@ class TitaniumJsonLdTest {
                     .extracting(it -> it.getString(JsonLdKeywords.VALUE))
                     .isEqualTo("value");
         });
+
+    }
+
+
+    @Test
+    void documentResolution_shouldCallHttpEndpointOnlyOnce_whenContextIsNotRegistered_andHttpIsEnabled() {
+        server.when(HttpRequest.request()).respond(HttpResponse.response(TestUtils.getResourceFileContentAsString("test-context.jsonld")));
+        var contextUrl = "http://localhost:" + port;
+        var jsonObject = createObjectBuilder()
+                .add(JsonLdKeywords.CONTEXT, contextUrl)
+                .add("test:key", "value")
+                .build();
+        var service = httpEnabledService();
+        service.registerCachedDocument("http//any.other/url", URI.create("http://localhost:" + server.getLocalPort()));
+
+        AbstractResultAssert.assertThat(service.expand(jsonObject)).isSucceeded();
+        AbstractResultAssert.assertThat(service.expand(jsonObject)).isSucceeded();
+
+        server.verify(HttpRequest.request().withMethod("GET"), VerificationTimes.exactly(1));
+
     }
 
     private JsonLd httpEnabledService() {
