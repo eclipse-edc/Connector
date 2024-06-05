@@ -74,7 +74,7 @@ public class TitaniumJsonLd implements JsonLd {
     public TitaniumJsonLd(Monitor monitor, JsonLdConfiguration configuration) {
         this.monitor = monitor;
         this.documentLoader = new CachedDocumentLoader(configuration, monitor);
-        this.shouldCheckPrefixes = configuration.isCheckPrefixes();
+        this.shouldCheckPrefixes = configuration.shouldCheckPrefixes();
         this.validator = JsonObjectValidator.newValidator()
                 .verify((path) -> new MissingPrefixes(path, this::getAllPrefixes))
                 .build();

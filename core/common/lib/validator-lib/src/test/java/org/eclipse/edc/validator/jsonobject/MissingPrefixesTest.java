@@ -26,6 +26,10 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
 class MissingPrefixesTest {
 
+
+    private final JsonObjectValidator validator = JsonObjectValidator.newValidator()
+            .verify(path -> new MissingPrefixes(path, () -> Set.of("prefix"))).build();
+
     @Test
     void shouldValidateObjectMissingPrefixes_success() {
         var input = createObjectBuilder()
@@ -36,7 +40,7 @@ class MissingPrefixesTest {
                                 .add("subProperty", ""))
                 );
 
-        var result = JsonObjectValidator.newValidator().verify(path -> new MissingPrefixes(path, () -> Set.of("prefix"))).build().validate(input.build());
+        var result = validator.validate(input.build());
 
         assertThat(result).isSucceeded();
     }
@@ -49,7 +53,7 @@ class MissingPrefixesTest {
                                 .add("subProperty", ""))
                 );
 
-        var result = JsonObjectValidator.newValidator().verify(path -> new MissingPrefixes(path, () -> Set.of("prefix"))).build().validate(input.build());
+        var result = validator.validate(input.build());
 
         assertThat(result).isFailed().satisfies(failure -> {
             assertThat(failure.getViolations()).anySatisfy(violation -> {
@@ -66,7 +70,7 @@ class MissingPrefixesTest {
                                 .add("prefix:subProperty", ""))
                 );
 
-        var result = JsonObjectValidator.newValidator().verify(path -> new MissingPrefixes(path, () -> Set.of("prefix"))).build().validate(input.build());
+        var result = validator.validate(input.build());
 
         assertThat(result).isFailed().satisfies(failure -> {
             assertThat(failure.getViolations()).anySatisfy(violation -> {
@@ -84,7 +88,7 @@ class MissingPrefixesTest {
                                 .add("@id", "prefix:subProperty"))
                 );
 
-        var result = JsonObjectValidator.newValidator().verify("mandatoryObject", path -> new MissingPrefixes(path, () -> Set.of("prefix"))).build().validate(input.build());
+        var result = validator.validate(input.build());
 
         assertThat(result).isFailed().satisfies(failure -> {
             assertThat(failure.getViolations()).anySatisfy(violation -> {
@@ -102,7 +106,7 @@ class MissingPrefixesTest {
                                 .add("@type", createArrayBuilder().add("prefix:subProperty")))
                 );
 
-        var result = JsonObjectValidator.newValidator().verify("mandatoryObject", path -> new MissingPrefixes(path, () -> Set.of("prefix"))).build().validate(input.build());
+        var result = validator.validate(input.build());
 
         assertThat(result).isFailed().satisfies(failure -> {
             assertThat(failure.getViolations()).anySatisfy(violation -> {

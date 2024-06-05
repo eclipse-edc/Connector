@@ -77,7 +77,7 @@ class TitaniumJsonLdTest {
     }
 
     @Test
-    void expand_shouldFail_whenMissingRegisteredPrefix() {
+    void expand_shouldSucceed_whenChecksDisabledOnMissingContext() {
         var jsonObject = createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, createObjectBuilder().build())
                 .add("custom:item", "foo")
@@ -88,11 +88,11 @@ class TitaniumJsonLdTest {
 
         var expanded = jsonLd.expand(jsonObject);
 
-        AbstractResultAssert.assertThat(expanded).isSucceeded();
+        assertThat(expanded).isSucceeded();
     }
 
     @Test
-    void expand_shouldSucceed_whenMissingRegisteredPrefix() {
+    void expand_shouldFail_whenMissingContext() {
         var jsonObject = createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, createObjectBuilder().build())
                 .add("custom:item", "foo")
@@ -103,7 +103,7 @@ class TitaniumJsonLdTest {
 
         var expanded = jsonLd.expand(jsonObject);
 
-        AbstractResultAssert.assertThat(expanded).isFailed();
+        assertThat(expanded).isFailed();
     }
 
     @Test

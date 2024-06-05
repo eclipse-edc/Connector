@@ -32,7 +32,7 @@ public class JsonLdConfiguration {
         return httpsEnabled;
     }
 
-    public boolean isCheckPrefixes() {
+    public boolean shouldCheckPrefixes() {
         return checkPrefixes;
     }
 
