@@ -22,6 +22,7 @@ dependencies {
     api(libs.titaniumJsonLd)
     implementation(libs.jackson.datatype.jsr310)
 
+    implementation(project(":core:common:lib:validator-lib"))
     implementation(project(":spi:common:core-spi"))
     implementation(project(":spi:common:json-ld-spi"))
     testImplementation(project(":core:common:lib:util-lib"))

@@ -41,13 +41,13 @@ public class JsonObjectValidator implements Validator<JsonObject> {
     private final JsonLdPath path;
     private final JsonWalker walker;
 
-    public static JsonObjectValidator.Builder newValidator() {
-        return JsonObjectValidator.Builder.newInstance(path(), ROOT_OBJECT);
-    }
-
     protected JsonObjectValidator(JsonLdPath path, JsonWalker walker) {
         this.path = path;
         this.walker = walker;
+    }
+
+    public static JsonObjectValidator.Builder newValidator() {
+        return JsonObjectValidator.Builder.newInstance(path(), ROOT_OBJECT);
     }
 
     @Override
@@ -56,17 +56,10 @@ public class JsonObjectValidator implements Validator<JsonObject> {
             return ValidationResult.failure(Violation.violation("input json is null", path.toString()));
         }
 
-        var violations = walker.extract(input, path)
+        return walker.extract(input, path)
                 .flatMap(target -> this.validators.stream().map(validator -> validator.validate(target)))
-                .filter(ValidationResult::failed)
-                .flatMap(it -> it.getFailure().getViolations().stream())
-                .toList();
-
-        if (violations.isEmpty()) {
-            return ValidationResult.success();
-        } else {
-            return ValidationResult.failure(violations);
-        }
+                .reduce(ValidationResult::merge)
+                .orElse(ValidationResult.success());
     }
 
     public static class Builder {
@@ -96,7 +89,7 @@ public class JsonObjectValidator implements Validator<JsonObject> {
          * Add a validator on a specific field.
          *
          * @param fieldName the name of the field to be validated.
-         * @param provider the validator provider.
+         * @param provider  the validator provider.
          * @return the builder.
          */
         public Builder verify(String fieldName, Function<JsonLdPath, Validator<JsonObject>> provider) {
@@ -121,7 +114,7 @@ public class JsonObjectValidator implements Validator<JsonObject> {
          * Add a validator on a specific nested object.
          *
          * @param fieldName the name of the nested object to be validated.
-         * @param provider the validator provider.
+         * @param provider  the validator provider.
          * @return the builder.
          */
         public Builder verifyObject(String fieldName, UnaryOperator<JsonObjectValidator.Builder> provider) {
@@ -135,7 +128,7 @@ public class JsonObjectValidator implements Validator<JsonObject> {
          * Add a validator on a specific nested array.
          *
          * @param fieldName the name of the nested array to be validated.
-         * @param provider the validator provider.
+         * @param provider  the validator provider.
          * @return the builder.
          */
         public Builder verifyArrayItem(String fieldName, UnaryOperator<JsonObjectValidator.Builder> provider) {
