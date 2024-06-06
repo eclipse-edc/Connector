@@ -72,6 +72,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.once;
+import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.HttpStatusCode.CONFLICT_409;
 import static org.mockserver.model.HttpStatusCode.NO_CONTENT_204;
@@ -208,19 +209,6 @@ class DataPlaneSignalingClientTest {
                     .anySatisfy(s -> assertThat(s)
                             .contains("Error expanding JSON-LD structure")
                     );
-        }
-
-        @Test
-        void verifyReturnFatalErrorWhenDataPlaneInstanceIsNull() {
-            var flowRequest = createDataFlowRequest();
-            TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(testHttpClient(), registry, JSON_LD, MAPPER, null, authenticationProvider);
-
-            var result = dataPlaneClient.start(flowRequest);
-
-            assertThat(result.failed()).isTrue();
-            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
-            assertThat(result.getFailureDetail()).contains("No data plane found for");
         }
 
         @Test
@@ -377,6 +365,27 @@ class DataPlaneSignalingClientTest {
                     .anySatisfy(s -> assertThat(s)
                             .isEqualTo("Transform Failure")
                     );
+        }
+    }
+
+    @Nested
+    class CheckAvailability {
+        @Test
+        void shouldSucceed_whenDataPlaneIsAvailable() {
+            dataPlane.when(request().withPath(DATA_PLANE_PATH + "/check").withMethod("GET")).respond(response().withStatusCode(204));
+
+            var result = dataPlaneClient.checkAvailability();
+
+            assertThat(result).isSucceeded();
+        }
+
+        @Test
+        void shouldFail_whenDataPlaneIsNotAvailable() {
+            dataPlane.when(request()).respond(response().withStatusCode(404));
+
+            var result = dataPlaneClient.checkAvailability();
+
+            assertThat(result).isFailed();
         }
     }
 }

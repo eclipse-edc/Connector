@@ -87,6 +87,17 @@ class JsonFieldTranslatorTest {
         }
 
         @Test
+        void shouldParseWhereClause_whenRightOperandIsInteger() {
+            var operator = new SqlOperator("=", Object.class);
+            var criterion = criterion("json.field", "=", 100);
+
+            var result = translator.toWhereClause(PathItem.parse("field"), criterion, operator);
+
+            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::integer = ?");
+            assertThat(result.parameters()).containsExactly(100);
+        }
+
+        @Test
         void shouldConvertToJsonB_whenOperatorIsContains() {
             var operator = new SqlOperator("??", Object.class);
             var criterion = criterion("json.array", "contains", "value");

@@ -15,12 +15,10 @@
 package org.eclipse.edc.connector.api.control.configuration;
 
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
@@ -43,7 +41,6 @@ import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
@@ -132,11 +129,6 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
         } catch (IOException e) {
             throw new EdcException(e);
         }
-    }
-
-    @Provider(isDefault = true)
-    public ControlClientAuthenticationProvider controlClientAuthenticationProvider() {
-        return Collections::emptyMap;
     }
 
     private ControlApiUrl controlApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {

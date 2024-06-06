@@ -56,6 +56,7 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
+    private static final String[] FIELDS_TO_BE_IGNORED = {"createdAt", "stateTimestamp", "updatedAt"};
     private final String url = "http://localhost:%d/v1/dataplanes".formatted(port);
     private final ControlClientAuthenticationProvider authenticationProvider = mock();
     private final DataPlaneSelectorService serverService = mock();
@@ -98,7 +99,8 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
         var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), "transferType", "random");
 
-        assertThat(result).isSucceeded().usingRecursiveComparison().isEqualTo(expected);
+        assertThat(result).isSucceeded().usingRecursiveComparison()
+                .ignoringFields(FIELDS_TO_BE_IGNORED).isEqualTo(expected);
         verify(authenticationProvider).authenticationHeaders();
     }
 
@@ -137,7 +139,9 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
             var result = service.findById(instanceId);
 
-            assertThat(result).isSucceeded().usingRecursiveComparison().isEqualTo(instance);
+            assertThat(result).isSucceeded().usingRecursiveComparison()
+                    .ignoringFields(FIELDS_TO_BE_IGNORED)
+                    .isEqualTo(instance);
             verify(authenticationProvider).authenticationHeaders();
         }
 

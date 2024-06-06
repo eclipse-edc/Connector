@@ -46,8 +46,8 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
     }
 
     @Provider
-    public DataFlowManager dataFlowManager() {
-        return new DataFlowManagerImpl();
+    public DataFlowManager dataFlowManager(ServiceExtensionContext context) {
+        return new DataFlowManagerImpl(context.getMonitor());
     }
 
     @Provider

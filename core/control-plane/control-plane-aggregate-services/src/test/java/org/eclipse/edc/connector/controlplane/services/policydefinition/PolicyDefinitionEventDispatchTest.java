@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionD
 import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionEvent;
 import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionUpdated;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
@@ -47,9 +48,10 @@ public class PolicyDefinitionEventDispatchTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
-        extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock());
+        extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, mock());
+        extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api")

@@ -108,10 +108,11 @@ public abstract class TranslationMapping {
             return null;
         }
 
-        var nestedPath = path.stream().skip(1).toList();
         if (entry instanceof FieldTranslator fieldTranslator) {
+            var nestedPath = path.size() == 1 ? path : path.stream().skip(1).toList();
             return fieldTranslator.toWhereClause(nestedPath, criterion, operator);
         } else if (entry instanceof TranslationMapping mappingEntry) {
+            var nestedPath = path.stream().skip(1).toList();
             return mappingEntry.getWhereClause(nestedPath, criterion, operator);
         } else {
             throw new IllegalArgumentException("unexpected mapping");

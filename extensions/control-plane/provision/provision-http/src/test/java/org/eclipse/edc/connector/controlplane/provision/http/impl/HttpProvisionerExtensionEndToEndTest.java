@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
@@ -97,6 +98,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.registerServiceMock(ContractValidationService.class, contractValidationService);
         extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         extension.registerServiceMock(IdentityService.class, identityService);
+        extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         var dataAddressValidatorRegistry = mock(DataAddressValidatorRegistry.class);
         when(dataAddressValidatorRegistry.validateSource(any())).thenReturn(ValidationResult.success());
         when(dataAddressValidatorRegistry.validateDestination(any())).thenReturn(ValidationResult.success());

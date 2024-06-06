@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
@@ -69,7 +70,7 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationEventDispatchTest {
     private static final String CONSUMER = "consumer";
 
-    private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
+    private final EventSubscriber eventSubscriber = mock();
     private final IdentityService identityService = mock();
     private final ClaimToken token = ClaimToken.Builder.newInstance().claim(ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY, CONSUMER).build();
 
@@ -85,9 +86,10 @@ class ContractNegotiationEventDispatchTest {
                 "edc.negotiation.provider.send.retry.limit", "0"
         ));
         extension.registerServiceMock(NegotiationWaitStrategy.class, () -> 1);
-        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
-        extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock());
+        extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, identityService);
+        extension.registerServiceMock(DataPlaneClientFactory.class, mock());
     }
 
     @Test

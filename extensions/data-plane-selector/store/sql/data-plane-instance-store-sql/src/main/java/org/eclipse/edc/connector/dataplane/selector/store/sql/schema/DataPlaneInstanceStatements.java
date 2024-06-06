@@ -14,10 +14,12 @@
 
 package org.eclipse.edc.connector.dataplane.selector.store.sql.schema;
 
-import org.eclipse.edc.sql.statement.SqlStatements;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.lease.LeaseStatements;
+import org.eclipse.edc.sql.lease.StatefulEntityStatements;
+import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
-public interface DataPlaneInstanceStatements extends SqlStatements {
-
+public interface DataPlaneInstanceStatements extends StatefulEntityStatements, LeaseStatements {
 
     default String getDataPlaneInstanceTable() {
         return "edc_data_plane_instance";
@@ -39,7 +41,11 @@ public interface DataPlaneInstanceStatements extends SqlStatements {
 
     String getUpdateTemplate();
 
+    String getSelectTemplate();
+
     String getDeleteByIdTemplate();
+
+    SqlQueryStatement createQuery(QuerySpec querySpec);
 
 }
 

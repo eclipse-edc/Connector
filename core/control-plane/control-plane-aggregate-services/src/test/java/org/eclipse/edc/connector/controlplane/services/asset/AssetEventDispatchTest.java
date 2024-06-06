@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetCreated;
 import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetDeleted;
 import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetEvent;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -44,13 +45,14 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(EdcExtension.class)
 public class AssetEventDispatchTest {
 
-    private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
+    private final EventSubscriber eventSubscriber = mock();
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
-        extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock());
+        extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, mock());
+        extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api"

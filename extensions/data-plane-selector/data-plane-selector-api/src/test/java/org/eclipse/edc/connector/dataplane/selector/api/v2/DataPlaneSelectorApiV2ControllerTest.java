@@ -33,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -66,7 +67,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
     @Test
     void getAll(DataPlaneInstanceStore store) {
         List.of(createInstance("test-id1"), createInstance("test-id2"), createInstance("test-id3"))
-                .forEach(store::create);
+                .forEach(store::save);
 
         var array = baseRequest()
                 .get()
@@ -124,10 +125,10 @@ public class DataPlaneSelectorApiV2ControllerTest {
         var dpi1 = createInstance("test-id1");
         var dpi2 = createInstance("test-id2");
         var dpi3 = createInstance("test-id3");
-        List.of(dpi1, dpi2, dpi3).forEach(store::create);
+        List.of(dpi1, dpi2, dpi3).forEach(store::save);
 
         var newDpi = Json.createObjectBuilder(createInstanceJson("test-id2"))
-                .add(DataPlaneInstance.ALLOWED_DEST_TYPES, Json.createValue("test-dest-type"))
+                .add(DataPlaneInstance.ALLOWED_SOURCE_TYPES, Json.createValue("test-src-type"))
                 .build();
 
         baseRequest()
@@ -137,25 +138,23 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .then()
                 .statusCode(200);
 
-
         assertThat(store.getAll()).hasSize(3)
-                .contains(dpi1, dpi3)
-                .doesNotContain(dpi2);
+                .anyMatch(it -> it.getAllowedSourceTypes().contains("test-src-type"));
     }
 
     @Test
     void select(DataPlaneInstanceStore store) {
-        var dpi = createInstanceBuilder("test-id")
+        var dpi = createInstanceBuilder("test-id1")
                 .allowedSourceType("test-src1")
                 .allowedDestType("test-dst1")
                 .allowedTransferType("transfer-type-1")
                 .build();
-        var dpi2 = createInstanceBuilder("test-id")
+        var dpi2 = createInstanceBuilder("test-id2")
                 .allowedSourceType("test-src2")
                 .allowedDestType("test-dst2")
                 .allowedTransferType("transfer-type-2")
                 .build();
-        List.of(dpi, dpi2).forEach(store::create);
+        Stream.of(dpi, dpi2).peek(DataPlaneInstance::transitionToAvailable).forEach(store::save);
 
         var rq = createSelectionRequestJson("test-src1", "test-dst1", null, "transfer-type-1");
 
@@ -166,7 +165,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .then()
                 .statusCode(200)
                 .extract().body().as(JsonObject.class);
-        assertThat(result.getString(ID)).isEqualTo("test-id");
+        assertThat(result.getString(ID)).isEqualTo("test-id1");
     }
 
     @Test
@@ -179,7 +178,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .allowedSourceType("test-src2")
                 .allowedDestType("test-dst2")
                 .build();
-        List.of(dpi, dpi2).forEach(store::create);
+        List.of(dpi, dpi2).forEach(store::save);
 
         var rq = createSelectionRequestJson("notexist-src", "test-dst2", null, "transfer-type");
 
@@ -202,7 +201,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .allowedSourceType("test-src2")
                 .allowedDestType("test-dst2")
                 .build();
-        List.of(dpi, dpi2).forEach(store::create);
+        List.of(dpi, dpi2).forEach(store::save);
 
         var rq = createSelectionRequestJson("test-src1", "test-dst2", "notexist", "transfer-type1");
 
@@ -226,7 +225,7 @@ public class DataPlaneSelectorApiV2ControllerTest {
                 .allowedDestType("test-dst1")
                 .allowedTransferType("transfer-type-2")
                 .build();
-        List.of(dpi, dpi2).forEach(store::create);
+        Stream.of(dpi, dpi2).peek(DataPlaneInstance::transitionToAvailable).forEach(store::save);
 
         var myCustomStrategy = new SelectionStrategy() {
             @Override

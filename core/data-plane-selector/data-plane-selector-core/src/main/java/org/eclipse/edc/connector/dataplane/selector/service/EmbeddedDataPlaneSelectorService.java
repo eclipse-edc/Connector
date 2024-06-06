@@ -19,13 +19,14 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
 
 public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorService {
 
@@ -58,7 +59,7 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
 
         return transactionContext.execute(() -> {
             try (var stream = store.getAll()) {
-                var dataPlanes = stream.filter(dataPlane -> dataPlane.canHandle(source, transferType)).toList();
+                var dataPlanes = stream.filter(it -> it.getState() == AVAILABLE.code()).filter(dataPlane -> dataPlane.canHandle(source, transferType)).toList();
                 var dataPlane = strategy.apply(dataPlanes);
                 if (dataPlane == null) {
                     return ServiceResult.notFound("DataPlane not found");
@@ -71,13 +72,9 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
     @Override
     public ServiceResult<Void> addInstance(DataPlaneInstance instance) {
         return transactionContext.execute(() -> {
-            StoreResult<Void> result;
-            if (store.findById(instance.getId()) == null) {
-                result = store.create(instance);
-            } else {
-                result = store.update(instance);
-            }
-            return ServiceResult.from(result);
+            instance.transitionToRegistered();
+            store.save(instance);
+            return ServiceResult.success();
         });
     }
 

@@ -59,11 +59,8 @@ class DataPlaneInstanceTest {
                 .contains("\"turnCount\":7")
                 .contains("\"someprop\":\"someval\"");
 
-        var deserialized = mapper.readValue(json, DataPlaneInstance.class);
+        var deserialized = mapper.readValue(json, DataPlaneInstance.class).copy();
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(inst);
-
-        var deserializedItf = mapper.readValue(json, DataPlaneInstance.class);
-        assertThat(deserializedItf).usingRecursiveComparison().isEqualTo(inst);
     }
 
     @Test
@@ -87,8 +84,6 @@ class DataPlaneInstanceTest {
         assertThat(inst.canHandle(createAddress(srcType2), transferType2)).isTrue();
         assertThat(inst.canHandle(createAddress(srcType2), transferType2)).isTrue();
         assertThat(inst.canHandle(createAddress(srcType1), "notexist")).isFalse();
-
-
     }
 
     private DataAddress createAddress(String type) {

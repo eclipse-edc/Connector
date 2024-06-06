@@ -16,54 +16,39 @@ package org.eclipse.edc.connector.dataplane.selector.store;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.store.InMemoryStatefulEntityStore;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.Clock;
+import java.util.UUID;
 import java.util.stream.Stream;
-
-import static java.lang.String.format;
 
 /**
  * Default (=in-memory) implementation for the {@link DataPlaneInstanceStore}.
  */
-public class InMemoryDataPlaneInstanceStore implements DataPlaneInstanceStore {
+public class InMemoryDataPlaneInstanceStore extends InMemoryStatefulEntityStore<DataPlaneInstance> implements DataPlaneInstanceStore {
 
-    private final Map<String, DataPlaneInstance> instances = new ConcurrentHashMap<>();
-
-    @Override
-    public StoreResult<Void> create(DataPlaneInstance instance) {
-        var prev = instances.putIfAbsent(instance.getId(), instance);
-        return Optional.ofNullable(prev)
-                .map(a -> StoreResult.<Void>alreadyExists(format(DATA_PLANE_INSTANCE_EXISTS, instance.getId())))
-                .orElse(StoreResult.success());
+    public InMemoryDataPlaneInstanceStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        this(UUID.randomUUID().toString(), clock, criterionOperatorRegistry);
     }
 
-    @Override
-    public StoreResult<Void> update(DataPlaneInstance instance) {
-        var prev = instances.replace(instance.getId(), instance);
-        return Optional.ofNullable(prev)
-                .map(a -> StoreResult.<Void>success())
-                .orElse(StoreResult.notFound(format(DATA_PLANE_INSTANCE_NOT_FOUND, instance.getId())));
+    public InMemoryDataPlaneInstanceStore(String owner, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        super(DataPlaneInstance.class, owner, clock, criterionOperatorRegistry);
     }
 
     @Override
     public StoreResult<DataPlaneInstance> deleteById(String instanceId) {
-        var removed = instances.remove(instanceId);
-        if (removed == null) {
-            return StoreResult.notFound("DataPlane instance %s not found".formatted(instanceId));
+        var instance = findById(instanceId);
+        if (instance == null) {
+            return StoreResult.notFound("Data plane instance %s not found".formatted(instanceId));
         }
-        return StoreResult.success(removed);
-    }
-
-    @Override
-    public DataPlaneInstance findById(String id) {
-        return instances.get(id);
+        delete(instanceId);
+        return StoreResult.success(instance);
     }
 
     @Override
     public Stream<DataPlaneInstance> getAll() {
-        return instances.values().stream();
+        return findAll();
     }
 }

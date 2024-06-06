@@ -29,6 +29,8 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import java.time.Clock;
+
 /**
  * Extensions that expose an implementation of {@link DataPlaneInstanceStore} that uses SQL as backend storage
  */
@@ -54,6 +56,9 @@ public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
     @Inject
     private QueryExecutor queryExecutor;
 
+    @Inject
+    private Clock clock;
+
     @Override
     public String name() {
         return NAME;
@@ -62,7 +67,7 @@ public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
     @Provider
     public DataPlaneInstanceStore dataPlaneInstanceStore(ServiceExtensionContext context) {
         return new SqlDataPlaneInstanceStore(dataSourceRegistry, getDataSourceName(context), transactionContext,
-                getStatementImpl(), typeManager.getMapper(), queryExecutor);
+                getStatementImpl(), typeManager.getMapper(), queryExecutor, clock, context.getRuntimeId());
     }
 
     /**
