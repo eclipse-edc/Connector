@@ -16,13 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
@@ -47,8 +40,6 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
 public class BaseContractNegotiationApiController {
     protected final ContractNegotiationService service;
     protected final TypeTransformerRegistry transformerRegistry;
@@ -63,8 +54,6 @@ public class BaseContractNegotiationApiController {
         this.validatorRegistry = validatorRegistry;
     }
 
-    @POST
-    @Path("/request")
     public JsonArray queryNegotiations(JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
@@ -85,9 +74,7 @@ public class BaseContractNegotiationApiController {
                 .collect(toJsonArray());
     }
 
-    @GET
-    @Path("/{id}")
-    public JsonObject getNegotiation(@PathParam("id") String id) {
+    public JsonObject getNegotiation(String id) {
 
         return Optional.of(id)
                 .map(service::findbyId)
@@ -96,9 +83,7 @@ public class BaseContractNegotiationApiController {
                 .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, id));
     }
 
-    @GET
-    @Path("/{id}/state")
-    public JsonObject getNegotiationState(@PathParam("id") String id) {
+    public JsonObject getNegotiationState(String id) {
         return Optional.of(id)
                 .map(service::getState)
                 .map(NegotiationState::new)
@@ -107,9 +92,7 @@ public class BaseContractNegotiationApiController {
                 .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
     }
 
-    @GET
-    @Path("/{id}/agreement")
-    public JsonObject getAgreementForNegotiation(@PathParam("id") String negotiationId) {
+    public JsonObject getAgreementForNegotiation(String negotiationId) {
         return Optional.of(negotiationId)
                 .map(service::getForNegotiation)
                 .map(it -> transformerRegistry.transform(it, JsonObject.class)
@@ -117,7 +100,6 @@ public class BaseContractNegotiationApiController {
                 .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, negotiationId));
     }
 
-    @POST
     public JsonObject initiateContractNegotiation(JsonObject requestObject) {
         validatorRegistry.validate(CONTRACT_REQUEST_TYPE, requestObject)
                 .orElseThrow(ValidationFailureException::new);
@@ -136,9 +118,7 @@ public class BaseContractNegotiationApiController {
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
-    @POST
-    @Path("/{id}/terminate")
-    public void terminateNegotiation(@PathParam("id") String id, JsonObject terminateNegotiation) {
+    public void terminateNegotiation(String id, JsonObject terminateNegotiation) {
         validatorRegistry.validate(TERMINATE_NEGOTIATION_TYPE, terminateNegotiation)
                 .orElseThrow(ValidationFailureException::new);
 

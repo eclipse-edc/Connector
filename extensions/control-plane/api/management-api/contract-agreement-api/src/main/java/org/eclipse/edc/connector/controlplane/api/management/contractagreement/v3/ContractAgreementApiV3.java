@@ -34,7 +34,6 @@ public interface ContractAgreementApiV3 {
 
     @Operation(description = "Gets all contract agreements according to a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
-            operationId = "queryAgreementsV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract agreements matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagementApiSchema.ContractAgreementSchema.class)))),
@@ -42,10 +41,9 @@ public interface ContractAgreementApiV3 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonArray queryAgreements(JsonObject querySpecJson);
+    JsonArray queryAgreementsV3(JsonObject querySpecJson);
 
     @Operation(description = "Gets an contract agreement with the given ID",
-            operationId = "getAgreementByIdV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract agreement",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractAgreementSchema.class))),
@@ -55,11 +53,10 @@ public interface ContractAgreementApiV3 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonObject getAgreementById(String id);
+    JsonObject getAgreementByIdV3(String id);
 
 
     @Operation(description = "Gets a contract negotiation with the given contract agreement ID",
-            operationId = "getNegotiationByAgreementIdV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class))),
@@ -69,6 +66,6 @@ public interface ContractAgreementApiV3 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonObject getNegotiationByAgreementId(String id);
+    JsonObject getNegotiationByAgreementIdV3(String id);
 
 }

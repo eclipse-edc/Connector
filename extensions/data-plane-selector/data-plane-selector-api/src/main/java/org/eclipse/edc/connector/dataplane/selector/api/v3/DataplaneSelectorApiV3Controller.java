@@ -44,7 +44,7 @@ public class DataplaneSelectorApiV3Controller implements DataplaneSelectorApiV3 
 
     @Override
     @GET
-    public JsonArray getAllDataPlaneInstances() {
+    public JsonArray getAllDataPlaneInstancesV3() {
         var instances = selectionService.getAll().orElseThrow(exceptionMapper(DataPlaneInstance.class));
         return instances.stream()
                 .map(i -> transformerRegistry.transform(i, JsonObject.class))

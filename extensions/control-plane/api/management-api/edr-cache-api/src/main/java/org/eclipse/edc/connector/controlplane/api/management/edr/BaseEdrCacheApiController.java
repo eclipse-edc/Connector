@@ -16,13 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.edr;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
 import org.eclipse.edc.spi.EdcException;
@@ -36,12 +29,9 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes(APPLICATION_JSON)
-@Produces(APPLICATION_JSON)
 public class BaseEdrCacheApiController {
     protected final EndpointDataReferenceStore edrStore;
     protected final TypeTransformerRegistry transformerRegistry;
@@ -55,8 +45,6 @@ public class BaseEdrCacheApiController {
         this.monitor = monitor;
     }
 
-    @POST
-    @Path("/request")
     public JsonArray requestEdrEntries(JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
@@ -78,9 +66,7 @@ public class BaseEdrCacheApiController {
                 .collect(toJsonArray());
     }
 
-    @GET
-    @Path("{transferProcessId}/dataaddress")
-    public JsonObject getEdrEntryDataAddress(@PathParam("transferProcessId") String transferProcessId) {
+    public JsonObject getEdrEntryDataAddress(String transferProcessId) {
         var dataAddress = edrStore.resolveByTransferProcess(transferProcessId)
                 .flatMap(ServiceResult::from)
                 .orElseThrow(exceptionMapper(EndpointDataReferenceEntry.class, transferProcessId));
@@ -91,9 +77,7 @@ public class BaseEdrCacheApiController {
 
     }
 
-    @DELETE
-    @Path("{transferProcessId}")
-    public void removeEdrEntry(@PathParam("transferProcessId") String transferProcessId) {
+    public void removeEdrEntry(String transferProcessId) {
         edrStore.delete(transferProcessId)
                 .flatMap(ServiceResult::from)
                 .orElseThrow(exceptionMapper(EndpointDataReferenceEntry.class, transferProcessId));

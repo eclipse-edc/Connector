@@ -47,7 +47,6 @@ public interface ContractNegotiationApiV2 {
 
     @Operation(description = "Returns all contract negotiations according to a query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
-            operationId = "queryNegotiationsV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiations that match the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class)))),
@@ -56,10 +55,9 @@ public interface ContractNegotiationApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonArray queryNegotiations(JsonObject querySpecJson);
+    JsonArray queryNegotiationsV2(JsonObject querySpecJson);
 
     @Operation(description = "Gets a contract negotiation with the given ID",
-            operationId = "getNegotiationV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class))),
@@ -71,10 +69,9 @@ public interface ContractNegotiationApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonObject getNegotiation(String id);
+    JsonObject getNegotiationV2(String id);
 
     @Operation(description = "Gets the state of a contract negotiation with the given ID",
-            operationId = "getNegotiationStateV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation's state",
                             content = @Content(schema = @Schema(implementation = NegotiationState.class))),
@@ -86,7 +83,7 @@ public interface ContractNegotiationApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonObject getNegotiationState(String id);
+    JsonObject getNegotiationStateV2(String id);
 
     @Operation(description = "Gets a contract agreement for a contract negotiation with the given ID",
             responses = {
@@ -97,20 +94,18 @@ public interface ContractNegotiationApiV2 {
                     @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             },
-            operationId = "getAgreementForNegotiationV2",
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonObject getAgreementForNegotiation(String negotiationId);
+    JsonObject getAgreementForNegotiationV2(String negotiationId);
 
     @Operation(description = "Initiates a contract negotiation for a given offer and with the given counter part. Please note that successfully invoking this endpoint " +
             "only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractRequestSchema.class))),
-            operationId = "initiateNegotiationV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class)),
-                            links = @Link(name = "poll-state", operationId = "getNegotiationState", parameters = {
+                            links = @Link(name = "poll-state", operationId = "getNegotiationStateV2", parameters = {
                                     @LinkParameter(name = "id", expression = "$response.body#/id")
                             })
                     ),
@@ -119,14 +114,13 @@ public interface ContractNegotiationApiV2 {
             },
             deprecated = true)
     @Deprecated(since = "0.7.0")
-    JsonObject initiateContractNegotiation(JsonObject requestDto);
+    JsonObject initiateContractNegotiationV2(JsonObject requestDto);
 
     @Operation(description = "Terminates the contract negotiation.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = TerminateNegotiationSchema.class))),
-            operationId = "terminateNegotiationV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "ContractNegotiation is terminating",
-                            links = @Link(name = "poll-state", operationId = "getNegotiationState")),
+                            links = @Link(name = "poll-state", operationId = "getNegotiationStateV2")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
@@ -135,7 +129,7 @@ public interface ContractNegotiationApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    void terminateNegotiation(String id, JsonObject terminateNegotiation);
+    void terminateNegotiationV2(String id, JsonObject terminateNegotiation);
 
     @Schema(name = "ContractRequest", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
     record ContractRequestSchema(

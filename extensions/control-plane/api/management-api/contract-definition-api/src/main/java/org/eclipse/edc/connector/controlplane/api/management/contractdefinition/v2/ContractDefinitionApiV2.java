@@ -43,7 +43,6 @@ public interface ContractDefinitionApiV2 {
 
     @Operation(description = "Returns all contract definitions according to a query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
-            operationId = "queryContractDefV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract definitions matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractDefinitionOutputSchema.class)))),
@@ -53,10 +52,9 @@ public interface ContractDefinitionApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonArray queryContractDefinitions(JsonObject querySpecJson);
+    JsonArray queryContractDefinitionsV2(JsonObject querySpecJson);
 
     @Operation(description = "Gets an contract definition with the given ID",
-            operationId = "getContractDefV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract definition",
                             content = @Content(schema = @Schema(implementation = ContractDefinitionOutputSchema.class))),
@@ -68,11 +66,10 @@ public interface ContractDefinitionApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonObject getContractDefinition(String id);
+    JsonObject getContractDefinitionV2(String id);
 
     @Operation(description = "Creates a new contract definition",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractDefinitionInputSchema.class))),
-            operationId = "createContractDefinitionV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "contract definition was created successfully. Returns the Contract Definition Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
@@ -83,11 +80,10 @@ public interface ContractDefinitionApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonObject createContractDefinition(JsonObject createObject);
+    JsonObject createContractDefinitionV2(JsonObject createObject);
 
     @Operation(description = "Removes a contract definition with the given ID if possible. " +
             "DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
-            operationId = "deleteContractDefV2",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Contract definition was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -98,11 +94,10 @@ public interface ContractDefinitionApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    void deleteContractDefinition(String id);
+    void deleteContractDefinitionV2(String id);
 
     @Operation(description = "Updated a contract definition with the given ID. The supplied JSON structure must be a valid JSON-LD object",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractDefinitionInputSchema.class))),
-            operationId = "updateContractDefV2",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Contract definition was updated successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -113,7 +108,7 @@ public interface ContractDefinitionApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    void updateContractDefinition(JsonObject updateObject);
+    void updateContractDefinitionV2(JsonObject updateObject);
 
     @Schema(name = "ContractDefinitionInput", example = CONTRACT_DEFINITION_INPUT_EXAMPLE)
     record ContractDefinitionInputSchema(

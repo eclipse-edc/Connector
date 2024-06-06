@@ -38,7 +38,7 @@ import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 public interface SecretsApiV1 {
 
     @Operation(description = "Creates a new secret.",
-            deprecated = true, operationId = "createSecretV1",
+            deprecated = true,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SecretInputSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Secret was created successfully. Returns the secret Id and created timestamp",
@@ -49,10 +49,10 @@ public interface SecretsApiV1 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
     )
     @Deprecated(since = "0.7.0")
-    JsonObject createSecret(JsonObject secret);
+    JsonObject createSecretV1(JsonObject secret);
 
     @Operation(description = "Gets a secret with the given ID",
-            deprecated = true, operationId = "getSecretV1",
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "200", description = "The secret",
                             content = @Content(schema = @Schema(implementation = SecretOutputSchema.class))),
@@ -63,10 +63,10 @@ public interface SecretsApiV1 {
             }
     )
     @Deprecated(since = "0.7.0")
-    JsonObject getSecret(String id);
+    JsonObject getSecretV1(String id);
 
     @Operation(description = "Removes a secret with the given ID if possible.",
-            deprecated = true, operationId = "removeSecretV1",
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "204", description = "Secret was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -75,10 +75,10 @@ public interface SecretsApiV1 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     @Deprecated(since = "0.7.0")
-    void removeSecret(String id);
+    void removeSecretV1(String id);
 
     @Operation(description = "Updates a secret with the given ID if it exists. If the secret is not found, no further action is taken. ",
-            deprecated = true, operationId = "updateSecretV1",
+            deprecated = true,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SecretInputSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "204", description = "Secret was updated successfully"),
@@ -87,7 +87,7 @@ public interface SecretsApiV1 {
                     @ApiResponse(responseCode = "404", description = "Secret could not be updated, because it does not exist.")
             })
     @Deprecated(since = "0.7.0")
-    void updateSecret(JsonObject secret);
+    void updateSecretV1(JsonObject secret);
 
     @Schema(name = "SecretInput", example = SecretInputSchema.SECRET_INPUT_EXAMPLE)
     record SecretInputSchema(

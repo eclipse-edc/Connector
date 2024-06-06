@@ -39,7 +39,6 @@ public interface CatalogApiV3 {
 
     @Operation(
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = CatalogRequestSchema.class))),
-            operationId = "requestCatalogV3",
             responses = { @ApiResponse(
                     content = @Content(
                             mediaType = "application/json",
@@ -47,11 +46,10 @@ public interface CatalogApiV3 {
                     ),
                     description = "Gets contract offers (=catalog) of a single connector") }
     )
-    void requestCatalog(JsonObject request, @Suspended AsyncResponse response);
+    void requestCatalogV3(JsonObject request, @Suspended AsyncResponse response);
 
     @Operation(
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DatasetRequestSchema.class))),
-            operationId = "getDatasetV3",
             responses = { @ApiResponse(
                     content = @Content(
                             mediaType = "application/json",
@@ -59,7 +57,7 @@ public interface CatalogApiV3 {
                     ),
                     description = "Gets single dataset from a connector") }
     )
-    void getDataset(JsonObject request, @Suspended AsyncResponse response);
+    void getDatasetV3(JsonObject request, @Suspended AsyncResponse response);
 
     @Schema(name = "CatalogRequest", example = CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE)
     record CatalogRequestSchema(

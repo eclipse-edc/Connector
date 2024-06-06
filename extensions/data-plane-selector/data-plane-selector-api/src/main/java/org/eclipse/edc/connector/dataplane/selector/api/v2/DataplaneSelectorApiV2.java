@@ -37,7 +37,6 @@ public interface DataplaneSelectorApiV2 {
 
     @Operation(method = "POST",
             deprecated = true,
-            operationId = "selectDataPlaneInstanceV2",
             description = "Finds the best fitting data plane instance for a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SelectionRequestSchema.class))),
             responses = {
@@ -49,11 +48,10 @@ public interface DataplaneSelectorApiV2 {
             })
     @Deprecated(since = "0.6.4")
     @POST
-    JsonObject selectDataPlaneInstance(JsonObject request);
+    JsonObject selectDataPlaneInstanceV2(JsonObject request);
 
 
     @Operation(method = "POST",
-            operationId = "addDataPlaneInstanceV2",
             description = "Adds one dataplane instance to the internal database of the selector. DEPRECATED: dataplanes should register themselves through control-api",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataPlaneInstanceSchema.class))),
             responses = {
@@ -64,10 +62,9 @@ public interface DataplaneSelectorApiV2 {
     )
     @POST
     @Deprecated(since = "0.6.2")
-    JsonObject addDataPlaneInstance(JsonObject instance);
+    JsonObject addDataPlaneInstanceV2(JsonObject instance);
 
     @Operation(method = "GET",
-            operationId = "getAllDataPlaneInstancesV2",
             description = "Returns a list of all currently registered data plane instances",
             responses = {
                     @ApiResponse(responseCode = "200", description = "A (potentially empty) list of currently registered data plane instances",
@@ -77,6 +74,6 @@ public interface DataplaneSelectorApiV2 {
     )
     @GET
     @Deprecated(since = "0.7.0")
-    JsonArray getAllDataPlaneInstances();
+    JsonArray getAllDataPlaneInstancesV2();
 
 }

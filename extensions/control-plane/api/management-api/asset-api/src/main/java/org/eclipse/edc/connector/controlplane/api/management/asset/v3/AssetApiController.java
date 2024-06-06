@@ -63,7 +63,7 @@ public class AssetApiController implements AssetApi {
 
     @POST
     @Override
-    public JsonObject createAsset(JsonObject assetJson) {
+    public JsonObject createAssetV3(JsonObject assetJson) {
         validator.validate(EDC_ASSET_TYPE, assetJson).orElseThrow(ValidationFailureException::new);
 
         var asset = transformerRegistry.transform(assetJson, Asset.class)
@@ -83,7 +83,7 @@ public class AssetApiController implements AssetApi {
     @POST
     @Path("/request")
     @Override
-    public JsonArray requestAssets(JsonObject querySpecJson) {
+    public JsonArray requestAssetsV3(JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();
@@ -105,7 +105,7 @@ public class AssetApiController implements AssetApi {
     @GET
     @Path("{id}")
     @Override
-    public JsonObject getAsset(@PathParam("id") String id) {
+    public JsonObject getAssetV3(@PathParam("id") String id) {
         var asset = of(id)
                 .map(it -> service.findById(id))
                 .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));
@@ -118,13 +118,13 @@ public class AssetApiController implements AssetApi {
     @DELETE
     @Path("{id}")
     @Override
-    public void removeAsset(@PathParam("id") String id) {
+    public void removeAssetV3(@PathParam("id") String id) {
         service.delete(id).orElseThrow(exceptionMapper(Asset.class, id));
     }
 
     @PUT
     @Override
-    public void updateAsset(JsonObject assetJson) {
+    public void updateAssetV3(JsonObject assetJson) {
         validator.validate(EDC_ASSET_TYPE, assetJson).orElseThrow(ValidationFailureException::new);
 
         var assetResult = transformerRegistry.transform(assetJson, Asset.class)
