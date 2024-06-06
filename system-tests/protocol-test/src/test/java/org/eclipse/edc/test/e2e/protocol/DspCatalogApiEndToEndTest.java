@@ -90,21 +90,21 @@ public class DspCatalogApiEndToEndTest {
                 .contentType(JSON)
                 .body("'dspace:participantId'", notNullValue());
 
-        assertThat(runtime.getContext().getService(ProtocolVersionRegistry.class).getAll().protocolVersions())
+        assertThat(runtime.getService(ProtocolVersionRegistry.class).getAll().protocolVersions())
                 .contains(V_2024_1);
     }
 
     @Test
     void shouldPermitPaginationWithLinkHeader() {
-        var assetIndex = runtime.getContext().getService(AssetIndex.class);
+        var assetIndex = runtime.getService(AssetIndex.class);
         range(0, 8)
                 .mapToObj(i -> Asset.Builder.newInstance().id(i + "").dataAddress(DataAddress.Builder.newInstance().type("any").build()).build())
                 .forEach(assetIndex::create);
-        var policyDefinitionStore = runtime.getContext().getService(PolicyDefinitionStore.class);
+        var policyDefinitionStore = runtime.getService(PolicyDefinitionStore.class);
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build())
                 .onSuccess(policy -> {
                     var contractDefinition = ContractDefinition.Builder.newInstance().accessPolicyId(policy.getId()).contractPolicyId(policy.getId()).build();
-                    runtime.getContext().getService(ContractDefinitionStore.class).save(contractDefinition);
+                    runtime.getService(ContractDefinitionStore.class).save(contractDefinition);
                 });
 
         var link = given()

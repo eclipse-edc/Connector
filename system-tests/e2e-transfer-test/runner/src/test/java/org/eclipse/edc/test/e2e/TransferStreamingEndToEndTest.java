@@ -28,7 +28,8 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -60,8 +61,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.test.e2e.Runtimes.InMemory.controlPlane;
-import static org.eclipse.edc.test.e2e.Runtimes.InMemory.dataPlane;
 import static org.eclipse.edc.test.e2e.Runtimes.backendService;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
@@ -78,13 +77,20 @@ public class TransferStreamingEndToEndTest {
     class InMemory extends Tests {
 
         @RegisterExtension
-        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
-                controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()),
-                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()),
-                dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()),
-                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.InMemory.controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension CONSUMER_BACKEND_SERVICE = new RuntimePerClassExtension(
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.InMemory.controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
+                Runtimes.InMemory.dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_BACKEND_SERVICE = new RuntimePerClassExtension(
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
     }
 

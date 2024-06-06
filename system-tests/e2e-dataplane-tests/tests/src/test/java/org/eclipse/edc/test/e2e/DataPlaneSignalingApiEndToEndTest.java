@@ -76,7 +76,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
     @Test
     void startTransfer() throws JsonProcessingException {
         seedVault();
-        var jsonLd = runtime.getContext().getService(JsonLd.class);
+        var jsonLd = runtime.getService(JsonLd.class);
 
         var processId = "test-processId";
         var flowMessage = createStartMessage(processId);

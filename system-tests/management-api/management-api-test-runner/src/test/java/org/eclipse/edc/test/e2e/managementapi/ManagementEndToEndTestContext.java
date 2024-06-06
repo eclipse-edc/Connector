@@ -18,7 +18,7 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.spi.query.Criterion;
 
 import java.util.Arrays;
@@ -32,7 +32,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
-public record ManagementEndToEndTestContext(EdcRuntimeExtension runtime, int managementPort, int protocolPort) {
+public record ManagementEndToEndTestContext(EmbeddedRuntime runtime, int managementPort, int protocolPort) {
 
     public RequestSpecification baseRequest() {
         return given()
