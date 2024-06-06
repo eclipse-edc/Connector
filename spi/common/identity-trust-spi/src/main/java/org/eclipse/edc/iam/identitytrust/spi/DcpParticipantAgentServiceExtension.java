@@ -20,5 +20,5 @@ import org.eclipse.edc.spi.agent.ParticipantAgentServiceExtension;
  * Marker class for a {@link ParticipantAgentServiceExtension} that will be registered for Identity And Trust
  * module.
  */
-public interface IatpParticipantAgentServiceExtension extends ParticipantAgentServiceExtension {
+public interface DcpParticipantAgentServiceExtension extends ParticipantAgentServiceExtension {
 }

@@ -48,9 +48,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class IatpScopeExtractorRegistryTest {
+public class DcpScopeExtractorRegistryTest {
 
-    private final IatpScopeExtractorRegistry registry = new IatpScopeExtractorRegistry();
+    private final DcpScopeExtractorRegistry registry = new DcpScopeExtractorRegistry();
     private ScopeExtractor extractor;
     private PolicyContext ctx;
 

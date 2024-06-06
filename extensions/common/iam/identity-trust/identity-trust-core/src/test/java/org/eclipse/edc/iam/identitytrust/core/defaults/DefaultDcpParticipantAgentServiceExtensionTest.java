@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.core.IatpDefaultServicesExtension.CLAIMTOKEN_VC_KEY;
+import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.CLAIMTOKEN_VC_KEY;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createCredential;
 
-class DefaultIatpParticipantAgentServiceExtensionTest {
+class DefaultDcpParticipantAgentServiceExtensionTest {
 
-    private final DefaultIatpParticipantAgentServiceExtension extension = new DefaultIatpParticipantAgentServiceExtension();
+    private final DefaultDcpParticipantAgentServiceExtension extension = new DefaultDcpParticipantAgentServiceExtension();
 
     @Test
     void attributesFor_success() {

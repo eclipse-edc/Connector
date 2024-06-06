@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
-import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultIatpParticipantAgentServiceExtension;
+import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultDcpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.core.defaults.InMemorySignatureSuiteRegistry;
-import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorRegistry;
+import org.eclipse.edc.iam.identitytrust.core.scope.DcpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
-import org.eclipse.edc.iam.identitytrust.spi.IatpParticipantAgentServiceExtension;
+import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
@@ -48,7 +48,7 @@ import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
 @Extension("Identity And Trust Extension to register default services")
-public class IatpDefaultServicesExtension implements ServiceExtension {
+public class DcpDefaultServicesExtension implements ServiceExtension {
 
     @Setting(value = "Alias of private key used for signing tokens, retrieved from private key resolver", defaultValue = "A random EC private key")
     public static final String STS_PRIVATE_KEY_ALIAS = "edc.iam.sts.privatekey.alias";
@@ -57,7 +57,7 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     public static final String CLAIMTOKEN_VC_KEY = "vc";
     // not a setting, it's defined in Oauth2ServiceExtension
     private static final String OAUTH_TOKENURL_PROPERTY = "edc.oauth.token.url";
-    @Setting(value = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + IatpDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION_MIN)
+    @Setting(value = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + DcpDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION_MIN)
     private static final String STS_TOKEN_EXPIRATION = "edc.iam.sts.token.expiration"; // in minutes
     private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
     @Inject
@@ -95,16 +95,16 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
-    public IatpParticipantAgentServiceExtension createDefaultIatpParticipantAgentServiceExtension() {
-        return new DefaultIatpParticipantAgentServiceExtension();
+    public DcpParticipantAgentServiceExtension createDefaultDcpParticipantAgentServiceExtension() {
+        return new DefaultDcpParticipantAgentServiceExtension();
     }
 
     @Provider(isDefault = true)
     public ScopeExtractorRegistry scopeExtractorRegistry() {
-        return new IatpScopeExtractorRegistry();
+        return new DcpScopeExtractorRegistry();
     }
 
-    // Default audience for IATP is the counter-party id
+    // Default audience for DCP is the counter-party id
     @Provider(isDefault = true)
     public AudienceResolver defaultAudienceResolver() {
         return RemoteMessage::getCounterPartyId;

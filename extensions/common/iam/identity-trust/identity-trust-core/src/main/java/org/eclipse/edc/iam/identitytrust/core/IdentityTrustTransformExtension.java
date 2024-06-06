@@ -40,7 +40,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.iam.identitytrust.spi.IatpConstants.IATP_CONTEXT_URL;
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_CONTEXT_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = IdentityTrustTransformExtension.NAME, categories = { "iam", "transform", "jsonld" })
@@ -65,8 +65,8 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
                 .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v1", uri))
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
-        getResourceUri("document" + File.separator + "iatp.v08.jsonld")
-                .onSuccess(uri -> jsonLdService.registerCachedDocument(IATP_CONTEXT_URL, uri))
+        getResourceUri("document" + File.separator + "dcp.v08.jsonld")
+                .onSuccess(uri -> jsonLdService.registerCachedDocumentDCP_CONTEXT_URL, uri))
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
         typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager.getMapper(JSON_LD)));

@@ -23,7 +23,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
-import org.eclipse.edc.iam.identitytrust.spi.IatpConstants;
+import org.eclipse.edc.iam.identitytrust.spi.DcpConstants;
 import org.eclipse.edc.iam.identitytrust.spi.model.PresentationQueryMessage;
 import org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants;
@@ -148,7 +148,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
         return jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, jsonFactory.createArrayBuilder()
                         .add(VcConstants.PRESENTATION_EXCHANGE_URL)
-                        .add(IatpConstants.IATP_CONTEXT_URL))
+                        .add(DcpConstants.DCP_CONTEXT_URL))
                 .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TYPE)
                 .add("scope", scopeArray.build())
                 .build();

@@ -19,7 +19,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.credentialservice.Pre
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.eclipse.edc.iam.identitytrust.spi.IatpConstants.IATP_PREFIX;
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_PREFIX;
 
 /**
  * A representation of a <a href="https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/verifiable.presentation.protocol.md#4113-response">Presentation Response</a>
@@ -31,9 +31,9 @@ import static org.eclipse.edc.iam.identitytrust.spi.IatpConstants.IATP_PREFIX;
  */
 public class PresentationResponseMessage {
 
-    public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY = IATP_PREFIX + "presentation";
-    public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_PROPERTY = IATP_PREFIX + "presentationSubmission";
-    public static final String PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY = IATP_PREFIX + "PresentationResponseMessage";
+    public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY = DCP_PREFIX + "presentation";
+    public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_PROPERTY = DCP_PREFIX + "presentationSubmission";
+    public static final String PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY = DCP_PREFIX + "PresentationResponseMessage";
 
     private List<Object> presentation = new ArrayList<>();
 

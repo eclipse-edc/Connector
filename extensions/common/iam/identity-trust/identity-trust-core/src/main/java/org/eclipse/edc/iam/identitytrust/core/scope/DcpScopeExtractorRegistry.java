@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class IatpScopeExtractorRegistry implements ScopeExtractorRegistry {
+public class DcpScopeExtractorRegistry implements ScopeExtractorRegistry {
 
     private final List<ScopeExtractor> extractors = new ArrayList<>();
 
@@ -35,7 +35,7 @@ public class IatpScopeExtractorRegistry implements ScopeExtractorRegistry {
 
     @Override
     public Result<Set<String>> extractScopes(Policy policy, PolicyContext policyContext) {
-        var visitor = new IatpScopeExtractorVisitor(extractors, policyContext);
+        var visitor = new DcpScopeExtractorVisitor(extractors, policyContext);
         var policies = policy.accept(visitor);
         if (policyContext.hasProblems()) {
             return Result.failure(policyContext.getProblems());

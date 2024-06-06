@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.core.defaults;
 
-import org.eclipse.edc.iam.identitytrust.spi.IatpParticipantAgentServiceExtension;
+import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -26,14 +26,14 @@ import java.util.Objects;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.iam.identitytrust.core.IatpDefaultServicesExtension.CLAIMTOKEN_VC_KEY;
+import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.CLAIMTOKEN_VC_KEY;
 import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 
 /**
  * Retrieve subject id from the list of {@link VerifiableCredential} and set the
  * PARTICIPANT_IDENTITY attribute accordingly.
  */
-public class DefaultIatpParticipantAgentServiceExtension implements IatpParticipantAgentServiceExtension {
+public class DefaultDcpParticipantAgentServiceExtension implements DcpParticipantAgentServiceExtension {
     @Override
     public @NotNull Map<String, String> attributesFor(ClaimToken token) {
         return ofNullable(token.getListClaim(CLAIMTOKEN_VC_KEY)).orElse(emptyList())

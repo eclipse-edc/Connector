@@ -3,12 +3,12 @@
 ## Overview
 
 This module implements the `SecureTokenService` spi, which will be used for generating the Self-Issued ID Token
-in the `IATP` protocol flow. This is an embeddable implementation, which can be used in the same process of 
+in the `DCP` protocol flow. This is an embeddable implementation, which can be used in the same process of 
 the EDC control-plane runtime.
 
 ## Self-Issued ID Token Contents
 
-As outlined in the [IATP](https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/identity.protocol.base.md#41-self-issued-id-token-contents) spec
+As outlined in the [DCP](https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/identity.protocol.base.md#41-self-issued-id-token-contents) spec
 the token includes the following claims:
 
 - The `iss` and `sub` claims MUST be equal and set to the bearer's (participant's) DID.
@@ -23,7 +23,7 @@ Additionally, when generating the Self-Issued ID Token the `bearerAccessScope` p
 
 ## VP Access Token format
 
-The `IATP` protocol does not specify the format of the VP Access Token, which it's up to the specific STS implementation. 
+The `DCP` protocol does not specify the format of the VP Access Token, which it's up to the specific STS implementation. 
 In this  implementation the VP access token is still a JWT token with the following claims:
 
 - The `iss` is the same of the SI token (participant's DID)

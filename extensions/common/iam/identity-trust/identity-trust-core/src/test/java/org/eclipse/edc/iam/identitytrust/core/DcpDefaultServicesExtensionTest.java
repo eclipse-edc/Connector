@@ -19,7 +19,7 @@ import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegistry;
-import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorRegistry;
+import org.eclipse.edc.iam.identitytrust.core.scope.DcpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
@@ -35,8 +35,8 @@ import java.security.PrivateKey;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.core.IatpDefaultServicesExtension.STS_PRIVATE_KEY_ALIAS;
-import static org.eclipse.edc.iam.identitytrust.core.IatpDefaultServicesExtension.STS_PUBLIC_KEY_ID;
+import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.STS_PRIVATE_KEY_ALIAS;
+import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.STS_PUBLIC_KEY_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
-class IatpDefaultServicesExtensionTest {
+class DcpDefaultServicesExtensionTest {
 
     private final PrivateKeyResolver privateKeyResolver = mock();
 
@@ -64,7 +64,7 @@ class IatpDefaultServicesExtensionTest {
     }
 
     @Test
-    void verify_defaultService(ServiceExtensionContext context, IatpDefaultServicesExtension ext) {
+    void verify_defaultService(ServiceExtensionContext context, DcpDefaultServicesExtension ext) {
         var publicKeyId = "did:web:" + UUID.randomUUID() + "#key-id";
         var privateKeyAlias = "private";
         Monitor mockedMonitor = mock();
@@ -79,7 +79,7 @@ class IatpDefaultServicesExtensionTest {
     }
 
     @Test
-    void verify_defaultServiceWithWarning(ServiceExtensionContext context, IatpDefaultServicesExtension ext) {
+    void verify_defaultServiceWithWarning(ServiceExtensionContext context, DcpDefaultServicesExtension ext) {
         Monitor mockedMonitor = mock();
         context.registerService(Monitor.class, mockedMonitor);
         when(context.getSetting(eq("edc.oauth.token.url"), any())).thenReturn("https://some.url");
@@ -94,20 +94,20 @@ class IatpDefaultServicesExtensionTest {
     void verify_defaultIssuerRegistry(ServiceExtensionContext context, ObjectFactory factory) {
         Monitor mockedMonitor = mock();
         context.registerService(Monitor.class, mockedMonitor);
-        var ext = factory.constructInstance(IatpDefaultServicesExtension.class);
+        var ext = factory.constructInstance(DcpDefaultServicesExtension.class);
 
         assertThat(ext.createInMemoryIssuerRegistry()).isInstanceOf(DefaultTrustedIssuerRegistry.class);
     }
 
     @Test
-    void verify_defaultCredentialMapperRegistry(ServiceExtensionContext context, IatpDefaultServicesExtension ext) {
+    void verify_defaultCredentialMapperRegistry(ServiceExtensionContext context, DcpDefaultServicesExtension ext) {
         Monitor mockedMonitor = mock();
         context.registerService(Monitor.class, mockedMonitor);
-        assertThat(ext.scopeExtractorRegistry()).isInstanceOf(IatpScopeExtractorRegistry.class);
+        assertThat(ext.scopeExtractorRegistry()).isInstanceOf(DcpScopeExtractorRegistry.class);
     }
 
     @Test
-    void verify_defaultAudienceResolver(IatpDefaultServicesExtension ext) {
+    void verify_defaultAudienceResolver(DcpDefaultServicesExtension ext) {
         var id = "counterPartyId";
         var remoteMessage = mock(RemoteMessage.class);
         when(remoteMessage.getCounterPartyId()).thenReturn(id);

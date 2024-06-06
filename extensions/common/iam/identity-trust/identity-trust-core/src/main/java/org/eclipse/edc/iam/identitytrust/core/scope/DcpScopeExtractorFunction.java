@@ -27,15 +27,15 @@ import java.util.function.BiFunction;
 import static java.lang.String.format;
 
 /**
- * IATP pre-validator function for extracting scopes from a {@link Policy} using the registered {@link ScopeExtractor}
+ * DCP pre-validator function for extracting scopes from a {@link Policy} using the registered {@link ScopeExtractor}
  * in the {@link ScopeExtractorRegistry}.
  */
-public class IatpScopeExtractorFunction implements BiFunction<Policy, PolicyContext, Boolean> {
+public class DcpScopeExtractorFunction implements BiFunction<Policy, PolicyContext, Boolean> {
 
     private final ScopeExtractorRegistry registry;
     private final Monitor monitor;
 
-    public IatpScopeExtractorFunction(ScopeExtractorRegistry registry, Monitor monitor) {
+    public DcpScopeExtractorFunction(ScopeExtractorRegistry registry, Monitor monitor) {
         this.registry = registry;
         this.monitor = monitor;
     }
