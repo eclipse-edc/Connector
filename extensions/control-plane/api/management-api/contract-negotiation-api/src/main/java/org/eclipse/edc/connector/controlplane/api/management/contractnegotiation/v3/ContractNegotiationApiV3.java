@@ -47,17 +47,15 @@ public interface ContractNegotiationApiV3 {
 
     @Operation(description = "Returns all contract negotiations according to a query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
-            operationId = "queryNegotiationsV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiations that match the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
     )
-    JsonArray queryNegotiations(JsonObject querySpecJson);
+    JsonArray queryNegotiationsV3(JsonObject querySpecJson);
 
     @Operation(description = "Gets a contract negotiation with the given ID",
-            operationId = "getNegotiationsV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class))),
@@ -67,10 +65,9 @@ public interface ContractNegotiationApiV3 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonObject getNegotiation(String id);
+    JsonObject getNegotiationV3(String id);
 
     @Operation(description = "Gets the state of a contract negotiation with the given ID",
-            operationId = "getNegotiationStateV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation's state",
                             content = @Content(schema = @Schema(implementation = NegotiationState.class))),
@@ -80,10 +77,9 @@ public interface ContractNegotiationApiV3 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonObject getNegotiationState(String id);
+    JsonObject getNegotiationStateV3(String id);
 
     @Operation(description = "Gets a contract agreement for a contract negotiation with the given ID",
-            operationId = "getAgreementForNegotiationV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract agreement that is attached to the negotiation, or null",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractAgreementSchema.class))),
@@ -93,37 +89,35 @@ public interface ContractNegotiationApiV3 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonObject getAgreementForNegotiation(String negotiationId);
+    JsonObject getAgreementForNegotiationV3(String negotiationId);
 
     @Operation(description = "Initiates a contract negotiation for a given offer and with the given counter part. Please note that successfully invoking this endpoint " +
             "only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractRequestSchema.class))),
-            operationId = "initiateNegotiationV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class)),
-                            links = @Link(name = "poll-state", operationId = "getNegotiationState", parameters = {
+                            links = @Link(name = "poll-state", operationId = "getNegotiationStateV3", parameters = {
                                     @LinkParameter(name = "id", expression = "$response.body#/id")
                             })
                     ),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
             })
-    JsonObject initiateContractNegotiation(JsonObject requestDto);
+    JsonObject initiateContractNegotiationV3(JsonObject requestDto);
 
     @Operation(description = "Terminates the contract negotiation.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = TerminateNegotiationSchema.class))),
-            operationId = "terminateNegotiationV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "ContractNegotiation is terminating",
-                            links = @Link(name = "poll-state", operationId = "getNegotiationState")),
+                            links = @Link(name = "poll-state", operationId = "getNegotiationStateV3")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    void terminateNegotiation(String id, JsonObject terminateNegotiation);
+    void terminateNegotiationV3(String id, JsonObject terminateNegotiation);
 
     @Schema(name = "ContractRequest", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
     record ContractRequestSchema(

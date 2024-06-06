@@ -42,7 +42,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 public interface DataplaneSelectorControlApi {
 
     @Operation(method = HttpMethod.POST,
-            operationId = "registerDataplane",
             description = "Register new Dataplane",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataPlaneInstanceSchema.class))),
             responses = {
@@ -56,7 +55,6 @@ public interface DataplaneSelectorControlApi {
     JsonObject registerDataplane(JsonObject request);
 
     @Operation(method = HttpMethod.DELETE,
-            operationId = "unregisterDataplane",
             description = "Unregister existing Dataplane",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Dataplane successfully unregistered"),
@@ -69,7 +67,6 @@ public interface DataplaneSelectorControlApi {
     void unregisterDataplane(String id);
 
     @Operation(method = "POST",
-            operationId = "selectDataplane",
             description = "Finds the best fitting data plane instance for a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SelectionRequestSchema.class))),
             responses = {
@@ -82,7 +79,6 @@ public interface DataplaneSelectorControlApi {
     JsonObject selectDataplane(JsonObject request);
 
     @Operation(method = "GET",
-            operationId = "getAllDataPlaneInstances",
             description = "Returns a list of all currently registered data plane instances",
             responses = {
                     @ApiResponse(responseCode = "200", description = "A (potentially empty) list of currently registered data plane instances",
@@ -93,7 +89,6 @@ public interface DataplaneSelectorControlApi {
 
 
     @Operation(method = "GET",
-            operationId = "findDataPlaneById",
             description = "Returns the Data Plane Instance with the specified id.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The Data Plane Instance",

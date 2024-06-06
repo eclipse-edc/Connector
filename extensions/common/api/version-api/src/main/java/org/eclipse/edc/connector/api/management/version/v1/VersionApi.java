@@ -39,7 +39,6 @@ import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 public interface VersionApi {
 
     @Operation(description = "Gets the exact SemVer string of the Management API",
-            operationId = "getVersion",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The secret",
                             content = @Content(schema = @Schema(implementation = SecretOutputSchema.class)))

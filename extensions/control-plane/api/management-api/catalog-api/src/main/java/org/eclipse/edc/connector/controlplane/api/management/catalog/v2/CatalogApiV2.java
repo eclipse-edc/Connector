@@ -39,7 +39,6 @@ public interface CatalogApiV2 {
 
     @Operation(
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = CatalogRequestSchema.class))),
-            operationId = "requestCatalogV2",
             responses = { @ApiResponse(
                     content = @Content(
                             mediaType = "application/json",
@@ -49,11 +48,10 @@ public interface CatalogApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    void requestCatalog(JsonObject request, @Suspended AsyncResponse response);
+    void requestCatalogV2(JsonObject request, @Suspended AsyncResponse response);
 
     @Operation(
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DatasetRequestSchema.class))),
-            operationId = "getDatasetV2",
             responses = { @ApiResponse(
                     content = @Content(
                             mediaType = "application/json",
@@ -63,7 +61,7 @@ public interface CatalogApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    void getDataset(JsonObject request, @Suspended AsyncResponse response);
+    void getDatasetV2(JsonObject request, @Suspended AsyncResponse response);
 
     @Schema(name = "CatalogRequest", example = CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE)
     record CatalogRequestSchema(

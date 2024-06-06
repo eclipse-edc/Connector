@@ -39,17 +39,15 @@ public interface EdrCacheApiV3 {
             requestBody = @RequestBody(
                     content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))
             ),
-            operationId = "requestEdrEntriesV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The edr entries matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = EndpointDataReferenceEntrySchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
-    JsonArray requestEdrEntries(JsonObject querySpecJson);
+    JsonArray requestEdrEntriesV3(JsonObject querySpecJson);
 
     @Operation(description = "Gets the EDR data address with the given transfer process ID",
-            operationId = "getEdrEndryDataAddressV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The data address",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.DataAddressSchema.class))),
@@ -60,10 +58,9 @@ public interface EdrCacheApiV3 {
             },
             deprecated = true
     )
-    JsonObject getEdrEntryDataAddress(String transferProcessId);
+    JsonObject getEdrEntryDataAddressV3(String transferProcessId);
 
     @Operation(description = "Removes an EDR entry given the transfer process ID",
-            operationId = "removeEdrEntryV3",
             responses = {
                     @ApiResponse(responseCode = "204", description = "EDR entry was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -71,8 +68,7 @@ public interface EdrCacheApiV3 {
                     @ApiResponse(responseCode = "404", description = "An EDR entry with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
-    void removeEdrEntry(String transferProcessId);
-
+    void removeEdrEntryV3(String transferProcessId);
 
     @ArraySchema()
     @Schema(name = "EndpointDataReferenceEntry", example = EndpointDataReferenceEntrySchema.EDR_ENTRY_OUTPUT_EXAMPLE)

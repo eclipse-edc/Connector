@@ -40,17 +40,15 @@ public interface PolicyDefinitionApiV3 {
 
     @Operation(description = "Returns all policy definitions according to a query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
-            operationId = "queryPolicyDefinitionsV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The policy definitions matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionOutputSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
     )
-    JsonArray queryPolicyDefinitions(JsonObject querySpecJson);
+    JsonArray queryPolicyDefinitionsV3(JsonObject querySpecJson);
 
     @Operation(description = "Gets a policy definition with the given ID",
-            operationId = "getPolicyDefinitionV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The  policy definition",
                             content = @Content(schema = @Schema(implementation = PolicyDefinitionOutputSchema.class))),
@@ -60,11 +58,10 @@ public interface PolicyDefinitionApiV3 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonObject getPolicyDefinition(String id);
+    JsonObject getPolicyDefinitionV3(String id);
 
     @Operation(description = "Creates a new policy definition",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PolicyDefinitionInputSchema.class))),
-            operationId = "createPolicyDefinitionV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "policy definition was created successfully. Returns the Policy Definition Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
@@ -73,12 +70,11 @@ public interface PolicyDefinitionApiV3 {
                     @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
     )
-    JsonObject createPolicyDefinition(JsonObject policyDefinition);
+    JsonObject createPolicyDefinitionV3(JsonObject policyDefinition);
 
     @Operation(description = "Removes a policy definition with the given ID if possible. Deleting a policy definition is " +
             "only possible if that policy definition is not yet referenced by a contract definition, in which case an error is returned. " +
             "DANGER ZONE: Note that deleting policy definitions can have unexpected results, do this at your own risk!",
-            operationId = "deletePolicyDefinitionV3",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Policy definition was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -89,11 +85,10 @@ public interface PolicyDefinitionApiV3 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    void deletePolicyDefinition(String id);
+    void deletePolicyDefinitionV3(String id);
 
     @Operation(description = "Updates an existing Policy, If the Policy is not found, an error is reported",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PolicyDefinitionInputSchema.class))),
-            operationId = "updatePolicyDefinitionV3",
             responses = {
                     @ApiResponse(responseCode = "204", description = "policy definition was updated successfully."),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
@@ -102,7 +97,7 @@ public interface PolicyDefinitionApiV3 {
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))
             }
     )
-    void updatePolicyDefinition(String id, JsonObject policyDefinition);
+    void updatePolicyDefinitionV3(String id, JsonObject policyDefinition);
 
     @Schema(name = "PolicyDefinitionInput", example = PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE)
     record PolicyDefinitionInputSchema(

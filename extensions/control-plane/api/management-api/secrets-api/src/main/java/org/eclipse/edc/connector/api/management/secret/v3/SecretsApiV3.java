@@ -38,7 +38,6 @@ import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 public interface SecretsApiV3 {
 
     @Operation(description = "Creates a new secret.",
-            operationId = "createSecretV3",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SecretInputSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Secret was created successfully. Returns the secret Id and created timestamp",
@@ -48,10 +47,9 @@ public interface SecretsApiV3 {
                     @ApiResponse(responseCode = "409", description = "Could not create secret, because a secret with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
     )
-    JsonObject createSecret(JsonObject secret);
+    JsonObject createSecretV3(JsonObject secret);
 
     @Operation(description = "Gets a secret with the given ID",
-            operationId = "getSecretV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The secret",
                             content = @Content(schema = @Schema(implementation = SecretOutputSchema.class))),
@@ -61,10 +59,9 @@ public interface SecretsApiV3 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonObject getSecret(String id);
+    JsonObject getSecretV3(String id);
 
     @Operation(description = "Removes a secret with the given ID if possible.",
-            operationId = "removeSecretV3",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Secret was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -72,10 +69,9 @@ public interface SecretsApiV3 {
                     @ApiResponse(responseCode = "404", description = "A secret with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
-    void removeSecret(String id);
+    void removeSecretV3(String id);
 
     @Operation(description = "Updates a secret with the given ID if it exists. If the secret is not found, no further action is taken. ",
-            operationId = "updateSecretV3",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SecretInputSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "204", description = "Secret was updated successfully"),
@@ -83,7 +79,7 @@ public interface SecretsApiV3 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "Secret could not be updated, because it does not exist.")
             })
-    void updateSecret(JsonObject secret);
+    void updateSecretV3(JsonObject secret);
 
     @Schema(name = "SecretInput", example = SecretInputSchema.SECRET_INPUT_EXAMPLE)
     record SecretInputSchema(

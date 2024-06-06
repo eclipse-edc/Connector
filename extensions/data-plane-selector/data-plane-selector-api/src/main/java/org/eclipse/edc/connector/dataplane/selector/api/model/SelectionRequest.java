@@ -20,7 +20,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
- * Represents the request body that the {@link DataplaneSelectorApiV2#selectDataPlaneInstance(jakarta.json.JsonObject)} endpoint requires
+ * Represents the request body that the {@link DataplaneSelectorApiV2#selectDataPlaneInstanceV2(jakarta.json.JsonObject)} endpoint requires
  * Contains source and destination address and optionally the name of a selection strategy
  */
 public class SelectionRequest {

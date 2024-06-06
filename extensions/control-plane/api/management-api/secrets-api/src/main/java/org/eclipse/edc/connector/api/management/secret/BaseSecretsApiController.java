@@ -15,14 +15,6 @@
 package org.eclipse.edc.connector.api.management.secret;
 
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.spi.service.SecretService;
 import org.eclipse.edc.spi.EdcException;
@@ -33,13 +25,10 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.util.Optional.of;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes(APPLICATION_JSON)
-@Produces(APPLICATION_JSON)
 public abstract class BaseSecretsApiController {
     private final TypeTransformerRegistry transformerRegistry;
     private final SecretService service;
@@ -51,7 +40,6 @@ public abstract class BaseSecretsApiController {
         this.validator = validator;
     }
 
-    @POST
     public JsonObject createSecret(JsonObject secretJson) {
         validator.validate(EDC_SECRET_TYPE, secretJson).orElseThrow(ValidationFailureException::new);
 
@@ -69,9 +57,7 @@ public abstract class BaseSecretsApiController {
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
-    @GET
-    @Path("{id}")
-    public JsonObject getSecret(@PathParam("id") String id) {
+    public JsonObject getSecret(String id) {
         var secret = of(id)
                 .map(it -> service.findById(id))
                 .orElseThrow(() -> new ObjectNotFoundException(Secret.class, id));
@@ -80,13 +66,10 @@ public abstract class BaseSecretsApiController {
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
-    @DELETE
-    @Path("{id}")
-    public void removeSecret(@PathParam("id") String id) {
+    public void removeSecret(String id) {
         service.delete(id).orElseThrow(exceptionMapper(Secret.class, id));
     }
 
-    @PUT
     public void updateSecret(JsonObject secretJson) {
         validator.validate(EDC_SECRET_TYPE, secretJson).orElseThrow(ValidationFailureException::new);
 

@@ -15,15 +15,23 @@
 package org.eclipse.edc.connector.controlplane.api.management.catalog.v2;
 
 import jakarta.json.JsonObject;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.AsyncResponse;
-import org.eclipse.edc.api.ApiWarnings;
+import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.BaseCatalogApiController;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.edc.api.ApiWarnings.deprecationWarning;
+
+@Consumes(APPLICATION_JSON)
+@Produces(APPLICATION_JSON)
 @Path("/v2/catalog")
 public class CatalogApiV2Controller extends BaseCatalogApiController implements CatalogApiV2 {
     private final Monitor monitor;
@@ -33,15 +41,19 @@ public class CatalogApiV2Controller extends BaseCatalogApiController implements 
         this.monitor = monitor;
     }
 
+    @POST
+    @Path("/request")
     @Override
-    public void requestCatalog(JsonObject requestBody, AsyncResponse response) {
-        monitor.warning(ApiWarnings.deprecationWarning("/v2", "/v3"));
-        super.requestCatalog(requestBody, response);
+    public void requestCatalogV2(JsonObject requestBody, @Suspended AsyncResponse response) {
+        monitor.warning(deprecationWarning("/v2", "/v3"));
+        requestCatalog(requestBody, response);
     }
 
+    @POST
+    @Path("dataset/request")
     @Override
-    public void getDataset(JsonObject requestBody, AsyncResponse response) {
-        monitor.warning(ApiWarnings.deprecationWarning("/v2", "/v3"));
-        super.getDataset(requestBody, response);
+    public void getDatasetV2(JsonObject requestBody, @Suspended AsyncResponse response) {
+        monitor.warning(deprecationWarning("/v2", "/v3"));
+        getDataset(requestBody, response);
     }
 }

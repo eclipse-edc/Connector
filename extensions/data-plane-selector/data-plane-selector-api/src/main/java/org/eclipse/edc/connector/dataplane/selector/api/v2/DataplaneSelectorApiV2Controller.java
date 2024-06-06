@@ -61,7 +61,7 @@ public class DataplaneSelectorApiV2Controller implements DataplaneSelectorApiV2 
     @Override
     @POST
     @Path("select")
-    public JsonObject selectDataPlaneInstance(JsonObject requestObject) {
+    public JsonObject selectDataPlaneInstanceV2(JsonObject requestObject) {
         var request = transformerRegistry.transform(requestObject, SelectionRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
@@ -76,7 +76,7 @@ public class DataplaneSelectorApiV2Controller implements DataplaneSelectorApiV2 
 
     @Override
     @POST
-    public JsonObject addDataPlaneInstance(JsonObject jsonObject) {
+    public JsonObject addDataPlaneInstanceV2(JsonObject jsonObject) {
         validatorRegistry.validate(DATAPLANE_INSTANCE_TYPE, jsonObject).orElseThrow(ValidationFailureException::new);
 
         var instance = transformerRegistry.transform(jsonObject, DataPlaneInstance.class)
@@ -96,7 +96,7 @@ public class DataplaneSelectorApiV2Controller implements DataplaneSelectorApiV2 
 
     @Override
     @GET
-    public JsonArray getAllDataPlaneInstances() {
+    public JsonArray getAllDataPlaneInstancesV2() {
         var instances = selectionService.getAll().orElseThrow(exceptionMapper(DataPlaneInstance.class));
         return instances.stream()
                 .map(i -> transformerRegistry.transform(i, JsonObject.class))
