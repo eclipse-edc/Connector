@@ -58,6 +58,24 @@ public abstract class TransferProcessStoreTestBase {
     protected static final String CONNECTOR_NAME = "test-connector";
     protected final Clock clock = Clock.systemUTC();
 
+    /**
+     * determines the amount of time (default = 500ms) before an async test using Awaitility fails. This may be useful if using remote
+     * or non-self-contained databases.
+     */
+    protected Duration getTestTimeout() {
+        return Duration.ofMillis(500);
+    }
+
+    protected abstract TransferProcessStore getTransferProcessStore();
+
+    protected abstract void leaseEntity(String negotiationId, String owner, Duration duration);
+
+    protected void leaseEntity(String negotiationId, String owner) {
+        leaseEntity(negotiationId, owner, Duration.ofSeconds(60));
+    }
+
+    protected abstract boolean isLeasedBy(String negotiationId, String owner);
+
     @Nested
     class Create {
         @Test
@@ -242,7 +260,7 @@ public abstract class TransferProcessStoreTestBase {
             leaseEntity(t.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
 
             Awaitility.await().atLeast(Duration.ofMillis(100))
-                    .atMost(Duration.ofMillis(500))
+                    .atMost(getTestTimeout())
                     .until(() -> getTransferProcessStore().nextNotLeased(10, hasState(INITIAL.code())), hasSize(1));
         }
 
@@ -976,15 +994,5 @@ public abstract class TransferProcessStoreTestBase {
             assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
         }
     }
-
-    protected abstract TransferProcessStore getTransferProcessStore();
-
-    protected abstract void leaseEntity(String negotiationId, String owner, Duration duration);
-
-    protected void leaseEntity(String negotiationId, String owner) {
-        leaseEntity(negotiationId, owner, Duration.ofSeconds(60));
-    }
-
-    protected abstract boolean isLeasedBy(String negotiationId, String owner);
 
 }

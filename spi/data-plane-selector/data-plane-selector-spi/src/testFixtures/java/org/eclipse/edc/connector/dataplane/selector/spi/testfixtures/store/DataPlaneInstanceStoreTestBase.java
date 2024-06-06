@@ -42,6 +42,36 @@ public abstract class DataPlaneInstanceStoreTestBase {
 
     protected static final String CONNECTOR_NAME = "test-connector";
 
+    protected abstract DataPlaneInstanceStore getStore();
+
+    protected abstract void leaseEntity(String entityId, String owner, Duration duration);
+
+    protected void leaseEntity(String entityId, String owner) {
+        leaseEntity(entityId, owner, Duration.ofSeconds(60));
+    }
+
+    protected abstract boolean isLeasedBy(String entityId, String owner);
+
+    /**
+     * determines the amount of time (default = 500ms) before an async test using Awaitility fails. This may be useful if using remote
+     * or non-self-contained databases.
+     */
+    protected Duration getTestTimeout() {
+        return Duration.ofMillis(500);
+    }
+
+    private DataPlaneInstance createInstanceWithProperty(String id, String name) {
+        return createInstanceBuilder(id)
+                .property("name", name)
+                .build();
+    }
+
+    private DataPlaneInstance.Builder createInstanceBuilder(String id) {
+        return DataPlaneInstance.Builder.newInstance()
+                .id(id)
+                .url("http://somewhere.com:1234/api/v1");
+    }
+
     @Nested
     class FindById {
         @Test
@@ -163,9 +193,10 @@ public abstract class DataPlaneInstanceStoreTestBase {
 
             leaseEntity(entry.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
 
-            await().atMost(Duration.ofMillis(500))
+            await().atMost(getTestTimeout())
                     .until(() -> getStore().nextNotLeased(1, hasState(REGISTERED.code())), hasSize(1));
         }
+
 
         @Test
         void shouldReturnReleasedEntityByUpdate() {
@@ -249,28 +280,6 @@ public abstract class DataPlaneInstanceStoreTestBase {
             assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
         }
 
-    }
-
-    protected abstract DataPlaneInstanceStore getStore();
-
-    protected abstract void leaseEntity(String entityId, String owner, Duration duration);
-
-    protected void leaseEntity(String entityId, String owner) {
-        leaseEntity(entityId, owner, Duration.ofSeconds(60));
-    }
-
-    protected abstract boolean isLeasedBy(String entityId, String owner);
-
-    private DataPlaneInstance createInstanceWithProperty(String id, String name) {
-        return createInstanceBuilder(id)
-                .property("name", name)
-                .build();
-    }
-
-    private DataPlaneInstance.Builder createInstanceBuilder(String id) {
-        return DataPlaneInstance.Builder.newInstance()
-                .id(id)
-                .url("http://somewhere.com:1234/api/v1");
     }
 
 }

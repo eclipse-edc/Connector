@@ -42,6 +42,32 @@ public abstract class PolicyMonitorStoreTestBase {
 
     protected static final String CONNECTOR_NAME = "test-connector";
 
+    /**
+     * determines the amount of time (default = 500ms) before an async test using Awaitility fails. This may be useful if using remote
+     * or non-self-contained databases.
+     */
+    protected Duration getTestTimeout() {
+        return Duration.ofMillis(500);
+    }
+
+    protected abstract PolicyMonitorStore getStore();
+
+    protected abstract void leaseEntity(String entityId, String owner, Duration duration);
+
+    protected void leaseEntity(String entityId, String owner) {
+        leaseEntity(entityId, owner, Duration.ofSeconds(60));
+    }
+
+    protected abstract boolean isLeasedBy(String entityId, String owner);
+
+    private PolicyMonitorEntry createPolicyMonitorEntry(String id, PolicyMonitorEntryStates state) {
+        return PolicyMonitorEntry.Builder.newInstance()
+                .id(id)
+                .contractId(UUID.randomUUID().toString())
+                .state(state.code())
+                .build();
+    }
+
     @Nested
     class Create {
 
@@ -125,7 +151,7 @@ public abstract class PolicyMonitorStoreTestBase {
 
             leaseEntity(entry.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
 
-            await().atMost(Duration.ofMillis(500))
+            await().atMost(getTestTimeout())
                     .until(() -> getStore().nextNotLeased(1, hasState(STARTED.code())), hasSize(1));
         }
 
@@ -187,22 +213,4 @@ public abstract class PolicyMonitorStoreTestBase {
             assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
         }
     }
-
-    private PolicyMonitorEntry createPolicyMonitorEntry(String id, PolicyMonitorEntryStates state) {
-        return PolicyMonitorEntry.Builder.newInstance()
-                .id(id)
-                .contractId(UUID.randomUUID().toString())
-                .state(state.code())
-                .build();
-    }
-
-    protected abstract PolicyMonitorStore getStore();
-
-    protected abstract void leaseEntity(String entityId, String owner, Duration duration);
-
-    protected void leaseEntity(String entityId, String owner) {
-        leaseEntity(entityId, owner, Duration.ofSeconds(60));
-    }
-
-    protected abstract boolean isLeasedBy(String entityId, String owner);
 }
