@@ -148,6 +148,36 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
     class Unregister {
 
         @Test
+        void shouldUnregisterInstance() {
+            when(service.unregister(any())).thenReturn(ServiceResult.success());
+            var instanceId = UUID.randomUUID().toString();
+
+            given()
+                    .port(port)
+                    .put("/v1/dataplanes/{id}/unregister", instanceId)
+                    .then()
+                    .statusCode(204);
+
+            verify(service).unregister(instanceId);
+        }
+
+        @Test
+        void shouldReturnNotFound_whenServiceReturnsNotFound() {
+            when(service.unregister(any())).thenReturn(ServiceResult.notFound("not found"));
+            var instanceId = UUID.randomUUID().toString();
+
+            given()
+                    .port(port)
+                    .put("/v1/dataplanes/{id}/unregister", instanceId)
+                    .then()
+                    .statusCode(404);
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
         void shouldDeleteInstance() {
             when(service.delete(any())).thenReturn(ServiceResult.success());
             var instanceId = UUID.randomUUID().toString();

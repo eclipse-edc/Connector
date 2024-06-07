@@ -54,17 +54,33 @@ public interface DataplaneSelectorControlApi {
             })
     JsonObject registerDataplane(JsonObject request);
 
-    @Operation(method = HttpMethod.DELETE,
+    @Operation(method = HttpMethod.POST,
             description = "Unregister existing Dataplane",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Dataplane successfully unregistered"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "Resource not found",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "409", description = "Conflict",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
     void unregisterDataplane(String id);
+
+    @Operation(method = HttpMethod.DELETE,
+            description = "Delete existing Dataplane",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Dataplane successfully deleted"),
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "404", description = "Resource not found",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "409", description = "Conflict",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+            }
+    )
+    void deleteDataplane(String id);
 
     @Operation(method = "POST",
             description = "Finds the best fitting data plane instance for a particular query",
