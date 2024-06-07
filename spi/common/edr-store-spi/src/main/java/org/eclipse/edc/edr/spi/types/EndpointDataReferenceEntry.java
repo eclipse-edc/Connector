@@ -23,8 +23,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 /**
  * Represents metadata associated with an EDR
  */
-public class
-EndpointDataReferenceEntry extends Entity {
+public class EndpointDataReferenceEntry extends Entity {
 
     public static final String SIMPLE_TYPE = "EndpointDataReferenceEntry";
     public static final String EDR_ENTRY_TYPE = EDC_NAMESPACE + SIMPLE_TYPE;
@@ -114,6 +113,7 @@ EndpointDataReferenceEntry extends Entity {
             return this;
         }
 
+        @Override
         public EndpointDataReferenceEntry build() {
             super.build();
             requireNonNull(entity.assetId, ASSET_ID);
