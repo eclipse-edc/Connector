@@ -52,7 +52,11 @@ public class JsonLdExtension implements ServiceExtension {
 
     public static final String NAME = "JSON-LD Extension";
     public static final String EDC_JSONLD_DOCUMENT_PREFIX = "edc.jsonld.document";
+    public static final String EDC_JSONLD_DOCUMENT_CONFIG_ALIAS = EDC_JSONLD_DOCUMENT_PREFIX + ".<documentAlias>.";
+
+    @Setting(context = EDC_JSONLD_DOCUMENT_CONFIG_ALIAS, value = "Path of the JSON-LD document to cache", required = true)
     public static final String CONFIG_VALUE_PATH = "path";
+    @Setting(context = EDC_JSONLD_DOCUMENT_CONFIG_ALIAS, value = "URL of the JSON-LD document to cache", required = true)
     public static final String CONFIG_VALUE_URL = "url";
 
     private static final boolean DEFAULT_HTTP_HTTPS_RESOLUTION = false;
