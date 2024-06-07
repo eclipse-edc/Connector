@@ -34,6 +34,7 @@ import java.util.Set;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.REGISTERED;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNAVAILABLE;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
@@ -139,6 +140,10 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
     public void transitionToUnavailable() {
         transitionTo(UNAVAILABLE.code());
+    }
+
+    public void transitionToUnregistered() {
+        transitionTo(UNREGISTERED.code());
     }
 
     @JsonPOJOBuilder(withPrefix = "")

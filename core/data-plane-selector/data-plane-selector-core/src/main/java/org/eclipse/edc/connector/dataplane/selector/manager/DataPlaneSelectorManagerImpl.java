@@ -66,7 +66,7 @@ public class DataPlaneSelectorManagerImpl extends AbstractStateEntityManager<Dat
         } else {
             instance.transitionToUnavailable();
         }
-        store.save(instance);
+        update(instance);
         return true;
     }
 

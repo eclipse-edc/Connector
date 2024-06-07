@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.Nullable;
@@ -81,6 +82,20 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
     @Override
     public ServiceResult<Void> delete(String instanceId) {
         return transactionContext.execute(() -> ServiceResult.from(store.deleteById(instanceId))).mapEmpty();
+    }
+
+    @Override
+    public ServiceResult<Void> unregister(String instanceId) {
+        return transactionContext.execute(() -> {
+            StoreResult<Void> operation = store.findByIdAndLease(instanceId)
+                    .map(it -> {
+                        it.transitionToUnregistered();
+                        store.save(it);
+                        return null;
+                    });
+
+            return ServiceResult.from(operation);
+        });
     }
 
     @Override

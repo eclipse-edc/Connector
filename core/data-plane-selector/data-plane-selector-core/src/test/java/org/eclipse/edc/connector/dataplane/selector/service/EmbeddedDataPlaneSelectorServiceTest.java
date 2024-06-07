@@ -34,12 +34,15 @@ import static java.util.stream.IntStream.range;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.REGISTERED;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNAVAILABLE;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -167,6 +170,30 @@ public class EmbeddedDataPlaneSelectorServiceTest {
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(it -> it.getState() == REGISTERED.code()));
+        }
+    }
+
+    @Nested
+    class Unregister {
+        @Test
+        void shouldUnregisterInstance() {
+            var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(instance));
+
+            var result = service.unregister(UUID.randomUUID().toString());
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(it -> it.getState() == UNREGISTERED.code()));
+        }
+
+        @Test
+        void shouldFail_whenLeaseFails() {
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.alreadyLeased("already leased"));
+
+            var result = service.unregister(UUID.randomUUID().toString());
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store, never()).save(any());
         }
     }
 

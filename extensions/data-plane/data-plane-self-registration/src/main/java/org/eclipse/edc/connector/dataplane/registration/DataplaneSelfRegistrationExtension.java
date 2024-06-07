@@ -58,6 +58,7 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
     private PublicEndpointGeneratorService publicEndpointGeneratorService;
     @Inject
     private HealthCheckService healthCheckService;
+
     private ServiceExtensionContext context;
 
     @Override
@@ -86,7 +87,6 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
                 .build();
 
 
-        // register the data plane
         var monitor = context.getMonitor().withPrefix("DataPlaneHealthCheck");
         var check = new DataPlaneHealthCheck();
         healthCheckService.addReadinessProvider(check);
@@ -105,7 +105,7 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
-        dataPlaneSelectorService.delete(context.getRuntimeId())
+        dataPlaneSelectorService.unregister(context.getRuntimeId())
                 .onSuccess(it -> context.getMonitor().info("data plane successfully unregistered"))
                 .onFailure(failure -> context.getMonitor().severe("error during data plane de-registration. %s: %s"
                         .formatted(failure.getReason(), failure.getFailureDetail())));
