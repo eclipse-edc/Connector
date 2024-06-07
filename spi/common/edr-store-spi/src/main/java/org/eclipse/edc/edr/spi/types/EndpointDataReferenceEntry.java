@@ -23,7 +23,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 /**
  * Represents metadata associated with an EDR
  */
-public class EndpointDataReferenceEntry extends Entity {
+public class
+EndpointDataReferenceEntry extends Entity {
 
     public static final String SIMPLE_TYPE = "EndpointDataReferenceEntry";
     public static final String EDR_ENTRY_TYPE = EDC_NAMESPACE + SIMPLE_TYPE;
@@ -118,7 +119,7 @@ public class EndpointDataReferenceEntry extends Entity {
             requireNonNull(entity.assetId, ASSET_ID);
             requireNonNull(entity.agreementId, AGREEMENT_ID);
             requireNonNull(entity.transferProcessId, TRANSFER_PROCESS_ID);
-            requireNonNull(entity.providerId, TRANSFER_PROCESS_ID);
+            requireNonNull(entity.providerId, PROVIDER_ID);
             // The id is always equals to transfer process id
             entity.id = entity.transferProcessId;
             return entity;
