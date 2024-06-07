@@ -379,6 +379,51 @@ paths:
     delete:
       tags:
       - Dataplane Selector
+      description: Delete existing Dataplane
+      operationId: deleteDataplane
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "204":
+          description: Dataplane successfully deleted
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v1/dataplanes/{id}/unregister:
+    put:
+      tags:
+      - Dataplane Selector
       description: Unregister existing Dataplane
       operationId: unregisterDataplane
       parameters:
@@ -404,6 +449,15 @@ paths:
                   $ref: "#/components/schemas/ApiErrorDetail"
         "404":
           description: Resource not found
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:
