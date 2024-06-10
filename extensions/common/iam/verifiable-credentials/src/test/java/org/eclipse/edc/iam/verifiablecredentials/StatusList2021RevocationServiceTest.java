@@ -20,12 +20,19 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.verify.VerificationTimes;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_CREDENTIAL;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_INDEX;
@@ -45,7 +52,7 @@ class StatusList2021RevocationServiceTest {
     void setup() {
         clientAndServer = ClientAndServer.startClientAndServer("localhost", getFreePort());
         clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT));
+                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_INTERMEDIATE));
     }
 
     @AfterEach
@@ -53,11 +60,12 @@ class StatusList2021RevocationServiceTest {
         clientAndServer.stop();
     }
 
-    @Test
-    void checkRevocation_whenSubjectIsArray() {
+    @ParameterizedTest
+    @ArgumentsSource(ArraySubjectProvider.class)
+    void checkRevocation_whenSubjectIsArray(String testData) {
         clientAndServer.reset();
         clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY));
+                .respond(HttpResponse.response().withStatusCode(200).withBody(testData));
         var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
                         Map.of(STATUS_LIST_PURPOSE, "revocation",
                                 STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
@@ -110,11 +118,12 @@ class StatusList2021RevocationServiceTest {
         clientAndServer.verify(request(), VerificationTimes.exactly(1));
     }
 
-    @Test
-    void getStatusPurposes_whenSingleCredentialStatusRevoked() {
+    @ParameterizedTest
+    @ArgumentsSource(SingleSubjectProvider.class)
+    void getStatusPurposes_whenSingleCredentialStatusRevoked(String testData) {
         clientAndServer.reset();
         clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT));
+                .respond(HttpResponse.response().withStatusCode(200).withBody(testData));
         var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
                         Map.of(STATUS_LIST_PURPOSE, "revocation",
                                 STATUS_LIST_INDEX, REVOKED_INDEX,
@@ -124,11 +133,12 @@ class StatusList2021RevocationServiceTest {
                 .isEqualTo("revocation");
     }
 
-    @Test
-    void getStatusPurposes_whenMultipleCredentialStatusRevoked() {
+    @ParameterizedTest
+    @ArgumentsSource(ArraySubjectProvider.class)
+    void getStatusPurposes_whenMultipleCredentialStatusRevoked(String testData) {
         clientAndServer.reset();
         clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY));
+                .respond(HttpResponse.response().withStatusCode(200).withBody(testData));
         var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
                         Map.of(STATUS_LIST_PURPOSE, "revocation",
                                 STATUS_LIST_INDEX, REVOKED_INDEX,
@@ -138,11 +148,12 @@ class StatusList2021RevocationServiceTest {
                 .isEqualTo("revocation");
     }
 
-    @Test
-    void getStatusPurpose_whenCredentialStatusNotActive() {
+    @ParameterizedTest
+    @ArgumentsSource(SingleSubjectProvider.class)
+    void getStatusPurpose_whenCredentialStatusNotActive(String testData) {
         clientAndServer.reset();
         clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT));
+                .respond(HttpResponse.response().withStatusCode(200).withBody(testData));
         var credential = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "StatusList2021",
                         Map.of(STATUS_LIST_PURPOSE, "revocation",
                                 STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
@@ -152,15 +163,40 @@ class StatusList2021RevocationServiceTest {
                 .isNull();
     }
 
-    @Test
-    void getStatusPurpose_whenNoCredentialStatus() {
+    @ParameterizedTest
+    @ArgumentsSource(SingleSubjectProvider.class)
+    void getStatusPurpose_whenNoCredentialStatus(String testData) {
         clientAndServer.reset();
         clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT));
+                .respond(HttpResponse.response().withStatusCode(200).withBody(testData));
         var credential = TestFunctions.createCredentialBuilder().build();
         assertThat(revocationService.getStatusPurpose(credential))
                 .isNotNull()
                 .isSucceeded();
     }
 
+
+    private static class SingleSubjectProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            return Stream.of(
+                    Arguments.of(Named.of("VC (intermediate)", TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_INTERMEDIATE)),
+                    Arguments.of(Named.of("VC 1.1", TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_1_0)),
+                    Arguments.of(Named.of("VC 2.0", TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_2_0))
+
+            );
+        }
+    }
+
+    private static class ArraySubjectProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            return Stream.of(
+                    Arguments.of(Named.of("VC 1.1", TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY_1_0)),
+                    Arguments.of(Named.of("VC (intermediate)", TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY_INTERMEDIATE)),
+                    Arguments.of(Named.of("VC 2.0", TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY_2_0))
+
+            );
+        }
+    }
 }

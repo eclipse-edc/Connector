@@ -71,12 +71,13 @@ public class VerifiableCredential {
         return issuer;
     }
 
-    @JsonAlias({ "issued" }) // some credentials like StatusList2021 don't adhere to the spec
+    @JsonAlias({ "issued", "validFrom" }) // some credentials like StatusList2021 don't adhere to the spec
     @NotNull
     public Instant getIssuanceDate() {
         return issuanceDate;
     }
 
+    @JsonAlias({ "validUntil" })
     public Instant getExpirationDate() {
         return expirationDate;
     }
