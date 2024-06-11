@@ -1,3 +1,5 @@
+# 0. Introduction
+
 This document introduces the concept of a ***management domain*** and the changes necessary to implement support for it
 in EDC runtimes. Management domains enable a dataspace participant to delegate operational responsibility of EDC
 components throughout an organization. For example, organizational subdivisions may elect to manage data sharing
