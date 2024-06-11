@@ -28,7 +28,7 @@ Management domains may be constructed to support the following deployment topolo
 A single management domain deploys EDC components under one unified operations setup. In this topology, EDC components
 may be deployed to a single, collocated process (management domains are represented by the yellow bounding box):
 
-![[single.instance.png]]
+![](./single.instance.svg)
 
 *Type 1: One management domain controlling a single instance*
 
@@ -36,7 +36,7 @@ More complex operational environments may deploy EDC components as separate clus
 control of a single management domain. For example, a Kubernetes cluster could be deployed with separate *ReplicateSets*
 running pods of Catalog Servers, Control Planes, and Data Planes:
 
-![[cluster.png]]
+![](./cluster.svg)
 
 *Type 1: One management domain controlling a cluster of individual ReplicaSets*
 
@@ -62,7 +62,8 @@ a unified DSP Catalog obtained by resolving the catalog endpoint from Foo's Web 
 returned catalog will contain entries for the Foo divisions a client has access to (the mechanics of how this is done
 are explained below). To support this setup, Foo could deploy the following management domains:
 
-![[distributed.type2.a.png]]
+![](./distributed.type2.a.svg)
+
 *Type2 A: Distributed Management Domains containing an EDC stack*
 
 Here, two primary management domains contain a full EDC stack. A root catalog (explained below) serves as the main entry
@@ -73,7 +74,7 @@ point for client requests.
 Foo Industries could also choose to deploy EDC components themselves in separate management domains. For example, a
 central catalog server that fronts two management domains consisting of Control/Data Plane runtimes:
 
-![[distributed.type2.c.png]]
+![](./distributed.type2.b.svg)
 
 *Type2 B: Distributed Management Domains containing a Catalog Server and separate Control/Data Plane runtimes*
 
@@ -81,7 +82,7 @@ central catalog server that fronts two management domains consisting of Control/
 
 Or, Foo Industries could elect to run a centralized Catalog Server/Control Plane:
 
-![[distributed.type2.b.png]]
+![](./distributed.type2.c.svg)
 
 *Type2 C: Distributed Management Domains containing a Catalog Server/Control Plane and separate Data Plane runtimes*
 
