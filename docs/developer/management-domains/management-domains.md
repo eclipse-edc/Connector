@@ -19,7 +19,7 @@ following are examples of EDC components:
 The current document will outline how management domains operate for three EDC components: the Catalog Server, Control
 Plane, and Data Plane.
 
-## Topologies
+## 1. Topologies
 
 Management domains may be constructed to support the following deployment topologies.
 
@@ -86,7 +86,7 @@ Or, Foo Industries could elect to run a centralized Catalog Server/Control Plane
 
 *Type2 C: Distributed Management Domains containing a Catalog Server/Control Plane and separate Data Plane runtimes*
 
-## Architecture
+## 2. Architecture
 
 The EDC will take advantage of the `Catalog` type specified
 in [DCAT 3](https://www.w3.org/TR/vocab-dcat-3/#Class:Catalog) Specifically, `Catalog` is a subtype of a `Dataset`,
@@ -129,7 +129,7 @@ The `EDC` will use a specialization of `Asset` (note this is not a Java subtype 
 catalog. The specialization will be noted using the Json-Ld `@type` attribute of `dcat:Catalog` when an `Asset` is
 created via the Management API. The associated  `DataAddress` must contain the publicly accessible sub-catalog endpoint.
 
-### Access Control
+### 2.1. Access Control
 
 Returning to the previous example, Foo Industries has a requirement to limit access to subdivision data based on client
 credentials. This can be achieved using the [Type 2B topology](#type-2b-catalog-server-and-controldata-plane-runtime)
@@ -137,13 +137,13 @@ Since sub-catalogs are derived from EDC `Assets`, access policy can be attached 
 handling a client request, the EDC Catalog Server will evaluate the access policy against the client's credentials as
 the root catalog is generated.
 
-### Remote Data Plane Registration
+### 2.2. Remote Data Plane Registration
 
 Foo Industries could elect to host a centralized control plane with distributed data planes as defined
 by [Type 2C topologies](#type-2c-catalog-servercontrol-plane-with-data-plane-runtime). Note that remote data plane
 registration is already supported.
 
-### Zero Replication
+### 2.3. Zero Replication
 
 The current design explicitly eschews replication for performance and simplicity. Composite catalogs use hyperlinks,
 which can be navigated lazily by an asynchronous crawler. To facilitate performant access to assets contained in
@@ -157,11 +157,11 @@ on `Distributions` to convey contract negotiation and transfer process endpoints
 cross-division visibility of contract agreements, a custom read-only replication mechanism can be built as an EDC
 extension using the current event listener mechanism.
 
-## Implementation
+## 3. Implementation
 
 The following implementation work will be done to support Management Domains.
 
-### `Asset` and `Dataset` Specialization
+### 3.1. `Asset` and `Dataset` Specialization
 
 The following changes will be made:
 
@@ -175,7 +175,7 @@ The following changes will be made:
   should be deterministically generated.
 - `JsonObjectFromDatasetTransformer` service will be refactored to delegate serialization of `Catalog` subtypes.
 
-### Federated Catalog Crawler
+### 3.2. Federated Catalog Crawler
 
 The Federated Catalog Crawler (FCC) will be refactored to navigate and cache composite catalogs. Configuration to
 control recursion depth should be available. Note that care must be taken to ensure stable query results are returned
@@ -184,11 +184,11 @@ be done atomically per participant so that intermediate results are not returned
 
 The FCC will be further refactored so that it can be included as an optional service in control plane runtimes.
 
-### Management API
+### 3.3. Management API
 
 The Management API will be refactored to query the local FCC cache when handling a catalog request. If entries are not
 found, the request will be forwarded to the remote endpoint.
 
-### Catalog Server
+### 3.4. Catalog Server
 
 Testing and refactoring will be done to ensure the Catalog Server can be deployed as a separate runtime process.
