@@ -64,10 +64,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     @Override
     public @NotNull Result<ValidatedConsumerOffer> validateInitialOffer(ParticipantAgent agent, ValidatableConsumerOffer consumerOffer) {
         return validateInitialOffer(consumerOffer, agent)
-                .map(sanitizedPolicy -> {
-                    var offer = createContractOffer(sanitizedPolicy, consumerOffer.getOfferId());
-                    return new ValidatedConsumerOffer(agent.getIdentity(), offer);
-                });
+                .compose(policy -> createContractOffer(policy, consumerOffer.getOfferId()))
+                .map(contractOffer -> new ValidatedConsumerOffer(agent.getIdentity(), contractOffer));
     }
 
     @Override
@@ -163,12 +161,15 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @NotNull
-    private ContractOffer createContractOffer(Policy policy, ContractOfferId contractOfferId) {
-        return ContractOffer.Builder.newInstance()
+    private Result<ContractOffer> createContractOffer(Policy policy, ContractOfferId contractOfferId) {
+        if (!contractOfferId.assetIdPart().equals(policy.getTarget())) {
+            return Result.failure("Policy target %s does not match the asset ID in the contract offer %s".formatted(policy.getTarget(), contractOfferId.assetIdPart()));
+        }
+        return Result.success(ContractOffer.Builder.newInstance()
                 .id(contractOfferId.toString())
                 .policy(policy)
                 .assetId(contractOfferId.assetIdPart())
-                .build();
+                .build());
     }
 
 }

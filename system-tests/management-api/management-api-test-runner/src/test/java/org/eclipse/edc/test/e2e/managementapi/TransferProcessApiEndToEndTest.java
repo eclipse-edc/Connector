@@ -19,12 +19,16 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.Nested;
@@ -115,7 +119,18 @@ public class TransferProcessApiEndToEndTest {
         }
 
         @Test
-        void create() {
+        void create(ContractNegotiationStore contractNegotiationStore) {
+            var assetId = UUID.randomUUID().toString();
+            var contractId = UUID.randomUUID().toString();
+            var contractNegotiation = ContractNegotiation.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .counterPartyId("counterPartyId")
+                    .counterPartyAddress("http://counterparty")
+                    .protocol("dataspace-protocol-http")
+                    .contractAgreement(createContractAgreement(contractId, assetId).build())
+                    .build();
+            contractNegotiationStore.save(contractNegotiation);
+
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(TYPE, "TransferRequest")
@@ -131,8 +146,8 @@ public class TransferProcessApiEndToEndTest {
                     .add("callbackAddresses", createCallbackAddress())
                     .add("protocol", "dataspace-protocol-http")
                     .add("counterPartyAddress", "http://connector-address")
-                    .add("contractId", "contractId")
-                    .add("assetId", "assetId")
+                    .add("contractId", contractId)
+                    .add("assetId", assetId)
                     .build();
 
             var id = baseRequest()
@@ -289,6 +304,15 @@ public class TransferProcessApiEndToEndTest {
                     .add(IS_TRANSACTIONAL, false)
                     .add(URI, "http://test.local/")
                     .add(EVENTS, Json.createArrayBuilder().build()));
+        }
+
+        private ContractAgreement.Builder createContractAgreement(String contractId, String assetId) {
+            return ContractAgreement.Builder.newInstance()
+                    .id(contractId)
+                    .providerId("providerId")
+                    .consumerId("consumerId")
+                    .policy(Policy.Builder.newInstance().target(assetId).build())
+                    .assetId(assetId);
         }
     }
 
