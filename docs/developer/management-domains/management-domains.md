@@ -175,7 +175,7 @@ The following changes will be made:
 - `DatasetResolverImpl` will be refactored to handle `Asset` catalog subtypes and return a `Catalog` with the
   appropriate `distribution` and `service` properties derived from the contained `DataAddress`. Note that identifiers
   should be deterministically generated.
-- `JsonObjectFromDatasetTransformer` service will be refactored to delegate serialization of `Catalog` subtypes.
+- `JsonObjectFromDatasetTransformer` will be refactored to delegate serialization of `Catalog` subtypes.
 
 ### 3.2. Federated Catalog Crawler
 
