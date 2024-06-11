@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -108,10 +109,11 @@ public class ContractAgreementApiEndToEndTest {
         }
 
         private ContractOffer.Builder contractOfferBuilder() {
+            var assetId = UUID.randomUUID().toString();
             return ContractOffer.Builder.newInstance()
-                    .id("test-offer-id")
-                    .assetId("test-asset-id")
-                    .policy(Policy.Builder.newInstance().build());
+                    .id(ContractOfferId.create(UUID.randomUUID().toString(), assetId).toString())
+                    .assetId(assetId)
+                    .policy(Policy.Builder.newInstance().target(assetId).build());
         }
 
         private ContractAgreement createContractAgreement(String negotiationId) {
@@ -128,10 +130,12 @@ public class ContractAgreementApiEndToEndTest {
     @Nested
     @EndToEndTest
     @ExtendWith(ManagementEndToEndExtension.InMemory.class)
-    class InMemory extends Tests { }
+    class InMemory extends Tests {
+    }
 
     @Nested
     @PostgresqlIntegrationTest
     @ExtendWith(ManagementEndToEndExtension.Postgres.class)
-    class Postgres extends Tests { }
+    class Postgres extends Tests {
+    }
 }

@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.controlplane.contract.negotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.observe.ContractNegotiationObservableImpl;
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -85,6 +86,7 @@ import static org.mockito.Mockito.when;
 
 class ConsumerContractNegotiationManagerImplTest {
 
+    private static final String ASSET_ID = "assetId";
     private static final String PARTICIPANT_ID = "participantId";
     private static final int RETRY_LIMIT = 1;
 
@@ -307,7 +309,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), new Criterion("type", "=", "CONSUMER") });
+        return aryEq(new Criterion[] {hasState(state), isNotPending(), new Criterion("type", "=", "CONSUMER")});
     }
 
     private ContractNegotiation.Builder contractNegotiationBuilder() {
@@ -320,20 +322,21 @@ class ConsumerContractNegotiationManagerImplTest {
                 .stateTimestamp(Instant.now().toEpochMilli());
     }
 
-    private ContractOffer contractOffer() {
-        return ContractOffer.Builder.newInstance().id("id:assetId:random")
-                .policy(Policy.Builder.newInstance().assigner("providerId").build())
-                .assetId("assetId")
+    private static ContractOffer contractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(ContractOfferId.create("1", ASSET_ID).toString())
+                .policy(Policy.Builder.newInstance().target(ASSET_ID).assigner("providerId").build())
+                .assetId(ASSET_ID)
                 .build();
     }
 
-    private ContractAgreement createContractAgreement() {
+    private static ContractAgreement createContractAgreement() {
         return ContractAgreement.Builder.newInstance()
                 .id("contractId")
                 .consumerId("consumerId")
                 .providerId("providerId")
-                .assetId("assetId")
-                .policy(Policy.Builder.newInstance().build())
+                .assetId(ASSET_ID)
+                .policy(Policy.Builder.newInstance().target(ASSET_ID).build())
                 .build();
     }
 
@@ -361,23 +364,6 @@ class ConsumerContractNegotiationManagerImplTest {
                     new DispatchFailure(VERIFYING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractAgreement(createContractAgreement())),
                     new DispatchFailure(TERMINATING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).errorDetail("an error").contractOffer(contractOffer()))
             );
-        }
-
-        private ContractAgreement createContractAgreement() {
-            return ContractAgreement.Builder.newInstance()
-                    .id("contractId")
-                    .consumerId("consumerId")
-                    .providerId("providerId")
-                    .assetId("assetId")
-                    .policy(Policy.Builder.newInstance().build())
-                    .build();
-        }
-
-        private ContractOffer contractOffer() {
-            return ContractOffer.Builder.newInstance().id("id:assetId:random")
-                    .policy(Policy.Builder.newInstance().build())
-                    .assetId("assetId")
-                    .build();
         }
     }
 

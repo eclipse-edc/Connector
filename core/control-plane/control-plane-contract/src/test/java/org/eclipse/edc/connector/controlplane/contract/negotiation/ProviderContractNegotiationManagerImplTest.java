@@ -88,6 +88,7 @@ import static org.mockito.Mockito.when;
 
 class ProviderContractNegotiationManagerImplTest {
 
+    private static final String ASSET_ID = "assetId";
     private static final String PROVIDER_ID = "provider";
     private static final int RETRY_LIMIT = 1;
     private final ContractNegotiationStore store = mock();
@@ -210,7 +211,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     @Test
     void finalizing_shouldSendMessageAndTransitionToFinalized() {
-        var negotiation = contractNegotiationBuilder().state(FINALIZING.code()).contractOffer(contractOffer()).contractAgreement(contractAgreementBuilder().build()).build();
+        var negotiation = contractNegotiationBuilder().state(FINALIZING.code()).contractOffer(contractOffer()).contractAgreement(createContractAgreement()).build();
         when(store.nextNotLeased(anyInt(), stateIs(FINALIZING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
@@ -291,25 +292,26 @@ class ProviderContractNegotiationManagerImplTest {
                 .stateTimestamp(Instant.now().toEpochMilli());
     }
 
-    private ContractAgreement.Builder contractAgreementBuilder() {
+    private static ContractAgreement createContractAgreement() {
         return ContractAgreement.Builder.newInstance()
                 .id(ContractOfferId.create(UUID.randomUUID().toString(), "test-asset-id").toString())
                 .providerId("any")
                 .consumerId("any")
                 .assetId("default")
-                .policy(Policy.Builder.newInstance().build());
+                .policy(Policy.Builder.newInstance().build())
+                .build();
     }
 
-    private ContractOffer contractOffer() {
+    private static ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(ContractOfferId.create("1", "test-asset-id").toString())
-                .policy(Policy.Builder.newInstance().build())
-                .assetId("assetId")
+                .id(ContractOfferId.create("1", ASSET_ID).toString())
+                .policy(Policy.Builder.newInstance().target(ASSET_ID).build())
+                .assetId(ASSET_ID)
                 .build();
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), new Criterion("type", "=", "PROVIDER") });
+        return aryEq(new Criterion[] {hasState(state), isNotPending(), new Criterion("type", "=", "PROVIDER")});
     }
 
     private static class DispatchFailureArguments implements ArgumentsProvider {
@@ -336,23 +338,6 @@ class ProviderContractNegotiationManagerImplTest {
                     new DispatchFailure(FINALIZING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).contractAgreement(createContractAgreement())),
                     new DispatchFailure(TERMINATING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).errorDetail("an error").contractOffer(contractOffer()))
             );
-        }
-
-        private ContractOffer contractOffer() {
-            return ContractOffer.Builder.newInstance().id("id:assetId:random")
-                    .policy(Policy.Builder.newInstance().build())
-                    .assetId("assetId")
-                    .build();
-        }
-
-        private ContractAgreement createContractAgreement() {
-            return ContractAgreement.Builder.newInstance()
-                    .id("contractId")
-                    .consumerId("consumerId")
-                    .providerId("providerId")
-                    .assetId("assetId")
-                    .policy(Policy.Builder.newInstance().build())
-                    .build();
         }
 
     }

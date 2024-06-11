@@ -19,6 +19,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -64,6 +65,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public abstract class BaseContractNegotiationApiControllerTest extends RestControllerTestBase {
+    private static final String ASSET_ID = "asset-id";
     protected final ContractNegotiationService service = mock();
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
@@ -331,9 +333,9 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
                         .protocol("test-protocol")
                         .counterPartyAddress("test-cb")
                         .contractOffer(ContractOffer.Builder.newInstance()
-                                .id("test-offer-id")
-                                .assetId(randomUUID().toString())
-                                .policy(Policy.Builder.newInstance().build())
+                                .id(ContractOfferId.create(randomUUID().toString(), ASSET_ID).toString())
+                                .assetId(ASSET_ID)
+                                .policy(Policy.Builder.newInstance().target(ASSET_ID).build())
                                 .build())
                         .build()));
 
@@ -459,8 +461,8 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
                 .id(negotiationId)
                 .consumerId("test-consumer")
                 .providerId("test-provider")
-                .assetId(randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
+                .assetId(ASSET_ID)
+                .policy(Policy.Builder.newInstance().target(ASSET_ID).build())
                 .build();
     }
 

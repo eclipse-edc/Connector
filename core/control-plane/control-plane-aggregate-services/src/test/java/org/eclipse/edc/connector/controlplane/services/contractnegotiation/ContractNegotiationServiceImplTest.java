@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.contractnegotiation;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
@@ -269,10 +270,11 @@ class ContractNegotiationServiceImplTest {
     }
 
     private ContractOffer createContractOffer() {
+        var assetId = "test-asset";
         return ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .assetId("test-asset")
+                .id(ContractOfferId.create("1", assetId).toString())
+                .policy(Policy.Builder.newInstance().target(assetId).build())
+                .assetId(assetId)
                 .build();
     }
 }

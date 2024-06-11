@@ -194,7 +194,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "malicious-actor" })
+    @ValueSource(strings = {"malicious-actor"})
     @NullSource
     void verifyContractAgreementValidation_failedIfInvalidCredentials(String counterPartyId) {
         var participantAgent = new ParticipantAgent(emptyMap(), counterPartyId != null ? Map.of(PARTICIPANT_IDENTITY, counterPartyId) : Map.of());
@@ -354,7 +354,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { PROVIDER_ID })
+    @ValueSource(strings = {PROVIDER_ID})
     @NullSource
     void validateConsumerRequest_failsInvalidCredentials(String counterPartyId) {
         var negotiation = ContractNegotiation.Builder.newInstance()
@@ -397,11 +397,11 @@ class ContractValidationServiceImplTest {
         return validationService.validateAgreement(new ParticipantAgent(emptyMap(), emptyMap()), agreement);
     }
 
-    private ContractOffer createContractOffer(Asset asset, Policy policy) {
+    private ContractOffer createContractOffer(Asset asset) {
         return ContractOffer.Builder.newInstance()
                 .id(ContractOfferId.create("1", asset.getId()).toString())
                 .assetId(asset.getId())
-                .policy(policy)
+                .policy(Policy.Builder.newInstance().target(asset.getId()).build())
                 .build();
     }
 
@@ -425,7 +425,7 @@ class ContractValidationServiceImplTest {
 
     @NotNull
     private ContractOffer createContractOffer() {
-        return createContractOffer(Asset.Builder.newInstance().build(), Policy.Builder.newInstance().build());
+        return createContractOffer(Asset.Builder.newInstance().build());
     }
 
     private ContractDefinition createContractDefinition() {

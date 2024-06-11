@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;
@@ -51,10 +52,12 @@ class JsonObjectToContractOfferTransformerTest {
 
     @Test
     void transform() {
+        var assetId = "test-asset";
+        var offerId = ContractOfferId.create("1", assetId).toString();
         var offerPolicy = createObjectBuilder()
                 .add(TYPE, ODRL_POLICY_TYPE_SET)
-                .add(ID, "test-offer-id")
-                .add(ODRL_TARGET_ATTRIBUTE, "test-asset")
+                .add(ID, offerId)
+                .add(ODRL_TARGET_ATTRIBUTE, assetId)
                 .add(ODRL_PERMISSION_ATTRIBUTE, getJsonObject("permission"))
                 .add(ODRL_PROHIBITION_ATTRIBUTE, getJsonObject("prohibition"))
                 .add(ODRL_OBLIGATION_ATTRIBUTE, getJsonObject("duty"))
@@ -66,8 +69,8 @@ class JsonObjectToContractOfferTransformerTest {
         var result = transformer.transform(jsonLd.expand(offerPolicy).getContent(), context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo("test-offer-id");
-        assertThat(result.getAssetId()).isEqualTo("test-asset");
+        assertThat(result.getId()).isEqualTo(offerId);
+        assertThat(result.getAssetId()).isEqualTo(assetId);
     }
 
     @Test

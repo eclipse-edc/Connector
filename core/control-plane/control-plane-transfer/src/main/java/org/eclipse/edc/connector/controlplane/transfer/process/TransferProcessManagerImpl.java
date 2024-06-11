@@ -192,6 +192,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return true;
         }
 
+        if (!process.getAssetId().equals(policy.getTarget())) {
+            transitionToTerminated(process, "Transfer Process asset id %s does not match asset id in contract %s".formatted(process.getAssetId(), policy.getTarget()));
+            return true;
+        }
+
         ResourceManifest manifest;
         if (process.getType() == CONSUMER) {
             var manifestResult = manifestGenerator.generateConsumerResourceManifest(process, policy);
@@ -539,17 +544,17 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
+        var filter = new Criterion[] {hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name())};
         return createProcessor(function, filter);
     }
 
     private Processor processProviderTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name()) };
+        var filter = new Criterion[] {hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name())};
         return createProcessor(function, filter);
     }
 
     private Processor processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{ hasState(state.code()), isNotPending() };
+        var filter = new Criterion[] {hasState(state.code()), isNotPending()};
         return createProcessor(function, filter);
     }
 

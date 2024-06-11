@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.contract.spi.types.offer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 
@@ -103,8 +104,17 @@ public class ContractOffer {
 
         public ContractOffer build() {
             Objects.requireNonNull(contractOffer.id, "Id must not be null");
+            var offerId = ContractOfferId.parseId(contractOffer.id)
+                    .orElseThrow(failure -> new IllegalArgumentException(failure.getFailureDetail()));
             Objects.requireNonNull(contractOffer.assetId, "Asset id must not be null");
             Objects.requireNonNull(contractOffer.policy, "Policy must not be null");
+            if (!offerId.assetIdPart().equals(contractOffer.assetId)) {
+                throw new IllegalArgumentException("Asset id %s must be equal to asset id part of offer id %s".formatted(contractOffer.assetId, offerId.assetIdPart()));
+            }
+
+            if (!contractOffer.assetId.equals(contractOffer.policy.getTarget())) {
+                throw new IllegalArgumentException("Policy target %s must be equal to asset id %s".formatted(contractOffer.policy.getTarget(), contractOffer.assetId));
+            }
             return contractOffer;
         }
     }

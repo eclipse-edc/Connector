@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
@@ -41,7 +42,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,7 +50,8 @@ class JsonObjectFromContractOfferMessageTransformerTest {
     private static final String MESSAGE_ID = "messageId";
     private static final String CALLBACK_ADDRESS = "https://test.com";
     private static final String PROTOCOL = "DSP";
-    private static final String CONTRACT_OFFER_ID = "contractId";
+    private static final String ASSET_ID = "assetId";
+    private static final String CONTRACT_OFFER_ID = ContractOfferId.create("1", ASSET_ID).toString();
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
@@ -110,14 +111,14 @@ class JsonObjectFromContractOfferMessageTransformerTest {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNull();
-        verify(context, times(1)).reportProblem(any());
+        verify(context).reportProblem(any());
     }
 
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
                 .id(CONTRACT_OFFER_ID)
-                .assetId("assetId")
-                .policy(Policy.Builder.newInstance().build())
+                .assetId(ASSET_ID)
+                .policy(Policy.Builder.newInstance().target(ASSET_ID).build())
                 .build();
     }
 

@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
@@ -41,7 +42,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,7 +51,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
     private static final String CONSUMER_PID = "consumerPid";
     private static final String PROTOCOL = "DSP";
     private static final String DATASET_ID = "datasetId";
-    private static final String CONTRACT_OFFER_ID = "contractOffer1";
+    private static final String CONTRACT_OFFER_ID = ContractOfferId.create("1", DATASET_ID).toString();
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
@@ -102,7 +102,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNull();
-        verify(context, times(1)).reportProblem(anyString());
+        verify(context).reportProblem(anyString());
     }
 
     private ContractRequestMessage.Builder contractRequestMessageBuilder() {
@@ -115,7 +115,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
         return ContractOffer.Builder.newInstance()
                 .id(CONTRACT_OFFER_ID)
                 .assetId(DATASET_ID)
-                .policy(Policy.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().target(DATASET_ID).build())
                 .build();
     }
 

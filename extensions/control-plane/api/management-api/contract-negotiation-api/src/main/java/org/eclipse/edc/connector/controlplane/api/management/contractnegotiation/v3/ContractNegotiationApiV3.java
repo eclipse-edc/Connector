@@ -51,7 +51,7 @@ public interface ContractNegotiationApiV3 {
                     @ApiResponse(responseCode = "200", description = "The contract negotiations that match the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))}
     )
     JsonArray queryNegotiationsV3(JsonObject querySpecJson);
 
@@ -143,7 +143,7 @@ public interface ContractNegotiationApiV3 {
                     "policy": {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
                         "@type": "odrl:Offer",
-                        "@id": "offer-id",
+                        "@id": "MQ==:YXNzZXRJZA==:MQ==",
                         "assigner": "providerId",
                         "permission": [],
                         "prohibition": [],

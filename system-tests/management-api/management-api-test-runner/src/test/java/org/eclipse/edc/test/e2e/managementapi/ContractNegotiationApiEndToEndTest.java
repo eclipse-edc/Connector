@@ -17,6 +17,7 @@ package org.eclipse.edc.test.e2e.managementapi;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -197,16 +198,17 @@ public class ContractNegotiationApiEndToEndTest {
         }
 
         private ContractOffer.Builder contractOfferBuilder() {
+            var assetId = randomUUID().toString();
             return ContractOffer.Builder.newInstance()
-                    .id("test-offer-id")
-                    .assetId(randomUUID().toString())
-                    .policy(Policy.Builder.newInstance().build());
+                    .id(ContractOfferId.create(UUID.randomUUID().toString(), assetId).toString())
+                    .assetId(assetId)
+                    .policy(Policy.Builder.newInstance().target(assetId).build());
         }
 
         private ContractAgreement createContractAgreement(String negotiationId) {
             return ContractAgreement.Builder.newInstance()
                     .id(negotiationId)
-                    .assetId(randomUUID().toString())
+                    .assetId(UUID.randomUUID().toString())
                     .consumerId(randomUUID() + "-consumer")
                     .providerId(randomUUID() + "-provider")
                     .policy(Policy.Builder.newInstance().build())
@@ -225,15 +227,16 @@ public class ContractNegotiationApiEndToEndTest {
             var permissionJson = createObjectBuilder().add(TYPE, "permission").build();
             var prohibitionJson = createObjectBuilder().add(TYPE, "prohibition").build();
             var dutyJson = createObjectBuilder().add(TYPE, "duty").build();
+            var assetId = UUID.randomUUID().toString();
             return createObjectBuilder()
                     .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
                     .add(TYPE, "Offer")
-                    .add(ID, "offer-id")
+                    .add(ID, ContractOfferId.create(randomUUID().toString(), assetId).toString())
                     .add("permission", permissionJson)
                     .add("prohibition", prohibitionJson)
                     .add("obligation", dutyJson)
                     .add("assigner", "provider-id")
-                    .add("target", "asset-id")
+                    .add("target", assetId)
                     .build();
         }
 
@@ -242,11 +245,13 @@ public class ContractNegotiationApiEndToEndTest {
     @Nested
     @EndToEndTest
     @ExtendWith(ManagementEndToEndExtension.InMemory.class)
-    class InMemory extends Tests { }
+    class InMemory extends Tests {
+    }
 
     @Nested
     @ExtendWith(ManagementEndToEndExtension.Postgres.class)
     @PostgresqlIntegrationTest
-    class Postgres extends Tests { }
+    class Postgres extends Tests {
+    }
 
 }

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.e2e.protocol;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -90,12 +91,14 @@ public class DspTransferApiEndToEndTest {
     }
 
     private static ContractNegotiation createNegotiationWithAgreement(String contractId) {
+        var assetId = "asset-id";
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString()).counterPartyId("any").counterPartyAddress("any").protocol("any").state(ContractNegotiationStates.REQUESTED.code())
                 .correlationId(UUID.randomUUID().toString())
                 .contractOffer(ContractOffer.Builder.newInstance()
-                        .id(UUID.randomUUID().toString()).assetId(UUID.randomUUID().toString())
-                        .policy(Policy.Builder.newInstance().build())
+                        .id(ContractOfferId.create("1", assetId).toString())
+                        .assetId(assetId)
+                        .policy(Policy.Builder.newInstance().target(assetId).build())
                         .build())
                 .contractAgreement(ContractAgreement.Builder.newInstance()
                         .id(contractId)

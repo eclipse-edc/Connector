@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
@@ -107,8 +108,9 @@ class JsonObjectToContractRequestTransformerTest {
     }
 
     private ContractOffer createContractOffer(String providerId) {
-        var policy = Policy.Builder.newInstance().target("test-asset").assigner(providerId).build();
-        return ContractOffer.Builder.newInstance().id("offer-id").assetId("asset-id").policy(policy).build();
+        var assetId = "asset-id";
+        var policy = Policy.Builder.newInstance().target(assetId).assigner(providerId).build();
+        return ContractOffer.Builder.newInstance().id(ContractOfferId.create("1", assetId).toString()).assetId(assetId).policy(policy).build();
     }
 
     private JsonArrayBuilder createCallbackAddress() {

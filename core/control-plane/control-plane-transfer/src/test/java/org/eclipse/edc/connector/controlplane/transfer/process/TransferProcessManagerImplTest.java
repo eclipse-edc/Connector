@@ -204,7 +204,7 @@ class TransferProcessManagerImplTest {
     @Test
     void initial_consumer_shouldTransitionToProvisioning() {
         var transferProcess = createTransferProcess(INITIAL);
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(transferProcess.getAssetId()).build());
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                 .thenReturn(List.of(transferProcess))
                 .thenReturn(emptyList());
@@ -222,9 +222,28 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
+    void initial_consumer_invalidAssetId_shouldTransitionToTerminated() {
+        var transferProcess = createTransferProcess(INITIAL);
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target("another-asset-id").build());
+        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
+                .thenReturn(List.of(transferProcess))
+                .thenReturn(emptyList());
+        when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class)))
+                .thenReturn(Result.failure("error"));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verifyNoInteractions(provisionManager);
+            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
+        });
+    }
+
+    @Test
     void initial_consumer_manifestEvaluationFailed_shouldTransitionToTerminated() {
         var transferProcess = createTransferProcess(INITIAL);
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(transferProcess.getAssetId()).build());
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                 .thenReturn(List.of(transferProcess))
                 .thenReturn(emptyList());
@@ -265,7 +284,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldTransitionToProvisioning() {
             var transferProcess = builder.dataDestination(null).build();
-            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(transferProcess.getAssetId()).build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
             var contentDataAddress = DataAddress.Builder.newInstance().type("type").build();
             when(addressResolver.resolveForAsset(any())).thenReturn(contentDataAddress);
@@ -296,7 +315,7 @@ class TransferProcessManagerImplTest {
                     .property(EDC_DATA_ADDRESS_SECRET, "secret")
                     .build();
             var transferProcess = builder.dataDestination(destinationDataAddress).build();
-            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(transferProcess.getAssetId()).build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
             when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
             var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
@@ -314,7 +333,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldTransitionToTerminating_whenAssetIsNotResolved() {
             var transferProcess = builder.build();
-            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(transferProcess.getAssetId()).build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
             when(addressResolver.resolveForAsset(any())).thenReturn(null);
 
@@ -341,7 +360,7 @@ class TransferProcessManagerImplTest {
                 .build();
         var provisionResult = List.of(StatusResult.success(provisionResponse));
 
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(process.getAssetId()).build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(provisionResult));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
@@ -367,7 +386,7 @@ class TransferProcessManagerImplTest {
                 .build();
         var provisionResult = List.of(StatusResult.success(provisionResponse));
 
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(process.getAssetId()).build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(provisionResult));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
@@ -390,7 +409,7 @@ class TransferProcessManagerImplTest {
                 .stateCount(2)
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(process.getAssetId()).build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
@@ -411,7 +430,7 @@ class TransferProcessManagerImplTest {
                 .stateCount(2)
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(process.getAssetId()).build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
@@ -512,7 +531,7 @@ class TransferProcessManagerImplTest {
         void shouldStartDataTransferAndSendMessageToConsumer() {
             var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
             var dataFlowResponse = createDataFlowResponse();
-            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(process.getAssetId()).build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
             when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
@@ -542,7 +561,7 @@ class TransferProcessManagerImplTest {
         void shouldStartDataTransferAndSendMessageToConsumer() {
             var process = createTransferProcess(RESUMING).toBuilder().type(PROVIDER).build();
             var dataFlowResponse = createDataFlowResponse();
-            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(process.getAssetId()).build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
             when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
@@ -573,7 +592,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldSendMessageToProviderAndTransitionToResumed() {
             var process = createTransferProcess(RESUMING).toBuilder().type(CONSUMER).build();
-            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(process.getAssetId()).build());
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
             when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
@@ -715,7 +734,7 @@ class TransferProcessManagerImplTest {
     @Test
     void terminating_shouldTransitionToTerminatedIfFatalFailure() {
         var process = createTransferProcess(TERMINATING).toBuilder().type(PROVIDER).build();
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(process.getAssetId()).build());
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
 
@@ -805,7 +824,7 @@ class TransferProcessManagerImplTest {
                 .provisionedResourceId(PROVISIONED_RESOURCE_ID)
                 .build());
 
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(transferProcess.getAssetId()).build());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
         when(transferProcessStore.findById(transferProcess.getId())).thenReturn(transferProcess);
@@ -835,7 +854,7 @@ class TransferProcessManagerImplTest {
                 .build();
         var deprovisionResult = StatusResult.<DeprovisionedResource>failure(FATAL_ERROR, "test error");
         when(deprovisionResponsesHandler.handle(any(), any())).thenReturn(false);
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().target(transferProcess.getAssetId()).build());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
         when(transferProcessStore.findById(transferProcess.getId())).thenReturn(transferProcess);
@@ -891,15 +910,15 @@ class TransferProcessManagerImplTest {
     }
 
     private Criterion[] consumerStateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name()) });
+        return aryEq(new Criterion[] {hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name())});
     }
 
     private Criterion[] providerStateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name()) });
+        return aryEq(new Criterion[] {hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name())});
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending() });
+        return aryEq(new Criterion[] {hasState(state), isNotPending()});
     }
 
     private DataFlowResponse createDataFlowResponse() {

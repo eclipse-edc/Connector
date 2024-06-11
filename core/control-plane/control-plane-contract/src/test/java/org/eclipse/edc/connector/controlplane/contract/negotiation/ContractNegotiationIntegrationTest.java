@@ -16,7 +16,6 @@
 package org.eclipse.edc.connector.controlplane.contract.negotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.observe.ContractNegotiationObservableImpl;
-import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.ConsumerOfferResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementMessage;
@@ -77,7 +76,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-import static java.util.UUID.randomUUID;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,6 +102,7 @@ import static org.mockito.Mockito.when;
 
 @ComponentTest
 class ContractNegotiationIntegrationTest {
+    private static final String ASSET_ID = "assetId";
     private static final String CONSUMER_ID = "consumer";
     private static final String PROVIDER_ID = "provider";
 
@@ -371,9 +370,10 @@ class ContractNegotiationIntegrationTest {
      */
     private ContractOffer getContractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(ContractOfferId.create("1", "test-asset-id").toString())
-                .assetId(randomUUID().toString())
+                .id("%s:%s:%s".formatted("MQ==", "YXNzZXRJZA==", "MQ=="))
+                .assetId(ASSET_ID)
                 .policy(Policy.Builder.newInstance()
+                        .target(ASSET_ID)
                         .type(PolicyType.CONTRACT)
                         .assigner("assigner")
                         .assignee("assignee")

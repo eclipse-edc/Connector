@@ -146,7 +146,7 @@ public class TransferProcessEventDispatchTest {
         when(agent.getIdentity()).thenReturn(providerId);
 
         dispatcherRegistry.register(getTestDispatcher());
-        when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(mock(Policy.class));
+        when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(Policy.Builder.newInstance().target("assetId").build());
         when(negotiationStore.findContractAgreement("contractId")).thenReturn(agreement);
         when(agentService.createFor(token)).thenReturn(agent);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
@@ -215,7 +215,7 @@ public class TransferProcessEventDispatchTest {
                                                         RemoteMessageDispatcherRegistry dispatcherRegistry,
                                                         PolicyArchive policyArchive) {
 
-        when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(mock(Policy.class));
+        when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(Policy.Builder.newInstance().target("assetId").build());
         dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
         var transferRequest = createTransferRequest();

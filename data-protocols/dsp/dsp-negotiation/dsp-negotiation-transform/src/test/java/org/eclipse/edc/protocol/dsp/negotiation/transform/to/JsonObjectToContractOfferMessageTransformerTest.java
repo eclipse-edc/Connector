@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.to;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
@@ -50,7 +51,7 @@ class JsonObjectToContractOfferMessageTransformerTest {
     private static final String CALLBACK_ADDRESS = "https://test.com";
     private static final String MESSAGE_ID = "messageId";
     private static final String ASSET_ID = "assetId";
-    private static final String CONTRACT_OFFER_ID = "assetId";
+    private static final String CONTRACT_OFFER_ID = ContractOfferId.create("1", ASSET_ID).toString();
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();

@@ -68,6 +68,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(EdcExtension.class)
 class ContractNegotiationEventDispatchTest {
+    private static final String ASSET_ID = "asset-id";
     private static final String CONSUMER = "consumer";
 
     private final EventSubscriber eventSubscriber = mock();
@@ -103,7 +104,7 @@ class ContractNegotiationEventDispatchTest {
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
         eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
-        var policy = Policy.Builder.newInstance().build();
+        var policy = Policy.Builder.newInstance().target(ASSET_ID).build();
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("contractDefinitionId")
                 .contractPolicyId("policyId")
@@ -112,9 +113,9 @@ class ContractNegotiationEventDispatchTest {
                 .build();
         contractDefinitionStore.save(contractDefinition);
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
-        assetIndex.create(Asset.Builder.newInstance().id("assetId").dataAddress(DataAddress.Builder.newInstance().type("any").build()).build());
+        assetIndex.create(Asset.Builder.newInstance().id(ASSET_ID).dataAddress(DataAddress.Builder.newInstance().type("any").build()).build());
 
-        service.notifyRequested(createContractOfferRequest(policy, "assetId"), tokenRepresentation);
+        service.notifyRequested(createContractOfferRequest(policy), tokenRepresentation);
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));
@@ -122,10 +123,10 @@ class ContractNegotiationEventDispatchTest {
         });
     }
 
-    private ContractRequestMessage createContractOfferRequest(Policy policy, String assetId) {
+    private ContractRequestMessage createContractOfferRequest(Policy policy) {
         var contractOffer = ContractOffer.Builder.newInstance()
-                .id(ContractOfferId.create("contractDefinitionId", assetId).toString())
-                .assetId("assetId")
+                .id(ContractOfferId.create("contractDefinitionId", ASSET_ID).toString())
+                .assetId(ASSET_ID)
                 .policy(policy)
                 .build();
 

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.junit.jupiter.api.Test;
@@ -25,8 +26,8 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 class ContractRequestMessageTest {
 
     public static final String CALLBACK_ADDRESS = "http://test.com";
-    public static final String ID = "id1";
     public static final String ASSET_ID = "asset1";
+    public static final String CONTRACT_OFFER_ID = ContractOfferId.create("1", ASSET_ID).toString();
     public static final String PROTOCOL = "DPS";
 
     @Test
@@ -37,11 +38,7 @@ class ContractRequestMessageTest {
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
                 .protocol(PROTOCOL)
-                .contractOffer(ContractOffer.Builder.newInstance()
-                        .id(ID)
-                        .assetId(ASSET_ID)
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
+                .contractOffer(contractOffer())
                 .build();
     }
 
@@ -54,11 +51,7 @@ class ContractRequestMessageTest {
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
                 .protocol(PROTOCOL)
-                .contractOffer(ContractOffer.Builder.newInstance()
-                        .id(ID)
-                        .assetId(ASSET_ID)
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
+                .contractOffer(contractOffer())
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build();
 
@@ -77,9 +70,9 @@ class ContractRequestMessageTest {
 
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(ID)
+                .id(CONTRACT_OFFER_ID)
                 .assetId(ASSET_ID)
-                .policy(Policy.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().target(ASSET_ID).build())
                 .build();
     }
 }
