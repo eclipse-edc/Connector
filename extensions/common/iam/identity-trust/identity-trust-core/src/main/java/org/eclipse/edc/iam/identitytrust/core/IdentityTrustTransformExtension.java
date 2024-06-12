@@ -66,7 +66,7 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
         getResourceUri("document" + File.separator + "dcp.v08.jsonld")
-                .onSuccess(uri -> jsonLdService.registerCachedDocumentDCP_CONTEXT_URL, uri))
+                .onSuccess(uri -> jsonLdService.registerCachedDocument(DCP_CONTEXT_URL, uri))
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
         typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager.getMapper(JSON_LD)));
