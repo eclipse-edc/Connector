@@ -137,21 +137,21 @@ public class TransferProcessEventDispatchTest {
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
 
+        var transferRequest = createTransferRequest();
         var agent = mock(ParticipantAgent.class);
         var agreement = mock(ContractAgreement.class);
         var providerId = "ProviderId";
 
+        when(agreement.getAssetId()).thenReturn(transferRequest.getAssetId());
         when(agreement.getProviderId()).thenReturn(providerId);
         when(agreement.getPolicy()).thenReturn(Policy.Builder.newInstance().build());
         when(agent.getIdentity()).thenReturn(providerId);
 
         dispatcherRegistry.register(getTestDispatcher());
-        when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(mock(Policy.class));
-        when(negotiationStore.findContractAgreement("contractId")).thenReturn(agreement);
+        when(policyArchive.findPolicyForContract(matches(transferRequest.getContractId()))).thenReturn(Policy.Builder.newInstance().target(transferRequest.getAssetId()).build());
+        when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
         when(agentService.createFor(token)).thenReturn(agent);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
-
-        var transferRequest = createTransferRequest();
 
         var initiateResult = service.initiateTransfer(transferRequest);
 
@@ -196,10 +196,13 @@ public class TransferProcessEventDispatchTest {
     }
 
     @Test
-    void shouldTerminateOnInvalidPolicy(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+    void shouldTerminateOnInvalidPolicy(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry, ContractNegotiationStore negotiationStore) {
         dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
         var transferRequest = createTransferRequest();
+        var agreement = mock(ContractAgreement.class);
+        when(agreement.getAssetId()).thenReturn(transferRequest.getAssetId());
+        when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
 
         service.initiateTransfer(transferRequest);
 
@@ -213,12 +216,16 @@ public class TransferProcessEventDispatchTest {
     void shouldDispatchEventOnTransferProcessTerminated(TransferProcessService service,
                                                         EventRouter eventRouter,
                                                         RemoteMessageDispatcherRegistry dispatcherRegistry,
-                                                        PolicyArchive policyArchive) {
+                                                        PolicyArchive policyArchive,
+                                                        ContractNegotiationStore negotiationStore) {
 
-        when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(mock(Policy.class));
+        var transferRequest = createTransferRequest();
+        when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(Policy.Builder.newInstance().target(transferRequest.getAssetId()).build());
+        var agreement = mock(ContractAgreement.class);
+        when(agreement.getAssetId()).thenReturn(transferRequest.getAssetId());
+        when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
         dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
-        var transferRequest = createTransferRequest();
 
         var initiateResult = service.initiateTransfer(transferRequest);
 
@@ -234,10 +241,13 @@ public class TransferProcessEventDispatchTest {
     }
 
     @Test
-    void shouldDispatchEventOnTransferProcessFailure(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+    void shouldDispatchEventOnTransferProcessFailure(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry, ContractNegotiationStore negotiationStore) {
         dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
         var transferRequest = createTransferRequest();
+        var agreement = mock(ContractAgreement.class);
+        when(agreement.getAssetId()).thenReturn(transferRequest.getAssetId());
+        when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
 
         service.initiateTransfer(transferRequest);
 

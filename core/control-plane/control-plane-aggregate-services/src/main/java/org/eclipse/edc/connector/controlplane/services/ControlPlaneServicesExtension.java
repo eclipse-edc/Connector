@@ -237,7 +237,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public TransferProcessService transferProcessService() {
         return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext,
-                dataAddressValidator, commandHandlerRegistry, flowTypeExtractor);
+                dataAddressValidator, commandHandlerRegistry, flowTypeExtractor, contractNegotiationStore);
     }
 
     @Provider
