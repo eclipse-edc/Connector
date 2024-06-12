@@ -80,7 +80,7 @@ public class DspNegotiationApiEndToEndTest {
                 .statusCode(200)
                 .contentType(JSON);
 
-        assertThat(runtime.getContext().getService(ProtocolVersionRegistry.class).getAll().protocolVersions())
+        assertThat(runtime.getService(ProtocolVersionRegistry.class).getAll().protocolVersions())
                 .contains(V_2024_1);
     }
 

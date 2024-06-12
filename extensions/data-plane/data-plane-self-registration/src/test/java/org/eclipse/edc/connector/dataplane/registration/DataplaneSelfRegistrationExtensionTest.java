@@ -104,11 +104,11 @@ class DataplaneSelfRegistrationExtensionTest {
     @Test
     void shouldUnregisterInstanceAtShutdown(DataplaneSelfRegistrationExtension extension, ServiceExtensionContext context) {
         when(context.getRuntimeId()).thenReturn("runtimeId");
-        when(dataPlaneSelectorService.delete(any())).thenReturn(ServiceResult.success());
+        when(dataPlaneSelectorService.unregister(any())).thenReturn(ServiceResult.success());
         extension.initialize(context);
 
         extension.shutdown();
 
-        verify(dataPlaneSelectorService).delete("runtimeId");
+        verify(dataPlaneSelectorService).unregister("runtimeId");
     }
 }

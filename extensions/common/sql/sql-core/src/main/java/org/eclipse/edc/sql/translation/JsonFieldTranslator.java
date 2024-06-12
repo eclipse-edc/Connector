@@ -48,6 +48,10 @@ public class JsonFieldTranslator implements FieldTranslator {
             return format("(%s)::boolean", statement);
         }
 
+        if (type.equals(Integer.class)) {
+            return format("(%s)::integer", statement);
+        }
+
         return statement;
     }
 

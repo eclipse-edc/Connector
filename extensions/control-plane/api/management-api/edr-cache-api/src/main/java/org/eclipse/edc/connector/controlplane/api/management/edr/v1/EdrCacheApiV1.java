@@ -39,7 +39,6 @@ public interface EdrCacheApiV1 {
             requestBody = @RequestBody(
                     content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))
             ),
-            operationId = "requestEdrEntriesV1",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The edr entries matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = EndpointDataReferenceEntrySchema.class)))),
@@ -47,10 +46,9 @@ public interface EdrCacheApiV1 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }, deprecated = true)
     @Deprecated(since = "0.7.0")
-    JsonArray requestEdrEntries(JsonObject querySpecJson);
+    JsonArray requestEdrEntriesV1(JsonObject querySpecJson);
 
     @Operation(description = "Gets the EDR data address with the given transfer process ID",
-            operationId = "getEdrEndryDataAddressV1",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The data address",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.DataAddressSchema.class))),
@@ -62,10 +60,9 @@ public interface EdrCacheApiV1 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonObject getEdrEntryDataAddress(String transferProcessId);
+    JsonObject getEdrEntryDataAddressV1(String transferProcessId);
 
     @Operation(description = "Removes an EDR entry given the transfer process ID",
-            operationId = "removeEdrEntryV1",
             responses = {
                     @ApiResponse(responseCode = "204", description = "EDR entry was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -74,8 +71,7 @@ public interface EdrCacheApiV1 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }, deprecated = true)
     @Deprecated(since = "0.7.0")
-    void removeEdrEntry(String transferProcessId);
-
+    void removeEdrEntryV1(String transferProcessId);
 
     @ArraySchema()
     @Schema(name = "EndpointDataReferenceEntry", example = EndpointDataReferenceEntrySchema.EDR_ENTRY_OUTPUT_EXAMPLE)

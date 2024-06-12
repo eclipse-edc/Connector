@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.test.e2e;
 
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 
 import java.util.Map;
 
@@ -22,8 +22,8 @@ public interface Runtimes {
 
     interface InMemory {
 
-        static EdcRuntimeExtension controlPlane(String name, Map<String, String> configuration) {
-            return new EdcRuntimeExtension(name, configuration,
+        static EmbeddedRuntime controlPlane(String name, Map<String, String> configuration) {
+            return new EmbeddedRuntime(name, configuration,
                     ":system-tests:e2e-transfer-test:control-plane",
                     ":core:common:edr-store-core",
                     ":extensions:control-plane:transfer:transfer-data-plane-signaling",
@@ -35,8 +35,8 @@ public interface Runtimes {
             );
         }
 
-        static EdcRuntimeExtension controlPlaneEmbeddedDataPlane(String name, Map<String, String> configuration) {
-            return new EdcRuntimeExtension(name, configuration,
+        static EmbeddedRuntime controlPlaneEmbeddedDataPlane(String name, Map<String, String> configuration) {
+            return new EmbeddedRuntime(name, configuration,
                     ":system-tests:e2e-transfer-test:control-plane",
                     ":system-tests:e2e-transfer-test:data-plane",
                     ":extensions:control-plane:transfer:transfer-data-plane-signaling",
@@ -45,8 +45,8 @@ public interface Runtimes {
             );
         }
 
-        static EdcRuntimeExtension dataPlane(String name, Map<String, String> configuration) {
-            return new EdcRuntimeExtension(name, configuration,
+        static EmbeddedRuntime dataPlane(String name, Map<String, String> configuration) {
+            return new EmbeddedRuntime(name, configuration,
                     ":system-tests:e2e-transfer-test:data-plane",
                     ":extensions:data-plane:data-plane-public-api-v2",
                     ":extensions:data-plane-selector:data-plane-selector-client"
@@ -56,8 +56,8 @@ public interface Runtimes {
 
     interface Postgres {
 
-        static EdcRuntimeExtension controlPlane(String name, Map<String, String> configuration) {
-            return new EdcRuntimeExtension(name, configuration,
+        static EmbeddedRuntime controlPlane(String name, Map<String, String> configuration) {
+            return new EmbeddedRuntime(name, configuration,
                     ":system-tests:e2e-transfer-test:control-plane",
                     ":core:common:edr-store-core",
                     ":extensions:common:store:sql:edr-index-sql",
@@ -73,8 +73,8 @@ public interface Runtimes {
             );
         }
 
-        static EdcRuntimeExtension dataPlane(String name, Map<String, String> configuration) {
-            return new EdcRuntimeExtension(name, configuration,
+        static EmbeddedRuntime dataPlane(String name, Map<String, String> configuration) {
+            return new EmbeddedRuntime(name, configuration,
                     ":system-tests:e2e-transfer-test:data-plane",
                     ":extensions:data-plane:store:sql:data-plane-store-sql",
                     ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
@@ -86,8 +86,8 @@ public interface Runtimes {
 
     }
 
-    static EdcRuntimeExtension backendService(String name, Map<String, String> configuration) {
-        return new EdcRuntimeExtension(name, configuration,
+    static EmbeddedRuntime backendService(String name, Map<String, String> configuration) {
+        return new EmbeddedRuntime(name, configuration,
                 ":system-tests:e2e-transfer-test:backend-service"
         );
     }

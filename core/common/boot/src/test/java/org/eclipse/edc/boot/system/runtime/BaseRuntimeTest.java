@@ -61,7 +61,7 @@ public class BaseRuntimeTest {
     void baseRuntime_shouldBoot() {
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(List.of(new BaseExtension()));
 
-        runtime.boot();
+        runtime.boot(true);
 
         verify(monitor, never()).severe(anyString(), any());
     }
@@ -73,7 +73,7 @@ public class BaseRuntimeTest {
         doThrow(new EdcException("Failed to start base extension")).when(extension).start();
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(List.of(extension));
 
-        assertThatThrownBy(runtime::boot).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> runtime.boot(true)).isInstanceOf(EdcException.class);
         verify(monitor).severe(startsWith("Error booting runtime: Failed to start base extension"), any(EdcException.class));
     }
 
@@ -83,7 +83,7 @@ public class BaseRuntimeTest {
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(List.of(
                 new BaseExtension(), registerService(HealthCheckService.class, healthCheckService)));
 
-        runtime.boot();
+        runtime.boot(true);
 
         verify(healthCheckService).addStartupStatusProvider(any());
     }
@@ -92,7 +92,7 @@ public class BaseRuntimeTest {
     void shouldLoadConfiguration() {
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(List.of(new BaseExtension()));
 
-        runtime.boot();
+        runtime.boot(true);
 
         verify(serviceLocator).loadImplementors(ConfigurationExtension.class, false);
     }

@@ -31,7 +31,6 @@ import org.eclipse.edc.connector.dataplane.selector.api.schemas.DataPlaneInstanc
 public interface DataplaneSelectorApiV3 {
 
     @Operation(method = "GET",
-            operationId = "getAllDataPlaneInstancesV3",
             description = "Returns a list of all currently registered data plane instances",
             responses = {
                     @ApiResponse(responseCode = "200", description = "A (potentially empty) list of currently registered data plane instances",
@@ -39,6 +38,6 @@ public interface DataplaneSelectorApiV3 {
             }
     )
     @GET
-    JsonArray getAllDataPlaneInstances();
+    JsonArray getAllDataPlaneInstancesV3();
 
 }

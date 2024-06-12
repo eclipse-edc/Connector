@@ -35,6 +35,7 @@ dependencies {
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:api:management-api-configuration"))
     testImplementation(project(":extensions:common:http"))
+    testImplementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
 
     testImplementation(libs.restAssured)
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))

@@ -16,15 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.contractdefinition
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
@@ -45,8 +36,6 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.Co
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
 public abstract class BaseContractDefinitionApiController {
     protected final TypeTransformerRegistry transformerRegistry;
     protected final ContractDefinitionService service;
@@ -61,8 +50,6 @@ public abstract class BaseContractDefinitionApiController {
         this.validatorRegistry = validatorRegistry;
     }
 
-    @POST
-    @Path("/request")
     public JsonArray queryContractDefinitions(JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
@@ -83,9 +70,7 @@ public abstract class BaseContractDefinitionApiController {
                 .collect(toJsonArray());
     }
 
-    @GET
-    @Path("{id}")
-    public JsonObject getContractDefinition(@PathParam("id") String id) {
+    public JsonObject getContractDefinition(String id) {
         return Optional.ofNullable(id)
                 .map(service::findById)
                 .map(it -> transformerRegistry.transform(it, JsonObject.class))
@@ -93,7 +78,6 @@ public abstract class BaseContractDefinitionApiController {
                 .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
     }
 
-    @POST
     public JsonObject createContractDefinition(JsonObject createObject) {
         validatorRegistry.validate(CONTRACT_DEFINITION_TYPE, createObject)
                 .orElseThrow(ValidationFailureException::new);
@@ -112,13 +96,10 @@ public abstract class BaseContractDefinitionApiController {
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
-    @DELETE
-    @Path("{id}")
-    public void deleteContractDefinition(@PathParam("id") String id) {
+    public void deleteContractDefinition(String id) {
         service.delete(id).orElseThrow(exceptionMapper(ContractDefinition.class, id));
     }
 
-    @PUT
     public void updateContractDefinition(JsonObject updateObject) {
         validatorRegistry.validate(CONTRACT_DEFINITION_TYPE, updateObject)
                 .orElseThrow(ValidationFailureException::new);

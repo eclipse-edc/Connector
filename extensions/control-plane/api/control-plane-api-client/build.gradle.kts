@@ -32,9 +32,10 @@ dependencies {
     testImplementation(project(":extensions:common:api:control-api-configuration"))
     testImplementation(project(":extensions:common:auth:auth-tokenbased"))
     testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(libs.awaitility)
 
-    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
 
 }
 

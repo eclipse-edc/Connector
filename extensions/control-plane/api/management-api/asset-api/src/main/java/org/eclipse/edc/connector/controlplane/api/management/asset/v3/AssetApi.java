@@ -40,7 +40,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 @Tag(name = "Asset V3")
 public interface AssetApi {
     @Operation(description = "Creates a new asset together with a data address",
-            operationId = "createAssetV3",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AssetInputSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Asset was created successfully. Returns the asset Id and created timestamp",
@@ -50,10 +49,9 @@ public interface AssetApi {
                     @ApiResponse(responseCode = "409", description = "Could not create asset, because an asset with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
     )
-    JsonObject createAsset(JsonObject asset);
+    JsonObject createAssetV3(JsonObject asset);
 
     @Operation(description = "Request all assets according to a particular query",
-            operationId = "requestAssetV3",
             requestBody = @RequestBody(
                     content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))
             ),
@@ -63,10 +61,9 @@ public interface AssetApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
-    JsonArray requestAssets(JsonObject querySpecJson);
+    JsonArray requestAssetsV3(JsonObject querySpecJson);
 
     @Operation(description = "Gets an asset with the given ID",
-            operationId = "getAssetV3",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The asset",
                             content = @Content(schema = @Schema(implementation = AssetOutputSchema.class))),
@@ -76,12 +73,11 @@ public interface AssetApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonObject getAsset(String id);
+    JsonObject getAssetV3(String id);
 
     @Operation(description = "Removes an asset with the given ID if possible. Deleting an asset is only possible if that asset is not yet referenced " +
             "by a contract agreement, in which case an error is returned. " +
             "DANGER ZONE: Note that deleting assets can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
-            operationId = "removeAssetV3",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Asset was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -91,11 +87,10 @@ public interface AssetApi {
                     @ApiResponse(responseCode = "409", description = "The asset cannot be deleted, because it is referenced by a contract agreement",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
-    void removeAsset(String id);
+    void removeAssetV3(String id);
 
     @Operation(description = "Updates an asset with the given ID if it exists. If the asset is not found, no further action is taken. " +
             "DANGER ZONE: Note that updating assets can have unexpected results, especially for contract offers that have been sent out or are ongoing in contract negotiations.",
-            operationId = "updateAssetV3",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AssetInputSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "204", description = "Asset was updated successfully"),
@@ -103,7 +98,7 @@ public interface AssetApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
             })
-    void updateAsset(JsonObject asset);
+    void updateAssetV3(JsonObject asset);
 
     @Schema(name = "AssetInput", example = AssetInputSchema.ASSET_INPUT_EXAMPLE)
     record AssetInputSchema(

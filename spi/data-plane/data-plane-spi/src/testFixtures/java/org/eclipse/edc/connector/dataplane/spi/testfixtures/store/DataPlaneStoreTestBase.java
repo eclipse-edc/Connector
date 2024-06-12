@@ -55,6 +55,14 @@ public abstract class DataPlaneStoreTestBase {
 
     protected abstract boolean isLeasedBy(String entityId, String owner);
 
+    /**
+     * determines the amount of time (default = 500ms) before an async test using Awaitility fails. This may be useful if using remote
+     * or non-self-contained databases.
+     */
+    protected Duration getTestTimeout() {
+        return Duration.ofMillis(500);
+    }
+
     private DataFlow createDataFlow(String id, DataFlowStates state) {
         return DataFlow.Builder.newInstance()
                 .id(id)
@@ -149,7 +157,7 @@ public abstract class DataPlaneStoreTestBase {
 
             leaseEntity(dataFlow.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
 
-            await().atMost(Duration.ofMillis(500))
+            await().atMost(getTestTimeout())
                     .until(() -> getStore().nextNotLeased(1, hasState(RECEIVED.code())), hasSize(1));
         }
 

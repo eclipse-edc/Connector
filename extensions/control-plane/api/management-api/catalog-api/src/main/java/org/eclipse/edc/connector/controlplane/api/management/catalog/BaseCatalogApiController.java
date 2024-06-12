@@ -15,12 +15,7 @@
 package org.eclipse.edc.connector.controlplane.api.management.catalog;
 
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.AsyncResponse;
-import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
@@ -32,12 +27,10 @@ import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
 
-@Consumes(APPLICATION_JSON)
-@Produces(APPLICATION_JSON)
+
 public abstract class BaseCatalogApiController {
 
     private final CatalogService service;
@@ -51,9 +44,7 @@ public abstract class BaseCatalogApiController {
         this.validatorRegistry = validatorRegistry;
     }
 
-    @POST
-    @Path("/request")
-    public void requestCatalog(JsonObject requestBody, @Suspended AsyncResponse response) {
+    public void requestCatalog(JsonObject requestBody, AsyncResponse response) {
         validatorRegistry.validate(CATALOG_REQUEST_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
 
         var request = transformerRegistry.transform(requestBody, CatalogRequest.class)
@@ -69,9 +60,7 @@ public abstract class BaseCatalogApiController {
                 });
     }
 
-    @POST
-    @Path("dataset/request")
-    public void getDataset(JsonObject requestBody, @Suspended AsyncResponse response) {
+    public void getDataset(JsonObject requestBody, AsyncResponse response) {
         validatorRegistry.validate(DATASET_REQUEST_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
 
         var request = transformerRegistry.transform(requestBody, DatasetRequest.class)

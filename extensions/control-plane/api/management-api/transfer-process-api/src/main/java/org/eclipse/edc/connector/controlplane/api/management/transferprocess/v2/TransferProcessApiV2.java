@@ -53,7 +53,7 @@ public interface TransferProcessApiV2 {
 
     @Operation(description = "Returns all transfer process according to a query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
-            operationId = "queryTransferProcessesV2", deprecated = true,
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "200", description = "The transfer processes matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = TransferProcessSchema.class)))),
@@ -61,10 +61,10 @@ public interface TransferProcessApiV2 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
     )
     @Deprecated(since = "0.7.0")
-    JsonArray queryTransferProcesses(JsonObject querySpecJson);
+    JsonArray queryTransferProcessesV2(JsonObject querySpecJson);
 
     @Operation(description = "Gets an transfer process with the given ID",
-            operationId = "getTransferProcessV2", deprecated = true,
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "200", description = "The transfer process",
                             content = @Content(schema = @Schema(implementation = TransferProcessSchema.class))),
@@ -75,10 +75,10 @@ public interface TransferProcessApiV2 {
             }
     )
     @Deprecated(since = "0.7.0")
-    JsonObject getTransferProcess(String id);
+    JsonObject getTransferProcessV2(String id);
 
     @Operation(description = "Gets the state of a transfer process with the given ID",
-            operationId = "getTransferProcessStateV2", deprecated = true,
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "200", description = "The  transfer process's state",
                             content = @Content(schema = @Schema(implementation = TransferStateSchema.class))),
@@ -89,15 +89,15 @@ public interface TransferProcessApiV2 {
             }
     )
     @Deprecated(since = "0.7.0")
-    JsonObject getTransferProcessState(String id);
+    JsonObject getTransferProcessStateV2(String id);
 
     @Operation(description = "Initiates a data transfer with the given parameters. " + ASYNC_WARNING,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = TransferRequestSchema.class))),
-            operationId = "initiateTransferProcessV2", deprecated = true,
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "200", description = "The transfer was successfully initiated. Returns the transfer process ID and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class)),
-                            links = @Link(name = "poll-state", operationId = "getTransferProcessState", parameters = {
+                            links = @Link(name = "poll-state", operationId = "getTransferProcessStateV2", parameters = {
                                     @LinkParameter(name = "id", expression = "$response.body#/id")
                             })
                     ),
@@ -105,27 +105,27 @@ public interface TransferProcessApiV2 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
             })
     @Deprecated(since = "0.7.0")
-    JsonObject initiateTransferProcess(JsonObject transferRequest);
+    JsonObject initiateTransferProcessV2(JsonObject transferRequest);
 
     @Operation(description = "Requests the deprovisioning of resources associated with a transfer process. " + ASYNC_WARNING,
-            operationId = "deprovisionTransferProcessV2", deprecated = true,
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "204", description = "Request to deprovision the transfer process was successfully received",
-                            links = @Link(name = "poll-state", operationId = "deprovisionTransferProcess")),
+                            links = @Link(name = "poll-state", operationId = "deprovisionTransferProcessV2")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     @Deprecated(since = "0.7.0")
-    void deprovisionTransferProcess(String id);
+    void deprovisionTransferProcessV2(String id);
 
     @Operation(description = "Requests the termination of a transfer process. " + ASYNC_WARNING,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = TerminateTransferSchema.class))),
-            operationId = "terminateTransferProcessV2", deprecated = true,
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "204", description = "Request to terminate the transfer process was successfully received",
-                            links = @Link(name = "poll-state", operationId = "terminateTransferProcess")),
+                            links = @Link(name = "poll-state", operationId = "terminateTransferProcessV2")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
@@ -134,14 +134,14 @@ public interface TransferProcessApiV2 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     @Deprecated(since = "0.7.0")
-    void terminateTransferProcess(String id, JsonObject terminateTransfer);
+    void terminateTransferProcessV2(String id, JsonObject terminateTransfer);
 
     @Operation(description = "Requests the suspension of a transfer process. " + ASYNC_WARNING,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SuspendTransferSchema.class))),
-            operationId = "suspendTransferProcessV2", deprecated = true,
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "204", description = "Request to suspend the transfer process was successfully received",
-                            links = @Link(name = "poll-state", operationId = "suspendTransferProcess")),
+                            links = @Link(name = "poll-state", operationId = "suspendTransferProcessV2")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
@@ -150,20 +150,20 @@ public interface TransferProcessApiV2 {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     @Deprecated(since = "0.7.0")
-    void suspendTransferProcess(String id, JsonObject suspendTransfer);
+    void suspendTransferProcessV2(String id, JsonObject suspendTransfer);
 
     @Operation(description = "Requests the resumption of a suspended transfer process. " + ASYNC_WARNING,
-            operationId = "resumeTransferProcessV2", deprecated = true,
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "204", description = "Request to resume the transfer process was successfully received",
-                            links = @Link(name = "poll-state", operationId = "resumeTransferProcess")),
+                            links = @Link(name = "poll-state", operationId = "resumeTransferProcessV2")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     @Deprecated(since = "0.7.0")
-    void resumeTransferProcess(String id);
+    void resumeTransferProcessV2(String id);
 
     @Schema(name = "TransferRequest", example = TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE)
     record TransferRequestSchema(

@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.transferprocess;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
@@ -61,16 +62,19 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final DataAddressValidatorRegistry dataAddressValidator;
     private final CommandHandlerRegistry commandHandlerRegistry;
     private final FlowTypeExtractor flowTypeExtractor;
+    private final ContractNegotiationStore contractNegotiationStore;
 
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
                                       TransactionContext transactionContext, DataAddressValidatorRegistry dataAddressValidator,
-                                      CommandHandlerRegistry commandHandlerRegistry, FlowTypeExtractor flowTypeExtractor) {
+                                      CommandHandlerRegistry commandHandlerRegistry, FlowTypeExtractor flowTypeExtractor,
+                                      ContractNegotiationStore contractNegotiationStore) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
         this.transactionContext = transactionContext;
         this.dataAddressValidator = dataAddressValidator;
         this.commandHandlerRegistry = commandHandlerRegistry;
         this.flowTypeExtractor = flowTypeExtractor;
+        this.contractNegotiationStore = contractNegotiationStore;
         queryValidator = new QueryValidator(TransferProcess.class, getSubtypes());
     }
 
@@ -123,6 +127,15 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @NotNull ServiceResult<TransferProcess> initiateTransfer(TransferRequest request) {
+        var agreement = contractNegotiationStore.findContractAgreement(request.getContractId());
+        if (agreement == null) {
+            return ServiceResult.badRequest("Contract agreement with id %s not found".formatted(request.getContractId()));
+        }
+
+        if (!agreement.getAssetId().equals(request.getAssetId())) {
+            return ServiceResult.badRequest("Asset id %s in contract agreement does not match asset id in transfer request %s".formatted(agreement.getAssetId(), request.getAssetId()));
+        }
+
         var flowType = flowTypeExtractor.extract(request.getTransferType()).getContent();
 
         if (flowType == FlowType.PUSH) {

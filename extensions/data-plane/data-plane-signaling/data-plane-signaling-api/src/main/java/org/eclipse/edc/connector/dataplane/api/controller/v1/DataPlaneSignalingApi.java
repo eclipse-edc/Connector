@@ -81,6 +81,12 @@ public interface DataPlaneSignalingApi {
     )
     void suspend(String transferProcessId, JsonObject suspendMessage);
 
+    @Operation(description = "Check if data plane is available.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Data plane is available"),
+            }
+    )
+    void checkAvailability();
 
     @Schema(name = "DataFlowStartMessage", example = DataFlowStartMessageSchema.DATA_FLOW_START_EXAMPLE)
     record DataFlowStartMessageSchema(

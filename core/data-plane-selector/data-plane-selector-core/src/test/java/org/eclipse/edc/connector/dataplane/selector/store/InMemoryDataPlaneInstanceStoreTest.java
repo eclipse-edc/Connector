@@ -15,7 +15,11 @@
 package org.eclipse.edc.connector.dataplane.selector.store;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store.DataPlaneInstanceStoreTestBase;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.junit.jupiter.api.BeforeEach;
+
+import java.time.Clock;
+import java.time.Duration;
 
 class InMemoryDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTestBase {
 
@@ -23,11 +27,21 @@ class InMemoryDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTestBase 
 
     @BeforeEach
     void setup() {
-        store = new InMemoryDataPlaneInstanceStore();
+        store = new InMemoryDataPlaneInstanceStore(CONNECTOR_NAME, Clock.systemUTC(), CriterionOperatorRegistryImpl.ofDefaults());
     }
 
     @Override
     public InMemoryDataPlaneInstanceStore getStore() {
         return store;
+    }
+
+    @Override
+    protected void leaseEntity(String entityId, String owner, Duration duration) {
+        store.acquireLease(entityId, owner, duration);
+    }
+
+    @Override
+    protected boolean isLeasedBy(String entityId, String owner) {
+        return store.isLeasedBy(entityId, owner);
     }
 }

@@ -27,8 +27,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
-import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -316,23 +316,27 @@ class TransferPullEndToEndTest {
     @EndToEndTest
     class InMemory extends Tests {
 
-        private static final EdcRuntimeExtension CONSUMER_RUNTIME = Runtimes.InMemory.controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration());
-        private static final EdcRuntimeExtension PROVIDER_RUNTIME = Runtimes.InMemory.controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration());
-        private static final EdcRuntimeExtension PROVIDER_DATAPLANE = Runtimes.InMemory.dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration());
         @RegisterExtension
-        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
-                CONSUMER_RUNTIME,
-                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                PROVIDER_RUNTIME,
-                PROVIDER_DATAPLANE,
-                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.InMemory.controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension CONSUMER_BACKEND_SERVICE = new RuntimePerClassExtension(
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.InMemory.controlPlane("provider-control-plane", PROVIDER.controlPlaneConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
+                Runtimes.InMemory.dataPlane("provider-data-plane", PROVIDER.dataPlaneConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_BACKEND_SERVICE = new RuntimePerClassExtension(
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
         @Override
         protected void seedVaults() {
-            seedVault(CONSUMER_RUNTIME);
-            seedVault(PROVIDER_RUNTIME);
-            seedVault(PROVIDER_DATAPLANE);
+            seedVault(CONSUMER_CONTROL_PLANE);
+            seedVault(PROVIDER_CONTROL_PLANE);
+            seedVault(PROVIDER_DATA_PLANE);
         }
     }
 
@@ -340,21 +344,23 @@ class TransferPullEndToEndTest {
     @EndToEndTest
     class EmbeddedDataPlane extends Tests {
 
-        private static final EdcRuntimeExtension CONSUMER_RUNTIME = Runtimes.InMemory.controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration());
-        private static final EdcRuntimeExtension PROVIDER_RUNTIME = Runtimes.InMemory.controlPlaneEmbeddedDataPlane("provider-control-plane", PROVIDER.controlPlaneEmbeddedDataPlaneConfiguration());
-
         @RegisterExtension
-        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
-                CONSUMER_RUNTIME,
-                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                PROVIDER_RUNTIME,
-                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.InMemory.controlPlane("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension CONSUMER_BACKEND_SERVICE = new RuntimePerClassExtension(
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.InMemory.controlPlaneEmbeddedDataPlane("provider-control-plane", PROVIDER.controlPlaneEmbeddedDataPlaneConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_BACKEND_SERVICE = new RuntimePerClassExtension(
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
         @Override
         protected void seedVaults() {
-            seedVault(CONSUMER_RUNTIME);
-            seedVault(PROVIDER_RUNTIME);
+            seedVault(CONSUMER_CONTROL_PLANE);
+            seedVault(PROVIDER_CONTROL_PLANE);
         }
     }
 
@@ -368,23 +374,27 @@ class TransferPullEndToEndTest {
             createDatabase(PROVIDER.getName());
         };
 
-        private static final EdcRuntimeExtension CONSUMER_RUNTIME = Runtimes.Postgres.controlPlane("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration());
-        private static final EdcRuntimeExtension PROVIDER_RUNTIME = Runtimes.Postgres.controlPlane("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration());
-        private static final EdcRuntimeExtension PROVIDER_DATAPLANE = Runtimes.Postgres.dataPlane("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration());
         @RegisterExtension
-        static final EdcClassRuntimesExtension RUNTIMES = new EdcClassRuntimesExtension(
-                CONSUMER_RUNTIME,
-                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()),
-                PROVIDER_RUNTIME,
-                PROVIDER_DATAPLANE,
-                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration())
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.Postgres.controlPlane("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension CONSUMER_BACKEND_SERVICE = new RuntimePerClassExtension(
+                backendService("consumer-backend-service", CONSUMER.backendServiceConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.Postgres.controlPlane("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
+                Runtimes.Postgres.dataPlane("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_BACKEND_SERVICE = new RuntimePerClassExtension(
+                backendService("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
         @Override
         protected void seedVaults() {
-            seedVault(CONSUMER_RUNTIME);
-            seedVault(PROVIDER_RUNTIME);
-            seedVault(PROVIDER_DATAPLANE);
+            seedVault(CONSUMER_CONTROL_PLANE);
+            seedVault(PROVIDER_CONTROL_PLANE);
+            seedVault(PROVIDER_DATA_PLANE);
         }
     }
 

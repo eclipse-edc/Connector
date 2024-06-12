@@ -16,14 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.policy;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
@@ -38,14 +30,11 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes(APPLICATION_JSON)
-@Produces(APPLICATION_JSON)
 public abstract class BasePolicyDefinitionApiController {
 
     protected final Monitor monitor;
@@ -61,8 +50,6 @@ public abstract class BasePolicyDefinitionApiController {
         this.validatorRegistry = validatorRegistry;
     }
 
-    @POST
-    @Path("request")
     public JsonArray queryPolicyDefinitions(JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
@@ -81,9 +68,7 @@ public abstract class BasePolicyDefinitionApiController {
                 .collect(toJsonArray());
     }
 
-    @GET
-    @Path("{id}")
-    public JsonObject getPolicyDefinition(@PathParam("id") String id) {
+    public JsonObject getPolicyDefinition(String id) {
         var definition = service.findById(id);
         if (definition == null) {
             throw new ObjectNotFoundException(PolicyDefinition.class, id);
@@ -93,7 +78,6 @@ public abstract class BasePolicyDefinitionApiController {
                 .orElseThrow(failure -> new ObjectNotFoundException(PolicyDefinition.class, id));
     }
 
-    @POST
     public JsonObject createPolicyDefinition(JsonObject request) {
         validatorRegistry.validate(EDC_POLICY_DEFINITION_TYPE, request).orElseThrow(ValidationFailureException::new);
 
@@ -113,17 +97,13 @@ public abstract class BasePolicyDefinitionApiController {
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
-    @DELETE
-    @Path("{id}")
-    public void deletePolicyDefinition(@PathParam("id") String id) {
+    public void deletePolicyDefinition(String id) {
         service.deleteById(id)
                 .onSuccess(d -> monitor.debug(format("Policy Definition deleted %s", d.getId())))
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, id));
     }
 
-    @PUT
-    @Path("{id}")
-    public void updatePolicyDefinition(@PathParam("id") String id, JsonObject input) {
+    public void updatePolicyDefinition(String id, JsonObject input) {
         validatorRegistry.validate(EDC_POLICY_DEFINITION_TYPE, input).orElseThrow(ValidationFailureException::new);
 
         var policyDefinition = transformerRegistry.transform(input, PolicyDefinition.class)

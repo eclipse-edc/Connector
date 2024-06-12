@@ -34,7 +34,6 @@ public interface ContractAgreementApiV2 {
 
     @Operation(description = "Gets all contract agreements according to a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
-            operationId = "queryAgreementsV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract agreements matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagementApiSchema.ContractAgreementSchema.class)))),
@@ -44,10 +43,9 @@ public interface ContractAgreementApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonArray queryAgreements(JsonObject querySpecJson);
+    JsonArray queryAgreementsV2(JsonObject querySpecJson);
 
     @Operation(description = "Gets an contract agreement with the given ID",
-            operationId = "getAgreementByIdV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract agreement",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractAgreementSchema.class))),
@@ -59,11 +57,10 @@ public interface ContractAgreementApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonObject getAgreementById(String id);
+    JsonObject getAgreementByIdV2(String id);
 
 
     @Operation(description = "Gets a contract negotiation with the given contract agreement ID",
-            operationId = "getNegotiationByAgreementIdV2",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class))),
@@ -75,6 +72,6 @@ public interface ContractAgreementApiV2 {
             deprecated = true
     )
     @Deprecated(since = "0.7.0")
-    JsonObject getNegotiationByAgreementId(String id);
+    JsonObject getNegotiationByAgreementIdV2(String id);
 
 }

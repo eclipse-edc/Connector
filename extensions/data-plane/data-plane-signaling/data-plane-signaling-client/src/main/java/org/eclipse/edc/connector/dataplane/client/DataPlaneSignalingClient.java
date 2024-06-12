@@ -72,54 +72,59 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
     @WithSpan
     @Override
     public StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage message) {
-        return Optional.ofNullable(dataPlane)
-                .map(instance -> send(message, instance.getUrl().toString(), message.getProcessId(), this::handleStartResponse))
-                .orElseGet(() -> StatusResult.failure(FATAL_ERROR, noDataPlaneInstanceFound(message)));
+        var url = dataPlane.getUrl().toString();
+        return createRequestBuilder(message, url)
+                .compose(builder -> send(builder, message.getProcessId(), this::handleStartResponse));
     }
 
     @Override
     public StatusResult<Void> suspend(String transferProcessId) {
         var url = "%s/%s/suspend".formatted(dataPlane.getUrl(), transferProcessId);
         var message = DataFlowSuspendMessage.Builder.newInstance().build();
-        return send(message, url, transferProcessId, r -> StatusResult.success());
+        return createRequestBuilder(message, url)
+                .compose(builder -> send(builder, transferProcessId, r -> StatusResult.success()));
     }
 
     @Override
     public StatusResult<Void> terminate(String transferProcessId) {
         var url = "%s/%s/terminate".formatted(dataPlane.getUrl(), transferProcessId);
         var message = DataFlowTerminateMessage.Builder.newInstance().build();
-        return send(message, url, transferProcessId, r -> StatusResult.success());
+        return createRequestBuilder(message, url)
+                .compose(builder -> send(builder, transferProcessId, r -> StatusResult.success()));
     }
 
-    private String noDataPlaneInstanceFound(DataFlowStartMessage message) {
-        var source = message.getSourceDataAddress().getType();
-        var destination = message.getDestinationDataAddress().getType();
-        var processId = message.getProcessId();
-        return "Unable to process transfer %s: No data plane found for source: %s and destination: %s".formatted(processId, source, destination);
+    @Override
+    public StatusResult<Void> checkAvailability() {
+        var requestBuilder = new Request.Builder().get().url(dataPlane.getUrl() + "/check");
+        return send(requestBuilder, null, it -> StatusResult.success());
     }
 
-    private <T> StatusResult<T> send(Object message, String url, String processId, Function<Response, StatusResult<T>> handleStartResponse) {
-        var requestBuilder = transformerRegistry.transform(message, JsonObject.class)
+    private <T> StatusResult<T> send(Request.Builder requestBuilder, String processId, Function<Response, StatusResult<T>> handleStartResponse) {
+        authenticationProvider.authenticationHeaders().forEach(requestBuilder::header);
+        try (var response = httpClient.execute(requestBuilder.build())) {
+            if (response.isSuccessful()) {
+                return handleStartResponse.apply(response);
+            } else {
+                return StatusResult.failure(FATAL_ERROR, format("Transfer request failed with status code %s for request %s", response.code(), processId));
+            }
+        } catch (IOException e) {
+            return StatusResult.failure(FATAL_ERROR, e.getMessage());
+        }
+    }
+
+    private StatusResult<Request.Builder> createRequestBuilder(Object message, String url) {
+        return transformerRegistry.transform(message, JsonObject.class)
                 .compose(jsonLd::compact)
                 .compose(this::serializeMessage)
                 .map(rawBody -> RequestBody.create(rawBody, TYPE_JSON))
-                .map(body -> new Request.Builder().post(body).url(url));
-
-        if (requestBuilder.succeeded()) {
-            var builder = requestBuilder.getContent();
-            authenticationProvider.authenticationHeaders().forEach(builder::header);
-            try (var response = httpClient.execute(builder.build())) {
-                if (response.isSuccessful()) {
-                    return handleStartResponse.apply(response);
-                } else {
-                    return StatusResult.failure(FATAL_ERROR, format("Transfer request failed with status code %s for request %s", response.code(), processId));
-                }
-            } catch (IOException e) {
-                return StatusResult.failure(FATAL_ERROR, e.getMessage());
-            }
-        } else {
-            return StatusResult.failure(FATAL_ERROR, requestBuilder.getFailureDetail());
-        }
+                .map(body -> new Request.Builder().post(body).url(url))
+                .flatMap(it -> {
+                    if (it.succeeded()) {
+                        return StatusResult.success(it.getContent());
+                    } else {
+                        return StatusResult.failure(FATAL_ERROR, it.getFailureDetail());
+                    }
+                });
     }
 
     private StatusResult<DataFlowResponseMessage> handleStartResponse(Response response) {

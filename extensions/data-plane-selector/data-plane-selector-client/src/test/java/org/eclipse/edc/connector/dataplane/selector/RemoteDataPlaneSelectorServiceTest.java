@@ -46,6 +46,7 @@ import java.util.UUID;
 
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -56,6 +57,7 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
+    private static final String[] FIELDS_TO_BE_IGNORED = {"createdAt", "stateTimestamp", "updatedAt"};
     private final String url = "http://localhost:%d/v1/dataplanes".formatted(port);
     private final ControlClientAuthenticationProvider authenticationProvider = mock();
     private final DataPlaneSelectorService serverService = mock();
@@ -98,8 +100,33 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
         var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), "transferType", "random");
 
-        assertThat(result).isSucceeded().usingRecursiveComparison().isEqualTo(expected);
+        assertThat(result).isSucceeded().usingRecursiveComparison()
+                .ignoringFields(FIELDS_TO_BE_IGNORED).isEqualTo(expected);
         verify(authenticationProvider).authenticationHeaders();
+    }
+
+    @Nested
+    class Unregister {
+        @Test
+        void shouldUnregister() {
+            var instanceId = UUID.randomUUID().toString();
+            when(serverService.unregister(any())).thenReturn(ServiceResult.success());
+
+            var result = service.unregister(instanceId);
+
+            assertThat(result).isSucceeded();
+            verify(serverService).unregister(instanceId);
+        }
+
+        @Test
+        void shouldFail_whenServiceFails() {
+            var instanceId = UUID.randomUUID().toString();
+            when(serverService.unregister(any())).thenReturn(ServiceResult.conflict("conflict"));
+
+            var result = service.unregister(instanceId);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+        }
     }
 
     @Nested
@@ -137,7 +164,9 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
             var result = service.findById(instanceId);
 
-            assertThat(result).isSucceeded().usingRecursiveComparison().isEqualTo(instance);
+            assertThat(result).isSucceeded().usingRecursiveComparison()
+                    .ignoringFields(FIELDS_TO_BE_IGNORED)
+                    .isEqualTo(instance);
             verify(authenticationProvider).authenticationHeaders();
         }
 

@@ -16,12 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.transferprocess;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer;
@@ -45,7 +39,6 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer.SUSPEND_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
@@ -54,11 +47,10 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
 
-@Consumes(APPLICATION_JSON)
-@Produces(APPLICATION_JSON)
+
 public abstract class BaseTransferProcessApiController {
 
-    private final Monitor monitor;
+    protected final Monitor monitor;
     private final TransferProcessService service;
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonObjectValidatorRegistry validatorRegistry;
@@ -71,8 +63,6 @@ public abstract class BaseTransferProcessApiController {
         this.validatorRegistry = validatorRegistry;
     }
 
-    @POST
-    @Path("request")
     public JsonArray queryTransferProcesses(JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
@@ -92,9 +82,8 @@ public abstract class BaseTransferProcessApiController {
                 .collect(toJsonArray());
     }
 
-    @GET
-    @Path("{id}")
-    public JsonObject getTransferProcess(@PathParam("id") String id) {
+
+    public JsonObject getTransferProcess(String id) {
         var definition = service.findById(id);
         if (definition == null) {
             throw new ObjectNotFoundException(TransferProcess.class, id);
@@ -105,9 +94,8 @@ public abstract class BaseTransferProcessApiController {
                 .orElseThrow(failure -> new ObjectNotFoundException(TransferProcess.class, id));
     }
 
-    @GET
-    @Path("/{id}/state")
-    public JsonObject getTransferProcessState(@PathParam("id") String id) {
+
+    public JsonObject getTransferProcessState(String id) {
         return Optional.of(id)
                 .map(service::getState)
                 .map(TransferState::new)
@@ -117,7 +105,7 @@ public abstract class BaseTransferProcessApiController {
                 .orElseThrow(() -> new ObjectNotFoundException(TransferProcess.class, id));
     }
 
-    @POST
+
     public JsonObject initiateTransferProcess(JsonObject request) {
         validatorRegistry.validate(TRANSFER_REQUEST_TYPE, request).orElseThrow(ValidationFailureException::new);
 
@@ -137,17 +125,15 @@ public abstract class BaseTransferProcessApiController {
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
-    @POST
-    @Path("/{id}/deprovision")
-    public void deprovisionTransferProcess(@PathParam("id") String id) {
+
+    public void deprovisionTransferProcess(String id) {
         service.deprovision(id)
                 .onSuccess(tp -> monitor.debug(format("Deprovision requested for TransferProcess with ID %s", id)))
                 .orElseThrow(exceptionMapper(TransferProcess.class, id));
     }
 
-    @POST
-    @Path("/{id}/terminate")
-    public void terminateTransferProcess(@PathParam("id") String id, JsonObject requestBody) {
+
+    public void terminateTransferProcess(String id, JsonObject requestBody) {
         validatorRegistry.validate(TERMINATE_TRANSFER_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
 
         var terminateTransfer = transformerRegistry.transform(requestBody, TerminateTransfer.class)
@@ -158,9 +144,8 @@ public abstract class BaseTransferProcessApiController {
                 .orElseThrow(exceptionMapper(TransferProcess.class, id));
     }
 
-    @POST
-    @Path("/{id}/suspend")
-    public void suspendTransferProcess(@PathParam("id") String id, JsonObject requestBody) {
+
+    public void suspendTransferProcess(String id, JsonObject requestBody) {
         validatorRegistry.validate(SUSPEND_TRANSFER_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
 
         var suspendTransfer = transformerRegistry.transform(requestBody, SuspendTransfer.class)
@@ -171,9 +156,8 @@ public abstract class BaseTransferProcessApiController {
                 .orElseThrow(exceptionMapper(TransferProcess.class, id));
     }
 
-    @POST
-    @Path("/{id}/resume")
-    public void resumeTransferProcess(@PathParam("id") String id) {
+
+    public void resumeTransferProcess(String id) {
         service.resume(new ResumeTransferCommand(id))
                 .onSuccess(tp -> monitor.debug(format("Resumption requested for TransferProcess with ID %s", id)))
                 .orElseThrow(exceptionMapper(TransferProcess.class, id));

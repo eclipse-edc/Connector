@@ -60,6 +60,7 @@ public class BaseRuntime {
     private final ConfigurationLoader configurationLoader;
     private final List<ServiceExtension> serviceExtensions = new ArrayList<>();
     protected Monitor monitor;
+    protected ServiceExtensionContext context;
 
     public BaseRuntime() {
         this(new ServiceLocatorImpl());
@@ -73,22 +74,39 @@ public class BaseRuntime {
     public static void main(String[] args) {
         programArgs = args;
         var runtime = new BaseRuntime();
-        runtime.boot();
+        runtime.boot(true);
     }
 
     /**
-     * Main entry point to runtime initialization. Calls all methods
-     * and sets up a context shutdown hook at runtime shutdown.
+     * Main entry point to runtime initialization.
+     *
+     * @param addShutdownHook add a shutdown hook if true, don't otherwise.
      */
-    public void boot() {
-        boot(true);
-    }
+    public void boot(boolean addShutdownHook) {
+        monitor = createMonitor();
+        var config = configurationLoader.loadConfiguration(monitor);
+        context = createServiceExtensionContext(config);
 
-    /**
-     * Main entry point to runtime initialization. Calls all methods.
-     */
-    public void bootWithoutShutdownHook() {
-        boot(false);
+        try {
+            var newExtensions = createExtensions(context);
+            bootExtensions(context, newExtensions);
+
+            newExtensions.stream().map(InjectionContainer::getInjectionTarget).forEach(serviceExtensions::add);
+            if (addShutdownHook) {
+                getRuntime().addShutdownHook(new Thread(this::shutdown));
+            }
+
+            if (context.hasService(HealthCheckService.class)) {
+                var startupStatusRef = new AtomicReference<>(HealthCheckResult.Builder.newInstance().component("BaseRuntime").success().build());
+                var healthCheckService = context.getService(HealthCheckService.class);
+                healthCheckService.addStartupStatusProvider(startupStatusRef::get);
+            }
+
+        } catch (Exception e) {
+            onError(e);
+        }
+
+        monitor.info(format("Runtime %s ready", context.getRuntimeId()));
     }
 
     /**
@@ -167,33 +185,6 @@ public class BaseRuntime {
     @NotNull
     protected Monitor createMonitor() {
         return ExtensionLoader.loadMonitor(programArgs);
-    }
-
-    private void boot(boolean addShutdownHook) {
-        monitor = createMonitor();
-        var config = configurationLoader.loadConfiguration(monitor);
-        var context = createServiceExtensionContext(config);
-
-        try {
-            var newExtensions = createExtensions(context);
-            bootExtensions(context, newExtensions);
-
-            newExtensions.stream().map(InjectionContainer::getInjectionTarget).forEach(serviceExtensions::add);
-            if (addShutdownHook) {
-                getRuntime().addShutdownHook(new Thread(this::shutdown));
-            }
-
-            if (context.hasService(HealthCheckService.class)) {
-                var startupStatusRef = new AtomicReference<>(HealthCheckResult.Builder.newInstance().component("BaseRuntime").success().build());
-                var healthCheckService = context.getService(HealthCheckService.class);
-                healthCheckService.addStartupStatusProvider(startupStatusRef::get);
-            }
-
-        } catch (Exception e) {
-            onError(e);
-        }
-
-        monitor.info(format("Runtime %s ready", context.getRuntimeId()));
     }
 
 }

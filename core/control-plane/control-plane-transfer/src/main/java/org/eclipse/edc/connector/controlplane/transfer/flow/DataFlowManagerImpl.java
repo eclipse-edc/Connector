@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +42,11 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 public class DataFlowManagerImpl implements DataFlowManager {
 
     private final List<PrioritizedDataFlowController> controllers = new ArrayList<>();
+    private final Monitor monitor;
+
+    public DataFlowManagerImpl(Monitor monitor) {
+        this.monitor = monitor;
+    }
 
     @Override
     public void register(DataFlowController controller) {
@@ -58,7 +64,9 @@ public class DataFlowManagerImpl implements DataFlowManager {
         try {
             return chooseControllerAndApply(transferProcess, controller -> controller.start(transferProcess, policy));
         } catch (Exception e) {
-            return StatusResult.failure(FATAL_ERROR, runtimeException(transferProcess.getId(), e.getLocalizedMessage()));
+            var message = runtimeException(transferProcess.getId(), e.getMessage());
+            monitor.severe(message, e);
+            return StatusResult.failure(FATAL_ERROR, message);
         }
     }
 

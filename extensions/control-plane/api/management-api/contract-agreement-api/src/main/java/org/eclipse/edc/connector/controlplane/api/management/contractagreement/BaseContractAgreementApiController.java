@@ -16,13 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.contractagreement;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
@@ -42,8 +35,6 @@ import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
 public abstract class BaseContractAgreementApiController {
     protected final Monitor monitor;
     private final ContractAgreementService service;
@@ -58,8 +49,6 @@ public abstract class BaseContractAgreementApiController {
         this.validatorRegistry = validatorRegistry;
     }
 
-    @POST
-    @Path("/request")
     public JsonArray queryAgreements(JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
@@ -79,9 +68,7 @@ public abstract class BaseContractAgreementApiController {
                 .collect(toJsonArray());
     }
 
-    @GET
-    @Path("{id}")
-    public JsonObject getAgreementById(@PathParam("id") String id) {
+    public JsonObject getAgreementById(String id) {
         return Optional.of(id)
                 .map(service::findById)
                 .map(it -> transformerRegistry.transform(it, JsonObject.class)
@@ -89,9 +76,7 @@ public abstract class BaseContractAgreementApiController {
                 .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
     }
 
-    @GET
-    @Path("{id}/negotiation")
-    public JsonObject getNegotiationByAgreementId(@PathParam("id") String id) {
+    public JsonObject getNegotiationByAgreementId(String id) {
         return Optional.of(id)
                 .map(service::findNegotiation)
                 .map(it -> transformerRegistry.transform(it, JsonObject.class)

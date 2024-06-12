@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.selector.spi.store;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.spi.persistence.StateEntityStore;
 import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.stream.Stream;
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
  * Holds all {@link DataPlaneInstance} objects that are known to the DPF selector.
  * The collection of {@link DataPlaneInstance} objects is mutable at runtime, so implementations must take that into account.
  */
-public interface DataPlaneInstanceStore {
+public interface DataPlaneInstanceStore extends StateEntityStore<DataPlaneInstance> {
 
     String DATA_PLANE_INSTANCE_EXISTS = "Data Plane Instance with ID %s already exists";
     String DATA_PLANE_INSTANCE_NOT_FOUND = "Data Plane Instance with ID %s not found";
@@ -35,8 +36,13 @@ public interface DataPlaneInstanceStore {
      *
      * @return {@link StoreResult#success()} if the data plane instance was stored, {@link StoreResult#alreadyExists(String)} if a data
      *         plane instance with the same ID already exists
+     * @deprecated please use {@link #save(Object)}
      */
-    StoreResult<Void> create(DataPlaneInstance instance);
+    @Deprecated(since = "0.7.0")
+    default StoreResult<Void> create(DataPlaneInstance instance) {
+        save(instance);
+        return StoreResult.success();
+    }
 
     /**
      * Updates the {@link DataPlaneInstance} if a data plane instance with the same ID already exists.
@@ -45,8 +51,13 @@ public interface DataPlaneInstanceStore {
      *
      * @return {@link StoreResult#success()} if the data plane instance was updated, {@link StoreResult#notFound(String)} if a data
      *         plane instance with the same ID was not found
+     * @deprecated please use {@link #save(Object)}
      */
-    StoreResult<Void> update(DataPlaneInstance instance);
+    @Deprecated(since = "0.7.0")
+    default StoreResult<Void> update(DataPlaneInstance instance) {
+        save(instance);
+        return StoreResult.success();
+    }
 
     /**
      * Delete a data plane instance by its id.
@@ -55,8 +66,6 @@ public interface DataPlaneInstanceStore {
      * @return the deleted data plane instance.
      */
     StoreResult<DataPlaneInstance> deleteById(String instanceId);
-
-    DataPlaneInstance findById(String id);
 
     Stream<DataPlaneInstance> getAll();
 

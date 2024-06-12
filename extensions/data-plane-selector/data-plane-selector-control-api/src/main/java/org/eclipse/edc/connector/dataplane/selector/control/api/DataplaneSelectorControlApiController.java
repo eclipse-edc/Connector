@@ -20,6 +20,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -79,10 +80,17 @@ public class DataplaneSelectorControlApiController implements DataplaneSelectorC
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
+    @PUT
+    @Path("/{id}/unregister")
     @Override
+    public void unregisterDataplane(@PathParam("id") String id) {
+        service.unregister(id).orElseThrow(exceptionMapper(DataPlaneInstance.class));
+    }
+
     @DELETE
     @Path("/{id}")
-    public void unregisterDataplane(@PathParam("id") String id) {
+    @Override
+    public void deleteDataplane(@PathParam("id") String id) {
         service.delete(id).orElseThrow(exceptionMapper(DataPlaneInstance.class));
     }
 

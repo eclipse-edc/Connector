@@ -17,8 +17,6 @@ package org.eclipse.edc.sql.translation;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,7 +31,8 @@ class TranslationMappingTest {
 
     private final FieldTranslator fieldTranslator = mock();
     private final FieldTranslator nestedFieldTranslator = mock();
-    private final TranslationMapping mapping = new TestMapping(fieldTranslator, nestedFieldTranslator);
+    private final FieldTranslator rootItemInJsonObjectTranslator = mock();
+    private final TranslationMapping mapping = new TestMapping(fieldTranslator, nestedFieldTranslator, rootItemInJsonObjectTranslator);
 
     @Test
     void shouldInvokeTranslatorAndReturnWhereClause() {
@@ -44,7 +43,7 @@ class TranslationMappingTest {
         var whereClause = mapping.getWhereClause(criterion, dummyOperator());
 
         assertThat(whereClause).isSameAs(expected);
-        verify(fieldTranslator).toWhereClause(argThat(List::isEmpty), same(criterion), any());
+        verify(fieldTranslator).toWhereClause(argThat(it -> it.size() == 1), same(criterion), any());
     }
 
     @Test
@@ -64,7 +63,21 @@ class TranslationMappingTest {
         var whereClause = mapping.getWhereClause(criterion, dummyOperator());
 
         assertThat(whereClause).isSameAs(expected);
-        verify(nestedFieldTranslator).toWhereClause(argThat(List::isEmpty), same(criterion), any());
+        verify(nestedFieldTranslator).toWhereClause(argThat(it -> it.size() == 1), same(criterion), any());
+    }
+
+    @Test
+    void shouldInvokeNestedTranslatorWithAtLeastOneItem_whenPathIsEmpty() {
+        var expected = new WhereClause("column_name => rootItemInJsonObject = ?", "value");
+        when(rootItemInJsonObjectTranslator.toWhereClause(any(), any(), any())).thenReturn(expected);
+        var criterion = criterion("rootItemInJsonObject", "=", "value");
+        var operator = dummyOperator();
+
+        var whereClause = mapping.getWhereClause(criterion, operator);
+
+        verify(rootItemInJsonObjectTranslator)
+                .toWhereClause(argThat(it -> it.size() == 1 && it.get(0).toString().equals("rootItemInJsonObject")), same(criterion), same(operator));
+        assertThat(whereClause).isSameAs(expected);
     }
 
     @NotNull
@@ -74,10 +87,11 @@ class TranslationMappingTest {
 
     private static class TestMapping extends TranslationMapping {
 
-        TestMapping(FieldTranslator fieldTranslator, FieldTranslator nestedFieldTranslator) {
+        TestMapping(FieldTranslator fieldTranslator, FieldTranslator nestedFieldTranslator, FieldTranslator rootItemInJsonObjectTranslator) {
+            add("rootItemInJsonObject", rootItemInJsonObjectTranslator);
             add("field", fieldTranslator);
             if (nestedFieldTranslator != null) {
-                add("nested", new TestMapping(nestedFieldTranslator, null));
+                add("nested", new TestMapping(nestedFieldTranslator, null, null));
             }
         }
     }

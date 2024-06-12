@@ -113,12 +113,13 @@ public class EndpointDataReferenceEntry extends Entity {
             return this;
         }
 
+        @Override
         public EndpointDataReferenceEntry build() {
             super.build();
             requireNonNull(entity.assetId, ASSET_ID);
             requireNonNull(entity.agreementId, AGREEMENT_ID);
             requireNonNull(entity.transferProcessId, TRANSFER_PROCESS_ID);
-            requireNonNull(entity.providerId, TRANSFER_PROCESS_ID);
+            requireNonNull(entity.providerId, PROVIDER_ID);
             // The id is always equals to transfer process id
             entity.id = entity.transferProcessId;
             return entity;

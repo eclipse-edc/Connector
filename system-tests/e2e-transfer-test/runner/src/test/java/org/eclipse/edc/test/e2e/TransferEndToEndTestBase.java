@@ -15,7 +15,7 @@
 package org.eclipse.edc.test.e2e;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.spi.security.Vault;
 
 import java.time.Duration;
@@ -37,7 +37,7 @@ public abstract class TransferEndToEndTestBase {
             .build();
     protected final Duration timeout = Duration.ofSeconds(60);
 
-    protected static void seedVault(EdcRuntimeExtension runtime) {
+    protected static void seedVault(RuntimeExtension runtime) {
         var vault = runtime.getService(Vault.class);
 
         var privateKeyContent = getResourceFileContentAsString("certs/key.pem");
