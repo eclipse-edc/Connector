@@ -15,6 +15,7 @@
 package org.eclipse.edc.spi.iam;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
@@ -26,7 +27,7 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 @FunctionalInterface
 @ExtensionPoint
 public interface AudienceResolver {
-    
-    String resolve(RemoteMessage remoteMessage);
+
+    Result<String> resolve(RemoteMessage remoteMessage);
 
 }

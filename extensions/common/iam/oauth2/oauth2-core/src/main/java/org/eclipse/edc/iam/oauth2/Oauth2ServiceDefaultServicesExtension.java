@@ -16,8 +16,8 @@ package org.eclipse.edc.iam.oauth2;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.iam.AudienceResolver;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Provides default service implementations for fallback
@@ -35,6 +35,6 @@ public class Oauth2ServiceDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public AudienceResolver defaultAudienceResolver() {
-        return RemoteMessage::getCounterPartyAddress;
+        return (msg) -> Result.success(msg.getCounterPartyAddress());
     }
 }
