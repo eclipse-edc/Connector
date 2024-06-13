@@ -44,7 +44,7 @@ public class TokenValidationServiceImpl implements TokenValidationService {
             var publicKeyResolutionResult = publicKeyResolver.resolveKey(publicKeyId);
 
             if (publicKeyResolutionResult.failed()) {
-                return publicKeyResolutionResult.mapTo();
+                return publicKeyResolutionResult.mapFailure();
             }
 
             var verifierCreationResult = CryptoConverter.createVerifierFor(publicKeyResolutionResult.getContent());
