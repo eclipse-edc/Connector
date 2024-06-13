@@ -48,8 +48,8 @@ public class DelegatedAuthenticationService implements AuthenticationService {
     @Override
     public boolean isAuthenticated(Map<String, List<String>> headers) {
 
-        if (headers == null || headers.isEmpty()) {
-            var msg = "Headers were null or empty";
+        if (headers == null) {
+            var msg = "Headers were null";
             monitor.warning(msg);
             throw new AuthenticationFailedException(msg);
         }
@@ -60,14 +60,10 @@ public class DelegatedAuthenticationService implements AuthenticationService {
                 .findFirst();
 
         return authHeaders.map(this::performTokenValidation).orElseThrow(() -> {
-            var msg = "Header '%s' not present";
+            var msg = "Header '%s' not present".formatted(AUTHORIZATION);
             monitor.warning(msg);
-            return new AuthenticationFailedException(msg.formatted(AUTHORIZATION));
+            return new AuthenticationFailedException(msg);
         });
-
-    }
-
-    public void updateCache() {
 
     }
 
@@ -78,7 +74,7 @@ public class DelegatedAuthenticationService implements AuthenticationService {
         }
         var token = authHeaders.get(0);
         if (!token.toLowerCase().startsWith("bearer ")) {
-            monitor.warning("Authorization header must start with 'bearer '");
+            monitor.warning("Authorization header must start with 'Bearer '");
             return false;
         }
         token = token.substring(6).trim(); // "bearer" has 7 characters, it could be upper case, lower case or capitalized

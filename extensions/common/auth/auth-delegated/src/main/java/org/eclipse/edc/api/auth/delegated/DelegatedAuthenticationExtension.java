@@ -66,12 +66,16 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var monitor = context.getMonitor().withPrefix("Delegated API Authentication");
 
-        var keyUrl = context.getConfig().getString(AUTH_SETTING_KEY_URL);
+        var keyUrl = context.getConfig().getString(AUTH_SETTING_KEY_URL, null);
+        if (keyUrl == null) {
+            monitor.warning("The '%s' setting was not provided, so the DelegatedAuthenticationService will NOT be registered. Normally, the TokenBasedAuthenticationService acts as fallback.".formatted(AUTH_SETTING_KEY_URL));
+            return;
+        }
         var cacheValidityMs = context.getConfig().getLong(AUTH_SETTING_CACHE_VALIDITY_MS, DEFAULT_CACHE_VALIDTY_MS);
         var tolerance = context.getConfig().getInteger(AUTH_SETTING_VALIDATION_TOLERANCE_MS, DEFAULT_VALIDATION_TOLERANCE);
 
-        var monitor = context.getMonitor().withPrefix("Delegated API Authentication");
         //todo: currently, only JWKS urls are supported
         var resolver = new JwksPublicKeyResolver(keyParserRegistry, keyUrl, monitor);
 

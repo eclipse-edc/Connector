@@ -69,12 +69,14 @@ public class JwksPublicKeyResolver implements PublicKeyResolver {
         }
 
         if (keys.isEmpty()) {
-            var msg = "JWKSet did not contain a matching key (desired keyId = %s)".formatted(keyId);
+            var msg = "JWKSet did not contain a matching key (desired keyId: '%s')".formatted(keyId);
             monitor.warning(msg);
             return Result.failure(msg);
         }
         if (keys.size() > 1) {
-            var msg = "JWKSet contained %d matching keys (desired keyId =  '%s'), where only 1 is expected. Will abort!".formatted(keys.size(), keyId);
+            String msg = keyId == null ?
+                    "JWKSet contained %d keys, but no keyId was specified. Please consider specifying a keyId.".formatted(keys.size()) :
+                    "JWKSet contained %d matching keys (desired keyId: '%s'), where only 1 is expected. Will abort!".formatted(keys.size(), keyId);
             monitor.warning(msg);
             return Result.failure(msg);
         }

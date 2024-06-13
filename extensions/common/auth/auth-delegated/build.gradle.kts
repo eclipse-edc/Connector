@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.nimbus.jwt)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:lib:keys-lib"))
     testImplementation(libs.mockserver.netty)
 }
 

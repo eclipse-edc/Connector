@@ -14,183 +14,106 @@
 
 package org.eclipse.edc.api.auth.delegated;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.security.token.jwt.CryptoConverter;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.edc.keys.keyparsers.JwkParser;
+import org.eclipse.edc.keys.spi.PublicKeyResolver;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.verify.VerificationTimes;
 
-import java.util.Arrays;
+import java.security.PublicKey;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.api.auth.delegated.TestFunctions.createToken;
+import static org.eclipse.edc.api.auth.delegated.TestFunctions.generateKey;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-import static org.mockserver.stop.Stop.stopQuietly;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
-@ComponentTest
 class DelegatedAuthenticationServiceTest {
 
     private static final long TEST_CACHE_VALIDITY = 50;
-    private static ClientAndServer keyServer;
+    private final TokenValidationRulesRegistry rulesRegistry = mock();
+    private final PublicKeyResolver publicKeyResolver = mock();
     private final ObjectMapper mapper = new ObjectMapper();
-
-    @BeforeAll
-    static void prepare() {
-        keyServer = ClientAndServer.startClientAndServer(getFreePort());
-
-    }
-
-    @AfterAll
-    static void teardown() {
-        stopQuietly(keyServer);
-    }
-
-    @BeforeEach
-    void setUp() {
-        keyServer.reset();
-    }
+    private final Monitor monitor = mock();
+    private final JwkParser jwkParser = new JwkParser(mapper, monitor);
+    private final DelegatedAuthenticationService service = new DelegatedAuthenticationService(publicKeyResolver, TEST_CACHE_VALIDITY, monitor, new TokenValidationServiceImpl(), rulesRegistry);
 
     @Test
-    void isAuthenticated_jwks_singleKey() throws JOSEException {
-        var port = keyServer.getLocalPort();
-        var authService = new DelegatedAuthenticationService("http://localhost:%d/.well-known/jwks.json".formatted(port), TEST_CACHE_VALIDITY, mock());
-
-        var key = new OctetKeyPairGenerator(Curve.Ed25519).keyID("test-key").keyUse(KeyUse.SIGNATURE).generate();
-        keyServer.when(jwksRequest()).respond(response().withStatusCode(200).withBody(jkwsObject(key)));
+    void isAuthenticated_valid() {
+        var key = generateKey();
+        var pk = jwkParser.parse(key.toPublicJWK().toJSONString());
+        when(publicKeyResolver.resolveKey(anyString())).thenReturn(pk.map(k -> (PublicKey) k));
 
         var token = createToken(key);
         var headers = Map.of("Authorization", List.of("Bearer " + token));
 
-        assertThat(authService.isAuthenticated(headers)).isTrue();
-        keyServer.verify(jwksRequest(), VerificationTimes.exactly(1));
+        assertThat(service.isAuthenticated(headers)).isTrue();
+        verify(publicKeyResolver).resolveKey(eq(key.getKeyID()));
+        verify(rulesRegistry).getRules(eq(DelegatedAuthenticationService.MANAGEMENT_API_CONTEXT));
+        verifyNoMoreInteractions(publicKeyResolver, rulesRegistry);
     }
 
     @Test
-    void isAuthenticated_jwks_multipleKeys() throws JOSEException {
-        var port = keyServer.getLocalPort();
-        var authService = new DelegatedAuthenticationService("http://localhost:%d/.well-known/jwks.json".formatted(port), TEST_CACHE_VALIDITY, mock());
-
-        var key1 = new OctetKeyPairGenerator(Curve.Ed25519).keyID("test-key1").generate();
-        var key2 = new ECKeyGenerator(Curve.P_256).keyID("test-key2").generate();
-        keyServer.when(jwksRequest()).respond(response().withStatusCode(200).withBody(jkwsObject(key1, key2)));
-
-        var token = createToken(key1);
-        var headers = Map.of("Authorization", List.of("Bearer " + token));
-
-        assertThat(authService.isAuthenticated(headers)).isTrue();
-
+    void isAuthenticated_noHeaders() {
+        assertThatThrownBy(() -> service.isAuthenticated(null))
+                .isInstanceOf(AuthenticationFailedException.class);
+        verify(monitor).warning("Headers were null");
+        verifyNoInteractions(rulesRegistry, publicKeyResolver);
     }
 
     @Test
-    void isAuthenticated_jwks_keyNotFound() {
-
+    void isAuthenticated_emptyHeaders() {
+        assertThatThrownBy(() -> service.isAuthenticated(Map.of()))
+                .isInstanceOf(AuthenticationFailedException.class);
+        verify(monitor).warning("Header 'Authorization' not present");
+        verifyNoInteractions(rulesRegistry, publicKeyResolver);
     }
 
     @Test
-    void isAuthenticated_jwks_multiKeys_noKeyId() {
-
-    }
-
-    @Test
-    void isAuthenticated_jwks_singleKey_noKeyId() {
-    }
-
-    @Test
-    void isAuthenticated_pem() {
-
-    }
-
-    @Test
-    void isAuthenticated_invalidKeyUrl() {
-
-    }
-
-    @Test
-    void isAuthenticated_tokenNotValid() {
-
-    }
-
-    @Test
-    void isAuthenticated_nbfInvalid() {
-
-    }
-
-    @Test
-    void isAuthenticated_expInvalid() {
-
-    }
-
-    @Test
-    void isAuthenticated_valid() {
-
-    }
-
-    @Test
-    void isAuthenticated_withNbfAndExp_valid() {
+    void isAuthenticated_noAuthHeader() {
+        assertThatThrownBy(() -> service.isAuthenticated(Map.of("foo", List.of("bar"))))
+                .isInstanceOf(AuthenticationFailedException.class);
+        verify(monitor).warning("Header 'Authorization' not present");
+        verifyNoInteractions(rulesRegistry, publicKeyResolver);
     }
 
     @Test
     void isAuthenticated_multipleAuthHeaders_shouldReject() {
+        var key = generateKey();
+        var token = createToken(key);
 
+        var headers = Map.of("Authorization", List.of("Bearer " + token, "Bearer someOtherToken"));
+
+        assertThat(service.isAuthenticated(headers)).isFalse();
+        verify(monitor).warning(contains("Expected exactly 1 Authorization header, found 2"));
+        verifyNoInteractions(rulesRegistry, publicKeyResolver);
     }
 
-    private String createToken(JWK key) {
-        var signer = CryptoConverter.createSigner(key);
-        var algorithm = CryptoConverter.getRecommendedAlgorithm(signer);
+    @Test
+    void isAuthenticated_notBearer() {
+        var key = generateKey();
+        var pk = jwkParser.parse(key.toPublicJWK().toJSONString());
+        when(publicKeyResolver.resolveKey(anyString())).thenReturn(pk.map(k -> (PublicKey) k));
 
-        var header = new JWSHeader.Builder(algorithm).keyID(key.getKeyID()).build();
-        var claims = new JWTClaimsSet.Builder()
-                .audience("test-audience")
-                .issuer("test-issuer")
-                .subject("test-subject")
-                .build();
+        var token = createToken(key);
+        var headers = Map.of("Authorization", List.of(token));
 
-        var jwt = new SignedJWT(header, claims);
-        try {
-            jwt.sign(signer);
-            return jwt.serialize();
-        } catch (JOSEException e) {
-            throw new RuntimeException(e);
-        }
+        assertThat(service.isAuthenticated(headers)).isFalse();
+        verify(monitor).warning("Authorization header must start with 'Bearer '");
+        verifyNoInteractions(rulesRegistry, publicKeyResolver);
     }
 
-    private HttpRequest jwksRequest() {
-        return request()
-                .withPath("/.well-known/jwks.json");
-    }
 
-    private HttpRequest pemRequest() {
-        return request()
-                .withPath("/.well-known/pem");
-    }
-
-    private String jkwsObject(JWK... keys) {
-        var keyList = Arrays.stream(keys).map(JWK::toJSONObject).toList();
-        var m = Map.of("keys", keyList);
-
-        try {
-            return mapper.writeValueAsString(m);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
