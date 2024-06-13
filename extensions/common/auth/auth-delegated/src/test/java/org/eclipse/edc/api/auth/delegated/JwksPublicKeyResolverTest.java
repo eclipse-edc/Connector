@@ -69,7 +69,6 @@ class JwksPublicKeyResolverTest {
 
     @Test
     void resolve_singleKey() {
-
         jwksServer.when(jwksRequest())
                 .respond(response().withStatusCode(200).withBody(jwksObject(generateKey("foo-bar-key").toPublicJWK())));
 

@@ -45,7 +45,7 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
     @Setting(value = "Duration (in ms) that the internal key cache is valid", type = "Long", defaultValue = "" + DEFAULT_CACHE_VALIDTY_MS)
     public static final String AUTH_SETTING_CACHE_VALIDITY_MS = "edc.api.auth.dac.cache.validity";
     @Setting(value = "URL where the third-party IdP's public key(s) can be resolved")
-    private static final String AUTH_SETTING_KEY_URL = "edc.api.auth.dac.key.url";
+    public static final String AUTH_SETTING_KEY_URL = "edc.api.auth.dac.key.url";
     @Setting(value = "Default token validation time tolerance, e.g. for nbf or exp claims", defaultValue = "" + DEFAULT_VALIDATION_TOLERANCE)
     private static final String AUTH_SETTING_VALIDATION_TOLERANCE_MS = "edc.api.auth.dac.validation.tolerance";
     @Inject
