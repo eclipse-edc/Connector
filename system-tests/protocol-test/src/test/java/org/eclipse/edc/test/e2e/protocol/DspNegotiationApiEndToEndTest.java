@@ -19,7 +19,9 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Test;
@@ -40,7 +42,7 @@ public class DspNegotiationApiEndToEndTest {
     private static final int PROTOCOL_PORT = Ports.getFreePort();
 
     @RegisterExtension
-    static EdcRuntimeExtension runtime = new EdcRuntimeExtension(
+    static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime(
             "runtime",
             Map.of(
                     "web.http.protocol.path", "/protocol",
@@ -54,7 +56,7 @@ public class DspNegotiationApiEndToEndTest {
             ":core:control-plane:control-plane-aggregate-services",
             ":core:control-plane:control-plane-core",
             ":extensions:common:http"
-    );
+    ));
 
     @Test
     void shouldExposeVersion2024_1() {

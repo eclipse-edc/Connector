@@ -47,6 +47,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
@@ -129,16 +130,20 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     @WithSpan
     @Override
     public StatusResult<TransferProcess> initiateConsumerRequest(TransferRequest transferRequest) {
-        // make the request idempotent: if the process exists, return
         var id = Optional.ofNullable(transferRequest.getId()).orElseGet(() -> UUID.randomUUID().toString());
         var existingTransferProcess = store.findForCorrelationId(id);
         if (existingTransferProcess != null) {
             return StatusResult.success(existingTransferProcess);
         }
 
+        var policy = policyArchive.findPolicyForContract(transferRequest.getContractId());
+        if (policy == null) {
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "No policy found for contract " + transferRequest.getContractId());
+        }
+
         var process = TransferProcess.Builder.newInstance()
                 .id(id)
-                .assetId(transferRequest.getAssetId())
+                .assetId(policy.getTarget())
                 .dataDestination(transferRequest.getDataDestination())
                 .counterPartyAddress(transferRequest.getCounterPartyAddress())
                 .contractId(transferRequest.getContractId())
@@ -155,7 +160,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         observable.invokeForEach(l -> l.preCreated(process));
         update(process);
         observable.invokeForEach(l -> l.initiated(process));
-        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
 
         return StatusResult.success(process);
     }

@@ -161,7 +161,7 @@ public interface TransferProcessApiV3 {
             String counterPartyAddress,
             @Schema(requiredMode = REQUIRED)
             String contractId,
-            @Schema(requiredMode = REQUIRED)
+            @Schema(deprecated = true)
             String assetId,
             @Schema(requiredMode = REQUIRED)
             String transferType,
@@ -177,7 +177,6 @@ public interface TransferProcessApiV3 {
                     "protocol": "dataspace-protocol-http",
                     "counterPartyAddress": "http://provider-address",
                     "contractId": "contract-id",
-                    "assetId": "asset-id",
                     "transferType": "transferType",
                     "dataDestination": {
                         "type": "data-destination-type"

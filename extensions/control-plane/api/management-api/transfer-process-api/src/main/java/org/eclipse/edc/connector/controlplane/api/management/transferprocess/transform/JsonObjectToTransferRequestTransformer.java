@@ -32,7 +32,6 @@ import java.util.function.Consumer;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
 import static jakarta.json.JsonValue.ValueType.OBJECT;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
@@ -67,7 +66,6 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
                     (v) -> transformProperties(v, builder::privateProperties, context);
             case TRANSFER_REQUEST_PROTOCOL -> (v) -> builder.protocol(transformString(v, context));
             case TRANSFER_REQUEST_TRANSFER_TYPE -> (v) -> builder.transferType(transformString(v, context));
-            case TRANSFER_REQUEST_ASSET_ID -> (v) -> builder.assetId(transformString(v, context));
             default -> doNothing();
         });
 

@@ -66,19 +66,22 @@ public abstract class RuntimeExtension implements ParameterResolver {
      *
      * @param mock the service mock
      */
-    public <T> void registerServiceMock(Class<T> type, T mock) {
+    public <T> RuntimeExtension registerServiceMock(Class<T> type, T mock) {
         runtime.registerServiceMock(type, mock);
+        return this;
     }
 
     /**
      * Registers a service extension with the runtime.
      */
-    public <T extends SystemExtension> void registerSystemExtension(Class<T> type, SystemExtension extension) {
+    public <T extends SystemExtension> RuntimeExtension registerSystemExtension(Class<T> type, SystemExtension extension) {
         runtime.registerSystemExtension(type, extension);
+        return this;
     }
 
-    public void setConfiguration(Map<String, String> configuration) {
+    public RuntimeExtension setConfiguration(Map<String, String> configuration) {
         registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(configuration));
+        return this;
     }
 
     public <T> T getService(Class<T> clazz) {
