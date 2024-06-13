@@ -96,7 +96,6 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
     @BeforeEach
     void setUp() {
-        when(audienceResolver.resolve(any())).thenReturn(AUDIENCE_VALUE);
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0));
     }
 
@@ -110,6 +109,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         var authToken = "token";
         Map<String, Object> additional = Map.of("foo", "bar");
         var policy = Policy.Builder.newInstance().build();
+        when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(additional));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
@@ -144,6 +144,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         var authToken = "token";
         Map<String, Object> additional = Map.of("foo", "bar");
         var policy = Policy.Builder.newInstance().build();
+        when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(additional).claims(SCOPE_CLAIM, "test-scope"));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
@@ -183,6 +184,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         var authToken = "token";
         Map<String, Object> additional = Map.of("foo", "bar");
         var policy = Policy.Builder.newInstance().build();
+        when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(additional));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
@@ -232,6 +234,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     @Test
     void dispatch_failedToObtainToken_throwException() {
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
+        when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("error"));
 
@@ -242,7 +245,20 @@ class DspHttpRemoteMessageDispatcherImplTest {
     }
 
     @Test
+    void dispatch_failedToResolveAudience_throwException() {
+        dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
+        when(audienceResolver.resolve(any())).thenReturn(Result.failure("audience fetch failure"));
+        when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
+
+        assertThat(dispatcher.dispatch(String.class, new TestMessage())).failsWithin(timeout)
+                .withThrowableThat().withCauseInstanceOf(EdcException.class).withMessageContaining("audience fetch failure");
+
+        verifyNoInteractions(httpClient);
+    }
+
+    @Test
     void dispatch_shouldNotEvaluatePolicy_whenItIsNotRegistered() {
+        when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
         when(identityService.obtainClientCredentials(any()))
@@ -258,6 +274,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     @Test
     void dispatch_shouldEvaluatePolicy() {
         var policy = Policy.Builder.newInstance().build();
+        when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
         when(identityService.obtainClientCredentials(any()))
@@ -361,6 +378,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         }
 
         private void respondWith(okhttp3.Response response, DspHttpResponseBodyExtractor<Object> bodyExtractor) {
+            when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
             when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
             when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(response));
             when(identityService.obtainClientCredentials(any()))

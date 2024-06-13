@@ -33,9 +33,9 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.token.JwtGenerationService;
 
 import java.security.PrivateKey;
@@ -107,7 +107,7 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     // Default audience for DCP is the counter-party id
     @Provider(isDefault = true)
     public AudienceResolver defaultAudienceResolver() {
-        return RemoteMessage::getCounterPartyId;
+        return (msg) -> Result.success(msg.getCounterPartyId());
     }
 
     // Default ClaimToken creator function, will use "vc" as key

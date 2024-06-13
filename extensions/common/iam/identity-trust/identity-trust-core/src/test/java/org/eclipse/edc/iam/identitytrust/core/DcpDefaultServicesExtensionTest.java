@@ -111,6 +111,8 @@ class DcpDefaultServicesExtensionTest {
         var id = "counterPartyId";
         var remoteMessage = mock(RemoteMessage.class);
         when(remoteMessage.getCounterPartyId()).thenReturn(id);
-        assertThat(ext.defaultAudienceResolver().resolve(remoteMessage)).isEqualTo(id);
+        assertThat(ext.defaultAudienceResolver().resolve(remoteMessage))
+                .extracting(Result::getContent)
+                .isEqualTo(id);
     }
 }

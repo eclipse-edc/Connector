@@ -117,11 +117,9 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
         }
 
-        var tokenParameters = tokenDecorator.decorate(tokenParametersBuilder)
-                .claims(AUDIENCE_CLAIM, audienceResolver.resolve(message)) // enforce the audience, ignore anything a decorator might have set
-                .build();
-
-        return identityService.obtainClientCredentials(tokenParameters)
+        return audienceResolver.resolve(message)
+                .map(audience -> tokenDecorator.decorate(tokenParametersBuilder).claims(AUDIENCE_CLAIM, audience).build()) // enforce the audience, ignore anything a decorator might have set
+                .compose(identityService::obtainClientCredentials)
                 .map(token -> {
                     var requestWithAuth = request.newBuilder()
                             .header("Authorization", token.getToken())
