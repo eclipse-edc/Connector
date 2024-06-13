@@ -33,15 +33,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class IatpScopeExtractorFunctionTest {
+public class DcpScopeExtractorFunctionTest {
 
     private final ScopeExtractorRegistry registry = mock();
     private final PolicyContext policyContext = mock();
-    private IatpScopeExtractorFunction function;
+    private DcpScopeExtractorFunction function;
 
     @BeforeEach
     void setup() {
-        function = new IatpScopeExtractorFunction(registry, mock(Monitor.class));
+        function = new DcpScopeExtractorFunction(registry, mock(Monitor.class));
     }
 
     @Test

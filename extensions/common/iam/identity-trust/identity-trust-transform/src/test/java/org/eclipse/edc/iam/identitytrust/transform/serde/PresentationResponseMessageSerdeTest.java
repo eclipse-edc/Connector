@@ -32,7 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.spi.IatpConstants.IATP_CONTEXT_URL;
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_CONTEXT_URL;
 import static org.mockito.Mockito.mock;
 
 public class PresentationResponseMessageSerdeTest {
@@ -49,8 +49,8 @@ public class PresentationResponseMessageSerdeTest {
     @BeforeEach
     void setUp() {
         jsonLd.registerCachedDocument("https://identity.foundation/presentation-exchange/submission/v1", TestUtils.getFileFromResourceName("presentation_ex.json").toURI());
-        jsonLd.registerCachedDocument(IATP_CONTEXT_URL, TestUtils.getFileFromResourceName("document/iatp.v08.jsonld").toURI());
-        jsonLd.registerContext(IATP_CONTEXT_URL);
+        jsonLd.registerCachedDocument(DCP_CONTEXT_URL, TestUtils.getFileFromResourceName("document/dcp.v08.jsonld").toURI());
+        jsonLd.registerContext(DCP_CONTEXT_URL);
         // delegate to the generic transformer
 
         trr.register(new JsonValueToGenericTypeTransformer(mapper));

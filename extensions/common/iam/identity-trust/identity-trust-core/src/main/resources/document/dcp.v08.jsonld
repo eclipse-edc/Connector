@@ -2,124 +2,124 @@
   "@context": {
     "@version": 1.1,
     "@protected": true,
-    "iatp": "https://w3id.org/tractusx-trust/v0.8/",
+    "dcp": "https://w3id.org/tractusx-trust/v0.8/",
     "cred": "https://www.w3.org/2018/credentials/",
     "xsd": "http://www.w3.org/2001/XMLSchema/",
     "CredentialContainer": {
-      "@id": "iatp:CredentialContainer",
+      "@id": "dcp:CredentialContainer",
       "@context": {
         "payload": {
-          "@id": "iatp:payload",
+          "@id": "dcp:payload",
           "@type": "xsd:string"
         }
       }
     },
     "CredentialMessage": {
-      "@id": "iatp:CredentialMessage",
+      "@id": "dcp:CredentialMessage",
       "@context": {
-        "credentials": "iatp:credentials"
+        "credentials": "dcp:credentials"
       }
     },
     "CredentialObject": {
-      "@id": "iatp:CredentialObject",
+      "@id": "dcp:CredentialObject",
       "@context": {
         "credentialType": {
-          "@id": "iatp:credentialType",
+          "@id": "dcp:credentialType",
           "@container": "@set"
         },
-        "format": "iatp:format",
+        "format": "dcp:format",
         "offerReason": {
-          "@id": "iatp:offerReason",
+          "@id": "dcp:offerReason",
           "@type": "xsd:string"
         },
         "bindingMethods": {
-          "@id": "iatp:bindingMethods",
+          "@id": "dcp:bindingMethods",
           "@type": "xsd:string",
           "@container": "@set"
         },
         "cryptographicSuites": {
-          "@id": "iatp:cryptographicSuites",
+          "@id": "dcp:cryptographicSuites",
           "@type": "xsd:string",
           "@container": "@set"
         },
-        "issuancePolicy": "iatp:issuancePolicy"
+        "issuancePolicy": "dcp:issuancePolicy"
       }
     },
     "CredentialOfferMessage": {
-      "@id": "iatp:CredentialOfferMessage",
+      "@id": "dcp:CredentialOfferMessage",
       "@context": {
         "credentialIssuer": "cred:issuer",
-        "credentials": "iatp:credentials"
+        "credentials": "dcp:credentials"
       }
     },
     "CredentialRequestMessage": {
-      "@id": "iatp:CredentialRequestMessage",
+      "@id": "dcp:CredentialRequestMessage",
       "@context": {
-        "format": "iatp:format",
+        "format": "dcp:format",
         "type": "@type"
       }
     },
-    "CredentialService": "iatp:CredentialService",
+    "CredentialService": "dcp:CredentialService",
     "CredentialStatus": {
-      "@id": "iatp:CredentialStatus",
+      "@id": "dcp:CredentialStatus",
       "@context": {
         "requestId": {
-          "@id": "iatp:requestId",
+          "@id": "dcp:requestId",
           "@type": "@id"
         },
         "status": {
-          "@id": "iatp:status",
+          "@id": "dcp:status",
           "@type": "xsd:string"
         }
       }
     },
     "IssuerMetadata": {
-      "@id": "iatp:IssuerMetadata",
+      "@id": "dcp:IssuerMetadata",
       "@context": {
         "credentialIssuer": "cred:issuer",
         "credentialsSupported": {
-          "@id": "iatp:credentialsSupported",
+          "@id": "dcp:credentialsSupported",
           "@container": "@set"
         }
       }
     },
     "PresentationQueryMessage": {
-      "@id": "iatp:PresentationQueryMessage",
+      "@id": "dcp:PresentationQueryMessage",
       "@context": {
         "presentationDefinition": {
-          "@id": "iatp:presentationDefinition",
+          "@id": "dcp:presentationDefinition",
           "@type": "@json"
         },
         "scope": {
-          "@id": "iatp:scope",
+          "@id": "dcp:scope",
           "@type": "xsd:string",
           "@container": "@set"
         }
       }
     },
     "PresentationResponseMessage": {
-      "@id": "iatp:PresentationResponseMessage",
+      "@id": "dcp:PresentationResponseMessage",
       "@context": {
         "presentation": {
-          "@id": "iatp:presentation",
+          "@id": "dcp:presentation",
           "@type": "@json"
         },
         "presentationSubmission": {
-          "@id": "iatp:presentationSubmission",
+          "@id": "dcp:presentationSubmission",
           "@type": "@json"
         }
       }
     },
     "credentials": {
-      "@id": "iatp:credentials",
+      "@id": "dcp:credentials",
       "@container": "@set"
     },
     "credentialSubject": {
-      "@id": "iatp:credentialSubject",
+      "@id": "dcp:credentialSubject",
       "@type": "cred:credentialSubject"
     },
     "format": {
-      "@id": "iatp:format",
+      "@id": "dcp:format",
       "@type": "xsd:string"
     },
     "type": "@type"

@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.iam.identitytrust.spi;
 
-public interface IatpConstants {
+public interface DcpConstants {
 
 
-    String IATP_CONTEXT_URL = "https://w3id.org/tractusx-trust/v0.8";
-    String IATP_PREFIX = IATP_CONTEXT_URL + "/";
+    String DCP_CONTEXT_URL = "https://w3id.org/tractusx-trust/v0.8";
+    String DCP_PREFIX = DCP_CONTEXT_URL + "/";
 }

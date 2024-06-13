@@ -12,7 +12,7 @@
 #
 #
 
-org.eclipse.edc.iam.identitytrust.core.IatpDefaultServicesExtension
-org.eclipse.edc.iam.identitytrust.core.IatpScopeExtractorExtension
+org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension
+org.eclipse.edc.iam.identitytrust.core.DcpScopeExtractorExtension
 org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension
 org.eclipse.edc.iam.identitytrust.core.IdentityTrustTransformExtension

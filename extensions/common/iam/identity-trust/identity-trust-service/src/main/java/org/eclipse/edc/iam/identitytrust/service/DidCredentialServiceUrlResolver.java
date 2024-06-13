@@ -33,7 +33,7 @@ public class DidCredentialServiceUrlResolver implements CredentialServiceUrlReso
     }
 
     /**
-     * Resolves the IATP credential service URL from the DID document based on the issuer. The issuer is interpreted as DID
+     * Resolves the DCP credential service URL from the DID document based on the issuer. The issuer is interpreted as DID
      * identifier, and the resolved DID is expected to contain a "CredentialServiceUrl" service endpoint.
      *
      * @param issuer The issuer of the DID document.

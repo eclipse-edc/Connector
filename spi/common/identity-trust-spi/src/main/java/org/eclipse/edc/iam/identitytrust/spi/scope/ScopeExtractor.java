@@ -22,7 +22,7 @@ import org.eclipse.edc.policy.model.Operator;
 import java.util.Set;
 
 /**
- * Invoked during the pre-validation phase in the {@link PolicyEngine} for extracting the scopes needed for the IATP flow from an {@link AtomicConstraint} .
+ * Invoked during the pre-validation phase in the {@link PolicyEngine} for extracting the scopes needed for the DCP flow from an {@link AtomicConstraint} .
  * Extractors can be registered in {@link ScopeExtractorRegistry}
  */
 @FunctionalInterface

@@ -37,14 +37,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * IATP scope visitor for invoking {@link ScopeExtractor}s during the pre-validation phase.
+ * DCP scope visitor for invoking {@link ScopeExtractor}s during the pre-validation phase.
  */
-public class IatpScopeExtractorVisitor implements Policy.Visitor<Set<String>>, Rule.Visitor<Set<String>>, Constraint.Visitor<Set<String>>, Expression.Visitor<Object> {
+public class DcpScopeExtractorVisitor implements Policy.Visitor<Set<String>>, Rule.Visitor<Set<String>>, Constraint.Visitor<Set<String>>, Expression.Visitor<Object> {
 
     private final List<ScopeExtractor> mappers;
     private final PolicyContext policyContext;
 
-    public IatpScopeExtractorVisitor(List<ScopeExtractor> mappers, PolicyContext policyContext) {
+    public DcpScopeExtractorVisitor(List<ScopeExtractor> mappers, PolicyContext policyContext) {
         this.mappers = mappers;
         this.policyContext = policyContext;
     }

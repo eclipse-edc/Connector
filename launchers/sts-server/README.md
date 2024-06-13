@@ -56,7 +56,7 @@ curl --request POST \
 ```
 
 For attaching the `bearer_access_scope` as described in the
-IATP [spec](https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/identity.protocol.base.md#6-using-the-oauth-2-client-credential-grant-to-obtain-access-tokens-from-an-sts) :
+DCP [spec](https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/identity.protocol.base.md#6-using-the-oauth-2-client-credential-grant-to-obtain-access-tokens-from-an-sts) :
 
 ```shell
 curl --request POST \

@@ -20,19 +20,19 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinitio
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.eclipse.edc.iam.identitytrust.spi.IatpConstants.IATP_PREFIX;
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_PREFIX;
 
 
 /**
  * Represents a query DTO that is sent to a CredentialService. Must be serialized to JSON-LD.
  *
- * @see <a href="https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/verifiable.presentation.protocol.md#411-query-for-presentations">IATP Specification</a>
+ * @see <a href="https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/verifiable.presentation.protocol.md#411-query-for-presentations">DCP Specification</a>
  */
 public class PresentationQueryMessage {
-    public static final String PRESENTATION_QUERY_MESSAGE_SCOPE_PROPERTY = IATP_PREFIX + "scope";
-    public static final String PRESENTATION_QUERY_MESSAGE_DEFINITION_PROPERTY = IATP_PREFIX + "presentationDefinition";
+    public static final String PRESENTATION_QUERY_MESSAGE_SCOPE_PROPERTY = DCP_PREFIX + "scope";
+    public static final String PRESENTATION_QUERY_MESSAGE_DEFINITION_PROPERTY = DCP_PREFIX + "presentationDefinition";
     public static final String PRESENTATION_QUERY_MESSAGE_TYPE = "PresentationQueryMessage";
-    public static final String PRESENTATION_QUERY_MESSAGE_TYPE_PROPERTY = IATP_PREFIX + PRESENTATION_QUERY_MESSAGE_TYPE;
+    public static final String PRESENTATION_QUERY_MESSAGE_TYPE_PROPERTY = DCP_PREFIX + PRESENTATION_QUERY_MESSAGE_TYPE;
 
     private final List<String> scopes = new ArrayList<>();
     private PresentationDefinition presentationDefinition;

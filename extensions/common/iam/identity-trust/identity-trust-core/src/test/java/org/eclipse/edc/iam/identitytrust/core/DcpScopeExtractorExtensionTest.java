@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
-import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorFunction;
+import org.eclipse.edc.iam.identitytrust.core.scope.DcpScopeExtractorFunction;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -22,16 +22,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.eclipse.edc.iam.identitytrust.core.IatpScopeExtractorExtension.CATALOG_REQUEST_SCOPE;
-import static org.eclipse.edc.iam.identitytrust.core.IatpScopeExtractorExtension.NEGOTIATION_REQUEST_SCOPE;
-import static org.eclipse.edc.iam.identitytrust.core.IatpScopeExtractorExtension.TRANSFER_PROCESS_REQUEST_SCOPE;
+import static org.eclipse.edc.iam.identitytrust.core.DcpScopeExtractorExtension.CATALOG_REQUEST_SCOPE;
+import static org.eclipse.edc.iam.identitytrust.core.DcpScopeExtractorExtension.NEGOTIATION_REQUEST_SCOPE;
+import static org.eclipse.edc.iam.identitytrust.core.DcpScopeExtractorExtension.TRANSFER_PROCESS_REQUEST_SCOPE;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(DependencyInjectionExtension.class)
-class IatpScopeExtractorExtensionTest {
+class DcpScopeExtractorExtensionTest {
 
 
     private final PolicyEngine policyEngine = mock();
@@ -42,13 +42,13 @@ class IatpScopeExtractorExtensionTest {
     }
 
     @Test
-    void initialize(ServiceExtensionContext context, IatpScopeExtractorExtension ext) {
+    void initialize(ServiceExtensionContext context, DcpScopeExtractorExtension ext) {
 
         ext.initialize(context);
 
-        verify(policyEngine).registerPreValidator(eq(CATALOG_REQUEST_SCOPE), isA(IatpScopeExtractorFunction.class));
-        verify(policyEngine).registerPreValidator(eq(NEGOTIATION_REQUEST_SCOPE), isA(IatpScopeExtractorFunction.class));
-        verify(policyEngine).registerPreValidator(eq(TRANSFER_PROCESS_REQUEST_SCOPE), isA(IatpScopeExtractorFunction.class));
+        verify(policyEngine).registerPreValidator(eq(CATALOG_REQUEST_SCOPE), isA(DcpScopeExtractorFunction.class));
+        verify(policyEngine).registerPreValidator(eq(NEGOTIATION_REQUEST_SCOPE), isA(DcpScopeExtractorFunction.class));
+        verify(policyEngine).registerPreValidator(eq(TRANSFER_PROCESS_REQUEST_SCOPE), isA(DcpScopeExtractorFunction.class));
     }
 
 

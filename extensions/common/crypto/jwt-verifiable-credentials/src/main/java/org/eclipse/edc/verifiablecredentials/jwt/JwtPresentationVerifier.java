@@ -63,8 +63,8 @@ import java.util.Optional;
  */
 public class JwtPresentationVerifier implements CredentialVerifier {
 
-    public static final String JWT_VC_TOKEN_CONTEXT = "iatp-vc";
-    public static final String JWT_VP_TOKEN_CONTEXT = "iatp-vp";
+    public static final String JWT_VC_TOKEN_CONTEXT = "dcp-vc";
+    public static final String JWT_VP_TOKEN_CONTEXT = "dcp-vp";
     public static final String VERIFIABLE_CREDENTIAL_JSON_KEY = "verifiableCredential";
     public static final String VP_CLAIM = "vp";
     public static final String VC_CLAIM = "vc";

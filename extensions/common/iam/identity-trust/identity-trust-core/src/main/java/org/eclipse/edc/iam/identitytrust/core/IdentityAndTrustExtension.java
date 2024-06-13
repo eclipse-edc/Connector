@@ -24,7 +24,7 @@ import org.eclipse.edc.iam.identitytrust.service.IdentityAndTrustService;
 import org.eclipse.edc.iam.identitytrust.service.verification.MultiFormatPresentationVerifier;
 import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
-import org.eclipse.edc.iam.identitytrust.spi.IatpParticipantAgentServiceExtension;
+import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
@@ -75,7 +75,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     public static final String REVOCATION_CACHE_VALIDITY = "edc.iam.credential.revocation.cache.validity";
     @Setting(value = "DID of this connector", required = true)
     public static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
-    public static final String IATP_SELF_ISSUED_TOKEN_CONTEXT = "iatp-si";
+    public static final String DCP_SELF_ISSUED_TOKEN_CONTEXT = "dcp-si";
 
     public static final String JSON_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
 
@@ -121,7 +121,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private ParticipantAgentService participantAgentService;
 
     @Inject
-    private IatpParticipantAgentServiceExtension participantAgentServiceExtension;
+    private DcpParticipantAgentServiceExtension participantAgentServiceExtension;
 
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
@@ -131,13 +131,13 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
 
         // add all rules for self-issued ID tokens
-        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());
-        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new SubJwkIsNullRule());
-        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(getOwnDid(context)));
+        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());
+        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new SubJwkIsNullRule());
+        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(getOwnDid(context)));
         context.getMonitor().warning("The JTI Validation rule is not yet implemented as it depends on https://github.com/eclipse-edc/Connector/issues/3749.");
-        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new JtiValidationRule());
-        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5));
-        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new TokenNotNullRule());
+        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new JtiValidationRule());
+        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5));
+        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new TokenNotNullRule());
 
         // add all rules for validating VerifiableCredential JWTs
         rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new HasSubjectRule());
@@ -206,7 +206,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @NotNull
     private TokenValidationAction tokenValidationAction() {
         return (tokenRepresentation) -> {
-            var rules = rulesRegistry.getRules(IATP_SELF_ISSUED_TOKEN_CONTEXT);
+            var rules = rulesRegistry.getRules(DCP_SELF_ISSUED_TOKEN_CONTEXT);
             return tokenValidationService.validate(tokenRepresentation, didPublicKeyResolver, rules);
         };
     }

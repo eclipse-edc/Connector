@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
-import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorFunction;
+import org.eclipse.edc.iam.identitytrust.core.scope.DcpScopeExtractorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -23,12 +23,12 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-import static org.eclipse.edc.iam.identitytrust.core.IatpScopeExtractorExtension.NAME;
+import static org.eclipse.edc.iam.identitytrust.core.DcpScopeExtractorExtension.NAME;
 
 @Extension(NAME)
-public class IatpScopeExtractorExtension implements ServiceExtension {
+public class DcpScopeExtractorExtension implements ServiceExtension {
 
-    public static final String NAME = "IATP scope extractor extension";
+    public static final String NAME = "DCP scope extractor extension";
 
     public static final String CATALOG_REQUEST_SCOPE = "request.catalog";
     public static final String NEGOTIATION_REQUEST_SCOPE = "request.contract.negotiation";
@@ -50,7 +50,7 @@ public class IatpScopeExtractorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var contextMappingFunction = new IatpScopeExtractorFunction(scopeExtractorRegistry, monitor);
+        var contextMappingFunction = new DcpScopeExtractorFunction(scopeExtractorRegistry, monitor);
         policyEngine.registerPreValidator(CATALOG_REQUEST_SCOPE, contextMappingFunction);
         policyEngine.registerPreValidator(NEGOTIATION_REQUEST_SCOPE, contextMappingFunction);
         policyEngine.registerPreValidator(TRANSFER_PROCESS_REQUEST_SCOPE, contextMappingFunction);
