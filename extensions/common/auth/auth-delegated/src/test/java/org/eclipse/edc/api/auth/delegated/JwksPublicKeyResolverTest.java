@@ -21,6 +21,7 @@ import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.keys.KeyParserRegistryImpl;
 import org.eclipse.edc.keys.keyparsers.JwkParser;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
@@ -30,16 +31,26 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
 
+import java.net.MalformedURLException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 
+import static com.nimbusds.jose.jwk.source.JWKSourceBuilder.DEFAULT_CACHE_TIME_TO_LIVE;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.api.auth.delegated.TestFunctions.generateKey;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.stop.Stop.stopQuietly;
+import static org.mockserver.verify.VerificationTimes.exactly;
+import static org.mockserver.verify.VerificationTimes.never;
 
 @ComponentTest
 class JwksPublicKeyResolverTest {
@@ -64,7 +75,7 @@ class JwksPublicKeyResolverTest {
     void setup() {
         jwksServer.reset();
         keyParserRegistry.register(new JwkParser(mapper, monitor));
-        resolver = new JwksPublicKeyResolver(keyParserRegistry, jwksServerUrl(), monitor);
+        resolver = new JwksPublicKeyResolver(keyParserRegistry, jwksServerUrl(), DEFAULT_CACHE_TIME_TO_LIVE, monitor);
     }
 
     @Test
@@ -84,6 +95,7 @@ class JwksPublicKeyResolverTest {
                 .respond(response().withStatusCode(200).withBody(jwksObject(key1, key2)));
 
         assertThat(resolver.resolveKey("foo-bar-key2")).isSucceeded();
+        jwksServer.verify(jwksRequest(), exactly(1));
     }
 
     @Test
@@ -96,6 +108,8 @@ class JwksPublicKeyResolverTest {
 
         assertThat(resolver.resolveKey("foo-bar-keyX")).isFailed()
                 .detail().isEqualTo("JWKSet contained 2 matching keys (desired keyId: 'foo-bar-keyX'), where only 1 is expected. Will abort!");
+        jwksServer.verify(jwksRequest(), exactly(1));
+
     }
 
     @Test
@@ -105,6 +119,10 @@ class JwksPublicKeyResolverTest {
 
         assertThat(resolver.resolveKey("not-exist")).isFailed()
                 .detail().isEqualTo("JWKSet did not contain a matching key (desired keyId: 'not-exist')");
+        // the JWK source has this weird behaviour where it tries again when no key matches the selector.
+        // ref: JWKSetBasedJWKSource.java
+        jwksServer.verify(jwksRequest(), exactly(2));
+
     }
 
     @Test
@@ -116,6 +134,7 @@ class JwksPublicKeyResolverTest {
 
         assertThat(resolver.resolveKey(null)).isFailed()
                 .detail().isEqualTo("JWKSet contained 2 keys, but no keyId was specified. Please consider specifying a keyId.");
+        jwksServer.verify(jwksRequest(), exactly(1));
     }
 
     @Test
@@ -125,21 +144,48 @@ class JwksPublicKeyResolverTest {
                 .respond(response().withStatusCode(200).withBody(jwksObject(key1)));
 
         assertThat(resolver.resolveKey(null)).isSucceeded();
+        jwksServer.verify(jwksRequest(), exactly(1));
     }
 
 
     @Test
     void resolve_malformedKeyUrl() {
-        resolver = new JwksPublicKeyResolver(keyParserRegistry, "foobar://invalid.url", monitor);
-        assertThat(resolver.resolveKey("test-key")).isFailed()
-                .detail().isEqualTo("Malformed JWK URL: foobar://invalid.url");
+
+        assertThatThrownBy(() -> new JwksPublicKeyResolver(keyParserRegistry, "foobar://invalid.url", DEFAULT_CACHE_TIME_TO_LIVE, monitor))
+                .isInstanceOf(EdcException.class)
+                .hasRootCauseInstanceOf(MalformedURLException.class);
+
+        verify(monitor).warning(contains("Malformed JWK URL: foobar://invalid.url"), isA(MalformedURLException.class));
     }
 
     @Test
     void resolve_invalidKeyUrl() {
-        resolver = new JwksPublicKeyResolver(keyParserRegistry, "http:_invalid.url", monitor);
+        resolver = new JwksPublicKeyResolver(keyParserRegistry, "http:_invalid.url", DEFAULT_CACHE_TIME_TO_LIVE, monitor);
         assertThat(resolver.resolveKey("test-key")).isFailed()
                 .detail().contains("Error while retrieving JWKSet");
+        jwksServer.verify(jwksRequest(), never());
+
+    }
+
+    @Test
+    void resolve_verifyHitsCache() {
+        var cacheTtl = 1000;
+        resolver = new JwksPublicKeyResolver(keyParserRegistry, jwksServerUrl(), cacheTtl, monitor);
+
+        jwksServer.when(jwksRequest())
+                .respond(response().withStatusCode(200).withBody(jwksObject(generateKey("foo-bar-key").toPublicJWK())));
+
+        assertThat(resolver.resolveKey("foo-bar-key")).isSucceeded();
+        assertThat(resolver.resolveKey("foo-bar-key")).isSucceeded();
+        jwksServer.verify(jwksRequest(), exactly(1));
+
+        // now wait for the cache to expire, try again and assert that the key server is hit
+        await().atMost(Duration.ofMillis(3 * cacheTtl))
+                .untilAsserted(() -> {
+                    assertThat(resolver.resolveKey("foo-bar-key")).isSucceeded();
+                    jwksServer.verify(jwksRequest(), exactly(1));
+                });
+
     }
 
     private @NotNull String jwksServerUrl() {

@@ -18,10 +18,13 @@ import com.nimbusds.jose.KeySourceException;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKMatcher;
 import com.nimbusds.jose.jwk.JWKSelector;
+import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.proc.SimpleSecurityContext;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
@@ -32,18 +35,51 @@ import java.security.PublicKey;
 import java.util.List;
 import java.util.Optional;
 
+import static com.nimbusds.jose.jwk.source.JWKSourceBuilder.DEFAULT_CACHE_REFRESH_TIMEOUT;
+import static com.nimbusds.jose.jwk.source.JWKSourceBuilder.DEFAULT_RATE_LIMIT_MIN_INTERVAL;
+import static com.nimbusds.jose.jwk.source.JWKSourceBuilder.DEFAULT_REFRESH_AHEAD_TIME;
+
 /**
  * A {@link PublicKeyResolver} that resolves a JSON Web Key Set from a URL and parses the JWK with the given ID
  */
 public class JwksPublicKeyResolver implements PublicKeyResolver {
-    private final String jwksUrl;
     private final Monitor monitor;
     private final KeyParserRegistry keyParserRegistry;
+    private final JWKSource<SecurityContext> jwkSource;
 
-    public JwksPublicKeyResolver(KeyParserRegistry keyParserRegistry, String jwksUrl, Monitor monitor) {
-        this.jwksUrl = jwksUrl;
+    /**
+     * Instantiates the resolver
+     *
+     * @param keyParserRegistry Should contain all relevant key parsers. The minimum recommendation is adding a {@code JwkParser}.
+     * @param jwksUrl           The URL of the public key server, where a JWK Set can be obtained.
+     * @param cacheValidityMs   The time in milliseconds that public keys may be cached locally.
+     * @param monitor           A monitor
+     * @throws EdcException if the jwksUrl is malformed
+     */
+    public JwksPublicKeyResolver(KeyParserRegistry keyParserRegistry, String jwksUrl, long cacheValidityMs, Monitor monitor) {
         this.monitor = monitor;
         this.keyParserRegistry = keyParserRegistry;
+
+        try {
+            var builder = JWKSourceBuilder.create(URI.create(jwksUrl).toURL()).retrying(false);
+            if (cacheValidityMs > 0) {
+                builder.cache(cacheValidityMs, DEFAULT_CACHE_REFRESH_TIMEOUT);
+
+                // rate-limit must be < cache TTL, this would cause the cache to be refreshed more often than allowed
+                if (cacheValidityMs < DEFAULT_RATE_LIMIT_MIN_INTERVAL) {
+                    builder.rateLimited(cacheValidityMs - 1);
+                }
+                // cache TTL must be > refresh-ahead time plus refresh timeout
+                if (cacheValidityMs < DEFAULT_REFRESH_AHEAD_TIME + DEFAULT_CACHE_REFRESH_TIMEOUT) {
+                    builder.refreshAheadCache(false);
+                }
+
+            }
+            jwkSource = builder.build();
+        } catch (MalformedURLException e) {
+            monitor.warning("Malformed JWK URL: " + jwksUrl, e);
+            throw new EdcException(e);
+        }
     }
 
     @Override
@@ -54,18 +90,10 @@ public class JwksPublicKeyResolver implements PublicKeyResolver {
         var selector = new JWKSelector(matcher);
         List<JWK> keys;
         try {
-            // Nimbus has extensive properties for advanced JWKS retrieval, but we won't use them, as caching keys should be handled
-            // in layers above.
-            // c.f.: https://connect2id.com/products/nimbus-jose-jwt/examples/enhanced-jwk-retrieval
-
-            var jwkSource = JWKSourceBuilder.create(URI.create(jwksUrl).toURL()).build();
             keys = jwkSource.get(selector, new SimpleSecurityContext());
         } catch (KeySourceException e) {
             monitor.warning("Error while retrieving JWKSet", e);
             return Result.failure("Error while retrieving JWKSet: " + e.getMessage());
-        } catch (MalformedURLException e) {
-            monitor.warning("Malformed JWK URL: " + jwksUrl, e);
-            return Result.failure("Malformed JWK URL: " + jwksUrl);
         }
 
         if (keys.isEmpty()) {

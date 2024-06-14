@@ -35,6 +35,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -48,7 +49,7 @@ class DelegatedAuthenticationServiceTest {
     private final ObjectMapper mapper = new ObjectMapper();
     private final Monitor monitor = mock();
     private final JwkParser jwkParser = new JwkParser(mapper, monitor);
-    private final DelegatedAuthenticationService service = new DelegatedAuthenticationService(publicKeyResolver, TEST_CACHE_VALIDITY, monitor, new TokenValidationServiceImpl(), rulesRegistry);
+    private final DelegatedAuthenticationService service = new DelegatedAuthenticationService(publicKeyResolver, monitor, new TokenValidationServiceImpl(), rulesRegistry);
 
     @Test
     void isAuthenticated_valid() {
@@ -115,5 +116,51 @@ class DelegatedAuthenticationServiceTest {
         verifyNoInteractions(rulesRegistry, publicKeyResolver);
     }
 
+    @Test
+    void isAuthenticated_withXapiKey() {
+        var key = generateKey();
+        var pk = jwkParser.parse(key.toPublicJWK().toJSONString());
+        when(publicKeyResolver.resolveKey(anyString())).thenReturn(pk.map(k -> (PublicKey) k));
+
+        var token = createToken(key);
+        var headers = Map.of("x-api-key", List.of("bearer " + token));
+
+        assertThat(service.isAuthenticated(headers)).isTrue();
+        verify(publicKeyResolver).resolveKey(eq(key.getKeyID()));
+        verify(rulesRegistry).getRules(eq(DelegatedAuthenticationService.MANAGEMENT_API_CONTEXT));
+        verifyNoMoreInteractions(publicKeyResolver, rulesRegistry);
+    }
+
+    @Test
+    void isAuthenticated_withXapiKey_noBearerPrefix() {
+        var key = generateKey();
+        var pk = jwkParser.parse(key.toPublicJWK().toJSONString());
+        when(publicKeyResolver.resolveKey(anyString())).thenReturn(pk.map(k -> (PublicKey) k));
+
+        var token = createToken(key);
+        var headers = Map.of("x-api-key", List.of(token));
+
+        assertThat(service.isAuthenticated(headers)).isFalse();
+        verifyNoInteractions(publicKeyResolver, rulesRegistry);
+        verify(monitor).warning(DelegatedAuthenticationService.OLD_API_KEY_WARNING);
+    }
+
+    @Test
+    void isAuthenticated_withXapiKeyAndAuthHeader_authTakesPrecedence() {
+        var key = generateKey();
+        var pk = jwkParser.parse(key.toPublicJWK().toJSONString());
+        when(publicKeyResolver.resolveKey(anyString())).thenReturn(pk.map(k -> (PublicKey) k));
+
+        var token = createToken(key);
+        var headers = Map.of(
+                "x-api-key", List.of(token),
+                "Authorization", List.of("Bearer " + token));
+
+        assertThat(service.isAuthenticated(headers)).isTrue();
+        verify(publicKeyResolver).resolveKey(eq(key.getKeyID()));
+        verify(rulesRegistry).getRules(eq(DelegatedAuthenticationService.MANAGEMENT_API_CONTEXT));
+        verify(monitor, never()).warning(DelegatedAuthenticationService.OLD_API_KEY_WARNING);
+        verifyNoMoreInteractions(publicKeyResolver, rulesRegistry);
+    }
 
 }

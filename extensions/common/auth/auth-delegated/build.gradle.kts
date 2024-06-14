@@ -27,6 +27,7 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:keys-lib"))
     testImplementation(libs.mockserver.netty)
+    testImplementation(libs.awaitility)
 }
 
 

@@ -30,6 +30,7 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.time.Clock;
 
+import static com.nimbusds.jose.jwk.source.JWKSourceBuilder.DEFAULT_CACHE_TIME_TO_LIVE;
 import static org.eclipse.edc.api.auth.delegated.DelegatedAuthenticationService.MANAGEMENT_API_CONTEXT;
 
 /**
@@ -39,14 +40,13 @@ import static org.eclipse.edc.api.auth.delegated.DelegatedAuthenticationService.
 @Extension(value = DelegatedAuthenticationExtension.NAME)
 public class DelegatedAuthenticationExtension implements ServiceExtension {
 
-    public static final long DEFAULT_CACHE_VALIDTY_MS = 5 * 60 * 1000; // 5 minutes
     public static final int DEFAULT_VALIDATION_TOLERANCE = 5_000;
     public static final String NAME = "Delegating Authentication Service Extension";
-    @Setting(value = "Duration (in ms) that the internal key cache is valid", type = "Long", defaultValue = "" + DEFAULT_CACHE_VALIDTY_MS)
+    @Setting(value = "Duration (in ms) that the internal key cache is valid", type = "Long", defaultValue = "" + DEFAULT_CACHE_TIME_TO_LIVE)
     public static final String AUTH_SETTING_CACHE_VALIDITY_MS = "edc.api.auth.dac.cache.validity";
     @Setting(value = "URL where the third-party IdP's public key(s) can be resolved")
     public static final String AUTH_SETTING_KEY_URL = "edc.api.auth.dac.key.url";
-    @Setting(value = "Default token validation time tolerance, e.g. for nbf or exp claims", defaultValue = "" + DEFAULT_VALIDATION_TOLERANCE)
+    @Setting(value = "Default token validation time tolerance (in ms), e.g. for nbf or exp claims", defaultValue = "" + DEFAULT_VALIDATION_TOLERANCE)
     private static final String AUTH_SETTING_VALIDATION_TOLERANCE_MS = "edc.api.auth.dac.validation.tolerance";
     @Inject
     private ApiAuthenticationRegistry authenticationRegistry;
@@ -73,15 +73,15 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
             monitor.warning("The '%s' setting was not provided, so the DelegatedAuthenticationService will NOT be registered. Normally, the TokenBasedAuthenticationService acts as fallback.".formatted(AUTH_SETTING_KEY_URL));
             return;
         }
-        var cacheValidityMs = context.getConfig().getLong(AUTH_SETTING_CACHE_VALIDITY_MS, DEFAULT_CACHE_VALIDTY_MS);
+        var cacheValidityMs = context.getConfig().getLong(AUTH_SETTING_CACHE_VALIDITY_MS, DEFAULT_CACHE_TIME_TO_LIVE);
         var tolerance = context.getConfig().getInteger(AUTH_SETTING_VALIDATION_TOLERANCE_MS, DEFAULT_VALIDATION_TOLERANCE);
 
         //todo: currently, only JWKS urls are supported
-        var resolver = new JwksPublicKeyResolver(keyParserRegistry, keyUrl, monitor);
+        var resolver = new JwksPublicKeyResolver(keyParserRegistry, keyUrl, cacheValidityMs, monitor);
 
         tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new NotBeforeValidationRule(clock, tolerance, true));
         tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new ExpirationIssuedAtValidationRule(clock, tolerance, true));
 
-        authenticationRegistry.register("management-api", new DelegatedAuthenticationService(resolver, cacheValidityMs, monitor, tokenValidationService, tokenValidationRulesRegistry));
+        authenticationRegistry.register("management-api", new DelegatedAuthenticationService(resolver, monitor, tokenValidationService, tokenValidationRulesRegistry));
     }
 }

@@ -23,19 +23,23 @@ import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 
 public class DelegatedAuthenticationService implements AuthenticationService {
 
     public static final String MANAGEMENT_API_CONTEXT = "management-api";
+    @Deprecated
+    private static final String X_API_KEY = "x-api-key";
+    public static final String OLD_API_KEY_WARNING = ("Header '%s' found with the DelegatedAuthenticationService. " +
+            "Please migrate to using the '%s' header at your earliest convenience, this compatibility feature will be removed in upcoming releases!").formatted(X_API_KEY, AUTHORIZATION);
     private final PublicKeyResolver publicKeyResolver;
     private final Monitor monitor;
     private final TokenValidationService tokenValidationService;
     private final TokenValidationRulesRegistry rulesRegistry;
 
     public DelegatedAuthenticationService(PublicKeyResolver publicKeyResolver,
-                                          long cacheValidityMs,
                                           Monitor monitor,
                                           TokenValidationService tokenValidationService,
                                           TokenValidationRulesRegistry rulesRegistry) {
@@ -54,16 +58,22 @@ public class DelegatedAuthenticationService implements AuthenticationService {
             throw new AuthenticationFailedException(msg);
         }
 
-        var authHeaders = headers.keySet().stream()
-                .filter(k -> k.equalsIgnoreCase(AUTHORIZATION))
-                .map(headers::get)
-                .findFirst();
+        var authHeaders = headers.get(AUTHORIZATION);
+        if (authHeaders == null || authHeaders.isEmpty()) {
+            // fall back to X-API-Key - backwards compatibility
+            authHeaders = headers.get(X_API_KEY);
+            if (authHeaders != null && !authHeaders.isEmpty()) {
+                monitor.warning(OLD_API_KEY_WARNING);
+            }
+        }
 
-        return authHeaders.map(this::performTokenValidation).orElseThrow(() -> {
-            var msg = "Header '%s' not present".formatted(AUTHORIZATION);
-            monitor.warning(msg);
-            return new AuthenticationFailedException(msg);
-        });
+        return Optional.ofNullable(authHeaders)
+                .map(this::performTokenValidation)
+                .orElseThrow(() -> {
+                    var msg = "Header '%s' not present".formatted(AUTHORIZATION);
+                    monitor.warning(msg);
+                    return new AuthenticationFailedException(msg);
+                });
 
     }
 
