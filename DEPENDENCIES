@@ -4,7 +4,7 @@ maven/mavencentral/com.apicatalog/copper-multicodec/0.1.1, Apache-2.0, approved,
 maven/mavencentral/com.apicatalog/iron-ed25519-cryptosuite-2020/0.14.0, Apache-2.0, approved, #14503
 maven/mavencentral/com.apicatalog/iron-verifiable-credentials/0.14.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.0.0, Apache-2.0, approved, clearlydefined
-maven/mavencentral/com.apicatalog/titanium-json-ld/1.4.0, Apache-2.0, approved, #13683
+maven/mavencentral/com.apicatalog/titanium-json-ld/1.4.0, Apache-2.0, approved, #15200
 maven/mavencentral/com.atomikos/atomikos-util/6.0.0, Apache-2.0, approved, #9326
 maven/mavencentral/com.atomikos/transactions-api/6.0.0, Apache-2.0, approved, #10351
 maven/mavencentral/com.atomikos/transactions-jdbc/6.0.0, Apache-2.0, approved, #9273
@@ -22,7 +22,7 @@ maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.16.2, Apache-2.0 AN
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.17.1, , approved, #13665
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.11.0, Apache-2.0, approved, CQ23093
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.14.0, Apache-2.0, approved, #4105
-maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.14.1, Apache-2.0, approved, #4105
+maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.14.1, Apache-2.0, approved, #15232
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.16.2, Apache-2.0, approved, #11605
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.17.0, Apache-2.0, approved, #13671
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.17.1, Apache-2.0, approved, #13671
@@ -45,18 +45,18 @@ maven/mavencentral/com.github.cliftonlabs/json-simple/3.0.2, Apache-2.0, approve
 maven/mavencentral/com.github.docker-java/docker-java-api/3.3.6, Apache-2.0, approved, #10346
 maven/mavencentral/com.github.docker-java/docker-java-transport-zerodep/3.3.6, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #7946
 maven/mavencentral/com.github.docker-java/docker-java-transport/3.3.6, Apache-2.0, approved, #7942
-maven/mavencentral/com.github.java-json-tools/btf/1.3, Apache-2.0 OR LGPL-3.0-or-later, approved, #2721
+maven/mavencentral/com.github.java-json-tools/btf/1.3, Apache-2.0 AND GPL-1.0-or-later AND LGPL-3.0-only AND Apache-2.0 AND LGPL-3.0-only, restricted, #15201
 maven/mavencentral/com.github.java-json-tools/jackson-coreutils-equivalence/1.0, LGPL-3.0 OR Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.java-json-tools/jackson-coreutils/2.0, Apache-2.0 AND LGPL-2.1-or-later AND LGPL-3.0-only AND (Apache-2.0 AND GPL-1.0-or-later AND LGPL-3.0-only) AND Apache-2.0 AND LGPL-3.0-only, restricted, #15186
 maven/mavencentral/com.github.java-json-tools/json-patch/1.13, Apache-2.0 OR LGPL-3.0-or-later, approved, CQ23929
 maven/mavencentral/com.github.java-json-tools/json-schema-core/1.2.14, Apache-2.0 OR LGPL-3.0-or-later, approved, #2722
 maven/mavencentral/com.github.java-json-tools/json-schema-validator/2.2.14, Apache-2.0 OR LGPL-3.0-or-later, approved, CQ20779
-maven/mavencentral/com.github.java-json-tools/msg-simple/1.2, Apache-2.0 OR LGPL-3.0-or-later, approved, #2720
+maven/mavencentral/com.github.java-json-tools/msg-simple/1.2, Apache-2.0 AND LGPL-2.1-or-later AND LGPL-3.0-only AND (Apache-2.0 AND GPL-1.0-or-later AND LGPL-3.0-only) AND Apache-2.0 AND LGPL-3.0-only, restricted, #15239
 maven/mavencentral/com.github.java-json-tools/uri-template/0.10, Apache-2.0 OR LGPL-3.0-only, approved, #2723
 maven/mavencentral/com.github.luben/zstd-jni/1.5.5-6, BSD-2-Clause, approved, clearlydefined
 maven/mavencentral/com.github.stephenc.jcip/jcip-annotations/1.0-1, Apache-2.0, approved, CQ21949
 maven/mavencentral/com.google.code.findbugs/jsr305/2.0.1, BSD-3-Clause AND CC-BY-2.5 AND LGPL-2.1+, approved, CQ13390
-maven/mavencentral/com.google.code.findbugs/jsr305/3.0.2, Apache-2.0, approved, #20
+maven/mavencentral/com.google.code.findbugs/jsr305/3.0.2, CC-BY-2.5, approved, #15220
 maven/mavencentral/com.google.code.gson/gson/2.10.1, Apache-2.0, approved, #6159
 maven/mavencentral/com.google.crypto.tink/tink/1.13.0, Apache-2.0, approved, #14502
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.11.0, Apache-2.0, approved, clearlydefined
@@ -84,7 +84,7 @@ maven/mavencentral/com.nimbusds/nimbus-jose-jwt/9.40, Apache-2.0, approved, #151
 maven/mavencentral/com.puppycrawl.tools/checkstyle/10.17.0, LGPL-2.1-or-later AND (Apache-2.0 AND LGPL-2.1-or-later) AND Apache-2.0, approved, #15077
 maven/mavencentral/com.samskivert/jmustache/1.15, BSD-2-Clause, approved, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/4.12.0, Apache-2.0, approved, #11159
-maven/mavencentral/com.squareup.okhttp3/okhttp/4.12.0, Apache-2.0, approved, #11156
+maven/mavencentral/com.squareup.okhttp3/okhttp/4.12.0, Apache-2.0, approved, #15227
 maven/mavencentral/com.squareup.okhttp3/okhttp/4.9.3, Apache-2.0 AND MPL-2.0, approved, #3225
 maven/mavencentral/com.squareup.okio/okio-jvm/3.6.0, Apache-2.0, approved, #11158
 maven/mavencentral/com.squareup.okio/okio/3.6.0, Apache-2.0, approved, #11155
@@ -100,7 +100,7 @@ maven/mavencentral/commons-collections/commons-collections/3.2.2, Apache-2.0, ap
 maven/mavencentral/commons-io/commons-io/2.11.0, Apache-2.0, approved, CQ23745
 maven/mavencentral/commons-logging/commons-logging/1.1.1, Apache-2.0, approved, CQ1907
 maven/mavencentral/commons-logging/commons-logging/1.2, Apache-2.0, approved, CQ10162
-maven/mavencentral/dev.failsafe/failsafe-okhttp/3.3.2, Apache-2.0, approved, #9178
+maven/mavencentral/dev.failsafe/failsafe-okhttp/3.3.2, Apache-2.0, approved, #15208
 maven/mavencentral/dev.failsafe/failsafe/3.3.2, Apache-2.0, approved, #9268
 maven/mavencentral/info.picocli/picocli/4.7.6, Apache-2.0, approved, #4365
 maven/mavencentral/io.cloudevents/cloudevents-api/3.0.0, Apache-2.0, approved, #14228
@@ -136,7 +136,7 @@ maven/mavencentral/io.prometheus/simpleclient_tracer_otel/0.16.0, Apache-2.0, ap
 maven/mavencentral/io.prometheus/simpleclient_tracer_otel_agent/0.16.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.rest-assured/json-path/5.4.0, Apache-2.0, approved, #12042
 maven/mavencentral/io.rest-assured/rest-assured-common/5.4.0, Apache-2.0, approved, #12039
-maven/mavencentral/io.rest-assured/rest-assured/5.4.0, Apache-2.0, approved, #12040
+maven/mavencentral/io.rest-assured/rest-assured/5.4.0, Apache-2.0, approved, #15190
 maven/mavencentral/io.rest-assured/xml-path/5.4.0, Apache-2.0, approved, #12038
 maven/mavencentral/io.setl/rdf-urdna/1.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.21, Apache-2.0, approved, #5947
@@ -189,7 +189,7 @@ maven/mavencentral/net.bytebuddy/byte-buddy-agent/1.14.15, Apache-2.0, approved,
 maven/mavencentral/net.bytebuddy/byte-buddy/1.14.1, Apache-2.0 AND BSD-3-Clause, approved, #7163
 maven/mavencentral/net.bytebuddy/byte-buddy/1.14.15, Apache-2.0 AND BSD-3-Clause, approved, #7163
 maven/mavencentral/net.bytebuddy/byte-buddy/1.14.16, Apache-2.0 AND BSD-3-Clause, approved, #7163
-maven/mavencentral/net.java.dev.jna/jna/5.13.0, Apache-2.0 AND LGPL-2.1-or-later, approved, #6709
+maven/mavencentral/net.java.dev.jna/jna/5.13.0, Apache-2.0 AND LGPL-2.1-or-later, approved, #15196
 maven/mavencentral/net.javacrumbs.json-unit/json-unit-core/2.36.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/net.minidev/accessors-smart/2.4.7, Apache-2.0, approved, #7515
 maven/mavencentral/net.minidev/json-smart/2.4.7, Apache-2.0, approved, #3288
@@ -316,7 +316,7 @@ maven/mavencentral/org.junit.platform/junit-platform-commons/1.10.2, EPL-2.0, ap
 maven/mavencentral/org.junit.platform/junit-platform-engine/1.10.1, EPL-2.0, approved, #9709
 maven/mavencentral/org.junit.platform/junit-platform-engine/1.10.2, EPL-2.0, approved, #9709
 maven/mavencentral/org.junit.platform/junit-platform-launcher/1.10.1, EPL-2.0, approved, #9704
-maven/mavencentral/org.junit.platform/junit-platform-launcher/1.10.2, EPL-2.0, approved, #9704
+maven/mavencentral/org.junit.platform/junit-platform-launcher/1.10.2, EPL-2.0, approved, #15216
 maven/mavencentral/org.junit/junit-bom/5.10.1, EPL-2.0, approved, #9844
 maven/mavencentral/org.junit/junit-bom/5.10.2, EPL-2.0, approved, #9844
 maven/mavencentral/org.junit/junit-bom/5.9.2, EPL-2.0, approved, #4711
