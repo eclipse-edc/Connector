@@ -132,10 +132,6 @@ public class TransferProcessServiceImpl implements TransferProcessService {
             return ServiceResult.badRequest("Contract agreement with id %s not found".formatted(request.getContractId()));
         }
 
-        if (!agreement.getAssetId().equals(request.getAssetId())) {
-            return ServiceResult.badRequest("Asset id %s in contract agreement does not match asset id in transfer request %s".formatted(agreement.getAssetId(), request.getAssetId()));
-        }
-
         var flowType = flowTypeExtractor.extract(request.getTransferType()).getContent();
 
         if (flowType == FlowType.PUSH) {

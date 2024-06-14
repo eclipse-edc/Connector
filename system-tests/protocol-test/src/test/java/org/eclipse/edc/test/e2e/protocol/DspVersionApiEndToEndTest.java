@@ -22,7 +22,9 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVers
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Test;
@@ -45,7 +47,7 @@ public class DspVersionApiEndToEndTest {
     private final JsonLd jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
 
     @RegisterExtension
-    static EdcRuntimeExtension runtime = new EdcRuntimeExtension(
+    static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime(
             "runtime",
             Map.of(
                     "web.http.protocol.path", "/protocol",
@@ -58,7 +60,7 @@ public class DspVersionApiEndToEndTest {
             ":core:control-plane:control-plane-aggregate-services",
             ":core:control-plane:control-plane-core",
             ":extensions:common:http"
-    );
+    ));
 
     @Test
     void shouldReturnValidJsonLd() {

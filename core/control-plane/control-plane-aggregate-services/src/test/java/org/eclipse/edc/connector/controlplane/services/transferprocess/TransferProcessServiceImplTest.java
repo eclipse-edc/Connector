@@ -148,7 +148,8 @@ class TransferProcessServiceImplTest {
         void shouldInitiateTransfer() {
             var transferRequest = transferRequest();
             var transferProcess = transferProcess();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(createContractAgreement(transferProcess.getContractId(), transferRequest.getAssetId()));
+            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+                    .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
             when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PUSH));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(transferProcess));
@@ -174,27 +175,10 @@ class TransferProcessServiceImplTest {
         }
 
         @Test
-        void shouldFail_whenTpAssetIdNotEqualToAgreementAssetId() {
-            var transferRequest = transferRequest();
-            var transferProcess = transferProcess();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(createContractAgreement(transferProcess.getContractId(), "other-asset-id"));
-            when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PUSH));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
-            when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(transferProcess));
-
-            var result = service.initiateTransfer(transferRequest);
-
-            assertThat(result).isFailed()
-                    .extracting(ServiceFailure::getReason)
-                    .isEqualTo(BAD_REQUEST);
-            assertThat(result.getFailureMessages()).containsExactly("Asset id %s in contract agreement does not match asset id in transfer request %s".formatted("other-asset-id", transferRequest.getAssetId()));
-            verifyNoInteractions(manager);
-        }
-
-        @Test
         void shouldFail_whenDestinationIsNotValid() {
             var transferRequest = transferRequest();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(createContractAgreement(transferRequest.getContractId(), transferRequest.getAssetId()));
+            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+                    .thenReturn(createContractAgreement(transferRequest.getContractId(), "assetId"));
             when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PUSH));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
 
@@ -211,9 +195,9 @@ class TransferProcessServiceImplTest {
         void shouldFail_whenDataDestinationNotPassedAndFlowTypeIsPush() {
             var transferRequest = TransferRequest.Builder.newInstance()
                     .transferType("any")
-                    .assetId(UUID.randomUUID().toString())
                     .build();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(createContractAgreement(transferRequest.getContractId(), transferRequest.getAssetId()));
+            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+                    .thenReturn(createContractAgreement(transferRequest.getContractId(), "assetId"));
             when(flowTypeExtractor.extract(any())).thenReturn(StatusResult.success(FlowType.PUSH));
 
             var result = service.initiateTransfer(transferRequest);
@@ -355,7 +339,6 @@ class TransferProcessServiceImplTest {
     private TransferRequest transferRequest() {
         return TransferRequest.Builder.newInstance()
                 .dataDestination(DataAddress.Builder.newInstance().type("type").build())
-                .assetId(UUID.randomUUID().toString())
                 .build();
     }
 
