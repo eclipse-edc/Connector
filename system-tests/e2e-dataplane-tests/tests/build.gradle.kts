@@ -27,7 +27,6 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:keys-lib"))
     testImplementation(project(":extensions:common:json-ld"))
-    testImplementation(libs.jakartaJson)
 
     testImplementation(libs.restAssured)
     testImplementation(libs.assertj)

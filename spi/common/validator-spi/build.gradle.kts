@@ -20,7 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
 
-    api(libs.jakartaJson)
+    api(libs.jakarta.json.api)
 }
 
 

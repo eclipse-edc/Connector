@@ -57,5 +57,4 @@ allprojects {
         configDirectory.set(rootProject.file("resources"))
     }
 
-
 }

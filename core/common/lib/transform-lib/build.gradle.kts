@@ -23,8 +23,6 @@ dependencies {
     api(project(":spi:common:transform-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
-    api(libs.jakartaJson)
-
     testImplementation(project(":tests:junit-base"));
     testImplementation(project(":core:common:lib:json-ld-lib"))
 }

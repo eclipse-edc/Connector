@@ -26,7 +26,6 @@ dependencies {
     testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
     testImplementation(libs.junit.jupiter.api)
-    testImplementation(libs.jakartaJson)
 
     testCompileOnly(project(":system-tests:sts-api:sts-api-test-runtime"))
     testImplementation(testFixtures(project(":spi:common:identity-trust-sts-spi")))

@@ -38,7 +38,6 @@ dependencies {
     testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
     testImplementation(libs.junit.jupiter.api)
-    testImplementation(libs.jakartaJson)
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgres)

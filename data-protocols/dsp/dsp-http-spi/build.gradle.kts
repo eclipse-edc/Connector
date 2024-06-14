@@ -22,7 +22,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-spi"))
 
     api(libs.okhttp)
-    api(libs.jakartaJson)
+    api(libs.jakarta.json.api)
     api(libs.jakarta.rsApi)
 
     testFixturesApi(project(":core:common:junit"))
