@@ -163,7 +163,6 @@ public class TestFunctions {
                 .add("privateProperties", privatePropertiesJson)
                 .add("protocol", "protocol")
                 .add("callbackAddresses", createCallbackAddress())
-                .add("assetId", "assetId")
                 .build();
     }
 
