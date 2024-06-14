@@ -27,7 +27,6 @@ dependencies {
     testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
     testImplementation(libs.junit.jupiter.api)
-    testImplementation(libs.jakartaJson)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
     testImplementation(libs.opentelemetry.proto)

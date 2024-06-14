@@ -22,8 +22,6 @@ dependencies {
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:validator-spi"))
 
-    api(libs.jakartaJson)
-
     testImplementation(project(":tests:junit-base"));
 
 }

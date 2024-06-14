@@ -18,9 +18,11 @@ plugins {
 }
 
 dependencies {
-    api(libs.jakartaJson)
+    api(libs.jakarta.json.api)
 
     api(project(":spi:common:transform-spi"))
+
+    implementation(libs.parsson)
 }
 
 

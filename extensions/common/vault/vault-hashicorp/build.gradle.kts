@@ -24,7 +24,7 @@ dependencies {
     testImplementation(project(":core:common:connector-core"))
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.jakartaJson)
+    testImplementation(libs.jakarta.json.api)
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.vault)
     implementation(libs.bouncyCastle.bcpkixJdk18on)
