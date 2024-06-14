@@ -62,7 +62,7 @@ class DelegatedAuthenticationExtensionTest {
 
         extension.initialize(context);
 
-        verify(monitor).warning("The '%s' setting was not provided, so the DelegatedAuthenticationService will NOT be registered. Normally, the TokenBasedAuthenticationService acts as fallback.".formatted(AUTH_SETTING_KEY_URL));
+        verify(monitor).warning("The '%s' setting was not provided, so the DelegatedAuthenticationService will NOT be registered. In this case, the TokenBasedAuthenticationService usually acts as fallback.".formatted(AUTH_SETTING_KEY_URL));
         verify(registry, never()).register(eq("management-api"), isA(DelegatedAuthenticationService.class));
     }
 }

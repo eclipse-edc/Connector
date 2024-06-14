@@ -70,7 +70,7 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
 
         var keyUrl = context.getConfig().getString(AUTH_SETTING_KEY_URL, null);
         if (keyUrl == null) {
-            monitor.warning("The '%s' setting was not provided, so the DelegatedAuthenticationService will NOT be registered. Normally, the TokenBasedAuthenticationService acts as fallback.".formatted(AUTH_SETTING_KEY_URL));
+            monitor.warning("The '%s' setting was not provided, so the DelegatedAuthenticationService will NOT be registered. In this case, the TokenBasedAuthenticationService usually acts as fallback.".formatted(AUTH_SETTING_KEY_URL));
             return;
         }
         var cacheValidityMs = context.getConfig().getLong(AUTH_SETTING_CACHE_VALIDITY_MS, DEFAULT_CACHE_TIME_TO_LIVE);
