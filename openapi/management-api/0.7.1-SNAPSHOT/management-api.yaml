@@ -4101,7 +4101,6 @@ components:
     TransferRequest:
       required:
       - '@context'
-      - assetId
       - contractId
       - counterPartyAddress
       - protocol
@@ -4117,6 +4116,7 @@ components:
         assetId:
           type: string
           example: null
+          deprecated: true
         callbackAddresses:
           type: array
           example: null
@@ -4145,7 +4145,6 @@ components:
         protocol: dataspace-protocol-http
         counterPartyAddress: http://provider-address
         contractId: contract-id
-        assetId: asset-id
         transferType: transferType
         dataDestination:
           type: data-destination-type
