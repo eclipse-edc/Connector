@@ -31,7 +31,6 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.eclipse.edc.api.ApiWarnings.deprecationWarning;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
@@ -45,7 +44,6 @@ public class PolicyDefinitionApiV3Controller extends BasePolicyDefinitionApiCont
     @Path("request")
     @Override
     public JsonArray queryPolicyDefinitionsV3(JsonObject querySpecJson) {
-        monitor.warning(deprecationWarning("/v2", "/v3"));
         return queryPolicyDefinitions(querySpecJson);
     }
 
@@ -53,14 +51,12 @@ public class PolicyDefinitionApiV3Controller extends BasePolicyDefinitionApiCont
     @Path("{id}")
     @Override
     public JsonObject getPolicyDefinitionV3(@PathParam("id") String id) {
-        monitor.warning(deprecationWarning("/v2", "/v3"));
         return getPolicyDefinition(id);
     }
 
     @POST
     @Override
     public JsonObject createPolicyDefinitionV3(JsonObject request) {
-        monitor.warning(deprecationWarning("/v2", "/v3"));
         return createPolicyDefinition(request);
     }
 
@@ -68,7 +64,6 @@ public class PolicyDefinitionApiV3Controller extends BasePolicyDefinitionApiCont
     @Path("{id}")
     @Override
     public void deletePolicyDefinitionV3(@PathParam("id") String id) {
-        monitor.warning(deprecationWarning("/v2", "/v3"));
         deletePolicyDefinition(id);
     }
 
@@ -76,7 +71,6 @@ public class PolicyDefinitionApiV3Controller extends BasePolicyDefinitionApiCont
     @Path("{id}")
     @Override
     public void updatePolicyDefinitionV3(@PathParam("id") String id, JsonObject input) {
-        monitor.warning(deprecationWarning("/v2", "/v3"));
         updatePolicyDefinition(id, input);
     }
 }
