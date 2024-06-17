@@ -18,8 +18,6 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.sql.Date;
 import java.time.Clock;
@@ -62,19 +60,26 @@ class ExpirationIssuedAtValidationRuleTest {
                 .contains("Token has expired (exp)");
     }
 
-    @ParameterizedTest(name = "Allow exp null: {0}")
-    @ValueSource(booleans = { true, false })
-    void validationKoBecauseExpirationTimeNotProvided(boolean allowNull) {
-        var r = new ExpirationIssuedAtValidationRule(clock, 0, allowNull);
+    @Test
+    void validationKoBecauseExpirationTimeNotProvided_allowsNull() {
+        var r = new ExpirationIssuedAtValidationRule(clock, 0, true);
         var token = ClaimToken.Builder.newInstance().build();
 
         var result = r.checkRule(token, emptyMap());
 
-        assertThat(result.succeeded()).isEqualTo(allowNull);
-        if (!allowNull) {
-            assertThat(result.getFailureMessages()).hasSize(1)
-                    .contains("Required expiration time (exp) claim is missing in token");
-        }
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void validationKoBecauseExpirationTimeNotProvided_doesNotAllowNull() {
+        var r = new ExpirationIssuedAtValidationRule(clock, 0, false);
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = r.checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).hasSize(1)
+                .contains("Required expiration time (exp) claim is missing in token");
     }
 
     @Test

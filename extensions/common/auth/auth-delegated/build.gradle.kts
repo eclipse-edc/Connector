@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(project(":spi:common:auth-spi"))
     api(project(":spi:common:token-spi"))
-    api(project(":core:common:token-core")) // for the validation rules
+    implementation(project(":core:common:token-core")) // for the validation rules
     implementation(project(":core:common:lib:crypto-common-lib"))
     implementation(libs.jakarta.rsApi)
     implementation(libs.nimbus.jwt)

@@ -30,7 +30,7 @@ import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 public class DelegatedAuthenticationService implements AuthenticationService {
 
     public static final String MANAGEMENT_API_CONTEXT = "management-api";
-    @Deprecated
+    @Deprecated(since = "0.7.1")
     private static final String X_API_KEY = "x-api-key";
     public static final String OLD_API_KEY_WARNING = ("Header '%s' found with the DelegatedAuthenticationService. " +
             "Please migrate to using the '%s' header at your earliest convenience, this compatibility feature will be removed in upcoming releases!").formatted(X_API_KEY, AUTHORIZATION);

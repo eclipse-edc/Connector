@@ -18,8 +18,6 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.sql.Date;
 import java.time.Clock;
@@ -62,19 +60,26 @@ class NotBeforeValidationRuleTest {
                 .contains("Current date/time with leeway before the not before (nbf) claim in token");
     }
 
-    @ParameterizedTest(name = "Allow nbf null: {0}")
-    @ValueSource(booleans = { true, false })
-    void validationKoBecauseNotBeforeTimeNotProvided(boolean allowNull) {
-        var r = new NotBeforeValidationRule(clock, notBeforeLeeway, allowNull);
+    @Test
+    void validationKoBecauseNotBeforeTimeNotProvided_doesNotAllowNull() {
+        var r = new NotBeforeValidationRule(clock, notBeforeLeeway, false);
         var token = ClaimToken.Builder.newInstance().build();
 
         var result = r.checkRule(token, emptyMap());
 
-        assertThat(result.succeeded()).isEqualTo(allowNull);
-        if (!allowNull) {
-            assertThat(result.getFailureMessages()).hasSize(1)
-                    .contains("Required not before (nbf) claim is missing in token");
-        }
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).hasSize(1)
+                .contains("Required not before (nbf) claim is missing in token");
+    }
+
+    @Test
+    void validationKoBecauseNotBeforeTimeNotProvided_allowsNull() {
+        var r = new NotBeforeValidationRule(clock, notBeforeLeeway, true);
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = r.checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isTrue();
     }
 
 }
