@@ -38,4 +38,9 @@ public class ApiAuthenticationRegistryImpl implements ApiAuthenticationRegistry 
     public @NotNull AuthenticationService resolve(String context) {
         return services.getOrDefault(context, ALL_PASS);
     }
+
+    @Override
+    public boolean hasService(String context) {
+        return services.containsKey(context);
+    }
 }

@@ -16,11 +16,9 @@
 
 package org.eclipse.edc.api.auth.token;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -32,7 +30,6 @@ import java.util.UUID;
 /**
  * Extension that registers an AuthenticationService that uses API Keys
  */
-@Provides(AuthenticationService.class)
 @Extension(value = TokenBasedAuthenticationExtension.NAME)
 public class TokenBasedAuthenticationExtension implements ServiceExtension {
 
@@ -58,6 +55,9 @@ public class TokenBasedAuthenticationExtension implements ServiceExtension {
                 .map(alias -> vault.resolveSecret(alias))
                 .orElseGet(() -> context.getSetting(AUTH_SETTING_APIKEY, UUID.randomUUID().toString()));
 
-        authenticationRegistry.register("management-api", new TokenBasedAuthenticationService(apiKey));
+        // only register as fallback, if no other has been registered
+        if (!authenticationRegistry.hasService("management-api")) {
+            authenticationRegistry.register("management-api", new TokenBasedAuthenticationService(apiKey));
+        }
     }
 }

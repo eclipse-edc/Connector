@@ -37,6 +37,14 @@ public interface ApiAuthenticationRegistry {
      * @param context the context.
      * @return the {@link AuthenticationService}
      */
-    @NotNull AuthenticationService resolve(String context);
+    @NotNull
+    AuthenticationService resolve(String context);
 
+    /**
+     * Determines whether a specific authentication service registration exists for a given context.
+     *
+     * @param context The context name
+     * @return {@code true} if a non-default, non-null service is registered, {@code false} otherwise
+     */
+    boolean hasService(String context);
 }

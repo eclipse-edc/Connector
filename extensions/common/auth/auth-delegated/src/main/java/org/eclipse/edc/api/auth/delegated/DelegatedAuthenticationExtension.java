@@ -14,12 +14,10 @@
 
 package org.eclipse.edc.api.auth.delegated;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -36,7 +34,6 @@ import static org.eclipse.edc.api.auth.delegated.DelegatedAuthenticationService.
 /**
  * Extension that registers an AuthenticationService that delegates authentication and authorization to a third-party IdP
  */
-@Provides(AuthenticationService.class)
 @Extension(value = DelegatedAuthenticationExtension.NAME)
 public class DelegatedAuthenticationExtension implements ServiceExtension {
 
@@ -82,6 +79,7 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
         tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new NotBeforeValidationRule(clock, tolerance, true));
         tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new ExpirationIssuedAtValidationRule(clock, tolerance, true));
 
+        // always register - this would potentially overwrite other services
         authenticationRegistry.register("management-api", new DelegatedAuthenticationService(resolver, monitor, tokenValidationService, tokenValidationRulesRegistry));
     }
 }
