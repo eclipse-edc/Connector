@@ -22,10 +22,9 @@ import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -33,12 +32,10 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 import static jakarta.json.Json.createObjectBuilder;
-import static java.lang.String.format;
 import static okhttp3.internal.Util.EMPTY_REQUEST;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -50,29 +47,26 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
     private static final String SELECT_PATH = "/select";
-    private final EdcHttpClient httpClient;
+    private final ControlApiHttpClient httpClient;
     private final String url;
     private final ObjectMapper mapper;
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final String selectionStrategy;
-    private final ControlClientAuthenticationProvider authenticationProvider;
 
-    public RemoteDataPlaneSelectorService(EdcHttpClient httpClient, String url, ObjectMapper mapper,
-                                          TypeTransformerRegistry typeTransformerRegistry, String selectionStrategy,
-                                          ControlClientAuthenticationProvider authenticationProvider) {
-        this.httpClient = httpClient;
+    public RemoteDataPlaneSelectorService(ControlApiHttpClient controlClient, String url, ObjectMapper mapper,
+                                          TypeTransformerRegistry typeTransformerRegistry, String selectionStrategy) {
+        this.httpClient = controlClient;
         this.url = url;
         this.mapper = mapper;
         this.typeTransformerRegistry = typeTransformerRegistry;
         this.selectionStrategy = selectionStrategy;
-        this.authenticationProvider = authenticationProvider;
     }
 
     @Override
     public ServiceResult<List<DataPlaneInstance>> getAll() {
         var requestBuilder = new Request.Builder().get().url(url);
 
-        return request(requestBuilder)
+        return httpClient.request(requestBuilder)
                 .compose(this::toJsonArray)
                 .map(it -> it.stream()
                         .map(j -> typeTransformerRegistry.transform(j, DataPlaneInstance.class))
@@ -97,7 +91,7 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
         var requestBuilder = new Request.Builder().post(body).url(url + SELECT_PATH);
 
-        return request(requestBuilder).compose(this::toJsonObject)
+        return httpClient.request(requestBuilder).compose(this::toJsonObject)
                 .map(it -> typeTransformerRegistry.transform(it, DataPlaneInstance.class))
                 .compose(ServiceResult::from);
     }
@@ -116,53 +110,29 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
         var requestBuilder = new Request.Builder().post(body).url(url);
 
-        return request(requestBuilder).mapEmpty();
+        return httpClient.request(requestBuilder).mapEmpty();
     }
 
     @Override
     public ServiceResult<Void> delete(String instanceId) {
         var requestBuilder = new Request.Builder().delete().url(url + "/" + instanceId);
 
-        return request(requestBuilder).mapEmpty();
+        return httpClient.request(requestBuilder).mapEmpty();
     }
 
     @Override
     public ServiceResult<Void> unregister(String instanceId) {
         var requestBuilder = new Request.Builder().put(EMPTY_REQUEST).url("%s/%s/unregister".formatted(url, instanceId));
 
-        return request(requestBuilder).mapEmpty();
+        return httpClient.request(requestBuilder).mapEmpty();
     }
 
     @Override
     public ServiceResult<DataPlaneInstance> findById(String id) {
         var requestBuilder = new Request.Builder().get().url(url + "/" + id);
 
-        return request(requestBuilder).compose(this::toJsonObject)
+        return httpClient.request(requestBuilder).compose(this::toJsonObject)
                 .map(it -> typeTransformerRegistry.transform(it, DataPlaneInstance.class).getContent());
-    }
-
-    private <R> ServiceResult<String> request(Request.Builder requestBuilder) {
-        authenticationProvider.authenticationHeaders().forEach(requestBuilder::header);
-        try (
-                var response = httpClient.execute(requestBuilder.build());
-                var responseBody = response.body();
-        ) {
-            var bodyAsString = responseBody == null ? null : responseBody.string();
-            if (response.isSuccessful()) {
-                return ServiceResult.success(bodyAsString);
-
-            } else {
-                return switch (response.code()) {
-                    case 400 -> ServiceResult.badRequest("Remote API returned HTTP 400. " + bodyAsString);
-                    case 401, 403 -> ServiceResult.unauthorized("Unauthorized. " + bodyAsString);
-                    case 404 -> ServiceResult.notFound("Remote API returned HTTP 404." + bodyAsString);
-                    case 409 -> ServiceResult.conflict("Remote API returned HTTP 409." + bodyAsString);
-                    default -> ServiceResult.unexpected(format("An unknown error happened, HTTP Status = %d. Body %s", response.code(), bodyAsString));
-                };
-            }
-        } catch (IOException exception) {
-            return ServiceResult.unexpected("Unexpected IOException. " + exception.getMessage());
-        }
     }
 
     private ServiceResult<JsonObject> toJsonObject(String it) {

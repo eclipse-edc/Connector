@@ -18,7 +18,20 @@ import org.eclipse.edc.spi.EdcException;
 
 public class EdcHttpClientException extends EdcException {
 
-    public EdcHttpClientException(String message) {
+    private final int statusCode;
+    private final String responseBody;
+
+    public EdcHttpClientException(String message, int statusCode, String responseBody) {
         super(message);
+        this.statusCode = statusCode;
+        this.responseBody = responseBody;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    public String getResponseBody() {
+        return responseBody;
     }
 }

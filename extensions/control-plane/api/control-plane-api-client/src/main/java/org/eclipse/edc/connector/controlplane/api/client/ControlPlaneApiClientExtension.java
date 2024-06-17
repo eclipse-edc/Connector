@@ -14,11 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.api.client;
 
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.controlplane.api.client.transferprocess.TransferProcessHttpClient;
 import org.eclipse.edc.connector.controlplane.api.client.transferprocess.model.TransferProcessFailRequest;
-import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -36,11 +35,9 @@ public class ControlPlaneApiClientExtension implements ServiceExtension {
     public static final String NAME = "Control Plane HTTP API client";
 
     @Inject
-    private EdcHttpClient httpClient;
-    @Inject
     private TypeManager typeManager;
     @Inject
-    private ControlClientAuthenticationProvider authenticationProvider;
+    private ControlApiHttpClient httpClient;
 
     @Override
     public String name() {
@@ -51,7 +48,7 @@ public class ControlPlaneApiClientExtension implements ServiceExtension {
     public TransferProcessApiClient transferProcessApiClient(ServiceExtensionContext context) {
         typeManager.registerTypes(TransferProcessFailRequest.class);
 
-        return new TransferProcessHttpClient(httpClient, typeManager.getMapper(), context.getMonitor(), authenticationProvider);
+        return new TransferProcessHttpClient(httpClient, typeManager.getMapper(), context.getMonitor());
     }
 
 }

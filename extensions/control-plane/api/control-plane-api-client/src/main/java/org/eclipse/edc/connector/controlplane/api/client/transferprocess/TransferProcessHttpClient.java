@@ -19,19 +19,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.controlplane.api.client.transferprocess.model.TransferProcessFailRequest;
-import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.util.List;
-
-import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusIsNotIn;
 
 /**
  * Implementation of {@link TransferProcessApiClient} which talks to the Control Plane Transfer Process via HTTP APIs
@@ -40,17 +36,14 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
 
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
 
-    private final EdcHttpClient httpClient;
+    private final ControlApiHttpClient httpClient;
     private final ObjectMapper mapper;
     private final Monitor monitor;
-    private final ControlClientAuthenticationProvider authenticationProvider;
 
-    public TransferProcessHttpClient(EdcHttpClient httpClient, ObjectMapper mapper, Monitor monitor,
-                                     ControlClientAuthenticationProvider authenticationProvider) {
+    public TransferProcessHttpClient(ControlApiHttpClient httpClient, ObjectMapper mapper, Monitor monitor) {
         this.httpClient = httpClient;
         this.mapper = mapper;
         this.monitor = monitor;
-        this.authenticationProvider = authenticationProvider;
     }
 
     @Override
@@ -70,17 +63,13 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
                 var builder = new Request.Builder()
                         .url(buildUrl(dataFlowStartMessage, action))
                         .post(createRequestBody(body));
-                authenticationProvider.authenticationHeaders().forEach(builder::header);
 
-                try (var response = httpClient.execute(builder.build(), List.of(retryWhenStatusIsNotIn(200, 204)))) {
-                    if (!response.isSuccessful()) {
-                        var message = "Failed to send callback request: received %s from the TransferProcess API"
-                                .formatted(response.code());
-                        monitor.severe(message);
-                        return Result.failure(message);
-                    }
+                var result = httpClient.execute(builder);
+                if (result.failed()) {
+                    var message = "Failed to send callback request: %s".formatted(result.getFailureDetail());
+                    monitor.severe(message);
+                    return Result.failure(message);
                 }
-
             } catch (Exception e) {
                 monitor.severe("Failed to send callback request", e);
                 return Result.failure("Failed to send callback request: " + e.getMessage());

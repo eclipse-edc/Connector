@@ -18,7 +18,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowResponseMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowStartMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowSuspendMessageTransformer;
@@ -27,6 +26,8 @@ import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlow
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
+import org.eclipse.edc.http.client.ControlApiHttpClientImpl;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.EdcException;
@@ -58,7 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
@@ -68,7 +68,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.once;
@@ -90,10 +89,11 @@ class DataPlaneSignalingClientTest {
     private static final TypeTransformerRegistry TRANSFORMER_REGISTRY = new TypeTransformerRegistryImpl();
     private static final TitaniumJsonLd JSON_LD = new TitaniumJsonLd(mock(Monitor.class));
     private static ClientAndServer dataPlane;
-    private final ControlClientAuthenticationProvider authenticationProvider = mock();
     private final DataPlaneInstance instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
-    private final DataPlaneClient dataPlaneClient = new DataPlaneSignalingClient(testHttpClient(), TRANSFORMER_REGISTRY,
-            JSON_LD, MAPPER, instance, authenticationProvider);
+    private final ControlApiHttpClient httpClient = new ControlApiHttpClientImpl(testHttpClient(), mock());
+
+    private final DataPlaneClient dataPlaneClient = new DataPlaneSignalingClient(httpClient, TRANSFORMER_REGISTRY,
+            JSON_LD, MAPPER, instance);
 
     @BeforeAll
     public static void setUp() {
@@ -132,18 +132,16 @@ class DataPlaneSignalingClientTest {
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
             var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
-            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code()));
+            dataPlane.when(httpRequest).respond(response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code()));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(httpRequest, VerificationTimes.once());
+            dataPlane.verify(httpRequest);
 
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
             assertThat(result.getFailureMessages())
-                    .anySatisfy(s -> assertThat(s)
-                            .isEqualTo("Transfer request failed with status code 400 for request %s", flowRequest.getProcessId())
-                    );
+                    .anySatisfy(s -> assertThat(s).contains("400").contains(flowRequest.getProcessId()));
         }
 
         @Test
@@ -156,25 +154,22 @@ class DataPlaneSignalingClientTest {
 
             var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
             var errorMsg = UUID.randomUUID().toString();
-            dataPlane.when(httpRequest, once()).respond(withResponse(errorMsg));
+            dataPlane.when(httpRequest).respond(withResponse(errorMsg));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(httpRequest, VerificationTimes.once());
+            dataPlane.verify(httpRequest);
 
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
-            assertThat(result.getFailureMessages())
-                    .anySatisfy(s -> assertThat(s)
-                            .isEqualTo(format("Transfer request failed with status code 400 for request %s", flowRequest.getProcessId()))
-                    );
+            assertThat(result.getFailureMessages()).anySatisfy(s -> assertThat(s).contains("400").contains(flowRequest.getProcessId()));
         }
 
         @Test
         void verifyReturnFatalErrorIfTransformFails() {
             var flowRequest = createDataFlowRequest();
             TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(testHttpClient(), registry, JSON_LD, MAPPER, instance, authenticationProvider);
+            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, MAPPER, instance);
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 
@@ -232,7 +227,6 @@ class DataPlaneSignalingClientTest {
             dataPlane.verify(httpRequest, VerificationTimes.once());
 
             assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isNotNull();
-            verify(authenticationProvider).authenticationHeaders();
         }
 
         @Test
@@ -293,7 +287,6 @@ class DataPlaneSignalingClientTest {
 
             assertThat(result).isSucceeded();
             dataPlane.verify(httpRequest, VerificationTimes.once());
-            verify(authenticationProvider).authenticationHeaders();
         }
 
         @Test
@@ -309,7 +302,7 @@ class DataPlaneSignalingClientTest {
         @Test
         void verifyReturnFatalErrorIfTransformFails() {
             TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(testHttpClient(), registry, JSON_LD, MAPPER, instance, authenticationProvider);
+            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, MAPPER, instance);
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 
@@ -337,7 +330,6 @@ class DataPlaneSignalingClientTest {
 
             assertThat(result).isSucceeded();
             dataPlane.verify(httpRequest, VerificationTimes.once());
-            verify(authenticationProvider).authenticationHeaders();
         }
 
         @Test
@@ -353,7 +345,7 @@ class DataPlaneSignalingClientTest {
         @Test
         void verifyReturnFatalErrorIfTransformFails() {
             TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(testHttpClient(), registry, JSON_LD, MAPPER, instance, authenticationProvider);
+            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, MAPPER, instance);
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 
