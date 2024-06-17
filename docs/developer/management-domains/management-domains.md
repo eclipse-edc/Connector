@@ -57,36 +57,38 @@ only one of Foo's divisions.
 Foo can support this scenario by adopting a ***distributed management domain topology***. There are several different
 ways to distribute management domains.
 
-#### Type 2 A: Root Catalog with a Single EDC Stack
+#### Type 2a: DSP Catalog referencing EDC Stacks
 
 Let's take the simplest to start: each division deploys its own EDC component stack. Externally, Foo Industries presents
 a unified DSP Catalog obtained by resolving the catalog endpoint from Foo's Web DID, `did:web:widget-x.foo.com`. The
 returned catalog will contain entries for the Foo divisions a client has access to (the mechanics of how this is done
-are explained below). To support this setup, Foo could deploy the following management domains:
+are explained below). Specifically, the component serving the DSP catalog would _not_ be an EDC component, and thus not
+be subject to any management domains. To support this setup, Foo could deploy the following management domains:
 
 ![](./distributed.type2.a.svg)
 
-*Type2 A: Distributed Management Domains containing an EDC stack*
+*Type 2a: Distributed Management Domains containing an EDC stack*
 
-Here, two primary management domains contain a full EDC stack. A root catalog (explained below) serves as the main entry
-point for client requests.
+Here, two primary management domains contain a full EDC stack each. A root catalog (explained below) serves as the main
+entry point for client requests.
 
-#### Type 2B: Catalog Server and Control/Data Plane Runtime
+#### Type 2b: EDC Catalog Server and Control/Data Plane Runtimes
 
 Foo Industries could also choose to deploy EDC components themselves in separate management domains. For example, a
-central catalog server that fronts two management domains consisting of Control/Data Plane runtimes:
+central catalog server that runs in its own management domain and that fronts two other management domains consisting of
+Control/Data Plane runtimes:
 
 ![](./distributed.type2.b.svg)
 
-*Type2 B: Distributed Management Domains containing a Catalog Server and separate Control/Data Plane runtimes*
+*Type 2b: Distributed Management Domains containing a Catalog Server and separate Control/Data Plane runtimes*
 
-#### Type 2C: Catalog Server/Control Plane with Data Plane Runtime
+#### Type 2c: Catalog Server/Control Plane with Data Plane Runtime
 
 Or, Foo Industries could elect to run a centralized Catalog Server/Control Plane:
 
 ![](./distributed.type2.c.svg)
 
-*Type2 C: Distributed Management Domains containing a Catalog Server/Control Plane and separate Data Plane runtimes*
+*Type 2c: Distributed Management Domains containing a Catalog Server/Control Plane and separate Data Plane runtimes*
 
 ## 2. Architecture
 
@@ -124,7 +126,8 @@ a `Catalog` may contain other `Catalogs,` thereby forming a composition:
 ```
 
 Sub-catalogs are linked using DCAT `Services`, which can be used to create a navigable web of hyperlinks.
-The [Type 2A topology](#type-2-a-root-catalog-with-a-single-edc-stack) can be supported using either a static document
+The [Type 2a topology](#type-2b-edc-catalog-server-and-controldata-plane-runtimes) can be supported using either a
+static document
 served by an HTTP server such nginx or an EDC Catalog Server.
 
 The `EDC` will use a specialization of `Asset` (note this is not a Java subtype of `Asset`) to represent a contained
@@ -134,7 +137,8 @@ created via the Management API. The associated  `DataAddress` must contain the p
 ### 2.1. Access Control
 
 Returning to the previous example, Foo Industries has a requirement to limit access to subdivision data based on client
-credentials. This can be achieved using the [Type 2B topology](#type-2b-catalog-server-and-controldata-plane-runtime)
+credentials. This can be achieved using
+the [Type 2b topology](#type-2b-edc-catalog-server-and-controldata-plane-runtimes)
 Since sub-catalogs are derived from EDC `Assets`, access policy can be attached using a `ContractDefinition`. When
 handling a client request, the EDC Catalog Server will evaluate the access policy against the client's credentials as
 the root catalog is generated.
@@ -142,7 +146,7 @@ the root catalog is generated.
 ### 2.2. Remote Data Plane Registration
 
 Foo Industries could elect to host a centralized control plane with distributed data planes as defined
-by [Type 2C topologies](#type-2c-catalog-servercontrol-plane-with-data-plane-runtime). Note that remote data plane
+by [Type 2c topologies](#type-2c-catalog-servercontrol-plane-with-data-plane-runtime). Note that remote data plane
 registration is already supported.
 
 ### 2.3. Zero Replication
