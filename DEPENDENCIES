@@ -52,7 +52,7 @@ maven/mavencentral/com.github.java-json-tools/json-patch/1.13, Apache-2.0 OR LGP
 maven/mavencentral/com.github.java-json-tools/json-schema-core/1.2.14, Apache-2.0 AND LGPL-2.1-or-later AND LGPL-3.0-only AND (Apache-2.0 AND GPL-1.0-or-later AND LGPL-3.0-only) AND Apache-2.0 AND LGPL-3.0-only, restricted, #15282
 maven/mavencentral/com.github.java-json-tools/json-schema-validator/2.2.14, Apache-2.0 OR LGPL-3.0-or-later, approved, CQ20779
 maven/mavencentral/com.github.java-json-tools/msg-simple/1.2, Apache-2.0 AND LGPL-2.1-or-later AND LGPL-3.0-only AND (Apache-2.0 AND GPL-1.0-or-later AND LGPL-3.0-only) AND Apache-2.0 AND LGPL-3.0-only, restricted, #15239
-maven/mavencentral/com.github.java-json-tools/uri-template/0.10, Apache-2.0 OR LGPL-3.0-only, approved, #2723
+maven/mavencentral/com.github.java-json-tools/uri-template/0.10, Apache-2.0 AND LGPL-3.0-only AND (Apache-2.0 AND GPL-1.0-or-later AND LGPL-3.0-only), restricted, #15288
 maven/mavencentral/com.github.luben/zstd-jni/1.5.5-6, BSD-2-Clause, approved, clearlydefined
 maven/mavencentral/com.github.stephenc.jcip/jcip-annotations/1.0-1, Apache-2.0, approved, CQ21949
 maven/mavencentral/com.google.code.findbugs/jsr305/2.0.1, BSD-3-Clause AND CC-BY-2.5 AND LGPL-2.1+, approved, CQ13390
