@@ -40,4 +40,11 @@ class ApiAuthenticationRegistryImplTest {
 
         assertThat(service).isInstanceOf(AllPassAuthenticationService.class);
     }
+
+    @Test
+    void hasService() {
+        assertThat(registry.hasService("context")).isFalse();
+        registry.register("context", mock(AuthenticationService.class));
+        assertThat(registry.hasService("context")).isTrue();
+    }
 }

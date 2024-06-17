@@ -61,10 +61,21 @@ class ExpirationIssuedAtValidationRuleTest {
     }
 
     @Test
-    void validationKoBecauseExpirationTimeNotProvided() {
+    void validationKoBecauseExpirationTimeNotProvided_allowsNull() {
+        var r = new ExpirationIssuedAtValidationRule(clock, 0, true);
         var token = ClaimToken.Builder.newInstance().build();
 
-        var result = rule.checkRule(token, emptyMap());
+        var result = r.checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void validationKoBecauseExpirationTimeNotProvided_doesNotAllowNull() {
+        var r = new ExpirationIssuedAtValidationRule(clock, 0, false);
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = r.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)

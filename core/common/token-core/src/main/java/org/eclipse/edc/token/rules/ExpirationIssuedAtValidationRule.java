@@ -34,10 +34,22 @@ public class ExpirationIssuedAtValidationRule implements TokenValidationRule {
 
     private final Clock clock;
     private final int issuedAtLeeway;
+    private final boolean allowNull;
 
+    /**
+     * Instantiates the rule
+     *
+     * @deprecated Please use {@link ExpirationIssuedAtValidationRule#ExpirationIssuedAtValidationRule(Clock, int, boolean)} instead
+     */
+    @Deprecated(since = "0.7.0")
     public ExpirationIssuedAtValidationRule(Clock clock, int issuedAtLeeway) {
+        this(clock, issuedAtLeeway, false);
+    }
+
+    public ExpirationIssuedAtValidationRule(Clock clock, int issuedAtLeeway, boolean allowNull) {
         this.clock = clock;
         this.issuedAtLeeway = issuedAtLeeway;
+        this.allowNull = allowNull;
     }
 
     @Override
@@ -45,7 +57,9 @@ public class ExpirationIssuedAtValidationRule implements TokenValidationRule {
         var now = clock.instant();
         var expires = toVerify.getInstantClaim(EXPIRATION_TIME);
         if (expires == null) {
-            return Result.failure("Required expiration time (exp) claim is missing in token");
+            if (!allowNull) {
+                return Result.failure("Required expiration time (exp) claim is missing in token");
+            }
         } else if (now.isAfter(expires)) {
             return Result.failure("Token has expired (exp)");
         }

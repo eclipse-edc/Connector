@@ -61,14 +61,25 @@ class NotBeforeValidationRuleTest {
     }
 
     @Test
-    void validationKoBecauseNotBeforeTimeNotProvided() {
+    void validationKoBecauseNotBeforeTimeNotProvided_doesNotAllowNull() {
+        var r = new NotBeforeValidationRule(clock, notBeforeLeeway, false);
         var token = ClaimToken.Builder.newInstance().build();
 
-        var result = rule.checkRule(token, emptyMap());
+        var result = r.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
                 .contains("Required not before (nbf) claim is missing in token");
+    }
+
+    @Test
+    void validationKoBecauseNotBeforeTimeNotProvided_allowsNull() {
+        var r = new NotBeforeValidationRule(clock, notBeforeLeeway, true);
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = r.checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isTrue();
     }
 
 }
