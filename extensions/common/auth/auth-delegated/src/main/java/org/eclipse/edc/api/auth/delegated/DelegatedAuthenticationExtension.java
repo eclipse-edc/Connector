@@ -74,7 +74,7 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
         var tolerance = context.getConfig().getInteger(AUTH_SETTING_VALIDATION_TOLERANCE_MS, DEFAULT_VALIDATION_TOLERANCE);
 
         //todo: currently, only JWKS urls are supported
-        var resolver = new JwksPublicKeyResolver(keyParserRegistry, keyUrl, cacheValidityMs, monitor);
+        var resolver = JwksPublicKeyResolver.create(keyParserRegistry, keyUrl, monitor, cacheValidityMs);
 
         tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new NotBeforeValidationRule(clock, tolerance, true));
         tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new ExpirationIssuedAtValidationRule(clock, tolerance, true));

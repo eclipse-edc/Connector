@@ -47,18 +47,34 @@ public class JwksPublicKeyResolver implements PublicKeyResolver {
     private final KeyParserRegistry keyParserRegistry;
     private final JWKSource<SecurityContext> jwkSource;
 
+    private JwksPublicKeyResolver(KeyParserRegistry keyParserRegistry, Monitor monitor, JWKSource<SecurityContext> jwkSource) {
+        this.keyParserRegistry = keyParserRegistry;
+        this.monitor = monitor;
+        this.jwkSource = jwkSource;
+    }
+
     /**
-     * Instantiates the resolver
+     * Creates a new resolver that does use any cache. That means, that every request hits the server.
      *
      * @param keyParserRegistry Should contain all relevant key parsers. The minimum recommendation is adding a {@code JwkParser}.
      * @param jwksUrl           The URL of the public key server, where a JWK Set can be obtained.
-     * @param cacheValidityMs   The time in milliseconds that public keys may be cached locally.
      * @param monitor           A monitor
      * @throws EdcException if the jwksUrl is malformed
      */
-    public JwksPublicKeyResolver(KeyParserRegistry keyParserRegistry, String jwksUrl, long cacheValidityMs, Monitor monitor) {
-        this.monitor = monitor;
-        this.keyParserRegistry = keyParserRegistry;
+    public static JwksPublicKeyResolver create(KeyParserRegistry keyParserRegistry, String jwksUrl, Monitor monitor) {
+        return create(keyParserRegistry, jwksUrl, monitor, 0);
+    }
+
+    /**
+     * Creates a new resolver that does use any cache. That means, that every request hits the server.
+     *
+     * @param keyParserRegistry Should contain all relevant key parsers. The minimum recommendation is adding a {@code JwkParser}.
+     * @param jwksUrl           The URL of the public key server, where a JWK Set can be obtained.
+     * @param monitor           A monitor
+     * @param cacheValidityMs   The time in milliseconds that public keys may be cached locally.
+     * @throws EdcException if the jwksUrl is malformed
+     */
+    public static JwksPublicKeyResolver create(KeyParserRegistry keyParserRegistry, String jwksUrl, Monitor monitor, long cacheValidityMs) {
 
         try {
             var builder = JWKSourceBuilder.create(URI.create(jwksUrl).toURL()).retrying(false);
@@ -74,8 +90,15 @@ public class JwksPublicKeyResolver implements PublicKeyResolver {
                     builder.refreshAheadCache(false);
                 }
 
+            } else {
+                // disable all optimizations
+                builder.cache(false);
+                builder.rateLimited(false);
+                builder.refreshAheadCache(false);
             }
-            jwkSource = builder.build();
+            var jwkSource = builder.build();
+            return new JwksPublicKeyResolver(keyParserRegistry, monitor, jwkSource);
+
         } catch (MalformedURLException e) {
             monitor.warning("Malformed JWK URL: " + jwksUrl, e);
             throw new EdcException(e);

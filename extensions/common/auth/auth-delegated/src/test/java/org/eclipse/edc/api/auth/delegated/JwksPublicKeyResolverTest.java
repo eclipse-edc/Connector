@@ -75,7 +75,7 @@ class JwksPublicKeyResolverTest {
     void setup() {
         jwksServer.reset();
         keyParserRegistry.register(new JwkParser(mapper, monitor));
-        resolver = new JwksPublicKeyResolver(keyParserRegistry, jwksServerUrl(), DEFAULT_CACHE_TIME_TO_LIVE, monitor);
+        resolver = JwksPublicKeyResolver.create(keyParserRegistry, jwksServerUrl(), monitor, DEFAULT_CACHE_TIME_TO_LIVE);
     }
 
     @Test
@@ -151,7 +151,7 @@ class JwksPublicKeyResolverTest {
     @Test
     void resolve_malformedKeyUrl() {
 
-        assertThatThrownBy(() -> new JwksPublicKeyResolver(keyParserRegistry, "foobar://invalid.url", DEFAULT_CACHE_TIME_TO_LIVE, monitor))
+        assertThatThrownBy(() -> JwksPublicKeyResolver.create(keyParserRegistry, "foobar://invalid.url", monitor, DEFAULT_CACHE_TIME_TO_LIVE))
                 .isInstanceOf(EdcException.class)
                 .hasRootCauseInstanceOf(MalformedURLException.class);
 
@@ -160,7 +160,7 @@ class JwksPublicKeyResolverTest {
 
     @Test
     void resolve_invalidKeyUrl() {
-        resolver = new JwksPublicKeyResolver(keyParserRegistry, "http:_invalid.url", DEFAULT_CACHE_TIME_TO_LIVE, monitor);
+        resolver = JwksPublicKeyResolver.create(keyParserRegistry, "http:_invalid.url", monitor, DEFAULT_CACHE_TIME_TO_LIVE);
         assertThat(resolver.resolveKey("test-key")).isFailed()
                 .detail().contains("Error while retrieving JWKSet");
         jwksServer.verify(jwksRequest(), never());
@@ -170,7 +170,7 @@ class JwksPublicKeyResolverTest {
     @Test
     void resolve_verifyHitsCache() {
         var cacheTtl = 1000;
-        resolver = new JwksPublicKeyResolver(keyParserRegistry, jwksServerUrl(), cacheTtl, monitor);
+        resolver = JwksPublicKeyResolver.create(keyParserRegistry, jwksServerUrl(), monitor, cacheTtl);
 
         jwksServer.when(jwksRequest())
                 .respond(response().withStatusCode(200).withBody(jwksObject(generateKey("foo-bar-key").toPublicJWK())));
@@ -186,6 +186,19 @@ class JwksPublicKeyResolverTest {
                     jwksServer.verify(jwksRequest(), exactly(1));
                 });
 
+    }
+
+    @Test
+    void resolve_verifyNoHitsCache() {
+        resolver = JwksPublicKeyResolver.create(keyParserRegistry, jwksServerUrl(), monitor);
+
+        jwksServer.when(jwksRequest())
+                .respond(response().withStatusCode(200).withBody(jwksObject(generateKey("foo-bar-key").toPublicJWK())));
+
+        assertThat(resolver.resolveKey("foo-bar-key")).isSucceeded();
+        assertThat(resolver.resolveKey("foo-bar-key")).isSucceeded();
+        assertThat(resolver.resolveKey("foo-bar-key")).isSucceeded();
+        jwksServer.verify(jwksRequest(), exactly(3));
     }
 
     private @NotNull String jwksServerUrl() {
