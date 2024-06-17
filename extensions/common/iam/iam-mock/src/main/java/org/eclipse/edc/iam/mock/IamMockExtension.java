@@ -20,10 +20,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * An IAM provider mock used for testing.
@@ -51,6 +51,6 @@ public class IamMockExtension implements ServiceExtension {
 
     @Provider
     public AudienceResolver audienceResolver() {
-        return RemoteMessage::getCounterPartyAddress;
+        return (msg) -> Result.success(msg.getCounterPartyAddress());
     }
 }

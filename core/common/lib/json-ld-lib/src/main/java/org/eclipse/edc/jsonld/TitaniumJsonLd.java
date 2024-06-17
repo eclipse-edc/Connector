@@ -164,7 +164,7 @@ public class TitaniumJsonLd implements JsonLd {
 
         // Compute the additional context IRI defined for * and the input scope
         var contexts = Stream.concat(contextsForScope(JsonLd.DEFAULT_SCOPE), contextsForScope(scope))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         var contextObject = builder.build();
         // if not empty we build a JsonArray

@@ -23,7 +23,9 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVers
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.util.io.Ports;
@@ -45,7 +47,7 @@ public class DspTransferApiEndToEndTest {
     private static final int PROTOCOL_PORT = Ports.getFreePort();
 
     @RegisterExtension
-    static EdcRuntimeExtension runtime = new EdcRuntimeExtension(
+    static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime(
             "runtime",
             Map.of(
                     "web.http.protocol.path", "/protocol",
@@ -59,7 +61,7 @@ public class DspTransferApiEndToEndTest {
             ":core:control-plane:control-plane-aggregate-services",
             ":core:control-plane:control-plane-core",
             ":extensions:common:http"
-    );
+    ));
 
     @Test
     void shouldExposeVersion2024_1() {

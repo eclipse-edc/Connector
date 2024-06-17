@@ -22,8 +22,6 @@ dependencies {
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:control-plane:asset-spi"))
 
-    api(libs.jakartaJson)
-
     testImplementation(project(":tests:junit-base"));
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:lib:transform-lib"))

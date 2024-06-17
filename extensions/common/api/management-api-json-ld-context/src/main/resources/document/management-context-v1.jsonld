@@ -1,0 +1,116 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
+    "Asset": "edc:Asset",
+    "PolicyDefinition": "edc:PolicyDefinition",
+    "DataAddress": {
+      "@id": "edc:DataAddress",
+      "@context": {
+        "type": "edc:type"
+      }
+    },
+    "ContractDefinition": "edc:ContractDefinition",
+    "Criterion": "edc:Criterion",
+    "ContractRequest": "edc:ContractRequest",
+    "QuerySpec": "edc:QuerySpec",
+    "ContractNegotiation": {
+      "@id": "edc:ContractNegotiation",
+      "@context": {
+        "type": "edc:type"
+      }
+    },
+    "CallbackAddress": "edc:CallbackAddress",
+    "NegotiationState": "edc:NegotiationState",
+    "TerminateNegotiation": "edc:TerminateNegotiation",
+    "ContractAgreement": "edc:ContractAgreement",
+    "TransferRequest": "edc:TransferRequest",
+    "TransferState": "edc:TransferState",
+    "TransferProcess": {
+      "@id": "edc:TransferProcess",
+      "@context": {
+        "type": "edc:type"
+      }
+    },
+    "TerminateTransfer": "edc:TerminateTransfer",
+    "SuspendTransfer": "edc:SuspendTransfer",
+    "Secret": "edc:Secret",
+    "EndpointDataReferenceEntry": "edc:EndpointDataReferenceEntry",
+    "properties": {
+      "@id": "edc:properties",
+      "@context": {
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+      }
+    },
+    "privateProperties": {
+      "@id": "edc:privateProperties",
+      "@context": {
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+      }
+    },
+    "dataAddress": {
+      "@id": "edc:dataAddress",
+      "@context": {
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+      }
+    },
+    "createdAt": "edc:createdAt",
+    "accessPolicyId": "edc:accessPolicyId",
+    "contractPolicyId": "edc:contractPolicyId",
+    "assetsSelector": {
+      "@id": "edc:assetsSelector",
+      "@container": "@set"
+    },
+    "operandLeft": "edc:operandLeft",
+    "operator": "edc:operator",
+    "operandRight": "edc:operandRight",
+    "limit": "edc:limit",
+    "offset": "edc:offset",
+    "filterExpression": {
+      "@id": "edc:filterExpression",
+      "@container": "@set"
+    },
+    "sortOrder": "edc:sortOrder",
+    "sortField": "edc:sortField",
+    "counterPartyAddress": "edc:counterPartyAddress",
+    "protocol": "edc:protocol",
+    "callbackAddresses": {
+      "@id": "edc:callbackAddresses",
+      "@container": "@set"
+    },
+    "providerId": "edc:providerId",
+    "policy": {
+      "@id": "edc:policy",
+      "@context": [
+        "http://www.w3.org/ns/odrl.jsonld",
+        {
+          "uid": null,
+          "type": null
+        }
+      ]
+    },
+    "counterPartyId": "edc:counterPartyId",
+    "state": "edc:state",
+    "errorDetail": "edc:errorDetail",
+    "contractAgreementId": "edc:contractAgreementId",
+    "uri": "edc:uri",
+    "transactional": "edc:transactional",
+    "events": {
+      "@id": "edc:events",
+      "@container": "@set"
+    },
+    "reason": "edc:reason",
+    "assetId": "edc:assetId",
+    "consumerId": "edc:consumerId",
+    "contractSigningDate": "edc:contractSigningDate",
+    "contractId": "edc:contractId",
+    "dataDestination": "edc:dataDestination",
+    "correlationId": "edc:correlationId",
+    "stateTimestamp": "edc:stateTimestamp",
+    "value": "edc:value",
+    "transferProcessId": "edc:transferProcessId",
+    "contractNegotiationId": "edc:contractNegotiationId",
+    "agreementId": "edc:agreementId",
+    "inForceDate": "edc:inForceDate"
+  }
+}

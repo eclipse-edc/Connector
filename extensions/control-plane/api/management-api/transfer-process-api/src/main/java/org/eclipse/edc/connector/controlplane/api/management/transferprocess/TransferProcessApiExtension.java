@@ -72,7 +72,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToSuspendTransferTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToTransferRequestTransformer());
 
-        validatorRegistry.register(TRANSFER_REQUEST_TYPE, TransferRequestValidator.instance());
+        validatorRegistry.register(TRANSFER_REQUEST_TYPE, TransferRequestValidator.instance(context.getMonitor()));
         validatorRegistry.register(TERMINATE_TRANSFER_TYPE, TerminateTransferValidator.instance());
 
         webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV2Controller(context.getMonitor(), service, managementApiTransformerRegistry, validatorRegistry));

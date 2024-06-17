@@ -17,7 +17,6 @@ plugins {
 }
 
 dependencies {
-    api(libs.jakartaJson)
     api(libs.jackson.datatype.jakarta.jsonp)
     api(libs.titaniumJsonLd)
 

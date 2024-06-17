@@ -63,6 +63,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
+import static org.mockito.Mockito.mock;
 
 class TransferProcessApiTest {
 
@@ -82,7 +83,7 @@ class TransferProcessApiTest {
 
     @Test
     void transferRequestExample() throws JsonProcessingException {
-        var validator = TransferRequestValidator.instance();
+        var validator = TransferRequestValidator.instance(mock());
 
         var jsonObject = objectMapper.readValue(TRANSFER_REQUEST_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
@@ -96,7 +97,6 @@ class TransferProcessApiTest {
                             assertThat(transformed.getCounterPartyAddress()).isNotBlank();
                             assertThat(transformed.getContractId()).isNotBlank();
                             assertThat(transformed.getProtocol()).isNotBlank();
-                            assertThat(transformed.getAssetId()).isNotBlank();
                             assertThat(transformed.getDataDestination()).isNotNull();
                             assertThat(transformed.getPrivateProperties()).asInstanceOf(map(String.class, Object.class)).isNotEmpty();
                             assertThat(transformed.getCallbackAddresses()).asList().isNotEmpty();

@@ -25,7 +25,7 @@ dependencies {
     implementation(libs.nimbus.jwt)
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)
-    implementation(libs.jakartaJson)
+    implementation(libs.jakarta.json.api)
 
     api("com.apicatalog:iron-verifiable-credentials:0.14.0") {
         exclude("com.github.multiformats")

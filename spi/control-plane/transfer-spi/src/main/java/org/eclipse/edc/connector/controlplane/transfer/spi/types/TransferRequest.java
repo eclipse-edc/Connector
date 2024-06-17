@@ -34,6 +34,7 @@ public class TransferRequest {
     public static final String TRANSFER_REQUEST_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
+    @Deprecated(since = "0.7.0")
     public static final String TRANSFER_REQUEST_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String TRANSFER_REQUEST_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
 
@@ -41,7 +42,6 @@ public class TransferRequest {
     private String protocol;
     private String counterPartyAddress;
     private String contractId;
-    private String assetId;
     private String transferType;
     private DataAddress dataDestination;
     private Map<String, Object> privateProperties = new HashMap<>();
@@ -69,10 +69,6 @@ public class TransferRequest {
 
     public String getProtocol() {
         return protocol;
-    }
-
-    public String getAssetId() {
-        return assetId;
     }
 
     public List<CallbackAddress> getCallbackAddresses() {
@@ -126,11 +122,6 @@ public class TransferRequest {
 
         public Builder protocol(String protocol) {
             request.protocol = protocol;
-            return this;
-        }
-
-        public Builder assetId(String assetId) {
-            request.assetId = assetId;
             return this;
         }
 

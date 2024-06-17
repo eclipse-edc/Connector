@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.http;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.protocol.dsp.http.message.DspRequestHandlerImpl;
+import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -38,16 +39,19 @@ class DspHttpCoreExtensionTest {
 
     public static final String SCOPE_CLAIM = "scope";
     private final IdentityService identityService = mock();
+    private final AudienceResolver audienceResolver = mock();
     private DspHttpCoreExtension extension;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(IdentityService.class, identityService);
+        context.registerService(AudienceResolver.class, audienceResolver);
     }
 
     @Test
     @DisplayName("Assert usage of the default (noop) token decorator")
     void createDispatcher_noTokenDecorator_shouldUseNoop(ServiceExtensionContext context, ObjectFactory factory) {
+        when(audienceResolver.resolve(any())).thenReturn(Result.success("audience"));
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("not-important"));
         context.registerService(TokenDecorator.class, null);
 
@@ -62,6 +66,7 @@ class DspHttpCoreExtensionTest {
     @Test
     @DisplayName("Assert usage of an injected TokenDecorator")
     void createDispatcher_withTokenDecorator_shouldUse(ServiceExtensionContext context, ObjectFactory factory) {
+        when(audienceResolver.resolve(any())).thenReturn(Result.success("audience"));
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("not-important"));
         context.registerService(TokenDecorator.class, (td) -> td.claims(SCOPE_CLAIM, "test-scope"));
 

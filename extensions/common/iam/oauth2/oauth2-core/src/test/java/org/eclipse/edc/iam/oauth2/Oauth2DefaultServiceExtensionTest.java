@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.oauth2;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +33,9 @@ class Oauth2DefaultServiceExtensionTest {
         var address = "http://address";
         var remoteMessage = mock(RemoteMessage.class);
         when(remoteMessage.getCounterPartyAddress()).thenReturn(address);
-        assertThat(extension.defaultAudienceResolver().resolve(remoteMessage)).isEqualTo(address);
+        assertThat(extension.defaultAudienceResolver().resolve(remoteMessage))
+                .extracting(Result::getContent)
+                .isEqualTo(address);
     }
 
 }

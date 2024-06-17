@@ -27,7 +27,6 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
     testImplementation(project(":extensions:common:json-ld"))
-    testImplementation(libs.jakartaJson)
 
     testImplementation(libs.postgres)
     testImplementation(libs.restAssured)
