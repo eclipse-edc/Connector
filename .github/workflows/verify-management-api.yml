@@ -1,0 +1,32 @@
+name: verify management api
+
+on:
+  pull_request:
+
+jobs:
+  verify-version-change:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - run: |
+          CHANGELOG=$(git diff-tree --name-only HEAD..main -r)
+          for file in $CHANGELOG; do
+            if [ "$file" = "extensions/common/api/management-api-configuration/src/main/resources/version.json" ]; then
+                echo "management version file has been modified, no need to check the specs"
+                exit 0
+            fi
+          done
+
+          ./gradlew resolve
+          ./gradlew -PapiTitle="management-api" -PapiDescription="REST API documentation for the management-api" :mergeApiSpec --input=resources/openapi/management-api --output=management-api-new.yaml
+          
+          wget https://eclipse-edc.github.io/Connector/openapi/management-api/management-api.yaml
+          
+          diff management-api.yaml management-api-new.yaml > diff
+          
+          if [ -s diff ]; then
+              echo "management-api openapi spec diverges from the published one, please update the version.json file"
+              cat diff
+              exit 1
+          else
