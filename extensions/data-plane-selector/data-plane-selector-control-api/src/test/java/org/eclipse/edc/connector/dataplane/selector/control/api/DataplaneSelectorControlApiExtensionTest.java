@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - register missing transformer
  *
  */
 
@@ -18,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataPlaneInstanceTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -65,5 +67,6 @@ class DataplaneSelectorControlApiExtensionTest {
         extension.initialize(context);
 
         verify(typeTransformerRegistry).register(isA(JsonObjectToDataPlaneInstanceTransformer.class));
+        verify(typeTransformerRegistry).register(isA(JsonObjectFromDataPlaneInstanceTransformer.class));
     }
 }
