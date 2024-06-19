@@ -19,17 +19,18 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:auth-spi"))
     api(project(":spi:common:http-spi"))
 
     implementation(libs.okhttp)
     implementation(libs.dnsOverHttps)
 
+    testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:json-lib"))
     testImplementation(project(":core:common:lib:util-lib"))
+    testImplementation(libs.mockserver.netty)
 
     testFixturesImplementation(libs.mockito.core)
-
-    testImplementation(libs.mockserver.netty)
 }
 
 

@@ -16,10 +16,11 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
+import org.eclipse.edc.http.client.ControlApiHttpClientImpl;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -38,15 +39,14 @@ import org.mockserver.verify.VerificationTimes;
 import java.util.List;
 import java.util.UUID;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.once;
+import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.HttpStatusCode.CONFLICT_409;
 import static org.mockserver.model.HttpStatusCode.NO_CONTENT_204;
@@ -60,9 +60,10 @@ class RemoteDataPlaneClientTest {
     private static final String DATA_PLANE_PATH = "/transfer";
     private static final String DATA_PLANE_API_URI = "http://localhost:" + DATA_PLANE_API_PORT + DATA_PLANE_PATH;
     private static ClientAndServer dataPlane;
-    private final ControlClientAuthenticationProvider authenticationProvider = mock();
     private final DataPlaneInstance instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
-    private final DataPlaneClient dataPlaneClient = new RemoteDataPlaneClient(testHttpClient(), MAPPER, instance, authenticationProvider);
+    private final ControlApiHttpClient httpClient = new ControlApiHttpClientImpl(testHttpClient(), mock());
+
+    private final DataPlaneClient dataPlaneClient = new RemoteDataPlaneClient(httpClient, MAPPER, instance);
 
     @BeforeAll
     public static void setUp() {
@@ -84,18 +85,16 @@ class RemoteDataPlaneClientTest {
         var flowRequest = createDataFlowRequest();
 
         var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(flowRequest));
-        dataPlane.when(httpRequest, once()).respond(response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code()));
+        dataPlane.when(request()).respond(response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code()));
 
         var result = dataPlaneClient.start(flowRequest);
 
-        dataPlane.verify(httpRequest, VerificationTimes.once());
+        dataPlane.verify(httpRequest);
 
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
-        assertThat(result.getFailureMessages())
-                .anySatisfy(s -> assertThat(s)
-                        .isEqualTo("Transfer request failed with status code 400 for request %s: failed to read response body", flowRequest.getId())
-                );
+        assertThat(result).isFailed().satisfies(failure -> {
+            assertThat(failure.status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+            assertThat(failure.getMessages()).anySatisfy(s -> assertThat(s).contains("400"));
+        });
     }
 
     @Test
@@ -108,14 +107,12 @@ class RemoteDataPlaneClientTest {
 
         var result = dataPlaneClient.start(flowRequest);
 
-        dataPlane.verify(httpRequest, VerificationTimes.once());
+        dataPlane.verify(httpRequest);
 
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
-        assertThat(result.getFailureMessages())
-                .anySatisfy(s -> assertThat(s)
-                        .isEqualTo(format("Transfer request failed with status code 400 for request %s: %s", flowRequest.getId(), errorMsg))
-                );
+        assertThat(result).isFailed().satisfies(failure -> {
+            assertThat(failure.status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+            assertThat(failure.getMessages()).anySatisfy(s -> assertThat(s).contains("404"));
+        });
     }
 
     @Test
@@ -130,7 +127,6 @@ class RemoteDataPlaneClientTest {
         dataPlane.verify(httpRequest, VerificationTimes.once());
 
         assertThat(result.succeeded()).isTrue();
-        verify(authenticationProvider).authenticationHeaders();
     }
 
     @Test
@@ -142,7 +138,6 @@ class RemoteDataPlaneClientTest {
 
         assertThat(result).isSucceeded();
         dataPlane.verify(httpRequest, VerificationTimes.once());
-        verify(authenticationProvider).authenticationHeaders();
     }
 
     @Test

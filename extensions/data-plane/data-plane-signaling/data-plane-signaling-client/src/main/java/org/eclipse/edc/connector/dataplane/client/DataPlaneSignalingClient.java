@@ -21,25 +21,23 @@ import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
@@ -50,23 +48,20 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  */
 public class DataPlaneSignalingClient implements DataPlaneClient {
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
-    private final EdcHttpClient httpClient;
+    private final ControlApiHttpClient httpClient;
     private final DataPlaneInstance dataPlane;
-    private final ControlClientAuthenticationProvider authenticationProvider;
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonLd jsonLd;
 
     private final ObjectMapper mapper;
 
-    public DataPlaneSignalingClient(EdcHttpClient httpClient, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd,
-                                    ObjectMapper mapper, DataPlaneInstance dataPlane,
-                                    ControlClientAuthenticationProvider authenticationProvider) {
+    public DataPlaneSignalingClient(ControlApiHttpClient httpClient, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd,
+                                    ObjectMapper mapper, DataPlaneInstance dataPlane) {
         this.httpClient = httpClient;
         this.transformerRegistry = transformerRegistry;
         this.jsonLd = jsonLd;
         this.mapper = mapper;
         this.dataPlane = dataPlane;
-        this.authenticationProvider = authenticationProvider;
     }
 
     @WithSpan
@@ -74,7 +69,9 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
     public StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage message) {
         var url = dataPlane.getUrl().toString();
         return createRequestBuilder(message, url)
-                .compose(builder -> send(builder, message.getProcessId(), this::handleStartResponse));
+                .compose(builder -> httpClient.request(builder)
+                        .flatMap(result -> result.map(this::handleStartResponse)
+                                .orElse(failure -> failedResult(message.getProcessId(), failure))));
     }
 
     @Override
@@ -82,7 +79,9 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
         var url = "%s/%s/suspend".formatted(dataPlane.getUrl(), transferProcessId);
         var message = DataFlowSuspendMessage.Builder.newInstance().build();
         return createRequestBuilder(message, url)
-                .compose(builder -> send(builder, transferProcessId, r -> StatusResult.success()));
+                .compose(builder -> httpClient.request(builder)
+                        .flatMap(result -> result.map(it -> StatusResult.success())
+                                .orElse(failure -> failedResult(transferProcessId, failure))));
     }
 
     @Override
@@ -90,26 +89,21 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
         var url = "%s/%s/terminate".formatted(dataPlane.getUrl(), transferProcessId);
         var message = DataFlowTerminateMessage.Builder.newInstance().build();
         return createRequestBuilder(message, url)
-                .compose(builder -> send(builder, transferProcessId, r -> StatusResult.success()));
+                .compose(builder -> httpClient.request(builder)
+                        .flatMap(result -> result.map(it -> StatusResult.success())
+                                .orElse(failure -> failedResult(transferProcessId, failure))));
     }
 
     @Override
     public StatusResult<Void> checkAvailability() {
         var requestBuilder = new Request.Builder().get().url(dataPlane.getUrl() + "/check");
-        return send(requestBuilder, null, it -> StatusResult.success());
+        return httpClient.request(requestBuilder)
+                .flatMap(result -> result.map(it -> StatusResult.success())
+                        .orElse(failure -> failedResult(null, failure)));
     }
 
-    private <T> StatusResult<T> send(Request.Builder requestBuilder, String processId, Function<Response, StatusResult<T>> handleStartResponse) {
-        authenticationProvider.authenticationHeaders().forEach(requestBuilder::header);
-        try (var response = httpClient.execute(requestBuilder.build())) {
-            if (response.isSuccessful()) {
-                return handleStartResponse.apply(response);
-            } else {
-                return StatusResult.failure(FATAL_ERROR, format("Transfer request failed with status code %s for request %s", response.code(), processId));
-            }
-        } catch (IOException e) {
-            return StatusResult.failure(FATAL_ERROR, e.getMessage());
-        }
+    private static <T> @NotNull StatusResult<T> failedResult(String processId, ServiceFailure failure) {
+        return StatusResult.failure(FATAL_ERROR, format("Transfer request for process %s failed: %s", processId, failure.getFailureDetail()));
     }
 
     private StatusResult<Request.Builder> createRequestBuilder(Object message, String url) {
@@ -127,17 +121,15 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
                 });
     }
 
-    private StatusResult<DataFlowResponseMessage> handleStartResponse(Response response) {
-        try (var body = response.body()) {
-            return Optional.ofNullable(body)
-                    .map(this::deserializeStartMessage)
-                    .orElseGet(() -> StatusResult.failure(FATAL_ERROR, "Body missing"));
-        }
+    private StatusResult<DataFlowResponseMessage> handleStartResponse(String responseBody) {
+        return Optional.ofNullable(responseBody)
+                .map(this::deserializeStartMessage)
+                .orElseGet(() -> StatusResult.failure(FATAL_ERROR, "Body missing"));
     }
 
-    private StatusResult<DataFlowResponseMessage> deserializeStartMessage(ResponseBody body) {
+    private StatusResult<DataFlowResponseMessage> deserializeStartMessage(String responseBody) {
         try {
-            var jsonObject = mapper.readValue(body.string(), JsonObject.class);
+            var jsonObject = mapper.readValue(responseBody, JsonObject.class);
             var result = jsonLd.expand(jsonObject)
                     .compose(expanded -> transformerRegistry.transform(expanded, DataFlowResponseMessage.class));
             if (result.succeeded()) {

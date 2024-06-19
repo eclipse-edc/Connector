@@ -14,10 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.client;
 
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -42,11 +41,9 @@ public class DataPlaneClientExtension implements ServiceExtension {
     @Inject(required = false)
     private DataPlaneManager dataPlaneManager;
     @Inject(required = false)
-    private EdcHttpClient httpClient;
+    private ControlApiHttpClient httpClient;
     @Inject
     private TypeManager typeManager;
-    @Inject
-    private ControlClientAuthenticationProvider authenticationProvider;
 
     @Override
     public String name() {
@@ -63,8 +60,8 @@ public class DataPlaneClientExtension implements ServiceExtension {
         }
 
         context.getMonitor().debug(() -> "Using remote Data Plane client.");
-        Objects.requireNonNull(httpClient, "To use remote Data Plane client, an EdcHttpClient instance must be registered");
-        return instance -> new RemoteDataPlaneClient(httpClient, typeManager.getMapper(), instance, authenticationProvider);
+        Objects.requireNonNull(httpClient, "To use remote Data Plane client, a ControlApiHttpClient instance must be registered");
+        return instance -> new RemoteDataPlaneClient(httpClient, typeManager.getMapper(), instance);
     }
 }
 

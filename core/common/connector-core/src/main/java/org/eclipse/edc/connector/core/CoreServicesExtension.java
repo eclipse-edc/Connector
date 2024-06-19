@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.core;
 
+import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.core.agent.ParticipantAgentServiceImpl;
 import org.eclipse.edc.connector.core.command.CommandHandlerRegistryImpl;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
@@ -21,6 +22,9 @@ import org.eclipse.edc.connector.core.event.EventRouterImpl;
 import org.eclipse.edc.connector.core.message.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.edc.connector.core.validator.DataAddressValidatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
+import org.eclipse.edc.http.client.ControlApiHttpClientImpl;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
 import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
@@ -68,6 +72,12 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Inject(required = false)
     private TypeManager typeManager;
+
+    @Inject
+    private EdcHttpClient edcHttpClient;
+
+    @Inject
+    private ControlClientAuthenticationProvider controlClientAuthenticationProvider;
 
     private RuleBindingRegistry ruleBindingRegistry;
 
@@ -158,6 +168,11 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public CriterionOperatorRegistry criterionOperatorRegistry() {
         return CriterionOperatorRegistryImpl.ofDefaults();
+    }
+
+    @Provider
+    public ControlApiHttpClient controlApiHttpClient() {
+        return new ControlApiHttpClientImpl(edcHttpClient, controlClientAuthenticationProvider);
     }
 
 }

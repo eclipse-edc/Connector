@@ -14,11 +14,10 @@
 
 package org.eclipse.edc.connector.dataplane.client;
 
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -40,7 +39,7 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Signaling Client";
 
     @Inject(required = false)
-    private EdcHttpClient httpClient;
+    private ControlApiHttpClient httpClient;
     @Inject
     private TypeManager typeManager;
     @Inject
@@ -49,8 +48,6 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
     private JsonLd jsonLd;
     @Inject(required = false)
     private DataPlaneManager dataPlaneManager;
-    @Inject
-    private ControlClientAuthenticationProvider authenticationProvider;
 
     @Override
     public String name() {
@@ -68,10 +65,10 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
 
         var mapper = typeManager.getMapper(JSON_LD);
         context.getMonitor().debug(() -> "Using remote Data Plane client.");
-        Objects.requireNonNull(httpClient, "To use remote Data Plane client, an EdcHttpClient instance must be registered");
+        Objects.requireNonNull(httpClient, "To use remote Data Plane client, a ControlApiHttpClient instance must be registered");
         var signalingApiTypeTransformerRegistry = transformerRegistry.forContext("signaling-api");
         return instance -> new DataPlaneSignalingClient(httpClient, signalingApiTypeTransformerRegistry, jsonLd, mapper,
-                instance, authenticationProvider);
+                instance);
     }
 }
 

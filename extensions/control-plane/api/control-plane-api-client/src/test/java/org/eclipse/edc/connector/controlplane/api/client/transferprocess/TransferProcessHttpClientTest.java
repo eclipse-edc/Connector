@@ -19,7 +19,8 @@ import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
+import org.eclipse.edc.http.client.ControlApiHttpClientImpl;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -43,10 +44,10 @@ public class TransferProcessHttpClientTest {
 
     private final Interceptor interceptor = mock();
     private final Monitor monitor = mock();
-    private final ControlClientAuthenticationProvider authenticationProvider = mock();
+    private final ControlApiHttpClient httpClient = new ControlApiHttpClientImpl(testHttpClient(interceptor), mock());
 
     private final TransferProcessHttpClient transferProcessHttpClient = new TransferProcessHttpClient(
-            testHttpClient(interceptor), new ObjectMapper(), monitor, authenticationProvider);
+                httpClient, new ObjectMapper(), monitor);
 
     @Test
     void complete() throws IOException {
@@ -58,7 +59,6 @@ public class TransferProcessHttpClientTest {
 
         assertThat(result).isSucceeded();
         verifyNoInteractions(monitor);
-        verify(authenticationProvider).authenticationHeaders();
     }
 
     @Test
@@ -98,7 +98,7 @@ public class TransferProcessHttpClientTest {
 
         assertThat(result).isFailed();
 
-        verify(monitor).severe(anyString(), any());
+        verify(monitor).severe(anyString());
     }
 
     @Test
@@ -111,7 +111,6 @@ public class TransferProcessHttpClientTest {
 
         assertThat(result).isSucceeded();
         verifyNoInteractions(monitor);
-        verify(authenticationProvider).authenticationHeaders();
     }
 
     private DataFlowStartMessage.Builder createRequest() {

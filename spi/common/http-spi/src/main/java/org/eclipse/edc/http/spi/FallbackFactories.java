@@ -35,19 +35,9 @@ public interface FallbackFactories {
      * @return the {@link FallbackFactory}
      */
     static FallbackFactory retryWhenStatusNot2xxOr4xx() {
-        return request -> {
-            CheckedFunction<ExecutionAttemptedEvent<? extends Response>, Exception> exceptionSupplier = event -> {
-                var response = event.getLastResult();
-                if (response == null) {
-                    return new EdcHttpClientException(event.getLastException().getMessage());
-                } else {
-                    return new EdcHttpClientException(format("Server response to [%s, %s] was not successful but was %s: %s", request.method(), request.url(), response.code(), response.body().string()));
-                }
-            };
-            return Fallback.builderOfException(exceptionSupplier)
-                    .handleResultIf(r -> !(r.isSuccessful() || r.code() >= 400 && r.code() < 500))
-                    .build();
-        };
+        return request -> Fallback.builderOfException(new FallbackFunction("[2xx, 4xx]"))
+                .handleResultIf(r -> !(r.isSuccessful() || r.code() >= 400 && r.code() < 500))
+                .build();
     }
 
     /**
@@ -66,18 +56,26 @@ public interface FallbackFactories {
      */
     static FallbackFactory retryWhenStatusIsNotIn(int... status) {
         var codes = Arrays.stream(status).boxed().collect(Collectors.toSet());
-        return request -> {
-            CheckedFunction<ExecutionAttemptedEvent<? extends Response>, Exception> exceptionSupplier = event -> {
-                var response = event.getLastResult();
-                if (response == null) {
-                    return new EdcHttpClientException(event.getLastException().getMessage());
-                } else {
-                    return new EdcHttpClientException(format("Server response to [%s, %s] was not one of %s but was %s: %s", request.method(), request.url(), Arrays.toString(status), response.code(), response.body().string()));
-                }
-            };
-            return Fallback.builderOfException(exceptionSupplier)
-                    .handleResultIf(r -> !codes.contains(r.code()))
-                    .build();
-        };
+        return request -> Fallback.builderOfException(new FallbackFunction(Arrays.toString(status)))
+                .handleResultIf(r -> !codes.contains(r.code()))
+                .build();
     }
+
+    record FallbackFunction(String expectedStatus)
+            implements CheckedFunction<ExecutionAttemptedEvent<? extends Response>, Exception> {
+
+        @Override
+        public Exception apply(ExecutionAttemptedEvent<? extends Response> event) throws Throwable {
+            var response = event.getLastResult();
+            if (response == null) {
+                return new EdcHttpClientException(event.getLastException().getMessage(), 0, null);
+            } else {
+                var responseBody = response.body().string();
+                return new EdcHttpClientException(format("Server response to [%s, %s] was not one of %s but was %s: %s",
+                        response.request().method(), response.request().url(), expectedStatus, response.code(), responseBody),
+                        response.code(), responseBody);
+            }
+        }
+    }
+
 }

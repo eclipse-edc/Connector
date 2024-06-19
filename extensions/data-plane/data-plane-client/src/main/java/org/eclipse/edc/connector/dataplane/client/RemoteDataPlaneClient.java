@@ -20,23 +20,15 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
-import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
-import java.io.IOException;
-import java.util.Optional;
-
-import static java.lang.String.format;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -47,17 +39,14 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 @Deprecated(since = "0.6.0")
 public class RemoteDataPlaneClient implements DataPlaneClient {
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
-    private final EdcHttpClient httpClient;
+    private final ControlApiHttpClient httpClient;
     private final ObjectMapper mapper;
     private final DataPlaneInstance dataPlane;
-    private final ControlClientAuthenticationProvider authenticationProvider;
 
-    public RemoteDataPlaneClient(EdcHttpClient httpClient, ObjectMapper mapper, DataPlaneInstance dataPlane,
-                                 ControlClientAuthenticationProvider authenticationProvider) {
+    public RemoteDataPlaneClient(ControlApiHttpClient httpClient, ObjectMapper mapper, DataPlaneInstance dataPlane) {
         this.httpClient = httpClient;
         this.mapper = mapper;
         this.dataPlane = dataPlane;
-        this.authenticationProvider = authenticationProvider;
     }
 
     @WithSpan
@@ -70,19 +59,10 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
             throw new EdcException(e);
         }
         var builder = new Request.Builder().post(body).url(dataPlane.getUrl());
-        authenticationProvider.authenticationHeaders().forEach(builder::header);
 
-        try (var response = httpClient.execute(builder.build())) {
-            var result = handleResponse(response, dataFlowStartMessage.getId());
-
-            if (result.failed()) {
-                return StatusResult.failure(result.getFailure().status(), result.getFailureDetail());
-            } else {
-                return StatusResult.success(DataFlowResponseMessage.Builder.newInstance().build());
-            }
-        } catch (IOException e) {
-            return StatusResult.failure(FATAL_ERROR, e.getMessage());
-        }
+        return httpClient.execute(builder)
+                .map(it -> StatusResult.success(DataFlowResponseMessage.Builder.newInstance().build()))
+                .orElse(f -> StatusResult.failure(FATAL_ERROR, f.getFailureDetail()));
     }
 
     @Override
@@ -93,41 +73,14 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
     @Override
     public StatusResult<Void> terminate(String transferProcessId) {
         var builder = new Request.Builder().delete().url(dataPlane.getUrl() + "/" + transferProcessId);
-        authenticationProvider.authenticationHeaders().forEach(builder::header);
 
-        try (var response = httpClient.execute(builder.build())) {
-            return handleResponse(response, transferProcessId);
-        } catch (IOException e) {
-            return StatusResult.<Void>failure(FATAL_ERROR, e.getMessage());
-        }
+        return httpClient.execute(builder)
+                .map(it -> StatusResult.success())
+                .orElse(f -> StatusResult.failure(FATAL_ERROR, f.getFailureDetail()));
     }
 
     @Override
     public StatusResult<Void> checkAvailability() {
         throw new UnsupportedOperationException("feature not implemented for deprecated client");
-    }
-
-    private StatusResult<Void> handleResponse(Response response, String requestId) {
-        if (response.isSuccessful()) {
-            return StatusResult.success();
-        } else {
-            return handleError(response, requestId);
-        }
-    }
-
-    private StatusResult<Void> handleError(Response response, String requestId) {
-        var errorMsg = Optional.ofNullable(response.body())
-                .map(this::formatErrorMessage)
-                .orElse("null response body");
-        return StatusResult.failure(FATAL_ERROR, format("Transfer request failed with status code %s for request %s: %s", response.code(), requestId, errorMsg));
-    }
-
-    private String formatErrorMessage(ResponseBody body) {
-        try {
-            var errorResponse = mapper.readValue(body.string(), TransferErrorResponse.class);
-            return String.join(", ", errorResponse.getErrors());
-        } catch (IOException e) {
-            return "failed to read response body";
-        }
     }
 }

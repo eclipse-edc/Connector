@@ -15,9 +15,8 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -42,17 +41,14 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
     @Setting(value = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime", defaultValue = DataPlaneSelectorService.DEFAULT_STRATEGY)
     private static final String DPF_SELECTOR_STRATEGY = "edc.dataplane.client.selector.strategy";
 
-    @Inject(required = false)
-    private EdcHttpClient httpClient;
+    @Inject
+    private ControlApiHttpClient httpClient;
 
     @Inject
     private TypeManager typeManager;
 
     @Inject
     private TypeTransformerRegistry typeTransformerRegistry;
-
-    @Inject
-    private ControlClientAuthenticationProvider authenticationProvider;
 
     @Override
     public String name() {
@@ -72,6 +68,6 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
         var url = config.getString(DPF_SELECTOR_URL_SETTING);
         var selectionStrategy = config.getString(DPF_SELECTOR_STRATEGY, DataPlaneSelectorService.DEFAULT_STRATEGY);
         return new RemoteDataPlaneSelectorService(httpClient, url, typeManager.getMapper(), typeTransformerRegistry,
-                selectionStrategy, authenticationProvider);
+                selectionStrategy);
     }
 }

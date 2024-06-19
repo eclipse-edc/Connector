@@ -15,12 +15,12 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.api.transformer.JsonObjectFromIdResponseTransformer;
 import org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
+import org.eclipse.edc.http.client.ControlApiHttpClientImpl;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -59,12 +59,12 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
     private static final String[] FIELDS_TO_BE_IGNORED = {"createdAt", "stateTimestamp", "updatedAt"};
     private final String url = "http://localhost:%d/v1/dataplanes".formatted(port);
-    private final ControlClientAuthenticationProvider authenticationProvider = mock();
     private final DataPlaneSelectorService serverService = mock();
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();
     private final JsonObjectValidatorRegistry validator = mock();
-    private final RemoteDataPlaneSelectorService service = new RemoteDataPlaneSelectorService(testHttpClient(), url,
-            JacksonJsonLd.createObjectMapper(), typeTransformerRegistry, "selectionStrategy", authenticationProvider);
+    private final ControlApiHttpClientImpl controlClient = new ControlApiHttpClientImpl(testHttpClient(), mock());
+    private final RemoteDataPlaneSelectorService service = new RemoteDataPlaneSelectorService(controlClient, url,
+            JacksonJsonLd.createObjectMapper(), typeTransformerRegistry, "selectionStrategy");
 
     @BeforeEach
     void setUp() {
@@ -90,7 +90,6 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
         assertThat(result).isSucceeded();
         verify(serverService).addInstance(any());
-        verify(authenticationProvider).authenticationHeaders();
     }
 
     @Test
@@ -102,7 +101,6 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
         assertThat(result).isSucceeded().usingRecursiveComparison()
                 .ignoringFields(FIELDS_TO_BE_IGNORED).isEqualTo(expected);
-        verify(authenticationProvider).authenticationHeaders();
     }
 
     @Nested
@@ -167,7 +165,6 @@ class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
             assertThat(result).isSucceeded().usingRecursiveComparison()
                     .ignoringFields(FIELDS_TO_BE_IGNORED)
                     .isEqualTo(instance);
-            verify(authenticationProvider).authenticationHeaders();
         }
 
         @Test
