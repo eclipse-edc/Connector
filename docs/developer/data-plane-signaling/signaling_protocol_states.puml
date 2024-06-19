@@ -1,0 +1,64 @@
+'
+'  Copyright (c) 2024 Fraunhofer Institute for Software and Systems Engineering ISST
+'
+'  This program and the accompanying materials are made available under the
+'  terms of the Apache License, Version 2.0 which is available at
+'  https://www.apache.org/licenses/LICENSE-2.0
+'
+'  SPDX-License-Identifier: Apache-2.0
+'
+'  Contributors:
+'      Florian Zimmer - Initial Version
+'
+
+@startuml
+
+skinparam WrapWidth 270
+
+state "STARTED" as started_push #e6ebfa;line:blue
+started_push: sent DataFlowResponseMessage, \nto CP starting transfer
+
+state "STARTED" as started_pull #e6ebfa;line:blue
+started_pull: received DataFlowStartMessage<PULL> by CP, waiting for data to be requested
+
+state "RECEIVED" as received #e6ebfa;line:blue
+received : received DataFlowStartMessage<PUSH> by CP
+
+state "COMPLETED" as completed #e6ebfa;line:blue
+completed: completed transfer successfully, trying to send OK to callback address (CP)
+
+state "NOTIFIED" as notified #e6ebfa;line:blue
+notified : notified callback address (CP) about outcome
+
+state "FAILED" as failed #e6ebfa;line:blue
+failed : trying to send TransferProcessFailRequest to callback address (CP)
+
+state "SUSPENDED / TERMINATED" as suspended #f5cccd;line:red
+suspended : received SUSPEND / TERMINATE by CP
+
+[*] --> received
+received --> started_push
+
+started_push --> failed
+started_push --> completed
+
+failed --> failed
+failed --> notified
+
+completed --> completed
+completed --> notified
+
+notified --> [*]
+
+[*] --> started_pull
+started_pull --> [*]
+
+received --> suspended
+started_push --> suspended
+started_pull --> suspended
+failed --> suspended
+completed --> suspended
+notified --> suspended
+suspended --> [*]
+
+@enduml

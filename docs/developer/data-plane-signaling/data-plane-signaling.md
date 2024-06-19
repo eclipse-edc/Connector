@@ -41,7 +41,13 @@ The data plane access token may be renewable based on the capabilities of its as
 
 All requests must support idempotent behavior. Data planes must therefore perform request de-duplication. After a data plane commits a request, it will return an ack to the control plane, which will transition the `TransferProcess` to its next state (e.g., `STARTED`, `SUSPENDED`, `TERMINATED`). If a successful ack is not received, the control plane will resend the request during a subsequent tick period.
 
-##### 1. `START` 
+#### Message Types
+
+The message primitives of the DPS which get usually get sent by the Control Plane (CP) are `START`, `SUSPEND` and `TERMINATE`, whereas the Data planes are sending `RESPONSE` and common HTTP `OK` messages to the CP while interacting. The respective message classes can be found under the [transfer package](../../../spi/common/core-spi/src/main/java/org/eclipse/edc/spi/types/domain/transfer) and are displayed in the following diagram. 
+
+![](signaling_protocol_messages.png)
+
+###### 1. `START` 
 
 During the transfer process `STARTING` phase, a data plane will be selected by the default push and pull `DataFlowControllers`, which will then send a `DataFlowStartMessage` (renamed from `DataFlowRequest`) to the data plane. 
 
@@ -51,13 +57,23 @@ For client pull transfers, the data plane will return a `DataAddress` and an acc
 
 If the data flow was previously `SUSPENDED`, the data plane may elect to return the same `DataAddress` or create a new one.
 
-##### 2. `SUSPEND` 
+###### 2. `SUSPEND` 
 
 During the transfer process `SUSPENDING` phase, the `DataFlowController` will send a `DataFlowSuspendMessage` to the data plane. The data plane will transition the data flow to the `SUSPENDED` state and invalidate the associated access token.
 
-##### 3. `TERMINATE`
+###### 3. `TERMINATE`
 
 During the transfer process `TERMINATING` phase, the `DataFlowController` will send a `DataFlowTerminateMessage` to the data plane. The data plane will transition the data flow to the `TERMINATED` state and invalidate the associated access token.
+
+###### 4. `RESPONSE`
+
+After receiving a `START` message by the CP using a `FlowType` of `PUSH`, the data plane acknowledges the received message by sending a `RESPONSE` message.
+
+#### Internal State Machine
+
+Receiving or sending messages as part of the DPS usually results in an update of the internal state machines of the respective interacting components. As using the EDC Data Plane Framework requires a deep understanding of how the internal state machine is updated in what way and what actions are triggered by an update, the following diagram illustrates that.
+
+![](signaling_protocol_states.png)
 
 ## II. Control Plane Refactoring
 

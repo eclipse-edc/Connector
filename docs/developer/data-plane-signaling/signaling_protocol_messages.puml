@@ -1,0 +1,45 @@
+'
+'  Copyright (c) 2024 Fraunhofer Institute for Software and Systems Engineering ISST
+'
+'  This program and the accompanying materials are made available under the
+'  terms of the Apache License, Version 2.0 which is available at
+'  https://www.apache.org/licenses/LICENSE-2.0
+'
+'  SPDX-License-Identifier: Apache-2.0
+'
+'  Contributors:
+'      Florian Zimmer - Initial Version
+'
+
+@startuml
+!theme vibrant
+top to bottom direction
+skinparam linetype ortho
+
+class DataFlowResponseMessage {
+   dataAddress: DataAddress
+}
+class DataFlowStartMessage {
+   id: String
+   processId: String
+   assetId: String
+   participantId: String
+   agreementId: String
+   sourceDataAddress: DataAddress
+   destinationDataAddress: DataAddress
+   flowType: FlowType
+   callbackAddress: URI
+   properties: Map<String, String>
+   traceContext: Map<String, String>
+}
+class DataFlowSuspendMessage {
+   reason: String
+}
+class DataFlowTerminateMessage {
+   reason: String
+}
+enum FlowType {
+   PUSH
+   PULL
+}
+@enduml
