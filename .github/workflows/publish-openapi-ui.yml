@@ -15,5 +15,3 @@ jobs:
   publish:
     uses: eclipse-edc/.github/.github/workflows/publish-openapi-ui.yml@main
     secrets: inherit
-    with:
-      version: ${{ github.event.inputs.version }}
