@@ -32,7 +32,7 @@ dependencies {
 
 edcBuild {
     swagger {
-        apiGroup.set("management-api")
+        apiGroup.set("version-api")
     }
 }
 
