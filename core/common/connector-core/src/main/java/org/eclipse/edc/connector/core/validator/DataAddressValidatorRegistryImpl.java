@@ -46,17 +46,17 @@ public class DataAddressValidatorRegistryImpl implements DataAddressValidatorReg
 
     @Override
     public ValidationResult validateSource(DataAddress dataAddress) {
-        return sourceValidators.getOrDefault(dataAddress.getType(), d -> warning("source")).validate(dataAddress);
+        return sourceValidators.getOrDefault(dataAddress.getType(), d -> warning("source", dataAddress)).validate(dataAddress);
     }
 
     @Override
     public ValidationResult validateDestination(DataAddress dataAddress) {
-        return destinationValidators.getOrDefault(dataAddress.getType(), d -> warning("destination")).validate(dataAddress);
+        return destinationValidators.getOrDefault(dataAddress.getType(), d -> warning("destination", dataAddress)).validate(dataAddress);
     }
 
     @NotNull
-    private ValidationResult warning(String type) {
-        monitor.warning("No %s DataAddress validator has been registered, please register one as it is strongly recommended.".formatted(type));
+    private ValidationResult warning(String type, DataAddress dataAddress) {
+        monitor.warning("No %s DataAddress validator has been registered for type %s, please register one as it is strongly recommended.".formatted(type, dataAddress.getType()));
         return ValidationResult.success();
     }
 }

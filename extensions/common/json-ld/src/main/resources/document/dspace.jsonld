@@ -55,7 +55,7 @@
     "odrl:leftOperand": { "@type": "@id" },
     "odrl:operator": { "@type": "@id" },
     "odrl:rightOperandReference": { "@type": "@id" },
-    "odrl:profile": { "@container": "@set" }
+    "odrl:profile": { "@container": "@set" },
     "odrl:assigner": { "@type": "@id" },
     "odrl:assignee": { "@type": "@id" }
   }
