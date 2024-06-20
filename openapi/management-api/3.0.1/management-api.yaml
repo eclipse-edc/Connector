@@ -306,19 +306,6 @@ paths:
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
       deprecated: true
-  /v1/version:
-    get:
-      tags:
-      - Version
-      description: Gets the exact SemVer string of the Management API
-      operationId: getVersion
-      responses:
-        "200":
-          description: The secret
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SecretOutput"
   /v2/catalog/dataset/request:
     post:
       tags:
@@ -4172,17 +4159,3 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@type': https://w3id.org/edc/v0.0.1/ns/TransferState
         state: STARTED
-    VersionRecord:
-      type: object
-      properties:
-        lastUpdated:
-          type: string
-          format: date-time
-          example: null
-        urlPath:
-          type: string
-          example: null
-        version:
-          type: string
-          example: null
-      example: null
