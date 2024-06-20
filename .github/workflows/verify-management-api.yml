@@ -4,29 +4,63 @@ on:
   pull_request:
 
 jobs:
-  verify-version-change:
+  prepare-api-groups:
     runs-on: ubuntu-latest
+    outputs:
+      api_groups: ${{ steps.outputStep.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - run: ./gradlew resolve
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          path: resources/openapi/yaml
+      - name: get api groups to verify and create matrix for next job
+        id: outputStep
+        run: |
+          if test -d resources/openapi/yaml; then
+            API_GROUPS_ARRAY=$(ls -l resources/openapi/*.version | awk '{print $9}' | awk -F "[/\.]" '{print $3}' | sed ':a; N; $!ba; s/\n/","/g' | sed 's/.*/["&"]/')
+            echo "matrix={\"apiGroup\": ${API_GROUPS_ARRAY}}" >> $GITHUB_OUTPUT
+          fi
+
+  verify-spec:
+    if: ${{ needs.prepare-api-groups.outputs.api_groups != '' }}
+    needs: prepare-api-groups
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prepare-api-groups.outputs.api_groups) }}
+    env:
+      versionFile: resources/openapi/${{ matrix.apiGroup }}.version
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - uses: actions/download-artifact@v4
+        with:
+          name: openapi-spec
+          path: resources/openapi/yaml
       - run: |
           CHANGELOG=$(git diff-tree --name-only HEAD..origin/main -r)
-          VERSION_FILE=$(cat resources/openapi/management-api.version)
-          if ! (echo $CHANGELOG | grep -q "$VERSION_FILE") ; then 
-            ./gradlew resolve -q
+          if (echo $CHANGELOG | grep -q "${{ env.versionFile }}") ; then
+            echo "Version file for context ${{ matrix.apiGroup }} has been modified, no need to check differences"
+             echo "skip=true" >> $GITHUB_OUTPUT
+          fi
+
+      - if: ( steps.verify-spec.outputs.skip != 'true' )
+        run: |
+          VERSION=$(cat ${{ env.versionFile }} | xargs cat | grep version | awk -F '"' '{print $4}')
+          ./gradlew -Pversion=$VERSION -PapiTitle="${{ matrix.apiGroup }}" -PapiDescription="REST API documentation for the ${{ matrix.apiGroup }}" :mergeApiSpec --input=resources/openapi/yaml/${{ matrix.apiGroup }} --output=${{ matrix.apiGroup }}-new.yaml
           
-            VERSION=$(cat $VERSION_FILE | grep version | awk -F '"' '{print $4}')
-            ./gradlew -Pversion=$VERSION -PapiTitle="management-api" -PapiDescription="REST API documentation for the management-api" :mergeApiSpec --input=resources/openapi/yaml/management-api --output=management-api-new.yaml
-            
-            git show origin/gh-pages:openapi/management-api/management-api.yaml > management-api.yaml
-            
-            diff management-api.yaml management-api-new.yaml > diff
-            
-            if [ -s diff ]; then
-                echo "management-api openapi spec diverges from the published one, please update the version.json file"
-                cat diff
-                exit 1
-            fi
+          git show origin/gh-pages:openapi/${{ matrix.apiGroup }}/${{ matrix.apiGroup }}.yaml > ${{ matrix.apiGroup }}.yaml
+          
+          diff ${{ matrix.apiGroup }}.yaml ${{ matrix.apiGroup }}-new.yaml > diff
+          
+          if [ -s diff ]; then
+              echo "${{ matrix.apiGroup }} openapi spec diverges from the published one, please update the version.json file"
+              cat diff
+              exit 1
           fi
