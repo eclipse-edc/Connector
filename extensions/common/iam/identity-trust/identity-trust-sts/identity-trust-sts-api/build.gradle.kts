@@ -34,3 +34,8 @@ dependencies {
     testImplementation(libs.restAssured)
 }
 
+edcBuild {
+    swagger {
+        apiGroup.set("sts-api")
+    }
+}
