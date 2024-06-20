@@ -8,25 +8,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - run: |
-          CHANGELOG=$(git diff-tree --name-only HEAD..main -r)
-          for file in $CHANGELOG; do
-            if [ "$file" = "extensions/common/api/management-api-configuration/src/main/resources/version.json" ]; then
-                echo "management version file has been modified, no need to check the specs"
-                exit 0
+          CHANGELOG=$(git diff-tree --name-only HEAD..origin/main -r)
+          VERSION_FILE=$(cat resources/openapi/management-api.version)
+          if ! (echo $CHANGELOG | grep -q "$VERSION_FILE") ; then 
+            ./gradlew resolve -q
+          
+            VERSION=$(cat $VERSION_FILE | grep version | awk -F '"' '{print $4}')
+            ./gradlew -Pversion=$VERSION -PapiTitle="management-api" -PapiDescription="REST API documentation for the management-api" :mergeApiSpec --input=resources/openapi/yaml/management-api --output=management-api-new.yaml
+            
+            git show origin/gh-pages:openapi/management-api/management-api.yaml > management-api.yaml
+            
+            diff management-api.yaml management-api-new.yaml > diff
+            
+            if [ -s diff ]; then
+                echo "management-api openapi spec diverges from the published one, please update the version.json file"
+                cat diff
+                exit 1
             fi
-          done
-
-          ./gradlew resolve
-          ./gradlew -PapiTitle="management-api" -PapiDescription="REST API documentation for the management-api" :mergeApiSpec --input=resources/openapi/management-api --output=management-api-new.yaml
-          
-          wget https://eclipse-edc.github.io/Connector/openapi/management-api/management-api.yaml
-          
-          diff management-api.yaml management-api-new.yaml > diff
-          
-          if [ -s diff ]; then
-              echo "management-api openapi spec diverges from the published one, please update the version.json file"
-              cat diff
-              exit 1
-          else
+          fi
