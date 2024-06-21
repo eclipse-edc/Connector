@@ -328,7 +328,7 @@ public class AssetApiEndToEndTest {
         void queryAsset_byCatalogProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
             var id = UUID.randomUUID().toString();
             assetIndex.create(Asset.Builder.newInstance()
-                    .property(Asset.PROPERTY_IS_CATALOG, "true")
+                    .property(Asset.PROPERTY_IS_CATALOG, true)
                     .id(id)
                     .contentType("application/octet-stream")
                     .dataAddress(createDataAddress().build())
