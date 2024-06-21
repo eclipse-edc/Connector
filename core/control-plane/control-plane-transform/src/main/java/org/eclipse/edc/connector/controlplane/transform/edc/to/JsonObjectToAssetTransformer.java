@@ -56,7 +56,7 @@ public class JsonObjectToAssetTransformer extends AbstractJsonLdTransformer<Json
 
         // the asset is a Catalog Asset, i.e. it links to another catalog
         if (EDC_CATALOG_ASSET_TYPE.equals(nodeType(jsonObject))) {
-            builder.privateProperty(Asset.PROPERTY_IS_CATALOG, true);
+            builder.property(Asset.PROPERTY_IS_CATALOG, "true");
         }
 
         return builderResult(builder::build, context);

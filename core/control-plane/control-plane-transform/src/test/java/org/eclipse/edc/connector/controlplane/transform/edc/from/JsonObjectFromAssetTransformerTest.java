@@ -143,7 +143,7 @@ class JsonObjectFromAssetTransformerTest {
         var dataAddress = DataAddress.Builder.newInstance().type("address-type").build();
         var asset = createAssetBuilder()
                 .dataAddress(dataAddress)
-                .privateProperty(PROPERTY_IS_CATALOG, true)
+                .property(PROPERTY_IS_CATALOG, true)
                 .build();
 
         var jsonObject = transformer.transform(asset, context);

@@ -88,25 +88,25 @@ class AssetTest {
 
     @Test
     void isCatalog_whenFalse_shouldReturnFalse() {
-        var asset = Asset.Builder.newInstance().privateProperty(Asset.PROPERTY_IS_CATALOG, "false").build();
+        var asset = Asset.Builder.newInstance().property(Asset.PROPERTY_IS_CATALOG, "false").build();
         assertThat(asset.isCatalog()).isFalse();
 
-        var asset2 = Asset.Builder.newInstance().privateProperty(Asset.PROPERTY_IS_CATALOG, false).build();
+        var asset2 = Asset.Builder.newInstance().property(Asset.PROPERTY_IS_CATALOG, false).build();
         assertThat(asset2.isCatalog()).isFalse();
     }
 
     @Test
     void isCatalog_whenTrue_shouldReturnTrue() {
-        var asset = Asset.Builder.newInstance().privateProperty(Asset.PROPERTY_IS_CATALOG, "true").build();
+        var asset = Asset.Builder.newInstance().property(Asset.PROPERTY_IS_CATALOG, "true").build();
         assertThat(asset.isCatalog()).isTrue();
 
-        var asset2 = Asset.Builder.newInstance().privateProperty(Asset.PROPERTY_IS_CATALOG, true).build();
+        var asset2 = Asset.Builder.newInstance().property(Asset.PROPERTY_IS_CATALOG, true).build();
         assertThat(asset2.isCatalog()).isTrue();
     }
 
     @Test
     void isCatalog_whenInvalidValid_shoudReturnFalse() {
-        var asset = Asset.Builder.newInstance().privateProperty(Asset.PROPERTY_IS_CATALOG, "foobar").build();
+        var asset = Asset.Builder.newInstance().property(Asset.PROPERTY_IS_CATALOG, "foobar").build();
         assertThat(asset.isCatalog()).isFalse();
     }
 }

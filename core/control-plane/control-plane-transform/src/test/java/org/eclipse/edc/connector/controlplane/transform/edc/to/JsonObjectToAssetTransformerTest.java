@@ -202,7 +202,7 @@ class JsonObjectToAssetTransformerTest {
     }
 
     @Test
-    void shouldSetPrivateProperty_whenTypeIsCatalog() {
+    void shouldSetProperty_whenTypeIsCatalog() {
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, EDC_CATALOG_ASSET_TYPE)

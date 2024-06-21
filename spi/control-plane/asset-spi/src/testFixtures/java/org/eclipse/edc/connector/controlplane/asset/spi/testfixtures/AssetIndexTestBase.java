@@ -147,7 +147,7 @@ public abstract class AssetIndexTestBase {
         @Test
         void shouldCreate_withPrivateProperty() {
             var asset = createAssetBuilder("test-asset").privateProperty("prop1", "val1")
-                    .privateProperty(Asset.PROPERTY_IS_CATALOG, true)
+                    .property(Asset.PROPERTY_IS_CATALOG, true)
                     .build();
 
             assertThat(getAssetIndex().create(asset).succeeded()).isTrue();

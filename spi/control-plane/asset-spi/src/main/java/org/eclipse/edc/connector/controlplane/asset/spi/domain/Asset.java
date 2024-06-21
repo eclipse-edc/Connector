@@ -82,8 +82,8 @@ public class Asset extends Entity {
 
     @JsonIgnore
     public boolean isCatalog() {
-        return ofNullable(getPrivateProperty(PROPERTY_IS_CATALOG))
-                .map(o -> Boolean.parseBoolean(o.toString()))
+        return ofNullable(getPropertyAsString(PROPERTY_IS_CATALOG))
+                .map(Boolean::parseBoolean)
                 .orElse(false);
     }
 
