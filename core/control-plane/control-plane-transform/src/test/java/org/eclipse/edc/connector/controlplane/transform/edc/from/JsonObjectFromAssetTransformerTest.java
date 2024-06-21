@@ -32,6 +32,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_DATA_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_CATALOG_ASSET_TYPE;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_IS_CATALOG;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
@@ -130,6 +132,24 @@ class JsonObjectFromAssetTransformerTest {
 
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getJsonObject(EDC_ASSET_PROPERTIES).getJsonObject("https://foo.bar.org/schema/payload")).isInstanceOf(JsonObject.class);
+    }
+
+    @Test
+    void transform_shouldSetType_whenAssetIsCatalog() {
+        when(context.transform(isA(DataAddress.class), eq(JsonObject.class)))
+                .thenReturn(createObjectBuilder()
+                        .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, value("address-type"))
+                        .build());
+        var dataAddress = DataAddress.Builder.newInstance().type("address-type").build();
+        var asset = createAssetBuilder()
+                .dataAddress(dataAddress)
+                .privateProperty(PROPERTY_IS_CATALOG, true)
+                .build();
+
+        var jsonObject = transformer.transform(asset, context);
+
+        assertThat(jsonObject).isNotNull();
+        assertThat(jsonObject.getString(TYPE)).isEqualTo(EDC_CATALOG_ASSET_TYPE);
     }
 
     private Asset.Builder createAssetBuilder() {

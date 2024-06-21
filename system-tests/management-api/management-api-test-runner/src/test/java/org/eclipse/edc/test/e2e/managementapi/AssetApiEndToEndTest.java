@@ -15,12 +15,14 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.http.ContentType;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -281,6 +283,29 @@ public class AssetApiEndToEndTest {
                     .body("size()", is(1));
         }
 
+        @Test
+        void queryAsset_whenCatalogAsset_shouldSetCorrectType(ManagementEndToEndTestContext context, AssetIndex assetIndex, TypeTransformerRegistry typeTransformerRegistry) {
+            var id = UUID.randomUUID().toString();
+            assetIndex.create(Asset.Builder.newInstance()
+                    .privateProperty(Asset.PROPERTY_IS_CATALOG, true)
+                    .id(id)
+                    .contentType("application/octet-stream")
+                    .dataAddress(createDataAddress().build())
+                    .build());
+
+            var assets = context.baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(context.query(criterion("id", "=", id)))
+                    .post("/v3/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .extract().body().as(JsonArray.class);
+
+            assertThat(assets).isNotNull().hasSize(1);
+            assertThat(Asset.EDC_CATALOG_ASSET_TYPE).contains(assets.get(0).asJsonObject().getString(TYPE));
+
+        }
 
         @Test
         void updateAsset(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
