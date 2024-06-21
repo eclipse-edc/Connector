@@ -16,24 +16,22 @@ directory `aunchers/sts-server/build/libs/sts-server.jar`
 
 ### How to run the STS
 
-Before running the STS we need to generate the local keystore for cert and private key.
+The private key for the `testClient` is already configured in the property `edc.sts.server.vaults.private.value`.
+
+To replace the default value if needed, generate a new key
+
+Example:
 
 ```shell
-mkdir launchers/sts-server/certs
-openssl genrsa 2048 > launchers/sts-server/certs/key.pem
-openssl req -x509 -new -key launchers/sts-server/certs/key.pem -out launchers/sts-server/certs/cert.pem
-openssl pkcs12 -export -in launchers/sts-server/certs/cert.pem -inkey launchers/sts-server/certs/key.pem -out launchers/sts-server/certs/cert.pfx
+openssl genrsa 2048 |  awk -v ORS='\\r\\n' '1'
 ```
 
-When exporting in `pkcs12` use the password `123456`.
+And replace the value in the `launchers/sts-server/config.properties` config file
 
 To run the STS, just run the following command:
 
 ```shell
-java -Dedc.keystore=launchers/sts-server/certs/cert.pfx -Dedc.keystore.password=123456 \
-     -Dedc.vault=launchers/sts-server/sts-vault.properties \
-     -Dedc.fs.config=launchers/sts-server/config.properties \
-     -jar launchers/sts-server/build/libs/sts-server.jar
+java -Dedc.fs.config=launchers/sts-server/config.properties -jar launchers/sts-server/build/libs/sts-server.jar
  ```
 
 The STS will be available on `9292` port.
