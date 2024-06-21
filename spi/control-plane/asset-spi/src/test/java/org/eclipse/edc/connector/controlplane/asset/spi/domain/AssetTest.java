@@ -79,4 +79,34 @@ class AssetTest {
         assertThat(asset.getName()).isNull();
         assertThat(asset.getVersion()).isNull();
     }
+
+    @Test
+    void isCatalog_whenNotPresent_shouldReturnFalse() {
+        var asset = Asset.Builder.newInstance().build();
+        assertThat(asset.isCatalog()).isFalse();
+    }
+
+    @Test
+    void isCatalog_whenFalse_shouldReturnFalse() {
+        var asset = Asset.Builder.newInstance().privateProperty(Asset.PROPERTY_IS_CATALOG, "false").build();
+        assertThat(asset.isCatalog()).isFalse();
+
+        var asset2 = Asset.Builder.newInstance().privateProperty(Asset.PROPERTY_IS_CATALOG, false).build();
+        assertThat(asset2.isCatalog()).isFalse();
+    }
+
+    @Test
+    void isCatalog_whenTrue_shouldReturnTrue() {
+        var asset = Asset.Builder.newInstance().privateProperty(Asset.PROPERTY_IS_CATALOG, "true").build();
+        assertThat(asset.isCatalog()).isTrue();
+
+        var asset2 = Asset.Builder.newInstance().privateProperty(Asset.PROPERTY_IS_CATALOG, true).build();
+        assertThat(asset2.isCatalog()).isTrue();
+    }
+
+    @Test
+    void isCatalog_whenInvalidValid_shoudReturnFalse() {
+        var asset = Asset.Builder.newInstance().privateProperty(Asset.PROPERTY_IS_CATALOG, "foobar").build();
+        assertThat(asset.isCatalog()).isFalse();
+    }
 }

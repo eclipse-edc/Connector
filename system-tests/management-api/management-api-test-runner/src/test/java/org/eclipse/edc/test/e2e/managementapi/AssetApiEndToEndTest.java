@@ -44,16 +44,6 @@ import static org.hamcrest.Matchers.notNullValue;
  */
 public class AssetApiEndToEndTest {
 
-    @Nested
-    @EndToEndTest
-    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
-    class InMemory extends Tests { }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
-    class Postgres extends Tests { }
-
     abstract static class Tests {
 
         @Test
@@ -90,6 +80,10 @@ public class AssetApiEndToEndTest {
                     .add(TYPE, "Asset")
                     .add(ID, id)
                     .add("properties", createPropertiesBuilder().build())
+                    .add("privateProperties", createObjectBuilder()
+                            .add("isCatalog", "true")
+                            .add("anotherProp", "anotherVal")
+                            .build())
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")
                             .add("type", "test-type")
@@ -105,7 +99,10 @@ public class AssetApiEndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            assertThat(assetIndex.findById(id)).isNotNull();
+            var asset = assetIndex.findById(id);
+            assertThat(asset).isNotNull();
+            assertThat(asset.isCatalog()).isTrue();
+            assertThat(asset.getPrivateProperty(EDC_NAMESPACE + "anotherProp")).isEqualTo("anotherVal");
         }
 
         @Test
@@ -307,6 +304,18 @@ public class AssetApiEndToEndTest {
                     .add("contentType", "application/json");
         }
 
+    }
+
+    @Nested
+    @EndToEndTest
+    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
+    class InMemory extends Tests {
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
+    class Postgres extends Tests {
     }
 
 }
