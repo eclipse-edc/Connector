@@ -33,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -168,9 +167,8 @@ public class AssetApiEndToEndTest {
             var id = UUID.randomUUID().toString();
             var assetJson = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder()
-                            .add(EDC_PREFIX, EDC_NAMESPACE)
-                            .add("dcat", DCAT_SCHEMA))
-                    .add(TYPE, "dcat:Catalog")
+                            .add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "CatalogAsset")
                     .add(ID, id)
                     .add("properties", createPropertiesBuilder().build())
                     .add("dataAddress", createObjectBuilder()
@@ -282,6 +280,7 @@ public class AssetApiEndToEndTest {
                     .statusCode(200)
                     .body("size()", is(1));
         }
+
 
         @Test
         void updateAsset(ManagementEndToEndTestContext context, AssetIndex assetIndex) {

@@ -28,7 +28,7 @@ import java.util.function.BiConsumer;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_DATA_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_CATALOG_ASSET_TYPE;
 import static org.eclipse.edc.jsonld.spi.TypeUtil.nodeType;
 
 /**
@@ -55,7 +55,7 @@ public class JsonObjectToAssetTransformer extends AbstractJsonLdTransformer<Json
         });
 
         // the asset is a Catalog Asset, i.e. it links to another catalog
-        if (DCAT_CATALOG_TYPE.equals(nodeType(jsonObject))) {
+        if (EDC_CATALOG_ASSET_TYPE.equals(nodeType(jsonObject))) {
             builder.privateProperty(Asset.PROPERTY_IS_CATALOG, true);
         }
 
