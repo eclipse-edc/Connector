@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      version:
-        description: version to be published
-        required: false
-        type: string
 
 jobs:
   publish:
