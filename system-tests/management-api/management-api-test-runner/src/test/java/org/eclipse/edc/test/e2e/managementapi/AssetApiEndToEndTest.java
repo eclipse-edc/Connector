@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -160,6 +161,36 @@ public class AssetApiEndToEndTest {
             assertThat(dataAddress.getProperties().keySet())
                     .hasSize(2)
                     .allMatch(key -> key.startsWith(EDC_NAMESPACE));
+        }
+
+        @Test
+        void createAsset_whenCatalogAsset_shouldSetProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            var id = UUID.randomUUID().toString();
+            var assetJson = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder()
+                            .add(EDC_PREFIX, EDC_NAMESPACE)
+                            .add("dcat", DCAT_SCHEMA))
+                    .add(TYPE, "dcat:Catalog")
+                    .add(ID, id)
+                    .add("properties", createPropertiesBuilder().build())
+                    .add("dataAddress", createObjectBuilder()
+                            .add(TYPE, "DataAddress")
+                            .add("type", "test-type")
+                            .build())
+                    .build();
+
+            context.baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v3/assets")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body(ID, is(id));
+
+            var asset = assetIndex.findById(id);
+            assertThat(asset).isNotNull();
+            assertThat(asset.isCatalog()).isTrue();
         }
 
         @Test
