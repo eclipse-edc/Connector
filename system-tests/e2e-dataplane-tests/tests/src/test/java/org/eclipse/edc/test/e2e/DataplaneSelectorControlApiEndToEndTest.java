@@ -62,14 +62,9 @@ public class DataplaneSelectorControlApiEndToEndTest {
                     "web.http.control.path", "/control",
                     "edc.dpf.selector.url", String.format("http://localhost:%d/control/v1/dataplanes", controlPlaneControlPort)
             ),
-            ":core:data-plane:data-plane-core",
-            ":extensions:data-plane:data-plane-http",
-            ":extensions:data-plane:data-plane-signaling:data-plane-signaling-api",
-            ":extensions:common:api:control-api-configuration",
-            ":extensions:control-plane:api:control-plane-api-client",
+            ":system-tests:e2e-dataplane-tests:runtimes:data-plane",
             ":extensions:data-plane:data-plane-self-registration",
-            ":extensions:data-plane-selector:data-plane-selector-client",
-            ":extensions:common:http"
+            ":extensions:data-plane-selector:data-plane-selector-client"
     ));
 
     @Test
