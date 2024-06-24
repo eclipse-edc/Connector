@@ -79,7 +79,8 @@ public class DatasetResolverImpl implements DatasetResolver {
     private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset) {
 
         var distributions = distributionResolver.getDistributions(asset);
-        var datasetBuilder = asset.isCatalog() ? Catalog.Builder.newInstance() : Dataset.Builder.newInstance()
+        var datasetBuilder = asset.isCatalog() ? Catalog.Builder.newInstance() : Dataset.Builder.newInstance();
+        datasetBuilder
                 .id(asset.getId())
                 .distributions(distributions)
                 .properties(asset.getProperties());
