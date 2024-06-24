@@ -143,6 +143,20 @@ public abstract class AssetIndexTestBase {
                     .usingRecursiveFieldByFieldElementComparator()
                     .contains(asset);
         }
+
+        @Test
+        void shouldCreate_withPrivateProperty() {
+            var asset = createAssetBuilder("test-asset").privateProperty("prop1", "val1")
+                    .property(Asset.PROPERTY_IS_CATALOG, true)
+                    .build();
+
+            assertThat(getAssetIndex().create(asset).succeeded()).isTrue();
+            var assetFound = getAssetIndex().findById("test-asset");
+
+            assertThat(assetFound).isNotNull();
+            assertThat(assetFound.isCatalog()).isTrue();
+
+        }
     }
 
     @Nested

@@ -41,14 +41,15 @@ public class Asset extends Entity {
     public static final String PROPERTY_DESCRIPTION = EDC_NAMESPACE + "description";
     public static final String PROPERTY_VERSION = EDC_NAMESPACE + "version";
     public static final String PROPERTY_CONTENT_TYPE = EDC_NAMESPACE + "contenttype";
+    public static final String PROPERTY_IS_CATALOG = EDC_NAMESPACE + "isCatalog";
     public static final String EDC_ASSET_TYPE = EDC_NAMESPACE + "Asset";
+    public static final String EDC_CATALOG_ASSET_TYPE = EDC_NAMESPACE + "CatalogAsset";
     public static final String EDC_ASSET_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String EDC_ASSET_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String EDC_ASSET_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";
-
-    private DataAddress dataAddress;
     private final Map<String, Object> properties = new HashMap<>();
     private final Map<String, Object> privateProperties = new HashMap<>();
+    private DataAddress dataAddress;
 
     private Asset() {
     }
@@ -79,6 +80,13 @@ public class Asset extends Entity {
         return ofNullable(getPropertyAsString(PROPERTY_CONTENT_TYPE)).orElse(getPropertyAsString("contenttype"));
     }
 
+    @JsonIgnore
+    public boolean isCatalog() {
+        return ofNullable(getPropertyAsString(PROPERTY_IS_CATALOG))
+                .map(Boolean::parseBoolean)
+                .orElse(false);
+    }
+
     public Map<String, Object> getProperties() {
         return properties;
     }
@@ -99,11 +107,6 @@ public class Asset extends Entity {
 
     public Object getPrivateProperty(String key) {
         return privateProperties.get(key);
-    }
-
-    private String getPropertyAsString(String key) {
-        var val = getProperty(key);
-        return val != null ? val.toString() : null;
     }
 
     public DataAddress getDataAddress() {
@@ -127,6 +130,11 @@ public class Asset extends Entity {
             return privateProperties.keySet().stream().distinct().anyMatch(properties::containsKey);
         }
         return true;
+    }
+
+    private String getPropertyAsString(String key) {
+        var val = getProperty(key);
+        return val != null ? val.toString() : null;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -157,6 +165,17 @@ public class Asset extends Entity {
         @Override
         public Builder self() {
             return this;
+        }
+
+        @Override
+        public Asset build() {
+            super.build();
+
+            if (entity.getId() == null) {
+                id(UUID.randomUUID().toString());
+            }
+
+            return entity;
         }
 
         public Builder name(String title) {
@@ -204,17 +223,6 @@ public class Asset extends Entity {
         public Builder privateProperty(String key, Object value) {
             entity.privateProperties.put(key, value);
             return self();
-        }
-
-        @Override
-        public Asset build() {
-            super.build();
-
-            if (entity.getId() == null) {
-                id(UUID.randomUUID().toString());
-            }
-
-            return entity;
         }
     }
 

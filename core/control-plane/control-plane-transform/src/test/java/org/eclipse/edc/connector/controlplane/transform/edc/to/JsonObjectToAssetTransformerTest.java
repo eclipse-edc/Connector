@@ -34,7 +34,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.map;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_CATALOG_ASSET_TYPE;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_CONTENT_TYPE;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_DESCRIPTION;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_ID;
@@ -197,6 +199,22 @@ class JsonObjectToAssetTransformerTest {
 
         assertThat(result).isSucceeded().extracting(Asset::getProperties)
                 .asInstanceOf(map(String.class, Object.class)).doesNotContainKey(EDC_NAMESPACE + "thisShouldBeIgnored");
+    }
+
+    @Test
+    void shouldSetProperty_whenTypeIsCatalog() {
+        var jsonObj = jsonFactory.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, EDC_CATALOG_ASSET_TYPE)
+                .add(ID, TEST_ASSET_ID)
+                .add(EDC_ASSET_PROPERTIES, createPropertiesBuilder().build())
+                .build();
+
+        var asset = typeTransformerRegistry.transform(TestInput.getExpanded(jsonObj), Asset.class);
+
+        assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
+        assertThat(asset).isSucceeded()
+                .satisfies(a -> assertThat(a.isCatalog()).isTrue());
     }
 
     private JsonObjectBuilder createPayloadBuilder() {

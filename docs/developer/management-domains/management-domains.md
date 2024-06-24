@@ -172,7 +172,7 @@ The following implementation work will be done to support Management Domains.
 The following changes will be made:
 
 - A boolean subtype field will be introduced on `Asset` to indicate if it is a catalog. This field will be set to `true`
-  when an optional `@type` property is set to `dcat:Catalog` when an asset is created in the Management API.
+  when an optional `@type` property is set to `edc:CatalogAsset` when an asset is created in the Management API.
 - The Management API will be updated in a backward-compatible way to handle optionally specifying the `@type` property
   on `Asset`.
 - `Catalog` will extend `Dataset`.

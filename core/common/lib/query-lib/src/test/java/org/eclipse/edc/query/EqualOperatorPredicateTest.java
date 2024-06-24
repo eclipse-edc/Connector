@@ -56,6 +56,17 @@ class EqualOperatorPredicateTest {
         assertThat(predicate.test(List.of("one", "two"), "three")).isFalse();
     }
 
+    @Test
+    void shouldCheckName_whenPropertyIsBoolean() {
+        assertThat(predicate.test(Boolean.TRUE, "ENTRY2")).isFalse();
+        assertThat(predicate.test(Boolean.TRUE, "true")).isTrue();
+        assertThat(predicate.test(Boolean.TRUE, true)).isTrue();
+        assertThat(predicate.test(Boolean.TRUE, false)).isFalse();
+        assertThat(predicate.test(Boolean.TRUE, null)).isFalse();
+        assertThat(predicate.test(Boolean.TRUE, "false")).isFalse();
+        assertThat(predicate.test(true, false)).isFalse();
+    }
+
     public enum TestEnum {
         ENTRY1, ENTRY2
     }

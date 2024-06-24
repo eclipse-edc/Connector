@@ -23,6 +23,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_CATALOG_ASSET_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
@@ -50,6 +51,10 @@ public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<As
             var privatePropBuilder = jsonFactory.createObjectBuilder();
             transformProperties(asset.getPrivateProperties(), privatePropBuilder, mapper, context);
             builder.add(Asset.EDC_ASSET_PRIVATE_PROPERTIES, privatePropBuilder);
+        }
+
+        if (asset.isCatalog()) {
+            builder.add(TYPE, EDC_CATALOG_ASSET_TYPE);
         }
 
         if (asset.getDataAddress() != null) {

@@ -15,6 +15,7 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.http.ContentType;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
@@ -43,16 +44,6 @@ import static org.hamcrest.Matchers.notNullValue;
  * Asset V3 endpoints end-to-end tests
  */
 public class AssetApiEndToEndTest {
-
-    @Nested
-    @EndToEndTest
-    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
-    class InMemory extends Tests { }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
-    class Postgres extends Tests { }
 
     abstract static class Tests {
 
@@ -89,7 +80,10 @@ public class AssetApiEndToEndTest {
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "Asset")
                     .add(ID, id)
-                    .add("properties", createPropertiesBuilder().build())
+                    .add("properties", createPropertiesBuilder().add("isCatalog", "true").build())
+                    .add("privateProperties", createObjectBuilder()
+                            .add("anotherProp", "anotherVal")
+                            .build())
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")
                             .add("type", "test-type")
@@ -105,7 +99,10 @@ public class AssetApiEndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            assertThat(assetIndex.findById(id)).isNotNull();
+            var asset = assetIndex.findById(id);
+            assertThat(asset).isNotNull();
+            assertThat(asset.isCatalog()).isTrue();
+            assertThat(asset.getPrivateProperty(EDC_NAMESPACE + "anotherProp")).isEqualTo("anotherVal");
         }
 
         @Test
@@ -163,6 +160,78 @@ public class AssetApiEndToEndTest {
             assertThat(dataAddress.getProperties().keySet())
                     .hasSize(2)
                     .allMatch(key -> key.startsWith(EDC_NAMESPACE));
+        }
+
+        @Test
+        void createAsset_whenCatalogAsset_shouldSetProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            var id = UUID.randomUUID().toString();
+            var assetJson = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder()
+                            .add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "CatalogAsset")
+                    .add(ID, id)
+                    .add("properties", createPropertiesBuilder().build())
+                    .add("dataAddress", createObjectBuilder()
+                            .add(TYPE, "DataAddress")
+                            .add("type", "test-type")
+                            .build())
+                    .build();
+
+            context.baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v3/assets")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body(ID, is(id));
+
+            var asset = assetIndex.findById(id);
+            assertThat(asset).isNotNull();
+            assertThat(asset.isCatalog()).isTrue();
+        }
+
+
+        @Test
+        void createAsset_whenCatalogInPrivateProps_shouldReturnCatalogType(ManagementEndToEndTestContext context, AssetIndex index) {
+            var id = UUID.randomUUID().toString();
+            var assetJson = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "Asset")
+                    .add(ID, id)
+                    .add("properties", createPropertiesBuilder().add("isCatalog", "true").build())
+                    .add("dataAddress", createObjectBuilder()
+                            .add(TYPE, "DataAddress")
+                            .add("type", "test-type")
+                            .build())
+                    .build();
+
+            // create the asset
+            context.baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v3/assets")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body(ID, is(id));
+
+            // verify the property was set
+            var asset = index.findById(id);
+            assertThat(asset.isCatalog()).isTrue();
+
+            // query the asset, assert that @type: CatalogAsset
+            var assets = context.baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(context.query(criterion("id", "=", id)))
+                    .post("/v3/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .extract().body().as(JsonArray.class);
+
+            assertThat(assets).isNotNull().hasSize(1);
+            assertThat(Asset.EDC_CATALOG_ASSET_TYPE).contains(assets.get(0).asJsonObject().getString(TYPE));
         }
 
         @Test
@@ -256,6 +325,32 @@ public class AssetApiEndToEndTest {
         }
 
         @Test
+        void queryAsset_byCatalogProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            var id = UUID.randomUUID().toString();
+            assetIndex.create(Asset.Builder.newInstance()
+                    .property(Asset.PROPERTY_IS_CATALOG, true)
+                    .id(id)
+                    .contentType("application/octet-stream")
+                    .dataAddress(createDataAddress().build())
+                    .build());
+
+            var assets = context.baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(context.query(
+                            criterion(EDC_NAMESPACE + "isCatalog", "=", "true"),
+                            criterion("id", "=", id)))
+                    .post("/v3/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .extract().body().as(JsonArray.class);
+
+            assertThat(assets).isNotNull().hasSize(1);
+            assertThat(Asset.EDC_CATALOG_ASSET_TYPE).contains(assets.get(0).asJsonObject().getString(TYPE));
+
+        }
+
+        @Test
         void updateAsset(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
             var asset = createAsset().build();
             assetIndex.create(asset);
@@ -307,6 +402,18 @@ public class AssetApiEndToEndTest {
                     .add("contentType", "application/json");
         }
 
+    }
+
+    @Nested
+    @EndToEndTest
+    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
+    class InMemory extends Tests {
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
+    class Postgres extends Tests {
     }
 
 }

@@ -19,6 +19,8 @@ import org.eclipse.edc.spi.query.OperatorPredicate;
 import java.util.List;
 import java.util.Objects;
 
+import static java.util.Optional.ofNullable;
+
 public class EqualOperatorPredicate implements OperatorPredicate {
 
     @Override
@@ -42,8 +44,13 @@ public class EqualOperatorPredicate implements OperatorPredicate {
 
         if (property instanceof List<?> list) {
             return list.stream().anyMatch(it -> Objects.equals(it, operandRight));
+        } else if (property instanceof Boolean booleanProperty) {
+            return ofNullable(operandRight)
+                    .map(Object::toString)
+                    .map(Boolean::parseBoolean)
+                    .map(booleanOperand -> booleanOperand == booleanProperty)
+                    .orElse(false);
         }
-
         return Objects.equals(property, operandRight);
     }
 }

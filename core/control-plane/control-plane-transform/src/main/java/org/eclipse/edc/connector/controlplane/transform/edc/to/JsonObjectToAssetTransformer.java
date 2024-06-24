@@ -28,6 +28,8 @@ import java.util.function.BiConsumer;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_DATA_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_CATALOG_ASSET_TYPE;
+import static org.eclipse.edc.jsonld.spi.TypeUtil.nodeType;
 
 /**
  * Converts from an {@link Asset} as a {@link JsonObject} in JSON-LD expanded form to an {@link Asset}.
@@ -43,11 +45,19 @@ public class JsonObjectToAssetTransformer extends AbstractJsonLdTransformer<Json
                 .id(nodeId(jsonObject));
 
         visitProperties(jsonObject, key -> switch (key) {
-            case EDC_ASSET_PROPERTIES -> value -> visitProperties(value.asJsonArray().getJsonObject(0), property(context, builder));
-            case EDC_ASSET_PRIVATE_PROPERTIES -> value -> visitProperties(value.asJsonArray().getJsonObject(0), privateProperty(context, builder));
-            case EDC_ASSET_DATA_ADDRESS -> value -> builder.dataAddress(transformObject(value, DataAddress.class, context));
+            case EDC_ASSET_PROPERTIES ->
+                    value -> visitProperties(value.asJsonArray().getJsonObject(0), property(context, builder));
+            case EDC_ASSET_PRIVATE_PROPERTIES ->
+                    value -> visitProperties(value.asJsonArray().getJsonObject(0), privateProperty(context, builder));
+            case EDC_ASSET_DATA_ADDRESS ->
+                    value -> builder.dataAddress(transformObject(value, DataAddress.class, context));
             default -> doNothing();
         });
+
+        // the asset is a Catalog Asset, i.e. it links to another catalog
+        if (EDC_CATALOG_ASSET_TYPE.equals(nodeType(jsonObject))) {
+            builder.property(Asset.PROPERTY_IS_CATALOG, true);
+        }
 
         return builderResult(builder::build, context);
     }
