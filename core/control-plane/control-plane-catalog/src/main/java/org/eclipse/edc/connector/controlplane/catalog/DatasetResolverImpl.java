@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.catalog;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
@@ -78,7 +79,7 @@ public class DatasetResolverImpl implements DatasetResolver {
     private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset) {
 
         var distributions = distributionResolver.getDistributions(asset);
-        var datasetBuilder = Dataset.Builder.newInstance()
+        var datasetBuilder = asset.isCatalog() ? Catalog.Builder.newInstance() : Dataset.Builder.newInstance()
                 .id(asset.getId())
                 .distributions(distributions)
                 .properties(asset.getProperties());

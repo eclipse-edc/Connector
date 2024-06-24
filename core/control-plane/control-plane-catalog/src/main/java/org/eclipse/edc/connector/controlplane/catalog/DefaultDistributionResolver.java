@@ -16,10 +16,12 @@
 package org.eclipse.edc.connector.controlplane.catalog;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema;
 
 import java.util.List;
 
@@ -35,6 +37,15 @@ public class DefaultDistributionResolver implements DistributionResolver {
 
     @Override
     public List<Distribution> getDistributions(Asset asset) {
+        if (asset.isCatalog()) {
+            return List.of(Distribution.Builder.newInstance()
+                    .format(asset.getDataAddress().getType())
+                    .dataService(DataService.Builder.newInstance()
+                            .endpointDescription(asset.getDescription())
+                            .endpointUrl(asset.getDataAddress().getStringProperty(HttpDataAddressSchema.BASE_URL, null))
+                            .build())
+                    .build());
+        }
         return dataFlowManager.transferTypesFor(asset).stream().map(this::createDistribution).toList();
     }
 
