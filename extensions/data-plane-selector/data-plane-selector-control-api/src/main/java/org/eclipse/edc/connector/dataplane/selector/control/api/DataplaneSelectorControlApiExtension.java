@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - register missing transformer
  *
  */
 
@@ -19,16 +20,21 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataPlaneInstanceTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataPlaneInstanceTransformer;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.time.Clock;
+import java.util.Map;
 
+import static jakarta.json.Json.createBuilderFactory;
 import static org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApiExtension.NAME;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(NAME)
 public class DataplaneSelectorControlApiExtension implements ServiceExtension {
@@ -40,6 +46,9 @@ public class DataplaneSelectorControlApiExtension implements ServiceExtension {
 
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
+
+    @Inject
+    private TypeManager typeManager;
 
     @Inject
     private TypeTransformerRegistry typeTransformerRegistry;
@@ -60,6 +69,7 @@ public class DataplaneSelectorControlApiExtension implements ServiceExtension {
         validatorRegistry.register(DATAPLANE_INSTANCE_TYPE, DataPlaneInstanceValidator.instance());
 
         typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
+        typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager.getMapper(JSON_LD)));
 
         var controller = new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, dataPlaneSelectorService, clock);
         webService.registerResource(ApiContext.CONTROL, controller);
