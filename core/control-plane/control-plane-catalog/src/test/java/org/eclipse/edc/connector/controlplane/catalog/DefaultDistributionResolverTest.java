@@ -79,8 +79,7 @@ class DefaultDistributionResolverTest {
         assertThat(distributions).hasSize(1)
                 .anySatisfy(distribution -> {
                     assertThat(distribution.getFormat()).isEqualTo("HttpData");
-                    assertThat(distribution.getDataService().getEndpointDescription()).isEqualTo(asset.getDescription());
-                    assertThat(distribution.getDataService().getEndpointUrl()).isEqualTo("http://quizzqua.zz/buzz");
+                    assertThat(distribution.getDataService().getId()).isNotNull();
                 });
     }
 }

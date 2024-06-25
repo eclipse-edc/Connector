@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.catalog;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
@@ -24,12 +25,14 @@ import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -76,11 +79,23 @@ public class DatasetResolverImpl implements DatasetResolver {
                 .orElse(null);
     }
 
+    private Dataset.Builder createCatalog(Asset asset) {
+        if (!asset.isCatalog()) {
+            return Dataset.Builder.newInstance();
+        }
+
+        return Catalog.Builder.newInstance()
+                .dataService(DataService.Builder.newInstance()
+                        .id(Base64.getUrlEncoder().encodeToString(asset.getId().getBytes()))
+                        .endpointDescription(asset.getDescription())
+                        .endpointUrl(asset.getDataAddress().getStringProperty(HttpDataAddressSchema.BASE_URL, null))
+                        .build());
+    }
+
     private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset) {
 
         var distributions = distributionResolver.getDistributions(asset);
-        var datasetBuilder = asset.isCatalog() ? Catalog.Builder.newInstance() : Dataset.Builder.newInstance();
-        datasetBuilder
+        var datasetBuilder = createCatalog(asset)
                 .id(asset.getId())
                 .distributions(distributions)
                 .properties(asset.getProperties());

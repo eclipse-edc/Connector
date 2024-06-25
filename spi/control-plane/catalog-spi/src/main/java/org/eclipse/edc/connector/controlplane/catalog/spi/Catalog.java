@@ -27,7 +27,7 @@ import java.util.List;
 @JsonDeserialize(builder = Catalog.Builder.class)
 public class Catalog extends Dataset {
     protected final List<Dataset> datasets = new ArrayList<>();
-    protected List<DataService> dataServices;
+    protected List<DataService> dataServices = new ArrayList<>();
     protected String participantId;
 
     public List<Dataset> getDatasets() {

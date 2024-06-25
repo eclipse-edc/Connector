@@ -21,8 +21,8 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
-import org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema;
 
+import java.util.Base64;
 import java.util.List;
 
 public class DefaultDistributionResolver implements DistributionResolver {
@@ -41,8 +41,7 @@ public class DefaultDistributionResolver implements DistributionResolver {
             return List.of(Distribution.Builder.newInstance()
                     .format(asset.getDataAddress().getType())
                     .dataService(DataService.Builder.newInstance()
-                            .endpointDescription(asset.getDescription())
-                            .endpointUrl(asset.getDataAddress().getStringProperty(HttpDataAddressSchema.BASE_URL, null))
+                            .id(Base64.getUrlEncoder().encodeToString(asset.getId().getBytes()))
                             .build())
                     .build());
         }

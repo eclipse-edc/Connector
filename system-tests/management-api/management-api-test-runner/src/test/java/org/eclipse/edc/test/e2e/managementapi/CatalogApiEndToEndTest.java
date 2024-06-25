@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
@@ -27,23 +25,27 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
 public class CatalogApiEndToEndTest {
@@ -129,26 +131,33 @@ public class CatalogApiEndToEndTest {
         void requestCatalog_whenAssetIsCatalogAsset_shouldReturnCatalogOfCatalogs(ManagementEndToEndTestContext context, AssetIndex assetIndex,
                                                                                   PolicyDefinitionStore policyDefinitionStore,
                                                                                   ContractDefinitionStore contractDefinitionStore) {
+            // create and store policy
             var policyId = UUID.randomUUID().toString();
-
-            var cd = ContractDefinition.Builder.newInstance()
-                    .id(UUID.randomUUID().toString())
-                    .contractPolicyId(policyId)
-                    .accessPolicyId(policyId)
-                    .build();
-
-            var policy = Policy.Builder.newInstance()
-                    .build();
-
+            var policy = Policy.Builder.newInstance().build();
             policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
-            contractDefinitionStore.save(cd);
 
-            var httpData = createAsset("id-1", "HttpData")
+            // create CatalogAsset
+            var catalogAssetId = "catalog-asset-" + UUID.randomUUID();
+            var httpData = createAsset(catalogAssetId, "HttpData")
                     .property(Asset.PROPERTY_IS_CATALOG, true)
                     .build();
             httpData.getDataAddress().getProperties().put(EDC_NAMESPACE + "baseUrl", "http://quizzqua.zz/buzz");
             assetIndex.create(httpData);
 
+            // create conventional asset
+            var normalAssetId = "normal-asset-" + UUID.randomUUID();
+            assetIndex.create(createAsset(normalAssetId, "test-type").build());
+
+            // create ContractDefinition
+            var cd = ContractDefinition.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .contractPolicyId(policyId)
+                    .accessPolicyId(policyId)
+                    .assetsSelector(List.of(Criterion.criterion("id", "in", List.of(catalogAssetId, normalAssetId))))
+                    .build();
+            contractDefinitionStore.save(cd);
+
+            // request all assets
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "CatalogRequest")
@@ -156,18 +165,21 @@ public class CatalogApiEndToEndTest {
                     .add("protocol", "dataspace-protocol-http")
                     .build();
 
-            var body = context.baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
                     .post("/v3/catalog/request")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
-                    .extract().body().as(JsonObject.class);
-
-            var actual = body.get(TYPE);
-            assertThat(actual).isInstanceOf(JsonString.class);
-            assertThat(((JsonString) actual).getString()).isEqualTo("dcat:Catalog");
+                    .body(TYPE, is("dcat:Catalog"))
+                    .body("'dcat:service'", notNullValue())
+                    // findAll is the restAssured way to express JSON Path filters
+                    .body("'dcat:dataset'", hasSize(2))
+                    .body("'dcat:dataset'.findAll { it -> it.'@type' == 'dcat:Catalog' }.isCatalog", contains(true))
+                    .body("'dcat:dataset'.findAll { it -> it.'@type' == 'dcat:Catalog' }.'@id'", contains(catalogAssetId))
+                    .body("'dcat:dataset'.findAll { it -> it.'@type' == 'dcat:Catalog' }.'dcat:service'.'dcat:endpointUrl'", contains("http://quizzqua.zz/buzz"))
+                    .body("'dcat:dataset'.findAll { it -> it.'@type' == 'dcat:Catalog' }.'dcat:distribution'.'dcat:accessService'.'@id'", contains(Base64.getUrlEncoder().encodeToString(catalogAssetId.getBytes())));
         }
 
         @Test
