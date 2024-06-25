@@ -79,7 +79,7 @@ public class DatasetResolverImpl implements DatasetResolver {
                 .orElse(null);
     }
 
-    private Dataset.Builder createCatalog(Asset asset) {
+    private Dataset.Builder buildDataset(Asset asset) {
         if (!asset.isCatalog()) {
             return Dataset.Builder.newInstance();
         }
@@ -95,7 +95,7 @@ public class DatasetResolverImpl implements DatasetResolver {
     private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset) {
 
         var distributions = distributionResolver.getDistributions(asset);
-        var datasetBuilder = createCatalog(asset)
+        var datasetBuilder = buildDataset(asset)
                 .id(asset.getId())
                 .distributions(distributions)
                 .properties(asset.getProperties());
