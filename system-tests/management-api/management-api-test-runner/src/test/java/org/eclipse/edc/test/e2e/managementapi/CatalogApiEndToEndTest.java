@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
+import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
@@ -35,6 +37,7 @@ import java.util.UUID;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -44,16 +47,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.is;
 
 public class CatalogApiEndToEndTest {
-
-    @Nested
-    @EndToEndTest
-    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
-    class InMemory extends Tests { }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
-    class Postgres extends Tests { }
 
     abstract static class Tests {
 
@@ -133,6 +126,51 @@ public class CatalogApiEndToEndTest {
         }
 
         @Test
+        void requestCatalog_whenAssetIsCatalogAsset_shouldReturnCatalogOfCatalogs(ManagementEndToEndTestContext context, AssetIndex assetIndex,
+                                                                                  PolicyDefinitionStore policyDefinitionStore,
+                                                                                  ContractDefinitionStore contractDefinitionStore) {
+            var policyId = UUID.randomUUID().toString();
+
+            var cd = ContractDefinition.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .contractPolicyId(policyId)
+                    .accessPolicyId(policyId)
+                    .build();
+
+            var policy = Policy.Builder.newInstance()
+                    .build();
+
+            policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
+            contractDefinitionStore.save(cd);
+
+            var httpData = createAsset("id-1", "HttpData")
+                    .property(Asset.PROPERTY_IS_CATALOG, true)
+                    .build();
+            httpData.getDataAddress().getProperties().put(EDC_NAMESPACE + "baseUrl", "http://quizzqua.zz/buzz");
+            assetIndex.create(httpData);
+
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "CatalogRequest")
+                    .add("counterPartyAddress", context.providerProtocolUrl())
+                    .add("protocol", "dataspace-protocol-http")
+                    .build();
+
+            var body = context.baseRequest()
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v3/catalog/request")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .extract().body().as(JsonObject.class);
+
+            var actual = body.get(TYPE);
+            assertThat(actual).isInstanceOf(JsonString.class);
+            assertThat(((JsonString) actual).getString()).isEqualTo("dcat:Catalog");
+        }
+
+        @Test
         void getDataset_shouldReturnDataset(ManagementEndToEndTestContext context, AssetIndex assetIndex,
                                             DataPlaneInstanceStore dataPlaneInstanceStore) {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
@@ -161,12 +199,25 @@ public class CatalogApiEndToEndTest {
                     .body("'dcat:distribution'.'dcat:accessService'.@id", notNullValue());
         }
 
+
         private Asset.Builder createAsset(String id, String sourceType) {
             return Asset.Builder.newInstance()
                     .dataAddress(DataAddress.Builder.newInstance().type(sourceType).build())
                     .id(id);
         }
 
+    }
+
+    @Nested
+    @EndToEndTest
+    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
+    class InMemory extends Tests {
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
+    class Postgres extends Tests {
     }
 
 }

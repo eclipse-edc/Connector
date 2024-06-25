@@ -43,7 +43,7 @@ public class Dataset {
     /**
      * Representations of this Dataset.
      */
-    protected List<Distribution> distributions;
+    protected List<Distribution> distributions = new ArrayList<>();
 
     /**
      * Properties for describing the Dataset.
