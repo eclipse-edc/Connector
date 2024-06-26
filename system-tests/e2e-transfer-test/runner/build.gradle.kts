@@ -24,6 +24,7 @@ dependencies {
     testImplementation(project(":spi:common:web-spi"))
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
+    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
     testImplementation(project(":extensions:common:json-ld"))
@@ -39,7 +40,6 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.kafka)
 
-    testCompileOnly(project(":system-tests:e2e-transfer-test:backend-service"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:data-plane"))
 }

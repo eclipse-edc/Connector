@@ -267,7 +267,6 @@ include(":spi:policy-monitor:policy-monitor-spi")
 include(":tests:junit-base")
 
 // modules for system tests ------------------------------------------------------------------------
-include(":system-tests:e2e-transfer-test:backend-service")
 include(":system-tests:e2e-transfer-test:control-plane")
 include(":system-tests:e2e-transfer-test:data-plane")
 include(":system-tests:e2e-transfer-test:runner")

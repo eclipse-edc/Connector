@@ -39,7 +39,6 @@ dependencies {
     implementation(project(":extensions:data-plane-selector:data-plane-selector-control-api"))
 
     implementation(project(":extensions:control-plane:provision:provision-http"))
-    implementation(project(":extensions:control-plane:transfer:transfer-pull-http-receiver"))
     implementation(project(":extensions:control-plane:transfer:transfer-pull-http-dynamic-receiver"))
 
     implementation(project(":core:policy-monitor:policy-monitor-core"))
