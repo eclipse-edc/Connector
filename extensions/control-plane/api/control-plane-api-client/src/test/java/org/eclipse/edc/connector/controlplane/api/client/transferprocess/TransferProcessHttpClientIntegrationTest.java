@@ -81,7 +81,9 @@ public class TransferProcessHttpClientIntegrationTest {
                 "web.http.control.port", String.valueOf(port),
                 "web.http.control.path", "/control",
                 "edc.core.retry.retries.max", "0",
-                "edc.dataplane.send.retry.limit", "0"
+                "edc.dataplane.send.retry.limit", "0",
+                "edc.transfer.proxy.token.verifier.publickey.alias", "alias",
+                "edc.transfer.proxy.token.signer.privatekey.alias", "alias"
         ));
 
         extension.registerSystemExtension(ServiceExtension.class, new TransferServiceMockExtension(service));

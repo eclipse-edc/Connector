@@ -27,10 +27,6 @@ import java.util.Map;
  */
 public enum Runtimes {
 
-    BACKEND_SERVICE(
-            ":system-tests:e2e-transfer-test:backend-service"
-    ),
-
     IN_MEMORY_CONTROL_PLANE(
             ":system-tests:e2e-transfer-test:control-plane",
             ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"

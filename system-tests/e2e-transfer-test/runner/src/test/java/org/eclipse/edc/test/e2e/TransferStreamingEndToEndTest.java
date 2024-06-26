@@ -29,6 +29,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.contractExpiresIn;
-import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -78,10 +78,6 @@ public class TransferStreamingEndToEndTest {
                     Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
 
         @RegisterExtension
-        static final RuntimeExtension CONSUMER_BACKEND_SERVICE = new RuntimePerClassExtension(
-                    Runtimes.BACKEND_SERVICE.create("consumer-backend-service", CONSUMER.backendServiceConfiguration()));
-
-        @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
                     Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane", PROVIDER.controlPlaneConfiguration()));
 
@@ -89,10 +85,10 @@ public class TransferStreamingEndToEndTest {
         static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
                     Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane", PROVIDER.dataPlaneConfiguration()));
 
-        @RegisterExtension
-        static final RuntimeExtension PROVIDER_BACKEND_SERVICE = new RuntimePerClassExtension(
-                    Runtimes.BACKEND_SERVICE.create("provider-backend-service", PROVIDER.backendServiceConfiguration()));
-
+        @Override
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
+        }
     }
 
     @Testcontainers
@@ -172,7 +168,7 @@ public class TransferStreamingEndToEndTest {
                 consumer.subscribe(List.of(SINK_TOPIC));
 
                 var assetId = UUID.randomUUID().toString();
-                createResourcesOnProvider(assetId, noConstraintPolicy(), kafkaSourceProperty());
+                createResourcesOnProvider(assetId, kafkaSourceProperty());
 
                 var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                         .withDestination(kafkaSink()).withTransferType("Kafka-PUSH").execute();
