@@ -30,7 +30,6 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static jakarta.json.Json.createObjectBuilder;
-import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -48,7 +47,7 @@ class TransferPushEndToEndTest {
         void httpPushDataTransfer() {
             seedVaults();
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
+            createResourcesOnProvider(assetId, httpDataAddressProperties());
             var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
 
             var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
@@ -77,7 +76,7 @@ class TransferPushEndToEndTest {
                     "oauth2:tokenUrl", PROVIDER.backendService() + "/api/oauth2/token"
             );
 
-            createResourcesOnProvider(assetId, noConstraintPolicy(), sourceDataAddressProperties);
+            createResourcesOnProvider(assetId, sourceDataAddressProperties);
             var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
 
             var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)

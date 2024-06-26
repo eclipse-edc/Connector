@@ -53,7 +53,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.contractExpiresIn;
-import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -172,7 +171,7 @@ public class TransferStreamingEndToEndTest {
                 consumer.subscribe(List.of(SINK_TOPIC));
 
                 var assetId = UUID.randomUUID().toString();
-                createResourcesOnProvider(assetId, noConstraintPolicy(), kafkaSourceProperty());
+                createResourcesOnProvider(assetId, kafkaSourceProperty());
 
                 var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                         .withDestination(kafkaSink()).withTransferType("Kafka-PUSH").execute();

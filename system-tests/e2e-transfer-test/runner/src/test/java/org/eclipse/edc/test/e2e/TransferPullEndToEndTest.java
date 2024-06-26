@@ -54,7 +54,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePolicy;
-import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -91,7 +90,7 @@ class TransferPullEndToEndTest {
         void httpPull_dataTransfer_withCallbacks() {
             seedVaults();
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
+            createResourcesOnProvider(assetId, httpDataAddressProperties());
             var dynamicReceiverProps = CONSUMER.dynamicReceiverPrivateProperties();
 
             var callbacks = Json.createArrayBuilder()
@@ -154,7 +153,7 @@ class TransferPullEndToEndTest {
         void suspendAndResume_httpPull_dataTransfer_withEdrCache() {
             seedVaults();
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
+            createResourcesOnProvider(assetId, httpDataAddressProperties());
 
             var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                     .withPrivateProperties(CONSUMER.dynamicReceiverPrivateProperties())
@@ -191,7 +190,7 @@ class TransferPullEndToEndTest {
         void pullFromHttp_httpProvision() {
             seedVaults();
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, noConstraintPolicy(), Map.of(
+            createResourcesOnProvider(assetId, Map.of(
                     "name", "transfer-test",
                     "baseUrl", PROVIDER.backendService() + "/api/provider/data",
                     "type", "HttpProvision",

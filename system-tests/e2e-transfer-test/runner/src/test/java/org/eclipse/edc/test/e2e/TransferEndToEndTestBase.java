@@ -18,6 +18,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.spi.security.Vault;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.time.Duration;
 import java.util.Map;
@@ -38,6 +39,14 @@ public abstract class TransferEndToEndTestBase {
             .name("provider")
             .id("urn:connector:provider")
             .build();
+
+    protected static String noConstraintPolicyId;
+
+    @BeforeAll
+    static void createNoConstraintPolicy() {
+        noConstraintPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
+    }
+
     protected final Duration timeout = Duration.ofSeconds(60);
 
     protected static void seedVault(RuntimeExtension runtime) {
@@ -54,9 +63,13 @@ public abstract class TransferEndToEndTestBase {
 
     protected void createResourcesOnProvider(String assetId, JsonObject contractPolicy, Map<String, Object> dataAddressProperties) {
         PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
-        var accessPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
         var contractPolicyId = PROVIDER.createPolicyDefinition(contractPolicy);
-        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), accessPolicyId, contractPolicyId);
+        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, contractPolicyId);
+    }
+
+    protected void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {
+        PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
+        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
     }
 
     protected void awaitTransferToBeInState(String transferProcessId, TransferProcessStates state) {
