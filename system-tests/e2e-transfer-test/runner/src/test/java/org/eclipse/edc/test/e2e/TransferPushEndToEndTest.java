@@ -19,6 +19,7 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,6 @@ class TransferPushEndToEndTest {
 
         @Test
         void httpPushDataTransfer() {
-            seedVaults();
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpDataAddressProperties());
             var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
@@ -66,7 +66,7 @@ class TransferPushEndToEndTest {
 
         @Test
         void httpToHttp_oauth2Provisioning() {
-            seedVaults();
+            getDataplaneVault().storeSecret("provision-oauth-secret", "supersecret");
             var assetId = UUID.randomUUID().toString();
             var sourceDataAddressProperties = Map.<String, Object>of(
                     "type", "HttpData",
@@ -92,8 +92,6 @@ class TransferPushEndToEndTest {
                     .statusCode(anyOf(is(200), is(204)))
                     .body(is(notNullValue()));
         }
-
-        protected abstract void seedVaults();
 
         private JsonObject httpDataAddress(String baseUrl) {
             return createObjectBuilder()
@@ -139,10 +137,8 @@ class TransferPushEndToEndTest {
                     Runtimes.BACKEND_SERVICE.create("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
         @Override
-        protected void seedVaults() {
-            seedVault(CONSUMER_CONTROL_PLANE);
-            seedVault(PROVIDER_CONTROL_PLANE);
-            seedVault(PROVIDER_DATA_PLANE);
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
         }
     }
 
@@ -152,7 +148,7 @@ class TransferPushEndToEndTest {
 
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                    Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
+                    Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
 
         @RegisterExtension
         static final RuntimeExtension CONSUMER_BACKEND_SERVICE = new RuntimePerClassExtension(
@@ -167,9 +163,8 @@ class TransferPushEndToEndTest {
                     Runtimes.BACKEND_SERVICE.create("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
         @Override
-        protected void seedVaults() {
-            seedVault(CONSUMER_CONTROL_PLANE);
-            seedVault(PROVIDER_CONTROL_PLANE);
+        protected Vault getDataplaneVault() {
+            return PROVIDER_CONTROL_PLANE.getService(Vault.class);
         }
     }
 
@@ -204,10 +199,8 @@ class TransferPushEndToEndTest {
                     Runtimes.BACKEND_SERVICE.create("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
         @Override
-        protected void seedVaults() {
-            seedVault(CONSUMER_CONTROL_PLANE);
-            seedVault(PROVIDER_CONTROL_PLANE);
-            seedVault(PROVIDER_DATA_PLANE);
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
         }
     }
 

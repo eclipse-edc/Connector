@@ -29,14 +29,12 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.event.EventEnvelope;
+import org.eclipse.edc.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
@@ -72,32 +70,20 @@ class TransferPullEndToEndTest {
 
     abstract static class Tests extends TransferEndToEndTestBase {
         private static final ObjectMapper MAPPER = new ObjectMapper();
-        private static final String CALLBACK_PATH = "hooks";
-        private static final int CALLBACK_PORT = getFreePort();
-        private static ClientAndServer callbacksEndpoint;
-
-        @BeforeEach
-        void beforeEach() {
-            callbacksEndpoint = startClientAndServer(CALLBACK_PORT);
-        }
-
-        @AfterEach
-        void tearDown() {
-            stopQuietly(callbacksEndpoint);
-        }
 
         @Test
         void httpPull_dataTransfer_withCallbacks() {
-            seedVaults();
+            var callbacksEndpoint = startClientAndServer(getFreePort());
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpDataAddressProperties());
             var dynamicReceiverProps = CONSUMER.dynamicReceiverPrivateProperties();
 
+            var callbackUrl = String.format("http://localhost:%d/hooks", callbacksEndpoint.getLocalPort());
             var callbacks = Json.createArrayBuilder()
-                    .add(createCallback(callbackUrl(), true, Set.of("transfer.process.started")))
+                    .add(createCallback(callbackUrl, true, Set.of("transfer.process.started")))
                     .build();
 
-            var request = request().withPath("/" + CALLBACK_PATH)
+            var request = request().withPath("/hooks")
                     .withMethod(HttpMethod.POST.name());
 
             var events = new ConcurrentHashMap<String, TransferProcessStarted>();
@@ -117,11 +103,12 @@ class TransferPullEndToEndTest {
             var event = events.get(transferProcessId);
             var msg = UUID.randomUUID().toString();
             await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(event.getDataAddress(), Map.of("message", msg), equalTo(msg)));
+
+            stopQuietly(callbacksEndpoint);
         }
 
         @Test
         void httpPull_dataTransfer_withEdrCache() {
-            seedVaults();
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("10s"), httpDataAddressProperties());
             var dynamicReceiverProps = CONSUMER.dynamicReceiverPrivateProperties();
@@ -151,7 +138,6 @@ class TransferPullEndToEndTest {
 
         @Test
         void suspendAndResume_httpPull_dataTransfer_withEdrCache() {
-            seedVaults();
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpDataAddressProperties());
 
@@ -188,7 +174,6 @@ class TransferPullEndToEndTest {
 
         @Test
         void pullFromHttp_httpProvision() {
-            seedVaults();
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, Map.of(
                     "name", "transfer-test",
@@ -215,7 +200,6 @@ class TransferPullEndToEndTest {
 
         @Test
         void shouldTerminateTransfer_whenContractExpires_fixedInForcePeriod() {
-            seedVaults();
             var assetId = UUID.randomUUID().toString();
             var now = Instant.now();
 
@@ -235,7 +219,6 @@ class TransferPullEndToEndTest {
 
         @Test
         void shouldTerminateTransfer_whenContractExpires_durationInForcePeriod() {
-            seedVaults();
             var assetId = UUID.randomUUID().toString();
             var now = Instant.now();
             // contract was valid from t-10d to t-5d, so "now" it is expired
@@ -263,8 +246,6 @@ class TransferPullEndToEndTest {
                     .build();
         }
 
-        protected abstract void seedVaults();
-
         @NotNull
         private Map<String, Object> httpDataAddressProperties() {
             return Map.of(
@@ -290,10 +271,6 @@ class TransferPullEndToEndTest {
                 throw new RuntimeException(e);
             }
 
-        }
-
-        private String callbackUrl() {
-            return String.format("http://localhost:%d/%s", callbacksEndpoint.getLocalPort(), CALLBACK_PATH);
         }
 
     }
@@ -323,10 +300,8 @@ class TransferPullEndToEndTest {
                     Runtimes.BACKEND_SERVICE.create("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
         @Override
-        protected void seedVaults() {
-            seedVault(CONSUMER_CONTROL_PLANE);
-            seedVault(PROVIDER_CONTROL_PLANE);
-            seedVault(PROVIDER_DATA_PLANE);
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
         }
     }
 
@@ -351,9 +326,8 @@ class TransferPullEndToEndTest {
                     Runtimes.BACKEND_SERVICE.create("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
         @Override
-        protected void seedVaults() {
-            seedVault(CONSUMER_CONTROL_PLANE);
-            seedVault(PROVIDER_CONTROL_PLANE);
+        protected Vault getDataplaneVault() {
+            return PROVIDER_CONTROL_PLANE.getService(Vault.class);
         }
     }
 
@@ -388,10 +362,8 @@ class TransferPullEndToEndTest {
                     Runtimes.BACKEND_SERVICE.create("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
         @Override
-        protected void seedVaults() {
-            seedVault(CONSUMER_CONTROL_PLANE);
-            seedVault(PROVIDER_CONTROL_PLANE);
-            seedVault(PROVIDER_DATA_PLANE);
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
         }
     }
 

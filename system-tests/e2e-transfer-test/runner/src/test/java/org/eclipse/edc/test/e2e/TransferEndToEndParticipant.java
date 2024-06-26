@@ -126,8 +126,6 @@ public class TransferEndToEndParticipant extends Participant {
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
                 put("edc.receiver.http.endpoint", backendService + "/api/consumer/dataReference");
-                put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
-                put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.transfer.proxy.endpoint", dataPlanePublic.toString());
                 put("edc.transfer.send.retry.limit", "1");
                 put("edc.transfer.send.retry.base-delay.ms", "100");
@@ -163,7 +161,7 @@ public class TransferEndToEndParticipant extends Participant {
                 put("edc.keystore.password", "123456");
                 put("edc.dataplane.api.public.baseurl", dataPlanePublic + "/v2/");
                 put("edc.dataplane.token.validation.endpoint", controlPlaneControl + "/token");
-                put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
+                put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.dataplane.http.sink.partition.size", "1");
                 put("edc.dpf.selector.url", controlPlaneControl + "/v1/dataplanes");

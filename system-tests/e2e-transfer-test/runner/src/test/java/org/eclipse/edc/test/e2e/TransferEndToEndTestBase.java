@@ -16,9 +16,9 @@ package org.eclipse.edc.test.e2e;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.time.Duration;
 import java.util.Map;
@@ -40,6 +40,9 @@ public abstract class TransferEndToEndTestBase {
             .id("urn:connector:provider")
             .build();
 
+    protected static String privateKey = getResourceFileContentAsString("certs/key.pem");
+    protected static String publicKey = getResourceFileContentAsString("certs/cert.pem");
+
     protected static String noConstraintPolicyId;
 
     @BeforeAll
@@ -47,19 +50,15 @@ public abstract class TransferEndToEndTestBase {
         noConstraintPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
     }
 
-    protected final Duration timeout = Duration.ofSeconds(60);
-
-    protected static void seedVault(RuntimeExtension runtime) {
-        var vault = runtime.getService(Vault.class);
-
-        var privateKeyContent = getResourceFileContentAsString("certs/key.pem");
-        vault.storeSecret("1", privateKeyContent);
-
-        var publicKey = getResourceFileContentAsString("certs/cert.pem");
-        vault.storeSecret("public-key", publicKey);
-
-        vault.storeSecret("provision-oauth-secret", "supersecret");
+    @BeforeEach
+    void storeKeys() {
+        getDataplaneVault().storeSecret("private-key", privateKey);
+        getDataplaneVault().storeSecret("public-key", publicKey);
     }
+
+    protected abstract Vault getDataplaneVault();
+
+    protected final Duration timeout = Duration.ofSeconds(60);
 
     protected void createResourcesOnProvider(String assetId, JsonObject contractPolicy, Map<String, Object> dataAddressProperties) {
         PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);

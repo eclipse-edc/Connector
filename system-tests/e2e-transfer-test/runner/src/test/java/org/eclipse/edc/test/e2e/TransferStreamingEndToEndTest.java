@@ -29,6 +29,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -92,6 +93,10 @@ public class TransferStreamingEndToEndTest {
         static final RuntimeExtension PROVIDER_BACKEND_SERVICE = new RuntimePerClassExtension(
                     Runtimes.BACKEND_SERVICE.create("provider-backend-service", PROVIDER.backendServiceConfiguration()));
 
+        @Override
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
+        }
     }
 
     @Testcontainers
