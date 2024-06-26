@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.NOT_FOUND;
 
 public class StreamFailureTest {
-    private final String failureMessage = "failure message";
+    private static final String failureMessage = "failure message";
 
     @Test
     void verify_with_failureDetail_message_starts_with_reason() {
