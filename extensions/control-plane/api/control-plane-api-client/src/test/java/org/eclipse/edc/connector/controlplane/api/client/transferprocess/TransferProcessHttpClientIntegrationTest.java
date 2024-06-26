@@ -56,6 +56,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.INTEGER;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.GENERAL_ERROR;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -124,7 +125,7 @@ public class TransferProcessHttpClientIntegrationTest {
             var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull().satisfies(process -> {
                 assertThat(process.getState()).isGreaterThanOrEqualTo(TERMINATED.code());
-                assertThat(process.getErrorDetail()).isEqualTo("error");
+                assertThat(process.getErrorDetail()).isEqualTo(GENERAL_ERROR + "error");
             });
         });
     }

@@ -43,6 +43,7 @@ import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.GENERAL_ERROR;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,7 +93,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
     @Test
     void should_returnInternalServerError_if_transferFails() {
         var token = UUID.randomUUID().toString();
-        var errorMsg = UUID.randomUUID().toString();
+        var errorMsg = GENERAL_ERROR + ": " + UUID.randomUUID().toString();
         when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
         when(pipelineService.transfer(any(), any()))
                 .thenReturn(completedFuture(StreamResult.error(errorMsg)));

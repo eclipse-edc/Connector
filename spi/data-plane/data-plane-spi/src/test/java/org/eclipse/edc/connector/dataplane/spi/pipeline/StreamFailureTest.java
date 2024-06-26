@@ -23,21 +23,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.NOT_FOUND;
 
 public class StreamFailureTest {
-    private static final String failureMessage = "failure message";
+    private static final String FAILURE_MESSAGE = "failure message";
 
     @Test
     void verify_with_failureDetail_message_starts_with_reason() {
-        assertThat(new StreamFailure(List.of(failureMessage), NOT_FOUND)
-                .getFailureDetail()
-                .startsWith(NOT_FOUND.toString())
-        ).isTrue();
+        var failure = new StreamFailure(List.of(FAILURE_MESSAGE), NOT_FOUND);
+        assertThat(failure.getFailureDetail()).startsWith(NOT_FOUND.toString());
     }
 
     @Test
     void verify_with_failureDetail_message_only_contains_reason_when_message_is_empty() {
-        assertThat(new StreamFailure(Collections.emptyList(), NOT_FOUND)
-                .getFailureDetail()
-                .equals(NOT_FOUND.toString())
-        ).isTrue();
+        var failure = new StreamFailure(Collections.emptyList(), NOT_FOUND);
+        assertThat(failure.getFailureDetail()).startsWith(NOT_FOUND.toString());
     }
 }
