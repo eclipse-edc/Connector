@@ -1,0 +1,64 @@
+'
+'  Copyright (c) 2024 Fraunhofer Institute for Software and Systems Engineering ISST
+'
+'  This program and the accompanying materials are made available under the
+'  terms of the Apache License, Version 2.0 which is available at
+'  https://www.apache.org/licenses/LICENSE-2.0
+'
+'  SPDX-License-Identifier: Apache-2.0
+'
+'  Contributors:
+'      Florian Zimmer - Initial Version
+'
+
+@startuml
+!define DscClr(x) <color:#7b839a>x</color>
+
+skinparam WrapWidth 270
+
+state "STARTED" as started_push #e6ebfa;line:blue
+started_push: DscClr(//trying to complete transfer process//)
+
+state "STARTED" as started_pull #e6ebfa;line:blue
+started_pull: DscClr(DataFlowStartMessage<PULL>)
+
+state "RECEIVED" as received #e6ebfa;line:blue
+received : DscClr(DataFlowStartMessage<PUSH>)
+
+state "COMPLETED" as completed #e6ebfa;line:blue
+completed: DscClr(//trying to send TransferProcessCompleteRequest to callback address (CP)//)
+
+state "NOTIFIED" as notified #e6ebfa;line:blue
+notified : DscClr(TransferProcessFailRequest //or// TransferProcessCompleteRequest)
+
+state "FAILED" as failed #e6ebfa;line:blue
+failed : DscClr(//trying to send TransferProcessFailRequest to callback address (CP)//)
+
+state "SUSPENDED / TERMINATED" as suspended #f5cccd;line:red
+suspended : DscClr(DataFlowSuspendMessage //or// DataFlowTerminateMessage)
+
+[*] --> received : CP
+received -[dashed]-> started_push
+
+started_push -[dashed]-> failed
+started_push -[dashed]-> completed
+
+failed -[dashed]-> failed
+failed --> notified : DP
+
+completed -[dashed]-> completed
+completed --> notified : DP
+
+notified --> [*]
+
+[*] --> started_pull : CP
+started_pull --> [*]
+
+received --> suspended : CP
+started_push --> suspended : CP
+started_pull --> suspended : CP
+failed --> suspended : CP
+completed --> suspended : CP
+notified --> suspended : CP
+suspended --> [*]
+@enduml

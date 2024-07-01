@@ -1,0 +1,14 @@
+{
+  "@type": "https://w3id.org/edc/v0.0.1/ns/DataFlowResponseMessage",
+  "https://w3id.org/edc/v0.0.1/ns/dataAddress": {
+    "@type": "https://w3id.org/dspace/v0.8/DataAddress",
+    "https://w3id.org/dspace/v0.8/endpointType": "endpointType",
+    "https://w3id.org/dspace/v0.8/endpointProperties": [
+      {
+        "@type": "https://w3id.org/dspace/v0.8/EndpointProperty",
+        "https://w3id.org/dspace/v0.8/name": "name",
+        "https://w3id.org/dspace/v0.8/value": "value"
+      }
+    ]
+  }
+}

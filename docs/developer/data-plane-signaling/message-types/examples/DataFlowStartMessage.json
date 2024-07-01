@@ -1,0 +1,32 @@
+{
+  "@type": "https://w3id.org/edc/v0.0.1/ns/DataFlowStartMessage",
+  "https://w3id.org/edc/v0.0.1/ns/flowType": "PUSH",
+  "https://w3id.org/edc/v0.0.1/ns/agreementId": "agreementId",
+  "https://w3id.org/edc/v0.0.1/ns/processId": "processId",
+  "https://w3id.org/edc/v0.0.1/ns/datasetId": "datasetId",
+  "https://w3id.org/edc/v0.0.1/ns/properties": {},
+  "https://w3id.org/edc/v0.0.1/ns/callbackAddress": "http://localhost",
+  "https://w3id.org/edc/v0.0.1/ns/sourceDataAddress": {
+    "@type": "https://w3id.org/dspace/v0.8/DataAddress",
+    "https://w3id.org/dspace/v0.8/endpointType": "sourceType",
+    "https://w3id.org/dspace/v0.8/endpointProperties": [
+      {
+        "@type": "https://w3id.org/dspace/v0.8/EndpointProperty",
+        "https://w3id.org/dspace/v0.8/name": "name",
+        "https://w3id.org/dspace/v0.8/value": "value"
+      }
+    ]
+  },
+  "https://w3id.org/edc/v0.0.1/ns/participantId": "participantId",
+  "https://w3id.org/edc/v0.0.1/ns/destinationDataAddress": {
+    "@type": "https://w3id.org/dspace/v0.8/DataAddress",
+    "https://w3id.org/dspace/v0.8/endpointType": "endpointType",
+    "https://w3id.org/dspace/v0.8/endpointProperties": [
+      {
+        "@type": "https://w3id.org/dspace/v0.8/EndpointProperty",
+        "https://w3id.org/dspace/v0.8/name": "name",
+        "https://w3id.org/dspace/v0.8/value": "value"
+      }
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "@type": "https://w3id.org/edc/v0.0.1/ns/DataFlowTerminateMessage",
+  "https://w3id.org/edc/v0.0.1/ns/reason": "reason"
+}

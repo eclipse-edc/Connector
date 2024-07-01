@@ -39,25 +39,112 @@ The data plane access token may be renewable based on the capabilities of its as
 
 ### The Signaling Protocol
 
-All requests must support idempotent behavior. Data planes must therefore perform request de-duplication. After a data plane commits a request, it will return an ack to the control plane, which will transition the `TransferProcess` to its next state (e.g., `STARTED`, `SUSPENDED`, `TERMINATED`). If a successful ack is not received, the control plane will resend the request during a subsequent tick period.
+All requests must support idempotent behavior. Data planes must therefore perform request de-duplication. After a data plane commits a request, it will return an ack to the control plane, which will transition the `TransferProcess` to its next state. If a successful ack is not received, the control plane will resend the request during a subsequent tick period.
 
-##### 1. `START` 
+### States
 
-During the transfer process `STARTING` phase, a data plane will be selected by the default push and pull `DataFlowControllers`, which will then send a `DataFlowStartMessage` (renamed from `DataFlowRequest`) to the data plane. 
+The Data Plane Signaling protocol is represented by the following states:
 
-The control plane (`DataFlowController`) will record which data plane was selected for the transfer process so that it can properly route subsequent, start, stop, and terminate requests.
+- **RECEIVED:** The Data Plane received a [DataFlowStartMessage](#DataFlowStartMessage) with a `FlowType` of `PUSH`. It acknowledges receiving the message by responding with a [DataFlowResponseMessage](#DataFlowResponseMessage).
+- **STARTED:** In case of a `PULL` transfer, the EDR token was issued and provided to the Control Plane successfully using a [DataFlowResponseMessage](#DataFlowResponseMessage). In case of a `PUSH` transfer, the transfer process was initiated successfully and acknowledged by sending an empty [DataFlowResponseMessage](#DataFlowResponseMessage).
+- **COMPLETED:** A `PUSH` transfer was completed successfully. The Data Plane tries to notify the Control Plane about the outcome.
+- **FAILED:** The Data Plane failed to complete the transfer process and continuously tries to notify the Control Plane about the issue.
+- **NOTIFIED:** The Data Plane successfully notified the Control Plane about the outcome of the transfer, either being a success or failure.
+- **SUSPENDED:** The Control Plane sent a [DataFlowSuspendMessage](#DataFlowSuspendMessage) to the Data Plane, thus suspending the transfer process.
+- **TERMINATED:** The Control Plane sent a [DataFlowTerminateMessage](#DataFlowTerminateMessage) to the Data Plane, thus terminating the transfer process.
 
-For client pull transfers, the data plane will return a `DataAddress` and an access token. 
+##### State Machine
 
-If the data flow was previously `SUSPENDED`, the data plane may elect to return the same `DataAddress` or create a new one.
+The Data Plane Signaling state machine can be seen in the following diagram:
 
-##### 2. `SUSPEND` 
+![](data-plane-signaling-state-machine.png)
 
-During the transfer process `SUSPENDING` phase, the `DataFlowController` will send a `DataFlowSuspendMessage` to the data plane. The data plane will transition the data flow to the `SUSPENDED` state and invalidate the associated access token.
+### Message Types
 
-##### 3. `TERMINATE`
+The Data Plane Signaling supports the following message types, in order to allow for the Control Plane to fulfill a `TransferProcess` using a suitable Data Plane. A Data Plane gets selected based on their capabilities by a Data Plane Framework Selector. Furthermore, the Control Plane (`DataFlowController`) will record which Data Plane was selected for the transfer process so that it can properly route subsequent, start, stop, and terminate requests.
 
-During the transfer process `TERMINATING` phase, the `DataFlowController` will send a `DataFlowTerminateMessage` to the data plane. The data plane will transition the data flow to the `TERMINATED` state and invalidate the associated access token.
+#### DataFlowStartMessage
+
+| Message Type        | Start                                                                    |
+|---------------------|--------------------------------------------------------------------------|
+| **Sent by**         | Control Plane                                                            |
+| **Resulting state** | `RECEIVED` or `STARTED` dependent on the `FlowType` (Push or Pull)       |
+| **Response**        | [DataFlowResponseMessage](#DataFlowResponseMessage)                      |
+| **Schema**          | JSON Schema                                                              |
+| **Example**         | [DataFlowStartMessage](message-types/examples/DataFlowStartMessage.json) |
+| **Diagram(s)**      | ![](message-types/diagrams/dataFlowStartMessage.png)                     |
+
+Initiates the data flow by signaling the Data Plane to start the transfer process. Dependent on the `FlowType` the following things will happen:
+- `PUSH`: Data Plane acknowledges the request using a [DataFlowResponseMessage](#DataFlowResponseMessage) and tries to start the transfer process. Will notify Control Plane about the respective outcome after either success or failure in a later state.
+- `PULL`: Data Plane returns callback address to pull the data from and an access token using a [DataFlowResponseMessage](#DataFlowResponseMessage).
+
+Furthermore, if the data flow was previously `SUSPENDED`, the data plane may elect to return the prior used `DataAddress` or create a new one.
+
+#### DataFlowSuspendMessage
+
+| Message Type        | Suspend                                                                      |
+|---------------------|------------------------------------------------------------------------------|
+| **Sent by**         | Control Plane                                                                |
+| **Resulting state** | `SUSPENDED`                                                                  |
+| **Response**        | -                                                                            |
+| **Schema**          | JSON Schema                                                                  |
+| **Example**         | [DataFlowSuspendMessage](message-types/examples/DataFlowSuspendMessage.json) |
+| **Diagram(s)**      | ![](message-types/diagrams/dataFlowSuspendMessage.png)                       |
+
+Leads to the suspension of the data flow, thus stopping it and invalidating the associated access token.
+
+#### DataFlowTerminateMessage
+
+| Message Type        | Terminate                                                                        |
+|---------------------|----------------------------------------------------------------------------------|
+| **Sent by**         | Control Plane                                                                    |
+| **Resulting state** | `TERMINATED`                                                                     |
+| **Response**        | -                                                                                |
+| **Schema**          | JSON Schema                                                                      |
+| **Example**         | [DataFlowTerminateMessage](message-types/examples/DataFlowTerminateMessage.json) |
+| **Diagram(s)**      | ![](message-types/diagrams/dataFlowTerminateMessage.png)                         |
+
+Leads to the termination of the data flow, thus stopping it and invalidating the associated access token.
+
+### Response Types
+
+The response messages are either sent as a direct response to an incoming message or as an indirect response at a later stage during the transfer process.
+
+#### DataFlowResponseMessage
+
+| Message Type        | Response                                                                       |
+|---------------------|--------------------------------------------------------------------------------|
+| **Sent by**         | Data Plane                                                                     |
+| **Resulting state** | -                                                                              |
+| **Schema**          | JSON Schema                                                                    |
+| **Example**         | [DataFlowResponseMessage](message-types/examples/DataFlowResponseMessage.json) |
+| **Diagram(s)**      | ![](message-types/diagrams/dataFlowResponseMessage.png)                        |
+
+This message is a direct response message to a [DataFlowStartMessage](#DataFlowStartMessage) and acknowledges receiving it. Will be used to provide access token and callback address in case of a `PULL` transfer.
+
+#### TransferProcessCompleteRequest
+
+| Message Type        | Notification             |
+|---------------------|--------------------------|
+| **Sent by**         | Data Plane               |
+| **Resulting state** | `NOTIFIED`               |
+| **Schema**          | *None due to empty body* |
+| **Example**         | -                        |
+| **Diagram(s)**      | -                        |
+
+This message is not a direct response to an incoming message. It rather gets sent by the Data Plane if the already started transfer process was successfully completed. Successfully sending this message leads to the transfer state machine to proceed to the state `NOTIFIED` in case of a `PUSH` transfer.
+
+#### TransferProcessFailRequest
+
+| Message Type        | Notification                                                                         |
+|---------------------|--------------------------------------------------------------------------------------|
+| **Sent by**         | Data Plane                                                                           |
+| **Resulting state** | `NOTIFIED`                                                                           |
+| **Schema**          | JSON Schema                                                                          |
+| **Example**         | [TransferProcessFailRequest](message-types/examples/TransferProcessFailRequest.json) |
+| **Diagram(s)**      | ![](message-types/diagrams/transferProcessFailRequest.png)                           |
+
+This message is not a direct response to an incoming message. It rather gets sent by the Data Plane if the already started transfer process encountered an error, thus failed to be fulfilled. Successfully sending this message leads to the transfer state machine to proceed to the state `NOTIFIED` in case of a `PUSH` transfer.
 
 ## II. Control Plane Refactoring
 
