@@ -57,10 +57,9 @@ class DataPlaneAuthorizationServiceImplTest {
     private final DataPlaneAccessControlService accessControlService = mock();
     private final DataPlaneAuthorizationServiceImpl authorizationService = new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, OWN_PARTICIPANT_ID, Clock.systemUTC());
 
-
     @BeforeEach
     void setup() {
-        when(endpointGenerator.generateFor(any())).thenReturn(Result.success(Endpoint.url("http://example.com")));
+        when(endpointGenerator.generateFor(any(), any())).thenReturn(Result.success(Endpoint.url("http://example.com")));
     }
 
     @Test
@@ -91,7 +90,6 @@ class DataPlaneAuthorizationServiceImplTest {
                         m.containsKey("process_id") &&
                         m.containsKey("flow_type")));
     }
-
 
     @Test
     void createEndpointDataReference_withAuthType() {
