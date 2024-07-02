@@ -81,7 +81,7 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
     public @NotNull List<DataFlow> nextNotLeased(int max, Criterion... criteria) {
         return transactionContext.execute(() -> {
             var filter = Arrays.stream(criteria).collect(toList());
-            var querySpec = QuerySpec.Builder.newInstance().filter(filter).limit(max).build();
+            var querySpec = QuerySpec.Builder.newInstance().filter(filter).sortField("stateTimestamp").limit(max).build();
             var statement = statements.createQuery(querySpec)
                     .addWhereClause(statements.getNotLeasedFilter(), clock.millis());
 
