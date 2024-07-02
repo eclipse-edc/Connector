@@ -89,9 +89,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     }
 
     public TransferType getTransferType() {
-        if (transferType == null) {
-            return new TransferType(getDestination().getType(), getFlowType());
-        }
         return transferType;
     }
 
