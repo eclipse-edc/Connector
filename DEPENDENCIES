@@ -103,9 +103,9 @@ maven/mavencentral/commons-logging/commons-logging/1.2, Apache-2.0, approved, CQ
 maven/mavencentral/dev.failsafe/failsafe-okhttp/3.3.2, Apache-2.0, approved, #15208
 maven/mavencentral/dev.failsafe/failsafe/3.3.2, Apache-2.0, approved, #9268
 maven/mavencentral/info.picocli/picocli/4.7.6, Apache-2.0, approved, #4365
-maven/mavencentral/io.cloudevents/cloudevents-api/3.0.0, Apache-2.0, approved, #14228
-maven/mavencentral/io.cloudevents/cloudevents-core/3.0.0, Apache-2.0, approved, #14227
-maven/mavencentral/io.cloudevents/cloudevents-http-basic/3.0.0, Apache-2.0, approved, #14229
+maven/mavencentral/io.cloudevents/cloudevents-api/4.0.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/io.cloudevents/cloudevents-core/4.0.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/io.cloudevents/cloudevents-http-basic/4.0.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.github.classgraph/classgraph/4.8.154, MIT, approved, CQ22530
 maven/mavencentral/io.github.classgraph/classgraph/4.8.165, MIT, approved, CQ22530
 maven/mavencentral/io.micrometer/micrometer-commons/1.13.1, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #14826
