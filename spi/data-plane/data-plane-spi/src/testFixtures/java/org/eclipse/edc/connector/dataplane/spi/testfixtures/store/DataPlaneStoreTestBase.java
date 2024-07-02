@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.UUID;
 
 import static java.util.stream.IntStream.range;
@@ -176,6 +177,23 @@ public abstract class DataPlaneStoreTestBase {
 
             var thirdLeased = getStore().nextNotLeased(1, hasState(RECEIVED.code()));
             assertThat(thirdLeased).hasSize(1);
+        }
+
+        @Test
+        void shouldLeaseOrderByStateTimestamp() {
+
+            var all = range(0, 10)
+                    .mapToObj(i -> createDataFlow("id-" + i, RECEIVED))
+                    .peek(getStore()::save)
+                    .toList();
+
+            all.stream().limit(5)
+                    .peek(this::delayByTenMillis)
+                    .sorted(Comparator.comparing(DataFlow::getStateTimestamp).reversed())
+                    .forEach(f -> getStore().save(f));
+
+            var elements = getStore().nextNotLeased(10, hasState(RECEIVED.code()));
+            assertThat(elements).hasSize(10).extracting(DataFlow::getStateTimestamp).isSorted();
         }
 
         private void delayByTenMillis(StatefulEntity<?> t) {
