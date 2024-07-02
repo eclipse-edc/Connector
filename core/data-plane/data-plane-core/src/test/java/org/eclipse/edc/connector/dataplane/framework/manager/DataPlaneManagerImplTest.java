@@ -57,6 +57,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.GENERAL_ERROR;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -373,7 +374,7 @@ class DataPlaneManagerImplTest {
 
             await().untilAsserted(() -> {
                 verify(transferService).transfer(isA(DataFlowStartMessage.class));
-                verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code() && it.getErrorDetail().equals("an error")));
+                verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code() && it.getErrorDetail().equals(GENERAL_ERROR + ": an error")));
             });
         }
 
