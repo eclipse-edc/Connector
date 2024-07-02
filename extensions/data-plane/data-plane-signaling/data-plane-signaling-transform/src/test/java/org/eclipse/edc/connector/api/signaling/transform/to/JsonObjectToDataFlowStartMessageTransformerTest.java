@@ -20,6 +20,7 @@ import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,6 @@ class JsonObjectToDataFlowStartMessageTransformerTest {
 
     @Test
     void transform() {
-
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE)
@@ -61,6 +61,7 @@ class JsonObjectToDataFlowStartMessageTransformerTest {
                 .add("agreementId", "agreementId")
                 .add("datasetId", "datasetId")
                 .add("participantId", "participantId")
+                .add("transferTypeDestination", "transferTypeDestination")
                 .add("flowType", "PULL")
                 .add("sourceDataAddress", jsonFactory.createObjectBuilder().add("type", "address-type"))
                 .add("destinationDataAddress", jsonFactory.createObjectBuilder().add("type", "address-type"))
@@ -76,14 +77,12 @@ class JsonObjectToDataFlowStartMessageTransformerTest {
         assertThat(message.getAssetId()).isEqualTo("datasetId");
         assertThat(message.getAgreementId()).isEqualTo("agreementId");
         assertThat(message.getParticipantId()).isEqualTo("participantId");
-        assertThat(message.getFlowType()).isEqualTo(FlowType.PULL);
+        assertThat(message.getTransferType()).isEqualTo(new TransferType("transferTypeDestination", FlowType.PULL));
         assertThat(message.getDestinationDataAddress()).extracting(DataAddress::getType).isEqualTo("address-type");
         assertThat(message.getSourceDataAddress()).extracting(DataAddress::getType).isEqualTo("address-type");
         assertThat(message.getProperties()).containsEntry(EDC_NAMESPACE + "foo", "bar");
         assertThat(message.getCallbackAddress()).isEqualTo(URI.create("http://localhost"));
-
     }
-
 
     private JsonObjectBuilder createContextBuilder() {
         return jsonFactory.createObjectBuilder()

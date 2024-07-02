@@ -37,6 +37,7 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROPERTIES;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION;
 
 /**
  * Converts from a {@link JsonObject} in JSON-LD expanded form to a {@link DataFlowStartMessage}.
@@ -67,6 +68,7 @@ public class JsonObjectToDataFlowStartMessageTransformer extends AbstractJsonLdT
             }
             case EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID ->
                     builder.participantId(transformString(jsonValue, context));
+            case EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION -> builder.transferTypeDestination(transformString(jsonValue, context));
             case EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE ->
                     builder.flowType(FlowType.valueOf(transformString(jsonValue, context)));
 

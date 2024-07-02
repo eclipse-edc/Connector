@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
@@ -48,7 +49,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     private URI callbackAddress;
     private Map<String, String> properties = new HashMap<>();
 
-    private FlowType flowType = FlowType.PUSH;
+    private TransferType transferType;
 
     @Override
     public DataFlow copy() {
@@ -57,7 +58,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
                 .destination(destination)
                 .callbackAddress(callbackAddress)
                 .properties(properties)
-                .flowType(flowType);
+                .transferType(getTransferType());
 
         return copy(builder);
     }
@@ -84,7 +85,14 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     }
 
     public FlowType getFlowType() {
-        return flowType;
+        return getTransferType().flowType();
+    }
+
+    public TransferType getTransferType() {
+        if (transferType == null) {
+            return new TransferType(getDestination().getType(), getFlowType());
+        }
+        return transferType;
     }
 
     public DataFlowStartMessage toRequest() {
@@ -96,7 +104,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
                 .callbackAddress(getCallbackAddress())
                 .traceContext(traceContext)
                 .properties(getProperties())
-                .flowType(getFlowType())
+                .transferType(getTransferType())
                 .build();
     }
 
@@ -175,8 +183,13 @@ public class DataFlow extends StatefulEntity<DataFlow> {
             return this;
         }
 
+        @Deprecated(since = "0.7.1")
         public Builder flowType(FlowType flowType) {
-            entity.flowType = flowType;
+            return this;
+        }
+
+        public Builder transferType(TransferType transferType) {
+            entity.transferType = transferType;
             return this;
         }
 

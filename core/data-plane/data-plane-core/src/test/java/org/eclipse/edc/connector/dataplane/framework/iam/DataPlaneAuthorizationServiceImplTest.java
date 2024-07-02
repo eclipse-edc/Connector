@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -65,7 +66,9 @@ class DataPlaneAuthorizationServiceImplTest {
     @Test
     void createEndpointDataReference() {
         when(accessTokenService.obtainToken(any(), any(), anyMap())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("footoken").build()));
-        var startMsg = createStartMessage().build();
+        var startMsg = createStartMessage()
+                .transferType(new TransferType("DestinationType", FlowType.PULL))
+                .build();
 
         var result = authorizationService.createEndpointDataReference(startMsg);
         assertThat(result).isSucceeded()
@@ -89,6 +92,7 @@ class DataPlaneAuthorizationServiceImplTest {
                         m.containsKey("asset_id") &&
                         m.containsKey("process_id") &&
                         m.containsKey("flow_type")));
+        verify(endpointGenerator).generateFor("DestinationType", startMsg.getSourceDataAddress());
     }
 
     @Test
@@ -183,7 +187,7 @@ class DataPlaneAuthorizationServiceImplTest {
     private DataFlowStartMessage.Builder createStartMessage() {
         return DataFlowStartMessage.Builder.newInstance()
                 .processId("test-processid")
-                .flowType(FlowType.PULL)
+                .transferType(new TransferType("DestinationType", FlowType.PULL))
                 .agreementId("test-agreementid")
                 .participantId("test-participantid")
                 .assetId("test-assetid")

@@ -60,7 +60,7 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
 
     @Override
     public Result<DataAddress> createEndpointDataReference(DataFlowStartMessage message) {
-        return endpointGenerator.generateFor(message.getDestinationDataAddress().getType(), message.getSourceDataAddress())
+        return endpointGenerator.generateFor(message.getTransferType().destinationType(), message.getSourceDataAddress())
                 .compose(endpoint -> {
                             var additionalProperties = new HashMap<String, Object>(message.getProperties());
                             additionalProperties.put(PROPERTY_AGREEMENT_ID, message.getAgreementId());

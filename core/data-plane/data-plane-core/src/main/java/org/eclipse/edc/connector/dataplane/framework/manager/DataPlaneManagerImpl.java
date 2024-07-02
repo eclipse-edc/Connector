@@ -78,6 +78,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     @Override
     public Result<DataFlowResponseMessage> start(DataFlowStartMessage startMessage) {
+        // TODO: weird. refactor?
         var dataFlowBuilder = dataFlowRequestBuilder(startMessage);
 
         var result = switch (startMessage.getFlowType()) {
@@ -193,7 +194,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .callbackAddress(startMessage.getCallbackAddress())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .properties(startMessage.getProperties())
-                .flowType(startMessage.getFlowType());
+                .transferType(startMessage.getTransferType());
     }
 
     private boolean processReceived(DataFlow dataFlow) {
