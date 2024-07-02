@@ -125,7 +125,7 @@ public class TransferProcessHttpClientIntegrationTest {
             var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull().satisfies(process -> {
                 assertThat(process.getState()).isGreaterThanOrEqualTo(TERMINATED.code());
-                assertThat(process.getErrorDetail()).isEqualTo(GENERAL_ERROR + "error");
+                assertThat(process.getErrorDetail()).isEqualTo(GENERAL_ERROR + ": error");
             });
         });
     }

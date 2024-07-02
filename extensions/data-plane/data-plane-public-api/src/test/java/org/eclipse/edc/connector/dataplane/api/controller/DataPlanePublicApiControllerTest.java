@@ -93,7 +93,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
     @Test
     void should_returnInternalServerError_if_transferFails() {
         var token = UUID.randomUUID().toString();
-        var errorMsg = GENERAL_ERROR + ": " + UUID.randomUUID().toString();
+        var errorMsg = UUID.randomUUID().toString();
         when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
         when(pipelineService.transfer(any(), any()))
                 .thenReturn(completedFuture(StreamResult.error(errorMsg)));
@@ -105,7 +105,7 @@ class DataPlanePublicApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
                 .contentType(JSON)
-                .body("errors[0]", is(errorMsg));
+                .body("errors[0]", is(GENERAL_ERROR + ": " + errorMsg));
     }
 
     @Test
