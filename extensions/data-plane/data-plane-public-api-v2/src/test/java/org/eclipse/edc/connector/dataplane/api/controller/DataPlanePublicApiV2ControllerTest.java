@@ -117,7 +117,7 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
                 .contentType(JSON)
-                .body("errors[0]", is(GENERAL_ERROR + ": " +errorMsg));
+                .body("errors[0]", is(GENERAL_ERROR + ": " + errorMsg));
     }
 
     @Test
