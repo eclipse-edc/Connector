@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
@@ -149,7 +150,8 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                 toJson(dataFlow.getSource()),
                 toJson(dataFlow.getDestination()),
                 toJson(dataFlow.getProperties()),
-                dataFlow.getFlowType().toString()
+                dataFlow.getTransferType().flowType().toString(),
+                dataFlow.getTransferType().destinationType()
         );
     }
 
@@ -166,7 +168,8 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                 toJson(dataFlow.getSource()),
                 toJson(dataFlow.getDestination()),
                 toJson(dataFlow.getProperties()),
-                dataFlow.getFlowType().toString(),
+                dataFlow.getTransferType().flowType().toString(),
+                dataFlow.getTransferType().destinationType(),
                 dataFlow.getId());
     }
 
@@ -184,7 +187,10 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                 .source(fromJson(resultSet.getString(statements.getSourceColumn()), DataAddress.class))
                 .destination(fromJson(resultSet.getString(statements.getDestinationColumn()), DataAddress.class))
                 .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
-                .flowType(FlowType.valueOf(resultSet.getString(statements.getFlowTypeColumn())))
+                .transferType(new TransferType(
+                        resultSet.getString(statements.getTransferTypeDestinationColumn()),
+                        FlowType.valueOf(resultSet.getString(statements.getFlowTypeColumn()))
+                ))
                 .build();
     }
 

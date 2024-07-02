@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -70,8 +71,8 @@ public abstract class DataPlaneStoreTestBase {
                 .callbackAddress(URI.create("http://any"))
                 .source(DataAddress.Builder.newInstance().type("src-type").build())
                 .destination(DataAddress.Builder.newInstance().type("dest-type").build())
-                .flowType(FlowType.PUSH)
                 .state(state.code())
+                .transferType(new TransferType("transferType", FlowType.PUSH))
                 .build();
     }
 

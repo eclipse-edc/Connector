@@ -14,20 +14,16 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.flow;
 
-import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 
-/**
- * Extract the {@link FlowType} from the transfer type
- */
-@FunctionalInterface
-public interface FlowTypeExtractor {
+public interface TransferTypeParser {
 
     /**
-     * Return the {@link FlowType} associated to the transfer type.
+     * Parse the {@link TransferType}.
      *
-     * @param transferType the transfer type.
-     * @return the {@link FlowType}, failure if the operation failed.
+     * @param transferType the transfer type string representation.
+     * @return the {@link TransferType}, failure if the operation failed.
      */
-    StatusResult<FlowType> extract(String transferType);
+    Result<TransferType> parse(String transferType);
 }
