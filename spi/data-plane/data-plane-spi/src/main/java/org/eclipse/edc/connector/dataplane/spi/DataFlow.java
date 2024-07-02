@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,10 +81,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
     public Map<String, String> getProperties() {
         return Collections.unmodifiableMap(properties);
-    }
-
-    public FlowType getFlowType() {
-        return getTransferType().flowType();
     }
 
     public TransferType getTransferType() {
@@ -177,11 +172,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
         public Builder callbackAddress(URI callbackAddress) {
             entity.callbackAddress = callbackAddress;
-            return this;
-        }
-
-        @Deprecated(since = "0.7.1")
-        public Builder flowType(FlowType flowType) {
             return this;
         }
 

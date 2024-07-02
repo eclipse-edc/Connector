@@ -140,7 +140,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         var dataFlow = result.getContent();
 
-        if (FlowType.PUSH.equals(dataFlow.getFlowType())) {
+        if (FlowType.PUSH.equals(dataFlow.getTransferType().flowType())) {
             var transferService = transferServiceRegistry.resolveTransferService(dataFlow.toRequest());
 
             if (transferService == null) {

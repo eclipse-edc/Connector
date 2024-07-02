@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToDataFlowStartMessageTransformerTest {
@@ -50,6 +52,7 @@ class JsonObjectToDataFlowStartMessageTransformerTest {
     void setUp() {
         transformer = new JsonObjectToDataFlowStartMessageTransformer();
         when(context.transform(any(), eq(DataAddress.class))).thenReturn(DataAddress.Builder.newInstance().type("address-type").build());
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
 
     @Test
@@ -82,6 +85,27 @@ class JsonObjectToDataFlowStartMessageTransformerTest {
         assertThat(message.getSourceDataAddress()).extracting(DataAddress::getType).isEqualTo("address-type");
         assertThat(message.getProperties()).containsEntry(EDC_NAMESPACE + "foo", "bar");
         assertThat(message.getCallbackAddress()).isEqualTo(URI.create("http://localhost"));
+    }
+
+    @Test
+    void shouldFail_whenTransferTypeDataIsMissing() {
+        var jsonObj = jsonFactory.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE)
+                .add("processId", "processId")
+                .add("agreementId", "agreementId")
+                .add("datasetId", "datasetId")
+                .add("participantId", "participantId")
+                .add("sourceDataAddress", jsonFactory.createObjectBuilder().add("type", "address-type"))
+                .add("destinationDataAddress", jsonFactory.createObjectBuilder().add("type", "address-type"))
+                .add("properties", jsonFactory.createObjectBuilder().add("foo", "bar"))
+                .add("callbackAddress", "http://localhost")
+                .build();
+
+        var message = transformer.transform(getExpanded(jsonObj), context);
+
+        assertThat(message).isNull();
+        verify(context).reportProblem(any());
     }
 
     private JsonObjectBuilder createContextBuilder() {

@@ -31,7 +31,7 @@ class PublicEndpointGeneratorServiceImpl implements PublicEndpointGeneratorServi
     public Result<Endpoint> generateFor(String destinationType, DataAddress sourceDataAddress) {
         var function = generatorFunctions.get(destinationType);
         if (function == null) {
-            return Result.failure("No Endpoint generator function registered for source data type '%s'".formatted(sourceDataAddress.getType()));
+            return Result.failure("No Endpoint generator function registered for transfer type destination '%s'".formatted(destinationType));
         }
 
         var endpoint = function.apply(sourceDataAddress);

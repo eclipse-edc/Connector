@@ -254,6 +254,7 @@ public class TransferProcessEventDispatchTest {
                 .protocol("test")
                 .counterPartyAddress("http://an/address")
                 .contractId("contractId")
+                .transferType("DestinationType-PUSH")
                 .build();
     }
 
