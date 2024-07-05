@@ -20,6 +20,7 @@ dependencies {
     testImplementation(project(":spi:control-plane:transfer-spi"))
     testImplementation(project(":spi:data-plane:data-plane-spi"))
     testImplementation(project(":extensions:common:sql:sql-core"))
+    testImplementation(project(":extensions:common:transaction:transaction-local"))
 
     testImplementation(project(":spi:common:web-spi"))
     testImplementation(project(":core:common:connector-core"))
