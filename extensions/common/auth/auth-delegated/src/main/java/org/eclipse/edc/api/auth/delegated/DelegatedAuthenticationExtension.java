@@ -36,6 +36,7 @@ import java.time.Clock;
 
 import static com.nimbusds.jose.jwk.source.JWKSourceBuilder.DEFAULT_CACHE_TIME_TO_LIVE;
 import static org.eclipse.edc.api.auth.delegated.DelegatedAuthenticationService.MANAGEMENT_API_CONTEXT;
+import static org.eclipse.edc.web.spi.configuration.WebServiceConfigurer.WEB_HTTP_PREFIX;
 
 /**
  * Extension that registers an AuthenticationService that delegates authentication and authorization to a third-party IdP
@@ -52,7 +53,6 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
     @Deprecated(since = "0.7.1")
     @Setting(value = "URL where the third-party IdP's public key(s) can be resolved")
     public static final String AUTH_SETTING_KEY_URL = "edc.api.auth.dac.key.url";
-    public static final String WEB_HTTP_PREFIX = "web.http";
     public static final String AUTH_KEY = "auth";
     public static final String CONFIG_ALIAS = WEB_HTTP_PREFIX + ".<context>." + AUTH_KEY + ".";
     @Setting(context = CONFIG_ALIAS, value = "URL where the third-party IdP's public key(s) can be resolved for the configured <context>")

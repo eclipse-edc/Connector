@@ -34,13 +34,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.api.auth.configuration.ApiAuthenticationConfigurationExtension.NAME;
+import static org.eclipse.edc.web.spi.configuration.WebServiceConfigurer.WEB_HTTP_PREFIX;
 
 @Extension(NAME)
 public class ApiAuthenticationConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Api Authentication Configuration Extension";
-
-    public static final String WEB_HTTP_PREFIX = "web.http";
 
     public static final String AUTH_KEY = "auth";
     public static final String CONFIG_ALIAS = WEB_HTTP_PREFIX + ".<context>." + AUTH_KEY + ".";
