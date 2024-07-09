@@ -76,7 +76,7 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
             .name(WEB_SERVICE_NAME)
             .build();
     private static final String CONTROL_SCOPE = "CONTROL_API";
-    private static final String API_VERSION_JSON_FILE = "version.json";
+    private static final String API_VERSION_JSON_FILE = "ctrl-api-version.json";
 
     @Inject
     private WebServer webServer;

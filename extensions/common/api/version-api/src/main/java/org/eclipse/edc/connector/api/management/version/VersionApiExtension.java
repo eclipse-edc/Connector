@@ -50,7 +50,7 @@ public class VersionApiExtension implements ServiceExtension {
             .name(WEB_SERVICE_NAME)
             .build();
 
-    private static final String API_VERSION_JSON_FILE = "version.json";
+    private static final String API_VERSION_JSON_FILE = "version-api-version.json";
     @Inject
     private WebService webService;
 

@@ -33,7 +33,7 @@ public class ObservabilityApiExtension implements ServiceExtension {
 
     public static final String NAME = "Observability API";
     public static final String OBSERVABILITY_CONTEXT = "observability";
-    private static final String API_VERSION_JSON_FILE = "version.json";
+    private static final String API_VERSION_JSON_FILE = "obs-api-version.json";
     private final HealthCheckResult result = HealthCheckResult.Builder.newInstance().component(NAME).build();
 
     @Inject

@@ -49,7 +49,7 @@ public class StsApiConfigurationExtension implements ServiceExtension {
             .useDefaultContext(false)
             .name(WEB_SERVICE_NAME)
             .build();
-    private static final String API_VERSION_JSON_FILE = "version.json";
+    private static final String API_VERSION_JSON_FILE = "sts-api-version.json";
 
     @Inject
     private WebServer webServer;
