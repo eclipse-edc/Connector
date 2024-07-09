@@ -285,7 +285,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
 
     /**
      * Transforms a JsonValue to a list of strings. If the value parameter is not of type JsonString, JsonObject or JsonArray,
-     * a problem is reported to the context.
+     * a problem is reported to the context and an empty list is returned.
      *
      * @param value   the value to transform
      * @param context the transformer context
@@ -334,7 +334,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                     .expected(ARRAY)
                     .report();
         }
-        return null;
+        return result;
     }
 
     /**
