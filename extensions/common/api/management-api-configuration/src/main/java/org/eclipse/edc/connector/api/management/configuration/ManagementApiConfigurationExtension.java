@@ -72,7 +72,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 @Extension(ManagementApiConfigurationExtension.NAME)
 public class ManagementApiConfigurationExtension implements ServiceExtension {
 
-    public static final String API_VERSION_JSON_FILE = "mgmt-api-version.json";
+    public static final String API_VERSION_JSON_FILE = "management-api-version.json";
     public static final String NAME = "Management API configuration";
     public static final String WEB_SERVICE_NAME = "Management API";
 
