@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.policy.v3;
+package org.eclipse.edc.connector.controlplane.api.management.policy.v31alpha;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,9 +34,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-@OpenAPIDefinition(info = @Info(version = "v3"))
-@Tag(name = "Policy Definition V3")
-public interface PolicyDefinitionApiV3 {
+@OpenAPIDefinition(info = @Info(version = "v3.1-alpha"))
+@Tag(name = "Policy Definition v3.1-alpha")
+public interface PolicyDefinitionApiV31Alpha {
 
     @Operation(description = "Returns all policy definitions according to a query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
@@ -119,6 +119,7 @@ public interface PolicyDefinitionApiV3 {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
                         "@type": "Set",
                         "uid": "http://example.com/policy:1010",
+                        "profile": "http://example.com/odrl:profile:02",
                         "permission": [{
                             "target": "http://example.com/asset:9898.movie",
                             "action": "display",
