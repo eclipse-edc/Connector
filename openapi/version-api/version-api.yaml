@@ -48,6 +48,9 @@ components:
           type: string
           format: date-time
           example: null
+        maturity:
+          type: string
+          example: null
         urlPath:
           type: string
           example: null
