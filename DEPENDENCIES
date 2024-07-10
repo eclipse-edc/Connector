@@ -108,9 +108,9 @@ maven/mavencentral/io.cloudevents/cloudevents-core/4.0.1, Apache-2.0, approved, 
 maven/mavencentral/io.cloudevents/cloudevents-http-basic/4.0.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.github.classgraph/classgraph/4.8.154, MIT, approved, CQ22530
 maven/mavencentral/io.github.classgraph/classgraph/4.8.165, MIT, approved, CQ22530
-maven/mavencentral/io.micrometer/micrometer-commons/1.13.1, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #14826
-maven/mavencentral/io.micrometer/micrometer-core/1.13.1, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #14827
-maven/mavencentral/io.micrometer/micrometer-observation/1.13.1, Apache-2.0, approved, #14829
+maven/mavencentral/io.micrometer/micrometer-commons/1.13.2, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #14826
+maven/mavencentral/io.micrometer/micrometer-core/1.13.2, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #14827
+maven/mavencentral/io.micrometer/micrometer-observation/1.13.2, Apache-2.0, approved, #14829
 maven/mavencentral/io.netty/netty-buffer/4.1.86.Final, Apache-2.0, approved, CQ21842
 maven/mavencentral/io.netty/netty-codec-http/4.1.86.Final, Apache-2.0 AND BSD-3-Clause AND MIT, approved, CQ20926
 maven/mavencentral/io.netty/netty-codec-http2/4.1.86.Final, Apache-2.0 AND BSD-3-Clause AND MIT, approved, CQ20926
@@ -188,6 +188,7 @@ maven/mavencentral/net.bytebuddy/byte-buddy-agent/1.14.15, Apache-2.0, approved,
 maven/mavencentral/net.bytebuddy/byte-buddy/1.14.1, Apache-2.0 AND BSD-3-Clause, approved, #7163
 maven/mavencentral/net.bytebuddy/byte-buddy/1.14.15, Apache-2.0 AND BSD-3-Clause, approved, #7163
 maven/mavencentral/net.bytebuddy/byte-buddy/1.14.16, Apache-2.0 AND BSD-3-Clause, approved, #7163
+maven/mavencentral/net.bytebuddy/byte-buddy/1.14.18, Apache-2.0 AND BSD-3-Clause, approved, #7163
 maven/mavencentral/net.java.dev.jna/jna/5.13.0, Apache-2.0 AND LGPL-2.1-or-later, approved, #15196
 maven/mavencentral/net.javacrumbs.json-unit/json-unit-core/2.36.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/net.minidev/accessors-smart/2.4.7, Apache-2.0, approved, #7515
@@ -228,6 +229,7 @@ maven/mavencentral/org.apache.velocity/velocity-engine-scripting/2.3, Apache-2.0
 maven/mavencentral/org.apache.xbean/xbean-reflect/3.7, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.assertj/assertj-core/3.26.0, Apache-2.0, approved, #14886
+maven/mavencentral/org.assertj/assertj-core/3.26.3, Apache-2.0, approved, #14886
 maven/mavencentral/org.awaitility/awaitility/4.2.1, Apache-2.0, approved, #14178
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.72, MIT, approved, #3789
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.78.1, MIT, approved, #14434
