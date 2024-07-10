@@ -55,7 +55,7 @@ public class VersionApiEndToEndTest {
 
             assertThat(result).containsKeys("management", "version", "control", "observability", "sts");
             assertThat(result.get("management")).hasSize(2)
-                    .anyMatch(vr -> vr.version().equals("3.0.1") && vr.maturity().equals("stable"))
+                    .anyMatch(vr -> vr.version().equals("3.0.2") && vr.maturity().equals("stable"))
                     .anyMatch(vr -> vr.version().equals("3.1.0-alpha") && vr.maturity().equals("alpha"));
             assertThat(result.get("version")).hasSize(1).anyMatch(vr -> vr.version().equals("1.0.0"));
             assertThat(result.get("observability")).hasSize(1).anyMatch(vr -> vr.version().equals("1.0.0"));
