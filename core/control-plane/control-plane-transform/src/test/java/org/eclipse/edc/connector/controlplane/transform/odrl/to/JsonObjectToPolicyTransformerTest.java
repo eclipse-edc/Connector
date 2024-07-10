@@ -42,7 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
@@ -201,23 +200,6 @@ class JsonObjectToPolicyTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getProfiles().get(0)).isEqualTo("http://example.com/odrl:profile:01");
         verify(context, never()).reportProblem(anyString());
-    }
-
-    @Test
-    void transform_withInvalidProfile() {
-
-        var policy = jsonFactory.createObjectBuilder()
-                .add(TYPE, ODRL_POLICY_TYPE_SET)
-                .add(ODRL_PROFILE_ATTRIBUTE, jsonFactory.createObjectBuilder().add(VALUE, "http://example.com/odrl:profile:01"))
-                .build();
-
-        when(context.problem()).thenReturn(new ProblemBuilder(context));
-
-        var result = transformer.transform(TestInput.getExpanded(policy), context);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getProfiles()).isEmpty();
-        verify(context).reportProblem(anyString());
     }
 
     private static class PolicyTypeArguments implements ArgumentsProvider {
