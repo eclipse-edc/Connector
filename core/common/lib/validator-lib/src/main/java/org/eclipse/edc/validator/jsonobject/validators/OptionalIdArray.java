@@ -16,7 +16,6 @@ package org.eclipse.edc.validator.jsonobject.validators;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
@@ -56,7 +55,9 @@ public class OptionalIdArray implements Validator<JsonObject> {
                 .map(this::validateMin)
                 .orElse(ValidationResult.success());
 
-        if (sizeResult.failed()) return sizeResult;
+        if (sizeResult.failed()) {
+            return sizeResult;
+        }
 
         return Optional.ofNullable(input.getJsonArray(path.last()))
                 .map(this::validateType)
@@ -71,10 +72,10 @@ public class OptionalIdArray implements Validator<JsonObject> {
     }
 
     private ValidationResult validateType(JsonArray array) {
-        for (JsonValue value : array) {
+        for (var value : array) {
             try {
                 var id = value.asJsonObject().getJsonString(ID);
-                if (id == null || id.getString().isBlank() || id.getString().isEmpty()) {
+                if (id == null || id.getString().isBlank()) {
                     return ValidationResult.failure(violation(format("contents of array '%s' should not be blank or empty", path), path.toString()));
                 }
             } catch (ClassCastException e) {

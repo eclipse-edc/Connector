@@ -26,7 +26,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,12 +39,10 @@ import static jakarta.json.JsonValue.ValueType.ARRAY;
 import static jakarta.json.JsonValue.ValueType.FALSE;
 import static jakarta.json.JsonValue.ValueType.NUMBER;
 import static jakarta.json.JsonValue.ValueType.OBJECT;
-import static jakarta.json.JsonValue.ValueType.STRING;
 import static jakarta.json.JsonValue.ValueType.TRUE;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 
 /**
  * Base JSON-LD transformer implementation.
@@ -281,60 +278,6 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                     .report();
             return null;
         }
-    }
-
-    /**
-     * Transforms a JsonValue to a list of strings. If the value parameter is not of type JsonString, JsonObject or JsonArray,
-     * a problem is reported to the context and an empty list is returned.
-     *
-     * @param value   the value to transform
-     * @param context the transformer context
-     * @return the string list result
-     */
-    @Nullable
-    protected List<String> transformIdStringArray(JsonValue value, TransformerContext context) {
-        List<String> result = new ArrayList<>();
-        if (value instanceof JsonString) {
-            result.add(((JsonString) value).getString());
-            return result;
-        }
-        if (value instanceof JsonObject) {
-            var object = value.asJsonObject();
-            var id = nodeId(object);
-            if (id == null) {
-                context.problem()
-                        .unexpectedType()
-                        .expected(ID)
-                        .report();
-                return result;
-            }
-            result.add(id);
-            return result;
-        }
-        if (value instanceof JsonArray) {
-            result = value.asJsonArray().stream()
-                    .map(this::nodeId)
-                    .filter(Objects::nonNull)
-                    .collect(toList());
-            if (result.isEmpty()) {
-                context.problem()
-                        .unexpectedType()
-                        .expected(ID)
-                        .report();
-                return result;
-            }
-            return result;
-        }
-        if (value != null) {
-            context.problem()
-                    .unexpectedType()
-                    .actual(value.getValueType())
-                    .expected(STRING)
-                    .expected(OBJECT)
-                    .expected(ARRAY)
-                    .report();
-        }
-        return result;
     }
 
     /**

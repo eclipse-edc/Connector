@@ -22,6 +22,7 @@ import org.eclipse.edc.validator.jsonobject.validators.OptionalIdArray;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Violation;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static jakarta.json.Json.createArrayBuilder;
@@ -218,72 +219,76 @@ class JsonObjectValidatorTest {
                 });
     }
 
-    @Test
-    void shouldFail_ValidateOptionalIdArrayMinSize() {
-        var input = createObjectBuilder()
-                .add("arrayProperty", createArrayBuilder()
-                        .add(createObjectBuilder().add(ID, "value1"))
-                        .add(createObjectBuilder().add(ID, "value2"))
-                );
+    @Nested
+    class TestOptionalIdArray {
+        @Test
+        void shouldFail_ValidateOptionalIdArrayMinSize() {
+            var input = createObjectBuilder()
+                    .add("arrayProperty", createArrayBuilder()
+                            .add(createObjectBuilder().add(ID, "value1"))
+                            .add(createObjectBuilder().add(ID, "value2"))
+                    );
 
-        var result = JsonObjectValidator.newValidator()
-                .verify("arrayProperty", OptionalIdArray.min(3))
-                .build()
-                .validate(input.build());
+            var result = JsonObjectValidator.newValidator()
+                    .verify("arrayProperty", OptionalIdArray.min(3))
+                    .build()
+                    .validate(input.build());
 
-        assertThat(result).isFailed().satisfies(failure -> {
-            assertThat(failure.getViolations()).anySatisfy(violation -> {
-                assertThat(violation.path()).contains("arrayProperty");
+            assertThat(result).isFailed().satisfies(failure -> {
+                assertThat(failure.getViolations()).anySatisfy(violation -> {
+                    assertThat(violation.path()).contains("arrayProperty");
+                });
             });
-        });
-    }
+        }
 
-    @Test
-    void shouldSucceed_ValidateOptionalIdArrayNoValue() {
-        var input = createObjectBuilder();
+        @Test
+        void shouldSucceed_ValidateOptionalIdArrayNoValue() {
+            var input = createObjectBuilder();
 
-        var result = JsonObjectValidator.newValidator()
-                .verify("arrayProperty", OptionalIdArray::new)
-                .build()
-                .validate(input.build());
+            var result = JsonObjectValidator.newValidator()
+                    .verify("arrayProperty", OptionalIdArray::new)
+                    .build()
+                    .validate(input.build());
 
-        assertThat(result).isSucceeded();
-    }
+            assertThat(result).isSucceeded();
+        }
 
-    @Test
-    void shouldFail_ValidateOptionalIdArrayWrongType() {
-        var input = createObjectBuilder()
-                .add("arrayProperty", createArrayBuilder()
-                        .add(createObjectBuilder().add("subProperty", createObjectBuilder()))
-                );
+        @Test
+        void shouldFail_ValidateOptionalIdArrayWrongType() {
+            var input = createObjectBuilder()
+                    .add("arrayProperty", createArrayBuilder()
+                            .add(createObjectBuilder().add("subProperty", createObjectBuilder()))
+                    );
 
-        var result = JsonObjectValidator.newValidator()
-                .verify("arrayProperty", OptionalIdArray::new)
-                .build()
-                .validate(input.build());
+            var result = JsonObjectValidator.newValidator()
+                    .verify("arrayProperty", OptionalIdArray::new)
+                    .build()
+                    .validate(input.build());
 
-        assertThat(result).isFailed().satisfies(failure -> {
-            assertThat(failure.getViolations()).anySatisfy(violation -> {
-                assertThat(violation.path()).contains("arrayProperty");
+            assertThat(result).isFailed().satisfies(failure -> {
+                assertThat(failure.getViolations()).anySatisfy(violation -> {
+                    assertThat(violation.path()).contains("arrayProperty");
+                });
             });
-        });
+        }
+
+        @Test
+        void shouldSucceed_ValidateOptionalIdArray() {
+            var input = createObjectBuilder()
+                    .add("arrayProperty", createArrayBuilder()
+                            .add(createObjectBuilder().add(ID, "value1"))
+                            .add(createObjectBuilder().add(ID, "value2"))
+                    );
+
+            var result = JsonObjectValidator.newValidator()
+                    .verify("arrayProperty", OptionalIdArray::new)
+                    .build()
+                    .validate(input.build());
+
+            assertThat(result).isSucceeded();
+        }
     }
 
-    @Test
-    void shouldSucceed_ValidateOptionalIdArray() {
-        var input = createObjectBuilder()
-                .add("arrayProperty", createArrayBuilder()
-                        .add(createObjectBuilder().add(ID, "value1"))
-                        .add(createObjectBuilder().add(ID, "value2"))
-                );
-
-        var result = JsonObjectValidator.newValidator()
-                .verify("arrayProperty", OptionalIdArray::new)
-                .build()
-                .validate(input.build());
-
-        assertThat(result).isSucceeded();
-    }
 
     private JsonArrayBuilder value(String value) {
         return createArrayBuilder().add(createObjectBuilder().add(VALUE, value));
