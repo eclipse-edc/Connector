@@ -29,7 +29,7 @@ public class PolicyDefinitionApiV31AlphaControllerTest extends BasePolicyDefinit
     @Override
     protected RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:%d/v3/policydefinitions".formatted(port))
+                .baseUri("http://localhost:%d/v3.1alpha/policydefinitions".formatted(port))
                 .port(port);
     }
 
