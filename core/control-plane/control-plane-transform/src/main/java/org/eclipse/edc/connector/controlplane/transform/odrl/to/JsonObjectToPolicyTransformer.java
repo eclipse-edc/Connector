@@ -103,7 +103,7 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
         return builderResult(builder::build, context);
     }
 
-    List<String> transformProfile(JsonValue value) {
+    private List<String> transformProfile(JsonValue value) {
         return value.asJsonArray().stream()
                 .map(this::nodeId)
                 .filter(Objects::nonNull)
