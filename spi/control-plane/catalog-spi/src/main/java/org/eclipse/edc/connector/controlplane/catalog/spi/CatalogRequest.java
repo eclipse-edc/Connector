@@ -36,6 +36,7 @@ public class CatalogRequest {
     private String counterPartyAddress;
     private String counterPartyId;
     private String protocol;
+
     private CatalogRequest() {
     }
 
