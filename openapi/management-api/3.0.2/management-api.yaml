@@ -1509,6 +1509,40 @@ paths:
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
       deprecated: true
+  /v3.1alpha/catalog/dataset/request:
+    post:
+      tags:
+      - Catalog V3
+      operationId: getDatasetV31alpha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DatasetRequest"
+      responses:
+        default:
+          description: Gets single dataset from a connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataset"
+  /v3.1alpha/catalog/request:
+    post:
+      tags:
+      - Catalog V3
+      operationId: requestCatalogV31alpha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogRequest"
+      responses:
+        default:
+          description: Gets contract offers (=catalog) of a single connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Catalog"
   /v3/assets:
     put:
       tags:
@@ -3226,6 +3260,12 @@ components:
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/CatalogRequest
+        additionalScopes:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
         counterPartyAddress:
           type: string
           example: null
@@ -3244,6 +3284,9 @@ components:
         counterPartyAddress: http://provider-address
         counterPartyId: providerId
         protocol: dataspace-protocol-http
+        additionalScopes:
+        - org.eclipse.edc.vc.type:SomeCredential:read
+        - org.eclipse.edc.vc.type:AnotherCredential:write
         querySpec:
           offset: 0
           limit: 50
