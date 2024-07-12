@@ -19,6 +19,7 @@ import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.spi.result.Result;
 
 import java.security.Key;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,10 +40,10 @@ public class KeyParserRegistryImpl implements KeyParserRegistry {
     }
 
     @Override
-    public Result<Key> parsePublic(String encoded) {
+    public Result<PublicKey> parsePublic(String encoded) {
         return parsers.stream().filter(kp -> kp.canHandle(encoded))
                 .findFirst()
-                .map(kp -> kp.parsePublic(encoded))
+                .map(kp -> kp.parsePublic(encoded).compose(k -> Result.success((PublicKey) k)))
                 .orElseGet(() -> Result.failure("No parser found that can handle that format."));
     }
 }

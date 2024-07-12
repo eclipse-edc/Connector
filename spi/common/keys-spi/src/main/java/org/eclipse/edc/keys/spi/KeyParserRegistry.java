@@ -17,6 +17,7 @@ package org.eclipse.edc.keys.spi;
 import org.eclipse.edc.spi.result.Result;
 
 import java.security.Key;
+import java.security.PublicKey;
 
 /**
  * Registry that holds multiple {@link KeyParser} instances that are used to deserialize a private key from their
@@ -45,5 +46,5 @@ public interface KeyParserRegistry {
      * @param encoded The private key in encoded format (PEM, OpenSSH, JWK, PKCS8,...)
      * @return a success result containing the public key, a failure if the encoded public key could not be deserialized.
      */
-    Result<Key> parsePublic(String encoded);
+    Result<PublicKey> parsePublic(String encoded);
 }

@@ -22,7 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.security.PrivateKey;
 import java.security.PublicKey;
 
 import static org.mockito.Mockito.mock;
@@ -59,15 +58,6 @@ class LocalPublicKeyServiceImplTest {
 
     @Test
     void resolve_notFound() {
-        AbstractResultAssert.assertThat(localPublicKeyService.resolveKey("id")).isFailed();
-        verify(vault).resolveSecret("id");
-    }
-
-    @Test
-    void resolve_wrongKeyType() {
-        when(vault.resolveSecret("id")).thenReturn("value");
-        when(keyParserRegistry.parsePublic("value")).thenReturn(Result.success(mock(PrivateKey.class)));
-
         AbstractResultAssert.assertThat(localPublicKeyService.resolveKey("id")).isFailed();
         verify(vault).resolveSecret("id");
     }

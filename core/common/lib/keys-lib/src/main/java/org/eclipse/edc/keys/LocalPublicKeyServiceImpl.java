@@ -61,12 +61,6 @@ public class LocalPublicKeyServiceImpl implements LocalPublicKeyService {
     }
 
     private Result<PublicKey> parseKey(String encodedKey) {
-        return registry.parsePublic(encodedKey).compose(pk -> {
-            if (pk instanceof PublicKey publicKey) {
-                return Result.success(publicKey);
-            } else {
-                return Result.failure("The specified resource did not contain public key material.");
-            }
-        });
+        return registry.parsePublic(encodedKey).compose(Result::success);
     }
 }
