@@ -99,6 +99,11 @@ public class Dataset {
             return self();
         }
 
+        public B offers(Map<String, Policy> offers) {
+            dataset.offers.putAll(offers);
+            return self();
+        }
+
         public B distribution(Distribution distribution) {
             if (dataset.distributions == null) {
                 dataset.distributions = new ArrayList<>();
