@@ -61,6 +61,6 @@ public class LocalPublicKeyServiceImpl implements LocalPublicKeyService {
     }
 
     private Result<PublicKey> parseKey(String encodedKey) {
-        return registry.parsePublic(encodedKey).compose(Result::success);
+        return registry.parsePublic(encodedKey);
     }
 }
