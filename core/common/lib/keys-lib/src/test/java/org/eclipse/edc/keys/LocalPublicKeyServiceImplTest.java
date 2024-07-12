@@ -31,9 +31,9 @@ import static org.mockito.Mockito.when;
 
 class LocalPublicKeyServiceImplTest {
 
-    private LocalPublicKeyServiceImpl localPublicKeyService;
     private final Vault vault = mock();
     private final KeyParserRegistry keyParserRegistry = mock();
+    private LocalPublicKeyServiceImpl localPublicKeyService;
 
     @BeforeEach
     void setup() {
@@ -42,7 +42,7 @@ class LocalPublicKeyServiceImplTest {
 
     @Test
     void resolve_withCache() {
-        when(keyParserRegistry.parse("value")).thenReturn(Result.success(mock(PublicKey.class)));
+        when(keyParserRegistry.parsePublic("value")).thenReturn(Result.success(mock(PublicKey.class)));
         localPublicKeyService.addRawKey("id", "value");
         AbstractResultAssert.assertThat(localPublicKeyService.resolveKey("id")).isSucceeded();
         Mockito.verifyNoInteractions(vault);
@@ -51,7 +51,7 @@ class LocalPublicKeyServiceImplTest {
     @Test
     void resolve_withVault() {
         when(vault.resolveSecret("id")).thenReturn("value");
-        when(keyParserRegistry.parse("value")).thenReturn(Result.success(mock(PublicKey.class)));
+        when(keyParserRegistry.parsePublic("value")).thenReturn(Result.success(mock(PublicKey.class)));
         AbstractResultAssert.assertThat(localPublicKeyService.resolveKey("id")).isSucceeded();
 
         verify(vault).resolveSecret("id");
@@ -66,7 +66,7 @@ class LocalPublicKeyServiceImplTest {
     @Test
     void resolve_wrongKeyType() {
         when(vault.resolveSecret("id")).thenReturn("value");
-        when(keyParserRegistry.parse("value")).thenReturn(Result.success(mock(PrivateKey.class)));
+        when(keyParserRegistry.parsePublic("value")).thenReturn(Result.success(mock(PrivateKey.class)));
 
         AbstractResultAssert.assertThat(localPublicKeyService.resolveKey("id")).isFailed();
         verify(vault).resolveSecret("id");
@@ -75,7 +75,7 @@ class LocalPublicKeyServiceImplTest {
     @Test
     void resolve_wrongKeyFormat() {
         when(vault.resolveSecret("id")).thenReturn("value");
-        when(keyParserRegistry.parse("value")).thenReturn(Result.failure("failure"));
+        when(keyParserRegistry.parsePublic("value")).thenReturn(Result.failure("failure"));
 
         AbstractResultAssert.assertThat(localPublicKeyService.resolveKey("id")).isFailed();
         verify(vault).resolveSecret("id");

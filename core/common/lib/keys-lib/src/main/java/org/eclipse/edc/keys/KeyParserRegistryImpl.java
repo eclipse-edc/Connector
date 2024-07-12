@@ -37,4 +37,12 @@ public class KeyParserRegistryImpl implements KeyParserRegistry {
                 .map(kp -> kp.parse(encoded))
                 .orElseGet(() -> Result.failure("No parser found that can handle that format."));
     }
+
+    @Override
+    public Result<Key> parsePublic(String encoded) {
+        return parsers.stream().filter(kp -> kp.canHandle(encoded))
+                .findFirst()
+                .map(kp -> kp.parsePublic(encoded))
+                .orElseGet(() -> Result.failure("No parser found that can handle that format."));
+    }
 }
