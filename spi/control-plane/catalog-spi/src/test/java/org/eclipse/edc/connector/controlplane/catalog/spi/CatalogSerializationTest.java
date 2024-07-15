@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.catalog.spi;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -28,6 +29,11 @@ class CatalogSerializationTest {
 
     private final TypeManager typeManager = new JacksonTypeManager();
 
+    @BeforeEach
+    void beforeAll() {
+        typeManager.registerTypes(Catalog.class, Dataset.class);
+    }
+
     @Test
     void verifySerialization() {
         var catalog = createCatalog();
@@ -35,7 +41,9 @@ class CatalogSerializationTest {
         var json = typeManager.writeValueAsString(catalog);
 
         var deserialized = typeManager.readValue(json, Catalog.class);
-        assertThat(deserialized).usingRecursiveComparison().isEqualTo(catalog);
+        assertThat(catalog).usingRecursiveComparison().isEqualTo(deserialized);
+
+        assertThat(catalog.getDatasets().get(1)).isInstanceOf(Catalog.class);
     }
 
 
@@ -51,10 +59,13 @@ class CatalogSerializationTest {
                 .distributions(List.of(distribution))
                 .build();
 
+
+        var nestedCatalog = Catalog.Builder.newInstance().id("nestedId").participantId("participantId").build();
+
         return Catalog.Builder.newInstance()
                 .id("id")
                 .dataServices(List.of(dataService))
-                .datasets(List.of(dataset))
+                .datasets(List.of(dataset, nestedCatalog))
                 .property("prop", "propValue")
                 .build();
     }
