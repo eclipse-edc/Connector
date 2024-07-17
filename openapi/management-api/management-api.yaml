@@ -1543,6 +1543,202 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Catalog"
+  /v3.1alpha/policydefinitions:
+    post:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: Creates a new policy definition
+      operationId: createPolicyDefinitionV3_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyDefinitionInput"
+      responses:
+        "200":
+          description: policy definition was created successfully. Returns the Policy
+            Definition Id and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdResponse"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "Could not create policy definition, because a contract definition\
+            \ with that ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v3.1alpha/policydefinitions/request:
+    post:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: Returns all policy definitions according to a query
+      operationId: queryPolicyDefinitionsV3_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The policy definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/PolicyDefinitionOutput"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v3.1alpha/policydefinitions/{id}:
+    get:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: Gets a policy definition with the given ID
+      operationId: getPolicyDefinitionV3_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: The  policy definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyDefinitionOutput"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An  policy definition with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+    put:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: "Updates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: updatePolicyDefinitionV3_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyDefinitionInput"
+      responses:
+        "204":
+          description: policy definition was updated successfully.
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: "policy definition could not be updated, because it does not\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorDetail"
+    delete:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: "Removes a policy definition with the given ID if possible. Deleting\
+        \ a policy definition is only possible if that policy definition is not yet\
+        \ referenced by a contract definition, in which case an error is returned.\
+        \ DANGER ZONE: Note that deleting policy definitions can have unexpected results,\
+        \ do this at your own risk!"
+      operationId: deletePolicyDefinitionV3_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "204":
+          description: Policy definition was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An policy definition with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "The policy definition cannot be deleted, because it is referenced\
+            \ by a contract definition"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/assets:
     put:
       tags:
@@ -3856,6 +4052,7 @@ components:
           '@context': http://www.w3.org/ns/odrl.jsonld
           '@type': Set
           uid: http://example.com/policy:1010
+          profile: http://example.com/odrl:profile:02
           permission:
           - target: http://example.com/asset:9898.movie
             action: display
