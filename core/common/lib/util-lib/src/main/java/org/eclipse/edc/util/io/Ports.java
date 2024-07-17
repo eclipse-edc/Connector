@@ -16,9 +16,9 @@ package org.eclipse.edc.util.io;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.HashSet;
 import java.util.Random;
-
-import static java.lang.String.format;
+import java.util.Set;
 
 /**
  * Utilities for assigning ports.
@@ -26,22 +26,22 @@ import static java.lang.String.format;
 public final class Ports {
     public static final int MAX_TCP_PORT = 65_535;
     private static final Random RANDOM = new Random();
+    private static final Set<Integer> ALREADY_RETURNED = new HashSet<>();
 
     /**
-     * Gets a free port in the range 1024 - 65535 by trying them in ascending order.
+     * Gets a free port in the range 1024 - 65535 by trying them randomly.
      *
-     * @return the first free port
+     * @return the lower bound.
      * @throws IllegalArgumentException if no free port is available
      */
     public static int getFreePort() {
-        var rnd = 1024 + RANDOM.nextInt(MAX_TCP_PORT - 1024);
-        return getFreePort(rnd);
+        return getFreePort(1024);
     }
 
     /**
-     * Gets a free port in the range lowerBound - 65535 by trying them in ascending order.
+     * Gets a free port in the range lowerBound - 65535 by trying them randomly.
      *
-     * @return the first free port
+     * @return the lower bound.
      * @throws IllegalArgumentException if no free port is available
      */
     public static int getFreePort(int lowerBound) {
@@ -52,7 +52,7 @@ public final class Ports {
     }
 
     /**
-     * Gets a free port in the range lowerBound - upperBound by trying them in ascending order.
+     * Gets a free port in the range lowerBound - upperBound randomly. Will not return ports already returned.
      *
      * @return the first free port
      * @throws IllegalArgumentException if no free port is available or if the bounds are invalid.
@@ -65,25 +65,21 @@ public final class Ports {
         if (upperBound > MAX_TCP_PORT) {
             throw new IllegalArgumentException("Upper bound must be < " + MAX_TCP_PORT);
         }
-        var port = lowerBound;
-        boolean found = false;
 
-        while (!found && port <= upperBound) {
-            try (ServerSocket serverSocket = new ServerSocket(port)) {
-                serverSocket.setReuseAddress(true);
-                port = serverSocket.getLocalPort();
+        do {
+            var tryPort = lowerBound + RANDOM.nextInt(upperBound - lowerBound);
+            if (!ALREADY_RETURNED.contains(tryPort)) {
+                ALREADY_RETURNED.add(tryPort);
 
-                found = true;
-            } catch (IOException e) {
-                found = false;
-                port++;
+                try (var serverSocket = new ServerSocket(tryPort)) {
+                    serverSocket.setReuseAddress(true);
+
+                    return tryPort;
+                } catch (IOException ignored) {
+                    // port already used by external service, try another one
+                }
             }
-        }
-
-        if (!found) {
-            throw new IllegalArgumentException(format("No free ports in the range [%d - %d]", lowerBound, upperBound));
-        }
-        return port;
+        } while (true);
     }
 
     private Ports() {
