@@ -36,6 +36,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROFILE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
@@ -201,6 +202,88 @@ class PolicyDefinitionValidatorTest {
         assertThat(result).isSucceeded();
     }
 
+    @Test
+    void shouldSucceed_whenProfileIsPresent() {
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PROFILE_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "value1")));
+        var policyDefinition = createObjectBuilder()
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
+                .build();
+
+        var result = validator.validate(policyDefinition);
+
+        assertThat(result).isSucceeded();
+    }
+
+    @Test
+    void shouldFail_whenProfileIsWrongType() {
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PROFILE_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, createObjectBuilder())));
+        var policyDefinition = createObjectBuilder()
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
+                .build();
+
+        var result = validator.validate(policyDefinition);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .filteredOn(it -> ODRL_PROFILE_ATTRIBUTE.equals(it.path()))
+                .anySatisfy(violation -> assertThat(violation.message()).contains("type"));
+    }
+
+    @Test
+    void shouldFail_whenProfileIsEmptyArray() {
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PROFILE_ATTRIBUTE, createArrayBuilder());
+        var policyDefinition = createObjectBuilder()
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
+                .build();
+
+        var result = validator.validate(policyDefinition);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .filteredOn(it -> ODRL_PROFILE_ATTRIBUTE.equals(it.path()))
+                .anySatisfy(violation -> assertThat(violation.message()).contains("elements"));
+    }
+
+    @Test
+    void shouldFail_whenProfileIsBlank() {
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PROFILE_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, " ")));
+        var policyDefinition = createObjectBuilder()
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
+                .build();
+
+        var result = validator.validate(policyDefinition);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .filteredOn(it -> ODRL_PROFILE_ATTRIBUTE.equals(it.path()))
+                .anySatisfy(violation -> assertThat(violation.message()).contains("blank"));
+    }
+
+    @Test
+    void shouldFail_whenProfileIsEmpty() {
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PROFILE_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "")));
+        var policyDefinition = createObjectBuilder()
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
+                .build();
+
+        var result = validator.validate(policyDefinition);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .filteredOn(it -> ODRL_PROFILE_ATTRIBUTE.equals(it.path()))
+                .anySatisfy(violation -> assertThat(violation.message()).contains("empty"));
+    }
+
     private JsonArrayBuilder policySet() {
         return createArrayBuilder().add(ODRL_POLICY_TYPE_SET);
     }
@@ -224,5 +307,7 @@ class PolicyDefinitionValidatorTest {
                 .add(ODRL_OPERATOR_ATTRIBUTE, operatorObject)
                 .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, rightOperand));
     }
+
+
 
 }
