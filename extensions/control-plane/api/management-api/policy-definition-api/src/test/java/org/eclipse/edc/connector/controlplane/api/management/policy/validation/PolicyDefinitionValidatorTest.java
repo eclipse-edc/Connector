@@ -34,6 +34,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAIN
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OR_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROFILE_ATTRIBUTE;
@@ -200,6 +201,31 @@ class PolicyDefinitionValidatorTest {
         var result = validator.validate(policyDefinition);
 
         assertThat(result).isSucceeded();
+    }
+
+    @Test
+    void shouldFail_whenLogicalConstraintWithMultipleOperandsIsPresent() {
+        var permission = createArrayBuilder().add(createObjectBuilder()
+                .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
+                .add(ODRL_CONSTRAINT_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder()
+                        .add(ODRL_AND_CONSTRAINT_ATTRIBUTE, createArrayBuilder())
+                        .add(ODRL_OR_CONSTRAINT_ATTRIBUTE, createArrayBuilder())
+                )));
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PERMISSION_ATTRIBUTE, permission);
+        var policyDefinition = createObjectBuilder()
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
+                .build();
+
+        var result = validator.validate(policyDefinition);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .hasSize(1)
+                .anySatisfy(violation -> {
+                    assertThat(violation.message()).contains("multiple operands");
+                    assertThat(violation.path()).endsWith(ODRL_CONSTRAINT_ATTRIBUTE);
+                });
     }
 
     @Test

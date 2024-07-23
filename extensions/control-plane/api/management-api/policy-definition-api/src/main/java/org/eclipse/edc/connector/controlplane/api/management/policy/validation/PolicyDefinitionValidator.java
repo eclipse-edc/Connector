@@ -146,7 +146,15 @@ public class PolicyDefinitionValidator {
 
         @Override
         public ValidationResult validate(JsonObject input) {
-            if (LOGICAL_CONSTRAINTS.stream().anyMatch(input::containsKey)) {
+            var logicalOperands = input.keySet().stream().filter(LOGICAL_CONSTRAINTS::contains).toList();
+
+            if (logicalOperands.size() > 1) {
+                return ValidationResult.failure(
+                        violation("Cannot define multiple operands in a Logical Constraint: %s".formatted(logicalOperands),
+                                path.toString()));
+            }
+
+            if (logicalOperands.size() == 1) {
                 return ValidationResult.success();
             }
 
