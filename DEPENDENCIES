@@ -44,7 +44,7 @@ maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.17.2, Apache-2.0, approve
 maven/mavencentral/com.fasterxml.uuid/java-uuid-generator/4.1.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.cliftonlabs/json-simple/3.0.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.docker-java/docker-java-api/3.4.0, Apache-2.0, approved, clearlydefined
-maven/mavencentral/com.github.docker-java/docker-java-transport-zerodep/3.4.0, Apache-2.0, restricted, clearlydefined
+maven/mavencentral/com.github.docker-java/docker-java-transport-zerodep/3.4.0, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #15745
 maven/mavencentral/com.github.docker-java/docker-java-transport/3.4.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.java-json-tools/btf/1.3, Apache-2.0 OR LGPL-3.0-only, approved, #15201
 maven/mavencentral/com.github.java-json-tools/jackson-coreutils-equivalence/1.0, LGPL-3.0 OR Apache-2.0, approved, clearlydefined
@@ -225,7 +225,7 @@ maven/mavencentral/org.apache.maven.doxia/doxia-module-xdoc/1.12.0, Apache-2.0, 
 maven/mavencentral/org.apache.maven.doxia/doxia-sink-api/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.velocity.tools/velocity-tools-generic/3.1, Apache-2.0, approved, #9331
 maven/mavencentral/org.apache.velocity/velocity-engine-core/2.3, Apache-2.0, approved, #2478
-maven/mavencentral/org.apache.velocity/velocity-engine-scripting/2.3, Apache-2.0, restricted, clearlydefined
+maven/mavencentral/org.apache.velocity/velocity-engine-scripting/2.3, Apache-2.0 AND BSD-3-Clause, approved, #15744
 maven/mavencentral/org.apache.xbean/xbean-reflect/3.7, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.assertj/assertj-core/3.26.3, Apache-2.0, approved, #14886
@@ -349,7 +349,7 @@ maven/mavencentral/org.testcontainers/jdbc/1.20.0, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/junit-jupiter/1.20.0, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/kafka/1.20.0, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/postgresql/1.20.0, MIT, approved, clearlydefined
-maven/mavencentral/org.testcontainers/testcontainers/1.20.0, MIT, restricted, clearlydefined
+maven/mavencentral/org.testcontainers/testcontainers/1.20.0, None, restricted, #15747
 maven/mavencentral/org.testcontainers/vault/1.20.0, MIT, approved, clearlydefined
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.5, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
 maven/mavencentral/org.xmlresolver/xmlresolver/5.2.2, Apache-2.0, approved, clearlydefined

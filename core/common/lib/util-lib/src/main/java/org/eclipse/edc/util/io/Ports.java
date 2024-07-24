@@ -102,9 +102,9 @@ public final class Ports {
     private static final Predicate<Integer> CHECK_SOCKET = port -> {
         try (var socket = new Socket("localhost", port)) {
             socket.setReuseAddress(true);
-            return true;
-        } catch (IOException ignored) {
             return false;
+        } catch (IOException ignored) {
+            return true;
         }
     };
 
