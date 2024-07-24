@@ -15,10 +15,13 @@
 package org.eclipse.edc.util.io;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Utilities for assigning ports.
@@ -67,20 +70,45 @@ public final class Ports {
         }
 
         do {
-            var tryPort = lowerBound + RANDOM.nextInt(upperBound - lowerBound);
-            if (!ALREADY_RETURNED.contains(tryPort)) {
-                ALREADY_RETURNED.add(tryPort);
+            var port = lowerBound + RANDOM.nextInt(upperBound - lowerBound);
+            if (!ALREADY_RETURNED.contains(port)) {
+                ALREADY_RETURNED.add(port);
 
-                try (var serverSocket = new ServerSocket(tryPort)) {
-                    serverSocket.setReuseAddress(true);
-
-                    return tryPort;
-                } catch (IOException ignored) {
-                    // port already used by external service, try another one
+                if (IS_PORT_AVAILABLE.test(port)) {
+                    return port;
                 }
             }
         } while (true);
     }
+
+    private static final Predicate<Integer> CHECK_SERVER_SOCKET = port -> {
+        try (var serverSocket = new ServerSocket(port)) {
+            serverSocket.setReuseAddress(true);
+            return true;
+        } catch (IOException ignored) {
+            return false;
+        }
+    };
+
+    private static final Predicate<Integer> CHECK_DATAGRAM_SOCKET = port -> {
+        try (var datagramSocket = new DatagramSocket(port)) {
+            datagramSocket.setReuseAddress(true);
+            return true;
+        } catch (IOException ignored) {
+            return false;
+        }
+    };
+
+    private static final Predicate<Integer> CHECK_SOCKET = port -> {
+        try (var socket = new Socket("localhost", port)) {
+            socket.setReuseAddress(true);
+            return true;
+        } catch (IOException ignored) {
+            return false;
+        }
+    };
+
+    private static final Predicate<Integer> IS_PORT_AVAILABLE = CHECK_SERVER_SOCKET.and(CHECK_DATAGRAM_SOCKET).and(CHECK_SOCKET);
 
     private Ports() {
     }
