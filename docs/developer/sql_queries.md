@@ -133,11 +133,11 @@ special Postgres function `json_array_elements()` is used. Please refer to
 the [official documentation](https://www.postgresql.org/docs/9.5/functions-json.html).
 
 For an example of how this is done, please look at how
-the [TransferProcessMapping](../../extensions/control-plane/store/sql/transfer-process-store-sql/src/main/java/org/eclipse/edc/connector/store/sql/transferprocess/store/schema/postgres/TransferProcessMapping.java)
+the [TransferProcessMapping](../../extensions/control-plane/store/sql/transfer-process-store-sql/src/main/java/org/eclipse/edc/connector/controlplane/store/sql/transferprocess/store/schema/postgres/TransferProcessMapping.java)
 maps a `ResourceManifest`, which in turn contains a `List<ResourceDefinition>` using
-the [ResourceManifestMapping](../../extensions/control-plane/store/sql/transfer-process-store-sql/src/main/java/org/eclipse/edc/connector/store/sql/transferprocess/store/schema/postgres/ResourceManifestMapping.java)
+the [ResourceManifestMapping](../../extensions/control-plane/store/sql/transfer-process-store-sql/src/main/java/org/eclipse/edc/connector/controlplane/store/sql/transferprocess/store/schema/postgres/ResourceManifestMapping.java)
 . Finally, the `SqlQueryStatement`
-gets [assembled using the aforementioned JSON array function](../../extensions/control-plane/store/sql/transfer-process-store-sql/src/main/java/org/eclipse/edc/connector/store/sql/transferprocess/store/schema/postgres/PostgresDialectStatements.java)
+gets [assembled using the aforementioned JSON array function](../../extensions/common/store/sql/edr-index-sql/src/main/java/org/eclipse/edc/edr/store/index/sql/schema/postgres/PostgresDialectStatements.java)
 .
 
 ## Prepared statements using the `SqlQueryStatement`
@@ -168,7 +168,7 @@ Notes:
 
 ## Supported query operators
 
-Currently we only support the following operators:
+Currently, we only support the following operators:
 
 - `=`: equality, right-hand operand is interpreted as literal
 - `in`: "one-of", right hand operand must be an `Iterable`

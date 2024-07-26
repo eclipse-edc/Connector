@@ -9,7 +9,7 @@ themselves.
 ## When to use it
 
 This feature is intended for use cases where the standard DTO validation, that ships with EDC's APIs is not sufficient.
-Please check out the [OpenAPI spec](../../resources/openapi/yaml) to find out more about the object schema.
+Please check out the [OpenAPI spec](../../resources/openapi) to find out more about the object schema.
 
 EDC features various data types that do not have a strict schema but are *extensible*, for example `Asset`/`AssetDto`,
 or a `DataRequest`/`DataRequestDto`. This was done by design, to allow for maximum flexibility and openness. However,
@@ -33,7 +33,7 @@ following ways:
 1. bound to a resource-method: here, we register the `InterceptorFunction` to any of a controller's methods. That means,
    we need compile-time access to the controller class, because we use reflection to obtain the `Method`:
    ```java
-   var method = YourController.class.getDeclaredMethods("theMethod", /*parameter types*/)
+   var method = YourController.class.getDeclaredMethods("theMethod", /*parameter types*/);
    var yourFunction = objects -> Result.success(); // you validation logic goes here
    registry.addFunction(method, yourFunction);
    ```

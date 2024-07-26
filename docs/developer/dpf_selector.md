@@ -44,10 +44,10 @@ named `:extensions:data-plane-selector`, which will contain (at least) the follo
 - `data-plane-selector-api`: REST API
 - `selector-core`: common code, default implementations for store and strategies
 
-Furthermore there should be a `selector-launcher` in the `launchers` directory containing a build file for standalone
+Furthermore, there should be a `selector-launcher` in the `launchers` directory containing a build file for standalone
 deployment.
 
-Centrally to the DPF selector is an interface `DataPlaneSelector` whos purpose is to select a DPF instance based on an
+Centrally to the DPF selector is an interface `DataPlaneSelector` whose purpose is to select a DPF instance based on an
 incoming `DataRequest` and an optional `SelectionStrategy`:
 
 ```java
@@ -82,7 +82,7 @@ Thus, the `DataPlaneInstance` itself determines whether it can support a particu
 capabilities such as its `DataSink` and `DataSource` implementations, streaming capabilities, etc.
 
 Requests come in either through an API or an SPI hit the `DataPlaneSelector`, which then filters its list
-of `DataPlaneInstace` records and selects the best fitting DPF based on a strategy. By default selection is made at
+of `DataPlaneInstace` records and selects the best fitting DPF based on a strategy. By default, selection is made at
 random.
 
 ### API/SPI considerations
@@ -135,7 +135,7 @@ best-fit criteria for a `DataPlaneInstance`. By default, we will implement the f
 - [optional] `OldestNextSelectionStrategy`: selects the DPF instance that was idle the longest
 
 _Please note that when multiple DPF selector instances are used, some of the selection strategies only work as intended
-if DPF selectors share their storage, otherwise the counters would be inconsitent!_
+if DPF selectors share their storage, otherwise the counters would be inconsistent!_
 
 All `SelectionStrategy` objects must be registered with the DPF selector before it can be passed in through a REST API
 or used in the SPI. This requires the use of a `SelectionStrategyRegistry` into which customer extensions can register

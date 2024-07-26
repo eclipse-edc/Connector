@@ -122,7 +122,7 @@ The DPF will persistently manage push and pull `DataRequests,` whereas it previo
 
 During bootstrap, the DPF will initialize a cache of active `DataFlow` id-token id pairs that are in the `STARTED` state.  The cache will be updated on `DataFlow` state changes. 
 
-When a request for data is made by a client, the provided access token will be validated and its associated data flow id will checked against the cache. If an entry is not found, or the token id does not match, the request will be denied.
+When a request for data is made by a client, the provided access token will be validated and its associated data flow id will be checked against the cache. If an entry is not found, or the token id does not match, the request will be denied.
 
 ## Appendix: Additional Refactoring
 

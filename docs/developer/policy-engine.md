@@ -28,7 +28,7 @@ As an example, we create the module `:extensions:policy:ids-policy`.
    org.eclipse.edc.protocol.ids.policy.IdsPolicyExtension
    ```
 
-4. To ensure that the extension will be loaded, add it to the `settings.gradle.kts` at the root of the project:
+3. To ensure that the extension will be loaded, add it to the `settings.gradle.kts` at the root of the project:
 
     ```
     include(":extensions:policy:ids-policy")
