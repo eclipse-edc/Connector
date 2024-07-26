@@ -68,7 +68,7 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
         context.registerService(ContractDefinitionStore.class, sqlContractDefinitionStore);
 
-        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "contract-definition-schema.sql");
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "contract-definition-schema.sql");
     }
 
     private ContractDefinitionStatements getStatementImpl() {

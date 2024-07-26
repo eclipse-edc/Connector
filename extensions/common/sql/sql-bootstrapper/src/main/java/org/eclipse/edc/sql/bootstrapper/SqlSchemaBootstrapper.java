@@ -28,8 +28,8 @@ public interface SqlSchemaBootstrapper {
      * @param datasourceName The name of the datasource against which the statements are to be run
      * @param resourceName   An SQL DDL statement. Cannot contain prepared statements. Do not add DML statements here!
      */
-    default void queueStatementFromResource(String datasourceName, String resourceName) {
-        queueStatementFromResource(datasourceName, resourceName, getClass().getClassLoader());
+    default void addStatementFromResource(String datasourceName, String resourceName) {
+        addStatementFromResource(datasourceName, resourceName, getClass().getClassLoader());
     }
 
     /**
@@ -43,5 +43,5 @@ public interface SqlSchemaBootstrapper {
      * @param resourceName   An SQL DDL statement. Cannot contain prepared statements. Do not add DML statements here!
      * @param classLoader    A classloader which is used to resolve the resource
      */
-    void queueStatementFromResource(String datasourceName, String resourceName, ClassLoader classLoader);
+    void addStatementFromResource(String datasourceName, String resourceName, ClassLoader classLoader);
 }

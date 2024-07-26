@@ -39,15 +39,13 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
     private final DataSourceRegistry dataSourceRegistry;
 
     public SqlSchemaBootstrapperImpl(TransactionContext transactionContext, QueryExecutor queryExecutor, DataSourceRegistry dataSourceRegistry) {
-
         this.transactionContext = transactionContext;
         this.queryExecutor = queryExecutor;
         this.dataSourceRegistry = dataSourceRegistry;
     }
 
 
-    @Override
-    public void queueStatementFromResource(String datasourceName, String resourceName, ClassLoader classLoader) {
+    public void addStatementFromResource(String datasourceName, String resourceName, ClassLoader classLoader) {
         try (var sqlStream = classLoader.getResourceAsStream(resourceName)) {
             var sql = new Scanner(Objects.requireNonNull(sqlStream)).useDelimiter("\\A").next();
             statements.add(new QueuedStatementRecord(datasourceName, sql));
@@ -57,7 +55,6 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
     }
 
     public Result<Void> executeSql() {
-
         return transactionContext.execute(() -> {
             Stream<Result<Void>> objectStream = statements.stream().map(statement -> {
                 var connectionResult = getConnection(statement.datasourceName);
@@ -68,12 +65,13 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
             });
             return objectStream.reduce(Result::merge).orElse(Result.success());
         });
-
     }
 
     public Result<Connection> getConnection(String datasourceName) {
         try {
-            return success(dataSourceRegistry.resolve(datasourceName).getConnection());
+            var resolve = dataSourceRegistry.resolve(datasourceName);
+            return resolve != null ? success(resolve.getConnection()) :
+                    failure("No datasource found with name '%s'".formatted(datasourceName));
         } catch (SQLException e) {
             return failure(e.getMessage());
         }

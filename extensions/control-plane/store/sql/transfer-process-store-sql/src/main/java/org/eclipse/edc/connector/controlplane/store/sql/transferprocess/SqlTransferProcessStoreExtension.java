@@ -65,7 +65,7 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
                 typeManager.getMapper(), getStatementImpl(), context.getRuntimeId(), clock, queryExecutor);
         context.registerService(TransferProcessStore.class, store);
 
-        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "transfer-process-schema.sql");
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "transfer-process-schema.sql");
     }
 
     /**

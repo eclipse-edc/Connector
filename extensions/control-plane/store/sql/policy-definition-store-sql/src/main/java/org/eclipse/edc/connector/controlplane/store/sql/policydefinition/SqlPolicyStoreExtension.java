@@ -62,7 +62,7 @@ public class SqlPolicyStoreExtension implements ServiceExtension {
 
         context.registerService(PolicyDefinitionStore.class, sqlPolicyStore);
 
-        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "policy-definition-schema.sql");
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "policy-definition-schema.sql");
     }
 
     /**

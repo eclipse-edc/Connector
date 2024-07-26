@@ -67,7 +67,7 @@ public class SqlEndpointDataReferenceEntryIndexExtension implements ServiceExten
 
         context.registerService(EndpointDataReferenceEntryIndex.class, sqlStore);
 
-        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "edr-index-schema.sql");
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "edr-index-schema.sql");
     }
 
     private EndpointDataReferenceEntryStatements getStatementImpl() {

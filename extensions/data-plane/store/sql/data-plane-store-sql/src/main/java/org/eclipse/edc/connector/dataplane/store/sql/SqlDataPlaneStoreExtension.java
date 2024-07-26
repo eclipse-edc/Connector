@@ -70,7 +70,7 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
     @Provider
     public DataPlaneStore dataPlaneStore(ServiceExtensionContext context) {
         var dataSourceName = getDataSourceName(context);
-        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "dataplane-schema.sql");
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "dataplane-schema.sql");
         return new SqlDataPlaneStore(dataSourceRegistry, dataSourceName, transactionContext,
                 getStatementImpl(), typeManager.getMapper(), clock, queryExecutor, context.getRuntimeId());
     }

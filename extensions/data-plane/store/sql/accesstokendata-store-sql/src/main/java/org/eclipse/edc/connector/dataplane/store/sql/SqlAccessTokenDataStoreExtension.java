@@ -71,7 +71,7 @@ public class SqlAccessTokenDataStoreExtension implements ServiceExtension {
     @Provider
     public AccessTokenDataStore dataPlaneStore(ServiceExtensionContext context) {
         var dataSourceName = getDataSourceName(context);
-        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "accesstoken-data-schema.sql");
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "accesstoken-data-schema.sql");
         return new SqlAccessTokenDataStore(dataSourceRegistry, dataSourceName, transactionContext,
                 getStatementImpl(), typeManager.getMapper(), queryExecutor);
     }

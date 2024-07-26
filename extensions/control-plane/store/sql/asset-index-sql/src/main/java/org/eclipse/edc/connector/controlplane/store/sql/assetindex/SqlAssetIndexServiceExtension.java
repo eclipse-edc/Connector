@@ -68,7 +68,7 @@ public class SqlAssetIndexServiceExtension implements ServiceExtension {
         context.registerService(AssetIndex.class, sqlAssetLoader);
         context.registerService(DataAddressResolver.class, sqlAssetLoader);
 
-        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "asset-index-schema.sql");
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "asset-index-schema.sql");
     }
 
     private AssetStatements getDialect() {

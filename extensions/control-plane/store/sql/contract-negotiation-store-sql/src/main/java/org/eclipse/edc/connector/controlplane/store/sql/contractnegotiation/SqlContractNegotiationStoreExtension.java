@@ -65,7 +65,7 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
                 typeManager.getMapper(), getStatementImpl(), context.getRuntimeId(), clock, queryExecutor);
         context.registerService(ContractNegotiationStore.class, sqlStore);
 
-        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "contract-negotiation-schema.sql");
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "contract-negotiation-schema.sql");
     }
 
     /**

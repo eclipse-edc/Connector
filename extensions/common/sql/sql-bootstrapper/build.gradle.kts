@@ -24,11 +24,11 @@ dependencies {
     implementation(project(":spi:common:transaction-datasource-spi"))
     implementation(project(":extensions:common:sql:sql-core")) // SqlQueryExecutor
 //
-//    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:junit"))
 //    testImplementation(project(":extensions:common:transaction:transaction-local"))
 //    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
 //    testImplementation(libs.postgres)
-//    testImplementation(libs.assertj)
+    testImplementation(libs.assertj)
 //
 //    testFixturesImplementation(project(":extensions:common:sql:sql-core"))
 }

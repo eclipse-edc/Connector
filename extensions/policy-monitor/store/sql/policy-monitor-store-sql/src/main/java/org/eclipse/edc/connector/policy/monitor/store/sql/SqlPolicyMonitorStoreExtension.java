@@ -61,8 +61,8 @@ public class SqlPolicyMonitorStoreExtension implements ServiceExtension {
     @Provider
     public PolicyMonitorStore policyMonitorStore(ServiceExtensionContext context) {
         var dataSourceName = context.getConfig().getString(DATASOURCE_SETTING_NAME, DEFAULT_DATASOURCE);
-        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "policy-monitor-schema.sql");
-        
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "policy-monitor-schema.sql");
+
         return new SqlPolicyMonitorStore(dataSourceRegistry, dataSourceName, transactionContext,
                 getStatementImpl(), typeManager.getMapper(), clock, queryExecutor, context.getRuntimeId());
 
