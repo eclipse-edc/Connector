@@ -200,8 +200,8 @@ public class TransferEndToEndParticipant extends Participant {
     /**
      * Pull data from provider using EDR.
      *
-     * @param edr         endpoint data reference
-     * @param queryParams query parameters
+     * @param edr           endpoint data reference
+     * @param queryParams   query parameters
      * @param bodyAssertion assertion to be verified on the body
      */
     public void pullData(DataAddress edr, Map<String, String> queryParams, ThrowingConsumer<String> bodyAssertion) {

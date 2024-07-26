@@ -40,7 +40,7 @@ class SqlSchemaBootstrapperImplTest {
 
     private final QueryExecutor queryExecutor = mock();
     private final DataSourceRegistry datasourceRegistry = mock();
-    private final SqlSchemaBootstrapperImpl bootstrapper = new SqlSchemaBootstrapperImpl(new NoopTransactionContext(), queryExecutor, datasourceRegistry);
+    private final SqlSchemaBootstrapperImpl bootstrapper = new SqlSchemaBootstrapperImpl(new NoopTransactionContext(), queryExecutor, datasourceRegistry, mock());
 
     @Test
     void addStatementFromResource() {

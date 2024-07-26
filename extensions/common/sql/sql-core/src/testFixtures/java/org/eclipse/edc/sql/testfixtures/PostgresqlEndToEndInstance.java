@@ -14,10 +14,15 @@
 
 package org.eclipse.edc.sql.testfixtures;
 
+import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public interface PostgresqlEndToEndInstance {
 
@@ -34,6 +39,34 @@ public interface PostgresqlEndToEndInstance {
 
         var postgres = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX, participantName);
         postgres.createDatabase();
+
+        var extensionsFolder = TestUtils.findBuildRoot().toPath().resolve("extensions");
+        var scripts = Stream.of(
+                        "control-plane/store/sql/asset-index-sql/src/main/resources/asset-index-schema.sql",
+                        "control-plane/store/sql/contract-definition-store-sql/src/main/resources/contract-definition-schema.sql",
+                        "control-plane/store/sql/contract-negotiation-store-sql/src/main/resources/contract-negotiation-schema.sql",
+                        "control-plane/store/sql/policy-definition-store-sql/src/main/resources/policy-definition-schema.sql",
+                        "control-plane/store/sql/transfer-process-store-sql/src/main/resources/transfer-process-schema.sql",
+                        "data-plane/store/sql/data-plane-store-sql/src/main/resources/dataplane-schema.sql",
+                        "policy-monitor/store/sql/policy-monitor-store-sql/src/main/resources/policy-monitor-schema.sql",
+                        "common/store/sql/edr-index-sql/src/main/resources/edr-index-schema.sql"
+                )
+                .map(extensionsFolder::resolve)
+                .toList();
+
+        try (var connection = postgres.getConnection(participantName)) {
+            for (var script : scripts) {
+                var sql = Files.readString(script);
+
+                try (var statement = connection.createStatement()) {
+                    statement.execute(sql);
+                } catch (Exception exception) {
+                    throw new EdcPersistenceException(exception.getMessage(), exception);
+                }
+            }
+        } catch (SQLException | IOException e) {
+            throw new EdcPersistenceException(e);
+        }
 
     }
 

@@ -17,6 +17,7 @@ package org.eclipse.edc.sql.bootstrapper;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -38,6 +39,8 @@ public class SqlSchemaBootstrapperExtension implements ServiceExtension {
     private QueryExecutor queryExecutor;
     @Inject
     private DataSourceRegistry datasourceRegistry;
+    @Inject
+    private Monitor monitor;
 
     private SqlSchemaBootstrapperImpl bootstrapper;
     private Boolean shouldAutoCreate;
@@ -51,13 +54,15 @@ public class SqlSchemaBootstrapperExtension implements ServiceExtension {
     public void prepare() {
         if (shouldAutoCreate) {
             ((SqlSchemaBootstrapperImpl) getBootstrapper()).executeSql().orElseThrow(f -> new EdcPersistenceException("Failed to bootstrap SQL schema, error '%s'".formatted(f.getFailureDetail())));
+        } else {
+            monitor.debug("Automatic SQL schema creation is disabled. To enable it, set '%s' = true".formatted(SCHEMA_AUTOCREATE_PROPERTY));
         }
     }
 
     @Provider
     public SqlSchemaBootstrapper getBootstrapper() {
         if (bootstrapper == null) {
-            bootstrapper = new SqlSchemaBootstrapperImpl(transactionContext, queryExecutor, datasourceRegistry);
+            bootstrapper = new SqlSchemaBootstrapperImpl(transactionContext, queryExecutor, datasourceRegistry, monitor);
         }
         return bootstrapper;
     }

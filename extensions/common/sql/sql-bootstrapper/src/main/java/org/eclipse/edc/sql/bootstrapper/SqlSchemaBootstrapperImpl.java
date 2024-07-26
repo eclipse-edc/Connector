@@ -15,6 +15,7 @@
 package org.eclipse.edc.sql.bootstrapper;
 
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.eclipse.edc.spi.result.Result.failure;
@@ -37,11 +39,13 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
     private final QueryExecutor queryExecutor;
     private final List<QueuedStatementRecord> statements = new ArrayList<>();
     private final DataSourceRegistry dataSourceRegistry;
+    private final Monitor monitor;
 
-    public SqlSchemaBootstrapperImpl(TransactionContext transactionContext, QueryExecutor queryExecutor, DataSourceRegistry dataSourceRegistry) {
+    public SqlSchemaBootstrapperImpl(TransactionContext transactionContext, QueryExecutor queryExecutor, DataSourceRegistry dataSourceRegistry, Monitor monitor) {
         this.transactionContext = transactionContext;
         this.queryExecutor = queryExecutor;
         this.dataSourceRegistry = dataSourceRegistry;
+        this.monitor = monitor;
     }
 
 
@@ -49,13 +53,14 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
     public void addStatementFromResource(String datasourceName, String resourceName, ClassLoader classLoader) {
         try (var sqlStream = classLoader.getResourceAsStream(resourceName)) {
             var sql = new Scanner(Objects.requireNonNull(sqlStream)).useDelimiter("\\A").next();
-            statements.add(new QueuedStatementRecord(datasourceName, sql));
+            statements.add(new QueuedStatementRecord(resourceName, datasourceName, sql));
         } catch (IOException e) {
             throw new EdcException(e);
         }
     }
 
     public Result<Void> executeSql() {
+        monitor.debug("Running DML statements: [%s]".formatted(statements.stream().map(QueuedStatementRecord::name).collect(Collectors.joining(", "))));
         return transactionContext.execute(() -> {
             Stream<Result<Void>> objectStream = statements.stream().map(statement -> {
                 var connectionResult = getConnection(statement.datasourceName);
@@ -78,6 +83,6 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
         }
     }
 
-    private record QueuedStatementRecord(String datasourceName, String sql) {
+    private record QueuedStatementRecord(String name, String datasourceName, String sql) {
     }
 }
