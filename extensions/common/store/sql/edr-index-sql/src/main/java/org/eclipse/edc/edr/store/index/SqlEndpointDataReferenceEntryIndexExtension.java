@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -54,6 +55,9 @@ public class SqlEndpointDataReferenceEntryIndexExtension implements ServiceExten
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private SqlSchemaBootstrapper sqlSchemaBootstrapper;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var dataSourceName = context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
@@ -62,6 +66,8 @@ public class SqlEndpointDataReferenceEntryIndexExtension implements ServiceExten
                 getStatementImpl(), queryExecutor);
 
         context.registerService(EndpointDataReferenceEntryIndex.class, sqlStore);
+
+        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "edr-index-schema.sql");
     }
 
     private EndpointDataReferenceEntryStatements getStatementImpl() {

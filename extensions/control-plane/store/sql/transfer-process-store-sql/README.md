@@ -5,7 +5,7 @@ work but might have unexpected side effects!_**
 
 ## Table schema DDL
 
-please refer to [schema.sql](docs/schema.sql):
+please refer to [schema.sql](src/main/resources/schema.sql):
 
 ## Translating the `TransferProcessStore` interface into SQL statements
 
@@ -26,8 +26,9 @@ encoded in those clauses, offering a fluent Java API.
 
 ## Migrate from 0.5.1 to 0.6.0
 
-The schema has changed, the columns contained in `edc_data_request` have been moved to `edc_transfer_process` with this 
+The schema has changed, the columns contained in `edc_data_request` have been moved to `edc_transfer_process` with this
 mapping:
+
 - `datarequest_id` -> `correlation_id`
 - `connector_address` -> `counter_party_address`
 - `protocol` -> `protocol`
@@ -36,6 +37,7 @@ mapping:
 - `data_destination` -> `data_destination`
 
 These columns need to be added to `edc_transfer_process`:
+
 ```sql
 correlation_id             VARCHAR,
 counter_party_address      VARCHAR,

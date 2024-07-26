@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store.Te
 import org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store.TransferProcessStoreTestBase;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
@@ -29,8 +30,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
 
 @ComponentTest
@@ -52,7 +51,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
                 extension.getTransactionContext(), typeManager.getMapper(), statements, "test-connector",
                 clock, queryExecutor);
 
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        var schema = TestUtils.getResourceFileContentAsString("transfer-process-schema.sql");
         extension.runQuery(schema);
     }
 

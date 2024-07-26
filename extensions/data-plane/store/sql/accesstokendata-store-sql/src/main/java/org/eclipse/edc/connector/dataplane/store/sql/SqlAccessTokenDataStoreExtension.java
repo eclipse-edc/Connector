@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -59,6 +60,8 @@ public class SqlAccessTokenDataStoreExtension implements ServiceExtension {
 
     @Inject
     private QueryExecutor queryExecutor;
+    @Inject
+    private SqlSchemaBootstrapper sqlSchemaBootstrapper;
 
     @Override
     public String name() {
@@ -67,7 +70,9 @@ public class SqlAccessTokenDataStoreExtension implements ServiceExtension {
 
     @Provider
     public AccessTokenDataStore dataPlaneStore(ServiceExtensionContext context) {
-        return new SqlAccessTokenDataStore(dataSourceRegistry, getDataSourceName(context), transactionContext,
+        var dataSourceName = getDataSourceName(context);
+        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "accesstoken-data-schema.sql");
+        return new SqlAccessTokenDataStore(dataSourceRegistry, dataSourceName, transactionContext,
                 getStatementImpl(), typeManager.getMapper(), queryExecutor);
     }
 

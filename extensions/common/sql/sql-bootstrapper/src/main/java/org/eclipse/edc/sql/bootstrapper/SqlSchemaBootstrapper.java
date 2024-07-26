@@ -14,60 +14,34 @@
 
 package org.eclipse.edc.sql.bootstrapper;
 
-import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
-import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.eclipse.edc.spi.result.Result.failure;
-import static org.eclipse.edc.spi.result.Result.success;
-
-public class SqlSchemaBootstrapper {
-    private final TransactionContext transactionContext;
-    private final QueryExecutor queryExecutor;
-    private final List<QueuedStatementRecord> statements = new ArrayList<>();
-    private final DataSourceRegistry dataSourceRegistry;
-
-    public SqlSchemaBootstrapper(TransactionContext transactionContext, QueryExecutor queryExecutor, DataSourceRegistry dataSourceRegistry) {
-
-        this.transactionContext = transactionContext;
-        this.queryExecutor = queryExecutor;
-        this.dataSourceRegistry = dataSourceRegistry;
+public interface SqlSchemaBootstrapper {
+    /**
+     * Extensions that operate a store based on an SQL database and thus require a certain database structure to be present,
+     * can use this class to have their schema auto-generated. The entire DDL has to be in a file that is available from the resources.
+     * <p>
+     * Note that all DDL statements <strong>must</strong> be queued during the {@link ServiceExtension#initialize(ServiceExtensionContext)} phase.
+     * During the {@link ServiceExtension#prepare()} phase
+     *
+     * @param datasourceName The name of the datasource against which the statements are to be run
+     * @param resourceName   An SQL DDL statement. Cannot contain prepared statements. Do not add DML statements here!
+     */
+    default void queueStatementFromResource(String datasourceName, String resourceName) {
+        queueStatementFromResource(datasourceName, resourceName, getClass().getClassLoader());
     }
 
-    public void queueStatement(String datasourceName, String statement, Object... parameters) {
-        statements.add(new QueuedStatementRecord(datasourceName, statement, parameters));
-    }
-
-    public Result<Void> executeSql() {
-
-        return transactionContext.execute(() -> {
-            Stream<Result<Void>> objectStream = statements.stream().map(statement -> {
-                var connectionResult = getConnection(statement.datasourceName);
-                return connectionResult.compose(connection -> {
-                    queryExecutor.execute(connection, statement.sql, statement.parameters);
-                    return success();
-                });
-            });
-            return objectStream.reduce(Result::merge).orElse(Result.success());
-        });
-
-    }
-
-    public Result<Connection> getConnection(String datasourceName) {
-        try {
-            return success(dataSourceRegistry.resolve(datasourceName).getConnection());
-        } catch (SQLException e) {
-            return failure(e.getMessage());
-        }
-    }
-
-    private record QueuedStatementRecord(String datasourceName, String sql, Object... parameters) {
-    }
+    /**
+     * Extensions that operate a store based on an SQL database and thus require a certain database structure to be present,
+     * can use this class to have their schema auto-generated. The entire DDL has to be in a file that is available from the resources.
+     * <p>
+     * Note that all DDL statements <strong>must</strong> be queued during the {@link ServiceExtension#initialize(ServiceExtensionContext)} phase.
+     * During the {@link ServiceExtension#prepare()} phase
+     *
+     * @param datasourceName The name of the datasource against which the statements are to be run
+     * @param resourceName   An SQL DDL statement. Cannot contain prepared statements. Do not add DML statements here!
+     * @param classLoader    A classloader which is used to resolve the resource
+     */
+    void queueStatementFromResource(String datasourceName, String resourceName, ClassLoader classLoader);
 }

@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.PostgresDataPlaneStatements;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
@@ -28,8 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Duration;
 
@@ -52,7 +51,7 @@ public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
         leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, clock);
         store = new SqlDataPlaneStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(),
                 statements, typeManager.getMapper(), clock, queryExecutor, "test-connector");
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        var schema = TestUtils.getResourceFileContentAsString("dataplane-schema.sql");
         extension.runQuery(schema);
     }
 

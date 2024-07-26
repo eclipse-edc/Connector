@@ -4,7 +4,7 @@ Provides SQL persistence for data flow transfer state.
 
 ## Prerequisites
 
-Please apply this [schema](docs/schema.sql) to your SQL database.
+Please apply this [schema](src/main/resources/schema.sql) to your SQL database.
 
 ## Entity Diagram
 

@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -58,6 +59,8 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
 
     @Inject
     private QueryExecutor queryExecutor;
+    @Inject
+    private SqlSchemaBootstrapper sqlSchemaBootstrapper;
 
     @Override
     public String name() {
@@ -66,7 +69,9 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneStore dataPlaneStore(ServiceExtensionContext context) {
-        return new SqlDataPlaneStore(dataSourceRegistry, getDataSourceName(context), transactionContext,
+        var dataSourceName = getDataSourceName(context);
+        sqlSchemaBootstrapper.queueStatementFromResource(dataSourceName, "dataplane-schema.sql");
+        return new SqlDataPlaneStore(dataSourceRegistry, dataSourceName, transactionContext,
                 getStatementImpl(), typeManager.getMapper(), clock, queryExecutor, context.getRuntimeId());
     }
 
