@@ -45,6 +45,7 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
     }
 
 
+    @Override
     public void addStatementFromResource(String datasourceName, String resourceName, ClassLoader classLoader) {
         try (var sqlStream = classLoader.getResourceAsStream(resourceName)) {
             var sql = new Scanner(Objects.requireNonNull(sqlStream)).useDelimiter("\\A").next();
