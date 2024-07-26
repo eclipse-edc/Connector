@@ -45,13 +45,12 @@ public class SqlSchemaBootstrapperExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         shouldAutoCreate = context.getConfig().getBoolean(SCHEMA_AUTOCREATE_PROPERTY, SCHEMA_AUTOCREATE_DEFAULT);
-
     }
 
     @Override
     public void prepare() {
         if (shouldAutoCreate) {
-            bootstrapper.executeSql().orElseThrow(f -> new EdcPersistenceException("Failed to bootstrap SQL schema, error '%s'".formatted(f.getFailureDetail())));
+            ((SqlSchemaBootstrapperImpl) getBootstrapper()).executeSql().orElseThrow(f -> new EdcPersistenceException("Failed to bootstrap SQL schema, error '%s'".formatted(f.getFailureDetail())));
         }
     }
 
