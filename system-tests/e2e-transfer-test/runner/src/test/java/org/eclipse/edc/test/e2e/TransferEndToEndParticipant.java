@@ -135,6 +135,7 @@ public class TransferEndToEndParticipant extends Participant {
     public Map<String, String> controlPlanePostgresConfiguration() {
         var baseConfiguration = controlPlaneConfiguration();
         baseConfiguration.putAll(defaultDatasourceConfiguration(getName()));
+        baseConfiguration.put("edc.sql.schema.autocreate", "true");
         return baseConfiguration;
     }
 
@@ -169,6 +170,7 @@ public class TransferEndToEndParticipant extends Participant {
     public Map<String, String> dataPlanePostgresConfiguration() {
         var baseConfiguration = dataPlaneConfiguration();
         baseConfiguration.putAll(defaultDatasourceConfiguration(getName()));
+        baseConfiguration.put("edc.sql.schema.autocreate", "true");
         return baseConfiguration;
     }
 

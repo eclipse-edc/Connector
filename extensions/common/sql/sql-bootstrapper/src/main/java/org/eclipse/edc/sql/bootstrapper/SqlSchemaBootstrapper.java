@@ -17,6 +17,9 @@ package org.eclipse.edc.sql.bootstrapper;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Provides a convenient way to create database structures in an SQL database. DML statements can be added in the {@code initialize()}
  * phase of extensions and the bootstrapper takes care of executing them against the database.
@@ -48,4 +51,9 @@ public interface SqlSchemaBootstrapper {
      * @param classLoader    A classloader which is used to resolve the resource
      */
     void addStatementFromResource(String datasourceName, String resourceName, ClassLoader classLoader);
+
+    /**
+     * Gets all registered DML statements as a map where the datasource name is the key, and the SQL statement(s) is the value.
+     */
+    Map<String, List<String>> getStatements();
 }
