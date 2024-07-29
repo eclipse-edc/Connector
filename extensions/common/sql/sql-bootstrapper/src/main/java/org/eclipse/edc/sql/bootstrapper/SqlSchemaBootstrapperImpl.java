@@ -16,6 +16,7 @@ package org.eclipse.edc.sql.bootstrapper;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
@@ -58,16 +59,27 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
         }
     }
 
-    public Result<Void> executeSql() {
+    /**
+     * Executes the queued DML statements one after the other. This method is intended to be called only from the {@link SqlSchemaBootstrapperExtension}.
+     *
+     * @return A summary result of all the statements.
+     */
+    Result<Void> executeSql() {
         monitor.debug("Running DML statements: [%s]".formatted(statements.stream().map(QueuedStatementRecord::name).collect(Collectors.joining(", "))));
-        return transactionContext.execute(() -> statements.stream().map(statement -> {
-            var connectionResult = getConnection(statement.datasourceName);
-            return connectionResult.compose(connection -> {
-                queryExecutor.execute(connection, statement.sql);
-                return success();
-            });
-        }).reduce(Result::merge)
-        .orElse(Result.success()));
+        return transactionContext.execute(() -> statements.stream()
+                .map(statement -> {
+                    var connectionResult = getConnection(statement.datasourceName);
+                    return connectionResult.compose(connection -> {
+                        try {
+                            queryExecutor.execute(connection, statement.sql);
+                        } catch (EdcPersistenceException sqlException) {
+                            return failure(sqlException.getMessage());
+                        }
+                        return success();
+                    });
+                })
+                .reduce(Result::merge)
+                .orElse(Result.success()));
     }
 
     public Result<Connection> getConnection(String datasourceName) {

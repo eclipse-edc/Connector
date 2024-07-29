@@ -17,13 +17,17 @@ package org.eclipse.edc.sql.bootstrapper;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+/**
+ * Provides a convenient way to create database structures in an SQL database. DML statements can be added in the {@code initialize()}
+ * phase of extensions and the bootstrapper takes care of executing them against the database.
+ */
 public interface SqlSchemaBootstrapper {
     /**
      * Extensions that operate a store based on an SQL database and thus require a certain database structure to be present,
      * can use this class to have their schema auto-generated. The entire DDL has to be in a file that is available from the resources.
      * <p>
-     * Note that all DDL statements <strong>must</strong> be queued during the {@link ServiceExtension#initialize(ServiceExtensionContext)} phase.
-     * During the {@link ServiceExtension#prepare()} phase
+     * Note that all DDL statements <strong>must</strong> be queued during the {@link ServiceExtension#initialize(ServiceExtensionContext)} phase and
+     * individual statements <strong>must not</strong> rely on ordering, since that depends on extension ordering.
      *
      * @param datasourceName The name of the datasource against which the statements are to be run
      * @param resourceName   An SQL DDL statement. Cannot contain prepared statements. Do not add DML statements here!
@@ -36,8 +40,8 @@ public interface SqlSchemaBootstrapper {
      * Extensions that operate a store based on an SQL database and thus require a certain database structure to be present,
      * can use this class to have their schema auto-generated. The entire DDL has to be in a file that is available from the resources.
      * <p>
-     * Note that all DDL statements <strong>must</strong> be queued during the {@link ServiceExtension#initialize(ServiceExtensionContext)} phase.
-     * During the {@link ServiceExtension#prepare()} phase
+     * Note that all DDL statements <strong>must</strong> be queued during the {@link ServiceExtension#initialize(ServiceExtensionContext)} phase and
+     * individual statements <strong>must not</strong> rely on ordering, since that depends on extension ordering.
      *
      * @param datasourceName The name of the datasource against which the statements are to be run
      * @param resourceName   An SQL DDL statement. Cannot contain prepared statements. Do not add DML statements here!
