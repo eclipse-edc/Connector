@@ -218,7 +218,7 @@ maven/mavencentral/org.apache.httpcomponents/httpclient/4.5.13, Apache-2.0, appr
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.13, Apache-2.0, approved, CQ23528
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.14, Apache-2.0, approved, CQ23528
 maven/mavencentral/org.apache.httpcomponents/httpmime/4.5.13, Apache-2.0, approved, CQ11718
-maven/mavencentral/org.apache.kafka/kafka-clients/3.7.1, Apache-2.0 AND (Apache-2.0 AND MIT) AND (Apache-2.0 AND BSD-3-Clause), approved, #13623
+maven/mavencentral/org.apache.kafka/kafka-clients/3.8.0, Apache-2.0, restricted, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-core/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-logging-api/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-module-xdoc/1.12.0, Apache-2.0, approved, clearlydefined
@@ -291,10 +291,10 @@ maven/mavencentral/org.hamcrest/hamcrest-core/2.2, BSD-3-Clause, approved, clear
 maven/mavencentral/org.hamcrest/hamcrest/2.1, BSD-3-Clause, approved, clearlydefined
 maven/mavencentral/org.hamcrest/hamcrest/2.2, BSD-3-Clause, approved, clearlydefined
 maven/mavencentral/org.hdrhistogram/HdrHistogram/2.2.2, BSD-2-Clause AND CC0-1.0 AND CC0-1.0, approved, #14828
-maven/mavencentral/org.jacoco/org.jacoco.agent/0.8.9, EPL-2.0, approved, CQ23285
-maven/mavencentral/org.jacoco/org.jacoco.ant/0.8.9, EPL-2.0, approved, #1068
-maven/mavencentral/org.jacoco/org.jacoco.core/0.8.9, EPL-2.0, approved, CQ23283
-maven/mavencentral/org.jacoco/org.jacoco.report/0.8.9, EPL-2.0 AND Apache-2.0, approved, CQ23284
+maven/mavencentral/org.jacoco/org.jacoco.agent/0.8.11, EPL-2.0, approved, CQ23285
+maven/mavencentral/org.jacoco/org.jacoco.ant/0.8.11, EPL-2.0, approved, #1068
+maven/mavencentral/org.jacoco/org.jacoco.core/0.8.11, EPL-2.0, approved, CQ23283
+maven/mavencentral/org.jacoco/org.jacoco.report/0.8.11, EPL-2.0 AND Apache-2.0, approved, CQ23284
 maven/mavencentral/org.javassist/javassist/3.28.0-GA, Apache-2.0 OR LGPL-2.1-or-later OR MPL-1.1, approved, #327
 maven/mavencentral/org.javassist/javassist/3.30.2-GA, Apache-2.0 AND LGPL-2.1-or-later AND MPL-1.1, approved, #12108
 maven/mavencentral/org.jetbrains.kotlin/kotlin-stdlib-common/1.9.10, Apache-2.0, approved, #14186
@@ -326,12 +326,12 @@ maven/mavencentral/org.mockito/mockito-inline/5.2.0, MIT, approved, clearlydefin
 maven/mavencentral/org.mozilla/rhino/1.7.7.2, MPL-2.0 AND BSD-3-Clause AND ISC, approved, CQ16320
 maven/mavencentral/org.objenesis/objenesis/3.3, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.opentest4j/opentest4j/1.3.0, Apache-2.0, approved, #9713
-maven/mavencentral/org.ow2.asm/asm-commons/9.5, BSD-3-Clause, approved, #7553
+maven/mavencentral/org.ow2.asm/asm-commons/9.6, BSD-3-Clause, approved, #10775
 maven/mavencentral/org.ow2.asm/asm-commons/9.7, BSD-3-Clause, approved, #14075
-maven/mavencentral/org.ow2.asm/asm-tree/9.5, BSD-3-Clause, approved, #7555
+maven/mavencentral/org.ow2.asm/asm-tree/9.6, BSD-3-Clause, approved, #10773
 maven/mavencentral/org.ow2.asm/asm-tree/9.7, BSD-3-Clause, approved, #14073
 maven/mavencentral/org.ow2.asm/asm/9.1, BSD-3-Clause, approved, CQ23029
-maven/mavencentral/org.ow2.asm/asm/9.5, BSD-3-Clause, approved, #7554
+maven/mavencentral/org.ow2.asm/asm/9.6, BSD-3-Clause, approved, #10776
 maven/mavencentral/org.ow2.asm/asm/9.7, BSD-3-Clause, approved, #14076
 maven/mavencentral/org.postgresql/postgresql/42.7.3, BSD-2-Clause AND Apache-2.0, approved, #11681
 maven/mavencentral/org.reflections/reflections/0.10.2, Apache-2.0 AND WTFPL, approved, clearlydefined
