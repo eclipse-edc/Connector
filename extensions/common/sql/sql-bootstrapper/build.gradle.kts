@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Daimler TSS GmbH - Initial build file
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
@@ -25,12 +25,7 @@ dependencies {
     implementation(project(":extensions:common:sql:sql-core")) // SqlQueryExecutor
 //
     testImplementation(project(":core:common:junit"))
-//    testImplementation(project(":extensions:common:transaction:transaction-local"))
-//    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
-//    testImplementation(libs.postgres)
     testImplementation(libs.assertj)
-//
-//    testFixturesImplementation(project(":extensions:common:sql:sql-core"))
 }
 
 

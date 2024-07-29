@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -51,8 +50,8 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
 
     @Override
     public void addStatementFromResource(String datasourceName, String resourceName, ClassLoader classLoader) {
-        try (var sqlStream = classLoader.getResourceAsStream(resourceName)) {
-            var sql = new Scanner(Objects.requireNonNull(sqlStream)).useDelimiter("\\A").next();
+        try (var sqlStream = classLoader.getResourceAsStream(resourceName); var scanner = new Scanner(Objects.requireNonNull(sqlStream)).useDelimiter("\\A")) {
+            var sql = scanner.next();
             statements.add(new QueuedStatementRecord(resourceName, datasourceName, sql));
         } catch (IOException e) {
             throw new EdcException(e);
@@ -61,16 +60,14 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
 
     public Result<Void> executeSql() {
         monitor.debug("Running DML statements: [%s]".formatted(statements.stream().map(QueuedStatementRecord::name).collect(Collectors.joining(", "))));
-        return transactionContext.execute(() -> {
-            Stream<Result<Void>> objectStream = statements.stream().map(statement -> {
-                var connectionResult = getConnection(statement.datasourceName);
-                return connectionResult.compose(connection -> {
-                    queryExecutor.execute(connection, statement.sql);
-                    return success();
-                });
+        return transactionContext.execute(() -> statements.stream().map(statement -> {
+            var connectionResult = getConnection(statement.datasourceName);
+            return connectionResult.compose(connection -> {
+                queryExecutor.execute(connection, statement.sql);
+                return success();
             });
-            return objectStream.reduce(Result::merge).orElse(Result.success());
-        });
+        }).reduce(Result::merge)
+        .orElse(Result.success()));
     }
 
     public Result<Connection> getConnection(String datasourceName) {

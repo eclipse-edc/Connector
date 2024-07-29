@@ -7,7 +7,7 @@ but might have unexpected side effects!
 
 ## Prerequisites
 
-Please apply this [schema](src/main/resources/schema.sql) to your SQL database.
+Please apply this [schema](src/main/resources/policy-definition-schema.sql) to your SQL database.
 
 ## Entity Diagram
 

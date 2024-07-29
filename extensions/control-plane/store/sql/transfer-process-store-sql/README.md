@@ -5,7 +5,7 @@ work but might have unexpected side effects!_**
 
 ## Table schema DDL
 
-please refer to [schema.sql](src/main/resources/schema.sql):
+please refer to [schema.sql](src/main/resources/transfer-process-schema.sql):
 
 ## Translating the `TransferProcessStore` interface into SQL statements
 

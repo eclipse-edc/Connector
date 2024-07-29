@@ -4,7 +4,7 @@ Provides SQL persistence for assets.
 
 ## Prerequisites
 
-Please apply this [schema](src/main/resources/schema.sql) to your SQL database.
+Please apply this [schema](src/main/resources/asset-index-schema.sql) to your SQL database.
 
 ## Entity Diagram
 
