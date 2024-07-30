@@ -349,7 +349,7 @@ maven/mavencentral/org.testcontainers/jdbc/1.20.0, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/junit-jupiter/1.20.0, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/kafka/1.20.0, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/postgresql/1.20.0, MIT, approved, clearlydefined
-maven/mavencentral/org.testcontainers/testcontainers/1.20.0, None, restricted, #15747
+maven/mavencentral/org.testcontainers/testcontainers/1.20.0, MIT, approved, #15747
 maven/mavencentral/org.testcontainers/vault/1.20.0, MIT, approved, clearlydefined
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.5, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
 maven/mavencentral/org.xmlresolver/xmlresolver/5.2.2, Apache-2.0, approved, clearlydefined

@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -54,11 +55,17 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
     @Inject
     private QueryExecutor queryExecutor;
 
+    @Inject
+    private SqlSchemaBootstrapper sqlSchemaBootstrapper;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, getDataSourceName(context), trxContext,
+        var dataSourceName = getDataSourceName(context);
+        var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, dataSourceName, trxContext,
                 typeManager.getMapper(), getStatementImpl(), context.getRuntimeId(), clock, queryExecutor);
         context.registerService(ContractNegotiationStore.class, sqlStore);
+
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "contract-negotiation-schema.sql");
     }
 
     /**

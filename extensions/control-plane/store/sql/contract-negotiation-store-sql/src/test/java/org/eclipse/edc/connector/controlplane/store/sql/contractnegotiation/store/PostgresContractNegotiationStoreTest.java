@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiat
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
@@ -27,8 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
 
 /**
@@ -51,7 +50,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         store = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
                 extension.getTransactionContext(), manager.getMapper(), statements, CONNECTOR_NAME, clock, queryExecutor);
 
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        var schema = TestUtils.getResourceFileContentAsString("contract-negotiation-schema.sql");
         extension.runQuery(schema);
         leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, clock);
     }

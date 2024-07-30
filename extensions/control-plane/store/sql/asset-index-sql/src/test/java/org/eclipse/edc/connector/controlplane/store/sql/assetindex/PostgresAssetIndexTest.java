@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.BaseSq
 import org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
@@ -29,8 +30,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
@@ -48,7 +47,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
         sqlAssetIndex = new SqlAssetIndex(setupExtension.getDataSourceRegistry(), setupExtension.getDatasourceName(),
                 setupExtension.getTransactionContext(), new ObjectMapper(), sqlStatements, queryExecutor);
 
-        var schema = Files.readString(Paths.get("docs/schema.sql"));
+        var schema = TestUtils.getResourceFileContentAsString("asset-index-schema.sql");
         setupExtension.runQuery(schema);
     }
 

@@ -21,6 +21,7 @@ dependencies {
     api(project(":spi:common:transaction-spi"))
 
     implementation(project(":extensions:common:sql:sql-core"))
+    implementation(project(":extensions:common:sql:sql-bootstrapper"))
     implementation(project(":spi:common:edr-store-spi"))
     implementation(project(":spi:common:transaction-datasource-spi"))
     testImplementation(project(":core:common:junit"))

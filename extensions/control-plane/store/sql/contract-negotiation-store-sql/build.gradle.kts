@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":spi:common:transaction-datasource-spi"))
     implementation(project(":extensions:common:sql:sql-core"))
     implementation(project(":extensions:common:sql:sql-lease"))
+    implementation(project(":extensions:common:sql:sql-bootstrapper"))
 
 
     testImplementation(project(":core:common:junit"))

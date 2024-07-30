@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PolicyMonitorSt
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PostgresPolicyMonitorStatements;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
@@ -28,8 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Duration;
 
@@ -52,7 +51,7 @@ public class PostgresPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
         leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, clock);
         store = new SqlPolicyMonitorStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(),
                 statements, typeManager.getMapper(), clock, queryExecutor, "test-connector");
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        var schema = TestUtils.getResourceFileContentAsString("policy-monitor-schema.sql");
         extension.runQuery(schema);
     }
 
