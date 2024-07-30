@@ -18,11 +18,14 @@ import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
+
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
 
 public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
 
@@ -40,8 +43,6 @@ public class SqlSchemaBootstrapperImpl implements SqlSchemaBootstrapper {
 
     @Override
     public Map<String, List<String>> getStatements() {
-        var map = new HashMap<String, List<String>>();
-        statements.forEach(qsr -> map.computeIfAbsent(qsr.datasourceName(), s -> new ArrayList<>()).add(qsr.sql()));
-        return map;
+        return statements.stream().collect(groupingBy(QueuedStatementRecord::datasourceName, mapping(QueuedStatementRecord::sql, toList())));
     }
 }
