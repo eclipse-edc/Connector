@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorServic
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -48,6 +49,12 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
     public static final String NAME = "Dataplane Self Registration";
     private final AtomicBoolean isRegistered = new AtomicBoolean(false);
     private final AtomicReference<String> registrationError = new AtomicReference<>("Data plane self registration not complete");
+
+    private static final boolean DEFAULT_SELF_UNREGISTRATION = false;
+
+    @Setting(value = "Enable data-plane un-registration at shutdown (not suggested for clustered environments)", type = "boolean", defaultValue = DEFAULT_SELF_UNREGISTRATION + "")
+    static final String SELF_UNREGISTRATION = "edc.data.plane.self.unregistration";
+
     @Inject
     private DataPlaneSelectorService dataPlaneSelectorService;
     @Inject
@@ -86,7 +93,6 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
                 .allowedTransferType(transferTypes.collect(toSet()))
                 .build();
 
-
         var monitor = context.getMonitor().withPrefix("DataPlaneHealthCheck");
         var check = new DataPlaneHealthCheck();
         healthCheckService.addReadinessProvider(check);
@@ -105,10 +111,12 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
-        dataPlaneSelectorService.unregister(context.getRuntimeId())
-                .onSuccess(it -> context.getMonitor().info("data plane successfully unregistered"))
-                .onFailure(failure -> context.getMonitor().severe("error during data plane de-registration. %s: %s"
-                        .formatted(failure.getReason(), failure.getFailureDetail())));
+        if (context.getConfig().getBoolean(SELF_UNREGISTRATION, DEFAULT_SELF_UNREGISTRATION)) {
+            dataPlaneSelectorService.unregister(context.getRuntimeId())
+                    .onSuccess(it -> context.getMonitor().info("data plane successfully unregistered"))
+                    .onFailure(failure -> context.getMonitor().severe("error during data plane de-registration. %s: %s"
+                            .formatted(failure.getReason(), failure.getFailureDetail())));
+        }
     }
 
     private @NotNull Stream<String> toTransferTypes(FlowType pull, Set<String> types) {
