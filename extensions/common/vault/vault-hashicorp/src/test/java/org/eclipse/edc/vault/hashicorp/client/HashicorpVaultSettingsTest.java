@@ -48,6 +48,7 @@ class HashicorpVaultSettingsTest {
         assertThat(settings.ttl()).isEqualTo(VAULT_TOKEN_TTL_DEFAULT);
         assertThat(settings.renewBuffer()).isEqualTo(VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
         assertThat(settings.secretPath()).isEqualTo(SECRET_PATH);
+        assertThat(settings.getFolderPath()).isNull();
     }
 
     @Test
