@@ -33,6 +33,8 @@ public class HashicorpVaultSettings {
     private long renewBuffer;
     private String secretPath;
 
+    private String folderPath;
+
     private HashicorpVaultSettings() {
     }
 
@@ -70,6 +72,10 @@ public class HashicorpVaultSettings {
 
     public String secretPath() {
         return secretPath;
+    }
+
+    public String getFolderPath() {
+        return folderPath;
     }
 
     public static class Builder {
@@ -126,6 +132,11 @@ public class HashicorpVaultSettings {
 
         public Builder secretPath(String secretPath) {
             values.secretPath = secretPath;
+            return this;
+        }
+
+        public Builder folderPath(String folderPath) {
+            values.folderPath = folderPath;
             return this;
         }
 
