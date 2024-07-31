@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
+import org.eclipse.edc.sql.configuration.DataSourceName;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -35,11 +36,11 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 @Extension(value = "SQL contract definition store")
 public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
-    /**
-     * Name of the datasource to use for accessing contract definitions.
-     */
-    @Setting(required = true)
+    @Deprecated(since = "0.8.1")
     public static final String DATASOURCE_SETTING_NAME = "edc.datasource.contractdefinition.name";
+
+    @Setting(value = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
+    public static final String DATASOURCE_NAME = "edc.sql.store.contractdefinition.datasource";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -61,7 +62,7 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
+        var dataSourceName = DataSourceName.getDataSourceName(DATASOURCE_NAME, DATASOURCE_SETTING_NAME, context.getConfig(), context.getMonitor());
 
         var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext,
                 getStatementImpl(), typeManager.getMapper(), queryExecutor);

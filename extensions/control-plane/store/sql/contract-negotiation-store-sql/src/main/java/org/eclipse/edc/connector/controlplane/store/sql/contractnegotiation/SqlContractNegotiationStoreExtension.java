@@ -21,11 +21,13 @@ import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.stor
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
+import org.eclipse.edc.sql.configuration.DataSourceName;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -35,7 +37,11 @@ import java.time.Clock;
 @Extension(value = "SQL contract negotiation store")
 public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
-    public static final String DATASOURCE_NAME_SETTING = "edc.datasource.contractnegotiation.name";
+    @Deprecated(since = "0.8.1")
+    public static final String DATASOURCE_SETTING_NAME = "edc.datasource.contractnegotiation.name";
+
+    @Setting(value = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
+    public static final String DATASOURCE_NAME = "edc.sql.store.contractnegotiation.datasource";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -60,7 +66,8 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = getDataSourceName(context);
+        var dataSourceName = DataSourceName.getDataSourceName(DATASOURCE_NAME, DATASOURCE_SETTING_NAME, context.getConfig(), context.getMonitor());
+
         var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, dataSourceName, trxContext,
                 typeManager.getMapper(), getStatementImpl(), context.getRuntimeId(), clock, queryExecutor);
         context.registerService(ContractNegotiationStore.class, sqlStore);
@@ -76,6 +83,6 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
     }
 
     private String getDataSourceName(ServiceExtensionContext context) {
-        return context.getConfig().getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE);
+        return context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
     }
 }

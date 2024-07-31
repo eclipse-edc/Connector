@@ -22,21 +22,20 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.edr.store.index.SqlEndpointDataReferenceEntryIndexExtension.DATASOURCE_SETTING_NAME;
+import static org.eclipse.edc.edr.store.index.SqlEndpointDataReferenceEntryIndexExtension.DATASOURCE_NAME;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class SqlEndpointDataReferenceEntryIndexExtensionTest {
-
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -54,6 +53,6 @@ public class SqlEndpointDataReferenceEntryIndexExtensionTest {
         var service = context.getService(EndpointDataReferenceEntryIndex.class);
         assertThat(service).isInstanceOf(SqlEndpointDataReferenceEntryIndex.class);
 
-        verify(config).getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
+        verify(config).getString(eq(DATASOURCE_NAME), any());
     }
 }

@@ -27,17 +27,13 @@ import org.eclipse.edc.sql.ConnectionFactory;
 import org.eclipse.edc.sql.datasource.ConnectionFactoryDataSource;
 import org.eclipse.edc.sql.datasource.ConnectionPoolDataSource;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import javax.sql.DataSource;
 
 import static java.util.Optional.ofNullable;
@@ -48,24 +44,32 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     public static final String NAME = "Commons Connection Pool";
 
     public static final String EDC_DATASOURCE_PREFIX = "edc.datasource";
-    public static final String POOL_CONNECTIONS_MAX_IDLE = "pool.connections.max-idle";
-    public static final String POOL_CONNECTIONS_MAX_TOTAL = "pool.connections.max-total";
-    public static final String POOL_CONNECTIONS_MIN_IDLE = "pool.connections.min-idle";
-    public static final String POOL_CONNECTION_TEST_ON_BORROW = "pool.connection.test.on-borrow";
-    public static final String POOL_CONNECTION_TEST_ON_CREATE = "pool.connection.test.on-create";
-    public static final String POOL_CONNECTION_TEST_ON_RETURN = "pool.connection.test.on-return";
-    public static final String POOL_CONNECTION_TEST_WHILE_IDLE = "pool.connection.test.while-idle";
-    public static final String POOL_CONNECTION_TEST_QUERY = "pool.connection.test.query";
+    private static final String EDC_DATASOURCE_CONFIG_CONTEXT = EDC_DATASOURCE_PREFIX + ".<name>";
 
-    @Setting(required = true)
+    @Setting(value = "JDBC url", required = true, context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String URL = "url";
-
-    @Setting(value = "Username to be used for the JDBC connection. Can be omitted if not required, or if the user is encoded in the JDBC url.")
+    @Setting(value = "Username to be used for the JDBC connection. Can be omitted if not required, or if the user is encoded in the JDBC url.", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String USER = "user";
-    @Setting(value = "Username to be used for the JDBC connection. Can be omitted if not required, or if the password is encoded in the JDBC url.")
+    @Setting(value = "Username to be used for the JDBC connection. Can be omitted if not required, or if the password is encoded in the JDBC url.", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String PASSWORD = "password";
 
-    private final List<CommonsConnectionPool> commonsConnectionPools = new LinkedList<>();
+    @Setting(value = "Pool max idle connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    public static final String POOL_CONNECTIONS_MAX_IDLE = "pool.connections.max-idle";
+    @Setting(value = "Pool max total connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    public static final String POOL_CONNECTIONS_MAX_TOTAL = "pool.connections.max-total";
+    @Setting(value = "Pool min idle connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    public static final String POOL_CONNECTIONS_MIN_IDLE = "pool.connections.min-idle";
+    @Setting(value = "Pool test on borrow", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    public static final String POOL_CONNECTION_TEST_ON_BORROW = "pool.connection.test.on-borrow";
+    @Setting(value = "Pool test on create", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    public static final String POOL_CONNECTION_TEST_ON_CREATE = "pool.connection.test.on-create";
+    @Setting(value = "Pool test on return", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    public static final String POOL_CONNECTION_TEST_ON_RETURN = "pool.connection.test.on-return";
+    @Setting(value = "Pool test while idle", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    public static final String POOL_CONNECTION_TEST_WHILE_IDLE = "pool.connection.test.while-idle";
+    @Setting(value = "Pool test query", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    public static final String POOL_CONNECTION_TEST_QUERY = "pool.connection.test.query";
+
     @Inject
     private DataSourceRegistry dataSourceRegistry;
 
@@ -78,6 +82,8 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     @Inject
     private Vault vault;
 
+    private final List<CommonsConnectionPool> commonsConnectionPools = new LinkedList<>();
+
     @Override
     public String name() {
         return NAME;
@@ -85,17 +91,14 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = context.getConfig(EDC_DATASOURCE_PREFIX);
-
-        var namedConnectionPools = createConnectionPools(config);
-
-        for (var entry : namedConnectionPools.entrySet()) {
-            var dataSourceName = entry.getKey();
-            var commonsConnectionPool = entry.getValue();
-            commonsConnectionPools.add(commonsConnectionPool);
-            var connectionPoolDataSource = new ConnectionPoolDataSource(commonsConnectionPool);
+        context.getConfig(EDC_DATASOURCE_PREFIX).partition().forEach(config -> {
+            var dataSourceName = config.currentNode();
+            var dataSource = createDataSource(config);
+            var connectionPool = createConnectionPool(dataSource, config);
+            commonsConnectionPools.add(connectionPool);
+            var connectionPoolDataSource = new ConnectionPoolDataSource(connectionPool);
             dataSourceRegistry.register(dataSourceName, connectionPoolDataSource);
-        }
+        });
     }
 
     @Override
@@ -103,88 +106,51 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
         commonsConnectionPools.forEach(CommonsConnectionPool::close);
     }
 
-    public List<CommonsConnectionPool> getCommonsConnectionPools() {
-        return commonsConnectionPools;
-    }
-
-    private @NotNull Supplier<@Nullable String> readFromConfig(Config config, String value) {
-        return () -> {
-            var entry = EDC_DATASOURCE_PREFIX + "." + config.currentNode() + "." + value;
-            monitor.warning("Database configuration value '%s' not found in vault, will fall back to Config. Please consider putting database configuration into the vault.".formatted(entry));
-            return config.getString(value, null);
-        };
-    }
-
-    private void setIfProvidedString(String key, Consumer<String> setter, Config config) {
-        setIfProvided(key, setter, config::getString);
-    }
-
-    private void setIfProvidedBoolean(String key, Consumer<Boolean> setter, Config config) {
-        setIfProvided(key, setter, config::getBoolean);
-    }
-
-    private void setIfProvidedInt(String key, Consumer<Integer> setter, Config config) {
-        setIfProvided(key, setter, config::getInteger);
-    }
-
-    private <T> void setIfProvided(String key, Consumer<T> setter, BiFunction<String, T, T> getter) {
-        var value = getter.apply(key, null);
-        if (value != null) {
-            setter.accept(value);
-        }
-    }
-
-    private Map<String, CommonsConnectionPool> createConnectionPools(Config parent) {
-        Map<String, CommonsConnectionPool> commonsConnectionPools = new HashMap<>();
-        for (var config : parent.partition().toList()) {
-            var dataSourceName = config.currentNode();
-
-            var dataSource = createDataSource(config);
-
-            var commonsConnectionPool = createConnectionPool(dataSource, config);
-            commonsConnectionPools.put(dataSourceName, commonsConnectionPool);
-        }
-        return commonsConnectionPools;
-    }
-
     private DataSource createDataSource(Config config) {
         var rootPath = EDC_DATASOURCE_PREFIX + "." + config.currentNode();
 
-        // read values from the vault first, fall back to config
-        var urlProperty = rootPath + "." + URL;
-        var jdbcUrl = ofNullable(vault.resolveSecret(urlProperty)).orElseGet(readFromConfig(config, URL));
-
-        if (jdbcUrl == null) {
-            throw new EdcException("Mandatory config '%s' not found. Please provide a value for the '%s' property, either as a secret in the vault or an application property.".formatted(urlProperty, urlProperty));
-        }
-
-        var jdbcUser = ofNullable(vault.resolveSecret(rootPath + "." + USER))
-                .orElseGet(readFromConfig(config, USER));
-        var jdbcPassword = ofNullable(vault.resolveSecret(rootPath + "." + PASSWORD))
-                .orElseGet(readFromConfig(config, PASSWORD));
+        var jdbcUrl = getSecretOrSetting(rootPath, URL, config)
+                .orElseThrow(() -> new EdcException("Mandatory url for datasource '%s' not found. Please provide a value for it, either as a secret in the vault or an application property.".formatted(config.currentNode())));
+        var jdbcUser = getSecretOrSetting(rootPath, USER, config);
+        var jdbcPassword = getSecretOrSetting(rootPath, PASSWORD, config);
 
         var properties = new Properties();
         properties.putAll(config.getRelativeEntries());
 
-        // only set if not-null, otherwise Properties#add throws a NPE
-        ofNullable(jdbcUser).ifPresent(u -> properties.put(USER, u));
-        ofNullable(jdbcPassword).ifPresent(p -> properties.put(PASSWORD, p));
+        jdbcUser.ifPresent(u -> properties.put(USER, u));
+        jdbcPassword.ifPresent(p -> properties.put(PASSWORD, p));
 
         return new ConnectionFactoryDataSource(connectionFactory, jdbcUrl, properties);
+    }
+
+    private Optional<String> getSecretOrSetting(String rootPath, String key, Config config) {
+        var fullKey = rootPath + "." + key;
+        return ofNullable(vault.resolveSecret(fullKey))
+                .or(() -> {
+                    monitor.warning("Datasource configuration value '%s' not found in vault, will fall back to Config. Please consider putting datasource configuration into the vault.".formatted(fullKey));
+                    return Optional.ofNullable(config.getString(key, null));
+                });
     }
 
     private CommonsConnectionPool createConnectionPool(DataSource unPooledDataSource, Config config) {
         var builder = CommonsConnectionPoolConfig.Builder.newInstance();
 
-        setIfProvidedInt(POOL_CONNECTIONS_MAX_IDLE, builder::maxIdleConnections, config);
-        setIfProvidedInt(POOL_CONNECTIONS_MAX_TOTAL, builder::maxTotalConnections, config);
-        setIfProvidedInt(POOL_CONNECTIONS_MIN_IDLE, builder::minIdleConnections, config);
-        setIfProvidedBoolean(POOL_CONNECTION_TEST_ON_BORROW, builder::testConnectionOnBorrow, config);
-        setIfProvidedBoolean(POOL_CONNECTION_TEST_ON_CREATE, builder::testConnectionOnCreate, config);
-        setIfProvidedBoolean(POOL_CONNECTION_TEST_ON_RETURN, builder::testConnectionOnReturn, config);
-        setIfProvidedBoolean(POOL_CONNECTION_TEST_WHILE_IDLE, builder::testConnectionWhileIdle, config);
-        setIfProvidedString(POOL_CONNECTION_TEST_QUERY, builder::testQuery, config);
+        setIfProvided(POOL_CONNECTIONS_MAX_IDLE, config::getInteger, builder::maxIdleConnections);
+        setIfProvided(POOL_CONNECTIONS_MAX_TOTAL, config::getInteger, builder::maxTotalConnections);
+        setIfProvided(POOL_CONNECTIONS_MIN_IDLE, config::getInteger, builder::minIdleConnections);
+        setIfProvided(POOL_CONNECTION_TEST_ON_BORROW, config::getBoolean, builder::testConnectionOnBorrow);
+        setIfProvided(POOL_CONNECTION_TEST_ON_CREATE, config::getBoolean, builder::testConnectionOnCreate);
+        setIfProvided(POOL_CONNECTION_TEST_ON_RETURN, config::getBoolean, builder::testConnectionOnReturn);
+        setIfProvided(POOL_CONNECTION_TEST_WHILE_IDLE, config::getBoolean, builder::testConnectionWhileIdle);
+        setIfProvided(POOL_CONNECTION_TEST_QUERY, config::getString, builder::testQuery);
 
         return new CommonsConnectionPool(unPooledDataSource, builder.build(), monitor);
+    }
+
+    private <T> void setIfProvided(String key, BiFunction<String, T, T> getter, Consumer<T> setter) {
+        var value = getter.apply(key, null);
+        if (value != null) {
+            setter.accept(value);
+        }
     }
 }

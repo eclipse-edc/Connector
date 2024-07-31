@@ -10,12 +10,6 @@ Please apply this [schema](src/main/resources/contract-definition-schema.sql) to
 
 ![ER Diagram](docs/er.png)
 
-## Configuration
-
-| Key                                    | Description                       | Mandatory | 
-|:---------------------------------------|:----------------------------------|-----------|
-| edc.datasource.contractdefinition.name | Datasource used by this extension | X         |
-
 ## Create a flexible query API to accommodate `QuerySpec`
 
 _For the first version, only the `limit` and `offset` arguments from the `QuerySpec` will be used._

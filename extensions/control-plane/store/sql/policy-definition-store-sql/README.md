@@ -34,9 +34,3 @@ entity edc_policydefinitions {
 @enduml
 ```
 -->
-
-## Configuration
-
-| Key                        | Description                       | Mandatory | 
-|:---------------------------|:----------------------------------|-----------|
-| edc.datasource.policy.name | Datasource used by this extension | X         |

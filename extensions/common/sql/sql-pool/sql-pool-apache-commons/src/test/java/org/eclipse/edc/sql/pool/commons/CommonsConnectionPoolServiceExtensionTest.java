@@ -20,9 +20,9 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.ConnectionFactory;
+import org.eclipse.edc.sql.datasource.ConnectionPoolDataSource;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +32,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.EDC_DATASOURCE_PREFIX;
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.POOL_CONNECTIONS_MAX_IDLE;
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.POOL_CONNECTIONS_MAX_TOTAL;
@@ -48,14 +50,12 @@ import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExten
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.POOL_CONNECTION_TEST_ON_RETURN;
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.POOL_CONNECTION_TEST_QUERY;
 import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.POOL_CONNECTION_TEST_WHILE_IDLE;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-//sometimes hangs and causes the test to never finish.
 @ExtendWith(DependencyInjectionExtension.class)
 class CommonsConnectionPoolServiceExtensionTest {
     private static final String DS_1_NAME = "ds1";
@@ -74,21 +74,16 @@ class CommonsConnectionPoolServiceExtensionTest {
     void initialize_withConfig(Map<String, String> configuration, ThrowingConsumer<CommonsConnectionPoolConfig> checker,
                                boolean isEnv,
                                CommonsConnectionPoolServiceExtension extension, ServiceExtensionContext context) {
-        Config config;
-        if (isEnv) {
-            config = ConfigFactory.fromEnvironment(configuration);
-        } else {
-            config = ConfigFactory.fromMap(configuration);
-        }
+        var config = isEnv ? ConfigFactory.fromEnvironment(configuration) : ConfigFactory.fromMap(configuration);
         when(context.getConfig(EDC_DATASOURCE_PREFIX)).thenReturn(config);
 
         extension.initialize(context);
 
-        verify(dataSourceRegistry).register(eq(DS_1_NAME), any());
-
-        assertThat(extension.getCommonsConnectionPools()).hasSize(1).first()
-                .extracting(CommonsConnectionPool::getPoolConfig)
-                .satisfies(checker);
+        var captor = ArgumentCaptor.forClass(ConnectionPoolDataSource.class);
+        verify(dataSourceRegistry).register(eq(DS_1_NAME), captor.capture());
+        assertThat(captor.getAllValues()).hasSize(1).first()
+                .extracting("connectionPool").asInstanceOf(type(CommonsConnectionPool.class))
+                .extracting(CommonsConnectionPool::getPoolConfig).satisfies(checker);
     }
 
     @Test
@@ -103,8 +98,10 @@ class CommonsConnectionPoolServiceExtensionTest {
 
         extension.initialize(context);
 
-        verify(dataSourceRegistry).register(eq(DS_1_NAME), any());
-        assertThat(extension.getCommonsConnectionPools()).hasSize(1).first()
+        var captor = ArgumentCaptor.forClass(ConnectionPoolDataSource.class);
+        verify(dataSourceRegistry).register(eq(DS_1_NAME), captor.capture());
+        assertThat(captor.getAllValues()).hasSize(1).first()
+                .extracting("connectionPool").asInstanceOf(type(CommonsConnectionPool.class))
                 .satisfies(pool -> {
                     assertThatThrownBy(pool::getConnection).isInstanceOf(EdcException.class); //we need this only to invoke the connection factory
                     verify(connectionFactory).create(eq("jdbc://whatever"), argThat(p ->
@@ -129,8 +126,10 @@ class CommonsConnectionPoolServiceExtensionTest {
 
         extension.initialize(context);
 
-        verify(dataSourceRegistry).register(eq(DS_1_NAME), any());
-        assertThat(extension.getCommonsConnectionPools()).hasSize(1).first()
+        var captor = ArgumentCaptor.forClass(ConnectionPoolDataSource.class);
+        verify(dataSourceRegistry).register(eq(DS_1_NAME), captor.capture());
+        assertThat(captor.getAllValues()).hasSize(1).first()
+                .extracting("connectionPool").asInstanceOf(type(CommonsConnectionPool.class))
                 .satisfies(pool -> {
                     assertThatThrownBy(pool::getConnection).isInstanceOf(EdcException.class); //we need this only to invoke the connection factory
                     verify(connectionFactory).create(eq("jdbc://whatever"), argThat(p ->
@@ -139,7 +138,6 @@ class CommonsConnectionPoolServiceExtensionTest {
                                     p.containsValue("test-user")));
                 });
     }
-
 
     static class ConfigProvider implements ArgumentsProvider {
 
