@@ -54,6 +54,7 @@ public class DataPlaneSelectorEndToEndTest {
                     "edc.data.plane.selector.state-machine.check.period", "1",
                     "edc.core.retry.retries.max", "0"
             ),
+            ":core:common:connector-core",
             ":core:control-plane:control-plane-core",
             ":core:data-plane-selector:data-plane-selector-core",
             ":extensions:control-plane:transfer:transfer-data-plane-signaling",

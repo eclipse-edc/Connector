@@ -34,7 +34,7 @@ import static org.mockito.Mockito.mock;
  * Base utility class that permits to test Rest controllers deploying a bare bone instance of Jetty
  * with Jersey. The controller returned by the {@link #controller()} method gets registered on a test api context.
  */
-public abstract class RestControllerTestBase { // TODO: can it be started once for class?
+public abstract class RestControllerTestBase {
 
     protected final int port = getFreePort();
     protected final Monitor monitor = mock(Monitor.class);

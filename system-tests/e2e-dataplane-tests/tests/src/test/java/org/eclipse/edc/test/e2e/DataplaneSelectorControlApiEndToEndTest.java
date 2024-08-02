@@ -15,52 +15,63 @@
 package org.eclipse.edc.test.e2e;
 
 import io.restassured.http.ContentType;
+import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.mock;
 
 @EndToEndTest
 public class DataplaneSelectorControlApiEndToEndTest {
 
-    private final int controlPlaneControlPort = getFreePort();
+    private final int controlPort = getFreePort();
+    private static final String DATA_PLANE_ID = UUID.randomUUID().toString();
 
     @RegisterExtension
-    private final RuntimeExtension controlPlane = new RuntimePerMethodExtension(new EmbeddedRuntime(
-            "control-plane",
+    @Order(1)
+    private final RuntimeExtension dataPlaneSelector = new RuntimePerMethodExtension(new EmbeddedRuntime(
+            "data-plane-selector",
             Map.of(
-                    "web.http.control.port", String.valueOf(controlPlaneControlPort),
+                    "web.http.control.port", String.valueOf(controlPort),
                     "web.http.control.path", "/control"
             ),
-            ":core:control-plane:control-plane-core",
+            ":core:common:connector-core",
             ":core:data-plane-selector:data-plane-selector-core",
-            ":extensions:control-plane:transfer:transfer-data-plane-signaling",
-            ":extensions:common:iam:iam-mock",
             ":extensions:common:http",
             ":extensions:common:api:control-api-configuration",
+            ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client",
             ":extensions:data-plane-selector:data-plane-selector-control-api"
     )).registerServiceMock(ProtocolWebhook.class, mock());
 
     @RegisterExtension
+    @Order(2)
     private final RuntimeExtension dataPlane = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "data-plane",
             Map.of(
+                    "edc.runtime.id", DATA_PLANE_ID,
                     "web.http.port", String.valueOf(getFreePort()),
                     "web.http.path", "/api",
                     "web.http.control.port", String.valueOf(getFreePort()),
                     "web.http.control.path", "/control",
-                    "edc.dpf.selector.url", String.format("http://localhost:%d/control/v1/dataplanes", controlPlaneControlPort),
+                    "edc.dpf.selector.url", String.format("http://localhost:%d/control/v1/dataplanes", controlPort),
                     "edc.transfer.proxy.token.verifier.publickey.alias", "alias",
                     "edc.transfer.proxy.token.signer.privatekey.alias", "alias"
             ),
@@ -72,7 +83,8 @@ public class DataplaneSelectorControlApiEndToEndTest {
     @Test
     void shouldReturnSelfRegisteredDataplane() {
         var result = given()
-                .baseUri("http://localhost:" + controlPlaneControlPort + "/control")
+                .basePath("/control")
+                .port(controlPort)
                 .when()
                 .get("/v1/dataplanes")
                 .then()
@@ -81,5 +93,29 @@ public class DataplaneSelectorControlApiEndToEndTest {
                 .extract().body().as(JsonArray.class);
 
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void shouldSelectDataPlane() {
+        var requestBody = Json.createObjectBuilder()
+                .add(CONTEXT, Json.createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add("source", Json.createObjectBuilder()
+                        .add("type", "HttpData"))
+                .add("transferType", "HttpData-PUSH")
+                .build();
+
+        await().untilAsserted(() -> {
+            given()
+                    .basePath("/control")
+                    .port(controlPort)
+                    .when()
+                    .contentType(ContentType.JSON)
+                    .body(requestBody)
+                    .post("/v1/dataplanes/select")
+                    .then()
+                    .statusCode(200)
+                    .contentType(ContentType.JSON)
+                    .body("@id", is(DATA_PLANE_ID));
+        });
     }
 }
