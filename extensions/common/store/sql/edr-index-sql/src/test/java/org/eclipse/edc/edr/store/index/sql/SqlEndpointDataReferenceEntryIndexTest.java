@@ -21,6 +21,7 @@ import org.eclipse.edc.edr.store.index.SqlEndpointDataReferenceEntryIndex;
 import org.eclipse.edc.edr.store.index.sql.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.edr.store.index.sql.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -28,8 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
@@ -44,7 +43,7 @@ public class SqlEndpointDataReferenceEntryIndexTest extends EndpointDataReferenc
 
         entryIndex = new SqlEndpointDataReferenceEntryIndex(extension.getDataSourceRegistry(), extension.getDatasourceName(),
                 extension.getTransactionContext(), new ObjectMapper(), statements, queryExecutor);
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        var schema = TestUtils.getResourceFileContentAsString("edr-index-schema.sql");
         extension.runQuery(schema);
     }
 

@@ -5,7 +5,7 @@ work but might have unexpected side effects!_**
 
 ## 1. Table schema
 
-see [schema.sql](docs/schema.sql).
+see [schema.sql](src/main/resources/contract-negotiation-schema.sql).
 
 As an alternative to storing `ContractAgreement`s in a dedicated table, it could also be serialized and stored as column
 in the `contract_negotiation` table. However, we will need to be able to list all contract agreements at some point, so

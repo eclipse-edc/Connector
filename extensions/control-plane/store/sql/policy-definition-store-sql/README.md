@@ -7,7 +7,7 @@ but might have unexpected side effects!
 
 ## Prerequisites
 
-Please apply this [schema](docs/schema.sql) to your SQL database.
+Please apply this [schema](src/main/resources/policy-definition-schema.sql) to your SQL database.
 
 ## Entity Diagram
 
@@ -37,6 +37,6 @@ entity edc_policydefinitions {
 
 ## Configuration
 
-| Key                        | Description | Mandatory | 
-|:---------------------------|:---|---|
-| edc.datasource.policy.name | Datasource used by this extension | X |
+| Key                        | Description                       | Mandatory | 
+|:---------------------------|:----------------------------------|-----------|
+| edc.datasource.policy.name | Datasource used by this extension | X         |

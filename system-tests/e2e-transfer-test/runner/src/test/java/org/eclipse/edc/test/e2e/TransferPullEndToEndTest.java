@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -91,6 +92,15 @@ class TransferPullEndToEndTest {
         @AfterAll
         static void afterAll() {
             stopQuietly(providerDataSource);
+        }
+
+        private static @NotNull Map<String, Object> httpSourceDataAddress() {
+            return Map.of(
+                    EDC_NAMESPACE + "name", "transfer-test",
+                    EDC_NAMESPACE + "baseUrl", "http://localhost:" + providerDataSource.getPort() + "/source",
+                    EDC_NAMESPACE + "type", "HttpData",
+                    EDC_NAMESPACE + "proxyQueryParams", "true"
+            );
         }
 
         @Test
@@ -266,15 +276,6 @@ class TransferPullEndToEndTest {
                     .build();
         }
 
-        private static @NotNull Map<String, Object> httpSourceDataAddress() {
-            return Map.of(
-                    EDC_NAMESPACE + "name", "transfer-test",
-                    EDC_NAMESPACE + "baseUrl", "http://localhost:" + providerDataSource.getPort() + "/source",
-                    EDC_NAMESPACE + "type", "HttpData",
-                    EDC_NAMESPACE + "proxyQueryParams", "true"
-            );
-        }
-
         private HttpResponse cacheEdr(HttpRequest request, Map<String, TransferProcessStarted> events) {
 
             try {
@@ -334,15 +335,15 @@ class TransferPullEndToEndTest {
 
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                    Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                    Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane", PROVIDER.controlPlaneConfiguration()));
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane", PROVIDER.controlPlaneConfiguration()));
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                    Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane", PROVIDER.dataPlaneConfiguration()));
+                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane", PROVIDER.dataPlaneConfiguration()));
 
         @Override
         protected Vault getDataplaneVault() {
@@ -360,7 +361,7 @@ class TransferPullEndToEndTest {
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                    Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("provider-control-plane", PROVIDER.controlPlaneEmbeddedDataPlaneConfiguration()));
+                Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("provider-control-plane", PROVIDER.controlPlaneEmbeddedDataPlaneConfiguration()));
 
         @Override
         protected Vault getDataplaneVault() {
@@ -372,6 +373,7 @@ class TransferPullEndToEndTest {
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
 
+        @Order(0) // must be the first extension to be evaluated since it creates the database
         @RegisterExtension
         static final BeforeAllCallback CREATE_DATABASES = context -> {
             createDatabase(CONSUMER.getName());
@@ -380,15 +382,15 @@ class TransferPullEndToEndTest {
 
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                    Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration()));
+                Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration()));
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                    Runtimes.POSTGRES_CONTROL_PLANE.create("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration()));
+                Runtimes.POSTGRES_CONTROL_PLANE.create("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration()));
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                    Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()));
+                Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()));
 
         @Override
         protected Vault getDataplaneVault() {

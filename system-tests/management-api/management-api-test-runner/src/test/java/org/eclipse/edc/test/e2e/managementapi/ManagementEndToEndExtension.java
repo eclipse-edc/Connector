@@ -55,6 +55,10 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
 
     static class InMemory extends ManagementEndToEndExtension {
 
+        protected InMemory() {
+            super(context());
+        }
+
         private static ManagementEndToEndTestContext context() {
             var managementPort = getFreePort();
             var protocolPort = getFreePort();
@@ -79,13 +83,13 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
             return new ManagementEndToEndTestContext(runtime, managementPort, protocolPort);
         }
 
-        protected InMemory() {
-            super(context());
-        }
-
     }
 
     static class Postgres extends ManagementEndToEndExtension {
+
+        protected Postgres() {
+            super(context());
+        }
 
         private static ManagementEndToEndTestContext context() {
             var managementPort = getFreePort();
@@ -106,19 +110,19 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
                             put("edc.datasource.default.url", PostgresqlEndToEndInstance.JDBC_URL_PREFIX + "runtime");
                             put("edc.datasource.default.user", PostgresqlEndToEndInstance.USER);
                             put("edc.datasource.default.password", PostgresqlEndToEndInstance.PASSWORD);
+                            put("edc.sql.schema.autocreate", "true");
                         }
                     },
                     ":system-tests:management-api:management-api-test-runtime",
                     ":extensions:control-plane:store:sql:control-plane-sql",
+                    ":extensions:policy-monitor:store:sql:policy-monitor-store-sql",
+                    ":extensions:common:store:sql:edr-index-sql",
+                    ":extensions:data-plane:store:sql:data-plane-store-sql",
                     ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
                     ":extensions:common:transaction:transaction-local"
             );
 
             return new ManagementEndToEndTestContext(runtime, managementPort, protocolPort);
-        }
-
-        protected Postgres() {
-            super(context());
         }
 
         @Override

@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,13 +34,16 @@ import org.mockito.ArgumentCaptor;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.dataplane.registration.DataplaneSelfRegistrationExtension.SELF_UNREGISTRATION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -102,8 +106,20 @@ class DataplaneSelfRegistrationExtensionTest {
     }
 
     @Test
-    void shouldUnregisterInstanceAtShutdown(DataplaneSelfRegistrationExtension extension, ServiceExtensionContext context) {
+    void shouldNotUnregisterInstanceAtShutdown(DataplaneSelfRegistrationExtension extension, ServiceExtensionContext context) {
         when(context.getRuntimeId()).thenReturn("runtimeId");
+        when(dataPlaneSelectorService.unregister(any())).thenReturn(ServiceResult.success());
+        extension.initialize(context);
+
+        extension.shutdown();
+
+        verify(dataPlaneSelectorService, never()).unregister(any());
+    }
+
+    @Test
+    void shouldUnregisterInstanceAtShutdown_whenConfigured(DataplaneSelfRegistrationExtension extension, ServiceExtensionContext context) {
+        when(context.getRuntimeId()).thenReturn("runtimeId");
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(SELF_UNREGISTRATION, "true")));
         when(dataPlaneSelectorService.unregister(any())).thenReturn(ServiceResult.success());
         extension.initialize(context);
 

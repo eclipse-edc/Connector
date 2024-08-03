@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -50,13 +51,18 @@ public class SqlPolicyStoreExtension implements ServiceExtension {
 
     @Inject
     private QueryExecutor queryExecutor;
+    @Inject
+    private SqlSchemaBootstrapper sqlSchemaBootstrapper;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, getDataSourceName(context), transactionContext,
+        var dataSourceName = getDataSourceName(context);
+        var sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext,
                 typeManager.getMapper(), getStatementImpl(), queryExecutor);
 
         context.registerService(PolicyDefinitionStore.class, sqlPolicyStore);
+
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "policy-definition-schema.sql");
     }
 
     /**

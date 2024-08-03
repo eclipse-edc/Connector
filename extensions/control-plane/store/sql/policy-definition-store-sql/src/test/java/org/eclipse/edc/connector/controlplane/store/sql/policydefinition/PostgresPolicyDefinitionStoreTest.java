@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.store.sql.policydefinition.store.S
 import org.eclipse.edc.connector.controlplane.store.sql.policydefinition.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
@@ -27,8 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 /**
  * This test aims to verify those parts of the policy definition store, that are specific to Postgres, e.g. JSON query
@@ -49,7 +48,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
         sqlPolicyStore = new SqlPolicyDefinitionStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
                 extension.getTransactionContext(), typeManager.getMapper(), statements, queryExecutor);
 
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        var schema = TestUtils.getResourceFileContentAsString("policy-definition-schema.sql");
         extension.runQuery(schema);
     }
 

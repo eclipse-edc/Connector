@@ -18,13 +18,13 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":extensions:common:sql:sql-core"))
-    implementation(project(":extensions:common:sql:sql-lease"))
-    implementation(project(":extensions:control-plane:store:sql:asset-index-sql"))
-    implementation(project(":extensions:control-plane:store:sql:contract-definition-store-sql"))
-    implementation(project(":extensions:control-plane:store:sql:contract-negotiation-store-sql"))
-    implementation(project(":extensions:control-plane:store:sql:policy-definition-store-sql"))
-    implementation(project(":extensions:control-plane:store:sql:transfer-process-store-sql"))
+    runtimeOnly(project(":extensions:common:sql:sql-core"))
+    runtimeOnly(project(":extensions:common:sql:sql-lease"))
+    runtimeOnly(project(":extensions:control-plane:store:sql:asset-index-sql"))
+    runtimeOnly(project(":extensions:control-plane:store:sql:contract-definition-store-sql"))
+    runtimeOnly(project(":extensions:control-plane:store:sql:contract-negotiation-store-sql"))
+    runtimeOnly(project(":extensions:control-plane:store:sql:policy-definition-store-sql"))
+    runtimeOnly(project(":extensions:control-plane:store:sql:transfer-process-store-sql"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-catalog"))

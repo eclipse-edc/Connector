@@ -135,6 +135,7 @@ public class TransferEndToEndParticipant extends Participant {
     public Map<String, String> controlPlanePostgresConfiguration() {
         var baseConfiguration = controlPlaneConfiguration();
         baseConfiguration.putAll(defaultDatasourceConfiguration(getName()));
+        baseConfiguration.put("edc.sql.schema.autocreate", "true");
         return baseConfiguration;
     }
 
@@ -169,6 +170,7 @@ public class TransferEndToEndParticipant extends Participant {
     public Map<String, String> dataPlanePostgresConfiguration() {
         var baseConfiguration = dataPlaneConfiguration();
         baseConfiguration.putAll(defaultDatasourceConfiguration(getName()));
+        baseConfiguration.put("edc.sql.schema.autocreate", "true");
         return baseConfiguration;
     }
 
@@ -200,8 +202,8 @@ public class TransferEndToEndParticipant extends Participant {
     /**
      * Pull data from provider using EDR.
      *
-     * @param edr         endpoint data reference
-     * @param queryParams query parameters
+     * @param edr           endpoint data reference
+     * @param queryParams   query parameters
      * @param bodyAssertion assertion to be verified on the body
      */
     public void pullData(DataAddress edr, Map<String, String> queryParams, ThrowingConsumer<String> bodyAssertion) {

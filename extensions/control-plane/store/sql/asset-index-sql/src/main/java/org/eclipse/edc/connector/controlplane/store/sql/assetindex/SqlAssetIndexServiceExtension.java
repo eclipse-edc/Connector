@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -55,6 +56,9 @@ public class SqlAssetIndexServiceExtension implements ServiceExtension {
     @Inject
     private QueryExecutor queryExecutor;
 
+    @Inject
+    private SqlSchemaBootstrapper sqlSchemaBootstrapper;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var dataSourceName = context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
@@ -63,6 +67,8 @@ public class SqlAssetIndexServiceExtension implements ServiceExtension {
 
         context.registerService(AssetIndex.class, sqlAssetLoader);
         context.registerService(DataAddressResolver.class, sqlAssetLoader);
+
+        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "asset-index-schema.sql");
     }
 
     private AssetStatements getDialect() {
