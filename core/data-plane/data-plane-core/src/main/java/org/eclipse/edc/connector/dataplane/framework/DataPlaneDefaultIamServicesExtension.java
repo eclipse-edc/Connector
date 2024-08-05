@@ -24,15 +24,13 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.token.JwsSignerProvider;
 import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.token.spi.TokenValidationService;
-import org.jetbrains.annotations.NotNull;
 
-import java.security.PrivateKey;
 import java.util.function.Supplier;
 
 
@@ -54,6 +52,8 @@ public class DataPlaneDefaultIamServicesExtension implements ServiceExtension {
     private PrivateKeyResolver privateKeyResolver;
     @Inject
     private LocalPublicKeyService localPublicKeyService;
+    @Inject
+    private JwsSignerProvider jwsSignerProvider;
 
     @Override
     public String name() {
@@ -71,8 +71,8 @@ public class DataPlaneDefaultIamServicesExtension implements ServiceExtension {
         var tokenVerifierPublicKeyAlias = context.getConfig().getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS);
         var tokenSignerPrivateKeyAlias = context.getConfig().getString(TOKEN_SIGNER_PRIVATE_KEY_ALIAS);
         var monitor = context.getMonitor().withPrefix("DataPlane IAM");
-        return new DefaultDataPlaneAccessTokenServiceImpl(new JwtGenerationService(),
-                accessTokenDataStore, monitor, getPrivateKeySupplier(tokenSignerPrivateKeyAlias, monitor),
+        return new DefaultDataPlaneAccessTokenServiceImpl(new JwtGenerationService(jwsSignerProvider),
+                accessTokenDataStore, monitor, () -> tokenSignerPrivateKeyAlias,
                 publicKeyIdSupplier(tokenVerifierPublicKeyAlias), tokenValidationService, localPublicKeyService);
     }
 
@@ -80,12 +80,4 @@ public class DataPlaneDefaultIamServicesExtension implements ServiceExtension {
         return () -> tokenVerifierPublicKeyAlias;
     }
 
-    @NotNull
-    private Supplier<PrivateKey> getPrivateKeySupplier(String tokenSignerPrivateKeyAlias, Monitor monitor) {
-        return () -> privateKeyResolver.resolvePrivateKey(tokenSignerPrivateKeyAlias)
-                .orElse(f -> {
-                    monitor.warning("Cannot resolve private key: " + f.getFailureDetail());
-                    return null;
-                });
-    }
 }

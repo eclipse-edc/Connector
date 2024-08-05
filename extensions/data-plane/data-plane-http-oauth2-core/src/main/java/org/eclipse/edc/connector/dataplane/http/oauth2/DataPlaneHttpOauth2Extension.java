@@ -17,12 +17,12 @@ package org.eclipse.edc.connector.dataplane.http.oauth2;
 
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
-import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.token.JwsSignerProvider;
 
 import java.time.Clock;
 
@@ -43,7 +43,7 @@ public class DataPlaneHttpOauth2Extension implements ServiceExtension {
     private Vault vault;
 
     @Inject
-    private PrivateKeyResolver privateKeyResolver;
+    private JwsSignerProvider jwsSignerProvider;
 
     @Inject
     private Oauth2Client oauth2Client;
@@ -55,7 +55,7 @@ public class DataPlaneHttpOauth2Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var requestFactory = new Oauth2CredentialsRequestFactory(privateKeyResolver, clock, vault, context.getMonitor());
+        var requestFactory = new Oauth2CredentialsRequestFactory(jwsSignerProvider, clock, vault);
         var oauth2ParamsDecorator = new Oauth2HttpRequestParamsDecorator(requestFactory, oauth2Client);
 
         paramsProvider.registerSourceDecorator(oauth2ParamsDecorator);

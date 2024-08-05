@@ -75,6 +75,7 @@ class Oauth2ServiceImplTest {
     private static final String PROVIDER_AUDIENCE = "audience-test";
     private static final String ENDPOINT_AUDIENCE = "endpoint-audience-test";
 
+    private static final String TEST_PRIVATE_KEY_ID = "test-private-key-id";
     private static final VerificationContext VERIFICATION_CONTEXT = VerificationContext.Builder.newInstance()
             .policy(Policy.Builder.newInstance().build())
             .build();
@@ -90,7 +91,6 @@ class Oauth2ServiceImplTest {
     @BeforeEach
     void setUp() throws JOSEException {
         var testKey = testKey();
-        var privateKey = testKey.toPrivateKey();
 
         jwsSigner = new RSASSASigner(testKey.toPrivateKey());
         var publicKeyResolverMock = mock(PublicKeyResolver.class);
@@ -114,7 +114,7 @@ class Oauth2ServiceImplTest {
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(Clock.systemUTC(), configuration.getNotBeforeValidationLeeway()));
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(Clock.systemUTC(), configuration.getIssuedAtLeeway()));
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> privateKey, client, jwtDecoratorRegistry, registry,
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> TEST_PRIVATE_KEY_ID, client, jwtDecoratorRegistry, registry,
                 tokenValidationService, publicKeyResolverMock);
 
     }

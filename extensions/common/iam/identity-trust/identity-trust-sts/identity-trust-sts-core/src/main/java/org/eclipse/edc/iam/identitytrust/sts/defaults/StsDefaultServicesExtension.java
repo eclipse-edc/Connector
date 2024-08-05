@@ -16,10 +16,10 @@ package org.eclipse.edc.iam.identitytrust.sts.defaults;
 
 import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsClientServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsClientTokenGeneratorServiceImpl;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
-import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -27,6 +27,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.token.JwsSignerProvider;
 import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -53,7 +54,7 @@ public class StsDefaultServicesExtension implements ServiceExtension {
     private Vault vault;
 
     @Inject
-    private PrivateKeyResolver privateKeyResolver;
+    private JwsSignerProvider jwsSignerProvider;
 
     @Inject
     private Clock clock;
@@ -67,8 +68,8 @@ public class StsDefaultServicesExtension implements ServiceExtension {
     public StsClientTokenGeneratorService clientTokenService(ServiceExtensionContext context) {
         var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION_MIN);
         return new StsClientTokenGeneratorServiceImpl(
-                (client) -> new JwtGenerationService(),
-                (client) -> privateKeyResolver.resolvePrivateKey(client.getPrivateKeyAlias()).orElse(null),
+                (client) -> new JwtGenerationService(jwsSignerProvider),
+                StsClient::getPrivateKeyAlias,
                 clock,
                 TimeUnit.MINUTES.toSeconds(tokenExpiration));
     }

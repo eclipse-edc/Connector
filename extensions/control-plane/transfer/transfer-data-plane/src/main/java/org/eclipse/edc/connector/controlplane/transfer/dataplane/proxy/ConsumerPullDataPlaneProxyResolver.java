@@ -27,7 +27,6 @@ import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.token.spi.KeyIdDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 
-import java.security.PrivateKey;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -42,18 +41,18 @@ public class ConsumerPullDataPlaneProxyResolver {
     private final DataEncrypter dataEncrypter;
     private final TypeManager typeManager;
     private final TokenGenerationService tokenGenerationService;
-    private final Supplier<PrivateKey> keySupplier;
+    private final Supplier<String> privateKeyIdSupplier;
     private final Supplier<String> publicKeyIdSupplier;
     private final ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction;
 
     public ConsumerPullDataPlaneProxyResolver(DataEncrypter dataEncrypter, TypeManager typeManager, TokenGenerationService tokenGenerationService,
-                                              Supplier<PrivateKey> keySupplier, Supplier<String> publicKeyIdSupplier,
+                                              Supplier<String> privateKeyIdSupplier, Supplier<String> publicKeyIdSupplier,
                                               ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction) {
         this.dataEncrypter = dataEncrypter;
         this.typeManager = typeManager;
         this.tokenExpirationDateFunction = tokenExpirationDateFunction;
         this.tokenGenerationService = tokenGenerationService;
-        this.keySupplier = keySupplier;
+        this.privateKeyIdSupplier = privateKeyIdSupplier;
         this.publicKeyIdSupplier = publicKeyIdSupplier;
     }
 
@@ -87,7 +86,7 @@ public class ConsumerPullDataPlaneProxyResolver {
                 .compose(expiration -> {
                     var keyIdDecorator = new KeyIdDecorator(publicKeyIdSupplier.get());
                     var dataAddressDecorator = new ConsumerPullDataPlaneProxyTokenDecorator(expiration, encryptedDataAddress);
-                    return tokenGenerationService.generate(keySupplier, keyIdDecorator, dataAddressDecorator);
+                    return tokenGenerationService.generate(privateKeyIdSupplier.get(), keyIdDecorator, dataAddressDecorator);
                 })
                 .map(TokenRepresentation::getToken);
     }

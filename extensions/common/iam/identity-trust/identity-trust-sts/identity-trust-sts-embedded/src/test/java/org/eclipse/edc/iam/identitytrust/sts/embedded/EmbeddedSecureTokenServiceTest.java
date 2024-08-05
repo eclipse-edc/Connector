@@ -21,9 +21,7 @@ import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -40,15 +38,16 @@ import static org.mockito.Mockito.when;
 
 public class EmbeddedSecureTokenServiceTest {
 
+    public static final String TEST_PRIVATEKEY_ID = "test-privatekey-id";
     private final TokenGenerationService tokenGenerationService = mock();
-    private final Supplier<PrivateKey> keySupplier = Mockito::mock;
+    private final Supplier<String> keySupplier = () -> TEST_PRIVATEKEY_ID;
 
     @Test
     void createToken_withoutBearerAccessScope() {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class))).thenReturn(Result.success(token));
+        when(tokenGenerationService.generate(eq(TEST_PRIVATEKEY_ID), any(TokenDecorator[].class))).thenReturn(Result.success(token));
         var result = sts.createToken(Map.of(), null);
 
         assertThat(result.succeeded()).isTrue();
@@ -71,7 +70,7 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class)))
+        when(tokenGenerationService.generate(eq(TEST_PRIVATEKEY_ID), any(TokenDecorator[].class)))
                 .thenReturn(Result.success(token))
                 .thenReturn(Result.success(token));
 
@@ -104,7 +103,7 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class)))
+        when(tokenGenerationService.generate(eq(TEST_PRIVATEKEY_ID), any(TokenDecorator[].class)))
                 .thenReturn(Result.failure("Failed to create access token"))
                 .thenReturn(Result.success(token));
 
@@ -128,7 +127,7 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class)))
+        when(tokenGenerationService.generate(eq(TEST_PRIVATEKEY_ID), any(TokenDecorator[].class)))
                 .thenReturn(Result.success(token))
                 .thenReturn(Result.failure("Failed to create access token"));
 
@@ -137,7 +136,7 @@ public class EmbeddedSecureTokenServiceTest {
 
         assertThat(result.failed()).isTrue();
 
-        verify(tokenGenerationService, times(2)).generate(eq(keySupplier), any(TokenDecorator[].class));
+        verify(tokenGenerationService, times(2)).generate(eq(TEST_PRIVATEKEY_ID), any(TokenDecorator[].class));
 
     }
 

@@ -30,7 +30,6 @@ import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
 import java.sql.Date;
 import java.time.Instant;
@@ -41,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +52,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
     private final TokenGenerationService tokenGenerationService = mock();
     private final ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction = mock();
 
-    private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, Mockito::mock, () -> "test-public-key", tokenExpirationDateFunction);
+    private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, () -> "test-private-key", () -> "test-public-key", tokenExpirationDateFunction);
 
     private static DataAddress dataAddress() {
         return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
@@ -75,7 +75,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
         var captor = ArgumentCaptor.forClass(TokenDecorator[].class);
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn(encryptedAddress);
         when(tokenExpirationDateFunction.expiresAt(address, transferProcess.getContractId())).thenReturn(Result.success(expiration));
-        when(tokenGenerationService.generate(any(), captor.capture()))
+        when(tokenGenerationService.generate(anyString(), captor.capture()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(token).build()));
 
         var result = resolver.toDataAddress(transferProcess, address, instance);
@@ -157,7 +157,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn("encryptedAddress");
         when(tokenExpirationDateFunction.expiresAt(address, transferProcess.getContractId())).thenReturn(Result.success(expiration));
-        when(tokenGenerationService.generate(any(), any(TokenDecorator[].class))).thenReturn(Result.failure(errorMsg));
+        when(tokenGenerationService.generate(anyString(), any(TokenDecorator[].class))).thenReturn(Result.failure(errorMsg));
 
         var result = resolver.toDataAddress(transferProcess, address, instance);
 

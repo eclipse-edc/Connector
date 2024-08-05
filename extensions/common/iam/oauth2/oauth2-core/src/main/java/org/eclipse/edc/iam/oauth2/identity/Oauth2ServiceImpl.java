@@ -36,7 +36,6 @@ import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.jetbrains.annotations.NotNull;
 
-import java.security.PrivateKey;
 import java.util.function.Supplier;
 
 import static org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension.OAUTH2_TOKEN_CONTEXT;
@@ -49,7 +48,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     private static final String GRANT_TYPE = "client_credentials";
 
     private final Oauth2ServiceConfiguration configuration;
-    private final Supplier<PrivateKey> privateKeySupplier;
+    private final Supplier<String> privateKeySupplier;
     private final Oauth2Client client;
     private final TokenDecoratorRegistry jwtDecoratorRegistry;
     private final TokenGenerationService tokenGenerationService;
@@ -66,11 +65,11 @@ public class Oauth2ServiceImpl implements IdentityService {
      * @param jwtDecoratorRegistry   Registry containing the decorator for build the JWT
      * @param tokenValidationService Service used for token validation
      */
-    public Oauth2ServiceImpl(Oauth2ServiceConfiguration configuration, TokenGenerationService tokenGenerationService, Supplier<PrivateKey> privateKeySupplier,
+    public Oauth2ServiceImpl(Oauth2ServiceConfiguration configuration, TokenGenerationService tokenGenerationService, Supplier<String> privateKeyIdSupplier,
                              Oauth2Client client, TokenDecoratorRegistry jwtDecoratorRegistry, TokenValidationRulesRegistry tokenValidationRuleRegistry, TokenValidationService tokenValidationService,
                              PublicKeyResolver publicKeyResolver) {
         this.configuration = configuration;
-        this.privateKeySupplier = privateKeySupplier;
+        this.privateKeySupplier = privateKeyIdSupplier;
         this.client = client;
         this.jwtDecoratorRegistry = jwtDecoratorRegistry;
         this.tokenValidationRuleRegistry = tokenValidationRuleRegistry;
@@ -94,7 +93,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     @NotNull
     private Result<String> generateClientAssertion() {
         var decorators = jwtDecoratorRegistry.getDecoratorsFor(OAUTH2_TOKEN_CONTEXT).toArray(TokenDecorator[]::new);
-        return tokenGenerationService.generate(privateKeySupplier, decorators)
+        return tokenGenerationService.generate(privateKeySupplier.get(), decorators)
                 .map(TokenRepresentation::getToken);
     }
 

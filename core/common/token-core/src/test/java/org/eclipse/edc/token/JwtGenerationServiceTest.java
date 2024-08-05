@@ -23,6 +23,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,26 +40,31 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtGenerationServiceTest {
 
+    public static final String TEST_KEY_ID = "test-key-id";
     private RSAKey keys;
     private JwtGenerationService tokenGenerationService;
 
     @BeforeEach
     void setUp() throws JOSEException {
         keys = testKey();
-        tokenGenerationService = new JwtGenerationService();
+        tokenGenerationService = new JwtGenerationService(keyId -> {
+            if (TEST_KEY_ID.equals(keyId)) {
+                try {
+                    var pk = keys.toPrivateKey();
+                    return CryptoConverter.createSignerFor(pk);
+                } catch (JOSEException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return null;
+        });
     }
 
     @Test
     void verifyTokenGeneration() throws ParseException, JOSEException {
         var decorator = testDecorator();
 
-        var result = tokenGenerationService.generate(() -> {
-            try {
-                return keys.toPrivateKey();
-            } catch (JOSEException e) {
-                throw new RuntimeException(e);
-            }
-        }, decorator);
+        var result = tokenGenerationService.generate(TEST_KEY_ID, decorator);
 
         assertThat(result.succeeded()).isTrue();
         var token = result.getContent().getToken();
@@ -84,7 +90,7 @@ class JwtGenerationServiceTest {
     void shouldFail_whenPrivateKeyCannotBeResolved() {
         var decorator = testDecorator();
 
-        var result = tokenGenerationService.generate(() -> null, decorator);
+        var result = tokenGenerationService.generate("not-exist-key", decorator);
 
         assertThat(result.failed()).isTrue();
     }

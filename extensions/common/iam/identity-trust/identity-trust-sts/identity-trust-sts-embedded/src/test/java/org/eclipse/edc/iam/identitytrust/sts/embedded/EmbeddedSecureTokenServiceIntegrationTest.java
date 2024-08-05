@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.identitytrust.sts.embedded;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.token.JwtGenerationService;
@@ -63,8 +64,8 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
     @BeforeEach
     void setup() throws NoSuchAlgorithmException {
         keyPair = generateKeyPair();
-        var tokenGenerationService = new JwtGenerationService();
-        secureTokenService = new EmbeddedSecureTokenService(tokenGenerationService, () -> keyPair.getPrivate(), () -> "test-keyid", Clock.systemUTC(), 10 * 60);
+        var tokenGenerationService = new JwtGenerationService(s -> new RSASSASigner(keyPair.getPrivate()));
+        secureTokenService = new EmbeddedSecureTokenService(tokenGenerationService, () -> "test-private-keyid", () -> "test-keyid", Clock.systemUTC(), 10 * 60);
     }
 
     @Test

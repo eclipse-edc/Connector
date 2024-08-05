@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.http.oauth2;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -23,10 +24,9 @@ import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
-import org.eclipse.edc.keys.spi.PrivateKeyResolver;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.token.JwsSignerProvider;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Date;
@@ -53,10 +53,9 @@ class Oauth2CredentialsRequestFactoryTest {
 
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
-    private final PrivateKeyResolver privateKeyResolver = mock(PrivateKeyResolver.class);
-    private final Vault vault = mock(Vault.class);
-    private final Monitor monitor = mock(Monitor.class);
-    private final Oauth2CredentialsRequestFactory factory = new Oauth2CredentialsRequestFactory(privateKeyResolver, clock, vault, monitor);
+    private final JwsSignerProvider privateKeyResolver = mock();
+    private final Vault vault = mock();
+    private final Oauth2CredentialsRequestFactory factory = new Oauth2CredentialsRequestFactory(privateKeyResolver, clock, vault);
 
     @Test
     void shouldCreateSharedSecretRequestWithKey_whenPrivateKeyNameIsAbsent() {
@@ -96,7 +95,7 @@ class Oauth2CredentialsRequestFactoryTest {
     @Test
     void shouldCreatePrivateKeyRequest_whenPrivateKeyNameIsPresent() throws JOSEException {
         var keyPair = generateKeyPair();
-        when(privateKeyResolver.resolvePrivateKey("pk-test")).thenReturn(Result.success(keyPair.toPrivateKey()));
+        when(privateKeyResolver.apply("pk-test")).thenReturn(new RSASSASigner(keyPair.toPrivateKey()));
 
         var address = defaultAddress()
                 .property(PRIVATE_KEY_NAME, "pk-test")
@@ -130,7 +129,7 @@ class Oauth2CredentialsRequestFactoryTest {
 
     @Test
     void shouldFailIfPrivateKeySecretNotFound() {
-        when(privateKeyResolver.resolvePrivateKey("pk-test")).thenReturn(Result.failure("not found"));
+        when(privateKeyResolver.apply("pk-test")).thenReturn(null);
 
         var address = defaultAddress()
                 .property(PRIVATE_KEY_NAME, "pk-test")

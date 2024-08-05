@@ -21,7 +21,6 @@ import org.eclipse.edc.token.spi.KeyIdDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.jetbrains.annotations.Nullable;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
@@ -50,15 +49,15 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
 
     private static final List<String> ACCESS_TOKEN_INHERITED_CLAIMS = List.of(ISSUER);
     private final TokenGenerationService tokenGenerationService;
-    private final Supplier<PrivateKey> privateKeySupplier;
-    private final Supplier<String> publicKeyId;
+    private final Supplier<String> privateKeyIdSupplier;
+    private final Supplier<String> publicKeyIdSupplier;
     private final Clock clock;
     private final long validity;
 
-    public EmbeddedSecureTokenService(TokenGenerationService tokenGenerationService, Supplier<PrivateKey> privateKeySupplier, Supplier<String> publicKeyId, Clock clock, long validity) {
+    public EmbeddedSecureTokenService(TokenGenerationService tokenGenerationService, Supplier<String> privateKeyIdSupplier, Supplier<String> publicKeyIdSupplier, Clock clock, long validity) {
         this.tokenGenerationService = tokenGenerationService;
-        this.privateKeySupplier = privateKeySupplier;
-        this.publicKeyId = publicKeyId;
+        this.privateKeyIdSupplier = privateKeyIdSupplier;
+        this.publicKeyIdSupplier = publicKeyIdSupplier;
         this.clock = clock;
         this.validity = validity;
     }
@@ -70,8 +69,8 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
                 .map(scope -> createAndAcceptAccessToken(claims, scope, selfIssuedClaims::put))
                 .orElse(success())
                 .compose(v -> {
-                    var keyIdDecorator = new KeyIdDecorator(publicKeyId.get());
-                    return tokenGenerationService.generate(privateKeySupplier, keyIdDecorator, new SelfIssuedTokenDecorator(selfIssuedClaims, clock, validity));
+                    var keyIdDecorator = new KeyIdDecorator(publicKeyIdSupplier.get());
+                    return tokenGenerationService.generate(privateKeyIdSupplier.get(), keyIdDecorator, new SelfIssuedTokenDecorator(selfIssuedClaims, clock, validity));
                 });
     }
 
@@ -88,8 +87,8 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
         return addClaim(claims, ISSUER, withClaim(AUDIENCE, accessTokenClaims::put))
                 .compose(v -> addClaim(claims, AUDIENCE, withClaim(SUBJECT, accessTokenClaims::put)))
                 .compose(v -> {
-                    var keyIdDecorator = new KeyIdDecorator(publicKeyId.get());
-                    return tokenGenerationService.generate(privateKeySupplier, keyIdDecorator, new SelfIssuedTokenDecorator(accessTokenClaims, clock, validity));
+                    var keyIdDecorator = new KeyIdDecorator(publicKeyIdSupplier.get());
+                    return tokenGenerationService.generate(privateKeyIdSupplier.get(), keyIdDecorator, new SelfIssuedTokenDecorator(accessTokenClaims, clock, validity));
                 });
 
     }

@@ -32,7 +32,6 @@ import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
 
-import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +55,7 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
     private final TokenGenerationService tokenGenerationService;
     private final AccessTokenDataStore accessTokenDataStore;
     private final Monitor monitor;
-    private final Supplier<PrivateKey> privateKeySupplier;
+    private final Supplier<String> privateKeyIdSupplier;
     private final Supplier<String> publicKeyIdSupplier;
     private final TokenValidationService tokenValidationService;
     private final PublicKeyResolver publicKeyResolver;
@@ -64,14 +63,14 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
     public DefaultDataPlaneAccessTokenServiceImpl(TokenGenerationService tokenGenerationService,
                                                   AccessTokenDataStore accessTokenDataStore,
                                                   Monitor monitor,
-                                                  Supplier<PrivateKey> privateKeySupplier,
+                                                  Supplier<String> privateKeyIdSupplier,
                                                   Supplier<String> publicKeyIdSupplier,
                                                   TokenValidationService tokenValidationService,
                                                   PublicKeyResolver publicKeyResolver) {
         this.tokenGenerationService = tokenGenerationService;
         this.accessTokenDataStore = accessTokenDataStore;
         this.monitor = monitor;
-        this.privateKeySupplier = privateKeySupplier;
+        this.privateKeyIdSupplier = privateKeyIdSupplier;
         this.publicKeyIdSupplier = publicKeyIdSupplier;
         this.tokenValidationService = tokenValidationService;
         this.publicKeyResolver = publicKeyResolver;
@@ -106,9 +105,9 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
             allDecorators.add(tokenIdDecorator);
         }
 
-        var tokenResult = tokenGenerationService.generate(privateKeySupplier, allDecorators.toArray(new TokenDecorator[0]));
+        var tokenResult = tokenGenerationService.generate(privateKeyIdSupplier.get(), allDecorators.toArray(new TokenDecorator[0]));
         if (tokenResult.failed()) {
-            return tokenResult.mapTo();
+            return tokenResult.mapEmpty();
         }
 
         // store a record of the token for future reference. We'll need that when we resolve the AccessTokenData later.

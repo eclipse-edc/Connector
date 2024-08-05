@@ -33,6 +33,7 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.token.JwsSignerProvider;
 import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
@@ -42,7 +43,6 @@ import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.jetbrains.annotations.NotNull;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -110,6 +110,8 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     private TokenValidationService tokenValidationService;
     @Inject
     private TokenDecoratorRegistry jwtDecoratorRegistry;
+    @Inject
+    private JwsSignerProvider jwsSignerProvider;
 
     @Override
     public String name() {
@@ -157,12 +159,11 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration,
                                                   TokenDecoratorRegistry jwtDecoratorRegistry,
                                                   IdentityProviderKeyResolver providerKeyResolver) {
-        Supplier<PrivateKey> privateKeySupplier = () -> privateKeyResolver.resolvePrivateKey(configuration.getPrivateKeyAlias())
-                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+        Supplier<String> privateKeySupplier = configuration::getPrivateKeyAlias;
 
         return new Oauth2ServiceImpl(
                 configuration,
-                new JwtGenerationService(),
+                new JwtGenerationService(jwsSignerProvider),
                 privateKeySupplier,
                 oauth2Client,
                 jwtDecoratorRegistry,

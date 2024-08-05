@@ -14,8 +14,12 @@
 
 package org.eclipse.edc.token;
 
+import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.security.token.jwt.CryptoConverter;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.token.spi.TokenDecoratorRegistry;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
@@ -31,6 +35,9 @@ import static org.eclipse.edc.token.TokenServicesExtension.NAME;
 public class TokenServicesExtension implements ServiceExtension {
     public static final String NAME = "Token Services Extension";
 
+    @Inject
+    private PrivateKeyResolver privateKeyResolver;
+
     @Provider
     public TokenValidationRulesRegistry tokenValidationRulesRegistry() {
         return new TokenValidationRulesRegistryImpl();
@@ -44,5 +51,13 @@ public class TokenServicesExtension implements ServiceExtension {
     @Provider
     public TokenDecoratorRegistry tokenDecoratorRegistry() {
         return new TokenDecoratorRegistryImpl();
+    }
+
+    @Provider(isDefault = true)
+    public JwsSignerProvider defaultSignerProvider() {
+        return privateKeyId -> {
+            var pk = privateKeyResolver.resolvePrivateKey(privateKeyId).orElseThrow(f -> new EdcException("This EDC instance is not operational due to the following error: %s".formatted(f.getFailureDetail())));
+            return CryptoConverter.createSignerFor(pk);
+        };
     }
 }

@@ -14,6 +14,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":spi:common:identity-trust-sts-spi")))
     testImplementation(project(":core:common:lib:boot-lib"))
+    testImplementation(project(":core:common:lib:crypto-common-lib"))
     testImplementation(project(":core:common:lib:keys-lib"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.nimbus.jwt)

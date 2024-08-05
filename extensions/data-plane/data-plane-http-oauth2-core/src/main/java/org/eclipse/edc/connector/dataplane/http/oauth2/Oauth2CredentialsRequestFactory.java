@@ -18,12 +18,11 @@ import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
-import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.token.JwsSignerProvider;
 import org.eclipse.edc.token.JwtGenerationService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,16 +45,14 @@ public class Oauth2CredentialsRequestFactory {
 
     private static final long DEFAULT_TOKEN_VALIDITY = TimeUnit.MINUTES.toSeconds(5);
     private static final String GRANT_CLIENT_CREDENTIALS = "client_credentials";
-    private final PrivateKeyResolver privateKeyResolver;
+    private final JwsSignerProvider jwsSignerProvider;
     private final Clock clock;
     private final Vault vault;
-    private final Monitor monitor;
 
-    public Oauth2CredentialsRequestFactory(PrivateKeyResolver privateKeyResolver, Clock clock, Vault vault, Monitor monitor) {
-        this.privateKeyResolver = privateKeyResolver;
+    public Oauth2CredentialsRequestFactory(JwsSignerProvider jwsSignerProvider, Clock clock, Vault vault) {
+        this.jwsSignerProvider = jwsSignerProvider;
         this.clock = clock;
         this.vault = vault;
-        this.monitor = monitor;
     }
 
     /**
@@ -104,18 +101,13 @@ public class Oauth2CredentialsRequestFactory {
 
     @NotNull
     private Result<TokenRepresentation> createAssertion(String pkSecret, DataAddress dataAddress) {
-        var privateKey = privateKeyResolver.resolvePrivateKey(pkSecret);
-        if (privateKey.failed()) {
-            return Result.failure("Failed to resolve private key with alias: " + pkSecret);
-        }
-
         var validity = Optional.ofNullable(dataAddress.getStringProperty(VALIDITY))
                 .map(this::parseLong)
                 .orElse(DEFAULT_TOKEN_VALIDITY);
         var decorator = new Oauth2AssertionDecorator(dataAddress.getStringProperty(TOKEN_URL), dataAddress.getStringProperty(CLIENT_ID), clock, validity);
-        var service = new JwtGenerationService();
+        var service = new JwtGenerationService(jwsSignerProvider);
 
-        return service.generate(privateKey::getContent, decorator);
+        return service.generate(pkSecret, decorator);
     }
 
     @Nullable
