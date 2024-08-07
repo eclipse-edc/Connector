@@ -19,12 +19,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -52,14 +54,17 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
     private final ObjectMapper mapper;
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final String selectionStrategy;
+    private final JsonLd jsonLd;
 
     public RemoteDataPlaneSelectorService(ControlApiHttpClient controlClient, String url, ObjectMapper mapper,
-                                          TypeTransformerRegistry typeTransformerRegistry, String selectionStrategy) {
+                                          TypeTransformerRegistry typeTransformerRegistry, String selectionStrategy,
+                                          JsonLd jsonLd) {
         this.httpClient = controlClient;
         this.url = url;
         this.mapper = mapper;
         this.typeTransformerRegistry = typeTransformerRegistry;
         this.selectionStrategy = selectionStrategy;
+        this.jsonLd = jsonLd;
     }
 
     @Override
@@ -69,7 +74,8 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
         return httpClient.request(requestBuilder)
                 .compose(this::toJsonArray)
                 .map(it -> it.stream()
-                        .map(j -> typeTransformerRegistry.transform(j, DataPlaneInstance.class))
+                        .map(JsonValue::asJsonObject)
+                        .map(jo -> jsonLd.expand(jo).compose(joo -> typeTransformerRegistry.transform(joo, DataPlaneInstance.class)))
                         .filter(Result::succeeded)
                         .map(Result::getContent)
                         .toList()
@@ -92,6 +98,7 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
         var requestBuilder = new Request.Builder().post(body).url(url + SELECT_PATH);
 
         return httpClient.request(requestBuilder).compose(this::toJsonObject)
+                .compose(it -> jsonLd.expand(it).flatMap(ServiceResult::from))
                 .map(it -> typeTransformerRegistry.transform(it, DataPlaneInstance.class))
                 .compose(ServiceResult::from);
     }
@@ -132,6 +139,7 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
         var requestBuilder = new Request.Builder().get().url(url + "/" + id);
 
         return httpClient.request(requestBuilder).compose(this::toJsonObject)
+                .compose(it -> jsonLd.expand(it).flatMap(ServiceResult::from))
                 .map(it -> typeTransformerRegistry.transform(it, DataPlaneInstance.class).getContent());
     }
 
@@ -150,6 +158,5 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
             return ServiceResult.unexpected("Cannot deserialize response body as JsonObject");
         }
     }
-
 
 }

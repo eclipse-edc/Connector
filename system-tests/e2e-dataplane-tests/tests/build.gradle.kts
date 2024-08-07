@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -23,7 +22,6 @@ dependencies {
     testImplementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
 
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
-    testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:keys-lib"))
     testImplementation(project(":extensions:common:json-ld"))

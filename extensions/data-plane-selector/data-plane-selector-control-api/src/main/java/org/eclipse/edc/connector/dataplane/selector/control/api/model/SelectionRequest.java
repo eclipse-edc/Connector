@@ -29,6 +29,7 @@ public class SelectionRequest {
     public static final String TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String STRATEGY = EDC_NAMESPACE + "strategy";
     private DataAddress source;
+    @Deprecated(since = "0.8.1")
     private DataAddress destination;
     private String strategy = "random";
     private String transferType;
@@ -40,6 +41,7 @@ public class SelectionRequest {
         return source;
     }
 
+    @Deprecated(since = "0.8.1")
     public DataAddress getDestination() {
         return destination;
     }
