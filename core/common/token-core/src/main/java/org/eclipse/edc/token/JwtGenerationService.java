@@ -49,7 +49,7 @@ public class JwtGenerationService implements TokenGenerationService {
 
         var tokenSignerResult = jwsGeneratorFunction.createJwsSigner(privateKeyId);
         if (tokenSignerResult.failed()) {
-            return Result.failure("JWSSigner cannot be generated for private key '%s'".formatted(tokenSignerResult.getFailureDetail()));
+            return Result.failure("JWSSigner cannot be generated for private key '%s': %s".formatted(privateKeyId, tokenSignerResult.getFailureDetail()));
         }
 
         var tokenSigner = tokenSignerResult.getContent();
