@@ -58,3 +58,4 @@
 - [2024-05-24 Dataplane Selection Improvements](./2024-05-24-dataplane-selection-improvements/)
 - [2024-06-24 Api Authentication Configuration](./2024-06-24-api-authentication-configuration/)
 - [2024-07-03 Additional CatalogRequest scope parameter](./2024-07-03-additional-catalogrequest-param/)
+- [2024-08-05 Custom JWSSigner Implementations](./2024-08-05-custom-jwssigners/)
