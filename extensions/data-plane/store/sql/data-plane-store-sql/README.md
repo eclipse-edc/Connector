@@ -20,9 +20,3 @@ entity edc_data_plane {
 ```
 
 -->
-
-## Configuration
-
-| Key                           | Description                       | Mandatory | 
-|:------------------------------|:----------------------------------|-----------|
-| edc.datasource.dataplane.name | Datasource used by this extension | X         |

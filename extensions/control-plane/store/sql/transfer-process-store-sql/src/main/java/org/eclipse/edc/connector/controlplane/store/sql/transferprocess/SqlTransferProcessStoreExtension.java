@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
+import org.eclipse.edc.sql.configuration.DataSourceName;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -36,8 +37,11 @@ import java.time.Clock;
 @Extension(value = "SQL transfer process store")
 public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
-    @Setting
-    public static final String DATASOURCE_NAME_SETTING = "edc.datasource.transferprocess.name";
+    @Deprecated(since = "0.8.1")
+    public static final String DATASOURCE_SETTING_NAME = "edc.datasource.transferprocess.name";
+
+    @Setting(value = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
+    public static final String DATASOURCE_NAME = "edc.sql.store.transferprocess.datasource";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -60,7 +64,8 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = getDataSourceName(context);
+        var dataSourceName = DataSourceName.getDataSourceName(DATASOURCE_NAME, DATASOURCE_SETTING_NAME, context.getConfig(), context.getMonitor());
+
         var store = new SqlTransferProcessStore(dataSourceRegistry, dataSourceName, trxContext,
                 typeManager.getMapper(), getStatementImpl(), context.getRuntimeId(), clock, queryExecutor);
         context.registerService(TransferProcessStore.class, store);
@@ -75,7 +80,4 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
         return statements != null ? statements : new PostgresDialectStatements();
     }
 
-    private String getDataSourceName(ServiceExtensionContext context) {
-        return context.getConfig().getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE);
-    }
 }

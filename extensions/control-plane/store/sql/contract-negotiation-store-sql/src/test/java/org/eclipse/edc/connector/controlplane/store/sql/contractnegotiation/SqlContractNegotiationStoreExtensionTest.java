@@ -33,7 +33,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension.DATASOURCE_NAME_SETTING;
+import static org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension.DATASOURCE_NAME;
+import static org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension.DATASOURCE_SETTING_NAME;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,7 +50,7 @@ class SqlContractNegotiationStoreExtensionTest {
     void initialize(ServiceExtensionContext context, ObjectFactory factory) {
         var config = mock(Config.class);
         when(context.getConfig()).thenReturn(config);
-        when(config.getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE)).thenReturn("test");
+        when(config.getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE)).thenReturn("test");
 
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
@@ -61,7 +64,7 @@ class SqlContractNegotiationStoreExtensionTest {
         var service = context.getService(ContractNegotiationStore.class);
         assertThat(service).isInstanceOf(SqlContractNegotiationStore.class);
         assertThat(service).extracting("statements").isInstanceOf(BaseSqlDialectStatements.class);
-        verify(config).getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE);
+        verify(config).getString(eq(DATASOURCE_NAME), any());
 
     }
 

@@ -21,14 +21,14 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.store.sql.transferprocess.SqlTransferProcessStoreExtension.DATASOURCE_NAME_SETTING;
+import static org.eclipse.edc.connector.controlplane.store.sql.transferprocess.SqlTransferProcessStoreExtension.DATASOURCE_NAME;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,6 +52,6 @@ public class SqlTransferProcessStoreExtensionTest {
         var service = context.getService(TransferProcessStore.class);
         assertThat(service).isInstanceOf(SqlTransferProcessStore.class);
 
-        verify(config).getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE);
+        verify(config).getString(eq(DATASOURCE_NAME), any());
     }
 }

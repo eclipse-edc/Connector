@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
+import org.eclipse.edc.sql.configuration.DataSourceName;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -40,8 +41,12 @@ public class SqlAccessTokenDataStoreExtension implements ServiceExtension {
 
     public static final String NAME = "Sql AccessTokenData Store";
 
+    @Deprecated(since = "0.8.1")
     @Setting(value = "Name of the datasource to use for accessing data plane store")
     private static final String DATASOURCE_SETTING_NAME = "edc.datasource.accesstokendata.name";
+
+    @Setting(value = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
+    public static final String DATASOURCE_NAME = "edc.sql.store.accesstokendata.datasource";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -70,7 +75,8 @@ public class SqlAccessTokenDataStoreExtension implements ServiceExtension {
 
     @Provider
     public AccessTokenDataStore dataPlaneStore(ServiceExtensionContext context) {
-        var dataSourceName = getDataSourceName(context);
+        var dataSourceName = DataSourceName.getDataSourceName(DATASOURCE_NAME, DATASOURCE_SETTING_NAME, context.getConfig(), context.getMonitor());
+
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "accesstoken-data-schema.sql");
         return new SqlAccessTokenDataStore(dataSourceRegistry, dataSourceName, transactionContext,
                 getStatementImpl(), typeManager.getMapper(), queryExecutor);
@@ -83,7 +89,4 @@ public class SqlAccessTokenDataStoreExtension implements ServiceExtension {
         return statements != null ? statements : new PostgresAccessTokenDataStatements();
     }
 
-    private String getDataSourceName(ServiceExtensionContext context) {
-        return context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
-    }
 }

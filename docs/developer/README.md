@@ -11,6 +11,7 @@
 ## Guides
 - [Customize Policy Engine](policy-engine.md)
 - [Performance Tuning](performance-tuning.md)
+- [Sql persistence](sql-persistence.md)
 
 ## Build and testing
 - [OpenApi Spec Generation](openapi.md)

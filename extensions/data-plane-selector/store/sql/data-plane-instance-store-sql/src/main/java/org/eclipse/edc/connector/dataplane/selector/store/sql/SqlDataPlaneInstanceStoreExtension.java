@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
+import org.eclipse.edc.sql.configuration.DataSourceName;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -40,8 +41,13 @@ import java.time.Clock;
 public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
     public static final String NAME = "Sql Data Plane Instance Store";
 
+    @Deprecated(since = "0.8.1")
     @Setting(value = "Name of the datasource to use for accessing data plane instances")
     public static final String DATASOURCE_SETTING_NAME = "edc.datasource.dataplaneinstance.name";
+
+    @Setting(value = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
+    public static final String DATASOURCE_NAME = "edc.sql.store.dataplaneinstance.datasource";
+
     @Inject
     private DataSourceRegistry dataSourceRegistry;
 
@@ -70,7 +76,8 @@ public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneInstanceStore dataPlaneInstanceStore(ServiceExtensionContext context) {
-        var dataSourceName = getDataSourceName(context);
+        var dataSourceName = DataSourceName.getDataSourceName(DATASOURCE_NAME, DATASOURCE_SETTING_NAME, context.getConfig(), context.getMonitor());
+
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "dataplane-instance-schema.sql");
         return new SqlDataPlaneInstanceStore(dataSourceRegistry, dataSourceName, transactionContext,
                 getStatementImpl(), typeManager.getMapper(), queryExecutor, clock, context.getRuntimeId());
@@ -83,7 +90,4 @@ public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
         return statements != null ? statements : new PostgresDataPlaneInstanceStatements();
     }
 
-    private String getDataSourceName(ServiceExtensionContext context) {
-        return context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
-    }
 }
