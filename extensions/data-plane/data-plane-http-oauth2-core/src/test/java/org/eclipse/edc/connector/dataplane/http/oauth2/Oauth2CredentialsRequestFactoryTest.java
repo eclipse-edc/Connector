@@ -24,9 +24,9 @@ import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
+import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.token.JwsSignerProvider;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Date;
@@ -56,7 +56,7 @@ class Oauth2CredentialsRequestFactoryTest {
     private final JwsSignerProvider privateKeyResolver = mock();
     private final Vault vault = mock();
     private final Oauth2CredentialsRequestFactory factory = new Oauth2CredentialsRequestFactory(privateKeyResolver, clock, vault);
-
+    
     @Test
     void shouldCreateSharedSecretRequestWithKey_whenPrivateKeyNameIsAbsent() {
         when(vault.resolveSecret("clientSecretKey")).thenReturn("clientSecret");

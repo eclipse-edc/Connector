@@ -18,9 +18,9 @@ package org.eclipse.edc.token;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -34,11 +34,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.function.Function;
 
 public class JwtGenerationService implements TokenGenerationService {
 
-    private final Function<String, JWSSigner> jwsGeneratorFunction;
+    private final JwsSignerProvider jwsGeneratorFunction;
 
     public JwtGenerationService(JwsSignerProvider jwsGeneratorFunction) {
 

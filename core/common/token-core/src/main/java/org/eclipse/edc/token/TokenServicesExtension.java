@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.token;
 
+import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -55,6 +56,7 @@ public class TokenServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public JwsSignerProvider defaultSignerProvider() {
+        // default implementation: resolve the private key (from vault of config) and create a JWSSigner based on its algorithm
         return privateKeyId -> {
             var pk = privateKeyResolver.resolvePrivateKey(privateKeyId).orElseThrow(f -> new EdcException("This EDC instance is not operational due to the following error: %s".formatted(f.getFailureDetail())));
             return CryptoConverter.createSignerFor(pk);

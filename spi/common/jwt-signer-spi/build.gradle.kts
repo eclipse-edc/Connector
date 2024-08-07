@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,11 +12,14 @@
  *
  */
 
-package org.eclipse.edc.token;
-
-import com.nimbusds.jose.JWSSigner;
-
-import java.util.function.Function;
-
-public interface JwsSignerProvider extends Function<String, JWSSigner> {
+plugins {
+    `java-library`
+    `maven-publish`
 }
+
+dependencies {
+    api(libs.nimbus.jwt)
+    implementation(libs.edc.runtime.metamodel)
+}
+
+

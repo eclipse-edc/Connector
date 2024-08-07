@@ -21,6 +21,7 @@ dependencies {
     api(project(":spi:common:keys-spi"))
     api(project(":spi:common:token-spi"))
     api(project(":spi:common:jwt-spi"))
+    api(project(":spi:common:jwt-signer-spi"))
 
     implementation(project(":core:common:lib:crypto-common-lib")) // for the CryptoConverter
     implementation(libs.nimbus.jwt)

@@ -17,8 +17,6 @@ package org.eclipse.edc.token.spi;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 
-import java.util.function.Supplier;
-
 /**
  * Interface for generating token based on a set of claims and header.
  */
@@ -27,8 +25,7 @@ public interface TokenGenerationService {
     /**
      * Generate a signed token based on the request.
      *
-     * @param privateKeyId A {@link Supplier} that provides the private on-demand.
-     *                     Be advised that holding the private key in memory poses a considerable security risk and should be avoided.
+     * @param privateKeyId A String that identifies the private key, e.g. a secret alias in a {@link org.eclipse.edc.spi.security.Vault}
      * @param decorators   an optional list of {@code JwtDecorator} objects to determine the shape of the token, i.e. headers and claims
      */
     Result<TokenRepresentation> generate(String privateKeyId, TokenDecorator... decorators);
