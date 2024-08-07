@@ -15,12 +15,14 @@
 package org.eclipse.edc.jwt.signer.spi;
 
 import com.nimbusds.jose.JWSSigner;
-
-import java.util.function.Function;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.result.Result;
 
 /**
  * A JwsSignerProvider provides a {@link JWSSigner} for a given private key ID.
  */
 @ExtensionPoint
-public interface JwsSignerProvider extends Function<String, JWSSigner> {
+@FunctionalInterface
+public interface JwsSignerProvider {
+    Result<JWSSigner> createJwsSigner(String privateKeyId);
 }

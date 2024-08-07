@@ -41,17 +41,18 @@ public class JwtGenerationService implements TokenGenerationService {
 
     public JwtGenerationService(JwsSignerProvider jwsSignerProvider) {
 
-        this.jwsGeneratorFunction = jwsGeneratorFunction;
+        this.jwsGeneratorFunction = jwsSignerProvider;
     }
 
     @Override
     public Result<TokenRepresentation> generate(String privateKeyId, @NotNull TokenDecorator... decorators) {
 
-        var tokenSigner = jwsGeneratorFunction.apply(privateKeyId);
-        if (tokenSigner == null) {
-            return Result.failure("JWSSigner cannot be generated for private key '%s'".formatted(privateKeyId));
+        var tokenSignerResult = jwsGeneratorFunction.createJwsSigner(privateKeyId);
+        if (tokenSignerResult.failed()) {
+            return Result.failure("JWSSigner cannot be generated for private key '%s'".formatted(tokenSignerResult.getFailureDetail()));
         }
 
+        var tokenSigner = tokenSignerResult.getContent();
         var jwsAlgorithm = CryptoConverter.getRecommendedAlgorithm(tokenSigner);
 
         var bldr = TokenParameters.Builder.newInstance();

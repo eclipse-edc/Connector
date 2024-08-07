@@ -95,7 +95,7 @@ class Oauth2CredentialsRequestFactoryTest {
     @Test
     void shouldCreatePrivateKeyRequest_whenPrivateKeyNameIsPresent() throws JOSEException {
         var keyPair = generateKeyPair();
-        when(privateKeyResolver.apply("pk-test")).thenReturn(new RSASSASigner(keyPair.toPrivateKey()));
+        when(privateKeyResolver.createJwsSigner("pk-test")).thenReturn(Result.success(new RSASSASigner(keyPair.toPrivateKey())));
 
         var address = defaultAddress()
                 .property(PRIVATE_KEY_NAME, "pk-test")
@@ -129,7 +129,7 @@ class Oauth2CredentialsRequestFactoryTest {
 
     @Test
     void shouldFailIfPrivateKeySecretNotFound() {
-        when(privateKeyResolver.apply("pk-test")).thenReturn(null);
+        when(privateKeyResolver.createJwsSigner("pk-test")).thenReturn(null);
 
         var address = defaultAddress()
                 .property(PRIVATE_KEY_NAME, "pk-test")

@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     api(libs.nimbus.jwt)
+    api(project(":spi:common:boot-spi")) //Result
     implementation(libs.edc.runtime.metamodel)
 }
 

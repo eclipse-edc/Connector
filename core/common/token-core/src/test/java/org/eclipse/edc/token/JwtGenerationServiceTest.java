@@ -24,6 +24,7 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,12 +52,12 @@ class JwtGenerationServiceTest {
             if (TEST_KEY_ID.equals(keyId)) {
                 try {
                     var pk = keys.toPrivateKey();
-                    return CryptoConverter.createSignerFor(pk);
+                    return Result.success(CryptoConverter.createSignerFor(pk));
                 } catch (JOSEException e) {
-                    throw new RuntimeException(e);
+                    return Result.failure(e.getMessage());
                 }
             }
-            return null;
+            return Result.failure("key not found");
         });
     }
 
