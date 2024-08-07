@@ -21,5 +21,6 @@ import java.util.function.Function;
 /**
  * A JwsSignerProvider provides a {@link JWSSigner} for a given private key ID.
  */
+@ExtensionPoint
 public interface JwsSignerProvider extends Function<String, JWSSigner> {
 }
