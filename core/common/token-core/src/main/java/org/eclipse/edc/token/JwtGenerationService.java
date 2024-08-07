@@ -39,7 +39,7 @@ public class JwtGenerationService implements TokenGenerationService {
 
     private final JwsSignerProvider jwsGeneratorFunction;
 
-    public JwtGenerationService(JwsSignerProvider jwsGeneratorFunction) {
+    public JwtGenerationService(JwsSignerProvider jwsSignerProvider) {
 
         this.jwsGeneratorFunction = jwsGeneratorFunction;
     }
