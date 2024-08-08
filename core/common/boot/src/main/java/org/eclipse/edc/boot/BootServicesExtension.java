@@ -42,8 +42,11 @@ public class BootServicesExtension implements ServiceExtension {
     @Setting(value = "Configures the participant id this runtime is operating on behalf of")
     public static final String PARTICIPANT_ID = "edc.participant.id";
 
-    @Setting(value = "Configures the runtime id", defaultValue = "<random UUID>")
+    @Setting(value = "Configures the runtime id. This should be fully or partly randomized, and need not be stable across restarts. It is recommended to leave this value blank.", defaultValue = "<random UUID>")
     public static final String RUNTIME_ID = "edc.runtime.id";
+
+    @Setting(value = "Configures this component's ID. This should be a unique, stable and deterministic identifier.", defaultValue = "<random UUID>")
+    public static final String COMPONENT_ID = "edc.component.id";
 
     private HealthCheckServiceImpl healthCheckService;
 

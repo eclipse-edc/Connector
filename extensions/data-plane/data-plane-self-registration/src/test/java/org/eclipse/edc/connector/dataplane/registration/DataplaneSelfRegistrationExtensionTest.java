@@ -63,14 +63,14 @@ class DataplaneSelfRegistrationExtensionTest {
         context.registerService(PipelineService.class, pipelineService);
         context.registerService(PublicEndpointGeneratorService.class, publicEndpointGeneratorService);
         var monitor = mock(Monitor.class);
-        when(monitor.withPrefix(anyString())).thenReturn(mock());
+        when(monitor.withPrefix(anyString())).thenReturn(monitor);
         context.registerService(Monitor.class, monitor);
         context.registerService(HealthCheckService.class, healthCheckService);
     }
 
     @Test
     void shouldRegisterInstanceAtStartup(DataplaneSelfRegistrationExtension extension, ServiceExtensionContext context) throws MalformedURLException {
-        when(context.getRuntimeId()).thenReturn("runtimeId");
+        when(context.getComponentId()).thenReturn("componentId");
         when(controlApiUrl.get()).thenReturn(URI.create("http://control/api/url"));
         when(pipelineService.supportedSinkTypes()).thenReturn(Set.of("sinkType", "anotherSinkType"));
         when(pipelineService.supportedSourceTypes()).thenReturn(Set.of("sourceType", "anotherSourceType"));
@@ -83,7 +83,7 @@ class DataplaneSelfRegistrationExtensionTest {
         var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
         verify(dataPlaneSelectorService).addInstance(captor.capture());
         var dataPlaneInstance = captor.getValue();
-        assertThat(dataPlaneInstance.getId()).isEqualTo("runtimeId");
+        assertThat(dataPlaneInstance.getId()).isEqualTo("componentId");
         assertThat(dataPlaneInstance.getUrl()).isEqualTo(new URL("http://control/api/url/v1/dataflows"));
         assertThat(dataPlaneInstance.getAllowedSourceTypes()).containsExactlyInAnyOrder("sourceType", "anotherSourceType");
         assertThat(dataPlaneInstance.getAllowedDestTypes()).containsExactlyInAnyOrder("sinkType", "anotherSinkType");
@@ -107,7 +107,7 @@ class DataplaneSelfRegistrationExtensionTest {
 
     @Test
     void shouldNotUnregisterInstanceAtShutdown(DataplaneSelfRegistrationExtension extension, ServiceExtensionContext context) {
-        when(context.getRuntimeId()).thenReturn("runtimeId");
+        when(context.getComponentId()).thenReturn("componentId");
         when(dataPlaneSelectorService.unregister(any())).thenReturn(ServiceResult.success());
         extension.initialize(context);
 
@@ -118,13 +118,13 @@ class DataplaneSelfRegistrationExtensionTest {
 
     @Test
     void shouldUnregisterInstanceAtShutdown_whenConfigured(DataplaneSelfRegistrationExtension extension, ServiceExtensionContext context) {
-        when(context.getRuntimeId()).thenReturn("runtimeId");
+        when(context.getComponentId()).thenReturn("componentId");
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(SELF_UNREGISTRATION, "true")));
         when(dataPlaneSelectorService.unregister(any())).thenReturn(ServiceResult.success());
         extension.initialize(context);
 
         extension.shutdown();
 
-        verify(dataPlaneSelectorService).unregister("runtimeId");
+        verify(dataPlaneSelectorService).unregister("componentId");
     }
 }

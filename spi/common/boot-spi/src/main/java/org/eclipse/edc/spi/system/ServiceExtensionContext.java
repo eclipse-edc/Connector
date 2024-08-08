@@ -40,22 +40,24 @@ public interface ServiceExtensionContext extends SettingResolver {
     String getParticipantId();
 
     /**
-     * Return the id of the runtime. If not configured a random UUID is used.
+     * Return the id of the runtime. A runtime is a physical process. If {@code edc.runtime.id} is not configured, a random UUID is used.
+     * <br/><em>It is recommended to leave this configuration blank..</em>
      *
      * @return the runtime id.
      */
     String getRuntimeId();
 
     /**
-     * Fetches the unique ID of the connector. If the {@code dataspaceconnector.connector.name} config value has been set, that value is returned; otherwise  a random
-     * name is chosen.
+     * Returns the id of the component. A component is a logical unit of deployment, consisting of 1...N runtimes. If it is not
+     * configured, but the runtime ID is configured, then the value of the runtime ID will be used. If neither runtime ID
+     * nor component ID are used, (individual) random values are generated.
+     * <p>
+     * <br/><em>It is recommended to provide a stable value for this configuration.</em>
      *
-     * @deprecated use {{@link #getRuntimeId()}} instead.
+     * @return the component id.
      */
-    @Deprecated(since = "0.6.2")
-    default String getConnectorId() {
-        return getRuntimeId();
-    }
+    String getComponentId();
+
 
     /**
      * Returns the system monitor.

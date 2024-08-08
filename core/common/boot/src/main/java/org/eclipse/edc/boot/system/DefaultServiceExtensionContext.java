@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.eclipse.edc.boot.BootServicesExtension.COMPONENT_ID;
 import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
 
 /**
@@ -33,14 +34,13 @@ import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
  */
 public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
-    @Deprecated(since = "0.6.2")
-    private static final String EDC_CONNECTOR_NAME = "edc.connector.name";
 
     private final Map<Class<?>, Object> services = new HashMap<>();
     private final Config config;
     private boolean isReadOnly = false;
     private String participantId;
     private String runtimeId;
+    private String componentId;
 
     public DefaultServiceExtensionContext(Monitor monitor, Config config) {
         this.config = config;
@@ -66,6 +66,11 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public String getRuntimeId() {
         return runtimeId;
+    }
+
+    @Override
+    public String getComponentId() {
+        return componentId;
     }
 
     @Override
@@ -108,20 +113,21 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
             getMonitor().warning("The runtime is configured as an anonymous participant. DO NOT DO THIS IN PRODUCTION.");
         }
 
-        var connectorName = getSetting(EDC_CONNECTOR_NAME, null);
-        if (connectorName != null) {
-            getMonitor().warning("Setting %s has been deprecated, please use %s instead".formatted(EDC_CONNECTOR_NAME, RUNTIME_ID));
+        runtimeId = getSetting(RUNTIME_ID, null);
+        if (runtimeId != null) {
+            getMonitor().warning("A configuration value for '%s' was found. The runtime ID should be left blank to use a random one.".formatted(RUNTIME_ID));
         }
 
-        runtimeId = getSetting(RUNTIME_ID, null);
-        if (runtimeId == null) {
-            if (connectorName == null) {
-                getMonitor().warning("%s is not configured so a random UUID is used. It is recommended to provide a static one.".formatted(RUNTIME_ID));
-                runtimeId = UUID.randomUUID().toString();
+        componentId = getSetting(COMPONENT_ID, null);
+        if (componentId == null) {
+            if (runtimeId != null) {
+                getMonitor().warning("'%s' is not configured, but '%s' is. The value used for '%s' will be used for '%s', and a random string will be used for '%s'".formatted(COMPONENT_ID, RUNTIME_ID, RUNTIME_ID, COMPONENT_ID, RUNTIME_ID));
+                componentId = runtimeId;
             } else {
-                getMonitor().warning("%s is not configured and it will fallback to the deprecated %s value".formatted(RUNTIME_ID, EDC_CONNECTOR_NAME));
-                runtimeId = connectorName;
+                getMonitor().warning("%s is not configured so a random UUID is used. It is recommended to provide a static one.".formatted(COMPONENT_ID));
+                componentId = UUID.randomUUID().toString();
             }
+            runtimeId = UUID.randomUUID().toString();
         }
 
     }
