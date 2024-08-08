@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.transfer.dataplane.validation.Expi
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
+import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.keys.spi.LocalPublicKeyService;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -41,11 +42,8 @@ import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
-import org.jetbrains.annotations.NotNull;
 
-import java.security.PrivateKey;
 import java.time.Clock;
-import java.util.function.Supplier;
 
 @Extension(value = TransferDataPlaneCoreExtension.NAME)
 public class TransferDataPlaneCoreExtension implements ServiceExtension {
@@ -100,6 +98,8 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
     @Inject
     private TokenValidationService tokenValidationService;
+    @Inject
+    private JwsSignerProvider jwsSignerProvider;
 
     @Override
     public String name() {
@@ -117,7 +117,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
             var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager, (i) -> publicKeyService.resolveKey(publicKeyAlias));
             webService.registerResource(ApiContext.CONTROL, controller);
 
-            var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), getPrivateKeySupplier(context, privateKeyAlias), () -> publicKeyAlias, tokenExpirationDateFunction);
+            var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(jwsSignerProvider), () -> privateKeyAlias, () -> publicKeyAlias, tokenExpirationDateFunction);
             dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorService, resolver));
         } else {
             monitor.info("One of these settings is not configured, so the connector won't be able to provide 'consumer-pull' transfers: [%s, %s]"
@@ -128,15 +128,6 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, selectorService, clientFactory));
         dataAddressValidatorRegistry.registerDestinationValidator("HttpProxy", dataAddress -> ValidationResult.success());
-    }
-
-    @NotNull
-    private Supplier<PrivateKey> getPrivateKeySupplier(ServiceExtensionContext context, String privateKeyAlias) {
-        return () -> privateKeyResolver.resolvePrivateKey(privateKeyAlias)
-                .orElse(f -> {
-                    context.getMonitor().warning("Cannot resolve private key: " + f.getFailureDetail());
-                    return null;
-                });
     }
 
 }

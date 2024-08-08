@@ -43,7 +43,7 @@ public class StsClientTokenGeneratorServiceImplTest {
 
     @BeforeEach
     void setup() {
-        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, (client) -> mock(), Clock.systemUTC(), TOKEN_EXPIRATION);
+        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, (client) -> "test-key-id", Clock.systemUTC(), TOKEN_EXPIRATION);
     }
 
     @Test

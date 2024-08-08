@@ -22,6 +22,7 @@ import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
 import org.eclipse.edc.iam.oauth2.jwt.X509CertificateDecorator;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
+import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.keys.spi.CertificateResolver;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -42,7 +43,6 @@ import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.jetbrains.annotations.NotNull;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -110,6 +110,8 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     private TokenValidationService tokenValidationService;
     @Inject
     private TokenDecoratorRegistry jwtDecoratorRegistry;
+    @Inject
+    private JwsSignerProvider jwsSignerProvider;
 
     @Override
     public String name() {
@@ -157,12 +159,11 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration,
                                                   TokenDecoratorRegistry jwtDecoratorRegistry,
                                                   IdentityProviderKeyResolver providerKeyResolver) {
-        Supplier<PrivateKey> privateKeySupplier = () -> privateKeyResolver.resolvePrivateKey(configuration.getPrivateKeyAlias())
-                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+        Supplier<String> privateKeySupplier = configuration::getPrivateKeyAlias;
 
         return new Oauth2ServiceImpl(
                 configuration,
-                new JwtGenerationService(),
+                new JwtGenerationService(jwsSignerProvider),
                 privateKeySupplier,
                 oauth2Client,
                 jwtDecoratorRegistry,

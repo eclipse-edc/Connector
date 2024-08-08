@@ -20,6 +20,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -29,25 +30,29 @@ import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.jetbrains.annotations.NotNull;
 
-import java.security.PrivateKey;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.function.Supplier;
 
 public class JwtGenerationService implements TokenGenerationService {
 
+    private final JwsSignerProvider jwsGeneratorFunction;
+
+    public JwtGenerationService(JwsSignerProvider jwsSignerProvider) {
+
+        this.jwsGeneratorFunction = jwsSignerProvider;
+    }
 
     @Override
-    public Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, @NotNull TokenDecorator... decorators) {
+    public Result<TokenRepresentation> generate(String privateKeyId, @NotNull TokenDecorator... decorators) {
 
-        var privateKey = privateKeySupplier.get();
-        if (privateKey == null) {
-            return Result.failure("PrivateKey cannot be resolved.");
+        var tokenSignerResult = jwsGeneratorFunction.createJwsSigner(privateKeyId);
+        if (tokenSignerResult.failed()) {
+            return Result.failure("JWSSigner cannot be generated for private key '%s': %s".formatted(privateKeyId, tokenSignerResult.getFailureDetail()));
         }
 
-        var tokenSigner = CryptoConverter.createSignerFor(privateKey);
+        var tokenSigner = tokenSignerResult.getContent();
         var jwsAlgorithm = CryptoConverter.getRecommendedAlgorithm(tokenSigner);
 
         var bldr = TokenParameters.Builder.newInstance();

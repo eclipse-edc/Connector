@@ -20,6 +20,7 @@ import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsClientServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsClientTokenGeneratorServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.defaults.store.InMemoryStsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
 import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.keys.KeyParserRegistryImpl;
@@ -28,6 +29,8 @@ import org.eclipse.edc.keys.keyparsers.JwkParser;
 import org.eclipse.edc.keys.keyparsers.PemParser;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
+import org.eclipse.edc.security.token.jwt.CryptoConverter;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -70,8 +73,9 @@ public class StsClientTokenIssuanceIntegrationTest {
         privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry, vault, mock(), mock());
 
         tokenGeneratorService = new StsClientTokenGeneratorServiceImpl(
-                client -> new JwtGenerationService(),
-                stsClient -> privateKeyResolver.resolvePrivateKey(stsClient.getPrivateKeyAlias()).orElse(null),
+                client -> new JwtGenerationService(keyId -> privateKeyResolver.resolvePrivateKey(keyId)
+                        .compose(pk -> Result.ofThrowable(() -> CryptoConverter.createSignerFor(pk)))),
+                StsClient::getPrivateKeyAlias,
                 Clock.systemUTC(), 60 * 5);
 
     }

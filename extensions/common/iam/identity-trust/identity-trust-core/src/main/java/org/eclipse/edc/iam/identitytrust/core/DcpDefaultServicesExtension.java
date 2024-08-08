@@ -25,12 +25,11 @@ import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
-import org.eclipse.edc.keys.spi.PrivateKeyResolver;
+import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
@@ -38,11 +37,9 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.JwtGenerationService;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -63,7 +60,7 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     @Inject
     private Clock clock;
     @Inject
-    private PrivateKeyResolver privateKeyResolver;
+    private JwsSignerProvider externalSigner;
 
     @Provider(isDefault = true)
     public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
@@ -78,10 +75,9 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
 
 
         var publicKeyId = context.getSetting(STS_PUBLIC_KEY_ID, null);
-        var privKeyAlias = context.getSetting(STS_PRIVATE_KEY_ALIAS, null);
+        var privateKeyAlias = context.getSetting(STS_PRIVATE_KEY_ALIAS, null);
 
-        Supplier<PrivateKey> supplier = () -> privateKeyResolver.resolvePrivateKey(privKeyAlias).orElseThrow(f -> new EdcException("This EDC instance is not operational due to the following error: %s".formatted(f.getFailureDetail())));
-        return new EmbeddedSecureTokenService(new JwtGenerationService(), supplier, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
+        return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
     }
 
     @Provider(isDefault = true)

@@ -15,16 +15,17 @@
 package org.eclipse.edc.connector.dataplane.http.oauth2;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.SignedJWT;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
-import org.eclipse.edc.keys.spi.PrivateKeyResolver;
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,7 @@ import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.PRIVATE_KEY
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.SCOPE;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.TOKEN_URL;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.VALIDITY;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -53,10 +55,9 @@ class Oauth2CredentialsRequestFactoryTest {
 
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
-    private final PrivateKeyResolver privateKeyResolver = mock(PrivateKeyResolver.class);
-    private final Vault vault = mock(Vault.class);
-    private final Monitor monitor = mock(Monitor.class);
-    private final Oauth2CredentialsRequestFactory factory = new Oauth2CredentialsRequestFactory(privateKeyResolver, clock, vault, monitor);
+    private final JwsSignerProvider privateKeyResolver = mock();
+    private final Vault vault = mock();
+    private final Oauth2CredentialsRequestFactory factory = new Oauth2CredentialsRequestFactory(privateKeyResolver, clock, vault);
 
     @Test
     void shouldCreateSharedSecretRequestWithKey_whenPrivateKeyNameIsAbsent() {
@@ -68,7 +69,7 @@ class Oauth2CredentialsRequestFactoryTest {
 
         var result = factory.create(address);
 
-        assertThat(result).matches(Result::succeeded).extracting(Result::getContent)
+        AssertionsForClassTypes.assertThat(result).matches(Result::succeeded).extracting(Result::getContent)
                 .asInstanceOf(type(SharedSecretOauth2CredentialsRequest.class))
                 .satisfies(request -> {
                     assertThat(request.getGrantType()).isEqualTo("client_credentials");
@@ -90,13 +91,13 @@ class Oauth2CredentialsRequestFactoryTest {
 
         var result = factory.create(address);
 
-        assertThat(result).matches(Result::failed);
+        AssertionsForClassTypes.assertThat(result).matches(Result::failed);
     }
 
     @Test
     void shouldCreatePrivateKeyRequest_whenPrivateKeyNameIsPresent() throws JOSEException {
         var keyPair = generateKeyPair();
-        when(privateKeyResolver.resolvePrivateKey("pk-test")).thenReturn(Result.success(keyPair.toPrivateKey()));
+        when(privateKeyResolver.createJwsSigner("pk-test")).thenReturn(Result.success(new RSASSASigner(keyPair.toPrivateKey())));
 
         var address = defaultAddress()
                 .property(PRIVATE_KEY_NAME, "pk-test")
@@ -105,7 +106,7 @@ class Oauth2CredentialsRequestFactoryTest {
 
         var result = factory.create(address);
 
-        assertThat(result).matches(Result::succeeded).extracting(Result::getContent)
+        AssertionsForClassTypes.assertThat(result).matches(Result::succeeded).extracting(Result::getContent)
                 .asInstanceOf(type(PrivateKeyOauth2CredentialsRequest.class))
                 .satisfies(request -> {
                     assertThat(request.getGrantType()).isEqualTo("client_credentials");
@@ -130,7 +131,7 @@ class Oauth2CredentialsRequestFactoryTest {
 
     @Test
     void shouldFailIfPrivateKeySecretNotFound() {
-        when(privateKeyResolver.resolvePrivateKey("pk-test")).thenReturn(Result.failure("not found"));
+        when(privateKeyResolver.createJwsSigner("pk-test")).thenReturn(Result.failure("foo bar"));
 
         var address = defaultAddress()
                 .property(PRIVATE_KEY_NAME, "pk-test")
@@ -139,8 +140,8 @@ class Oauth2CredentialsRequestFactoryTest {
 
         var result = factory.create(address);
 
-        assertThat(result).matches(Result::failed)
-                .extracting(Result::getFailureDetail).asString().contains("pk-test");
+        assertThat(result).isFailed()
+                .detail().contains("foo bar");
     }
 
     private HttpDataAddress.Builder defaultAddress() {
