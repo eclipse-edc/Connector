@@ -59,12 +59,12 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
 
     public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
                                        TransactionContext transactionContext, ObjectMapper objectMapper,
-                                       ContractNegotiationStatements statements, String connectorId, Clock clock,
+                                       ContractNegotiationStatements statements, String leaseHolderName, Clock clock,
                                        QueryExecutor queryExecutor) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
         this.clock = clock;
-        leaseContext = SqlLeaseContextBuilder.with(transactionContext, connectorId, statements, clock, queryExecutor);
+        leaseContext = SqlLeaseContextBuilder.with(transactionContext, leaseHolderName, statements, clock, queryExecutor);
     }
 
     @Override

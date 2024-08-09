@@ -174,7 +174,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     }
 
     private Oauth2ServiceConfiguration createConfig(ServiceExtensionContext context) {
-        var providerAudience = context.getSetting(PROVIDER_AUDIENCE, context.getRuntimeId());
+        var providerAudience = context.getSetting(PROVIDER_AUDIENCE, context.getComponentId());
         var endpointAudience = context.getSetting(ENDPOINT_AUDIENCE, providerAudience);
         var tokenUrl = context.getConfig().getString(TOKEN_URL);
         var publicCertificateAlias = context.getConfig().getString(PUBLIC_CERTIFICATE_ALIAS);

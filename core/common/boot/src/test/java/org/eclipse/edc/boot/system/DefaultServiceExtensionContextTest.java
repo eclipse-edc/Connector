@@ -29,12 +29,14 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.boot.BootServicesExtension.COMPONENT_ID;
 import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,24 +85,62 @@ class DefaultServiceExtensionContextTest {
     @Nested
     class GetRuntimeId {
         @Test
-        void shouldReturnRandomUuid_whenNotConfigured() {
+        void shouldReturnRandomUuid_whenNotConfigured_andComponentIdNull() {
             when(config.getConfig(any())).thenReturn(ConfigFactory.empty());
             context.initialize();
 
             var runtimeId = context.getRuntimeId();
-
             assertThat(UUID.fromString(runtimeId)).isNotNull();
-            verify(monitor).warning(and(isA(String.class), argThat(message -> message.startsWith(RUNTIME_ID))));
+
+            verify(monitor, times(2)).warning(and(isA(String.class), argThat(message -> !message.contains(RUNTIME_ID))));
         }
 
+
         @Test
-        void shouldReturnConfiguredId_whenConfigured() {
+        void shouldReturnRandomId_whenComponentIdNotConfigured() {
             when(config.getConfig(any())).thenReturn(ConfigFactory.fromMap(Map.of(RUNTIME_ID, "runtime-id")));
             context.initialize();
 
             var runtimeId = context.getRuntimeId();
 
-            assertThat(runtimeId).isEqualTo("runtime-id");
+            assertThat(UUID.fromString(runtimeId)).isNotNull();
+        }
+    }
+
+    @Nested
+    class GetComponentId {
+        @Test
+        void shouldReturnRandomUuid_whenNotConfigured() {
+            when(config.getConfig(any())).thenReturn(ConfigFactory.empty());
+            context.initialize();
+
+            var componentId = context.getComponentId();
+            assertThat(UUID.fromString(componentId)).isNotNull();
+
+            verify(monitor).warning(and(isA(String.class), argThat(message -> !message.contains(COMPONENT_ID))));
+        }
+
+
+        @Test
+        void shouldUseRuntimeId_whenComponentIdNotConfigured() {
+            when(config.getConfig(any())).thenReturn(ConfigFactory.fromMap(Map.of(RUNTIME_ID, "runtime-id")));
+            context.initialize();
+            var componentId = context.getComponentId();
+            assertThat(componentId).isEqualTo("runtime-id");
+        }
+
+
+        @Test
+        void shouldUseConfiguredValue_whenBothAreConfigured() {
+            when(config.getConfig(any())).thenReturn(ConfigFactory.fromMap(Map.of(RUNTIME_ID, "runtime-id", COMPONENT_ID, "component-id")));
+
+            context.initialize();
+            var componentId = context.getComponentId();
+            var runtimeId = context.getRuntimeId();
+
+            assertThat(UUID.fromString(runtimeId)).isNotNull();
+            assertThat(componentId).isEqualTo("component-id");
+            verify(monitor).warning(and(isA(String.class), argThat(message -> !message.contains(RUNTIME_ID))));
         }
     }
 
