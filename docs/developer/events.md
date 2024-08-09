@@ -134,7 +134,7 @@ public class SomethingHappened extends Event {
 All the data regarding an event should be contained in the `Event` class.
 
 As you may notice, we use the builder pattern to construct objects, as stated in
-the [Architecture Principles document](architecture/coding-principles.md).
+the [Architecture Principles document](https://github.com/eclipse-edc/docs/blob/main/developer/contributing/coding-principles.md).
 The extended builder will inherit all the builder method from the superclass.
 
 Once the event is created, it can be published it through the `EventRouter` component:
@@ -186,8 +186,8 @@ typeManager.registerTypes(new NamedType(SomethingHappened.class, SomethingHappen
 
 doing so, the event can be deserialized using the `EvenEnvelope` class as type:
 
-```
+```java
 var deserialized = typeManager.readValue(json, EventEnvelope.class);
 // deserialized will have the `EventEnvelope<SomethingHappened>` type at runtime
 ```
-(please take a look at the [`EventTest`](../../spi/common/core-spi/src/test/java/org/eclipse/edc/spi/event/EventTest.java) class for a serialization/deserialization example)
+(please take a look at the [`AssetEventTest`](../../spi/control-plane/asset-spi/src/test/java/org/eclipse/edc/connector/controlplane/asset/spi/event/AssetEventTest.java) class for a serialization/deserialization example)

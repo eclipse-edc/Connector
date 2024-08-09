@@ -70,7 +70,7 @@ Authorization is only possible when the flow type is `PULL`, because only then d
 access control. (In PUSH scenarios, the consumer data plane may use authorization, however).
 
 Further, token creation is dispatched based on the _destination type_, as the format does not exist as a concept in the
-data plane. If multiple formats are are mapped to the same destination type (and thus: transmission stack), but should
+data plane. If multiple formats are mapped to the same destination type (and thus: transmission stack), but should
 have different auth token schemes and authorization mechanisms, _separate data planes are needed_.
 
 The `FlowType` will replace the `transferType` field on the `DataFlowStartMessage`. If the `flowType==PUSH` the

@@ -22,7 +22,7 @@ The Client EDC will expose an EDR API that provides operations to resolve EDRs a
 contract agreement ID, and transfer process ID.
 
 A modified version of
-the [EndpointDataReferenceCache‎](spi/edr-spi/src/main/java/org/eclipse/tractusx/edc/edr/spi/store/EndpointDataReferenceCache.java)
+the [EndpointDataReferenceCache‎](/spi/common/edr-store-spi/src/main/java/org/eclipse/edc/edr/spi/store/EndpointDataReferenceCache.java)
 and EDR API will be upstreamed to EDC as part of that work. The `EndpointDataReferenceCache` will receive and
 persist `EDRs` sent from provider control planes (e.g., when a transfer process has been `STARTED`). The EDR API is
 intended to be used by client applications to resolve `EDRs` granting access to provider data endpoints.
