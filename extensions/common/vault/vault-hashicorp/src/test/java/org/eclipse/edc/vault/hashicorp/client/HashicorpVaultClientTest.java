@@ -63,6 +63,7 @@ import static org.mockito.Mockito.when;
 class HashicorpVaultClientTest {
 
     private static final String VAULT_URL = "https://mock.url";
+    private static final String SECRET_FOLDER = "/foo";
     private static final String HEALTH_PATH = "sys/health";
     private static final String VAULT_TOKEN = UUID.randomUUID().toString();
     private static final long VAULT_TOKEN_TTL = 5L;
@@ -87,6 +88,17 @@ class HashicorpVaultClientTest {
             .secretPath(CUSTOM_SECRET_PATH)
             .build();
 
+    private static final HashicorpVaultSettings HASHICORP_VAULT_CLIENT_CONFIG_VALUES_WITH_FOLDER = HashicorpVaultSettings.Builder.newInstance()
+            .url(VAULT_URL)
+            .healthCheckPath(HEALTH_PATH)
+            .healthStandbyOk(false)
+            .token(VAULT_TOKEN)
+            .ttl(VAULT_TOKEN_TTL)
+            .renewBuffer(RENEW_BUFFER)
+            .secretPath(CUSTOM_SECRET_PATH)
+            .folderPath(SECRET_FOLDER)
+            .build();
+
     private final EdcHttpClient httpClient = mock();
     private final Monitor monitor = mock();
     private final HashicorpVaultClient vaultClient = new HashicorpVaultClient(
@@ -94,6 +106,12 @@ class HashicorpVaultClientTest {
             OBJECT_MAPPER,
             monitor,
             HASHICORP_VAULT_CLIENT_CONFIG_VALUES);
+
+    private final HashicorpVaultClient vaultClientWithFolder = new HashicorpVaultClient(
+            httpClient,
+            OBJECT_MAPPER,
+            monitor,
+            HASHICORP_VAULT_CLIENT_CONFIG_VALUES_WITH_FOLDER);
 
     @Nested
     class HealthCheck {
@@ -390,6 +408,30 @@ class HashicorpVaultClientTest {
             assertNotNull(result);
             verify(httpClient).execute(argThat(request -> request.method().equalsIgnoreCase("GET") &&
                     request.url().encodedPath().contains(CUSTOM_SECRET_PATH + "/data") &&
+                    request.url().encodedPathSegments().contains(KEY)));
+        }
+
+        @Test
+        void getSecret_with_folder_whenApiReturns200_shouldSucceed() throws IOException {
+            var ow = new ObjectMapper().writer();
+            var data = GetEntryResponsePayloadGetVaultEntryData.Builder.newInstance().data(new HashMap<>(0)).build();
+            var body = GetEntryResponsePayload.Builder.newInstance().data(data).build();
+            var bodyString = ow.writeValueAsString(body);
+            var response = new Response.Builder()
+                    .code(200)
+                    .message("any")
+                    .body(ResponseBody.create(bodyString, MediaType.get("application/json")))
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("http://any").build())
+                    .build();
+
+            when(httpClient.execute(any(Request.class))).thenReturn(response);
+
+            var result = vaultClientWithFolder.getSecretValue(KEY);
+
+            assertNotNull(result);
+            verify(httpClient).execute(argThat(request -> request.method().equalsIgnoreCase("GET") &&
+                    request.url().encodedPath().contains(CUSTOM_SECRET_PATH + "/data" + SECRET_FOLDER) &&
                     request.url().encodedPathSegments().contains(KEY)));
         }
 
