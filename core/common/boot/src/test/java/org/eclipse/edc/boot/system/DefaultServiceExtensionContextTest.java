@@ -138,7 +138,7 @@ class DefaultServiceExtensionContextTest {
             var componentId = context.getComponentId();
             var runtimeId = context.getRuntimeId();
 
-            assertThat(runtimeId).isEqualTo("runtime-id");
+            assertThat(UUID.fromString(runtimeId)).isNotNull();
             assertThat(componentId).isEqualTo("component-id");
             verify(monitor).warning(and(isA(String.class), argThat(message -> !message.contains(RUNTIME_ID))));
         }

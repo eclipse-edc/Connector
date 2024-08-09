@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.boot.BootServicesExtension.COMPONENT_ID;
 import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
 
@@ -115,21 +116,20 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
         runtimeId = getSetting(RUNTIME_ID, null);
         if (runtimeId != null) {
-            getMonitor().warning("A configuration value for '%s' was found. The runtime ID should be left blank to use a random one.".formatted(RUNTIME_ID));
+            getMonitor().warning("A configuration value for '%s' was found. Explicitly configuring this is not supported anymore and may get removed in the future. A random value will be assigned.".formatted(RUNTIME_ID));
         }
 
         componentId = getSetting(COMPONENT_ID, null);
         if (componentId == null) {
-            if (runtimeId != null) {
-                getMonitor().warning("'%s' is not configured, but '%s' is. The value used for '%s' will be used for '%s', and a random string will be used for '%s'".formatted(COMPONENT_ID, RUNTIME_ID, RUNTIME_ID, COMPONENT_ID, RUNTIME_ID));
-                componentId = runtimeId;
-            } else {
-                getMonitor().warning("%s is not configured so a random UUID is used. It is recommended to provide a static one.".formatted(COMPONENT_ID));
-                componentId = UUID.randomUUID().toString();
-            }
-            runtimeId = UUID.randomUUID().toString();
+            componentId = ofNullable(runtimeId)
+                    .orElseGet(() -> {
+                        getMonitor().warning("%s is not configured so a random UUID is used. It is recommended to provide a static one.".formatted(COMPONENT_ID));
+                        return UUID.randomUUID().toString();
+                    });
         }
 
+        // runtime-id should always be randomized to guarantee a working lease mechanism
+        runtimeId = UUID.randomUUID().toString();
     }
 
 }
