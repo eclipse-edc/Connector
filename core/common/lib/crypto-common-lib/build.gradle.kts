@@ -18,10 +18,11 @@ plugins {
 dependencies {
     api(project(":spi:common:identity-did-spi"))
     api(project(":spi:common:identity-trust-spi"))
+    api(libs.nimbus.jwt) // nimbus classes are exposed on the API surface of CryptoConverter and DefaultJwsSignerProvider
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":spi:common:core-spi"))
+    implementation(project(":spi:common:jwt-signer-spi"))
 
-    implementation(libs.nimbus.jwt)
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)
     // Java does not natively implement elliptic curve multiplication, so we need to get bouncy
