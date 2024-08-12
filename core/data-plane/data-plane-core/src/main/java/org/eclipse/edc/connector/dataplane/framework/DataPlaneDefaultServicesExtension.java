@@ -18,6 +18,8 @@ import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImp
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryAccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryDataPlaneStore;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
+import org.eclipse.edc.connector.dataplane.spi.iam.NoOpDataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
@@ -69,5 +71,11 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public PublicEndpointGeneratorService publicEndpointGenerator() {
         return new PublicEndpointGeneratorServiceImpl();
+    }
+
+    @Provider(isDefault = true)
+    public DataPlaneAuthorizationService dataPlaneAuthorizationService(ServiceExtensionContext context) {
+        context.getMonitor().info("No proper DataPlaneAuthorizationService provided. The data-plane won't support PULL transfer types.");
+        return new NoOpDataPlaneAuthorizationService();
     }
 }
