@@ -4,7 +4,7 @@ This extension provides services for delegating data transfer to the Data Plane.
 
 - Consumer Pull: data consumer pulls actively the data by hitting an endpoint exposed by the provider. This use-case is typically
   used in cases where the data provider wants to use its Data Plane as a http proxy for querying data to an API.
-- Provider Push: if data request is successfully processed, then the provider pushes data from its data source to the provider.
+- Provider Push: if data request is successfully processed, then the provider pushes data from its data source to the consumer.
 
 ## Background
 
