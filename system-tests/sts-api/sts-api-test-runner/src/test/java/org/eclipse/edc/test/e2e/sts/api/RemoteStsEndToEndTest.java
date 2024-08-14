@@ -50,7 +50,8 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
 
     public static final int PORT = getFreePort();
     public static final String STS_TOKEN_PATH = "http://localhost:" + PORT + "/sts/token";
-    private final static String SECRET = "secret";
+    private static final String SECRET = "secret";
+
     @RegisterExtension
     static RuntimePerClassExtension sts = new RuntimePerClassExtension(new EmbeddedRuntime(
             "sts",
