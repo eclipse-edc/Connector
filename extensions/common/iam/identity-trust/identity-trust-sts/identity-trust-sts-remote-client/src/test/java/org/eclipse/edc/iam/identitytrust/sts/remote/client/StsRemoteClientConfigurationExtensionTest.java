@@ -59,7 +59,7 @@ public class StsRemoteClientConfigurationExtensionTest {
                 .satisfies(configuration -> {
                     assertThat(configuration.tokenUrl()).isEqualTo(tokenUrl);
                     assertThat(configuration.clientId()).isEqualTo(clientId);
-                    assertThat(configuration.clientSecret()).isEqualTo(secretAlias);
+                    assertThat(configuration.clientSecretAlias()).isEqualTo(secretAlias);
                 });
     }
 

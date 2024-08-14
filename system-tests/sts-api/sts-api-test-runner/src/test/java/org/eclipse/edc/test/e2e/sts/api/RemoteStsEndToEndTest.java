@@ -19,9 +19,11 @@ import org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration
 import org.eclipse.edc.iam.oauth2.client.Oauth2ClientImpl;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Failure;
+import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -48,10 +50,9 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
 
     public static final int PORT = getFreePort();
     public static final String STS_TOKEN_PATH = "http://localhost:" + PORT + "/sts/token";
-
+    private final static String SECRET = "secret";
     @RegisterExtension
-    static EdcRuntimeExtension sts = new EdcRuntimeExtension(
-            ":system-tests:sts-api:sts-api-test-runtime",
+    static RuntimePerClassExtension sts = new RuntimePerClassExtension(new EmbeddedRuntime(
             "sts",
             new HashMap<>() {
                 {
@@ -60,16 +61,18 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
                     put("web.http.sts.path", "/sts");
                     put("web.http.sts.port", String.valueOf(PORT));
                 }
-            }
-    );
-    private final StsRemoteClientConfiguration config = new StsRemoteClientConfiguration(STS_TOKEN_PATH, "client_id", "client_secret");
-
+            },
+            ":system-tests:sts-api:sts-api-test-runtime"
+    ));
+    private final StsRemoteClientConfiguration config = new StsRemoteClientConfiguration(STS_TOKEN_PATH, "client_id", "client_secret_alias");
     private RemoteSecureTokenService remoteSecureTokenService;
 
     @BeforeEach
     void setup() {
         var oauth2Client = new Oauth2ClientImpl(testHttpClient(), new JacksonTypeManager());
-        remoteSecureTokenService = new RemoteSecureTokenService(oauth2Client, config);
+        var vault = sts.getService(Vault.class);
+        vault.storeSecret(config.clientSecretAlias(), SECRET);
+        remoteSecureTokenService = new RemoteSecureTokenService(oauth2Client, config, vault);
     }
 
     @Test
@@ -77,7 +80,7 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
         var audience = "audience";
         var params = Map.of(AUDIENCE, audience);
 
-        var client = initClient(config.clientId(), config.clientSecret());
+        var client = initClient(config.clientId(), SECRET);
 
         assertThat(remoteSecureTokenService.createToken(params, null))
                 .isSucceeded()
@@ -100,7 +103,7 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
         var bearerAccessScope = "org.test.Member:read org.test.GoldMember:read";
         var params = Map.of(AUDIENCE, audience);
 
-        var client = initClient(config.clientId(), config.clientSecret());
+        var client = initClient(config.clientId(), SECRET);
 
         assertThat(remoteSecureTokenService.createToken(params, bearerAccessScope))
                 .isSucceeded()
@@ -133,7 +136,7 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
                 AUDIENCE, audience,
                 PRESENTATION_TOKEN_CLAIM, accessToken);
 
-        var client = initClient(config.clientId(), config.clientSecret());
+        var client = initClient(config.clientId(), SECRET);
 
         assertThat(remoteSecureTokenService.createToken(params, null))
                 .isSucceeded()
@@ -161,7 +164,7 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
     }
 
     @Override
-    protected EdcRuntimeExtension getRuntime() {
+    protected RuntimePerClassExtension getRuntime() {
         return sts;
     }
 

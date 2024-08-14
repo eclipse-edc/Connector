@@ -23,10 +23,6 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-import java.util.Objects;
-
-import static java.lang.String.format;
-
 /**
  * Configuration Extension for the STS OAuth2 client
  */
@@ -58,10 +54,8 @@ public class StsRemoteClientConfigurationExtension implements ServiceExtension {
         var tokenUrl = context.getConfig().getString(TOKEN_URL);
         var clientId = context.getConfig().getString(CLIENT_ID);
         var clientSecretAlias = context.getConfig().getString(CLIENT_SECRET_ALIAS);
-        var clientSecret = vault.resolveSecret(clientSecretAlias);
-        Objects.requireNonNull(clientSecret, format("Client secret could not be retrieved from the vault with alias %s", clientSecretAlias));
 
-        return new StsRemoteClientConfiguration(tokenUrl, clientId, clientSecret);
+        return new StsRemoteClientConfiguration(tokenUrl, clientId, clientSecretAlias);
     }
 
 }

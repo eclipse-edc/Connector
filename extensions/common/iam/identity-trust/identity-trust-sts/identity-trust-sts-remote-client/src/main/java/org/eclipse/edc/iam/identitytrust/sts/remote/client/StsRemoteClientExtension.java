@@ -21,6 +21,7 @@ import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 /**
@@ -37,6 +38,9 @@ public class StsRemoteClientExtension implements ServiceExtension {
     @Inject
     private Oauth2Client oauth2Client;
 
+    @Inject
+    private Vault vault;
+
     @Override
     public String name() {
         return NAME;
@@ -44,6 +48,6 @@ public class StsRemoteClientExtension implements ServiceExtension {
 
     @Provider
     public SecureTokenService secureTokenService() {
-        return new RemoteSecureTokenService(oauth2Client, clientConfiguration);
+        return new RemoteSecureTokenService(oauth2Client, clientConfiguration, vault);
     }
 }

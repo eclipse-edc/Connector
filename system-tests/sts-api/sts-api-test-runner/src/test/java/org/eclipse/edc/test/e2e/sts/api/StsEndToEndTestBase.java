@@ -17,7 +17,7 @@ package org.eclipse.edc.test.e2e.sts.api;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
 import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.security.Vault;
 
 import java.text.ParseException;
@@ -32,7 +32,7 @@ import static org.eclipse.edc.iam.identitytrust.sts.spi.store.fixtures.TestFunct
  */
 public abstract class StsEndToEndTestBase {
 
-    protected abstract EdcRuntimeExtension getRuntime();
+    protected abstract RuntimePerClassExtension getRuntime();
 
     protected StsClient initClient(String clientId, String clientSecret) {
         var store = getClientStore();
