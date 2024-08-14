@@ -25,7 +25,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientConfigurationExtension.CLIENT_ID;
 import static org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientConfigurationExtension.CLIENT_SECRET_ALIAS;
 import static org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientConfigurationExtension.TOKEN_URL;
@@ -41,13 +40,11 @@ public class StsRemoteClientConfigurationExtensionTest {
     }
 
     @Test
-    void initialize(StsRemoteClientConfigurationExtension extension, ServiceExtensionContext context, Vault vault) {
+    void initialize(StsRemoteClientConfigurationExtension extension, ServiceExtensionContext context) {
 
         var tokenUrl = "http://tokenUrl";
         var clientId = "clientId";
         var secretAlias = "secretAlias";
-
-        when(vault.resolveSecret(secretAlias)).thenReturn(secretAlias);
 
         var configMap = Map.of(TOKEN_URL, tokenUrl, CLIENT_ID, clientId, CLIENT_SECRET_ALIAS, secretAlias);
         var config = ConfigFactory.fromMap(configMap);
@@ -59,22 +56,8 @@ public class StsRemoteClientConfigurationExtensionTest {
                 .satisfies(configuration -> {
                     assertThat(configuration.tokenUrl()).isEqualTo(tokenUrl);
                     assertThat(configuration.clientId()).isEqualTo(clientId);
-                    assertThat(configuration.clientSecret()).isEqualTo(secretAlias);
+                    assertThat(configuration.clientSecretAlias()).isEqualTo(secretAlias);
                 });
     }
-
-    @Test
-    void initialize_fail_withVaultSecretResolutionError(StsRemoteClientConfigurationExtension extension, ServiceExtensionContext context, Vault vault) {
-
-        var tokenUrl = "http://tokenUrl";
-        var clientId = "clientId";
-        var secretAlias = "secretAlias";
-
-        var configMap = Map.of(TOKEN_URL, tokenUrl, CLIENT_ID, clientId, CLIENT_SECRET_ALIAS, secretAlias);
-        var config = ConfigFactory.fromMap(configMap);
-
-        when(context.getConfig()).thenReturn(config);
-
-        assertThatThrownBy(() -> extension.clientConfiguration(context)).isInstanceOf(NullPointerException.class);
-    }
+    
 }
