@@ -59,3 +59,4 @@
 - [2024-06-24 Api Authentication Configuration](./2024-06-24-api-authentication-configuration/)
 - [2024-07-03 Additional CatalogRequest scope parameter](./2024-07-03-additional-catalogrequest-param/)
 - [2024-08-05 Custom JWSSigner Implementations](./2024-08-05-custom-jwssigners/)
+- [2024-08-16 Policy_Validation](./2024-08-16-policy-validation)
