@@ -12,10 +12,12 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials;
+package org.eclipse.edc.iam.verifiablecredentials.verification.statuslist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.eclipse.edc.iam.verifiablecredentials.TestData;
+import org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021.StatusList2021RevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.junit.jupiter.api.AfterEach;

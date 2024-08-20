@@ -12,12 +12,13 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials;
+package org.eclipse.edc.iam.verifiablecredentials.revocation;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.HashMap;
@@ -25,6 +26,11 @@ import java.util.Map;
 
 public class RevocationServiceRegistryImpl implements RevocationServiceRegistry {
     private final Map<String, RevocationListService> entries = new HashMap<>();
+    private final Monitor monitor;
+
+    public RevocationServiceRegistryImpl(Monitor monitor) {
+        this.monitor = monitor;
+    }
 
     @Override
     public void addService(String statusListType, RevocationListService service) {
@@ -42,7 +48,8 @@ public class RevocationServiceRegistryImpl implements RevocationServiceRegistry 
     private Result<Void> checkRevocation(CredentialStatus credentialStatus) {
         var service = entries.get(credentialStatus.type());
         if (service == null) {
-            return Result.failure("No revocation service registered for type '%s'.".formatted(credentialStatus.type()));
+            monitor.warning("No revocation service registered for type '%s', will not check revocation.".formatted(credentialStatus.type()));
+            return Result.success();
         }
         return service.checkValidity(credentialStatus);
     }

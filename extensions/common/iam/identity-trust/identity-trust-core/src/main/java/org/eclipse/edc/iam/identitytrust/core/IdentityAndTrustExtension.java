@@ -28,11 +28,11 @@ import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
-import org.eclipse.edc.iam.verifiablecredentials.BitstringStatusListRevocationService;
-import org.eclipse.edc.iam.verifiablecredentials.RevocationServiceRegistryImpl;
-import org.eclipse.edc.iam.verifiablecredentials.StatusList2021RevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.VerifiableCredentialValidationServiceImpl;
+import org.eclipse.edc.iam.verifiablecredentials.revocation.bistring.BitstringStatusListRevocationService;
+import org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021.StatusList2021RevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -125,9 +125,11 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private DcpParticipantAgentServiceExtension participantAgentServiceExtension;
 
+    @Inject
+    private RevocationServiceRegistry revocationServiceRegistry;
+
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
-    private RevocationServiceRegistry revocationServiceRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -154,6 +156,11 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         }
 
         participantAgentService.register(participantAgentServiceExtension);
+
+        // register revocation services
+        var validity = context.getConfig().getLong(REVOCATION_CACHE_VALIDITY, DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS);
+        revocationServiceRegistry.addService("StatusList2021Entry", new StatusList2021RevocationService(typeManager.getMapper(), validity));
+        revocationServiceRegistry.addService(BitstringStatusListCredential.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper()));
     }
 
     @Provider
@@ -162,7 +169,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         var validationAction = tokenValidationAction();
 
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context),
-                trustedIssuerRegistry, createRevocationListService(context), clock);
+                trustedIssuerRegistry, revocationServiceRegistry, clock);
 
         return new IdentityAndTrustService(secureTokenService, getOwnDid(context),
                 getCredentialServiceClient(context), validationAction, credentialServiceUrlResolver, claimTokenFunction,
@@ -196,16 +203,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         return presentationVerifier;
     }
 
-    @Provider
-    public RevocationServiceRegistry createRevocationListService(ServiceExtensionContext context) {
-        if (revocationServiceRegistry == null) {
-            var validity = context.getConfig().getLong(REVOCATION_CACHE_VALIDITY, DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS);
-            revocationServiceRegistry = new RevocationServiceRegistryImpl();
-            revocationServiceRegistry.addService("StatusList2021Entry", new StatusList2021RevocationService(typeManager.getMapper(), validity));
-            revocationServiceRegistry.addService("BitstringStatusListEntry", new BitstringStatusListRevocationService(typeManager.getMapper()));
-        }
-        return revocationServiceRegistry;
-    }
 
     @NotNull
     private TokenValidationAction tokenValidationAction() {

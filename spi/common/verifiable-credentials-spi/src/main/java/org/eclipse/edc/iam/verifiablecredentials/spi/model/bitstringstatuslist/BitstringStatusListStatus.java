@@ -16,8 +16,117 @@ package org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.BITSTRING_STATUS_LIST_PREFIX;
+
 public class BitstringStatusListStatus {
+
+    private List<String> statusReference = new ArrayList<>();
+    private String statusListPurpose;
+    private int statusListIndex;
+    private String statusListCredential;
+    private int statusSize;
+    private List<StatusMessage> statusMessage;
+
+    private BitstringStatusListStatus() {
+
+    }
+
     public static BitstringStatusListStatus parse(CredentialStatus status) {
-        return null;
+        var instance = new BitstringStatusListStatus();
+
+        instance.statusListCredential = ofNullable(getId(status))
+                .map(Object::toString)
+                .orElseThrow(() -> new IllegalArgumentException(missingProperty(BitstringStatusListCredential.STATUS_LIST_CREDENTIAL)));
+
+        instance.statusListIndex = ofNullable(status.getProperty(BITSTRING_STATUS_LIST_PREFIX, BitstringStatusListCredential.BITSTRING_STATUS_LIST_INDEX_LITERAL))
+                .map(Object::toString)
+                .map(Integer::parseInt)
+                .orElseThrow(() -> new IllegalArgumentException(missingProperty(BitstringStatusListCredential.STATUS_LIST_INDEX)));
+
+        instance.statusListPurpose = ofNullable(status.getProperty(BITSTRING_STATUS_LIST_PREFIX, BitstringStatusListCredential.BITSTRING_STATUS_LIST_PURPOSE_LITERAL))
+                .map(Object::toString)
+                .orElseThrow(() -> new IllegalArgumentException(missingProperty(BitstringStatusListCredential.STATUS_LIST_PURPOSE)));
+
+        var size = ofNullable(status.getProperty(BITSTRING_STATUS_LIST_PREFIX, BitstringStatusListCredential.STATUS_LIST_SIZE))
+                .map(Object::toString)
+                .map(Integer::parseInt);
+        var statusMessages = status.getProperty(BITSTRING_STATUS_LIST_PREFIX, BitstringStatusListCredential.STATUS_LIST_MESSAGES);
+
+        if (size.isEmpty() && statusMessages != null) {
+            throw new IllegalArgumentException("statusSize must be specified and > 1 if statusMessage is present.");
+        }
+        instance.statusSize = size.orElse(1);
+
+        if (instance.statusSize <= 0) {
+            throw new IllegalArgumentException("If present, statusSize must be a positive integer > 0 but was '%d'.".formatted(instance.statusSize));
+        }
+
+        instance.statusMessage = extractStatusMessage(statusMessages, instance.statusSize);
+
+        //noinspection unchecked
+        instance.statusReference = ofNullable(status.getProperty(BITSTRING_STATUS_LIST_PREFIX, BitstringStatusListCredential.STATUS_LIST_REFERENCE))
+                .map(obj -> (List<String>) obj)
+                .orElse(Collections.emptyList());
+
+        return instance;
+
+    }
+
+    private static List<StatusMessage> extractStatusMessage(Object statusMessageObject, int statusSize) {
+        if (statusMessageObject == null) return List.of();
+        //noinspection unchecked
+        var msg = (List<StatusMessage>) (statusMessageObject);
+
+        // explicitly check this, because statusSize = 1 and an empty message array would be acceptable
+        if (statusSize > 1 && msg.isEmpty()) {
+            throw new IllegalArgumentException("If statusSize is > 1, statusMessage must be present.");
+        }
+        if (Math.pow(2, statusSize) != msg.size()) {
+            throw new IllegalArgumentException("If present, statusSize (in bits) must be equal to the number of possible statusMessage entries, e.g. statusSize = 3, statusMessage = 8 entries.");
+        }
+
+        return msg;
+    }
+
+    private static Object getId(CredentialStatus status) {
+        var credentialId = status.getProperty(BITSTRING_STATUS_LIST_PREFIX, BitstringStatusListCredential.BITSTRING_STATUS_LIST_CREDENTIAL_LITERAL);
+        if (credentialId instanceof Map<?, ?> map) {
+            return map.get("@id");
+        }
+        return credentialId;
+    }
+
+    private static String missingProperty(String property) {
+        return "A BitstringStatusList credential must have a credentialStatus object with the '%s' property".formatted(property);
+    }
+
+    public String getStatusListCredential() {
+        return statusListCredential;
+    }
+
+    public int getStatusListIndex() {
+        return statusListIndex;
+    }
+
+    public String getStatusListPurpose() {
+        return statusListPurpose;
+    }
+
+    public List<StatusMessage> getStatusMessage() {
+        return statusMessage;
+    }
+
+    public List<String> getStatusReference() {
+        return statusReference;
+    }
+
+    public int getStatusSize() {
+        return statusSize;
     }
 }

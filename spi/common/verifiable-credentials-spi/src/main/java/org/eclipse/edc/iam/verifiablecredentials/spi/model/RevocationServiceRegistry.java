@@ -18,22 +18,24 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.spi.result.Result;
 
 /**
- * Registry that contains specific revocation status check services per type.
+ * Registry that contains specific revocation status checker services per type.
  */
 public interface RevocationServiceRegistry {
     /**
      * Register a {@link RevocationListService} per status type
      *
-     * @param statusListType the {@code CredentialStatus.type} value, for example {@code "BitstringStatusListEntry}.
-     * @param service        a {@link RevocationListService} that specifically checks a particular revocation list, for example {@code BitstringStatusList}
+     * @param statusListType the {@code CredentialStatus.type} value, for example {@code "BitstringStatusListEntry"}.
+     * @param service        a {@link RevocationListService} that specifically checks a particular revocation list, for example
+     *                       {@code BitstringStatusListRevocationService}
      */
     void addService(String statusListType, RevocationListService service);
 
     /**
-     * Checks the revocation status of a {@link VerifiableCredential}.
+     * Checks the revocation status of a {@link VerifiableCredential}. If no {@link RevocationListService} was registered for a particular
+     * type, the implementation must return {@link Result#success()}.
      *
      * @param credential The VC
-     * @return success, if the VC does not contain a {@link CredentialStatus}, or if all {@link CredentialStatus} objects are valid (= not revoked, not suspended)
+     * @return {@link Result#success()} if the VC does not contain a {@link CredentialStatus}, or if all {@link CredentialStatus} objects are valid (= not revoked, not suspended), {@link Result#failure(String)} otherwise.
      */
     Result<Void> checkValidity(VerifiableCredential credential);
 }

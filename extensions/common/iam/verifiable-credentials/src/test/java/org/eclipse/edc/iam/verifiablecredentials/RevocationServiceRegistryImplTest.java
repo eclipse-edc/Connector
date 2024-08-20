@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.verifiablecredentials;
 
+import org.eclipse.edc.iam.verifiablecredentials.revocation.RevocationServiceRegistryImpl;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 class RevocationServiceRegistryImplTest {
 
-    private final RevocationServiceRegistryImpl registry = new RevocationServiceRegistryImpl();
+    private final RevocationServiceRegistryImpl registry = new RevocationServiceRegistryImpl(mock());
 
     @Test
     void checkValidity() {
@@ -42,14 +43,13 @@ class RevocationServiceRegistryImplTest {
     }
 
     @Test
-    void checkValidity_noServiceFound() {
+    void checkValidity_noServiceFound_shouldReturnSuccess() {
         var mockService = mock(RevocationListService.class);
         registry.addService("test-type", mockService);
         when(mockService.checkValidity(any(CredentialStatus.class))).thenReturn(Result.success());
 
         var cred = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "not-exist", Map.of())).build();
-        assertThat(registry.checkValidity(cred)).isFailed()
-                .detail().isEqualTo("No revocation service registered for type 'not-exist'.");
+        assertThat(registry.checkValidity(cred)).isSucceeded();
     }
 
     @Test
