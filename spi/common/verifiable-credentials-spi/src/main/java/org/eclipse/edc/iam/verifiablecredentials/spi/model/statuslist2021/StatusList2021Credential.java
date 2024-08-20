@@ -27,9 +27,7 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLI
  */
 public class StatusList2021Credential extends VerifiableCredential {
     public static final String STATUSLIST_2021_CREDENTIAL = "StatusList2021Credential";
-
     public static final String STATUS_LIST_ENCODED_LIST_LITERAL = "encodedList";
-
     public static final String STATUS_LIST_ENCODED_LIST = STATUSLIST_2021_PREFIX + STATUS_LIST_ENCODED_LIST_LITERAL;
 
     private StatusList2021Credential() {

@@ -111,7 +111,7 @@ public class StatusList2021RevocationService implements RevocationListService {
         var bitStringResult = BitString.Parser.newInstance().parse(slCred.encodedList());
 
         if (bitStringResult.failed()) {
-            return bitStringResult.mapTo();
+            return bitStringResult.mapEmpty();
         }
         var bitString = bitStringResult.getContent();
 
