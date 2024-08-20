@@ -25,13 +25,14 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_ENCODED_LIST;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_PURPOSE;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Status.STATUS_LIST_PURPOSE;
 
 public class StatusList2021CredentialTest {
 
     @Test
     void parseStatusList2021() {
         // values taken from https://www.w3.org/TR/2023/WD-vc-status-list-20230427/#statuslist2021credential
+        //noinspection unchecked
         var credential = VerifiableCredential.Builder.newInstance()
                 .id("https://example.com/credentials/status/3")
                 .types(List.of("VerifiableCredential", "StatusList2021Credential"))
@@ -54,6 +55,7 @@ public class StatusList2021CredentialTest {
     @Test
     void parseBitStringStatusList() {
         // values taken from https://www.w3.org/TR/2023/WD-vc-status-list-20230427/#statuslist2021credential
+        //noinspection unchecked
         var credential = VerifiableCredential.Builder.newInstance()
                 .id("https://example.com/credentials/status/3")
                 .types(List.of("VerifiableCredential", "StatusList2021Credential"))

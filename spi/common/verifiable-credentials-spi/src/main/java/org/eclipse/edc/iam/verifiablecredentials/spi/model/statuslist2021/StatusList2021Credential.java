@@ -26,16 +26,11 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLI
  * {@link StatusList2021Credential#parse(VerifiableCredential)}, which will throw a {@link IllegalArgumentException} if the shape is not correct.
  */
 public class StatusList2021Credential extends VerifiableCredential {
-    public static final String STATUSLIST_2021_TYPE = "StatusList2021";
-    public static final String STATUSLIST_2021_CREDENTIAL = STATUSLIST_2021_TYPE + "Credential";
+    public static final String STATUSLIST_2021_CREDENTIAL = "StatusList2021Credential";
+
     public static final String STATUS_LIST_ENCODED_LIST_LITERAL = "encodedList";
+
     public static final String STATUS_LIST_ENCODED_LIST = STATUSLIST_2021_PREFIX + STATUS_LIST_ENCODED_LIST_LITERAL;
-    public static final String STATUS_LIST_CREDENTIAL_LITERAL = "statusListCredential";
-    public static final String STATUS_LIST_CREDENTIAL = STATUSLIST_2021_PREFIX + STATUS_LIST_CREDENTIAL_LITERAL;
-    public static final String STATUS_LIST_INDEX_LITERAL = "statusListIndex";
-    public static final String STATUS_LIST_INDEX = STATUSLIST_2021_PREFIX + STATUS_LIST_INDEX_LITERAL;
-    public static final String STATUS_LIST_PURPOSE_LITERAL = "statusPurpose";
-    public static final String STATUS_LIST_PURPOSE = STATUSLIST_2021_PREFIX + STATUS_LIST_PURPOSE_LITERAL;
 
     private StatusList2021Credential() {
     }
@@ -59,7 +54,7 @@ public class StatusList2021Credential extends VerifiableCredential {
     }
 
     public String statusPurpose() {
-        return (String) credentialSubject.get(0).getClaim(STATUSLIST_2021_PREFIX, STATUS_LIST_PURPOSE_LITERAL);
+        return (String) credentialSubject.get(0).getClaim(STATUSLIST_2021_PREFIX, StatusList2021Status.STATUS_LIST_PURPOSE_LITERAL);
     }
 
     public static class Builder extends VerifiableCredential.Builder<StatusList2021Credential, Builder> {
@@ -90,7 +85,7 @@ public class StatusList2021Credential extends VerifiableCredential {
             if (subject.getClaim(STATUSLIST_2021_PREFIX, STATUS_LIST_ENCODED_LIST_LITERAL) == null) {
                 throw new IllegalArgumentException("Status list credentials must contain a 'credentialSubject.encodedList' field.");
             }
-            if (subject.getClaim(STATUSLIST_2021_PREFIX, STATUS_LIST_PURPOSE_LITERAL) == null) {
+            if (subject.getClaim(STATUSLIST_2021_PREFIX, StatusList2021Status.STATUS_LIST_PURPOSE_LITERAL) == null) {
                 throw new IllegalArgumentException("Status list credentials must contain a 'credentialSubject.statusPurpose' field.");
             }
             return instance;

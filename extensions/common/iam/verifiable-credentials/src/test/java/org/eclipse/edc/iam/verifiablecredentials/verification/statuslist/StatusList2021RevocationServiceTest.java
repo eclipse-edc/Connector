@@ -36,9 +36,9 @@ import org.mockserver.verify.VerificationTimes;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_CREDENTIAL;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_INDEX;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_PURPOSE;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Status.STATUS_LIST_CREDENTIAL;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Status.STATUS_LIST_INDEX;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Status.STATUS_LIST_PURPOSE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.model.HttpRequest.request;

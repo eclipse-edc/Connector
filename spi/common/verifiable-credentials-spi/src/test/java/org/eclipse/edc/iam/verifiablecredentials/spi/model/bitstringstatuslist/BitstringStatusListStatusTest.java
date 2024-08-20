@@ -26,12 +26,12 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListCredential.STATUS_LIST_CREDENTIAL;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListCredential.STATUS_LIST_INDEX;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListCredential.STATUS_LIST_MESSAGES;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListCredential.STATUS_LIST_PURPOSE;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListCredential.STATUS_LIST_REFERENCE;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListCredential.STATUS_LIST_SIZE;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_CREDENTIAL;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_INDEX;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_MESSAGES;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_PURPOSE;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_REFERENCE;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_SIZE;
 
 class BitstringStatusListStatusTest {
 
@@ -49,7 +49,7 @@ class BitstringStatusListStatusTest {
                 STATUS_LIST_SIZE, "2",
                 STATUS_LIST_REFERENCE, List.of("ref1", "ref2")
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
         var parsed = BitstringStatusListStatus.parse(credentialStatus);
         assertThat(parsed.getStatusListCredential()).isEqualTo("https://example.com/credentials/status/3");
@@ -70,7 +70,7 @@ class BitstringStatusListStatusTest {
                         new StatusMessage("0x1", "bar")),
                 STATUS_LIST_SIZE, "1"
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
         var parsed = BitstringStatusListStatus.parse(credentialStatus);
         assertThat(parsed.getStatusListCredential()).isEqualTo("https://example.com/credentials/status/3");
@@ -86,7 +86,7 @@ class BitstringStatusListStatusTest {
                 STATUS_LIST_INDEX, "237",
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
         assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusPurpose");
@@ -99,7 +99,7 @@ class BitstringStatusListStatusTest {
                 //"statusListIndex", "237",
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
         assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusListIndex");
     }
@@ -111,7 +111,7 @@ class BitstringStatusListStatusTest {
                 STATUS_LIST_INDEX, "237"
                 // "statusListCredential", "https://example.com/credentials/status/3"
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
         assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusListCredential");
     }
@@ -129,7 +129,7 @@ class BitstringStatusListStatusTest {
                         new StatusMessage("0x3", "qaz")),
                 STATUS_LIST_SIZE, "3" // would expect 8 statusMessage entries
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
         assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("If present, statusSize (in bits) must be equal to the number of possible statusMessage entries");
@@ -148,7 +148,7 @@ class BitstringStatusListStatusTest {
                         new StatusMessage("0x3", "qaz"))
                 //STATUS_LIST_SIZE, "3"
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
         assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("statusSize must be specified and > 1 if statusMessage is present.");
@@ -163,7 +163,7 @@ class BitstringStatusListStatusTest {
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3",
                 STATUS_LIST_SIZE, "1"
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
         assertThatNoException().isThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus));
     }
@@ -177,7 +177,7 @@ class BitstringStatusListStatusTest {
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3",
                 STATUS_LIST_SIZE, statusSize
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
         assertThatNoException().isThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus));
     }
 
@@ -188,7 +188,7 @@ class BitstringStatusListStatusTest {
                 STATUS_LIST_INDEX, "237",
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
         assertThatNoException().isThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus));
     }
@@ -202,7 +202,7 @@ class BitstringStatusListStatusTest {
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3",
                 STATUS_LIST_SIZE, size
         );
-        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListCredential.TYPE, props);
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
         assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("If present, statusSize must be a positive integer > 0 but was '%s'.".formatted(size));

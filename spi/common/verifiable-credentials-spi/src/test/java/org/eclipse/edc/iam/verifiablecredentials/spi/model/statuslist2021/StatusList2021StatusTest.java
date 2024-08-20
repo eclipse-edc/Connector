@@ -21,9 +21,9 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_CREDENTIAL;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_INDEX;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_PURPOSE;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Status.STATUS_LIST_CREDENTIAL;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Status.STATUS_LIST_INDEX;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Status.STATUS_LIST_PURPOSE;
 
 class StatusList2021StatusTest {
 
