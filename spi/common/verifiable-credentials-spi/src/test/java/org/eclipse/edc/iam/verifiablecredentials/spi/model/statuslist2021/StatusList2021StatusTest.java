@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.junit.jupiter.api.Test;
@@ -21,11 +21,11 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_CREDENTIAL;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_INDEX;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_PURPOSE;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_CREDENTIAL;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_INDEX;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_PURPOSE;
 
-class StatusListStatusTest {
+class StatusList2021StatusTest {
 
     @Test
     void verifyStatusList2021() {
@@ -36,7 +36,7 @@ class StatusListStatusTest {
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
 
-        var parsed = StatusListStatus.parse(credentialStatus);
+        var parsed = StatusList2021Status.parse(credentialStatus);
         assertThat(parsed.getStatusListCredential()).isEqualTo("https://example.com/credentials/status/3");
         assertThat(parsed.getStatusListIndex()).isEqualTo(237);
         assertThat(parsed.getStatusListPurpose()).isEqualTo("revocation");
@@ -50,7 +50,7 @@ class StatusListStatusTest {
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
-        assertThatThrownBy(() -> StatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> StatusList2021Status.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusPurpose");
     }
 
@@ -62,7 +62,7 @@ class StatusListStatusTest {
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
-        assertThatThrownBy(() -> StatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> StatusList2021Status.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusListIndex");
     }
 
@@ -74,7 +74,7 @@ class StatusListStatusTest {
                 // "statusListCredential", "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
-        assertThatThrownBy(() -> StatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> StatusList2021Status.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusListCredential");
     }
 }

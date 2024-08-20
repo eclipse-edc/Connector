@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021;
 
 import org.eclipse.edc.spi.result.Result;
 

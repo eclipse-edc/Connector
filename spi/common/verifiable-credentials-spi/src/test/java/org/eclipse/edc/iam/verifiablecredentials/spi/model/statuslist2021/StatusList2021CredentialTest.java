@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_ENCODED_LIST;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential.STATUS_LIST_PURPOSE;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_ENCODED_LIST;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_PURPOSE;
 
 public class StatusList2021CredentialTest {
 

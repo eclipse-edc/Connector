@@ -18,9 +18,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.BitString;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusListStatus;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.BitString;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Status;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.collection.Cache;
@@ -38,13 +38,15 @@ import static org.eclipse.edc.spi.result.Result.success;
  * <p>
  * To achieve that, the {@link VerifiableCredential#getCredentialStatus()} object is inspected and checked against the status list credential referenced therein.
  * <p>
- * To limit traffic on the actual StatusList2021 credential, it is cached in a thread-safe {@link Map}, and only re-downloaded if the cache is expired.
+ * To limit traffic on the actual StatusList credential, it is cached in a thread-safe {@link Map}, and only re-downloaded if the cache is expired.
+ * <p>
+ * Currently, StatusList2021 and BitStringStatusList are supported.
  */
-public class StatusList2021RevocationService implements RevocationListService {
+public class StatusListRevocationService implements RevocationListService {
     private final ObjectMapper objectMapper;
     private final Cache<String, VerifiableCredential> cache;
 
-    public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidity) {
+    public StatusListRevocationService(ObjectMapper objectMapper, long cacheValidity) {
         this.objectMapper = objectMapper.copy()
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // technically, credential subjects and credential status can be objects AND Arrays
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
@@ -53,7 +55,7 @@ public class StatusList2021RevocationService implements RevocationListService {
 
     @Override
     public Result<Void> checkValidity(VerifiableCredential credential) {
-        return credential.getCredentialStatus().stream().map(StatusListStatus::parse)
+        return credential.getCredentialStatus().stream().map(StatusList2021Status::parse)
                 .map(this::checkStatus)
                 .reduce(Result::merge)
                 .orElse(Result.failure("Could not check the validity of the credential with ID '%s'".formatted(credential.getId())));
@@ -65,7 +67,7 @@ public class StatusList2021RevocationService implements RevocationListService {
             return success(null);
         }
         var res = credential.getCredentialStatus().stream()
-                .map(StatusListStatus::parse)
+                .map(StatusList2021Status::parse)
                 .map(this::getStatusInternal)
                 .collect(Collectors.groupingBy(AbstractResult::succeeded)); //partition by succeeded/failed
 
@@ -82,7 +84,7 @@ public class StatusList2021RevocationService implements RevocationListService {
 
     }
 
-    private Result<Void> checkStatus(StatusListStatus status) {
+    private Result<Void> checkStatus(StatusList2021Status status) {
         var index = status.getStatusListIndex();
         return getStatusInternal(status)
                 .compose(purpose -> purpose != null ?
@@ -94,7 +96,7 @@ public class StatusList2021RevocationService implements RevocationListService {
      * Obtains the status purpose for a particular credentialStatus entry if it is set, otherwise returns a successful result with a {@code null} content.
      * So, a successful result with a non-null content indicates, that the respective credentialStatus is set.
      */
-    private Result<String> getStatusInternal(StatusListStatus status) {
+    private Result<String> getStatusInternal(StatusList2021Status status) {
         var index = status.getStatusListIndex();
         var slCredUrl = status.getStatusListCredential();
         var credential = cache.get(slCredUrl);

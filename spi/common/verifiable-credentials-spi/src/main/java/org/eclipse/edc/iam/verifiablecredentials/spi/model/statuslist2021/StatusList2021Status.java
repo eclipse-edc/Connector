@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 
@@ -24,17 +24,17 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLI
 /**
  * Specialized {@code credentialStatus}, that contains information mandated by the StatusList2021 standard.
  */
-public class StatusListStatus {
+public class StatusList2021Status {
 
     private String statusListPurpose;
     private int statusListIndex;
     private String statusListCredential;
 
-    private StatusListStatus() {
+    private StatusList2021Status() {
     }
 
-    public static StatusListStatus parse(CredentialStatus status) {
-        var instance = new StatusListStatus();
+    public static StatusList2021Status parse(CredentialStatus status) {
+        var instance = new StatusList2021Status();
         instance.statusListCredential = ofNullable(getId(status))
                 .map(Object::toString)
                 .orElseThrow(() -> new IllegalArgumentException(missingProperty(StatusList2021Credential.STATUS_LIST_CREDENTIAL)));

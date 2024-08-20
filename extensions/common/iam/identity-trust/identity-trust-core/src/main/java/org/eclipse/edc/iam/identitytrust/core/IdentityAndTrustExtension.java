@@ -28,7 +28,7 @@ import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
-import org.eclipse.edc.iam.verifiablecredentials.StatusList2021RevocationService;
+import org.eclipse.edc.iam.verifiablecredentials.StatusListRevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.VerifiableCredentialValidationServiceImpl;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
@@ -198,7 +198,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     public RevocationListService createRevocationListService(ServiceExtensionContext context) {
         if (revocationListService == null) {
             var validity = context.getConfig().getLong(REVOCATION_CACHE_VALIDITY, DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS);
-            revocationListService = new StatusList2021RevocationService(typeManager.getMapper(), validity);
+            revocationListService = new StatusListRevocationService(typeManager.getMapper(), validity);
         }
         return revocationListService;
     }
