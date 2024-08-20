@@ -114,8 +114,6 @@ public class DataPlaneHttpIntegrationTests {
                     "web.http.control.port", valueOf(CONTROL_API_PORT),
                     "web.http.control.path", CONTROL_PATH,
                     "edc.dataplane.token.validation.endpoint", VALIDATION_API_HOST,
-                    "edc.transfer.proxy.token.verifier.publickey.alias", "alias",
-                    "edc.transfer.proxy.token.signer.privatekey.alias", "alias",
                     "edc.core.retry.retries.max", "0"
             ),
             ":extensions:common:metrics:micrometer-core",

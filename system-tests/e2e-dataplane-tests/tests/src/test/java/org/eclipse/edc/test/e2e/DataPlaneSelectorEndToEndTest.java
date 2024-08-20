@@ -69,12 +69,8 @@ public class DataPlaneSelectorEndToEndTest {
     private final RuntimeExtension dataPlane = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "data-plane",
             Map.of(
-                    "web.http.port", String.valueOf(getFreePort()),
-                    "web.http.path", "/api",
                     "web.http.control.port", String.valueOf(dataPlaneControlPort),
-                    "web.http.control.path", "/control",
-                    "edc.transfer.proxy.token.verifier.publickey.alias", "alias",
-                    "edc.transfer.proxy.token.signer.privatekey.alias", "alias"
+                    "web.http.control.path", "/control"
             ),
             ":core:data-plane:data-plane-core",
             ":extensions:data-plane:data-plane-http",

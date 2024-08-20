@@ -12,9 +12,10 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.framework.iam;
+package org.eclipse.edc.connector.dataplane.iam;
 
 import org.assertj.core.api.Assertions;
+import org.eclipse.edc.connector.dataplane.iam.service.DefaultDataPlaneAccessTokenServiceImpl;
 import org.eclipse.edc.connector.dataplane.spi.AccessTokenData;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
 import org.eclipse.edc.spi.iam.ClaimToken;

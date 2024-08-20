@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.framework.iam;
+package org.eclipse.edc.connector.dataplane.iam.service;
 
 import org.eclipse.edc.connector.dataplane.spi.AccessTokenData;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService;
@@ -123,16 +123,15 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
 
     @Override
     public Result<AccessTokenData> resolve(String token) {
-        var validationResult = tokenValidationService.validate(token, publicKeyResolver, DATAPLANE_ACCESS_TOKEN_RULES);
-        if (validationResult.failed()) {
-            return validationResult.mapTo();
-        }
-        var tokenId = validationResult.getContent().getStringClaim(TOKEN_ID);
-        var existingAccessToken = accessTokenDataStore.getById(tokenId);
+        return tokenValidationService.validate(token, publicKeyResolver, DATAPLANE_ACCESS_TOKEN_RULES)
+                .map(claimToken -> claimToken.getStringClaim(TOKEN_ID))
+                .compose(tokenId -> {
+                    var existingAccessToken = accessTokenDataStore.getById(tokenId);
 
-        return existingAccessToken == null ?
-                Result.failure("AccessTokenData with ID '%s' does not exist.".formatted(tokenId)) :
-                Result.success(existingAccessToken);
+                    return existingAccessToken == null ?
+                            Result.failure("AccessTokenData with ID '%s' does not exist.".formatted(tokenId)) :
+                            Result.success(existingAccessToken);
+                });
     }
 
     @Override

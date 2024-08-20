@@ -35,7 +35,6 @@ dependencies {
 
     runtimeOnly(libs.junit.jupiter.engine)
 
-    implementation(libs.junit.pioneer)
     implementation(libs.testcontainers.junit)
     testImplementation(project(":core:common:connector-core"))
 
