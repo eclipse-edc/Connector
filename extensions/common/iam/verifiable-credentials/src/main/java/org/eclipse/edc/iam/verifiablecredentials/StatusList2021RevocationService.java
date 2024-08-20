@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.verifiablecredentials;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.BitString;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential;
@@ -42,11 +43,11 @@ import static org.eclipse.edc.spi.result.Result.success;
  * <p>
  * Currently, StatusList2021 and BitStringStatusList are supported.
  */
-public class StatusListRevocationService implements RevocationListService {
+public class StatusList2021RevocationService implements RevocationListService {
     private final ObjectMapper objectMapper;
     private final Cache<String, VerifiableCredential> cache;
 
-    public StatusListRevocationService(ObjectMapper objectMapper, long cacheValidity) {
+    public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidity) {
         this.objectMapper = objectMapper.copy()
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // technically, credential subjects and credential status can be objects AND Arrays
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
@@ -54,11 +55,9 @@ public class StatusListRevocationService implements RevocationListService {
     }
 
     @Override
-    public Result<Void> checkValidity(VerifiableCredential credential) {
-        return credential.getCredentialStatus().stream().map(StatusList2021Status::parse)
-                .map(this::checkStatus)
-                .reduce(Result::merge)
-                .orElse(Result.failure("Could not check the validity of the credential with ID '%s'".formatted(credential.getId())));
+    public Result<Void> checkValidity(CredentialStatus status) {
+        var status2021 = StatusList2021Status.parse(status);
+        return checkStatus(status2021);
     }
 
     @Override

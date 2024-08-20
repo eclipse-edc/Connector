@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.iam.verifiablecredentials;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
@@ -47,9 +47,9 @@ class VerifiableCredentialValidationServiceImplTest {
     public static final String CONSUMER_DID = "did:web:consumer";
     private final PresentationVerifier verifierMock = mock();
     private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
-    private final RevocationListService revocationListServiceMock = mock();
+    private final RevocationServiceRegistry revocationServiceRegistry = mock();
 
-    private final VerifiableCredentialValidationServiceImpl service = new VerifiableCredentialValidationServiceImpl(verifierMock, trustedIssuerRegistryMock, revocationListServiceMock, Clock.systemUTC());
+    private final VerifiableCredentialValidationServiceImpl service = new VerifiableCredentialValidationServiceImpl(verifierMock, trustedIssuerRegistryMock, revocationServiceRegistry, Clock.systemUTC());
 
     @Test
     void cryptographicError() {
@@ -220,7 +220,7 @@ class VerifiableCredentialValidationServiceImplTest {
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
         when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
-        when(revocationListServiceMock.checkValidity(any())).thenReturn(Result.failure("invalid"));
+        when(revocationServiceRegistry.checkValidity(any())).thenReturn(Result.failure("invalid"));
 
         var result = service.validate(List.of(vpContainer));
         assertThat(result).isFailed()

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.rules;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
@@ -34,10 +34,10 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class IsNotRevoked implements CredentialValidationRule {
 
-    private final RevocationListService revocationListService;
+    private final RevocationServiceRegistry revocationServiceRegistry;
 
-    public IsNotRevoked(RevocationListService revocationListService) {
-        this.revocationListService = revocationListService;
+    public IsNotRevoked(RevocationServiceRegistry revocationServiceRegistry) {
+        this.revocationServiceRegistry = revocationServiceRegistry;
     }
 
     @Override
@@ -46,6 +46,6 @@ public class IsNotRevoked implements CredentialValidationRule {
             return success();
         }
 
-        return revocationListService.checkValidity(credential);
+        return revocationServiceRegistry.checkValidity(credential);
     }
 }
