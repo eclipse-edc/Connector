@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
   pull_request:
-    branches: [ main, refactor/* ]
+    branches: [ main, release/*, bugfix/* ]
     paths-ignore:
       - "**.md"
       - "docs/**"
@@ -17,10 +17,6 @@ concurrency:
 
 jobs:
   Checkstyle:
-    permissions:
-      id-token: write
-      checks: write
-      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +24,14 @@ jobs:
 
       - name: Run Checkstyle
         run: ./gradlew checkstyleMain checkstyleTest checkstyleTestFixtures
+
+  CodeQL:
+    uses: eclipse-edc/.github/.github/workflows/codeql-analysis.yml@main
+    secrets: inherit
+
+  Dependency-Check:
+    uses: eclipse-edc/.github/.github/workflows/dependency-check.yml@main
+    secrets: inherit
 
   Javadoc:
     runs-on: ubuntu-latest
@@ -150,3 +154,8 @@ jobs:
           path: artifacts
       - name: CodeCov
         uses: codecov/codecov-action@v4
+
+    Verify-OpenApi:
+      uses: eclipse-edc/.github/.github/workflows/verify-openapi.yml@main
+      secrets: inherit
+
