@@ -54,7 +54,7 @@ class StatusList2021RevocationServiceTest {
     void setup() {
         clientAndServer = ClientAndServer.startClientAndServer("localhost", getFreePort());
         clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_INTERMEDIATE));
+                .respond(HttpResponse.response().withStatusCode(200).withBody(TestData.StatusList2021.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_INTERMEDIATE));
     }
 
     @AfterEach
@@ -177,9 +177,9 @@ class StatusList2021RevocationServiceTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return Stream.of(
-                    Arguments.of(Named.of("VC (intermediate)", TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_INTERMEDIATE)),
-                    Arguments.of(Named.of("VC 1.1", TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_1_0)),
-                    Arguments.of(Named.of("VC 2.0", TestData.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_2_0))
+                    Arguments.of(Named.of("VC (intermediate)", TestData.StatusList2021.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_INTERMEDIATE)),
+                    Arguments.of(Named.of("VC 1.1", TestData.StatusList2021.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_1_0)),
+                    Arguments.of(Named.of("VC 2.0", TestData.StatusList2021.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_2_0))
 
             );
         }
@@ -189,9 +189,9 @@ class StatusList2021RevocationServiceTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return Stream.of(
-                    Arguments.of(Named.of("VC 1.1", TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY_1_0)),
-                    Arguments.of(Named.of("VC (intermediate)", TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY_INTERMEDIATE)),
-                    Arguments.of(Named.of("VC 2.0", TestData.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY_2_0))
+                    Arguments.of(Named.of("VC 1.1", TestData.StatusList2021.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY_1_0)),
+                    Arguments.of(Named.of("VC (intermediate)", TestData.StatusList2021.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY_INTERMEDIATE)),
+                    Arguments.of(Named.of("VC 2.0", TestData.StatusList2021.STATUS_LIST_CREDENTIAL_SUBJECT_IS_ARRAY_2_0))
 
             );
         }

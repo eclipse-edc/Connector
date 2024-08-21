@@ -22,12 +22,17 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.BitString;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.StatusMessage;
+import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.collection.Cache;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Base64;
+import java.util.stream.Collectors;
+
+import static org.eclipse.edc.spi.result.Result.success;
 
 public class BitstringStatusListRevocationService implements RevocationListService {
     private final ObjectMapper objectMapper;
@@ -49,21 +54,54 @@ public class BitstringStatusListRevocationService implements RevocationListServi
 
     @Override
     public Result<String> getStatusPurpose(VerifiableCredential credential) {
-        return null;
+        if (credential.getCredentialStatus().isEmpty()) {
+            return success(null);
+        }
+
+        var res = credential.getCredentialStatus().stream()
+                .map(BitstringStatusListStatus::parse)
+                .map(this::getStatusInternal)
+                .collect(Collectors.groupingBy(AbstractResult::succeeded));
+
+        if (res.containsKey(false)) { //if any failed
+            return Result.failure(res.get(false).stream().map(AbstractResult::getFailureDetail).toList());
+        }
+
+        var list = res.get(true).stream()
+                .filter(r -> r.getContent() != null)
+                .map(AbstractResult::getContent).toList();
+
+        // there could be several statusPurposes. collect them in a list.
+        return list.isEmpty() ? success(null) : success(String.join(", ", list));
+
     }
 
     private Result<Void> checkStatus(BitstringStatusListStatus status) {
-        var index = status.getStatusListIndex();
-        var slCredUrl = status.getStatusListCredential();
-        var credential = cache.get(slCredUrl);
-        var bitStringCredential = BitstringStatusListCredential.parse(credential);
+        var credentialIndex = status.getStatusListIndex();
+
+        return getStatusInternal(status)
+                .compose(purpose -> purpose != null ?
+                        Result.failure("Credential status is '%s', status at index %d is '1'".formatted(purpose, credentialIndex)) :
+                        success());
+    }
+
+    private Result<String> getStatusInternal(BitstringStatusListStatus status) {
+        var credentialIndex = status.getStatusListIndex();
+
+        var statusSize = status.getStatusSize();
+        if (statusSize != 1) { //todo: support more statusSize entries in the future
+            return Result.failure("Unsupported statusSize: currently only statusSize = 1 is supported. The VC contained statusSize = %d".formatted(statusSize));
+        }
 
         var statusPurpose = status.getStatusListPurpose();
-        var statusSize = status.getStatusSize();
+        var credentialUrl = status.getStatusListCredential();
+        var credential = cache.get(credentialUrl);
+        var bitStringCredential = BitstringStatusListCredential.parse(credential);
+
         var credentialStatusPurpose = bitStringCredential.statusPurpose();
 
         if (!statusPurpose.equalsIgnoreCase(credentialStatusPurpose)) {
-            return Result.failure("Credential's statusPurpose value must match statusPurpose of the Bitstring Credential: '%s' != '%s'".formatted(statusPurpose, credentialStatusPurpose));
+            return Result.failure("Credential's statusPurpose value must match the statusPurpose of the Bitstring Credential: '%s' != '%s'".formatted(statusPurpose, credentialStatusPurpose));
         }
         var bitString = bitStringCredential.encodedList();
         var decoder = Base64.getDecoder();
@@ -78,12 +116,25 @@ public class BitstringStatusListRevocationService implements RevocationListServi
         if (compressedBitstring.failed()) {
             return compressedBitstring.mapEmpty();
         }
-        var credentialIndex = status.getStatusListIndex();
         var bitstring = compressedBitstring.getContent();
 
         //todo: check that encodedList / statusSize == minimumLength (defaults to 131_072), otherwise raise error
+        //todo: how to determine minimumLength? via config?
 
-        return Result.success();
+        var statusFlag = bitstring.get(credentialIndex);
+
+        // if the purpose is "message", we need to check the statusMessage object for the actual string
+        if (statusPurpose.equalsIgnoreCase("message")) {
+            var statusString = statusFlag ? "0x1" : "0x0"; //todo: change this when statusSize > 1 is supported
+            statusPurpose = status.getStatusMessage().stream().filter(sm -> sm.status().equals(statusString)).map(StatusMessage::message).findAny().orElse(statusPurpose);
+
+            return success(statusPurpose);
+        } else if (statusFlag) {
+            // currently, this supports only a statusSize of 1
+            return success(statusPurpose);
+        }
+
+        return success(null);
     }
 
     private VerifiableCredential downloadStatusListCredential(String credentialUrl) {
