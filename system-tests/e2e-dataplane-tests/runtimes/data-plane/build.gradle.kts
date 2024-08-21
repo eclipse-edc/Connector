@@ -16,10 +16,13 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":core:common:connector-core"))
     implementation(project(":core:data-plane:data-plane-core"))
     implementation(project(":extensions:common:api:control-api-configuration"))
+    implementation(project(":extensions:common:http"))
     implementation(project(":extensions:control-plane:api:control-plane-api-client"))
     implementation(project(":extensions:data-plane:data-plane-http"))
+    implementation(project(":extensions:data-plane:data-plane-iam"))
     implementation(project(":extensions:data-plane:data-plane-control-api"))
     implementation(project(":extensions:data-plane:data-plane-public-api-v2"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api"))

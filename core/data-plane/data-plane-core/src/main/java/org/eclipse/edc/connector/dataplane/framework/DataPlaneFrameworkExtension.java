@@ -15,14 +15,10 @@
 package org.eclipse.edc.connector.dataplane.framework;
 
 import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
-import org.eclipse.edc.connector.dataplane.framework.iam.DataPlaneAuthorizationServiceImpl;
 import org.eclipse.edc.connector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceRegistryImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
-import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
@@ -110,12 +106,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @Inject
     private PipelineService pipelineService;
     @Inject
-    private DataPlaneAccessTokenService accessTokenService;
-    @Inject
-    private DataPlaneAccessControlService accessControlService;
-    @Inject
-    private PublicEndpointGeneratorService endpointGenerator;
-
     private DataPlaneAuthorizationService authorizationService;
 
     @Override
@@ -144,7 +134,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .transferServiceRegistry(transferServiceRegistry)
                 .store(store)
                 .transferProcessClient(transferProcessApiClient)
-                .authorizationService(authorizationService(context))
                 .monitor(monitor)
                 .telemetry(telemetry)
                 .build();
@@ -170,14 +159,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         var executorService = Executors.newFixedThreadPool(numThreads);
         return new DataTransferExecutorServiceContainer(
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
-    }
-
-    @Provider
-    public DataPlaneAuthorizationService authorizationService(ServiceExtensionContext context) {
-        if (authorizationService == null) {
-            authorizationService = new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, context.getParticipantId(), clock);
-        }
-        return authorizationService;
     }
 
     @NotNull

@@ -51,7 +51,9 @@ public class DataplaneSelectorControlApiEndToEndTest {
             "data-plane-selector",
             Map.of(
                     "web.http.control.port", String.valueOf(controlPort),
-                    "web.http.control.path", "/control"
+                    "web.http.control.path", "/control",
+                    "edc.transfer.proxy.token.verifier.publickey.alias", "public-key",
+                    "edc.transfer.proxy.token.signer.privatekey.alias", "private-key"
             ),
             ":core:common:connector-core",
             ":core:data-plane-selector:data-plane-selector-core",
@@ -72,8 +74,8 @@ public class DataplaneSelectorControlApiEndToEndTest {
                     "web.http.control.port", String.valueOf(getFreePort()),
                     "web.http.control.path", "/control",
                     "edc.dpf.selector.url", String.format("http://localhost:%d/control/v1/dataplanes", controlPort),
-                    "edc.transfer.proxy.token.verifier.publickey.alias", "alias",
-                    "edc.transfer.proxy.token.signer.privatekey.alias", "alias"
+                    "edc.transfer.proxy.token.verifier.publickey.alias", "public-key",
+                    "edc.transfer.proxy.token.signer.privatekey.alias", "private-key"
             ),
             ":system-tests:e2e-dataplane-tests:runtimes:data-plane",
             ":extensions:data-plane:data-plane-self-registration",

@@ -17,6 +17,6 @@ package org.eclipse.edc.iam.identitytrust.sts.remote;
 /**
  * Configuration of the OAuth2 client
  */
-public record StsRemoteClientConfiguration(String tokenUrl, String clientId, String clientSecret) {
-    
+public record StsRemoteClientConfiguration(String tokenUrl, String clientId, String clientSecretAlias) {
+
 }

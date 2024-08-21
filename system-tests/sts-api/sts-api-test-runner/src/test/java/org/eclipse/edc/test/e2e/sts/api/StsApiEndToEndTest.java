@@ -17,7 +17,8 @@ package org.eclipse.edc.test.e2e.sts.api;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -49,9 +50,9 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
     public static final String BASE_STS = "http://localhost:" + PORT + "/sts";
     private static final String GRANT_TYPE = "client_credentials";
 
+
     @RegisterExtension
-    static EdcRuntimeExtension sts = new EdcRuntimeExtension(
-            ":system-tests:sts-api:sts-api-test-runtime",
+    static RuntimePerClassExtension sts = new RuntimePerClassExtension(new EmbeddedRuntime(
             "sts",
             new HashMap<>() {
                 {
@@ -60,8 +61,9 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
                     put("web.http.sts.path", "/sts");
                     put("web.http.sts.port", String.valueOf(PORT));
                 }
-            }
-    );
+            },
+            ":system-tests:sts-api:sts-api-test-runtime"
+    ));
 
     @Test
     void requestToken() throws ParseException {
@@ -203,7 +205,7 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
     }
 
     @Override
-    protected EdcRuntimeExtension getRuntime() {
+    protected RuntimePerClassExtension getRuntime() {
         return sts;
     }
 

@@ -12,15 +12,14 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.framework;
+package org.eclipse.edc.connector.dataplane.iam;
 
-import org.eclipse.edc.connector.dataplane.framework.iam.DefaultDataPlaneAccessTokenServiceImpl;
+import org.eclipse.edc.connector.dataplane.iam.service.DefaultDataPlaneAccessTokenServiceImpl;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.keys.spi.LocalPublicKeyService;
-import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -31,13 +30,10 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.token.spi.TokenValidationService;
 
-import java.util.function.Supplier;
+@Extension(value = DataPlaneIamDefaultServicesExtension.NAME)
+public class DataPlaneIamDefaultServicesExtension implements ServiceExtension {
 
-
-@Extension(value = DataPlaneDefaultIamServicesExtension.NAME)
-public class DataPlaneDefaultIamServicesExtension implements ServiceExtension {
-
-    public static final String NAME = "Data Plane Framework Default IAM Services";
+    public static final String NAME = "Data Plane Default IAM Services";
 
     @Setting(value = "Alias of private key used for signing tokens, retrieved from private key resolver")
     public static final String TOKEN_SIGNER_PRIVATE_KEY_ALIAS = "edc.transfer.proxy.token.signer.privatekey.alias";
@@ -48,8 +44,6 @@ public class DataPlaneDefaultIamServicesExtension implements ServiceExtension {
     private AccessTokenDataStore accessTokenDataStore;
     @Inject
     private TokenValidationService tokenValidationService;
-    @Inject
-    private PrivateKeyResolver privateKeyResolver;
     @Inject
     private LocalPublicKeyService localPublicKeyService;
     @Inject
@@ -72,12 +66,10 @@ public class DataPlaneDefaultIamServicesExtension implements ServiceExtension {
         var tokenSignerPrivateKeyAlias = context.getConfig().getString(TOKEN_SIGNER_PRIVATE_KEY_ALIAS);
         var monitor = context.getMonitor().withPrefix("DataPlane IAM");
         return new DefaultDataPlaneAccessTokenServiceImpl(new JwtGenerationService(jwsSignerProvider),
-                accessTokenDataStore, monitor, () -> tokenSignerPrivateKeyAlias,
-                publicKeyIdSupplier(tokenVerifierPublicKeyAlias), tokenValidationService, localPublicKeyService);
-    }
-
-    private Supplier<String> publicKeyIdSupplier(String tokenVerifierPublicKeyAlias) {
-        return () -> tokenVerifierPublicKeyAlias;
+                accessTokenDataStore, monitor,
+                () -> tokenSignerPrivateKeyAlias,
+                () -> tokenVerifierPublicKeyAlias,
+                tokenValidationService, localPublicKeyService);
     }
 
 }

@@ -30,7 +30,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpResponse;
 
-import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Collections.emptyMap;
@@ -52,10 +51,6 @@ public class DataPlaneHttpExtensionTest {
 
     @RegisterExtension
     private static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
-            .setConfiguration(Map.of(
-                    "edc.transfer.proxy.token.verifier.publickey.alias", "alias",
-                    "edc.transfer.proxy.token.signer.privatekey.alias", "alias"
-            ))
             .registerServiceMock(TransferProcessApiClient.class, mock());
 
     @BeforeAll

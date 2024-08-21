@@ -1,0 +1,2 @@
+org.eclipse.edc.connector.dataplane.iam.DataPlaneIamExtension
+org.eclipse.edc.connector.dataplane.iam.DataPlaneIamDefaultServicesExtension

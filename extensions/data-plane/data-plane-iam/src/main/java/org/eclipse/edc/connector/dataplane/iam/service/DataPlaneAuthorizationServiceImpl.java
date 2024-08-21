@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.framework.iam;
+package org.eclipse.edc.connector.dataplane.iam.service;
 
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
