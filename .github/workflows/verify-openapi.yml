@@ -1,9 +1,0 @@
-name: verify openapi
-
-on:
-  pull_request:
-
-jobs:
-  verify:
-    uses: eclipse-edc/.github/.github/workflows/verify-openapi.yml@main
-    secrets: inherit
