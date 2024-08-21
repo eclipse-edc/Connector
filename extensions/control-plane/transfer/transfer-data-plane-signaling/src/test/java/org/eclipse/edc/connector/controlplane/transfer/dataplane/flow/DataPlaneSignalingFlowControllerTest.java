@@ -50,6 +50,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class DataPlaneSignalingFlowControllerTest {
@@ -256,6 +257,20 @@ public class DataPlaneSignalingFlowControllerTest {
 
             assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
         }
+
+        @Test // a null dataPlaneId means that the flow has not been started so it can be considered as already terminated
+        void shouldReturnSuccess_whenDataPlaneIdIsNull() {
+            var transferProcess = transferProcessBuilder()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId(null)
+                    .build();
+
+            var result = flowController.terminate(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verifyNoInteractions(dataPlaneClient, dataPlaneClientFactory, selectorService);
+        }
     }
 
     @Nested
@@ -287,13 +302,26 @@ public class DataPlaneSignalingFlowControllerTest {
                     .contentDataAddress(testDataAddress())
                     .dataPlaneId("invalid")
                     .build();
-            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
-            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
 
             var result = flowController.suspend(transferProcess);
 
             assertThat(result).isFailed().detail().contains("Failed to select the data plane for suspending the transfer process");
+            verifyNoInteractions(dataPlaneClient, dataPlaneClientFactory);
+        }
+
+        @Test
+        void shouldFail_whenDataPlaneIdIsNull() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId(null)
+                    .build();
+
+            var result = flowController.suspend(transferProcess);
+
+            assertThat(result).isFailed().detail().contains("Failed to select the data plane for suspending the transfer process");
+            verifyNoInteractions(dataPlaneClient, dataPlaneClientFactory, selectorService);
         }
 
     }

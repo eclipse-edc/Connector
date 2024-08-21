@@ -31,6 +31,7 @@ import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -114,7 +115,10 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     @Override
     public StatusResult<Void> suspend(TransferProcess transferProcess) {
-        return getClientForDataplane(transferProcess.getDataPlaneId())
+        return Optional.ofNullable(transferProcess.getDataPlaneId())
+                .map(StatusResult::success)
+                .orElse(StatusResult.failure(FATAL_ERROR, "DataPlane id is null"))
+                .compose(this::getClientForDataplane)
                 .map(client -> client.suspend(transferProcess.getId()))
                 .orElse(f -> {
                     var message = "Failed to select the data plane for suspending the transfer process %s. %s"
@@ -125,7 +129,12 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
-        return getClientForDataplane(transferProcess.getDataPlaneId())
+        var dataPlaneId = transferProcess.getDataPlaneId();
+        if (dataPlaneId == null) {
+            return StatusResult.success();
+        }
+
+        return getClientForDataplane(dataPlaneId)
                 .map(client -> client.terminate(transferProcess.getId()))
                 .orElse(f -> {
                     var message = "Failed to select the data plane for terminating the transfer process %s. %s"
