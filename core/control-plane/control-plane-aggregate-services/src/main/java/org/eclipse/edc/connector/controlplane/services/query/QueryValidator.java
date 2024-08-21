@@ -35,8 +35,8 @@ import static java.lang.String.format;
  * format.
  */
 public class QueryValidator {
-    private final Class<?> canonicalType;
-    private final Map<Class<?>, List<Class<?>>> subtypeMap;
+    private Class<?> canonicalType;
+    private Map<Class<?>, List<Class<?>>> subtypeMap;
 
     /**
      * Constructs a new QueryValidator instance.
@@ -52,6 +52,9 @@ public class QueryValidator {
 
     public QueryValidator(Class<?> canonicalType) {
         this(canonicalType, null);
+    }
+
+    private QueryValidator() {
     }
 
     /**
@@ -115,5 +118,31 @@ public class QueryValidator {
             }
         }
         return field;
+    }
+
+    public static class Builder {
+
+        private final QueryValidator instance = new QueryValidator();
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        private Builder() {
+        }
+
+        public Builder withCanonicalType(Class<?> canonicalType) {
+            instance.canonicalType = canonicalType;
+            return this;
+        }
+
+        public Builder withSubtypeMap(Map<Class<?>, List<Class<?>>> subtypeMap) {
+            instance.subtypeMap = subtypeMap;
+            return this;
+        }
+
+        public QueryValidator build() {
+            return instance;
+        }
     }
 }

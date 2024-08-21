@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.services;
 
+import java.time.Clock;
+
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.asset.spi.observe.AssetObservableImpl;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
@@ -40,6 +42,7 @@ import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDe
 import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDefinitionServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.ProtocolTokenValidatorImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.VersionProtocolServiceImpl;
+import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.secret.SecretEventListener;
 import org.eclipse.edc.connector.controlplane.services.secret.SecretServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -80,8 +83,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
-
-import java.time.Clock;
 
 @Extension(ControlPlaneServicesExtension.NAME)
 public class ControlPlaneServicesExtension implements ServiceExtension {
@@ -173,6 +174,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private TransferTypeParser transferTypeParser;
 
+
     @Override
     public String name() {
         return NAME;
@@ -236,8 +238,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public TransferProcessService transferProcessService() {
+        QueryValidator.Builder builder = QueryValidator.Builder.newInstance();
         return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext,
-                dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore);
+                dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore, builder);
     }
 
     @Provider

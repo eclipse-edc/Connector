@@ -14,8 +14,15 @@
 
 package org.eclipse.edc.connector.controlplane.services.query;
 
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedContentResource;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedDataAddressResource;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedDataDestinationResource;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,7 +42,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_isValid() {
-        var queryValidator = new QueryValidator(TestObject.class);
+        var queryValidator = queryValidators.get("TestObject");
         var query = with(criterion("someString", "=", "foobar"));
 
         var result = queryValidator.validate(query);
@@ -57,7 +64,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_interface_withSubtypeMap() {
-        var queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
+        var queryValidator = queryValidators.get("TestObjectWithSubtypeMap");
         var query = with(criterion("nestedObject.nestedString", "=", "foobar"));
 
         var result = queryValidator.validate(query);
@@ -66,7 +73,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_interface_withoutSubtypeMap() {
-        var queryValidator = new QueryValidator(TestObject.class);
+        var queryValidator = queryValidators.get("TestObject");
         var query = with(criterion("nestedObject.nestedString", "=", "foobar"));
 
         var result = queryValidator.validate(query);
@@ -76,7 +83,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_isMapTypeTrue() {
-        var queryValidator = new QueryValidator(TestObject.class);
+        var queryValidator = queryValidators.get("TestObject");
         var query = with(criterion("someMap.foo", "=", "bar"));
 
         var result = queryValidator.validate(query);
@@ -86,7 +93,7 @@ class QueryValidatorTest {
 
     @Test
     void shouldPermitQueryToJsonLdTags() {
-        var queryValidator = new QueryValidator(TestObject.class);
+        var queryValidator = queryValidators.get("TestObject");
         var query = with(criterion("someMap.foo.@id", "=", "bar"));
 
         var result = queryValidator.validate(query);
@@ -96,7 +103,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_isMapTypeFalse() {
-        var queryValidator = new QueryValidator(TestObject.class);
+        var queryValidator = queryValidators.get("TestObject");
         var query = with(criterion("someMap.foo[*].test", "=", "bar"));
 
         var result = queryValidator.validate(query);
@@ -107,7 +114,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_fieldNotExist() {
-        var queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
+        var queryValidator = queryValidators.get("TestObjectWithSubtypeMap");
         var query = with(criterion("nestedObject.notexist", "like", "(foobar, barbaz)"));
 
         var result = queryValidator.validate(query);
@@ -117,7 +124,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_withListType() {
-        var queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
+        var queryValidator = queryValidators.get("TestObjectWithSubtypeMap");
         var query = with(criterion("nestedObject.someList", "=", "foobar"));
 
         var result = queryValidator.validate(query);
@@ -158,5 +165,55 @@ class QueryValidatorTest {
         public double getNumber() {
             return someDouble;
         }
+    }
+
+    private static Map<String, QueryValidator> queryValidators = Map.of(
+            "TestObject", QueryValidator.Builder.newInstance()
+                    .withCanonicalType(TestObject.class).build(),
+            "TestObjectWithSubtypeMap", QueryValidator.Builder.newInstance()
+                    .withCanonicalType(TestObject.class)
+                    .withSubtypeMap(Map.of(TestInterface.class, List.of(NestedTestObject.class))).build()
+    );
+
+    @Nested
+    class QueryValidatorFromTransferProcessServiceImpl {
+        @ParameterizedTest
+        @ArgumentsSource(InvalidFilters.class)
+        void validate_invalidFilter(Criterion filter) {
+            var query = with(filter);
+            var result = this.queryValidator.validate(query);
+
+            assertThat(result.succeeded()).isFalse();
+        }
+
+        private static QueryValidator queryValidator = QueryValidator.Builder.newInstance()
+                .withCanonicalType(TransferProcess.class)
+                .withSubtypeMap(Map.of(ProvisionedResource.class, List.of(ProvisionedDataAddressResource.class),
+                        ProvisionedDataAddressResource.class,
+                        List.of(ProvisionedDataDestinationResource.class, ProvisionedContentResource.class)))
+                .build();
+
+        private static class InvalidFilters implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(criterion("provisionedResourceSet.resources.hastoken", "=", "true")), // wrong case
+                        arguments(criterion("resourceManifest.definitions.notexist", "=", "foobar")), // property not exist
+                        arguments(criterion("contentDataAddress.properties[*].someKey", "=", "someval")) // map types not supported
+                );
+            }
+        }
+
+        private static class ValidFilters implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(criterion("deprovisionedResources.provisionedResourceId", "=", "someval")),
+                        arguments(criterion("type", "=", "CONSUMER")),
+                        arguments(criterion("provisionedResourceSet.resources.hasToken", "=", "true"))
+                );
+            }
+        }
+
     }
 }

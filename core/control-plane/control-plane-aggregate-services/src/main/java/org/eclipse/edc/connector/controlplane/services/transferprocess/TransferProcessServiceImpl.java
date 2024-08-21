@@ -67,7 +67,8 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
                                       TransactionContext transactionContext, DataAddressValidatorRegistry dataAddressValidator,
                                       CommandHandlerRegistry commandHandlerRegistry, TransferTypeParser transferTypeParser,
-                                      ContractNegotiationStore contractNegotiationStore) {
+                                      ContractNegotiationStore contractNegotiationStore, QueryValidator.Builder queryValidatorBuilder
+                                      ) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
         this.transactionContext = transactionContext;
@@ -75,7 +76,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
         this.commandHandlerRegistry = commandHandlerRegistry;
         this.transferTypeParser = transferTypeParser;
         this.contractNegotiationStore = contractNegotiationStore;
-        queryValidator = new QueryValidator(TransferProcess.class, getSubtypes());
+        this.queryValidator = buildQueryValidator(queryValidatorBuilder);
     }
 
     @Override
@@ -182,7 +183,14 @@ public class TransferProcessServiceImpl implements TransferProcessService {
         return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
     }
 
-    private Map<Class<?>, List<Class<?>>> getSubtypes() {
+    private static QueryValidator buildQueryValidator(QueryValidator.Builder queryValidatorBuilder) {
+        return queryValidatorBuilder
+                .withCanonicalType(TransferProcess.class)
+                .withSubtypeMap(getSubtypes())
+                .build();
+    }
+
+    public static Map<Class<?>, List<Class<?>>> getSubtypes() {
         return Map.of(
                 ProvisionedResource.class, List.of(ProvisionedDataAddressResource.class),
                 ProvisionedDataAddressResource.class, List.of(ProvisionedDataDestinationResource.class, ProvisionedContentResource.class)
