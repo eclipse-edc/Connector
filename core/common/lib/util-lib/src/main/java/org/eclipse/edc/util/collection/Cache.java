@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * Cache, that maintains a map of key-value pairs, where values have an individual expiry. When values expire, they are re-fetched
  * and put back in the cache.
@@ -76,6 +78,21 @@ public class Cache<K, V> {
             lock.readLock().unlock();
         }
         return value;
+    }
+
+    /**
+     * Explicitly removes an entry from the cache
+     *
+     * @param key the key
+     * @return the value previously associated with "key"
+     */
+    public V evict(K key) {
+        lock.writeLock().lock();
+        try {
+            return ofNullable(cache.remove(key)).map(TimestampedValue::value).orElse(null);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     private boolean isEntryExpired(K key) {

@@ -77,6 +77,29 @@ class CacheTest {
         assertThat(testObject).isNull();
     }
 
+    @Test
+    void evict_whenPresent() {
+        when(updateFunction.apply(anyString())).thenReturn(new TestObject(42));
+        cache.get("foo");
+
+        assertThat(cache.evict("foo").value).isEqualTo(42);
+
+        var testObject = cache.get("foo");
+        assertThat(testObject.value()).isEqualTo(42);
+        verify(updateFunction, times(2)).apply(anyString());
+    }
+
+    @Test
+    void evict_whenNotPresent() {
+        when(updateFunction.apply(anyString())).thenReturn(new TestObject(42));
+
+        assertThat(cache.evict("foo")).isNull();
+
+        var testObject = cache.get("foo");
+        assertThat(testObject.value()).isEqualTo(42);
+        verify(updateFunction, times(1)).apply(anyString());
+    }
+
     private record TestObject(int value) {
 
     }
