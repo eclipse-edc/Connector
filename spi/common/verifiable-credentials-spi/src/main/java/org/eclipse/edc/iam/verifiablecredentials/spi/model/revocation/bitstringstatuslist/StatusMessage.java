@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist;
 
 public record StatusMessage(String status, String message) {
     public StatusMessage {

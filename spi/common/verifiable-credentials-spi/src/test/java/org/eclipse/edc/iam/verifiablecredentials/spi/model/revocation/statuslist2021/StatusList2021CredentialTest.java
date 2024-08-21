@@ -12,13 +12,13 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListCredential;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListStatus;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -27,8 +27,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Credential.STATUS_LIST_ENCODED_LIST;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Status.STATUS_LIST_PURPOSE;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Credential.STATUS_LIST_ENCODED_LIST;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status.STATUS_LIST_PURPOSE;
 
 public class StatusList2021CredentialTest {
 

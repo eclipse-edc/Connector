@@ -29,11 +29,11 @@ import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.VerifiableCredentialValidationServiceImpl;
-import org.eclipse.edc.iam.verifiablecredentials.revocation.bistring.BitstringStatusListRevocationService;
+import org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring.BitstringStatusListRevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021.StatusList2021RevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist.BitstringStatusListStatus;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021.StatusList2021Status;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -161,7 +161,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         // register revocation services
         var validity = context.getConfig().getLong(REVOCATION_CACHE_VALIDITY, DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS);
         revocationServiceRegistry.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(), validity));
-        revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper()));
+        revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(), validity));
     }
 
     @Provider

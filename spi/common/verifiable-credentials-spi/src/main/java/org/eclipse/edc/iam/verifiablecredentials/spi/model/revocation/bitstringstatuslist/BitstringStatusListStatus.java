@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 

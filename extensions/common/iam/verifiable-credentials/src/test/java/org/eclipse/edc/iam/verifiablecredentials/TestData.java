@@ -136,4 +136,22 @@ public class TestData {
               }
             }
             """;
+
+    public static final String BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT = """
+            {
+              "@context": [
+                "https://www.w3.org/ns/credentials/v2"
+              ],
+              "id": "https://example.com/credentials/status/3",
+              "type": ["VerifiableCredential", "BitstringStatusListCredential"],
+              "issuer": "did:example:12345",
+              "validFrom": "2021-04-05T14:27:40Z",
+              "credentialSubject": {
+                "id": "https://example.com/status/3#list",
+                "type": "BitstringStatusList",
+                "statusPurpose": "revocation",
+                "encodedList": "%s"
+              }
+            }
+            """;
 }

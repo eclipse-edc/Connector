@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.bitstringstatuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 
@@ -103,7 +103,7 @@ public class BitstringStatusListCredential extends VerifiableCredential {
             if (subject.getClaim(BITSTRING_STATUS_LIST_PREFIX, BITSTRING_ENCODED_LIST_LITERAL) == null) {
                 throw new IllegalArgumentException("Status list credentials must contain a 'credentialSubject.encodedList' field.");
             }
-            if (subject.getClaim(BITSTRING_STATUS_LIST_PREFIX, BitstringStatusListStatus.STATUS_LIST_PURPOSE) == null) {
+            if (subject.getClaim(BITSTRING_STATUS_LIST_PREFIX, BitstringStatusListStatus.BITSTRING_STATUS_LIST_PURPOSE_LITERAL) == null) {
                 throw new IllegalArgumentException("Status list credentials must contain a 'credentialSubject.statusPurpose' field.");
             }
             return instance;

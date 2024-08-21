@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist2021;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 
