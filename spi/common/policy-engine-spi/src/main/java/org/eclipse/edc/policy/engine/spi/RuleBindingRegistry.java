@@ -42,4 +42,10 @@ public interface RuleBindingRegistry {
      * Returns true of the rule type is bound to the scope; otherwise false.
      */
     boolean isInScope(String ruleType, String scope);
+
+
+    /**
+     * Returns the bindings for a rule type;
+     */
+    Set<String> bindings(String ruleType);
 }
