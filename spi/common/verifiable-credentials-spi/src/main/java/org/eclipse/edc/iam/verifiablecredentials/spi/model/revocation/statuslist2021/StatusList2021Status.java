@@ -40,7 +40,7 @@ public class StatusList2021Status {
     private StatusList2021Status() {
     }
 
-    public static StatusList2021Status parse(CredentialStatus status) {
+    public static StatusList2021Status from(CredentialStatus status) {
         var instance = new StatusList2021Status();
         instance.statusListCredential = ofNullable(getId(status))
                 .map(Object::toString)

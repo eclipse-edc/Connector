@@ -29,17 +29,21 @@ import static org.eclipse.edc.spi.result.Result.success;
  * StatusList revocation service implementing the <a href="https://w3c.github.io/cg-reports/credentials/CG-FINAL-vc-status-list-2021-20230102/">StatusList2021</a>
  * specification.
  */
-public class StatusList2021RevocationService extends BaseRevocationListService<StatusList2021Credential> {
+public class StatusList2021RevocationService extends BaseRevocationListService<StatusList2021Credential, StatusList2021Status> {
 
     public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidity) {
         super(objectMapper, cacheValidity, StatusList2021Credential.class);
     }
 
     @Override
-    protected Result<String> getStatusEntryValue(CredentialStatus credentialStatus) {
-        var status = StatusList2021Status.parse(credentialStatus);
-        var index = status.getStatusListIndex();
-        var slCredUrl = status.getStatusListCredential();
+    protected StatusList2021Status getCredentialStatus(CredentialStatus credentialStatus) {
+        return StatusList2021Status.from(credentialStatus);
+    }
+
+    @Override
+    protected Result<String> getStatusEntryValue(StatusList2021Status credentialStatus) {
+        var index = credentialStatus.getStatusListIndex();
+        var slCredUrl = credentialStatus.getStatusListCredential();
         var credential = getCredential(slCredUrl);
 
 
@@ -52,18 +56,17 @@ public class StatusList2021RevocationService extends BaseRevocationListService<S
 
         // check that the value at index in the bitset is "1"
         if (bitString.get(index)) {
-            return success(status.getStatusListPurpose());
+            return success(credentialStatus.getStatusListPurpose());
         }
         return success(null);
     }
 
     @Override
-    protected Result<Void> validateStatusPurpose(CredentialStatus credentialStatus) {
-        var status2021 = StatusList2021Status.parse(credentialStatus);
-        var slCred = getCredential(status2021.getStatusListCredential());
+    protected Result<Void> validateStatusPurpose(StatusList2021Status credentialStatus) {
+        var slCred = getCredential(credentialStatus.getStatusListCredential());
 
         // check that the "statusPurpose" values match
-        var purpose = status2021.getStatusListPurpose();
+        var purpose = credentialStatus.getStatusListPurpose();
         var slCredPurpose = slCred.statusPurpose();
         if (!purpose.equalsIgnoreCase(slCredPurpose)) {
             return Result.failure("Credential's statusPurpose value must match the status list's purpose: '%s' != '%s'".formatted(purpose, slCredPurpose));
@@ -73,7 +76,7 @@ public class StatusList2021RevocationService extends BaseRevocationListService<S
     }
 
     @Override
-    protected int getStatusIndex(CredentialStatus credentialStatus) {
-        return StatusList2021Status.parse(credentialStatus).getStatusListIndex();
+    protected int getStatusIndex(StatusList2021Status credentialStatus) {
+        return credentialStatus.getStatusListIndex();
     }
 }

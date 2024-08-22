@@ -31,16 +31,20 @@ import static org.eclipse.edc.spi.result.Result.success;
  * StatusList revocation service implementing the <a href="https://www.w3.org/TR/vc-bitstring-status-list/">BitStringStatusList</a>
  * specification.
  */
-public class BitstringStatusListRevocationService extends BaseRevocationListService<BitstringStatusListCredential> {
+public class BitstringStatusListRevocationService extends BaseRevocationListService<BitstringStatusListCredential, BitstringStatusListStatus> {
 
     public BitstringStatusListRevocationService(ObjectMapper mapper, long cacheValidity) {
         super(mapper, cacheValidity, BitstringStatusListCredential.class);
     }
 
     @Override
-    protected Result<Void> preliminaryChecks(CredentialStatus credentialStatus) {
-        var status = BitstringStatusListStatus.from(credentialStatus);
-        var statusSize = status.getStatusSize();
+    protected BitstringStatusListStatus getCredentialStatus(CredentialStatus credentialStatus) {
+        return BitstringStatusListStatus.from(credentialStatus);
+    }
+
+    @Override
+    protected Result<Void> preliminaryChecks(BitstringStatusListStatus credentialStatus) {
+        var statusSize = credentialStatus.getStatusSize();
         if (statusSize != 1) { //todo: support more statusSize entries in the future
             return Result.failure("Unsupported statusSize: currently only statusSize = 1 is supported. The VC contained statusSize = %d".formatted(statusSize));
         }
@@ -48,9 +52,8 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
     }
 
     @Override
-    protected Result<String> getStatusEntryValue(CredentialStatus credentialStatus) {
-        var bitstringStatus = BitstringStatusListStatus.from(credentialStatus);
-        var bitStringCredential = getCredential(bitstringStatus.getStatusListCredential());
+    protected Result<String> getStatusEntryValue(BitstringStatusListStatus credentialStatus) {
+        var bitStringCredential = getCredential(credentialStatus.getStatusListCredential());
 
         var bitString = bitStringCredential.encodedList();
         var decoder = Base64.getDecoder();
@@ -70,13 +73,13 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
         //todo: check that encodedList / statusSize == minimumLength (defaults to 131_072), otherwise raise error
         //todo: how to determine minimumLength? via config?
 
-        var statusFlag = bitstring.get(bitstringStatus.getStatusListIndex());
+        var statusFlag = bitstring.get(credentialStatus.getStatusListIndex());
 
-        var statusPurpose = bitstringStatus.getStatusListPurpose();
+        var statusPurpose = credentialStatus.getStatusListPurpose();
         // if the purpose is "message", we need to check the statusMessage object for the actual string
         if (statusPurpose.equalsIgnoreCase("message")) {
             var statusString = statusFlag ? "0x1" : "0x0"; //todo: change this when statusSize > 1 is supported
-            statusPurpose = bitstringStatus.getStatusMessage().stream().filter(sm -> sm.status().equals(statusString)).map(StatusMessage::message).findAny().orElse(statusPurpose);
+            statusPurpose = credentialStatus.getStatusMessage().stream().filter(sm -> sm.status().equals(statusString)).map(StatusMessage::message).findAny().orElse(statusPurpose);
 
             return success(statusPurpose);
         } else if (statusFlag) {
@@ -88,11 +91,10 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
     }
 
     @Override
-    protected Result<Void> validateStatusPurpose(CredentialStatus credentialStatus) {
-        var bitstringStatus = BitstringStatusListStatus.from(credentialStatus);
-        var statusPurpose = bitstringStatus.getStatusListPurpose();
+    protected Result<Void> validateStatusPurpose(BitstringStatusListStatus credentialStatus) {
+        var statusPurpose = credentialStatus.getStatusListPurpose();
 
-        var credentialUrl = bitstringStatus.getStatusListCredential();
+        var credentialUrl = credentialStatus.getStatusListCredential();
         var statusListCredential = getCredential(credentialUrl);
         var credentialStatusPurpose = statusListCredential.statusPurpose();
 
@@ -104,8 +106,8 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
     }
 
     @Override
-    protected int getStatusIndex(CredentialStatus credentialStatus) {
-        return BitstringStatusListStatus.from(credentialStatus).getStatusListIndex();
+    protected int getStatusIndex(BitstringStatusListStatus credentialStatus) {
+        return credentialStatus.getStatusListIndex();
     }
 
 }

@@ -36,7 +36,7 @@ class StatusList2021StatusTest {
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
 
-        var parsed = StatusList2021Status.parse(credentialStatus);
+        var parsed = StatusList2021Status.from(credentialStatus);
         assertThat(parsed.getStatusListCredential()).isEqualTo("https://example.com/credentials/status/3");
         assertThat(parsed.getStatusListIndex()).isEqualTo(237);
         assertThat(parsed.getStatusListPurpose()).isEqualTo("revocation");
@@ -50,7 +50,7 @@ class StatusList2021StatusTest {
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
-        assertThatThrownBy(() -> StatusList2021Status.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> StatusList2021Status.from(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusPurpose");
     }
 
@@ -62,7 +62,7 @@ class StatusList2021StatusTest {
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
-        assertThatThrownBy(() -> StatusList2021Status.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> StatusList2021Status.from(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusListIndex");
     }
 
@@ -74,7 +74,7 @@ class StatusList2021StatusTest {
                 // "statusListCredential", "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", "StatusList2021Entry", props);
-        assertThatThrownBy(() -> StatusList2021Status.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> StatusList2021Status.from(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusListCredential");
     }
 }

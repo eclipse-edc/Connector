@@ -42,7 +42,7 @@ import static org.eclipse.edc.spi.result.Result.success;
  * <p>
  * Currently, StatusList2021 and BitStringStatusList are supported.
  */
-public abstract class BaseRevocationListService<C extends VerifiableCredential> implements RevocationListService {
+public abstract class BaseRevocationListService<C extends VerifiableCredential, S> implements RevocationListService {
     private final Cache<String, C> statusListCredentialCache;
     private final Class<C> credentialClass;
     private final ObjectMapper objectMapper;
@@ -57,10 +57,11 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential> 
 
     @Override
     public Result<Void> checkValidity(CredentialStatus credential) {
-        var credentialIndex = getStatusIndex(credential);
-        return preliminaryChecks(credential)
-                .compose(v -> validateStatusPurpose(credential))
-                .compose(v -> getStatusEntryValue(credential))
+        var credentialStatus = getCredentialStatus(credential);
+        var credentialIndex = getStatusIndex(credentialStatus);
+        return preliminaryChecks(credentialStatus)
+                .compose(v -> validateStatusPurpose(credentialStatus))
+                .compose(v -> getStatusEntryValue(credentialStatus))
                 .compose(status -> status != null ?
                         Result.failure("Credential status is '%s', status at index %d is '1'".formatted(status, credentialIndex)) :
                         Result.success());
@@ -73,6 +74,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential> 
         }
 
         var res = credential.getCredentialStatus().stream()
+                .map(this::getCredentialStatus)
                 .map(this::getStatusEntryValue)
                 .collect(Collectors.groupingBy(AbstractResult::succeeded));
 
@@ -87,7 +89,9 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential> 
         return list.isEmpty() ? success(null) : success(String.join(", ", list));
     }
 
-    protected Result<Void> preliminaryChecks(CredentialStatus credentialStatus) {
+    protected abstract S getCredentialStatus(CredentialStatus credentialStatus);
+
+    protected Result<Void> preliminaryChecks(S credentialStatus) {
         return Result.success();
     }
 
@@ -114,14 +118,14 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential> 
      *
      * @param credentialStatus the credentialStatus object of the VC (not the StatusList credential!)
      */
-    protected abstract Result<String> getStatusEntryValue(CredentialStatus credentialStatus);
+    protected abstract Result<String> getStatusEntryValue(S credentialStatus);
 
     /**
      * Validates, that the statusPurpose of the credentialStatus is equal to the one found in the StatusList Credential
      *
      * @param credentialStatus the credentialStatus object of the VC (not the StatusList credential!)
      */
-    protected abstract Result<Void> validateStatusPurpose(CredentialStatus credentialStatus);
+    protected abstract Result<Void> validateStatusPurpose(S credentialStatus);
 
     /**
      * Gets the {@code statusIndex} entry of the VC's credentialStatus object.
@@ -129,7 +133,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential> 
      * @param credentialStatus the credentialStatus object of the VC (not the StatusList credential!)
      * @return the statusIndex entry
      */
-    protected abstract int getStatusIndex(CredentialStatus credentialStatus);
+    protected abstract int getStatusIndex(S credentialStatus);
 
     private C downloadStatusListCredential(String credentialUrl) {
         try {
