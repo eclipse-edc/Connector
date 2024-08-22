@@ -23,6 +23,11 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Optional.ofNullable;
 
 public class RevocationServiceRegistryImpl implements RevocationServiceRegistry {
     private final Map<String, RevocationListService> entries = new HashMap<>();
@@ -44,6 +49,26 @@ public class RevocationServiceRegistryImpl implements RevocationServiceRegistry 
                 .map(this::checkRevocation)
                 .reduce(Result::merge)
                 .orElse(Result.success());
+    }
+
+    @Override
+    public Result<String> getRevocationStatus(VerifiableCredential credential) {
+        return credential.getCredentialStatus()
+                .stream()
+                .map(credentialStatus -> getRevocationStatusInternal(credentialStatus, credential))
+                .reduce((r1, r2) -> {
+                    if (r1.succeeded() && r2.succeeded()) {
+                        return Result.success(Stream.of(r1.getContent(), r2.getContent()).filter(Objects::nonNull).collect(Collectors.joining(", ")));
+                    }
+                    return r1.merge(r2);
+                })
+                .orElse(Result.success(null));
+    }
+
+    private Result<String> getRevocationStatusInternal(CredentialStatus credentialStatus, VerifiableCredential credential) {
+        return ofNullable(entries.get(credentialStatus.type()))
+                .map(service -> service.getStatusPurpose(credential))
+                .orElse(Result.success(null));
     }
 
     private Result<Void> checkRevocation(CredentialStatus credentialStatus) {
