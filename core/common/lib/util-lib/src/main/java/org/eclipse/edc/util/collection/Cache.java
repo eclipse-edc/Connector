@@ -84,7 +84,7 @@ public class Cache<K, V> {
      * Explicitly removes an entry from the cache
      *
      * @param key the key
-     * @return the value previously associated with "key"
+     * @return the value previously associated with "key", or null if no value was associated with the key
      */
     public V evict(K key) {
         lock.writeLock().lock();

@@ -34,7 +34,7 @@ import static org.eclipse.edc.spi.result.Result.success;
 
 /**
  * Service to check if a particular {@link VerifiableCredential} is "valid", where "validity" is defined as not revoked and not suspended nor having
- * any other status.  * Credentials, that don't have a {@code credentialStatus} object are deemed "valid" as well.
+ * any other status. Credentials that don't have a {@code credentialStatus} object are deemed "valid" as well.
  * <p>
  * To achieve that, the {@link VerifiableCredential#getCredentialStatus()} object is inspected and checked against the status list credential referenced therein.
  * <p>
