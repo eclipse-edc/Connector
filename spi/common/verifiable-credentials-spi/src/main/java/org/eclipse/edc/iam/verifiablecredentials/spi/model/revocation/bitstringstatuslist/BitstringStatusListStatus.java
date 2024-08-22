@@ -50,7 +50,7 @@ public class BitstringStatusListStatus {
 
     }
 
-    public static BitstringStatusListStatus parse(CredentialStatus status) {
+    public static BitstringStatusListStatus from(CredentialStatus status) {
         var instance = new BitstringStatusListStatus();
 
         instance.statusListCredential = ofNullable(getId(status))

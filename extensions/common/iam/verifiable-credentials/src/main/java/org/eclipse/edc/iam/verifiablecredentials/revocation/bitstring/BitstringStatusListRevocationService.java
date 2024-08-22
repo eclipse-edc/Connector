@@ -39,7 +39,7 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
 
     @Override
     protected Result<Void> preliminaryChecks(CredentialStatus credentialStatus) {
-        var status = BitstringStatusListStatus.parse(credentialStatus);
+        var status = BitstringStatusListStatus.from(credentialStatus);
         var statusSize = status.getStatusSize();
         if (statusSize != 1) { //todo: support more statusSize entries in the future
             return Result.failure("Unsupported statusSize: currently only statusSize = 1 is supported. The VC contained statusSize = %d".formatted(statusSize));
@@ -49,7 +49,7 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
 
     @Override
     protected Result<String> getStatusEntryValue(CredentialStatus credentialStatus) {
-        var bitstringStatus = BitstringStatusListStatus.parse(credentialStatus);
+        var bitstringStatus = BitstringStatusListStatus.from(credentialStatus);
         var bitStringCredential = getCredential(bitstringStatus.getStatusListCredential());
 
         var bitString = bitStringCredential.encodedList();
@@ -89,7 +89,7 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
 
     @Override
     protected Result<Void> validateStatusPurpose(CredentialStatus credentialStatus) {
-        var bitstringStatus = BitstringStatusListStatus.parse(credentialStatus);
+        var bitstringStatus = BitstringStatusListStatus.from(credentialStatus);
         var statusPurpose = bitstringStatus.getStatusListPurpose();
 
         var credentialUrl = bitstringStatus.getStatusListCredential();
@@ -105,7 +105,7 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
 
     @Override
     protected int getStatusIndex(CredentialStatus credentialStatus) {
-        return BitstringStatusListStatus.parse(credentialStatus).getStatusListIndex();
+        return BitstringStatusListStatus.from(credentialStatus).getStatusListIndex();
     }
 
 }

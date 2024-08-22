@@ -51,7 +51,7 @@ class BitstringStatusListStatusTest {
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
-        var parsed = BitstringStatusListStatus.parse(credentialStatus);
+        var parsed = BitstringStatusListStatus.from(credentialStatus);
         assertThat(parsed.getStatusListCredential()).isEqualTo("https://example.com/credentials/status/3");
         assertThat(parsed.getStatusListIndex()).isEqualTo(237);
         assertThat(parsed.getStatusListPurpose()).isEqualTo("revocation");
@@ -72,7 +72,7 @@ class BitstringStatusListStatusTest {
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
-        var parsed = BitstringStatusListStatus.parse(credentialStatus);
+        var parsed = BitstringStatusListStatus.from(credentialStatus);
         assertThat(parsed.getStatusListCredential()).isEqualTo("https://example.com/credentials/status/3");
         assertThat(parsed.getStatusListIndex()).isEqualTo(237);
         assertThat(parsed.getStatusListPurpose()).isEqualTo("revocation");
@@ -87,7 +87,7 @@ class BitstringStatusListStatusTest {
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
-        assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus))
+        assertThatThrownBy(() -> BitstringStatusListStatus.from(credentialStatus))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusPurpose");
     }
@@ -100,7 +100,7 @@ class BitstringStatusListStatusTest {
                 STATUS_LIST_CREDENTIAL, "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
-        assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> BitstringStatusListStatus.from(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusListIndex");
     }
 
@@ -112,7 +112,7 @@ class BitstringStatusListStatusTest {
                 // "statusListCredential", "https://example.com/credentials/status/3"
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
-        assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> BitstringStatusListStatus.from(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("statusListCredential");
     }
 
@@ -131,7 +131,7 @@ class BitstringStatusListStatusTest {
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
-        assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> BitstringStatusListStatus.from(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("If present, statusSize (in bits) must be equal to the number of possible statusMessage entries");
     }
 
@@ -150,7 +150,7 @@ class BitstringStatusListStatusTest {
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
-        assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> BitstringStatusListStatus.from(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("statusSize must be specified and > 1 if statusMessage is present.");
     }
 
@@ -165,7 +165,7 @@ class BitstringStatusListStatusTest {
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
-        assertThatNoException().isThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus));
+        assertThatNoException().isThrownBy(() -> BitstringStatusListStatus.from(credentialStatus));
     }
 
     @ParameterizedTest(name = "statusSize (bits): {0}")
@@ -178,7 +178,7 @@ class BitstringStatusListStatusTest {
                 STATUS_LIST_SIZE, statusSize
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
-        assertThatNoException().isThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus));
+        assertThatNoException().isThrownBy(() -> BitstringStatusListStatus.from(credentialStatus));
     }
 
     @Test
@@ -190,7 +190,7 @@ class BitstringStatusListStatusTest {
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
-        assertThatNoException().isThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus));
+        assertThatNoException().isThrownBy(() -> BitstringStatusListStatus.from(credentialStatus));
     }
 
     @ParameterizedTest(name = "Invalid statusSize {0}")
@@ -204,7 +204,7 @@ class BitstringStatusListStatusTest {
         );
         var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
 
-        assertThatThrownBy(() -> BitstringStatusListStatus.parse(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> BitstringStatusListStatus.from(credentialStatus)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("If present, statusSize must be a positive integer > 0 but was '%s'.".formatted(size));
     }
 }
