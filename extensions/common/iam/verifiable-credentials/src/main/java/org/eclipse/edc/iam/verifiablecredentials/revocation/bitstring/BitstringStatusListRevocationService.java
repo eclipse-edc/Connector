@@ -38,11 +38,6 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
     }
 
     @Override
-    protected BitstringStatusListStatus getCredentialStatus(CredentialStatus credentialStatus) {
-        return BitstringStatusListStatus.from(credentialStatus);
-    }
-
-    @Override
     protected Result<Void> preliminaryChecks(BitstringStatusListStatus credentialStatus) {
         var statusSize = credentialStatus.getStatusSize();
         if (statusSize != 1) { //todo: support more statusSize entries in the future
@@ -61,7 +56,7 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
             decoder = Base64.getUrlDecoder();
             bitString = bitString.substring(1); //chop off header
         } else if (bitString.charAt(0) == 'z') { //base58btc
-            return Result.failure("The encoded list contains a Base58-BTC encoding header, which is not supported.");
+            return Result.failure("The encoded list is using the Base58-BTC alphabet ('z' multibase header), which is not supported.");
         }
 
         var compressedBitstring = BitString.Parser.newInstance().decoder(decoder).parse(bitString);
@@ -70,8 +65,9 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
         }
         var bitstring = compressedBitstring.getContent();
 
-        //todo: check that encodedList / statusSize == minimumLength (defaults to 131_072), otherwise raise error
-        //todo: how to determine minimumLength? via config?
+        // todo: check that encodedList / statusSize == minimumLength (defaults to 131_072 = encodedList minimum length in bits),
+        // otherwise raise error
+        // todo: how to determine minimumLength? via config?
 
         var statusFlag = bitstring.get(credentialStatus.getStatusListIndex());
 
@@ -108,6 +104,11 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
     @Override
     protected int getStatusIndex(BitstringStatusListStatus credentialStatus) {
         return credentialStatus.getStatusListIndex();
+    }
+
+    @Override
+    protected BitstringStatusListStatus getCredentialStatus(CredentialStatus credentialStatus) {
+        return BitstringStatusListStatus.from(credentialStatus);
     }
 
 }

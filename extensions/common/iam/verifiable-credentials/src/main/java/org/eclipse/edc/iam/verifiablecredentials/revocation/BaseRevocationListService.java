@@ -89,8 +89,13 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
         return list.isEmpty() ? success(null) : success(String.join(", ", list));
     }
 
-    protected abstract S getCredentialStatus(CredentialStatus credentialStatus);
-
+    /**
+     * Hook to perform some preliminary checks before the actual status list validation is performed. Use this method to
+     * perform length checks, shape validation, etc.
+     *
+     * @param credentialStatus the credentialStatus object of the VC (not the StatusList credential!)
+     * @return A {@link Result} indicating the outcome of the preliminary checks.
+     */
     protected Result<Void> preliminaryChecks(S credentialStatus) {
         return Result.success();
     }
@@ -109,7 +114,6 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
             statusListCredentialCache.evict(credentialUrl);
         }
         return statusListCredentialCache.get(credentialUrl);
-
     }
 
     /**
@@ -134,6 +138,16 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
      * @return the statusIndex entry
      */
     protected abstract int getStatusIndex(S credentialStatus);
+
+
+    /**
+     * Converts the generic {@link CredentialStatus} into a specific credentialStatus that is used by the concrete status list
+     * implementation.
+     *
+     * @param credentialStatus The generic {@link CredentialStatus}
+     * @return A specific credential status object
+     */
+    protected abstract S getCredentialStatus(CredentialStatus credentialStatus);
 
     private C downloadStatusListCredential(String credentialUrl) {
         try {

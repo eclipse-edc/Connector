@@ -39,10 +39,11 @@ public class RevocationServiceRegistryImpl implements RevocationServiceRegistry 
 
     @Override
     public Result<Void> checkValidity(VerifiableCredential credential) {
-        return credential.getCredentialStatus().stream()
+        return credential.getCredentialStatus()
+                .stream()
                 .map(this::checkRevocation)
                 .reduce(Result::merge)
-                .orElse(Result.failure("Could not check the validity of the credential with ID '%s'".formatted(credential.getId())));
+                .orElse(Result.success());
     }
 
     private Result<Void> checkRevocation(CredentialStatus credentialStatus) {

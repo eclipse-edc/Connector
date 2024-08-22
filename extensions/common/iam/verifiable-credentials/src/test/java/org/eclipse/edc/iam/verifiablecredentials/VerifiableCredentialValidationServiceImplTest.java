@@ -23,6 +23,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentatio
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.spi.result.Result;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -48,8 +49,12 @@ class VerifiableCredentialValidationServiceImplTest {
     private final PresentationVerifier verifierMock = mock();
     private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
     private final RevocationServiceRegistry revocationServiceRegistry = mock();
-
     private final VerifiableCredentialValidationServiceImpl service = new VerifiableCredentialValidationServiceImpl(verifierMock, trustedIssuerRegistryMock, revocationServiceRegistry, Clock.systemUTC());
+
+    @BeforeEach
+    void setUp() {
+        when(revocationServiceRegistry.checkValidity(any())).thenReturn(Result.success());
+    }
 
     @Test
     void cryptographicError() {

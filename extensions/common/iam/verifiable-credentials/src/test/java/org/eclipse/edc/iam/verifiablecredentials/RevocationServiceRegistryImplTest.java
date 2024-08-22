@@ -43,6 +43,16 @@ class RevocationServiceRegistryImplTest {
     }
 
     @Test
+    void checkValidity_whenNoCredentialStatus() {
+        var mockService = mock(RevocationListService.class);
+        registry.addService("test-type", mockService);
+        when(mockService.checkValidity(any(CredentialStatus.class))).thenReturn(Result.success());
+
+        var cred = TestFunctions.createCredentialBuilder().build();
+        assertThat(registry.checkValidity(cred)).isSucceeded();
+    }
+
+    @Test
     void checkValidity_noServiceFound_shouldReturnSuccess() {
         var mockService = mock(RevocationListService.class);
         registry.addService("test-type", mockService);
