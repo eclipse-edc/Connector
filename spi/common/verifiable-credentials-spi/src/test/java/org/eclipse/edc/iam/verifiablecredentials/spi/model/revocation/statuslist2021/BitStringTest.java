@@ -12,8 +12,9 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021;
 
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.BitString;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;

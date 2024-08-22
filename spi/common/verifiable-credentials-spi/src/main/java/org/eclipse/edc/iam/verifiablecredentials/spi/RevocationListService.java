@@ -14,11 +14,12 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi;
 
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.result.Result;
 
 /**
- * Checks a {@link VerifiableCredential} for revocation. Implementors should maintain an internal cache to limit remote calls
+ * Checks a {@link CredentialStatus} for revocation. Implementors should maintain an internal cache to limit remote calls
  * to the status list credential.
  * <ul>
  *     <li>StatusList2021: the cache expiry can be configured</li>
@@ -30,13 +31,13 @@ import org.eclipse.edc.spi.result.Result;
  */
 public interface RevocationListService {
     /**
-     * Check the "validity" of a credential, where validity is understood as not-revoked and not-suspended. Credentials that don't have
-     * a {@code credentialStatus} object are deemed valid. If the {@code credentialStatus} object is invalid, the credential is deemed invalid.
+     * Check the "validity" of a credential status, where validity is understood as not-revoked and not-suspended. Credentials that don't have
+     * a {@code credentialStatus} object are deemed valid. If the {@code credentialStatus} object is structurally invalid, the credential is deemed invalid.
      */
-    Result<Void> checkValidity(VerifiableCredential credential);
+    Result<Void> checkValidity(CredentialStatus credential);
 
     /**
-     * Determines the status of a credential. If a {@code credentialStatus} object exists, the service will determin the "status purpose". It can be:
+     * Determines the status of a credential. If a {@code credentialStatus} object exists, the service will determine the "status purpose". It can be:
      * <ul>
      *     <li>null: {@code credentialStatus} object not present, or status purpose is present but the status credential's encoded bitstring resolves a "0" at the status index.
      *        i.e. the credential is "not revoked" and "not suspended". </li>

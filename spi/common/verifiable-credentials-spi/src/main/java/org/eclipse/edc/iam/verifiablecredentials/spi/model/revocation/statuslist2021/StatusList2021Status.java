@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 
@@ -24,35 +24,42 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLI
 /**
  * Specialized {@code credentialStatus}, that contains information mandated by the StatusList2021 standard.
  */
-public class StatusListStatus {
+public class StatusList2021Status {
 
+    public static final String TYPE = "StatusList2021Entry";
+    public static final String STATUS_LIST_CREDENTIAL_LITERAL = "statusListCredential";
+    public static final String STATUS_LIST_CREDENTIAL = STATUSLIST_2021_PREFIX + STATUS_LIST_CREDENTIAL_LITERAL;
+    public static final String STATUS_LIST_INDEX_LITERAL = "statusListIndex";
+    public static final String STATUS_LIST_INDEX = STATUSLIST_2021_PREFIX + STATUS_LIST_INDEX_LITERAL;
+    public static final String STATUS_LIST_PURPOSE_LITERAL = "statusPurpose";
+    public static final String STATUS_LIST_PURPOSE = STATUSLIST_2021_PREFIX + STATUS_LIST_PURPOSE_LITERAL;
     private String statusListPurpose;
     private int statusListIndex;
     private String statusListCredential;
 
-    private StatusListStatus() {
+    private StatusList2021Status() {
     }
 
-    public static StatusListStatus parse(CredentialStatus status) {
-        var instance = new StatusListStatus();
+    public static StatusList2021Status from(CredentialStatus status) {
+        var instance = new StatusList2021Status();
         instance.statusListCredential = ofNullable(getId(status))
                 .map(Object::toString)
-                .orElseThrow(() -> new IllegalArgumentException(missingProperty(StatusList2021Credential.STATUS_LIST_CREDENTIAL)));
+                .orElseThrow(() -> new IllegalArgumentException(missingProperty(STATUS_LIST_CREDENTIAL)));
 
-        instance.statusListIndex = ofNullable(status.getProperty(STATUSLIST_2021_PREFIX, StatusList2021Credential.STATUS_LIST_INDEX_LITERAL))
+        instance.statusListIndex = ofNullable(status.getProperty(STATUSLIST_2021_PREFIX, STATUS_LIST_INDEX_LITERAL))
                 .map(Object::toString)
                 .map(Integer::parseInt)
-                .orElseThrow(() -> new IllegalArgumentException(missingProperty(StatusList2021Credential.STATUS_LIST_INDEX)));
+                .orElseThrow(() -> new IllegalArgumentException(missingProperty(STATUS_LIST_INDEX)));
 
-        instance.statusListPurpose = ofNullable(status.getProperty(STATUSLIST_2021_PREFIX, StatusList2021Credential.STATUS_LIST_PURPOSE_LITERAL))
+        instance.statusListPurpose = ofNullable(status.getProperty(STATUSLIST_2021_PREFIX, STATUS_LIST_PURPOSE_LITERAL))
                 .map(Object::toString)
-                .orElseThrow(() -> new IllegalArgumentException(missingProperty(StatusList2021Credential.STATUS_LIST_PURPOSE)));
+                .orElseThrow(() -> new IllegalArgumentException(missingProperty(STATUS_LIST_PURPOSE)));
 
         return instance;
     }
 
     private static Object getId(CredentialStatus status) {
-        var credentialId = status.getProperty(STATUSLIST_2021_PREFIX, StatusList2021Credential.STATUS_LIST_CREDENTIAL_LITERAL);
+        var credentialId = status.getProperty(STATUSLIST_2021_PREFIX, STATUS_LIST_CREDENTIAL_LITERAL);
         if (credentialId instanceof Map<?, ?> map) {
             return map.get("@id");
         }

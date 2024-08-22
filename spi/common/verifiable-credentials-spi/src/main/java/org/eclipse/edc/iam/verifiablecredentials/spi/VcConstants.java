@@ -30,4 +30,7 @@ public interface VcConstants {
     String VC_PREFIX_V2 = "https://www.w3.org/ns/credentials/v2";
     String STATUSLIST_2021_URL = "https://w3id.org/vc/status-list/2021/v1";
     String STATUSLIST_2021_PREFIX = "https://w3id.org/vc/status-list#";
+
+    String BITSTRING_STATUS_LIST_URL = VC_PREFIX_V2;
+    String BITSTRING_STATUS_LIST_PREFIX = "https://www.w3.org/ns/credentials/status#";
 }

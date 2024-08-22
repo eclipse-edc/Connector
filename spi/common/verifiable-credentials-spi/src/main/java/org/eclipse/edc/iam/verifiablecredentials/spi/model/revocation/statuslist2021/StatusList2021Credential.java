@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist;
+package org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 
@@ -22,36 +22,14 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLI
  * Represents a special {@link VerifiableCredential}, specifically a <a href="https://www.w3.org/TR/2023/WD-vc-status-list-20230427/">W3C StatusList2021</a> credential.
  * That means that the shape of the {@link VerifiableCredential#getCredentialSubject()} is not arbitrary anymore, but must contain specific items.
  * <p>
- * Since every StatusList2021 credential is a valid {@link VerifiableCredential}, way to construct them is via the static factory method
- * {@link StatusList2021Credential#parse(VerifiableCredential)}, which will throw a {@link IllegalArgumentException} if the shape is not correct.
+ * Every StatusList2021 credential is a valid {@link VerifiableCredential}.
  */
 public class StatusList2021Credential extends VerifiableCredential {
-    public static final String STATUSLIST_2021_TYPE = "StatusList2021";
-    public static final String STATUSLIST_2021_CREDENTIAL = STATUSLIST_2021_TYPE + "Credential";
+    public static final String STATUSLIST_2021_CREDENTIAL = "StatusList2021Credential";
     public static final String STATUS_LIST_ENCODED_LIST_LITERAL = "encodedList";
     public static final String STATUS_LIST_ENCODED_LIST = STATUSLIST_2021_PREFIX + STATUS_LIST_ENCODED_LIST_LITERAL;
-    public static final String STATUS_LIST_CREDENTIAL_LITERAL = "statusListCredential";
-    public static final String STATUS_LIST_CREDENTIAL = STATUSLIST_2021_PREFIX + STATUS_LIST_CREDENTIAL_LITERAL;
-    public static final String STATUS_LIST_INDEX_LITERAL = "statusListIndex";
-    public static final String STATUS_LIST_INDEX = STATUSLIST_2021_PREFIX + STATUS_LIST_INDEX_LITERAL;
-    public static final String STATUS_LIST_PURPOSE_LITERAL = "statusPurpose";
-    public static final String STATUS_LIST_PURPOSE = STATUSLIST_2021_PREFIX + STATUS_LIST_PURPOSE_LITERAL;
 
     private StatusList2021Credential() {
-    }
-
-    public static StatusList2021Credential parse(VerifiableCredential rawCredential) {
-        return StatusList2021Credential.Builder.newInstance()
-                .credentialStatus(rawCredential.getCredentialStatus())
-                .id(rawCredential.getId())
-                .credentialSubjects(rawCredential.getCredentialSubject())
-                .name(rawCredential.getName())
-                .types(rawCredential.getType())
-                .description(rawCredential.getDescription())
-                .issuanceDate(rawCredential.getIssuanceDate())
-                .issuer(rawCredential.getIssuer())
-                .expirationDate(rawCredential.getExpirationDate())
-                .build();
     }
 
     public String encodedList() {
@@ -59,7 +37,7 @@ public class StatusList2021Credential extends VerifiableCredential {
     }
 
     public String statusPurpose() {
-        return (String) credentialSubject.get(0).getClaim(STATUSLIST_2021_PREFIX, STATUS_LIST_PURPOSE_LITERAL);
+        return (String) credentialSubject.get(0).getClaim(STATUSLIST_2021_PREFIX, StatusList2021Status.STATUS_LIST_PURPOSE_LITERAL);
     }
 
     public static class Builder extends VerifiableCredential.Builder<StatusList2021Credential, Builder> {
@@ -90,7 +68,7 @@ public class StatusList2021Credential extends VerifiableCredential {
             if (subject.getClaim(STATUSLIST_2021_PREFIX, STATUS_LIST_ENCODED_LIST_LITERAL) == null) {
                 throw new IllegalArgumentException("Status list credentials must contain a 'credentialSubject.encodedList' field.");
             }
-            if (subject.getClaim(STATUSLIST_2021_PREFIX, STATUS_LIST_PURPOSE_LITERAL) == null) {
+            if (subject.getClaim(STATUSLIST_2021_PREFIX, StatusList2021Status.STATUS_LIST_PURPOSE_LITERAL) == null) {
                 throw new IllegalArgumentException("Status list credentials must contain a 'credentialSubject.statusPurpose' field.");
             }
             return instance;

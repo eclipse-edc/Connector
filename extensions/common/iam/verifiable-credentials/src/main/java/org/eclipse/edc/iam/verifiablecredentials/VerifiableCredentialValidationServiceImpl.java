@@ -18,9 +18,9 @@ import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidIssuer;
 import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsInValidityPeriod;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsNotRevoked;
-import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
@@ -39,13 +39,13 @@ import static org.eclipse.edc.spi.result.Result.failure;
 public class VerifiableCredentialValidationServiceImpl implements VerifiableCredentialValidationService {
     private final PresentationVerifier presentationVerifier;
     private final TrustedIssuerRegistry trustedIssuerRegistry;
-    private final RevocationListService revocationListService;
+    private final RevocationServiceRegistry revocationServiceRegistry;
     private final Clock clock;
 
-    public VerifiableCredentialValidationServiceImpl(PresentationVerifier presentationVerifier, TrustedIssuerRegistry trustedIssuerRegistry, RevocationListService revocationListService, Clock clock) {
+    public VerifiableCredentialValidationServiceImpl(PresentationVerifier presentationVerifier, TrustedIssuerRegistry trustedIssuerRegistry, RevocationServiceRegistry revocationServiceRegistry, Clock clock) {
         this.presentationVerifier = presentationVerifier;
         this.trustedIssuerRegistry = trustedIssuerRegistry;
-        this.revocationListService = revocationListService;
+        this.revocationServiceRegistry = revocationServiceRegistry;
         this.clock = clock;
     }
 
@@ -67,7 +67,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
         var filters = new ArrayList<>(List.of(
                 new IsInValidityPeriod(clock),
                 new HasValidSubjectIds(presentationHolder),
-                new IsNotRevoked(revocationListService),
+                new IsNotRevoked(revocationServiceRegistry),
                 new HasValidIssuer(getTrustedIssuerIds())));
 
         filters.addAll(additionalRules);
