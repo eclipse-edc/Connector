@@ -42,15 +42,17 @@ import static org.eclipse.edc.spi.result.Result.success;
  * <p>
  * Currently, StatusList2021 and BitStringStatusList are supported.
  */
-public abstract class BaseRevocationListService implements RevocationListService {
-    private final Cache<String, VerifiableCredential> statusListCredentialCache;
+public abstract class BaseRevocationListService<C extends VerifiableCredential> implements RevocationListService {
+    private final Cache<String, C> statusListCredentialCache;
+    private final Class<C> credentialClass;
     private final ObjectMapper objectMapper;
 
-    protected BaseRevocationListService(ObjectMapper mapper, long cacheValidity) {
+    protected BaseRevocationListService(ObjectMapper mapper, long cacheValidity, Class<C> credentialClass) {
         this.objectMapper = mapper.copy()
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // technically, credential subjects and credential status can be objects AND Arrays
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
         statusListCredentialCache = new Cache<>(this::downloadStatusListCredential, cacheValidity);
+        this.credentialClass = credentialClass;
     }
 
     @Override
@@ -96,7 +98,7 @@ public abstract class BaseRevocationListService implements RevocationListService
      * @return the VerifiableCredential
      * @throws EdcException if it could not be downloaded
      */
-    protected VerifiableCredential getCredential(String credentialUrl) {
+    protected C getCredential(String credentialUrl) {
         var credential = statusListCredentialCache.get(credentialUrl);
         // credential is cached, but expired -> download again
         if (credential != null && credential.getExpirationDate() != null && credential.getExpirationDate().isBefore(Instant.now())) {
@@ -129,9 +131,9 @@ public abstract class BaseRevocationListService implements RevocationListService
      */
     protected abstract int getStatusIndex(CredentialStatus credentialStatus);
 
-    private VerifiableCredential downloadStatusListCredential(String credentialUrl) {
+    private C downloadStatusListCredential(String credentialUrl) {
         try {
-            return objectMapper.readValue(URI.create(credentialUrl).toURL(), VerifiableCredential.class);
+            return objectMapper.readValue(URI.create(credentialUrl).toURL(), credentialClass);
         } catch (IOException e) {
             throw new EdcException(e);
         }

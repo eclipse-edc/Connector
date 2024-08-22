@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021;
 
+import org.assertj.core.api.ThrowableAssert;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ public class StatusList2021CredentialTest {
     void parseStatusList2021() {
         // values taken from https://www.w3.org/TR/2023/WD-vc-status-list-20230427/#statuslist2021credential
         //noinspection unchecked
-        var credential = VerifiableCredential.Builder.newInstance()
+        var statusListCred = StatusList2021Credential.Builder.newInstance()
                 .id("https://example.com/credentials/status/3")
                 .types(List.of("VerifiableCredential", "StatusList2021Credential"))
                 .issuer(new Issuer("did:example:12345", Map.of()))
@@ -49,7 +49,6 @@ public class StatusList2021CredentialTest {
                         .build())
                 .build();
 
-        var statusListCred = StatusList2021Credential.parse(credential);
 
         assertThat(statusListCred.encodedList()).isNotNull();
         assertThat(statusListCred.statusPurpose()).isEqualTo("revocation");
@@ -57,8 +56,7 @@ public class StatusList2021CredentialTest {
 
     @Test
     void parse_noPurpose_expectException() {
-        //noinspection unchecked
-        var credential = VerifiableCredential.Builder.newInstance()
+        ThrowableAssert.ThrowingCallable action = () -> StatusList2021Credential.Builder.newInstance()
                 .id("https://example.com/credentials/status/3")
                 .types(List.of("VerifiableCredential", "StatusList2021Credential"))
                 .issuer(new Issuer("did:example:12345", Map.of()))
@@ -71,13 +69,12 @@ public class StatusList2021CredentialTest {
                         .build())
                 .build();
 
-        assertThatThrownBy(() -> StatusList2021Credential.parse(credential)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(action).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void parse_noEncodedList_expectException() {
-        //noinspection unchecked
-        var credential = VerifiableCredential.Builder.newInstance()
+        ThrowableAssert.ThrowingCallable action = () -> StatusList2021Credential.Builder.newInstance()
                 .id("https://example.com/credentials/status/3")
                 .types(List.of("VerifiableCredential", "StatusList2021Credential"))
                 .issuer(new Issuer("did:example:12345", Map.of()))
@@ -90,7 +87,7 @@ public class StatusList2021CredentialTest {
                         .build())
                 .build();
 
-        assertThatThrownBy(() -> StatusList2021Credential.parse(credential)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(action).isInstanceOf(IllegalArgumentException.class);
     }
 
 }

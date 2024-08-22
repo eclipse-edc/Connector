@@ -29,20 +29,6 @@ public class BitstringStatusListCredential extends VerifiableCredential {
     public static final String STATUS_LIST_ENCODED_LIST = BITSTRING_STATUS_LIST_PREFIX + BITSTRING_ENCODED_LIST_LITERAL;
     public static final String STATUS_LIST_TTL = BITSTRING_STATUS_LIST_PREFIX + BITSTRING_TTL_LITERAL;
 
-    public static BitstringStatusListCredential parse(VerifiableCredential rawStatusCredential) {
-        return BitstringStatusListCredential.Builder.newInstance()
-                .credentialStatus(rawStatusCredential.getCredentialStatus())
-                .id(rawStatusCredential.getId())
-                .credentialSubjects(rawStatusCredential.getCredentialSubject())
-                .name(rawStatusCredential.getName())
-                .types(rawStatusCredential.getType())
-                .description(rawStatusCredential.getDescription())
-                .issuanceDate(rawStatusCredential.getIssuanceDate())
-                .issuer(rawStatusCredential.getIssuer())
-                .expirationDate(rawStatusCredential.getExpirationDate())
-                .build();
-    }
-
     public String encodedList() {
         return (String) credentialSubject.get(0).getClaim(BITSTRING_STATUS_LIST_PREFIX, BITSTRING_ENCODED_LIST_LITERAL);
     }

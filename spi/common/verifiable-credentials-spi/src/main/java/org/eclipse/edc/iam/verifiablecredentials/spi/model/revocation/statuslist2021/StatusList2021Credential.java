@@ -22,8 +22,7 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLI
  * Represents a special {@link VerifiableCredential}, specifically a <a href="https://www.w3.org/TR/2023/WD-vc-status-list-20230427/">W3C StatusList2021</a> credential.
  * That means that the shape of the {@link VerifiableCredential#getCredentialSubject()} is not arbitrary anymore, but must contain specific items.
  * <p>
- * Since every StatusList2021 credential is a valid {@link VerifiableCredential}, way to construct them is via the static factory method
- * {@link StatusList2021Credential#parse(VerifiableCredential)}, which will throw a {@link IllegalArgumentException} if the shape is not correct.
+ * Every StatusList2021 credential is a valid {@link VerifiableCredential}.
  */
 public class StatusList2021Credential extends VerifiableCredential {
     public static final String STATUSLIST_2021_CREDENTIAL = "StatusList2021Credential";
@@ -31,20 +30,6 @@ public class StatusList2021Credential extends VerifiableCredential {
     public static final String STATUS_LIST_ENCODED_LIST = STATUSLIST_2021_PREFIX + STATUS_LIST_ENCODED_LIST_LITERAL;
 
     private StatusList2021Credential() {
-    }
-
-    public static StatusList2021Credential parse(VerifiableCredential rawCredential) {
-        return StatusList2021Credential.Builder.newInstance()
-                .credentialStatus(rawCredential.getCredentialStatus())
-                .id(rawCredential.getId())
-                .credentialSubjects(rawCredential.getCredentialSubject())
-                .name(rawCredential.getName())
-                .types(rawCredential.getType())
-                .description(rawCredential.getDescription())
-                .issuanceDate(rawCredential.getIssuanceDate())
-                .issuer(rawCredential.getIssuer())
-                .expirationDate(rawCredential.getExpirationDate())
-                .build();
     }
 
     public String encodedList() {

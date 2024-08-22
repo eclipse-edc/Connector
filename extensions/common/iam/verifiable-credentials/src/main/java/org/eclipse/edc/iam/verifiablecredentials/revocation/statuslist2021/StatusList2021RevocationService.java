@@ -29,10 +29,10 @@ import static org.eclipse.edc.spi.result.Result.success;
  * StatusList revocation service implementing the <a href="https://w3c.github.io/cg-reports/credentials/CG-FINAL-vc-status-list-2021-20230102/">StatusList2021</a>
  * specification.
  */
-public class StatusList2021RevocationService extends BaseRevocationListService {
+public class StatusList2021RevocationService extends BaseRevocationListService<StatusList2021Credential> {
 
     public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidity) {
-        super(objectMapper, cacheValidity);
+        super(objectMapper, cacheValidity, StatusList2021Credential.class);
     }
 
     @Override
@@ -41,10 +41,9 @@ public class StatusList2021RevocationService extends BaseRevocationListService {
         var index = status.getStatusListIndex();
         var slCredUrl = status.getStatusListCredential();
         var credential = getCredential(slCredUrl);
-        var slCred = StatusList2021Credential.parse(credential);
 
 
-        var bitStringResult = BitString.Parser.newInstance().parse(slCred.encodedList());
+        var bitStringResult = BitString.Parser.newInstance().parse(credential.encodedList());
 
         if (bitStringResult.failed()) {
             return bitStringResult.mapEmpty();
@@ -61,7 +60,7 @@ public class StatusList2021RevocationService extends BaseRevocationListService {
     @Override
     protected Result<Void> validateStatusPurpose(CredentialStatus credentialStatus) {
         var status2021 = StatusList2021Status.parse(credentialStatus);
-        var slCred = StatusList2021Credential.parse(getCredential(status2021.getStatusListCredential()));
+        var slCred = getCredential(status2021.getStatusListCredential());
 
         // check that the "statusPurpose" values match
         var purpose = status2021.getStatusListPurpose();

@@ -31,10 +31,10 @@ import static org.eclipse.edc.spi.result.Result.success;
  * StatusList revocation service implementing the <a href="https://www.w3.org/TR/vc-bitstring-status-list/">BitStringStatusList</a>
  * specification.
  */
-public class BitstringStatusListRevocationService extends BaseRevocationListService {
+public class BitstringStatusListRevocationService extends BaseRevocationListService<BitstringStatusListCredential> {
 
     public BitstringStatusListRevocationService(ObjectMapper mapper, long cacheValidity) {
-        super(mapper, cacheValidity);
+        super(mapper, cacheValidity, BitstringStatusListCredential.class);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
     @Override
     protected Result<String> getStatusEntryValue(CredentialStatus credentialStatus) {
         var bitstringStatus = BitstringStatusListStatus.parse(credentialStatus);
-        var bitStringCredential = BitstringStatusListCredential.parse(getCredential(bitstringStatus.getStatusListCredential()));
+        var bitStringCredential = getCredential(bitstringStatus.getStatusListCredential());
 
         var bitString = bitStringCredential.encodedList();
         var decoder = Base64.getDecoder();
@@ -93,9 +93,8 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
         var statusPurpose = bitstringStatus.getStatusListPurpose();
 
         var credentialUrl = bitstringStatus.getStatusListCredential();
-        var credential = getCredential(credentialUrl);
-        var bitStringCredential = BitstringStatusListCredential.parse(credential);
-        var credentialStatusPurpose = bitStringCredential.statusPurpose();
+        var statusListCredential = getCredential(credentialUrl);
+        var credentialStatusPurpose = statusListCredential.statusPurpose();
 
         if (!statusPurpose.equalsIgnoreCase(credentialStatusPurpose)) {
             return Result.failure("Credential's statusPurpose value must match the statusPurpose of the Bitstring Credential: '%s' != '%s'".formatted(statusPurpose, credentialStatusPurpose));

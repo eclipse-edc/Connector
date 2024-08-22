@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist;
 
+import org.assertj.core.api.ThrowableAssert;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -34,7 +34,7 @@ class BitstringStatusListCredentialTest {
     void parseBitStringStatusList() {
         // values taken from https://www.w3.org/TR/vc-bitstring-status-list/#example-example-bitstringstatuslistcredential
         //noinspection unchecked
-        var credential = VerifiableCredential.Builder.newInstance()
+        var credential = BitstringStatusListCredential.Builder.newInstance()
                 .id("https://example.com/credentials/status/3")
                 .types(List.of("VerifiableCredential", "BitstringStatusListCredential"))
                 .issuer(new Issuer("did:example:12345", Map.of()))
@@ -48,20 +48,19 @@ class BitstringStatusListCredentialTest {
                         .build())
                 .build();
 
-        var statusListCred = BitstringStatusListCredential.parse(credential);
 
-        assertThat(statusListCred.encodedList()).isNotNull();
-        assertThat(statusListCred.statusPurpose()).isEqualTo("revocation");
-        assertThat(statusListCred.validFrom()).isEqualTo(Instant.parse("2021-04-05T14:27:40Z"));
-        assertThat(statusListCred.validUntil()).isNull();
-        assertThat(statusListCred.ttl()).hasMillis(123_456);
+        assertThat(credential.encodedList()).isNotNull();
+        assertThat(credential.statusPurpose()).isEqualTo("revocation");
+        assertThat(credential.validFrom()).isEqualTo(Instant.parse("2021-04-05T14:27:40Z"));
+        assertThat(credential.validUntil()).isNull();
+        assertThat(credential.ttl()).hasMillis(123_456);
     }
 
     @Test
     void parse_useDefaultValue_ifTtlNotPresent() {
         // values taken from https://www.w3.org/TR/vc-bitstring-status-list/#example-example-bitstringstatuslistcredential
         //noinspection unchecked
-        var credential = VerifiableCredential.Builder.newInstance()
+        var credential = BitstringStatusListCredential.Builder.newInstance()
                 .id("https://example.com/credentials/status/3")
                 .types(List.of("VerifiableCredential", "BitstringStatusListCredential"))
                 .issuer(new Issuer("did:example:12345", Map.of()))
@@ -74,15 +73,13 @@ class BitstringStatusListCredentialTest {
                         .build())
                 .build();
 
-        var statusListCred = BitstringStatusListCredential.parse(credential);
 
-        assertThat(statusListCred.ttl()).hasMillis(300_000);
+        assertThat(credential.ttl()).hasMillis(300_000);
     }
 
     @Test
     void parse_noPurpose_expectException() {
-        //noinspection unchecked
-        var credential = VerifiableCredential.Builder.newInstance()
+        ThrowableAssert.ThrowingCallable action = () -> BitstringStatusListCredential.Builder.newInstance()
                 .id("https://example.com/credentials/status/3")
                 .types(List.of("VerifiableCredential", "BitstringStatusListCredential"))
                 .issuer(new Issuer("did:example:12345", Map.of()))
@@ -96,13 +93,13 @@ class BitstringStatusListCredentialTest {
                         .build())
                 .build();
 
-        assertThatThrownBy(() -> BitstringStatusListCredential.parse(credential)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(action).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void parse_noEncodedList_expectException() {
         //noinspection unchecked
-        var credential = VerifiableCredential.Builder.newInstance()
+        ThrowableAssert.ThrowingCallable action = () -> BitstringStatusListCredential.Builder.newInstance()
                 .id("https://example.com/credentials/status/3")
                 .types(List.of("VerifiableCredential", "BitstringStatusListCredential"))
                 .issuer(new Issuer("did:example:12345", Map.of()))
@@ -116,7 +113,7 @@ class BitstringStatusListCredentialTest {
                         .build())
                 .build();
 
-        assertThatThrownBy(() -> BitstringStatusListCredential.parse(credential)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(action).isInstanceOf(IllegalArgumentException.class);
     }
 
 }
