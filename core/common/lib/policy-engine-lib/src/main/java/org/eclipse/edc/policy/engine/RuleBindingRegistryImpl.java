@@ -44,12 +44,7 @@ public class RuleBindingRegistryImpl implements RuleBindingRegistry {
 
     @Override
     public boolean isInScope(String ruleType, String scope) {
-        var boundScopes = ruleBindings.get(ruleType);
-        if (boundScopes == null) {
-            boundScopes = dynamicBinders.stream()
-                    .flatMap(binder -> binder.apply(ruleType).stream())
-                    .collect(Collectors.toSet());
-        }
+        var boundScopes = bindings(ruleType);
         if (boundScopes.contains(DELIMITED_ALL)) {
             return true;
         }
@@ -62,4 +57,14 @@ public class RuleBindingRegistryImpl implements RuleBindingRegistry {
         return false;
     }
 
+    @Override
+    public Set<String> bindings(String ruleType) {
+        var boundScopes = ruleBindings.get(ruleType);
+        if (boundScopes == null) {
+            boundScopes = dynamicBinders.stream()
+                    .flatMap(binder -> binder.apply(ruleType).stream())
+                    .collect(Collectors.toSet());
+        }
+        return boundScopes;
+    }
 }

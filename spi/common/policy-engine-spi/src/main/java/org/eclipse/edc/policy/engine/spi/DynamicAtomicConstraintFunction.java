@@ -16,6 +16,7 @@ package org.eclipse.edc.policy.engine.spi;
 
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Rule;
+import org.eclipse.edc.spi.result.Result;
 
 /**
  * Invoked during policy evaluation as when the left operand of an atomic constraint evaluates to a key that is not bound to a {@link AtomicConstraintFunction}.
@@ -41,5 +42,19 @@ public interface DynamicAtomicConstraintFunction<R extends Rule> {
      * @return true if the function can evaluate the left operand, false otherwise
      */
     boolean canHandle(Object leftValue);
+
+
+    /**
+     * Performs a validation of an atomic constraint
+     *
+     * @param leftValue  the left-side expression for the constraint
+     * @param operator   the operation
+     * @param rightValue the right-side expression for the constraint; the concrete type may be a string, primitive or object such as a JSON-LD encoded collection
+     * @param rule       the rule associated with the constraint
+     * @return the result of the validation
+     */
+    default Result<Void> validate(Object leftValue, Operator operator, Object rightValue, R rule) {
+        return Result.success();
+    }
 
 }

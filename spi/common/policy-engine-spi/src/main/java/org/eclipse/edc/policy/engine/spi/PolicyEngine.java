@@ -59,6 +59,11 @@ public interface PolicyEngine {
     Result<Void> evaluate(String scope, Policy policy, PolicyContext context);
 
     /**
+     * Validates the given policy.
+     */
+    Result<Void> validate(Policy policy);
+
+    /**
      * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression evaluates to the given key for the specified scope.
      *
      * @param scope    the scope the function applies to

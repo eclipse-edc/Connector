@@ -31,6 +31,7 @@ import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
 import org.eclipse.edc.policy.engine.ScopeFilter;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
+import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
@@ -59,14 +60,11 @@ import static org.eclipse.edc.spi.agent.ParticipantAgentService.DEFAULT_IDENTITY
 public class CoreServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Core Services";
-
     private static final String DEFAULT_EDC_HOSTNAME = "localhost";
-
     @Setting(value = "Connector hostname, which e.g. is used in referer urls", defaultValue = DEFAULT_EDC_HOSTNAME)
     public static final String EDC_HOSTNAME = "edc.hostname";
     @Setting(value = "The name of the claim key used to determine the participant identity", defaultValue = DEFAULT_IDENTITY_CLAIM_KEY)
     public static final String EDC_AGENT_IDENTITY_KEY = "edc.agent.identity.key";
-
     @Inject
     private EventExecutorServiceContainer eventExecutorServiceContainer;
 
@@ -142,7 +140,8 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public PolicyEngine policyEngine() {
         var scopeFilter = new ScopeFilter(ruleBindingRegistry);
-        return new PolicyEngineImpl(scopeFilter);
+        var ruleValidator = new RuleValidator(ruleBindingRegistry);
+        return new PolicyEngineImpl(scopeFilter, ruleValidator);
     }
 
     @Provider

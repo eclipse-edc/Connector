@@ -16,6 +16,7 @@ package org.eclipse.edc.policy.engine;
 
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
+import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -49,7 +50,7 @@ public class PolicyEngineImplScenariosTest {
 
     @BeforeEach
     void setUp() {
-        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry));
+        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry), new RuleValidator(bindingRegistry));
     }
 
     /**
@@ -141,5 +142,5 @@ public class PolicyEngineImplScenariosTest {
 
         assertThat(result.succeeded()).isTrue();
     }
-    
+
 }

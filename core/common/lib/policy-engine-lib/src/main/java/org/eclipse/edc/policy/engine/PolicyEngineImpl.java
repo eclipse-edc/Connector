@@ -19,6 +19,8 @@ import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
+import org.eclipse.edc.policy.engine.validation.PolicyValidator;
+import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.evaluator.PolicyEvaluator;
 import org.eclipse.edc.policy.evaluator.RuleProblem;
 import org.eclipse.edc.policy.model.Duty;
@@ -30,6 +32,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +58,11 @@ public class PolicyEngineImpl implements PolicyEngine {
     private final Map<String, List<BiFunction<Policy, PolicyContext, Boolean>>> preValidators = new HashMap<>();
     private final Map<String, List<BiFunction<Policy, PolicyContext, Boolean>>> postValidators = new HashMap<>();
     private final ScopeFilter scopeFilter;
+    private final RuleValidator ruleValidator;
 
-    public PolicyEngineImpl(ScopeFilter scopeFilter) {
+    public PolicyEngineImpl(ScopeFilter scopeFilter, RuleValidator ruleValidator) {
         this.scopeFilter = scopeFilter;
+        this.ruleValidator = ruleValidator;
     }
 
     @Override
@@ -127,6 +132,20 @@ public class PolicyEngineImpl implements PolicyEngine {
         } else {
             return failure(result.getProblems().stream().map(RuleProblem::getDescription).collect(toList()));
         }
+    }
+
+    @Override
+    public Result<Void> validate(Policy policy) {
+        var validatorBuilder = PolicyValidator.Builder.newInstance()
+                .ruleValidator(ruleValidator);
+
+        constraintFunctions.values().stream()
+                .flatMap(Collection::stream)
+                .forEach(entry -> validatorBuilder.evaluationFunction(entry.key, entry.type, entry.function));
+
+        dynamicConstraintFunctions.forEach(entry -> validatorBuilder.dynamicEvaluationFunction(entry.type, entry.function));
+
+        return validatorBuilder.build().validate(policy);
     }
 
     @Override
