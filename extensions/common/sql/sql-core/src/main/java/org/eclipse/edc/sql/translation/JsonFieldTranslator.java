@@ -44,12 +44,28 @@ public class JsonFieldTranslator implements FieldTranslator {
         statementBuilder.append(" ->> '%s'".formatted(path.get(length - 1)));
         var statement = statementBuilder.toString();
 
+        return checkStatementByType(type, statement);
+    }
+
+    private String checkStatementByType(Class<?> type, String statement) {
         if (type.equals(Boolean.class)) {
             return format("(%s)::boolean", statement);
         }
 
         if (type.equals(Integer.class)) {
             return format("(%s)::integer", statement);
+        }
+
+        if (type.equals(Double.class)) {
+            return format("(%s)::double", statement);
+        }
+
+        if (type.equals(Float.class)) {
+            return format("(%s)::float", statement);
+        }
+
+        if (type.equals(Long.class)) {
+            return format("(%s)::long", statement);
         }
 
         return statement;

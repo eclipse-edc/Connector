@@ -98,6 +98,39 @@ class JsonFieldTranslatorTest {
         }
 
         @Test
+        void shouldParseWhereClause_whenRightOperandIsDouble() {
+            var operator = new SqlOperator("=", Object.class);
+            var criterion = criterion("json.field", "=", 100.0);
+
+            var result = translator.toWhereClause(PathItem.parse("field"), criterion, operator);
+
+            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::double = ?");
+            assertThat(result.parameters()).containsExactly(100.0);
+        }
+
+        @Test
+        void shouldParseWhereClause_whenRightOperandIsFloat() {
+            var operator = new SqlOperator("=", Object.class);
+            var criterion = criterion("json.field", "=", 100.0F);
+
+            var result = translator.toWhereClause(PathItem.parse("field"), criterion, operator);
+
+            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::float = ?");
+            assertThat(result.parameters()).containsExactly(100.0F);
+        }
+
+        @Test
+        void shouldParseWhereClause_whenRightOperandIsLong() {
+            var operator = new SqlOperator("=", Object.class);
+            var criterion = criterion("json.field", "=", 100L);
+
+            var result = translator.toWhereClause(PathItem.parse("field"), criterion, operator);
+
+            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::long = ?");
+            assertThat(result.parameters()).containsExactly(100L);
+        }
+
+        @Test
         void shouldConvertToJsonB_whenOperatorIsContains() {
             var operator = new SqlOperator("??", Object.class);
             var criterion = criterion("json.array", "contains", "value");
