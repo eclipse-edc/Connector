@@ -18,6 +18,7 @@ import org.eclipse.edc.iam.verifiablecredentials.revocation.RevocationServiceReg
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
 
@@ -26,6 +27,9 @@ import java.util.Map;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class RevocationServiceRegistryImplTest {
@@ -91,5 +95,73 @@ class RevocationServiceRegistryImplTest {
                 .build();
         assertThat(registry.checkValidity(cred)).isFailed()
                 .detail().contains("test failure");
+    }
+
+    @Test
+    void getRevocationStatus() {
+        var mockService = mock(RevocationListService.class);
+        registry.addService("test-type", mockService);
+        when(mockService.getStatusPurpose(any(VerifiableCredential.class))).thenReturn(Result.success(null));
+
+        var cred = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "test-type", Map.of())).build();
+        assertThat(registry.getRevocationStatus(cred)).isSucceeded();
+    }
+
+    @Test
+    void getRevocationStatus_whenNoCredentialStatus() {
+        var mockService = mock(RevocationListService.class);
+        registry.addService("test-type", mockService);
+        when(mockService.getStatusPurpose(any(VerifiableCredential.class))).thenReturn(Result.success(null));
+
+        var cred = TestFunctions.createCredentialBuilder().build();
+        assertThat(registry.checkValidity(cred)).isSucceeded();
+        verifyNoInteractions(mockService);
+    }
+
+    @Test
+    void getRevocationStatus_whenNoServiceFound_shouldReturnSuccess() {
+        var mockService = mock(RevocationListService.class);
+        registry.addService("test-type", mockService);
+
+        var cred = TestFunctions.createCredentialBuilder().build();
+        assertThat(registry.checkValidity(cred)).isSucceeded();
+        verifyNoInteractions(mockService);
+    }
+
+    @Test
+    void getRevocationStatus_oneRevoked_shouldReturnFailure() {
+        var mockService = mock(RevocationListService.class);
+        registry.addService("test-type", mockService);
+        when(mockService.getStatusPurpose(any(VerifiableCredential.class)))
+                .thenReturn(Result.success(null))
+                .thenReturn(Result.success("revocation"));
+
+        var cred = TestFunctions.createCredentialBuilder()
+                .credentialStatus(new CredentialStatus("test-id", "test-type", Map.of()))
+                .credentialStatus(new CredentialStatus("test-id", "test-type", Map.of()))
+                .build();
+
+        assertThat(registry.getRevocationStatus(cred)).isSucceeded()
+                .isEqualTo("revocation");
+        verify(mockService, times(2)).getStatusPurpose(any(VerifiableCredential.class));
+
+    }
+
+    @Test
+    void getRevocationStatus_alInvalid_shouldReturnFailure() {
+        var mockService = mock(RevocationListService.class);
+        registry.addService("test-type", mockService);
+        when(mockService.getStatusPurpose(any(VerifiableCredential.class)))
+                .thenReturn(Result.success("suspension"))
+                .thenReturn(Result.success("revocation"));
+
+        var cred = TestFunctions.createCredentialBuilder()
+                .credentialStatus(new CredentialStatus("test-id", "test-type", Map.of()))
+                .credentialStatus(new CredentialStatus("test-id", "test-type", Map.of()))
+                .build();
+
+        assertThat(registry.getRevocationStatus(cred)).isSucceeded()
+                .isEqualTo("suspension, revocation");
+        verify(mockService, times(2)).getStatusPurpose(any(VerifiableCredential.class));
     }
 }
