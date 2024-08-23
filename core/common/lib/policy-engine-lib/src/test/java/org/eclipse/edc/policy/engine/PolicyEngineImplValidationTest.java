@@ -114,7 +114,6 @@ class PolicyEngineImplValidationTest {
 
         var result = policyEngine.validate(policy);
 
-        // The input key is not bound in the RuleBindingRegistry
         assertThat(result).isSucceeded();
 
     }
@@ -135,7 +134,6 @@ class PolicyEngineImplValidationTest {
 
         var result = policyEngine.validate(policy);
 
-        // The input key is not bound in the RuleBindingRegistry
         assertThat(result).isSucceeded();
 
     }
@@ -192,7 +190,6 @@ class PolicyEngineImplValidationTest {
 
         var result = policyEngine.validate(policy);
 
-        // The foo key is not bound in the RuleBindingRegistry
         assertThat(result).isFailed().detail().contains("Function validation failure");
 
     }
@@ -234,7 +231,6 @@ class PolicyEngineImplValidationTest {
 
         var result = policyEngine.validate(policy);
 
-        // The foo key is not bound in the RuleBindingRegistry
         assertThat(result).isSucceeded();
 
     }

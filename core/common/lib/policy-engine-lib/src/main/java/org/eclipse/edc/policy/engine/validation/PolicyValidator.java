@@ -33,12 +33,14 @@ import org.eclipse.edc.policy.model.XoneConstraint;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Validate a policy.
@@ -57,7 +59,6 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
 
     private final Stack<Rule> ruleContext = new Stack<>();
 
-    // Key -> Functions
     private final Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
     private final List<DynamicAtomicConstraintFunctionEntry<Rule>> dynamicConstraintFunctions = new ArrayList<>();
     private RuleValidator ruleValidator;
@@ -93,20 +94,10 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
 
     @Override
     public Result<Void> visitPolicy(Policy policy) {
-        var result = Result.success();
-        result = policy.getPermissions().stream()
-                .map(permission -> permission.accept(this))
-                .reduce(result, Result::merge);
-
-        result = policy.getProhibitions().stream()
-                .map(prohibition -> prohibition.accept(this))
-                .reduce(result, Result::merge);
-
-        result = policy.getObligations().stream()
-                .map(duty -> duty.accept(this))
-                .reduce(result, Result::merge);
-
-        return result;
+        return Stream.of(policy.getPermissions(), policy.getProhibitions(), policy.getObligations())
+                .flatMap(Collection::stream)
+                .map(rule -> rule.accept(this))
+                .reduce(Result.success(), Result::merge);
     }
 
     @Override
