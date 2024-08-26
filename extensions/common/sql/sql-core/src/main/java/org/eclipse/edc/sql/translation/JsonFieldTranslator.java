@@ -44,7 +44,7 @@ public class JsonFieldTranslator implements FieldTranslator {
         statementBuilder.append(" ->> '%s'".formatted(path.get(length - 1)));
         var statement = statementBuilder.toString();
 
-        return checkStatementByType(type, statement);
+        return createStatementForType(type, statement);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class JsonFieldTranslator implements FieldTranslator {
         );
     }
 
-    private String checkStatementByType(Class<?> type, String statement) {
+    private String createStatementForType(Class<?> type, String statement) {
         if (type.equals(Boolean.class)) {
             return format("(%s)::boolean", statement);
         }
