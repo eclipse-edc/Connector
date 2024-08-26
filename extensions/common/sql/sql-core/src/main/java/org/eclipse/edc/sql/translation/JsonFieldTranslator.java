@@ -47,6 +47,22 @@ public class JsonFieldTranslator implements FieldTranslator {
         return checkStatementByType(type, statement);
     }
 
+    @Override
+    public WhereClause toWhereClause(List<PathItem> path, Criterion criterion, SqlOperator operator) {
+        var leftOperand = getLeftOperand(path, criterion.getOperandRight().getClass());
+
+        var amendedLeftOperand = Optional.of(leftOperand)
+                .filter(it -> operator.representation().equals("??"))
+                .map(it -> it.replace("->>", "->"))
+                .map("(%s)::jsonb"::formatted)
+                .orElse(leftOperand);
+
+        return new WhereClause(
+                "%s %s %s".formatted(amendedLeftOperand, operator.representation(), toValuePlaceholder(criterion)),
+                toParameters(criterion)
+        );
+    }
+
     private String checkStatementByType(Class<?> type, String statement) {
         if (type.equals(Boolean.class)) {
             return format("(%s)::boolean", statement);
@@ -68,23 +84,14 @@ public class JsonFieldTranslator implements FieldTranslator {
             return format("(%s)::long", statement);
         }
 
+        if (type.equals(Byte.class)) {
+            return format("(%s)::byte", statement);
+        }
+
+        if (type.equals(Short.class)) {
+            return format("(%s)::short", statement);
+        }
+
         return statement;
     }
-
-    @Override
-    public WhereClause toWhereClause(List<PathItem> path, Criterion criterion, SqlOperator operator) {
-        var leftOperand = getLeftOperand(path, criterion.getOperandRight().getClass());
-
-        var amendedLeftOperand = Optional.of(leftOperand)
-                .filter(it -> operator.representation().equals("??"))
-                .map(it -> it.replace("->>", "->"))
-                .map("(%s)::jsonb"::formatted)
-                .orElse(leftOperand);
-
-        return new WhereClause(
-                "%s %s %s".formatted(amendedLeftOperand, operator.representation(), toValuePlaceholder(criterion)),
-                toParameters(criterion)
-        );
-    }
-
 }
