@@ -24,10 +24,6 @@ jobs:
       - name: Run Checkstyle
         run: ./gradlew checkstyleMain checkstyleTest checkstyleTestFixtures
 
-  CodeQL:
-    uses: eclipse-edc/.github/.github/workflows/codeql-analysis.yml@main
-    secrets: inherit
-
   Dependency-Check:
     uses: eclipse-edc/.github/.github/workflows/dependency-check.yml@main
     secrets: inherit
