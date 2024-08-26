@@ -131,17 +131,6 @@ class JsonFieldTranslatorTest {
         }
 
         @Test
-        void shouldParseWhereClause_whenRightOperandIsByte() {
-            var operator = new SqlOperator("=", Object.class);
-            var criterion = criterion("json.field", "=", (byte) 1);
-
-            var result = translator.toWhereClause(PathItem.parse("field"), criterion, operator);
-
-            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::byte = ?");
-            assertThat(result.parameters()).containsExactly((byte) 1);
-        }
-
-        @Test
         void shouldParseWhereClause_whenRightOperandIsShort() {
             var operator = new SqlOperator("=", Object.class);
             var criterion = criterion("json.field", "=", (short) 1);

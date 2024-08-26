@@ -84,10 +84,6 @@ public class JsonFieldTranslator implements FieldTranslator {
             return format("(%s)::long", statement);
         }
 
-        if (type.equals(Byte.class)) {
-            return format("(%s)::byte", statement);
-        }
-
         if (type.equals(Short.class)) {
             return format("(%s)::short", statement);
         }
