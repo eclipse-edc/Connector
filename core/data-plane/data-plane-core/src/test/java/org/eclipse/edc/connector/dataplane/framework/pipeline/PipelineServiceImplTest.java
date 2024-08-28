@@ -68,86 +68,95 @@ class PipelineServiceImplTest {
         service.registerFactory(sinkFactory);
     }
 
-    @Test
-    void transfer_invokesSink() {
-        when(sourceFactory.supportedType()).thenReturn("source");
-        when(sourceFactory.createSource(any())).thenReturn(source);
-        when(sinkFactory.supportedType()).thenReturn("destination");
-        when(sinkFactory.createSink(any())).thenReturn(sink);
-        when(sink.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
+    @Nested
+    class Transfer {
+        @Test
+        void transfer_invokesSink() throws Exception {
+            when(sourceFactory.supportedType()).thenReturn("source");
+            when(sourceFactory.createSource(any())).thenReturn(source);
+            when(sinkFactory.supportedType()).thenReturn("destination");
+            when(sinkFactory.createSink(any())).thenReturn(sink);
+            when(sink.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
 
-        var future = service.transfer(dataFlow("source", "destination").toRequest());
+            var future = service.transfer(dataFlow("source", "destination").toRequest());
 
-        assertThat(future).succeedsWithin(5, TimeUnit.SECONDS).satisfies(result -> {
+            assertThat(future).succeedsWithin(5, TimeUnit.SECONDS).satisfies(result -> {
+                assertThat(result).isSucceeded();
+            });
+            verify(sink).transfer(source);
+            verify(source).close();
+        }
+
+        @Test
+        void transfer_withCustomSink_shouldNotInvokeSinkFactory() throws Exception {
+            var flowRequest = dataFlow("source", "custom-destination").toRequest();
+
+            when(sourceFactory.supportedType()).thenReturn("source");
+            when(sourceFactory.createSource(any())).thenReturn(source);
+
+            var customSink = new DataSink() {
+                @Override
+                public CompletableFuture<StreamResult<Object>> transfer(DataSource source) {
+                    return CompletableFuture.completedFuture(StreamResult.success("test-response"));
+                }
+            };
+            var future = service.transfer(flowRequest, customSink);
+
+            assertThat(future).succeedsWithin(Duration.ofSeconds(5))
+                    .satisfies(res -> assertThat(res).isSucceeded().satisfies(obj -> assertThat(obj).isEqualTo("test-response")));
+
+            verify(sourceFactory).createSource(flowRequest);
+            verifyNoInteractions(sinkFactory);
+            verify(source).close();
+        }
+    }
+
+    @Nested
+    class Terminate {
+        @Test
+        void shouldCloseDataSource() throws Exception {
+            var dataFlow = dataFlow("source", "destination");
+            when(sourceFactory.supportedType()).thenReturn("source");
+            when(sourceFactory.createSource(any())).thenReturn(source);
+            when(sinkFactory.supportedType()).thenReturn("destination");
+            when(sinkFactory.createSink(any())).thenReturn(sink);
+            when(sink.transfer(any())).thenReturn(new CompletableFuture<>());
+
+            service.transfer(dataFlow.toRequest());
+
+            var result = service.terminate(dataFlow);
+
             assertThat(result).isSucceeded();
-        });
-        verify(sink).transfer(source);
-    }
+            verify(source).close();
+        }
 
-    @Test
-    void transfer_withCustomSink_shouldNotInvokeSinkFactory() {
-        var flowRequest = dataFlow("source", "custom-destination").toRequest();
+        @Test
+        void shouldFail_whenSourceClosureFails() throws Exception {
+            var dataFlow = dataFlow("source", "destination");
+            when(sourceFactory.supportedType()).thenReturn("source");
+            when(sourceFactory.createSource(any())).thenReturn(source);
+            when(sinkFactory.supportedType()).thenReturn("destination");
+            when(sinkFactory.createSink(any())).thenReturn(sink);
+            when(sink.transfer(any())).thenReturn(new CompletableFuture<>());
+            doThrow(IOException.class).when(source).close();
 
-        when(sourceFactory.supportedType()).thenReturn("source");
-        when(sourceFactory.createSource(any())).thenReturn(source);
+            service.transfer(dataFlow.toRequest());
 
-        var customSink = new DataSink() {
-            @Override
-            public CompletableFuture<StreamResult<Object>> transfer(DataSource source) {
-                return CompletableFuture.completedFuture(StreamResult.success("test-response"));
-            }
-        };
-        var future = service.transfer(flowRequest, customSink);
+            var result = service.terminate(dataFlow);
 
-        assertThat(future).succeedsWithin(Duration.ofSeconds(5))
-                .satisfies(res -> assertThat(res).isSucceeded().satisfies(obj -> assertThat(obj).isEqualTo("test-response")));
-
-        verify(sourceFactory).createSource(flowRequest);
-        verifyNoInteractions(sinkFactory);
-    }
-
-    @Test
-    void terminate_shouldCloseDataSource() throws Exception {
-        var dataFlow = dataFlow("source", "destination");
-        when(sourceFactory.supportedType()).thenReturn("source");
-        when(sourceFactory.createSource(any())).thenReturn(source);
-        when(sinkFactory.supportedType()).thenReturn("destination");
-        when(sinkFactory.createSink(any())).thenReturn(sink);
-        when(sink.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
-
-        var future = service.transfer(dataFlow.toRequest()).thenApply(result -> service.terminate(dataFlow));
-
-        assertThat(future).succeedsWithin(5, TimeUnit.SECONDS).satisfies(result -> {
-            assertThat(result).isSucceeded();
-        });
-        verify(source).close();
-    }
-
-    @Test
-    void terminate_shouldFail_whenSourceClosureFails() throws Exception {
-        var dataFlow = dataFlow("source", "destination");
-        when(sourceFactory.supportedType()).thenReturn("source");
-        when(sourceFactory.createSource(any())).thenReturn(source);
-        when(sinkFactory.supportedType()).thenReturn("destination");
-        when(sinkFactory.createSink(any())).thenReturn(sink);
-        when(sink.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
-        doThrow(IOException.class).when(source).close();
-
-        var future = service.transfer(dataFlow.toRequest()).thenApply(result -> service.terminate(dataFlow));
-
-        assertThat(future).succeedsWithin(5, TimeUnit.SECONDS).satisfies(result -> {
             assertThat(result).isFailed().extracting(StreamFailure::getReason).isEqualTo(GENERAL_ERROR);
-        });
-    }
+            verify(source).close();
+        }
 
-    @Test
-    void terminate_shouldFail_whenTransferDoesNotExist() {
-        var dataFlow = dataFlow("source", "destination");
+        @Test
+        void shouldFail_whenTransferDoesNotExist() {
+            var dataFlow = dataFlow("source", "destination");
 
-        var result = service.terminate(dataFlow);
+            var result = service.terminate(dataFlow);
 
-        assertThat(result).isFailed().extracting(StreamFailure::getReason).isEqualTo(NOT_FOUND);
-        verifyNoInteractions(source);
+            assertThat(result).isFailed().extracting(StreamFailure::getReason).isEqualTo(NOT_FOUND);
+            verifyNoInteractions(source);
+        }
     }
 
     @ParameterizedTest
