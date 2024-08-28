@@ -14,11 +14,13 @@
 
 package org.eclipse.edc.policy.engine;
 
+import org.eclipse.edc.policy.engine.plan.PolicyEvaluationPlanner;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
+import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.validation.PolicyValidator;
 import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.evaluator.PolicyEvaluator;
@@ -48,7 +50,7 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class PolicyEngineImpl implements PolicyEngine {
 
-    private static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + DELIMITER;
+    public static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + DELIMITER;
 
     private final Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
 
@@ -146,6 +148,29 @@ public class PolicyEngineImpl implements PolicyEngine {
         dynamicConstraintFunctions.forEach(entry -> validatorBuilder.dynamicEvaluationFunction(entry.type, entry.function));
 
         return validatorBuilder.build().validate(policy);
+    }
+
+    @Override
+    public PolicyEvaluationPlan evaluationPlan(String scope, Policy policy) {
+        var delimitedScope = scope + DELIMITER;
+        var planner = PolicyEvaluationPlanner.Builder.newInstance(delimitedScope).ruleValidator(ruleValidator);
+
+        preValidators.forEach(planner::preValidators);
+        postValidators.forEach(planner::postValidators);
+
+        constraintFunctions.forEach((functionScope, entry) -> entry.forEach(constraintEntry -> {
+            planner.evaluationFunction(functionScope, constraintEntry.key, constraintEntry.type, constraintEntry.function);
+        }));
+
+        dynamicConstraintFunctions.forEach(dynFunctions ->
+                planner.evaluationFunction(dynFunctions.scope, dynFunctions.type, dynFunctions.function)
+        );
+
+        ruleFunctions.forEach((functionScope, entry) -> entry.forEach(functionEntry -> {
+            planner.evaluationFunction(functionScope, functionEntry.type, functionEntry.function);
+        }));
+
+        return planner.build().evaluationPlan(policy);
     }
 
     @Override

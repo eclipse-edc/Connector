@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.policy.engine.spi;
 
+import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Policy;
@@ -62,6 +63,11 @@ public interface PolicyEngine {
      * Validates the given policy.
      */
     Result<Void> validate(Policy policy);
+
+    /**
+     * Returns the {@link PolicyEvaluationPlan} of the given policy within the given scope.
+     */
+    PolicyEvaluationPlan evaluationPlan(String scope, Policy policy);
 
     /**
      * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression evaluates to the given key for the specified scope.
