@@ -29,12 +29,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -46,7 +46,7 @@ import static java.util.stream.Collectors.toSet;
 public class PipelineServiceImpl implements PipelineService {
     private final List<DataSourceFactory> sourceFactories = new ArrayList<>();
     private final List<DataSinkFactory> sinkFactories = new ArrayList<>();
-    private final Map<String, DataSource> sources = new HashMap<>();
+    private final Map<String, DataSource> sources = new ConcurrentHashMap<>();
     private final Monitor monitor;
 
     public PipelineServiceImpl(Monitor monitor) {
@@ -88,20 +88,14 @@ public class PipelineServiceImpl implements PipelineService {
     @WithSpan
     @Override
     public CompletableFuture<StreamResult<Object>> transfer(DataFlowStartMessage request) {
-        var sourceFactory = getSourceFactory(request);
-        if (sourceFactory == null) {
-            return noSourceFactory(request);
-        }
         var sinkFactory = getSinkFactory(request);
         if (sinkFactory == null) {
             return noSinkFactory(request);
         }
-        var source = sourceFactory.createSource(request);
-        sources.put(request.getProcessId(), source);
 
         var sink = sinkFactory.createSink(request);
-        monitor.debug(() -> format("Transferring from %s to %s.", request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
-        return sink.transfer(source);
+
+        return transfer(request, sink);
     }
 
     @Override
@@ -110,26 +104,20 @@ public class PipelineServiceImpl implements PipelineService {
         if (sourceFactory == null) {
             return noSourceFactory(request);
         }
+
         var source = sourceFactory.createSource(request);
         sources.put(request.getProcessId(), source);
         monitor.debug(() -> format("Transferring from %s to %s.", request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
-        return sink.transfer(source);
+        return sink.transfer(source)
+                .thenApply(result -> {
+                    terminate(request.getProcessId());
+                    return result;
+                });
     }
 
     @Override
     public StreamResult<Void> terminate(DataFlow dataFlow) {
-        var source = sources.get(dataFlow.getId());
-        if (source == null) {
-            return StreamResult.notFound();
-        } else {
-            try {
-                source.close();
-                sources.remove(dataFlow.getId());
-                return StreamResult.success();
-            } catch (Exception e) {
-                return StreamResult.error("Cannot terminate DataFlow %s: %s".formatted(dataFlow.getId(), e.getMessage()));
-            }
-        }
+        return terminate(dataFlow.getId());
     }
 
     @Override
@@ -150,6 +138,20 @@ public class PipelineServiceImpl implements PipelineService {
     @Override
     public Set<String> supportedSinkTypes() {
         return sinkFactories.stream().map(DataSinkFactory::supportedType).collect(toSet());
+    }
+
+    private StreamResult<Void> terminate(String dataFlowId) {
+        var source = sources.remove(dataFlowId);
+        if (source == null) {
+            return StreamResult.notFound();
+        } else {
+            try {
+                source.close();
+                return StreamResult.success();
+            } catch (Exception e) {
+                return StreamResult.error("Cannot terminate DataFlow %s: %s".formatted(dataFlowId, e.getMessage()));
+            }
+        }
     }
 
     @Nullable
