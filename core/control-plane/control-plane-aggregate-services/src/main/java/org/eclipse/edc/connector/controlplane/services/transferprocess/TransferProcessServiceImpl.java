@@ -23,10 +23,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypePars
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedContentResource;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedDataAddressResource;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedDataDestinationResource;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
@@ -49,10 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-
-import static java.lang.String.format;
 
 public class TransferProcessServiceImpl implements TransferProcessService {
     private final TransferProcessStore transferProcessStore;
@@ -67,7 +60,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
                                       TransactionContext transactionContext, DataAddressValidatorRegistry dataAddressValidator,
                                       CommandHandlerRegistry commandHandlerRegistry, TransferTypeParser transferTypeParser,
-                                      ContractNegotiationStore contractNegotiationStore) {
+                                      ContractNegotiationStore contractNegotiationStore, QueryValidator queryValidator) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
         this.transactionContext = transactionContext;
@@ -75,7 +68,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
         this.commandHandlerRegistry = commandHandlerRegistry;
         this.transferTypeParser = transferTypeParser;
         this.contractNegotiationStore = contractNegotiationStore;
-        queryValidator = new QueryValidator(TransferProcess.class, getSubtypes());
+        this.queryValidator = queryValidator;
     }
 
     @Override
@@ -180,13 +173,6 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     private ServiceResult<Void> execute(EntityCommand command) {
         return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
-    }
-
-    private Map<Class<?>, List<Class<?>>> getSubtypes() {
-        return Map.of(
-                ProvisionedResource.class, List.of(ProvisionedDataAddressResource.class),
-                ProvisionedDataAddressResource.class, List.of(ProvisionedDataDestinationResource.class, ProvisionedContentResource.class)
-        );
     }
 
 }

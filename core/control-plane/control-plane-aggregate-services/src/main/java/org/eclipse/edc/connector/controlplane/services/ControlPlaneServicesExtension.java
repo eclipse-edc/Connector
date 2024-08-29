@@ -56,6 +56,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProto
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProtocolServiceImpl;
+import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessQueryValidatorFactory;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessServiceImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
@@ -237,7 +238,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public TransferProcessService transferProcessService() {
         return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext,
-                dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore);
+                dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore, TransferProcessQueryValidatorFactory.createQueryValidator());
     }
 
     @Provider
