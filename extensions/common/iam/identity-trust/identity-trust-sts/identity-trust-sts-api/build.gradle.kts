@@ -23,7 +23,6 @@ dependencies {
     api(project(":spi:common:identity-trust-sts-spi"))
 
     implementation(libs.jakarta.rsApi)
-    implementation(libs.swagger.annotations.jakarta)
 
     testImplementation(libs.jersey.common)
     testImplementation(libs.jersey.server)

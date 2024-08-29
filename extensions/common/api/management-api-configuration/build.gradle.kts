@@ -28,8 +28,6 @@ dependencies {
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":core:control-plane:control-plane-transform"))
 
-    implementation(libs.swagger.annotations.jakarta)
-
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":extensions:common:json-ld"))
