@@ -54,9 +54,9 @@ import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import static org.eclipse.edc.policy.engine.PolicyEngineImpl.ALL_SCOPES_DELIMITED;
+import static org.eclipse.edc.policy.engine.PolicyEngineImpl.scopeFilter;
 
-public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationPlan.Builder>, Rule.Visitor<RuleStep<? extends Rule>>, Constraint.Visitor<ConstraintStep> {
+public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationPlan>, Rule.Visitor<RuleStep<? extends Rule>>, Constraint.Visitor<ConstraintStep> {
 
     private final Stack<Rule> ruleContext = new Stack<>();
     private final List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
@@ -70,16 +70,6 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
 
     private PolicyEvaluationPlanner(String delimitedScope) {
         this.delimitedScope = delimitedScope;
-    }
-
-    public PolicyEvaluationPlan evaluationPlan(Policy policy) {
-
-        var planBuilder = policy.accept(this);
-
-        preValidators.stream().map(ValidatorStep::new).forEach(planBuilder::preValidator);
-        postValidators.stream().map(ValidatorStep::new).forEach(planBuilder::postValidator);
-
-        return planBuilder.build();
     }
 
     @Override
@@ -112,9 +102,12 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
     }
 
     @Override
-    public PolicyEvaluationPlan.Builder visitPolicy(Policy policy) {
+    public PolicyEvaluationPlan visitPolicy(Policy policy) {
 
         var builder = PolicyEvaluationPlan.Builder.newInstance();
+
+        preValidators.stream().map(ValidatorStep::new).forEach(builder::preValidator);
+        postValidators.stream().map(ValidatorStep::new).forEach(builder::postValidator);
 
         policy.getPermissions().stream().map(permission -> permission.accept(this))
                 .map(PermissionStep.class::cast)
@@ -128,7 +121,7 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
                 .map(ProhibitionStep.class::cast)
                 .forEach(builder::prohibition);
 
-        return builder;
+        return builder.build();
     }
 
     @Override
@@ -317,8 +310,5 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
             return planner;
         }
 
-        private boolean scopeFilter(String entry, String scope) {
-            return ALL_SCOPES_DELIMITED.equals(entry) || scope.startsWith(entry);
-        }
     }
 }

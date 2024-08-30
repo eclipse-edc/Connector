@@ -67,6 +67,10 @@ public class PolicyEngineImpl implements PolicyEngine {
         this.ruleValidator = ruleValidator;
     }
 
+    public static boolean scopeFilter(String entry, String scope) {
+        return ALL_SCOPES_DELIMITED.equals(entry) || scope.startsWith(entry);
+    }
+
     @Override
     public Policy filter(Policy policy, String scope) {
         return scopeFilter.applyScope(policy, scope);
@@ -170,7 +174,7 @@ public class PolicyEngineImpl implements PolicyEngine {
             planner.evaluationFunction(functionScope, functionEntry.type, functionEntry.function);
         }));
 
-        return planner.build().evaluationPlan(policy);
+        return policy.accept(planner.build());
     }
 
     @Override
@@ -199,10 +203,6 @@ public class PolicyEngineImpl implements PolicyEngine {
     @Override
     public void registerPostValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
         postValidators.computeIfAbsent(scope + DELIMITER, k -> new ArrayList<>()).add(validator);
-    }
-
-    private boolean scopeFilter(String entry, String scope) {
-        return ALL_SCOPES_DELIMITED.equals(entry) || scope.startsWith(entry);
     }
 
     @NotNull
