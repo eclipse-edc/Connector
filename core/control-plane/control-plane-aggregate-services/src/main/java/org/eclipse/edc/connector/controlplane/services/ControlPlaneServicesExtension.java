@@ -231,7 +231,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     public PolicyDefinitionService policyDefinitionService() {
         var policyDefinitionObservable = new PolicyDefinitionObservableImpl();
         policyDefinitionObservable.registerListener(new PolicyDefinitionEventListener(clock, eventRouter));
-        return new PolicyDefinitionServiceImpl(transactionContext, policyDefinitionStore, contractDefinitionStore, policyDefinitionObservable);
+        return new PolicyDefinitionServiceImpl(transactionContext, policyDefinitionStore, contractDefinitionStore, policyDefinitionObservable, policyEngine);
     }
 
     @Provider

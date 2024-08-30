@@ -15,8 +15,10 @@
 package org.eclipse.edc.connector.controlplane.services.spi.policydefinition;
 
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,4 +73,13 @@ public interface PolicyDefinitionService {
      * @return successful if updated, a failure otherwise.
      */
     ServiceResult<PolicyDefinition> update(PolicyDefinition policy);
+
+    /**
+     * Validates a {@link Policy}
+     *
+     * @param policy the policy
+     * @return successful if valid, a failure otherwise
+     */
+    Result<Void> validate(Policy policy);
+
 }

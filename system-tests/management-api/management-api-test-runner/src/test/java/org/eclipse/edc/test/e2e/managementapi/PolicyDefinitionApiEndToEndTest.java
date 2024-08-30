@@ -275,6 +275,34 @@ public class PolicyDefinitionApiEndToEndTest {
                     .statusCode(404);
         }
 
+        @Test
+        void shouldValidatePolicy(ManagementEndToEndTestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder()
+                            .add(VOCAB, EDC_NAMESPACE)
+                            .build())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", sampleOdrlPolicy())
+                    .build();
+
+            var id = context.baseRequest()
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .post("/v3/policydefinitions")
+                    .then()
+                    .statusCode(200)
+                    .extract().jsonPath().getString(ID);
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .post("/v3.1alpha/policydefinitions/" + id + "/validate")
+                    .then()
+                    .statusCode(200)
+                    .body("isValid", is(false))
+                    .body("errors.size()", is(3));
+
+        }
+
         private JsonObject sampleOdrlPolicy() {
             return createObjectBuilder()
                     .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
@@ -314,11 +342,13 @@ public class PolicyDefinitionApiEndToEndTest {
     @Nested
     @EndToEndTest
     @ExtendWith(ManagementEndToEndExtension.InMemory.class)
-    class InMemory extends Tests { }
+    class InMemory extends Tests {
+    }
 
     @Nested
     @PostgresqlIntegrationTest
     @ExtendWith(ManagementEndToEndExtension.Postgres.class)
-    class Postgres extends Tests { }
+    class Postgres extends Tests {
+    }
 
 }

@@ -38,8 +38,8 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 public abstract class BasePolicyDefinitionApiController {
 
     protected final Monitor monitor;
-    private final TypeTransformerRegistry transformerRegistry;
-    private final PolicyDefinitionService service;
+    protected final PolicyDefinitionService service;
+    protected final TypeTransformerRegistry transformerRegistry;
     private final JsonObjectValidatorRegistry validatorRegistry;
 
     public BasePolicyDefinitionApiController(Monitor monitor, TypeTransformerRegistry transformerRegistry,

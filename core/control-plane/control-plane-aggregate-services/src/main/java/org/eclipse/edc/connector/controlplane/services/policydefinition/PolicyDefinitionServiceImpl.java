@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitio
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -27,8 +28,10 @@ import org.eclipse.edc.policy.model.Expression;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.MultiplicityConstraint;
 import org.eclipse.edc.policy.model.OrConstraint;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.XoneConstraint;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -46,13 +49,16 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     private final ContractDefinitionStore contractDefinitionStore;
     private final PolicyDefinitionObservable observable;
     private final QueryValidator queryValidator;
+    private final PolicyEngine policyEngine;
+
 
     public PolicyDefinitionServiceImpl(TransactionContext transactionContext, PolicyDefinitionStore policyStore,
-                                       ContractDefinitionStore contractDefinitionStore, PolicyDefinitionObservable observable) {
+                                       ContractDefinitionStore contractDefinitionStore, PolicyDefinitionObservable observable, PolicyEngine policyEngine) {
         this.transactionContext = transactionContext;
         this.policyStore = policyStore;
         this.contractDefinitionStore = contractDefinitionStore;
         this.observable = observable;
+        this.policyEngine = policyEngine;
         queryValidator = new QueryValidator(PolicyDefinition.class, getSubtypeMap());
     }
 
@@ -115,6 +121,11 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
             updateResult.onSuccess(p -> observable.invokeForEach(l -> l.updated(p)));
             return ServiceResult.from(updateResult);
         });
+    }
+
+    @Override
+    public Result<Void> validate(Policy policy) {
+        return policyEngine.validate(policy);
     }
 
     private List<PolicyDefinition> queryPolicyDefinitions(QuerySpec query) {

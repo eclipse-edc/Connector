@@ -118,6 +118,33 @@ class PolicyEngineImplValidationTest {
 
     }
 
+    @Test
+    void validate_shouldFail_withDynamicFunction() {
+
+        var leftOperand = "foo";
+        var left = new LiteralExpression(leftOperand);
+        var right = new LiteralExpression("bar");
+        var constraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(EQ).rightExpression(right).build();
+        var permission = Permission.Builder.newInstance().constraint(constraint).action(Action.Builder.newInstance().type("use").build()).build();
+
+        var policy = Policy.Builder.newInstance().permission(permission).build();
+
+        DynamicAtomicConstraintFunction<Duty> function = mock();
+
+        when(function.canHandle(leftOperand)).thenReturn(true);
+
+        when(function.validate(any(), any(), any(), any())).thenReturn(Result.success());
+
+        bindingRegistry.dynamicBind(s -> Set.of(ALL_SCOPES));
+        policyEngine.registerFunction(ALL_SCOPES, Duty.class, function);
+
+        var result = policyEngine.validate(policy);
+
+        assertThat(result).isFailed()
+                .messages()
+                .anyMatch(s -> s.startsWith("left operand '%s' is not bound to any functions".formatted(leftOperand)));
+
+    }
 
     @ParameterizedTest
     @ArgumentsSource(PolicyProvider.class)
