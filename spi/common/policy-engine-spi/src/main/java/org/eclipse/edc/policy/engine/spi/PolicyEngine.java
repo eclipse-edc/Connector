@@ -67,7 +67,7 @@ public interface PolicyEngine {
     /**
      * Returns the {@link PolicyEvaluationPlan} of the given policy within the given scope.
      */
-    PolicyEvaluationPlan evaluationPlan(String scope, Policy policy);
+    PolicyEvaluationPlan createEvaluationPlan(String scope, Policy policy);
 
     /**
      * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression evaluates to the given key for the specified scope.

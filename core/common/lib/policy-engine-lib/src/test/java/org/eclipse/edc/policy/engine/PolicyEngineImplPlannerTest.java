@@ -90,7 +90,7 @@ class PolicyEngineImplPlannerTest {
 
             policyEngine.registerFunction(TEST_SCOPE, ruleClass, key, (op, rv, r, ctx) -> true);
 
-            var plan = policyEngine.evaluationPlan(TEST_SCOPE, policy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
             assertThat(stepsProvider.apply(plan)).hasSize(1)
                     .first()
@@ -121,7 +121,7 @@ class PolicyEngineImplPlannerTest {
 
             policyEngine.registerFunction(TEST_SCOPE, ruleClass, function);
 
-            var plan = policyEngine.evaluationPlan(TEST_SCOPE, policy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
             assertThat(stepsProvider.apply(plan)).hasSize(1)
                     .first()
@@ -152,7 +152,7 @@ class PolicyEngineImplPlannerTest {
             policyEngine.registerFunction(ALL_SCOPES, ruleClass, function);
             policyEngine.registerFunction(TEST_SCOPE, ruleClass, function);
 
-            var plan = policyEngine.evaluationPlan(TEST_SCOPE, policy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
             assertThat(stepsProvider.apply(plan)).hasSize(1)
                     .first()
@@ -181,7 +181,7 @@ class PolicyEngineImplPlannerTest {
 
             policyEngine.registerFunction("invalidScope", ruleClass, function);
 
-            var plan = policyEngine.evaluationPlan(TEST_SCOPE, policy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
             assertThat(stepsProvider.apply(plan)).hasSize(1)
                     .first()
@@ -207,7 +207,7 @@ class PolicyEngineImplPlannerTest {
 
             policyEngine.registerFunction(ALL_SCOPES, Duty.class, key, (op, rv, r, ctx) -> true);
 
-            var plan = policyEngine.evaluationPlan(TEST_SCOPE, policy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
             assertThat(plan.getPermissionSteps()).hasSize(1)
                     .first()
@@ -269,9 +269,9 @@ class PolicyEngineImplPlannerTest {
             var policy = Policy.Builder.newInstance().permission(permission).build();
             policyEngine.registerFunction(ALL_SCOPES, Permission.class, "foo", (op, rv, r, ctx) -> true);
 
-            var result = policyEngine.evaluationPlan(TEST_SCOPE, policy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
-            assertThat(result.getPermissionSteps()).hasSize(1)
+            assertThat(plan.getPermissionSteps()).hasSize(1)
                     .first()
                     .satisfies(permissionStep -> {
                         assertThat(permissionStep.isFiltered()).isTrue();
@@ -292,7 +292,7 @@ class PolicyEngineImplPlannerTest {
             var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("action").build()).constraint(constraint).build();
             var policy = Policy.Builder.newInstance().permission(permission).build();
 
-            var plan = policyEngine.evaluationPlan(TEST_SCOPE, policy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
             assertThat(plan.getPermissionSteps()).hasSize(1)
                     .first()
@@ -316,9 +316,9 @@ class PolicyEngineImplPlannerTest {
             var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("action").build()).constraint(constraint).build();
             var policy = Policy.Builder.newInstance().permission(permission).build();
 
-            var result = policyEngine.evaluationPlan(TEST_SCOPE, policy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
-            assertThat(result.getPermissionSteps()).hasSize(1)
+            assertThat(plan.getPermissionSteps()).hasSize(1)
                     .first()
                     .satisfies(permissionStep -> {
                         assertThat(permissionStep.isFiltered()).isFalse();
@@ -346,9 +346,9 @@ class PolicyEngineImplPlannerTest {
             var policy = Policy.Builder.newInstance().permission(permission).build();
             policyEngine.registerFunction(ALL_SCOPES, Duty.class, function);
 
-            var result = policyEngine.evaluationPlan(TEST_SCOPE, policy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
-            assertThat(result.getPermissionSteps()).hasSize(1)
+            assertThat(plan.getPermissionSteps()).hasSize(1)
                     .first()
                     .satisfies(permissionStep -> {
                         assertThat(permissionStep.isFiltered()).isFalse();
@@ -375,13 +375,13 @@ class PolicyEngineImplPlannerTest {
 
             policyEngine.registerFunction(ALL_SCOPES, ruleClass, key, (op, rv, r, ctx) -> true);
 
-            var result = policyEngine.evaluationPlan(TEST_SCOPE, policy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
-            assertThat(result.getPreValidators()).isEmpty();
-            assertThat(result.getPostValidators()).isEmpty();
+            assertThat(plan.getPreValidators()).isEmpty();
+            assertThat(plan.getPostValidators()).isEmpty();
 
 
-            assertThat(stepsProvider.apply(result)).hasSize(1)
+            assertThat(stepsProvider.apply(plan)).hasSize(1)
                     .first()
                     .satisfies((ruleStep -> {
                         assertThat(ruleStep.isFiltered()).isFalse();
@@ -434,10 +434,10 @@ class PolicyEngineImplPlannerTest {
             var emptyPolicy = Policy.Builder.newInstance().build();
             policyEngine.registerPreValidator("foo", (policy, policyContext) -> true);
 
-            var result = policyEngine.evaluationPlan(TEST_SCOPE, emptyPolicy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, emptyPolicy);
 
-            assertThat(result.getPostValidators()).isEmpty();
-            assertThat(result.getPreValidators()).isEmpty();
+            assertThat(plan.getPostValidators()).isEmpty();
+            assertThat(plan.getPreValidators()).isEmpty();
         }
 
         @Test
@@ -446,10 +446,10 @@ class PolicyEngineImplPlannerTest {
             policyEngine.registerPreValidator(TEST_SCOPE, (policy, policyContext) -> true);
             policyEngine.registerPostValidator(TEST_SCOPE, (policy, policyContext) -> true);
 
-            var result = policyEngine.evaluationPlan(TEST_SCOPE, emptyPolicy);
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, emptyPolicy);
 
-            assertThat(result.getPreValidators()).hasSize(1);
-            assertThat(result.getPostValidators()).hasSize(1);
+            assertThat(plan.getPreValidators()).hasSize(1);
+            assertThat(plan.getPostValidators()).hasSize(1);
 
         }
     }
