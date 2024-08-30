@@ -14,11 +14,13 @@
 
 package org.eclipse.edc.policy.engine;
 
+import org.eclipse.edc.policy.engine.plan.PolicyEvaluationPlanner;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
+import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.validation.PolicyValidator;
 import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.evaluator.PolicyEvaluator;
@@ -48,7 +50,7 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class PolicyEngineImpl implements PolicyEngine {
 
-    private static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + DELIMITER;
+    public static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + DELIMITER;
 
     private final Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
 
@@ -63,6 +65,10 @@ public class PolicyEngineImpl implements PolicyEngine {
     public PolicyEngineImpl(ScopeFilter scopeFilter, RuleValidator ruleValidator) {
         this.scopeFilter = scopeFilter;
         this.ruleValidator = ruleValidator;
+    }
+
+    public static boolean scopeFilter(String entry, String scope) {
+        return ALL_SCOPES_DELIMITED.equals(entry) || scope.startsWith(entry);
     }
 
     @Override
@@ -149,6 +155,29 @@ public class PolicyEngineImpl implements PolicyEngine {
     }
 
     @Override
+    public PolicyEvaluationPlan createEvaluationPlan(String scope, Policy policy) {
+        var delimitedScope = scope + DELIMITER;
+        var planner = PolicyEvaluationPlanner.Builder.newInstance(delimitedScope).ruleValidator(ruleValidator);
+
+        preValidators.forEach(planner::preValidators);
+        postValidators.forEach(planner::postValidators);
+
+        constraintFunctions.forEach((functionScope, entry) -> entry.forEach(constraintEntry -> {
+            planner.evaluationFunction(functionScope, constraintEntry.key, constraintEntry.type, constraintEntry.function);
+        }));
+
+        dynamicConstraintFunctions.forEach(dynFunctions ->
+                planner.evaluationFunction(dynFunctions.scope, dynFunctions.type, dynFunctions.function)
+        );
+
+        ruleFunctions.forEach((functionScope, entry) -> entry.forEach(functionEntry -> {
+            planner.evaluationFunction(functionScope, functionEntry.type, functionEntry.function);
+        }));
+
+        return policy.accept(planner.build());
+    }
+
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <R extends Rule> void registerFunction(String scope, Class<R> type, String key, AtomicConstraintFunction<R> function) {
         constraintFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>()).add(new ConstraintFunctionEntry(type, key, function));
@@ -174,10 +203,6 @@ public class PolicyEngineImpl implements PolicyEngine {
     @Override
     public void registerPostValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
         postValidators.computeIfAbsent(scope + DELIMITER, k -> new ArrayList<>()).add(validator);
-    }
-
-    private boolean scopeFilter(String entry, String scope) {
-        return ALL_SCOPES_DELIMITED.equals(entry) || scope.startsWith(entry);
     }
 
     @NotNull

@@ -30,7 +30,14 @@ public class RuleValidator {
     /**
      * Checks if the input ruleType is bound to any scope
      */
-    boolean isBounded(String ruleType) {
+    public boolean isBounded(String ruleType) {
         return !registry.bindings(ruleType).isEmpty();
+    }
+
+    /**
+     * Checks if the input ruleType is bound within the input scope
+     */
+    public boolean isInScope(String ruleType, String scope) {
+        return registry.isInScope(ruleType, scope);
     }
 }
