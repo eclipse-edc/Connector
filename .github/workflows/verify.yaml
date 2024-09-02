@@ -3,6 +3,7 @@ name: Run Tests
 on:
   workflow_dispatch:
   push:
+    branches: [ main, release/*, bugfix/* ]
   pull_request:
     branches: [ main, release/*, bugfix/* ]
     paths-ignore:
