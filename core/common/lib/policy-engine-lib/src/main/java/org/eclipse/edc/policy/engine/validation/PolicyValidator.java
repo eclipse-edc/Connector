@@ -176,6 +176,7 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
         if (functions.isEmpty()) {
             functions = dynamicConstraintFunctions
                     .stream()
+                    .filter(f -> ruleKind.isAssignableFrom(f.type))
                     .filter(f -> f.function.canHandle(key))
                     .map(entry -> wrapDynamicFunction(key, entry.function))
                     .toList();

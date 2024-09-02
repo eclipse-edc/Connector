@@ -16,9 +16,11 @@ package org.eclipse.edc.connector.controlplane.api.management.policy;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyValidationResultTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.policy.v2.PolicyDefinitionApiV2Controller;
 import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3Controller;
+import org.eclipse.edc.connector.controlplane.api.management.policy.v31alpha.PolicyDefinitionApiV31AlphaController;
 import org.eclipse.edc.connector.controlplane.api.management.policy.validation.PolicyDefinitionValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -69,11 +71,13 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         var mapper = typeManager.getMapper(JSON_LD);
         managementApiTransformerRegistry.register(new JsonObjectToPolicyDefinitionTransformer());
         managementApiTransformerRegistry.register(new JsonObjectFromPolicyDefinitionTransformer(jsonBuilderFactory, mapper));
+        managementApiTransformerRegistry.register(new JsonObjectFromPolicyValidationResultTransformer(jsonBuilderFactory));
 
         validatorRegistry.register(EDC_POLICY_DEFINITION_TYPE, PolicyDefinitionValidator.instance());
 
         var monitor = context.getMonitor();
         webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV2Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
         webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV3Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV31AlphaController(monitor, managementApiTransformerRegistry, service, validatorRegistry));
     }
 }

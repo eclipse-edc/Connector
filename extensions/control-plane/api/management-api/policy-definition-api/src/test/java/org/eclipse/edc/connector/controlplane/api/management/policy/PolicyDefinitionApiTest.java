@@ -30,10 +30,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_ERRORS;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_IS_VALID;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_TYPE;
 import static org.eclipse.edc.connector.controlplane.api.management.policy.v2.PolicyDefinitionApiV2.PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.api.management.policy.v2.PolicyDefinitionApiV2.PolicyDefinitionOutputSchema.POLICY_DEFINITION_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.v31alpha.PolicyDefinitionApiV31Alpha.PolicyValidationResultSchema.POLICY_VALIDATION_RESULT_OUTPUT_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CREATED_AT;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -81,6 +86,18 @@ class PolicyDefinitionApiTest {
             assertThat(content.getString(ID)).isNotBlank();
             assertThat(content.getJsonArray(EDC_CREATED_AT).getJsonObject(0).getJsonNumber(VALUE).longValue()).isGreaterThan(0);
             assertThat(content.getJsonArray(EDC_POLICY_DEFINITION_POLICY).getJsonObject(0).size()).isGreaterThan(0);
+        });
+    }
+
+    @Test
+    void policyValidationResultExample() throws JsonProcessingException {
+        var jsonObject = objectMapper.readValue(POLICY_VALIDATION_RESULT_OUTPUT_EXAMPLE, JsonObject.class);
+        var expanded = jsonLd.expand(jsonObject);
+
+        assertThat(expanded).isSucceeded().satisfies(content -> {
+            assertThat(content.getJsonArray(TYPE).getString(0)).isEqualTo(EDC_POLICY_VALIDATION_RESULT_TYPE);
+            assertThat(content.getJsonArray(EDC_POLICY_VALIDATION_RESULT_IS_VALID).getJsonObject(0).getBoolean(VALUE)).isEqualTo(false);
+            assertThat(content.getJsonArray(EDC_POLICY_VALIDATION_RESULT_ERRORS).size()).isEqualTo(2);
         });
     }
 }

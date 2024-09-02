@@ -28,6 +28,8 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiSchema;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 
+import java.util.List;
+
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
@@ -99,6 +101,15 @@ public interface PolicyDefinitionApiV31Alpha {
     )
     void updatePolicyDefinitionV3(String id, JsonObject policyDefinition);
 
+    @Operation(description = "Validates an existing Policy, If the Policy is not found, an error is reported",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Returns the validation result", content = @Content(schema = @Schema(implementation = PolicyValidationResultSchema.class))),
+                    @ApiResponse(responseCode = "404", description = "policy definition could not be updated, because it does not exists",
+                            content = @Content(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))
+            }
+    )
+    JsonObject validatePolicyDefinitionV3(String id);
+
     @Schema(name = "PolicyDefinitionInput", example = PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE)
     record PolicyDefinitionInputSchema(
             @Schema(name = CONTEXT, requiredMode = REQUIRED)
@@ -164,6 +175,24 @@ public interface PolicyDefinitionApiV31Alpha {
                         }]
                     },
                     "createdAt": 1688465655
+                }
+                """;
+    }
+
+    @Schema(name = "PolicyValidationResultSchema", example = PolicyValidationResultSchema.POLICY_VALIDATION_RESULT_OUTPUT_EXAMPLE)
+    record PolicyValidationResultSchema(
+            Boolean isValid,
+            List<String> errors) {
+
+        public static final String POLICY_VALIDATION_RESULT_OUTPUT_EXAMPLE = """
+                {
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@type": "PolicyValidationResult",
+                    "isValid": false,
+                    "errors": [
+                        "error1",
+                        "error2"
+                    ]
                 }
                 """;
     }

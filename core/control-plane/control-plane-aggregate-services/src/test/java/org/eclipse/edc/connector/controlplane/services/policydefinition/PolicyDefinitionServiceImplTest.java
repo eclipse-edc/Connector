@@ -19,9 +19,11 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitionObservable;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -56,7 +58,8 @@ class PolicyDefinitionServiceImplTest {
     private final ContractDefinitionStore contractDefinitionStore = mock(ContractDefinitionStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
     private final PolicyDefinitionObservable observable = mock(PolicyDefinitionObservable.class);
-    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable);
+    private final PolicyEngine policyEngine = mock();
+    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable, policyEngine);
 
 
     @Test
@@ -240,6 +243,37 @@ class PolicyDefinitionServiceImplTest {
         verify(observable, never()).invokeForEach(any());
     }
 
+    @Test
+    void validatePolicy() {
+        var policyId = "policyId";
+        var policy = createPolicy(policyId);
+
+        when(policyEngine.validate(policy.getPolicy())).thenReturn(Result.success());
+
+        assertThat(policyServiceImpl.validate(policy.getPolicy())).isSucceeded();
+    }
+
+    @Test
+    void validatePolicy_shouldFail_whenPolicyEngineFails() {
+        var policyId = "policyId";
+        var policy = createPolicy(policyId);
+
+        when(policyEngine.validate(policy.getPolicy())).thenReturn(Result.failure("validation failure"));
+
+        assertThat(policyServiceImpl.validate(policy.getPolicy())).isFailed()
+                .detail()
+                .isEqualTo("validation failure");
+    }
+
+    @NotNull
+    private Predicate<PolicyDefinition> hasId(String policyId) {
+        return it -> policyId.equals(it.getId());
+    }
+
+    private PolicyDefinition createPolicy(String policyId) {
+        return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id(policyId).build();
+    }
+
     private static class InvalidFilters implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
@@ -267,14 +301,5 @@ class PolicyDefinitionServiceImplTest {
                     arguments(criterion(PRIVATE_PROPERTIES + "." + EDC_NAMESPACE + KEY, "=", VALUE)) // path element with privateProperties and edc_namespace key
             );
         }
-    }
-
-    @NotNull
-    private Predicate<PolicyDefinition> hasId(String policyId) {
-        return it -> policyId.equals(it.getId());
-    }
-
-    private PolicyDefinition createPolicy(String policyId) {
-        return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id(policyId).build();
     }
 }
