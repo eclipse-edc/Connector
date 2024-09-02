@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -36,11 +37,11 @@ public class ConsoleMonitor implements Monitor {
     private final String prefix;
 
     public ConsoleMonitor() {
-        this(true);
+        this(Level.getDefaultLevel(), true);
     }
 
-    public ConsoleMonitor(boolean useColor) {
-        this(null, Level.DEBUG, useColor);
+    public ConsoleMonitor(Level level, boolean useColor) {
+        this(null, level, useColor);
     }
 
     public ConsoleMonitor(@Nullable String runtimeName, Level level) {
@@ -82,6 +83,19 @@ public class ConsoleMonitor implements Monitor {
         output(DEBUG, supplier, errors);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
+        ConsoleMonitor that = (ConsoleMonitor) o;
+        return useColor == that.useColor && level == that.level && Objects.equals(prefix, that.prefix);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(useColor, level, prefix);
+    }
+
     private void output(String level, Supplier<String> supplier, Throwable... errors) {
         var time = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         var colorCode = useColor ? getColorCode(level) : "";
@@ -117,5 +131,8 @@ public class ConsoleMonitor implements Monitor {
         Level(int value) {
             this.value = value;
         }
+
+        public static Level getDefaultLevel() { return Level.DEBUG; }
+
     }
 }

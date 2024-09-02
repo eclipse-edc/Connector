@@ -99,6 +99,26 @@ class ExtensionLoaderTest {
     }
 
     @Test
+    void loadMonitor_programArgsSetConsoleMonitorLogLevel() {
+
+        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), "--log-level=INFO");
+
+        var expectedMonitor = new ConsoleMonitor(ConsoleMonitor.Level.INFO, true);
+
+        assertEquals( monitor, expectedMonitor);
+    }
+
+    @Test
+    void loadMonitor_consoleMonitorDefaultLogLevelWhenNoArgs() {
+
+        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>());
+
+        var expectedMonitor = new ConsoleMonitor(ConsoleMonitor.Level.DEBUG, true);
+
+        assertEquals( monitor, expectedMonitor);
+    }
+
+    @Test
     void selectOpenTelemetryImpl_whenNoOpenTelemetry() {
         var openTelemetry = ExtensionLoader.selectOpenTelemetryImpl(emptyList());
 
