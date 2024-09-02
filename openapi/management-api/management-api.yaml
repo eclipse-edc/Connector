@@ -1739,6 +1739,36 @@ paths:
                 example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v3.1alpha/policydefinitions/{id}/validate:
+    post:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: "Validates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: validatePolicyDefinitionV3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: Returns the validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyValidationResultSchema"
+        "404":
+          description: "policy definition could not be updated, because it does not\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorDetail"
   /v3/assets:
     put:
       tags:
@@ -4089,6 +4119,26 @@ components:
               rightOperand: https://www.wikidata.org/wiki/Q183
               comment: i.e Germany
         createdAt: 1688465655
+    PolicyValidationResultSchema:
+      type: object
+      properties:
+        errors:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+        isValid:
+          type: boolean
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': PolicyValidationResult
+        isValid: false
+        errors:
+        - error1
+        - error2
     Properties:
       type: object
       example: null
