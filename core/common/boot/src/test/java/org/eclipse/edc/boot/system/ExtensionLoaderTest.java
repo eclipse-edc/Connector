@@ -113,7 +113,7 @@ class ExtensionLoaderTest {
 
         var monitor = ExtensionLoader.loadMonitor(new ArrayList<>());
 
-        var expectedMonitor = new ConsoleMonitor(ConsoleMonitor.Level.DEBUG, true);
+        var expectedMonitor = new ConsoleMonitor(ConsoleMonitor.Level.getDefaultLevel(), true);
 
         assertEquals( monitor, expectedMonitor);
     }
