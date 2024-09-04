@@ -38,9 +38,7 @@ public interface DspNegotiationPropertyAndTypeNames {
     String DSPACE_PROPERTY_AGREEMENT = DSPACE_SCHEMA + "agreement";
     String DSPACE_PROPERTY_OFFER = DSPACE_SCHEMA + "offer";
     String DSPACE_PROPERTY_TIMESTAMP = DSPACE_SCHEMA + "timestamp";
-    @Deprecated(since = "0.5.1")
     String DSPACE_PROPERTY_CONSUMER_ID = DSPACE_SCHEMA + "consumerId";
-    @Deprecated(since = "0.5.1")
     String DSPACE_PROPERTY_PROVIDER_ID = DSPACE_SCHEMA + "providerId";
 
     // event types

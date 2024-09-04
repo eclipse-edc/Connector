@@ -174,7 +174,6 @@ include(":extensions:control-plane:api:management-api:management-api-test-fixtur
 include(":extensions:control-plane:api:management-api:policy-definition-api")
 include(":extensions:control-plane:api:management-api:transfer-process-api")
 include(":extensions:control-plane:api:management-api:edr-cache-api")
-include(":extensions:control-plane:transfer:transfer-data-plane")
 include(":extensions:control-plane:transfer:transfer-data-plane-signaling")
 include(":extensions:control-plane:transfer:transfer-pull-http-receiver")
 include(":extensions:control-plane:transfer:transfer-pull-http-dynamic-receiver")
@@ -192,15 +191,10 @@ include(":extensions:control-plane:callback:callback-static-endpoint")
 include(":extensions:control-plane:edr:edr-store-receiver")
 
 
-include(":extensions:data-plane:data-plane-client")
-include(":extensions:data-plane:data-plane-client-embedded")
-include(":extensions:data-plane:data-plane-control-api")
 include(":extensions:data-plane:data-plane-self-registration")
 include(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api")
-include(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api-configuration")
 include(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client")
 include(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform")
-include(":extensions:data-plane:data-plane-public-api")
 include(":extensions:data-plane:data-plane-public-api-v2")
 
 include(":extensions:data-plane:data-plane-http")

@@ -41,8 +41,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
  * Creates a {@link ContractAgreementMessage} from a {@link JsonObject}.
  */
 public class JsonObjectToContractAgreementMessageTransformer extends AbstractJsonLdTransformer<JsonObject, ContractAgreementMessage> {
-    private static final Set<String> EXCLUDED_POLICY_KEYWORDS =
-            Set.of(DSPACE_PROPERTY_CONSUMER_ID, DSPACE_PROPERTY_PROVIDER_ID, DSPACE_PROPERTY_TIMESTAMP);
+    private static final Set<String> EXCLUDED_POLICY_KEYWORDS = Set.of(DSPACE_PROPERTY_TIMESTAMP, DSPACE_PROPERTY_CONSUMER_ID, DSPACE_PROPERTY_PROVIDER_ID);
 
     public JsonObjectToContractAgreementMessageTransformer() {
         super(JsonObject.class, ContractAgreementMessage.class);
@@ -125,24 +124,6 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
                 .providerId(assigner)
                 .policy(policy)
                 .assetId(policy.getTarget());
-
-        if (assignee == null && !transformMandatoryString(jsonAgreement.get(DSPACE_PROPERTY_CONSUMER_ID), builder::consumerId, context)) {
-            context.problem()
-                    .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
-                    .property(DSPACE_PROPERTY_CONSUMER_ID)
-                    .report();
-            return null;
-        }
-
-        if (assigner == null && !transformMandatoryString(jsonAgreement.get(DSPACE_PROPERTY_PROVIDER_ID), builder::providerId, context)) {
-            context.problem()
-                    .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
-                    .property(DSPACE_PROPERTY_PROVIDER_ID)
-                    .report();
-            return null;
-        }
 
         var timestamp = transformString(jsonAgreement.get(DSPACE_PROPERTY_TIMESTAMP), context);
         if (timestamp == null) {

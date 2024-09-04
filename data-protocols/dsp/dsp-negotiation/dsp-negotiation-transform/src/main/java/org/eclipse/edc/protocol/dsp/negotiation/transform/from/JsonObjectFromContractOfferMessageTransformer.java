@@ -29,7 +29,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 /**
@@ -49,8 +48,7 @@ public class JsonObjectFromContractOfferMessageTransformer extends AbstractJsonL
         var builder = jsonFactory.createObjectBuilder()
                 .add(ID, message.getId())
                 .add(TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
-                .add(DSPACE_PROPERTY_PROVIDER_PID, message.getProviderPid())
-                .add(DSPACE_PROPERTY_PROCESS_ID, message.getProcessId());
+                .add(DSPACE_PROPERTY_PROVIDER_PID, message.getProviderPid());
 
         addIfNotNull(message.getConsumerPid(), DSPACE_PROPERTY_CONSUMER_PID, builder);
         addIfNotNull(message.getCallbackAddress(), DSPACE_PROPERTY_CALLBACK_ADDRESS, builder);

@@ -15,9 +15,7 @@
 package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
-import org.eclipse.edc.validator.jsonobject.validators.LogDeprecatedValue;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryIdNotBlank;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
@@ -25,18 +23,15 @@ import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.Validator;
 
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 
 public class ContractRequestValidator {
-    public static Validator<JsonObject> instance(Monitor monitor) {
+    public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
-                .verify(PROVIDER_ID, path -> new LogDeprecatedValue(path, CONTRACT_REQUEST_TYPE, ODRL_ASSIGNER_ATTRIBUTE, monitor))
                 .verify(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, MandatoryValue::new)
                 .verify(PROTOCOL, MandatoryValue::new)
                 .verify(POLICY, MandatoryObject::new)

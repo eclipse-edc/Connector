@@ -28,7 +28,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -51,7 +50,6 @@ class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
     void transform() {
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(DSP)
-                .processId("processId")
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
                 .counterPartyAddress("https://test.com")
@@ -66,7 +64,6 @@ class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
         assertThat(result.getString(TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE);
         assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID)).isEqualTo("consumerPid");
         assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID)).isEqualTo("providerPid");
-        assertThat(result.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo(REJECTION_CODE);
         assertThat(result.getString(DSPACE_PROPERTY_REASON)).isEqualTo(REJECTION_REASON);
 

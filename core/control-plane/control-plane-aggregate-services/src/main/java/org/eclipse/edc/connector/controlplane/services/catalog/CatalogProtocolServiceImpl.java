@@ -28,15 +28,11 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
     @PolicyScope
     public static final String CATALOGING_REQUEST_SCOPE = "request.catalog";
-
-    @Deprecated(since = "0.5.1")
-    private static final String EDC_PROPERTY_PARTICIPANT_ID = EDC_NAMESPACE + "participantId";
 
     private final DatasetResolver datasetResolver;
     private final DataServiceRegistry dataServiceRegistry;
@@ -69,7 +65,6 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
                                 .dataServices(dataServices)
                                 .datasets(datasets.toList())
                                 .participantId(participantId)
-                                .property(EDC_PROPERTY_PARTICIPANT_ID, participantId)
                                 .build();
                     }
                 })

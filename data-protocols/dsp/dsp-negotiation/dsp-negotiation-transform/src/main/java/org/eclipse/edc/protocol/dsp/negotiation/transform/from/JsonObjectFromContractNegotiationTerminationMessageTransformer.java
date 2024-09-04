@@ -27,7 +27,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 
@@ -49,8 +48,7 @@ public class JsonObjectFromContractNegotiationTerminationMessageTransformer exte
                 .add(ID, terminationMessage.getId())
                 .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, terminationMessage.getConsumerPid())
-                .add(DSPACE_PROPERTY_PROVIDER_PID, terminationMessage.getProviderPid())
-                .add(DSPACE_PROPERTY_PROCESS_ID, terminationMessage.getProcessId());
+                .add(DSPACE_PROPERTY_PROVIDER_PID, terminationMessage.getProviderPid());
 
         addIfNotNull(terminationMessage.getRejectionReason(), DSPACE_PROPERTY_REASON, builder);
         addIfNotNull(terminationMessage.getCode(), DSPACE_PROPERTY_CODE, builder);

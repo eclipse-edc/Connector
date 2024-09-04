@@ -14,20 +14,23 @@
 
 package org.eclipse.edc.connector.dataplane.http;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
 import org.apache.http.HttpStatus;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
-import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -45,10 +48,8 @@ import org.mockserver.verify.VerificationTimes;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.AUTHORIZATION;
 import static io.restassured.RestAssured.given;
@@ -57,11 +58,15 @@ import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.util.Collections.emptyMap;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions.createRequest;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.matchers.Times.once;
@@ -76,34 +81,24 @@ import static org.mockserver.model.MediaType.PLAIN_TEXT_UTF_8;
 import static org.mockserver.model.Parameter.param;
 import static org.mockserver.stop.Stop.stopQuietly;
 
-/**
- * System Test for Data Plane HTTP extension.
- */
+
 @ComponentTest
 public class DataPlaneHttpIntegrationTests {
 
-    private static final int VALIDATION_API_PORT = getFreePort();
-    private static final String VALIDATION_API_HOST = "http://localhost:" + VALIDATION_API_PORT;
     private static final int PUBLIC_API_PORT = getFreePort();
     private static final int CONTROL_API_PORT = getFreePort();
     private static final int HTTP_SOURCE_API_PORT = getFreePort();
     private static final int HTTP_SINK_API_PORT = getFreePort();
-    private static final String CONTROL_API_HOST = "http://localhost:" + CONTROL_API_PORT;
     private static final String HTTP_SOURCE_API_HOST = "http://localhost:" + HTTP_SOURCE_API_PORT;
     private static final String HTTP_SINK_API_HOST = "http://localhost:" + HTTP_SINK_API_PORT;
     private static final String CONTROL_PATH = "/control";
     private static final String PUBLIC_PATH = "/public";
     private static final String PUBLIC_API_HOST = "http://localhost:" + PUBLIC_API_PORT;
-    private static final String TRANSFER_PATH = format("%s/transfer", CONTROL_PATH);
-    private static final String TRANSFER_RESULT_PATH = format("%s/{processId}", TRANSFER_PATH);
-    private static final String PROCESS_ID = "processId";
-    private static final String HTTP_API_PATH = "sample";
     private static final String AUTH_HEADER_KEY = AUTHORIZATION.toString();
     private static final String SOURCE_AUTH_VALUE = "source-auth-key";
     private static final String SINK_AUTH_VALUE = "sink-auth-key";
     private static ClientAndServer httpSourceMockServer;
     private static ClientAndServer httpSinkMockServer;
-    private static ClientAndServer validationApiMockServer;
     private final Duration timeout = Duration.ofSeconds(30);
 
     private static final EmbeddedRuntime RUNTIME = new EmbeddedRuntime(
@@ -113,10 +108,8 @@ public class DataPlaneHttpIntegrationTests {
                     "web.http.public.path", PUBLIC_PATH,
                     "web.http.control.port", valueOf(CONTROL_API_PORT),
                     "web.http.control.path", CONTROL_PATH,
-                    "edc.dataplane.token.validation.endpoint", VALIDATION_API_HOST,
                     "edc.core.retry.retries.max", "0"
             ),
-            ":extensions:common:metrics:micrometer-core",
             ":core:data-plane:data-plane-core",
             ":extensions:common:api:control-api-configuration",
             ":extensions:common:http",
@@ -124,40 +117,38 @@ public class DataPlaneHttpIntegrationTests {
             ":extensions:common:configuration:configuration-filesystem",
             ":extensions:control-plane:api:control-plane-api-client",
             ":extensions:data-plane:data-plane-http",
-            ":extensions:data-plane:data-plane-control-api",
-            ":extensions:data-plane:data-plane-public-api"
-    );
+            ":extensions:data-plane:data-plane-public-api-v2",
+            ":extensions:data-plane:data-plane-signaling:data-plane-signaling-api"
+    ).registerServiceMock(DataPlaneAuthorizationService.class, mock());
 
     @BeforeAll
     public static void setUp() {
         httpSourceMockServer = startClientAndServer(HTTP_SOURCE_API_PORT);
         httpSinkMockServer = startClientAndServer(HTTP_SINK_API_PORT);
-        validationApiMockServer = startClientAndServer(VALIDATION_API_PORT);
     }
 
     @AfterAll
     public static void tearDown() {
         stopQuietly(httpSourceMockServer);
         stopQuietly(httpSinkMockServer);
-        stopQuietly(validationApiMockServer);
     }
 
     @AfterEach
     public void resetMockServer() {
         httpSourceMockServer.reset();
         httpSinkMockServer.reset();
-        validationApiMockServer.reset();
     }
 
     @Nested
     class Pull {
 
+        private static final String HTTP_API_PATH = "sample";
+
         @RegisterExtension
         static RuntimeExtension dataPlane = new RuntimePerClassExtension(RUNTIME);
 
         @Test
-        void transfer_pull_withSourceQueryParamsAndPath_success(TypeManager typeManager) {
-            // prepare data source and validation servers
+        void transfer_pull_withSourceQueryParamsAndPath_success(DataPlaneAuthorizationService dataPlaneAuthorizationService) {
             var token = UUID.randomUUID().toString();
             var responseBody = "some info";
             var queryParams = Map.of(
@@ -168,11 +159,7 @@ public class DataPlaneHttpIntegrationTests {
 
             var sourceRequest = getRequest(queryParams, HTTP_API_PATH);
             httpSourceMockServer.when(sourceRequest, once()).respond(successfulResponse(responseBody, PLAIN_TEXT_UTF_8));
-
-            // prepare validation server of the control plane
-            var validationRequest = request().withMethod(HttpMethod.GET.name()).withHeader(AUTH_HEADER_KEY, token);
-            validationApiMockServer.when(validationRequest, once())
-                    .respond(successfulResponse(typeManager.writeValueAsString(sourceDataAddress), PLAIN_TEXT_UTF_8));
+            when(dataPlaneAuthorizationService.authorize(any(), any())).thenReturn(Result.success(sourceDataAddress));
 
             given()
                     .baseUri(PUBLIC_API_HOST)
@@ -190,22 +177,7 @@ public class DataPlaneHttpIntegrationTests {
         }
 
         @Test
-        void transfer_invalidInput_failure(TypeManager typeManager) {
-            var processId = UUID.randomUUID().toString();
-            var invalidRequest = transferRequestPayload(processId, typeManager).remove("processId");
-
-            given()
-                    .baseUri(CONTROL_API_HOST)
-                    .contentType(ContentType.JSON)
-                    .body(invalidRequest)
-                    .when()
-                    .post(TRANSFER_PATH)
-                    .then()
-                    .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
-        }
-
-        @Test
-        void shouldProxyMethodAndBody_whenSet(TypeManager typeManager) {
+        void shouldProxyMethodAndBody_whenSet(DataPlaneAuthorizationService dataPlaneAuthorizationService) {
             var sourceAddress = HttpDataAddress.Builder.newInstance()
                     .baseUrl(HTTP_SOURCE_API_HOST)
                     .proxyMethod(TRUE.toString())
@@ -213,8 +185,7 @@ public class DataPlaneHttpIntegrationTests {
                     .proxyBody(TRUE.toString())
                     .build();
             httpSourceMockServer.when(request(), once()).respond(successfulResponse("any", PLAIN_TEXT_UTF_8));
-            validationApiMockServer.when(request(), once())
-                    .respond(successfulResponse(typeManager.writeValueAsString(sourceAddress), PLAIN_TEXT_UTF_8));
+            when(dataPlaneAuthorizationService.authorize(any(), any())).thenReturn(Result.success(sourceAddress));
 
             given()
                     .baseUri(PUBLIC_API_HOST)
@@ -229,6 +200,16 @@ public class DataPlaneHttpIntegrationTests {
 
             httpSourceMockServer.verify(request().withMethod("PUT").withBody("body"), VerificationTimes.once());
         }
+
+        private HttpDataAddress sourceDataAddress() {
+            return HttpDataAddress.Builder.newInstance()
+                    .baseUrl(HTTP_SOURCE_API_HOST)
+                    .proxyPath(TRUE.toString())
+                    .proxyQueryParams(TRUE.toString())
+                    .authKey(AUTH_HEADER_KEY)
+                    .authCode(SOURCE_AUTH_VALUE)
+                    .build();
+        }
     }
 
     @Nested
@@ -238,26 +219,23 @@ public class DataPlaneHttpIntegrationTests {
         static RuntimeExtension dataPlane = new RuntimePerClassExtension(RUNTIME);
 
         @Test
-        void transfer_toHttpSink_success(TypeManager typeManager) {
+        void transfer_toHttpSink_success() {
             var body = UUID.randomUUID().toString();
             var processId = UUID.randomUUID().toString();
-            httpSourceMockServer.when(getRequest(HTTP_API_PATH), once()).respond(successfulResponse(body, APPLICATION_JSON));
-
-            // HTTP Sink Request & Response
+            httpSourceMockServer.when(getRequest(""), once()).respond(successfulResponse(body, APPLICATION_JSON));
             httpSinkMockServer.when(request(), once()).respond(successfulResponse());
 
-            initiateTransfer(transferRequestPayload(processId, typeManager));
+            initiate(transferRequestPayload(processId))
+                    .then()
+                    .assertThat().statusCode(HttpStatus.SC_OK);
 
             await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-            // Verify HTTP Source server called exactly once.
-            httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.once());
-            // Verify HTTP Sink server called exactly once.
+            httpSourceMockServer.verify(getRequest(""), VerificationTimes.once());
             httpSinkMockServer.verify(postRequest(body, APPLICATION_JSON), VerificationTimes.once());
         }
 
         @Test
-        void transfer_toHttpSink_withSourceQueryParams_success(TypeManager typeManager) {
-            // HTTP Source Request & Response
+        void transfer_toHttpSink_withSourcePathAndQueryParams_success() {
             var body = UUID.randomUUID().toString();
             var processId = UUID.randomUUID().toString();
             var queryParams = Map.of(
@@ -265,32 +243,37 @@ public class DataPlaneHttpIntegrationTests {
                     "param2", "any other value"
             );
 
-            httpSourceMockServer.when(getRequest(queryParams, HTTP_API_PATH), once()).respond(successfulResponse(body, APPLICATION_OCTET_STREAM));
-
-            // HTTP Sink Request & Response
+            httpSourceMockServer.when(getRequest(queryParams, "path"), once()).respond(successfulResponse(body, APPLICATION_OCTET_STREAM));
             httpSinkMockServer.when(postRequest(body, APPLICATION_OCTET_STREAM), once()).respond(successfulResponse());
 
-            initiateTransfer(transferRequestPayload(processId, queryParams, typeManager));
+            var sourceDataAddress = Json.createObjectBuilder()
+                    .add("@type", "dspace:DataAddress")
+                    .add("dspace:endpointType", "HttpData")
+                    .add("dspace:endpointProperties", sourceAddressProperties()
+                            .add(dspaceProperty(EDC_NAMESPACE + "path", "path"))
+                            .add(dspaceProperty(EDC_NAMESPACE + "queryParams", "param1=any value&param2=any other value"))
+                    );
+
+            initiate(transferRequestPayload(processId, sourceDataAddress))
+                    .then()
+                    .assertThat().statusCode(HttpStatus.SC_OK);
 
             await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-            // Verify HTTP Source server called exactly once.
-            httpSourceMockServer.verify(getRequest(queryParams, HTTP_API_PATH), VerificationTimes.once());
-            // Verify HTTP Sink server called exactly once.
+            httpSourceMockServer.verify(getRequest(queryParams, "path"), VerificationTimes.once());
             httpSinkMockServer.verify(postRequest(body, APPLICATION_OCTET_STREAM), VerificationTimes.once());
         }
 
         @Test
-        void transfer_toHttpSink_sourceNotAvailable_noInteractionWithSink(TypeManager typeManager) {
+        void transfer_toHttpSink_sourceNotAvailable_noInteractionWithSink() {
             var processId = UUID.randomUUID().toString();
-            // HTTP Source Request & Error Response
-            httpSourceMockServer.when(getRequest(HTTP_API_PATH)).error(withDropConnection());
+            httpSourceMockServer.when(getRequest("")).error(withDropConnection());
 
-            initiateTransfer(transferRequestPayload(processId, typeManager));
+            initiate(transferRequestPayload(processId))
+                    .then()
+                    .assertThat().statusCode(HttpStatus.SC_OK);
 
             await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-            // Verify HTTP Source server called at lest once.
-            httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.atLeast(1));
-            // Verify zero interaction with HTTP Sink.
+            httpSourceMockServer.verify(getRequest(""), VerificationTimes.atLeast(1));
             httpSinkMockServer.verifyZeroInteractions();
         }
 
@@ -298,44 +281,50 @@ public class DataPlaneHttpIntegrationTests {
          * Validate if intermittently source is dropping connection than DPF server retries to fetch data.
          */
         @Test
-        void transfer_toHttpSink_sourceTemporaryDropConnection_success(TypeManager typeManager) {
+        void transfer_toHttpSink_sourceTemporaryDropConnection_success() {
             var processId = UUID.randomUUID().toString();
-            // First two calls to HTTP Source returns a failure response.
-            httpSourceMockServer.when(getRequest(HTTP_API_PATH), exactly(2)).error(withDropConnection());
+            httpSourceMockServer.when(getRequest(""), exactly(2)).error(withDropConnection());
 
-            // Next call to HTTP Source returns a valid response.
             var body = UUID.randomUUID().toString();
-            httpSourceMockServer.when(getRequest(HTTP_API_PATH), once()).respond(successfulResponse(body, PLAIN_TEXT_UTF_8));
+            httpSourceMockServer.when(getRequest(""), once()).respond(successfulResponse(body, PLAIN_TEXT_UTF_8));
 
-            // HTTP Sink Request & Response
             httpSinkMockServer.when(postRequest(body, APPLICATION_OCTET_STREAM), once()).respond(successfulResponse());
 
-            initiateTransfer(transferRequestPayload(processId, typeManager));
+            initiate(transferRequestPayload(processId))
+                    .then()
+                    .assertThat().statusCode(HttpStatus.SC_OK);
 
             await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-            // Verify HTTP Source server called exactly 3 times.
-            httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.exactly(3));
-            // Verify HTTP Sink server called exactly once.
+            httpSourceMockServer.verify(getRequest(""), VerificationTimes.exactly(3));
             httpSinkMockServer.verify(postRequest(body, PLAIN_TEXT_UTF_8), VerificationTimes.once());
         }
 
-        private void initiateTransfer(Object payload) {
-            given()
-                    .baseUri(CONTROL_API_HOST)
+        @Test
+        void transfer_invalidInput_failure() {
+            var processId = UUID.randomUUID().toString();
+            var validRequest = transferRequestPayload(processId);
+            var invalidRequest = Json.createObjectBuilder(validRequest).remove("transferTypeDestination").build();
+
+            initiate(invalidRequest)
+                    .then()
+                    .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+        }
+
+        private Response initiate(JsonObject payload) {
+            return given()
+                    .port(CONTROL_API_PORT)
                     .contentType(ContentType.JSON)
                     .body(payload)
                     .when()
-                    .post(TRANSFER_PATH)
-                    .then()
-                    .assertThat().statusCode(HttpStatus.SC_OK);
+                    .post("/control/v1/dataflows");
         }
 
         private void expectState(String processId, DataFlowStates expectedState) {
             given()
-                    .baseUri(CONTROL_API_HOST)
-                    .pathParam(PROCESS_ID, processId)
+                    .port(CONTROL_API_PORT)
                     .when()
-                    .get(TRANSFER_RESULT_PATH)
+                    .pathParam("id", processId)
+                    .get("/control/v1/dataflows/{id}/state")
                     .then()
                     .assertThat().statusCode(HttpStatus.SC_OK)
                     .body(containsString(expectedState.name()));
@@ -345,59 +334,51 @@ public class DataPlaneHttpIntegrationTests {
             return error()
                     .withDropConnection(true);
         }
-    }
 
-    /**
-     * Request payload to initiate DPF transfer.
-     *
-     * @param processId ProcessID of transfer.See {@link DataFlowStartMessage}
-     * @return JSON object. see {@link ObjectNode}.
-     */
-    private ObjectNode transferRequestPayload(String processId, TypeManager typeManager) {
-        return transferRequestPayload(processId, emptyMap(), typeManager);
-    }
-
-    /**
-     * Request payload with query params to initiate DPF transfer.
-     *
-     * @param processId   ProcessID of transfer.See {@link DataFlowStartMessage}
-     * @param queryParams Query params name and value as key-value entries.
-     * @return JSON object. see {@link ObjectNode}.
-     */
-    private ObjectNode transferRequestPayload(String processId, Map<String, String> queryParams, TypeManager typeManager) {
-        var requestProperties = new HashMap<String, String>();
-        requestProperties.put(DataFlowRequestSchema.METHOD, HttpMethod.GET.name());
-        requestProperties.put(DataFlowRequestSchema.PATH, HTTP_API_PATH);
-
-        if (!queryParams.isEmpty()) {
-            requestProperties.put(DataFlowRequestSchema.QUERY_PARAMS, queryParams.entrySet()
-                    .stream()
-                    .map(entry -> entry.getKey() + "=" + entry.getValue())
-                    .collect(Collectors.joining("&")));
+        private JsonObject transferRequestPayload(String processId) {
+            return transferRequestPayload(processId, sourceAddress());
         }
 
-        var destinationDataAddress = HttpDataAddress.Builder.newInstance()
-                .baseUrl(HTTP_SINK_API_HOST)
-                .authKey(AUTH_HEADER_KEY)
-                .authCode(SINK_AUTH_VALUE)
-                .build();
+        private JsonObject transferRequestPayload(String processId, JsonObjectBuilder sourceDataAddress) {
+            return Json.createObjectBuilder()
+                    .add("@context", Json.createObjectBuilder().add("@vocab", EDC_NAMESPACE).add("dspace", "https://w3id.org/dspace/v0.8/"))
+                    .add("@type", EDC_DATA_FLOW_START_MESSAGE_TYPE)
+                    .add("@id", UUID.randomUUID().toString())
+                    .add("processId", processId)
+                    .add("sourceDataAddress", sourceDataAddress)
+                    .add("destinationDataAddress", Json.createObjectBuilder()
+                            .add("dspace:endpointType", "HttpData")
+                            .add("dspace:endpointProperties", Json.createArrayBuilder()
+                                    .add(dspaceProperty(EDC_NAMESPACE + "baseUrl", HTTP_SINK_API_HOST))
+                                    .add(dspaceProperty(EDC_NAMESPACE + "authKey", AUTH_HEADER_KEY))
+                                    .add(dspaceProperty(EDC_NAMESPACE + "authCode", SINK_AUTH_VALUE))
+                            )
+                    )
+                    .add("flowType", "PUSH")
+                    .add("transferTypeDestination", "HttpData-PUSH")
+                    .build();
+        }
 
-        // Create valid dataflow request instance.
-        var request = createRequest(requestProperties, sourceDataAddress(), destinationDataAddress)
-                .processId(processId)
-                .build();
+        private JsonObjectBuilder sourceAddress() {
+            return Json.createObjectBuilder()
+                    .add("@type", "dspace:DataAddress")
+                    .add("dspace:endpointType", "HttpData")
+                    .add("dspace:endpointProperties", sourceAddressProperties());
+        }
 
-        return typeManager.getMapper().convertValue(request, ObjectNode.class);
-    }
+        private JsonArrayBuilder sourceAddressProperties() {
+            return Json.createArrayBuilder()
+                    .add(dspaceProperty(EDC_NAMESPACE + "baseUrl", HTTP_SOURCE_API_HOST))
+                    .add(dspaceProperty(EDC_NAMESPACE + "authKey", AUTH_HEADER_KEY))
+                    .add(dspaceProperty(EDC_NAMESPACE + "authCode", SOURCE_AUTH_VALUE));
+        }
 
-    private HttpDataAddress sourceDataAddress() {
-        return HttpDataAddress.Builder.newInstance()
-                .baseUrl(HTTP_SOURCE_API_HOST)
-                .proxyPath(TRUE.toString())
-                .proxyQueryParams(TRUE.toString())
-                .authKey(AUTH_HEADER_KEY)
-                .authCode(SOURCE_AUTH_VALUE)
-                .build();
+        private JsonObjectBuilder dspaceProperty(String name, String value) {
+            return Json.createObjectBuilder()
+                    .add("dspace:name", name)
+                    .add("dspace:value", value);
+        }
+
     }
 
     /**
@@ -420,7 +401,7 @@ public class DataPlaneHttpIntegrationTests {
         var paramsList = queryParams.entrySet()
                 .stream()
                 .map(entry -> param(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
+                .toList();
 
         request.withQueryStringParameters(new Parameters(paramsList).withKeyMatchStyle(MATCHING_KEY));
 

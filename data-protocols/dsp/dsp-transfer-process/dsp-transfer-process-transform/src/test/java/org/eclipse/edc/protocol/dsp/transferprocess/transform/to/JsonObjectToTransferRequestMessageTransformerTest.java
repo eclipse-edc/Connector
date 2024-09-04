@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DEPRECATED_DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
@@ -95,27 +94,6 @@ class JsonObjectToTransferRequestMessageTransformerTest {
         assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
         assertThat(result.getDataDestination()).isSameAs(dataDestination);
         verify(context).transform(any(), eq(DataAddress.class));
-        verify(context, never()).reportProblem(anyString());
-    }
-
-    @Deprecated(since = "0.5.1")
-    @Test
-    void jsonObjectToTransferRequestWithDataAddress_withDeprecatedDctNamespace() {
-        var dataDestination = DataAddress.Builder.newInstance().type("any").build();
-        when(context.transform(any(), eq(DataAddress.class))).thenReturn(dataDestination);
-        var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
-                .add(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID, contractId)
-                .add(DEPRECATED_DCT_FORMAT_ATTRIBUTE, destinationType)
-                .add(DSPACE_PROPERTY_DATA_ADDRESS, createDataAddress())
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress)
-                .add(DSPACE_PROPERTY_CONSUMER_PID, "processId")
-                .build();
-
-        var result = transformer.transform(getExpanded(json), context);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getTransferType()).isEqualTo(destinationType);
         verify(context, never()).reportProblem(anyString());
     }
 

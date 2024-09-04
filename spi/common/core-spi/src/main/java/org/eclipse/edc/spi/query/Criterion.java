@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -72,11 +71,6 @@ public class Criterion {
 
     public Criterion withLeftOperand(String operandLeft) {
         return new Criterion(operandLeft, operator, getOperandRight());
-    }
-
-    @Deprecated(since = "0.5.0")
-    public Criterion withLeftOperand(Function<Object, Object> function) {
-        return new Criterion(function.apply(operandLeft), operator, getOperandRight());
     }
 
     @Override

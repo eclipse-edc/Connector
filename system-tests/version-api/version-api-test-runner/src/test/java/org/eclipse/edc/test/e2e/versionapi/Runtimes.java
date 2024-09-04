@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.test.e2e.versionapi;
 
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
-import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -33,6 +33,7 @@ public interface Runtimes {
     static RuntimeExtension inMemoryRuntime() {
         var rt = new RuntimePerClassExtension(new EmbeddedRuntime("control-plane", inMemoryConfiguration(), ":system-tests:version-api:version-api-test-runtime"));
         rt.registerServiceMock(DataPlaneManager.class, mock());
+        rt.registerServiceMock(DataPlaneClientFactory.class, mock());
         rt.registerServiceMock(StsClientService.class, mock());
         rt.registerServiceMock(StsClientTokenGeneratorService.class, mock());
         return rt;
@@ -56,17 +57,4 @@ public interface Runtimes {
         };
     }
 
-    @NotNull
-    static HashMap<String, String> postgresqlConfiguration() {
-        var config = new HashMap<String, String>() {
-            {
-                put("edc.datasource.default.url", PostgresqlEndToEndInstance.JDBC_URL_PREFIX + "runtime");
-                put("edc.datasource.default.user", PostgresqlEndToEndInstance.USER);
-                put("edc.datasource.default.password", PostgresqlEndToEndInstance.PASSWORD);
-            }
-        };
-
-        config.putAll(inMemoryConfiguration());
-        return config;
-    }
 }

@@ -38,12 +38,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -77,7 +74,6 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
     void transform() {
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol(DSP)
-                .processId("processId")
                 .providerPid("providerPid")
                 .consumerPid("consumerPid")
                 .counterPartyAddress("https://example.com")
@@ -102,7 +98,6 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
         assertThat(result.getString(TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE);
         assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID)).isEqualTo("providerPid");
         assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID)).isEqualTo("consumerPid");
-        assertThat(result.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
 
         var jsonAgreement = result.getJsonObject(DSPACE_PROPERTY_AGREEMENT);
         assertThat(jsonAgreement).isNotNull();
@@ -110,38 +105,6 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
         assertThat(jsonAgreement.getString(DSPACE_PROPERTY_TIMESTAMP)).isEqualTo(TIMESTAMP);
         assertThat(jsonAgreement.getString(ODRL_ASSIGNEE_ATTRIBUTE)).isEqualTo(CONSUMER_ID);
         assertThat(jsonAgreement.getString(ODRL_ASSIGNER_ATTRIBUTE)).isEqualTo(PROVIDER_ID);
-
-        verify(context, never()).reportProblem(anyString());
-    }
-
-    @Deprecated(since = "0.5.1")
-    @Test
-    void shouldSetConsumerIdAndProviderIdForBackwardCompatibility() {
-        var message = ContractAgreementMessage.Builder.newInstance()
-                .protocol(DSP)
-                .processId("processId")
-                .providerPid("providerPid")
-                .consumerPid("consumerPid")
-                .counterPartyAddress("https://example.com")
-                .contractAgreement(ContractAgreement.Builder.newInstance()
-                        .id(AGREEMENT_ID)
-                        .providerId(PROVIDER_ID)
-                        .consumerId(CONSUMER_ID)
-                        .assetId("assetId")
-                        .policy(policy()).build())
-                .build();
-        var policyObject = jsonFactory.createObjectBuilder()
-                .add(ID, "contractOfferId")
-                .build();
-
-        when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(policyObject);
-
-        var result = transformer.transform(message, context);
-
-        assertThat(result).isNotNull();
-        var jsonAgreement = result.getJsonObject(DSPACE_PROPERTY_AGREEMENT);
-        assertThat(jsonAgreement.getString(DSPACE_PROPERTY_CONSUMER_ID)).isEqualTo(CONSUMER_ID);
-        assertThat(jsonAgreement.getString(DSPACE_PROPERTY_PROVIDER_ID)).isEqualTo(PROVIDER_ID);
 
         verify(context, never()).reportProblem(anyString());
     }

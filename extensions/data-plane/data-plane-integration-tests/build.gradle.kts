@@ -26,6 +26,7 @@ dependencies {
 
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":extensions:common:json-ld"))
     testImplementation(testFixtures(project(":extensions:data-plane:data-plane-http")))
 }
 

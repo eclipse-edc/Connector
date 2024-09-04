@@ -40,8 +40,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTR
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
@@ -107,46 +105,6 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         assertThat(agreement.getId()).isEqualTo(AGREEMENT_ID);
         assertThat(agreement.getConsumerId()).isEqualTo("assignee");
         assertThat(agreement.getProviderId()).isEqualTo("assigner");
-        assertThat(agreement.getAssetId()).isEqualTo(TARGET);
-        assertThat(agreement.getContractSigningDate()).isEqualTo(Instant.parse(TIMESTAMP).getEpochSecond());
-
-        verify(context, never()).reportProblem(anyString());
-    }
-
-    @Deprecated
-    @Test
-    void transformFallbackConsumerIdProviderId_whenAssigneeAndAssignerAreMissing() {
-        var message = jsonFactory.createObjectBuilder()
-                .add(ID, MESSAGE_ID)
-                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
-                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_AGREEMENT, jsonFactory.createObjectBuilder()
-                        .add(ID, AGREEMENT_ID)
-                        .add(TYPE, ODRL_POLICY_TYPE_AGREEMENT)
-                        .add(DSPACE_PROPERTY_CONSUMER_ID, CONSUMER_ID)
-                        .add(DSPACE_PROPERTY_PROVIDER_ID, PROVIDER_ID)
-                        .add(DSPACE_PROPERTY_TIMESTAMP, TIMESTAMP)
-                        .build())
-                .build();
-
-        var policy = policyBuilder().assignee(null).assigner(null).build();
-        when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy);
-
-        var result = transformer.transform(getExpanded(message), context);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getClass()).isEqualTo(ContractAgreementMessage.class);
-        assertThat(result.getProtocol()).isNotEmpty();
-        assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
-        assertThat(result.getProviderPid()).isEqualTo("providerPid");
-
-        var agreement = result.getContractAgreement();
-        assertThat(agreement).isNotNull();
-        assertThat(agreement.getClass()).isEqualTo(ContractAgreement.class);
-        assertThat(agreement.getId()).isEqualTo(AGREEMENT_ID);
-        assertThat(agreement.getConsumerId()).isEqualTo(CONSUMER_ID);
-        assertThat(agreement.getProviderId()).isEqualTo(PROVIDER_ID);
         assertThat(agreement.getAssetId()).isEqualTo(TARGET);
         assertThat(agreement.getContractSigningDate()).isEqualTo(Instant.parse(TIMESTAMP).getEpochSecond());
 

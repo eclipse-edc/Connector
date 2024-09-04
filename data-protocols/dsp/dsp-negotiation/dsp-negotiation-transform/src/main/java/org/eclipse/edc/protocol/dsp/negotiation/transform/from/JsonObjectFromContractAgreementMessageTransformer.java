@@ -29,12 +29,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 
@@ -70,8 +67,6 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
                 .add(ID, agreement.getId())
                 .add(ODRL_ASSIGNEE_ATTRIBUTE, agreement.getConsumerId())
                 .add(ODRL_ASSIGNER_ATTRIBUTE, agreement.getProviderId())
-                .add(DSPACE_PROPERTY_CONSUMER_ID, agreement.getConsumerId())
-                .add(DSPACE_PROPERTY_PROVIDER_ID, agreement.getProviderId())
                 .add(DSPACE_PROPERTY_TIMESTAMP, signing)
                 .build();
 
@@ -80,7 +75,6 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
                 .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
                 .add(DSPACE_PROPERTY_PROVIDER_PID, agreementMessage.getProviderPid())
                 .add(DSPACE_PROPERTY_CONSUMER_PID, agreementMessage.getConsumerPid())
-                .add(DSPACE_PROPERTY_PROCESS_ID, agreementMessage.getProcessId())
                 .add(DSPACE_PROPERTY_AGREEMENT, copiedPolicy)
                 .build();
     }

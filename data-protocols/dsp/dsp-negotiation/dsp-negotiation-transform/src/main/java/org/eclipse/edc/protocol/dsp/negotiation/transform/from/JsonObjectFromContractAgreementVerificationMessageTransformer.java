@@ -26,7 +26,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 /**
@@ -48,7 +47,6 @@ public class JsonObjectFromContractAgreementVerificationMessageTransformer exten
                 .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, verificationMessage.getConsumerPid())
                 .add(DSPACE_PROPERTY_PROVIDER_PID, verificationMessage.getProviderPid())
-                .add(DSPACE_PROPERTY_PROCESS_ID, verificationMessage.getProcessId())
                 .build();
     }
 }

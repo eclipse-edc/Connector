@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 /**
@@ -38,30 +37,21 @@ public class JsonObjectToContractAgreementVerificationMessageTransformer extends
     @Override
     public @Nullable ContractAgreementVerificationMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = ContractAgreementVerificationMessage.Builder.newInstance();
-        var processId = object.get(DSPACE_PROPERTY_PROCESS_ID);
         if (!transformMandatoryString(object.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
-            if (processId == null) {
-                context.problem()
-                        .missingProperty()
-                        .type(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
-                        .property(DSPACE_PROPERTY_CONSUMER_PID)
-                        .report();
-                return null;
-            } else {
-                builder.consumerPid(transformString(processId, context));
-            }
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
+                    .property(DSPACE_PROPERTY_CONSUMER_PID)
+                    .report();
+            return null;
         }
         if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROVIDER_PID), builder::providerPid, context)) {
-            if (processId == null) {
-                context.problem()
-                        .missingProperty()
-                        .type(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
-                        .property(DSPACE_PROPERTY_PROVIDER_PID)
-                        .report();
-                return null;
-            } else {
-                builder.providerPid(transformString(processId, context));
-            }
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
+                    .property(DSPACE_PROPERTY_PROVIDER_PID)
+                    .report();
+            return null;
         }
 
         return builder.build();
