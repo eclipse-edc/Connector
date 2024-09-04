@@ -29,7 +29,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 
@@ -52,7 +51,6 @@ public class JsonObjectFromContractNegotiationEventMessageTransformer extends Ab
                 .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, eventMessage.getConsumerPid())
                 .add(DSPACE_PROPERTY_PROVIDER_PID, eventMessage.getProviderPid())
-                .add(DSPACE_PROPERTY_PROCESS_ID, eventMessage.getProcessId())
                 .add(DSPACE_PROPERTY_EVENT_TYPE, switch (eventMessage.getType()) {
                     case ACCEPTED -> DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
                     case FINALIZED -> DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED;

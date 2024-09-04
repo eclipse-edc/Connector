@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
@@ -45,8 +44,7 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
                 .add(ID, transferStartMessage.getId())
                 .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
                 .add(DSPACE_PROPERTY_PROVIDER_PID, transferStartMessage.getProviderPid())
-                .add(DSPACE_PROPERTY_CONSUMER_PID, transferStartMessage.getConsumerPid())
-                .add(DSPACE_PROPERTY_PROCESS_ID, transferStartMessage.getProcessId());
+                .add(DSPACE_PROPERTY_CONSUMER_PID, transferStartMessage.getConsumerPid());
 
         if (transferStartMessage.getDataAddress() != null) {
             builder.add(DSPACE_PROPERTY_DATA_ADDRESS, context.transform(transferStartMessage.getDataAddress(), JsonObject.class));

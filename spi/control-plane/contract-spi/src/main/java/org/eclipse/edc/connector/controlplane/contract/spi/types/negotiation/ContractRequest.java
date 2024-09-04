@@ -31,8 +31,6 @@ public class ContractRequest {
     public static final String CONTRACT_REQUEST_TYPE = EDC_NAMESPACE + "ContractRequest";
     public static final String CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String PROTOCOL = EDC_NAMESPACE + "protocol";
-    @Deprecated(since = "0.5.1")
-    public static final String PROVIDER_ID = EDC_NAMESPACE + "providerId";
     public static final String POLICY = EDC_NAMESPACE + "policy";
     public static final String CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
 

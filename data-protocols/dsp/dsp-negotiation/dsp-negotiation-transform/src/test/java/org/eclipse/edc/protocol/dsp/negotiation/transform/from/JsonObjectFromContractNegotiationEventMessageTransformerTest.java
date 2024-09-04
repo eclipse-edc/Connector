@@ -30,7 +30,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -50,7 +49,6 @@ class JsonObjectFromContractNegotiationEventMessageTransformerTest {
     void transform() {
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .protocol(DSP)
-                .processId("processId")
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
                 .counterPartyAddress("https://test.com")
@@ -64,7 +62,6 @@ class JsonObjectFromContractNegotiationEventMessageTransformerTest {
         assertThat(result.getString(TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE);
         assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID)).isEqualTo("providerPid");
         assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID)).isEqualTo("consumerPid");
-        assertThat(result.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
         assertThat(result.getString(DSPACE_PROPERTY_EVENT_TYPE)).isEqualTo(DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED);
 
         verify(context, never()).reportProblem(anyString());

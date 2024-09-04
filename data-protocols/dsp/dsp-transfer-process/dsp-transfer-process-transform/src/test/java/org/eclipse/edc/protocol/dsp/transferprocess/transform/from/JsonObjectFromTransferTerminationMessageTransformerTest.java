@@ -27,7 +27,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
@@ -48,7 +47,6 @@ class JsonObjectFromTransferTerminationMessageTransformerTest {
     @Test
     void transformTransferTerminationMessage() {
         var message = TransferTerminationMessage.Builder.newInstance()
-                .processId("processId")
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
                 .protocol("dsp")
@@ -62,7 +60,6 @@ class JsonObjectFromTransferTerminationMessageTransformerTest {
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE);
         assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID).getString()).isEqualTo("consumerPid");
         assertThat(result.getJsonString(DSPACE_PROPERTY_PROVIDER_PID).getString()).isEqualTo("providerPid");
-        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo("processId");
         assertThat(result.getJsonString(DSPACE_PROPERTY_CODE).getString()).isEqualTo("testCode");
         assertThat(result.getJsonString(DSPACE_PROPERTY_REASON).getString()).isEqualTo("testReason");
 

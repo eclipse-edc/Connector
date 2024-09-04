@@ -34,7 +34,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -67,7 +66,6 @@ class JsonObjectFromContractOfferMessageTransformerTest {
         var message = ContractOfferMessage.Builder.newInstance()
                 .id(MESSAGE_ID)
                 .callbackAddress(CALLBACK_ADDRESS)
-                .processId("processId")
                 .providerPid("providerPid")
                 .consumerPid("consumerPid")
                 .protocol(PROTOCOL)
@@ -88,7 +86,6 @@ class JsonObjectFromContractOfferMessageTransformerTest {
         assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER).getJsonString(ID).getString()).isEqualTo(CONTRACT_OFFER_ID);
         assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID)).isEqualTo("providerPid");
         assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID)).isEqualTo("consumerPid");
-        assertThat(result.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
 
         verify(context, never()).reportProblem(anyString());
     }

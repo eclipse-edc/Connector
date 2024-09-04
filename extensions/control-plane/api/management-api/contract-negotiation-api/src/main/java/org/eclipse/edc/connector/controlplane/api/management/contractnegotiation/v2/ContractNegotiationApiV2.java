@@ -141,7 +141,6 @@ public interface ContractNegotiationApiV2 {
             String protocol,
             @Schema(requiredMode = REQUIRED)
             String counterPartyAddress,
-            @Deprecated(since = "0.5.1")
             @Schema(deprecated = true, description = "please use policy.assigner instead")
             String providerId,
             @Schema(requiredMode = REQUIRED)

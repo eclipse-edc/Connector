@@ -25,7 +25,6 @@ public interface DspPropertyAndTypeNames {
     String DSPACE_PROPERTY_REASON = DSPACE_SCHEMA + "reason";
     String DSPACE_PROPERTY_CONSUMER_PID = DSPACE_SCHEMA + "consumerPid";
     String DSPACE_PROPERTY_PROVIDER_PID = DSPACE_SCHEMA + "providerPid";
-    @Deprecated(since = "0.5.1")
     String DSPACE_PROPERTY_PROCESS_ID = DSPACE_SCHEMA + "processId";
     String DSPACE_PROPERTY_CALLBACK_ADDRESS = DSPACE_SCHEMA + "callbackAddress";
     String DSPACE_PROPERTY_STATE = DSPACE_SCHEMA + "state";

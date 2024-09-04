@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
-    implementation(project(":extensions:data-plane:data-plane-client-embedded"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 
