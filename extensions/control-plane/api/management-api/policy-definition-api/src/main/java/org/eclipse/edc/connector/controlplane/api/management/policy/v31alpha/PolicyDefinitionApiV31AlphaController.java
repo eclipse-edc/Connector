@@ -25,6 +25,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.connector.controlplane.api.management.policy.BasePolicyDefinitionApiController;
+import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest;
 import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
@@ -32,11 +33,15 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import java.util.ArrayList;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
@@ -99,6 +104,28 @@ public class PolicyDefinitionApiV31AlphaController extends BasePolicyDefinitionA
         var validationResult = new PolicyValidationResult(result.succeeded(), messages);
 
         return transformerRegistry.transform(validationResult, JsonObject.class)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
+    }
+
+    @POST
+    @Path("{id}/evaluationplan")
+    @Override
+    public JsonObject createExecutionPlaneV3(@PathParam("id") String id, JsonObject request) {
+
+        validatorRegistry.validate(EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE, request).orElseThrow(ValidationFailureException::new);
+
+        var planeRequest = transformerRegistry.transform(request, PolicyEvaluationPlanRequest.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        var definition = service.findById(id);
+        if (definition == null) {
+            throw new ObjectNotFoundException(PolicyDefinition.class, id);
+        }
+
+        var plan = service.createEvaluationPlan(planeRequest.policyScope(), definition.getPolicy())
+                .orElseThrow(exceptionMapper(PolicyDefinition.class, definition.getId()));
+
+        return transformerRegistry.transform(plan, JsonObject.class)
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 }

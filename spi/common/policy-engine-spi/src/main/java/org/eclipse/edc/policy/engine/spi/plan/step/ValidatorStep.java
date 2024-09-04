@@ -24,4 +24,10 @@ import java.util.function.BiFunction;
  */
 public record ValidatorStep(BiFunction<Policy, PolicyContext, Boolean> validator) {
 
+    /**
+     * Returns the name of the validator
+     */
+    public String name() {
+        return validator.getClass().getSimpleName();
+    }
 }

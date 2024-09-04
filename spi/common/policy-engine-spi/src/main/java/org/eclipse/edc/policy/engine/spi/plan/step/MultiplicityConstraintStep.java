@@ -18,22 +18,26 @@ import org.eclipse.edc.policy.model.MultiplicityConstraint;
 
 import java.util.List;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * Base evaluation step for {@link MultiplicityConstraint}. It carries the {@link MultiplicityConstraint}
  * and the collection of child {@link ConstraintStep}.
  */
 public abstract class MultiplicityConstraintStep<T extends MultiplicityConstraint> {
+    
+    public static final String EDC_MULTIPLICITY_CONSTRAINT_STEPS = EDC_NAMESPACE + "constraintSteps";
 
-    private final List<ConstraintStep> steps;
+    private final List<ConstraintStep> constraintSteps;
     private final T constraint;
 
-    public MultiplicityConstraintStep(List<ConstraintStep> steps, T constraint) {
+    public MultiplicityConstraintStep(List<ConstraintStep> constraintSteps, T constraint) {
         this.constraint = constraint;
-        this.steps = steps;
+        this.constraintSteps = constraintSteps;
     }
 
-    public List<ConstraintStep> getSteps() {
-        return steps;
+    public List<ConstraintStep> getConstraintSteps() {
+        return constraintSteps;
     }
 
     public T getConstraint() {

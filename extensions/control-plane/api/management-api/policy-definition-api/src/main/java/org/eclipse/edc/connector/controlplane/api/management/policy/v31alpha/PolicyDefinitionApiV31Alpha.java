@@ -104,11 +104,22 @@ public interface PolicyDefinitionApiV31Alpha {
     @Operation(description = "Validates an existing Policy, If the Policy is not found, an error is reported",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Returns the validation result", content = @Content(schema = @Schema(implementation = PolicyValidationResultSchema.class))),
-                    @ApiResponse(responseCode = "404", description = "policy definition could not be updated, because it does not exists",
+                    @ApiResponse(responseCode = "404", description = "policy definition could not be validated, because it does not exists",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))
             }
     )
     JsonObject validatePolicyDefinitionV3(String id);
+
+
+    @Operation(description = "Creates an execution plane for an existing Policy, If the Policy is not found, an error is reported",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PolicyEvaluationPlanRequestSchema.class))),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Returns the evaluation plan", content = @Content(schema = @Schema(implementation = PolicyEvaluationPlanSchema.class))),
+                    @ApiResponse(responseCode = "404", description = "An evaluation plan could not be created, because the policy definition does not exists",
+                            content = @Content(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))
+            }
+    )
+    JsonObject createExecutionPlaneV3(String id, JsonObject input);
 
     @Schema(name = "PolicyDefinitionInput", example = PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE)
     record PolicyDefinitionInputSchema(
@@ -194,6 +205,58 @@ public interface PolicyDefinitionApiV31Alpha {
                         "error2"
                     ]
                 }
+                """;
+    }
+
+    @Schema(name = "PolicyEvaluationPlanRequestSchema", example = PolicyEvaluationPlanRequestSchema.POLICY_EVALUATION_PLAN_REQUEST_INPUT_EXAMPLE)
+    record PolicyEvaluationPlanRequestSchema(
+            String policyScope) {
+
+        public static final String POLICY_EVALUATION_PLAN_REQUEST_INPUT_EXAMPLE = """
+                {
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@type": "PolicyEvaluationPlanRequest",
+                    "policyScope": "catalog"
+                }
+                """;
+    }
+
+    @Schema(name = "PolicyEvaluationPlanSchema", example = PolicyEvaluationPlanSchema.POLICY_EVALUATION_PLANE_OUTPUT_EXAMPLE)
+    record PolicyEvaluationPlanSchema() {
+
+        public static final String POLICY_EVALUATION_PLANE_OUTPUT_EXAMPLE = """
+                {
+                     "@type": "PolicyEvaluationPlan",
+                     "preValidators": "DcpScopeExtractorFunction",
+                     "permissionSteps": {
+                         "@type": "PermissionStep",
+                         "isFiltered": false,
+                         "filteringReasons": [],
+                         "ruleFunctions": [],
+                         "constraintSteps": {
+                             "@type": "AtomicConstraintStep",
+                             "isFiltered": true,
+                             "filteringReasons": [
+                                 "leftOperand 'MembershipCredential' is not bound to scope 'request.catalog'",
+                                 "leftOperand 'MembershipCredential' is not bound to any function within scope 'request.catalog'"
+                             ],
+                             "functionParams": [
+                                 "'MembershipCredential'",
+                                 "EQ",
+                                 "'active'"
+                             ]
+                         },
+                         "dutySteps": []
+                     },
+                     "prohibitionSteps": [],
+                     "obligationSteps": [],
+                     "postValidators": "DefaultScopeMappingFunction",
+                     "@context": {
+                         "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+                         "edc": "https://w3id.org/edc/v0.0.1/ns/",
+                         "odrl": "http://www.w3.org/ns/odrl/2/"
+                     }
+                 }
                 """;
     }
 

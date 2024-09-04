@@ -40,7 +40,7 @@ public abstract class BasePolicyDefinitionApiController {
     protected final Monitor monitor;
     protected final PolicyDefinitionService service;
     protected final TypeTransformerRegistry transformerRegistry;
-    private final JsonObjectValidatorRegistry validatorRegistry;
+    protected final JsonObjectValidatorRegistry validatorRegistry;
 
     public BasePolicyDefinitionApiController(Monitor monitor, TypeTransformerRegistry transformerRegistry,
                                              PolicyDefinitionService service, JsonObjectValidatorRegistry validatorRegistry) {

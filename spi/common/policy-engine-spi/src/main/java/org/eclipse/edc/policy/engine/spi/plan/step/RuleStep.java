@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * Base step class for {@link Rule}s evaluation. A rule can have multiple {@link ConstraintStep}
  * and {@link RuleFunctionStep} associated during the evaluation process.
@@ -27,10 +29,16 @@ import java.util.Objects;
  */
 public abstract class RuleStep<R extends Rule> {
 
+    public static final String EDC_RULE_STEP_IS_FILTERED = EDC_NAMESPACE + "isFiltered";
+    public static final String EDC_RULE_STEP_FILTERING_REASONS = EDC_NAMESPACE + "filteringReasons";
+    public static final String EDC_RULE_CONSTRAINT_STEPS = EDC_NAMESPACE + "constraintSteps";
+    public static final String EDC_RULE_FUNCTIONS = EDC_NAMESPACE + "ruleFunctions";
+
     protected R rule;
     protected boolean isFiltered = false;
 
     protected List<ConstraintStep> constraintSteps = new ArrayList<>();
+    protected List<String> filteringReasons = new ArrayList<>();
 
     protected List<RuleFunctionStep<R>> ruleFunctions = new ArrayList<>();
 
@@ -40,6 +48,10 @@ public abstract class RuleStep<R extends Rule> {
 
     public List<RuleFunctionStep<R>> getRuleFunctions() {
         return ruleFunctions;
+    }
+
+    public List<String> getFilteringReasons() {
+        return filteringReasons;
     }
 
     public boolean isFiltered() {
@@ -68,6 +80,11 @@ public abstract class RuleStep<R extends Rule> {
 
         public B filtered(boolean isFiltered) {
             ruleStep.isFiltered = isFiltered;
+            return (B) this;
+        }
+
+        public B filteringReason(String reason) {
+            ruleStep.filteringReasons.add(reason);
             return (B) this;
         }
 

@@ -240,7 +240,7 @@ class PolicyEngineImplPlannerTest {
                 var prohibition = Prohibition.Builder.newInstance().constraint(constraint).action(action).build();
 
                 Function<PolicyEvaluationPlan, List<? extends RuleStep<? extends Rule>>> permissionSteps = PolicyEvaluationPlan::getPermissionSteps;
-                Function<PolicyEvaluationPlan, List<? extends RuleStep<? extends Rule>>> dutySteps = PolicyEvaluationPlan::getDutySteps;
+                Function<PolicyEvaluationPlan, List<? extends RuleStep<? extends Rule>>> dutySteps = PolicyEvaluationPlan::getObligationSteps;
                 Function<PolicyEvaluationPlan, List<? extends RuleStep<? extends Rule>>> prohibitionSteps = PolicyEvaluationPlan::getProhibitionSteps;
 
                 var permission = Permission.Builder.newInstance().constraint(constraint).action(action).build();
@@ -275,6 +275,7 @@ class PolicyEngineImplPlannerTest {
                     .first()
                     .satisfies(permissionStep -> {
                         assertThat(permissionStep.isFiltered()).isTrue();
+                        assertThat(permissionStep.getFilteringReasons()).hasSize(1);
                         assertThat(permissionStep.getConstraintSteps()).hasSize(1)
                                 .first()
                                 .isInstanceOfSatisfying(AtomicConstraintStep.class, constraintStep -> {
@@ -388,7 +389,7 @@ class PolicyEngineImplPlannerTest {
                         assertThat(ruleStep.getConstraintSteps()).hasSize(1)
                                 .first()
                                 .isInstanceOfSatisfying(MultiplicityConstraintStep.class, constraintStep -> {
-                                    assertThat(constraintStep.getSteps()).hasSize(2);
+                                    assertThat(constraintStep.getConstraintSteps()).hasSize(2);
                                     assertThat(constraintStep.getConstraint()).isNotNull();
                                 });
                     }));
@@ -414,7 +415,7 @@ class PolicyEngineImplPlannerTest {
                 var duty = Duty.Builder.newInstance().constraint(xoneConstraint).build();
 
                 Function<PolicyEvaluationPlan, List<? extends RuleStep<? extends Rule>>> permissionSteps = PolicyEvaluationPlan::getPermissionSteps;
-                Function<PolicyEvaluationPlan, List<? extends RuleStep<? extends Rule>>> dutySteps = PolicyEvaluationPlan::getDutySteps;
+                Function<PolicyEvaluationPlan, List<? extends RuleStep<? extends Rule>>> dutySteps = PolicyEvaluationPlan::getObligationSteps;
                 Function<PolicyEvaluationPlan, List<? extends RuleStep<? extends Rule>>> prohibitionSteps = PolicyEvaluationPlan::getProhibitionSteps;
 
                 return Stream.of(

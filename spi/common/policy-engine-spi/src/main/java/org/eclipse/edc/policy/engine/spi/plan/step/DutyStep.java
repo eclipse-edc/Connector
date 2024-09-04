@@ -16,11 +16,15 @@ package org.eclipse.edc.policy.engine.spi.plan.step;
 
 import org.eclipse.edc.policy.model.Duty;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * An evaluation step for {@link Duty} rule;
  */
 public class DutyStep extends RuleStep<Duty> {
 
+    public static final String EDC_DUTY_STEP_TYPE = EDC_NAMESPACE + "DutyStep";
+    
     public static class Builder extends RuleStep.Builder<Duty, DutyStep, Builder> {
 
         private Builder() {

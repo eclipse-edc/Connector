@@ -18,12 +18,17 @@ import org.eclipse.edc.policy.model.OrConstraint;
 
 import java.util.List;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * An evaluation step for {@link OrConstraint}
  */
 public final class OrConstraintStep extends MultiplicityConstraintStep<OrConstraint> implements ConstraintStep {
 
+    public static final String EDC_OR_CONSTRAINT_STEP_TYPE = EDC_NAMESPACE + "OrConstraintStep";
+
     public OrConstraintStep(List<ConstraintStep> steps, OrConstraint constraint) {
         super(steps, constraint);
     }
+
 }

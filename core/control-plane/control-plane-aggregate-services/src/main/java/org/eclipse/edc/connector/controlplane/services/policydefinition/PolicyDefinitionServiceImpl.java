@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -31,7 +32,6 @@ import org.eclipse.edc.policy.model.OrConstraint;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.XoneConstraint;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -124,8 +124,17 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     }
 
     @Override
-    public Result<Void> validate(Policy policy) {
-        return policyEngine.validate(policy);
+    public ServiceResult<Void> validate(Policy policy) {
+        var validationResult = policyEngine.validate(policy);
+        if (validationResult.failed()) {
+            return ServiceResult.badRequest(validationResult.getFailureMessages());
+        }
+        return ServiceResult.success();
+    }
+
+    @Override
+    public ServiceResult<PolicyEvaluationPlan> createEvaluationPlan(String scope, Policy policy) {
+        return ServiceResult.success(policyEngine.createEvaluationPlan(scope, policy));
     }
 
     private List<PolicyDefinition> queryPolicyDefinitions(QuerySpec query) {

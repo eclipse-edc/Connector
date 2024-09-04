@@ -43,6 +43,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 public class PolicyDefinitionApiEndToEndTest {
 
@@ -300,6 +302,55 @@ public class PolicyDefinitionApiEndToEndTest {
                     .statusCode(200)
                     .body("isValid", is(false))
                     .body("errors.size()", is(3));
+
+        }
+
+        @Test
+        void shouldCreateEvaluationPlan(ManagementEndToEndTestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder()
+                            .add(VOCAB, EDC_NAMESPACE)
+                            .build())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", sampleOdrlPolicy())
+                    .build();
+
+            var id = context.baseRequest()
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .post("/v3/policydefinitions")
+                    .then()
+                    .statusCode(200)
+                    .extract().jsonPath().getString(ID);
+
+            var planBody = createObjectBuilder().add(CONTEXT, createObjectBuilder()
+                            .add(VOCAB, EDC_NAMESPACE)
+                            .build())
+                    .add(TYPE, "PolicyEvaluationPlanRequest")
+                    .add("policyScope", "catalog")
+                    .build();
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .body(planBody)
+                    .post("/v3.1alpha/policydefinitions/" + id + "/evaluationplan")
+                    .then()
+                    .statusCode(200)
+                    .body("preValidators.size()", is(0))
+                    .body("permissionSteps.isFiltered", is(false))
+                    .body("permissionSteps.filteringReasons.size()", is(0))
+                    .body("permissionSteps.constraintSteps.'@type'", is("AtomicConstraintStep"))
+                    .body("permissionSteps.constraintSteps.isFiltered", is(true))
+                    .body("permissionSteps.constraintSteps.filteringReasons.size()", is(2))
+                    .body("permissionSteps.constraintSteps.functionName", nullValue())
+                    .body("permissionSteps.constraintSteps.functionParams.size()", is(3))
+                    .body("prohibitionSteps.isFiltered", is(true))
+                    .body("prohibitionSteps.filteringReasons", notNullValue())
+                    .body("prohibitionSteps.constraintSteps.size()", is(0))
+                    .body("obligationSteps.isFiltered", is(false))
+                    .body("obligationSteps.filteringReasons.size()", is(0))
+                    .body("obligationSteps.constraintSteps.size()", is(0))
+                    .body("postValidators.size()", is(0));
 
         }
 

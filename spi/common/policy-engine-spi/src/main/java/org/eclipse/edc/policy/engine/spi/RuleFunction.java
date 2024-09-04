@@ -25,4 +25,11 @@ public interface RuleFunction<R extends Rule> {
      * Performs the rule evaluation.
      */
     boolean evaluate(R rule, PolicyContext context);
+    
+    /**
+     * Returns the name of the function
+     */
+    default String name() {
+        return getClass().getSimpleName();
+    }
 }

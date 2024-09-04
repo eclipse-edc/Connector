@@ -43,7 +43,6 @@ public interface DynamicAtomicConstraintFunction<R extends Rule> {
      */
     boolean canHandle(Object leftValue);
 
-
     /**
      * Performs a validation of an atomic constraint
      *
@@ -55,6 +54,13 @@ public interface DynamicAtomicConstraintFunction<R extends Rule> {
      */
     default Result<Void> validate(Object leftValue, Operator operator, Object rightValue, R rule) {
         return Result.success();
+    }
+
+    /**
+     * Returns the name of the function
+     */
+    default String name() {
+        return getClass().getSimpleName();
     }
 
 }
