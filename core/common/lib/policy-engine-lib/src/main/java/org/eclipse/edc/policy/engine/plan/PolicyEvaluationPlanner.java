@@ -28,8 +28,9 @@ import org.eclipse.edc.policy.engine.spi.plan.step.PermissionStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.ProhibitionStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.RuleFunctionStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.RuleStep;
-import org.eclipse.edc.policy.engine.spi.plan.step.ValidatorStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.XoneConstraintStep;
+import org.eclipse.edc.policy.engine.validation.PolicyPostValidator;
+import org.eclipse.edc.policy.engine.validation.PolicyPreValidator;
 import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -51,7 +52,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.policy.engine.PolicyEngineImpl.scopeFilter;
@@ -59,8 +59,8 @@ import static org.eclipse.edc.policy.engine.PolicyEngineImpl.scopeFilter;
 public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationPlan>, Rule.Visitor<RuleStep<? extends Rule>>, Constraint.Visitor<ConstraintStep> {
 
     private final Stack<Rule> ruleContext = new Stack<>();
-    private final List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
-    private final List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
+    private final List<PolicyPreValidator> preValidators = new ArrayList<>();
+    private final List<PolicyPostValidator> postValidators = new ArrayList<>();
     private final Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
     private final List<DynamicAtomicConstraintFunctionEntry<Rule>> dynamicConstraintFunctions = new ArrayList<>();
     private final List<RuleFunctionFunctionEntry<Rule>> ruleFunctions = new ArrayList<>();
@@ -106,8 +106,8 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
 
         var builder = PolicyEvaluationPlan.Builder.newInstance();
 
-        preValidators.stream().map(ValidatorStep::new).forEach(builder::preValidator);
-        postValidators.stream().map(ValidatorStep::new).forEach(builder::postValidator);
+        preValidators.stream().map(PolicyPreValidator::getValidator).forEach(builder::preValidator);
+        postValidators.stream().map(PolicyPostValidator::getValidator).forEach(builder::postValidator);
 
         policy.getPermissions().stream().map(permission -> permission.accept(this))
                 .map(PermissionStep.class::cast)
@@ -253,7 +253,7 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
             return this;
         }
 
-        public Builder preValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
+        public Builder preValidator(String scope, PolicyPreValidator validator) {
 
             if (scopeFilter(scope, planner.delimitedScope)) {
                 planner.preValidators.add(validator);
@@ -262,19 +262,19 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
             return this;
         }
 
-        public Builder preValidators(String scope, List<BiFunction<Policy, PolicyContext, Boolean>> validators) {
+        public Builder preValidators(String scope, List<PolicyPreValidator> validators) {
             validators.forEach(validator -> preValidator(scope, validator));
             return this;
         }
 
-        public Builder postValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
+        public Builder postValidator(String scope, PolicyPostValidator validator) {
             if (scopeFilter(scope, planner.delimitedScope)) {
                 planner.postValidators.add(validator);
             }
             return this;
         }
 
-        public Builder postValidators(String scope, List<BiFunction<Policy, PolicyContext, Boolean>> validators) {
+        public Builder postValidators(String scope, List<PolicyPostValidator> validators) {
             validators.forEach(validator -> postValidator(scope, validator));
             return this;
         }
