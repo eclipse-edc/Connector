@@ -17,11 +17,15 @@ package org.eclipse.edc.policy.engine.spi.plan.step;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import org.eclipse.edc.policy.model.Prohibition;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * An evaluation step for {@link Prohibition} rule;
  */
 public class ProhibitionStep extends RuleStep<Prohibition> {
 
+    public static final String EDC_PROHIBITION_STEP_TYPE = EDC_NAMESPACE + "ProhibitionStep";
+    
     public static class Builder extends RuleStep.Builder<Prohibition, ProhibitionStep, Builder> {
 
         private Builder() {

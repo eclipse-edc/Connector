@@ -18,11 +18,15 @@ import org.eclipse.edc.policy.model.AndConstraint;
 
 import java.util.List;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * An evaluation step for {@link AndConstraint}
  */
 public final class AndConstraintStep extends MultiplicityConstraintStep<AndConstraint> implements ConstraintStep {
 
+    public static final String EDC_AND_CONSTRAINT_STEP_TYPE = EDC_NAMESPACE + "AndConstraintStep";
+    
     public AndConstraintStep(List<ConstraintStep> steps, AndConstraint constraint) {
         super(steps, constraint);
     }

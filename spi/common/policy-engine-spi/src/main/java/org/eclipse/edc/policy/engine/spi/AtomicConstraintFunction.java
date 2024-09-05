@@ -34,8 +34,7 @@ public interface AtomicConstraintFunction<R extends Rule> {
      * @param context    the policy context
      */
     boolean evaluate(Operator operator, Object rightValue, R rule, PolicyContext context);
-
-
+    
     /**
      * Performs a validation of an atomic constraint
      *
@@ -46,5 +45,12 @@ public interface AtomicConstraintFunction<R extends Rule> {
      */
     default Result<Void> validate(Operator operator, Object rightValue, R rule) {
         return Result.success();
+    }
+
+    /**
+     * Returns the name of the function
+     */
+    default String name() {
+        return getClass().getSimpleName();
     }
 }

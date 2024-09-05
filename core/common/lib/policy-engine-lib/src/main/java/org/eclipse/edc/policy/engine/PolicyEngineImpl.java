@@ -156,8 +156,7 @@ public class PolicyEngineImpl implements PolicyEngine {
 
     @Override
     public PolicyEvaluationPlan createEvaluationPlan(String scope, Policy policy) {
-        var delimitedScope = scope + DELIMITER;
-        var planner = PolicyEvaluationPlanner.Builder.newInstance(delimitedScope).ruleValidator(ruleValidator);
+        var planner = PolicyEvaluationPlanner.Builder.newInstance(scope).ruleValidator(ruleValidator);
 
         preValidators.forEach(planner::preValidators);
         postValidators.forEach(planner::postValidators);

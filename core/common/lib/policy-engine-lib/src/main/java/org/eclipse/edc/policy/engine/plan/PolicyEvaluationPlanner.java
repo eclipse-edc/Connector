@@ -55,6 +55,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.policy.engine.PolicyEngineImpl.scopeFilter;
+import static org.eclipse.edc.policy.engine.spi.PolicyEngine.DELIMITER;
 
 public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationPlan>, Rule.Visitor<RuleStep<? extends Rule>>, Constraint.Visitor<ConstraintStep> {
 
@@ -65,11 +66,13 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
     private final List<DynamicAtomicConstraintFunctionEntry<Rule>> dynamicConstraintFunctions = new ArrayList<>();
     private final List<RuleFunctionFunctionEntry<Rule>> ruleFunctions = new ArrayList<>();
     private final String delimitedScope;
+    private final String scope;
 
     private RuleValidator ruleValidator;
 
-    private PolicyEvaluationPlanner(String delimitedScope) {
-        this.delimitedScope = delimitedScope;
+    private PolicyEvaluationPlanner(String scope) {
+        this.scope = scope;
+        this.delimitedScope = scope + DELIMITER;
     }
 
     @Override
@@ -96,9 +99,18 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
         var currentRule = currentRule();
         var leftValue = constraint.getLeftExpression().accept(s -> s.getValue().toString());
         var function = getFunctions(leftValue, currentRule.getClass());
-        var isFiltered = !ruleValidator.isInScope(leftValue, delimitedScope) || function == null;
 
-        return new AtomicConstraintStep(constraint, isFiltered, currentRule, function);
+        var filteringReasons = new ArrayList<String>();
+
+        if (!ruleValidator.isInScope(leftValue, delimitedScope)) {
+            filteringReasons.add("leftOperand '%s' is not bound to scope '%s'".formatted(leftValue, scope));
+        }
+
+        if (function == null) {
+            filteringReasons.add("leftOperand '%s' is not bound to any function within scope '%s'".formatted(leftValue, scope));
+        }
+
+        return new AtomicConstraintStep(constraint, filteringReasons, currentRule, function);
     }
 
     @Override
@@ -115,7 +127,7 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
 
         policy.getObligations().stream().map(obligation -> obligation.accept(this))
                 .map(DutyStep.class::cast)
-                .forEach(builder::obligation);
+                .forEach(builder::duty);
 
         policy.getProhibitions().stream().map(permission -> permission.accept(this))
                 .map(ProhibitionStep.class::cast)
@@ -169,7 +181,11 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
 
         try {
             ruleContext.push(rule);
-            builder.filtered(shouldIgnoreRule(rule));
+
+            if (rule.getAction() != null && !ruleValidator.isBounded(rule.getAction().getType())) {
+                builder.filtered(true);
+                builder.filteringReason("action '%s' is not bound to scope '%s'".formatted(rule.getAction().getType(), scope));
+            }
             builder.rule(rule);
 
             for (var functionEntry : ruleFunctions) {
@@ -190,10 +206,6 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
 
     private Rule currentRule() {
         return ruleContext.peek();
-    }
-
-    private boolean shouldIgnoreRule(Rule rule) {
-        return rule.getAction() != null && !ruleValidator.isBounded(rule.getAction().getType());
     }
 
     private List<ConstraintStep> validateMultiplicityConstraint(MultiplicityConstraint multiplicityConstraint) {
@@ -234,6 +246,11 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
         @Override
         public Result<Void> validate(Operator operator, Object rightValue, R rule) {
             return inner.validate(leftOperand, operator, rightValue, rule);
+        }
+
+        @Override
+        public String name() {
+            return inner.name();
         }
     }
 

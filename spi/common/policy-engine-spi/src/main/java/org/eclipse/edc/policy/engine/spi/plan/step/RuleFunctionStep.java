@@ -22,4 +22,10 @@ import org.eclipse.edc.policy.model.Rule;
  */
 public record RuleFunctionStep<R extends Rule>(RuleFunction<R> function, R rule) {
 
+    /**
+     * Returns the {@link RuleFunction#name()}
+     */
+    public String functionName() {
+        return function.name();
+    }
 }

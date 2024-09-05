@@ -18,13 +18,42 @@ import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Rule;
 
+import java.util.List;
+import java.util.Optional;
+
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * An evaluation step for {@link AtomicConstraint}.
  * <p>
  * The {@link AtomicConstraintStep} should be considered filtered when the left expression is not bound to a
  * scope or an evaluation function {@link AtomicConstraintFunction}
  */
-public record AtomicConstraintStep(AtomicConstraint constraint, boolean isFiltered, Rule rule,
+public record AtomicConstraintStep(AtomicConstraint constraint,
+                                   List<String> filteringReasons,
+                                   Rule rule,
                                    AtomicConstraintFunction<? extends Rule> function) implements ConstraintStep {
 
+    public static final String EDC_ATOMIC_CONSTRAINT_STEP_TYPE = EDC_NAMESPACE + "AtomicConstraintStep";
+    public static final String EDC_ATOMIC_CONSTRAINT_STEP_IS_FILTERED = EDC_NAMESPACE + "isFiltered";
+    public static final String EDC_ATOMIC_CONSTRAINT_STEP_FILTERING_REASONS = EDC_NAMESPACE + "filteringReasons";
+    public static final String EDC_ATOMIC_CONSTRAINT_STEP_FUNCTION_NAME = EDC_NAMESPACE + "functionName";
+    public static final String EDC_ATOMIC_CONSTRAINT_STEP_FUNCTION_PARAMS = EDC_NAMESPACE + "functionParams";
+
+    public boolean isFiltered() {
+        return !filteringReasons.isEmpty();
+    }
+
+    public String functionName() {
+        return Optional.ofNullable(function)
+                .map(AtomicConstraintFunction::name)
+                .orElse(null);
+    }
+
+    public List<String> functionParams() {
+        return List.of(
+                constraint.getLeftExpression().toString(),
+                constraint.getOperator().toString(),
+                constraint.getRightExpression().toString());
+    }
 }

@@ -19,11 +19,16 @@ import org.eclipse.edc.policy.model.Permission;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * An evaluation step for {@link Permission} rule;
  */
 public class PermissionStep extends RuleStep<Permission> {
-    
+
+    public static final String EDC_PERMISSION_STEP_TYPE = EDC_NAMESPACE + "PermissionStep";
+    public static final String EDC_PERMISSION_STEP_DUTY_STEPS = EDC_NAMESPACE + "dutySteps";
+
     private final List<DutyStep> dutySteps = new ArrayList<>();
 
     public List<DutyStep> getDutySteps() {
