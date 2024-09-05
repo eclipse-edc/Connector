@@ -1739,6 +1739,41 @@ paths:
                 example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v3.1alpha/policydefinitions/{id}/evaluationplan:
+    post:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: "Creates an execution plane for an existing Policy, If the Policy\
+        \ is not found, an error is reported"
+      operationId: createExecutionPlaneV3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyEvaluationPlanRequestSchema"
+      responses:
+        "200":
+          description: Returns the evaluation plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyEvaluationPlanSchema"
+        "404":
+          description: "An evaluation plan could not be created, because the policy\
+            \ definition does not exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorDetail"
   /v3.1alpha/policydefinitions/{id}/validate:
     post:
       tags:
@@ -1763,8 +1798,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/PolicyValidationResultSchema"
         "404":
-          description: "policy definition could not be updated, because it does not\
-            \ exists"
+          description: "policy definition could not be validated, because it does\
+            \ not exists"
           content:
             application/json:
               schema:
@@ -4119,6 +4154,46 @@ components:
               rightOperand: https://www.wikidata.org/wiki/Q183
               comment: i.e Germany
         createdAt: 1688465655
+    PolicyEvaluationPlanRequestSchema:
+      type: object
+      properties:
+        policyScope:
+          type: string
+          example: null
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': PolicyEvaluationPlanRequest
+        policyScope: catalog
+    PolicyEvaluationPlanSchema:
+      type: object
+      example:
+        '@type': PolicyEvaluationPlan
+        preValidators: DcpScopeExtractorFunction
+        permissionSteps:
+          '@type': PermissionStep
+          isFiltered: false
+          filteringReasons: []
+          ruleFunctions: []
+          constraintSteps:
+            '@type': AtomicConstraintStep
+            isFiltered: true
+            filteringReasons:
+            - leftOperand 'MembershipCredential' is not bound to scope 'request.catalog'
+            - leftOperand 'MembershipCredential' is not bound to any function within
+              scope 'request.catalog'
+            functionParams:
+            - '''MembershipCredential'''
+            - EQ
+            - '''active'''
+          dutySteps: []
+        prohibitionSteps: []
+        obligationSteps: []
+        postValidators: DefaultScopeMappingFunction
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+          edc: https://w3id.org/edc/v0.0.1/ns/
+          odrl: http://www.w3.org/ns/odrl/2/
     PolicyValidationResultSchema:
       type: object
       properties:
