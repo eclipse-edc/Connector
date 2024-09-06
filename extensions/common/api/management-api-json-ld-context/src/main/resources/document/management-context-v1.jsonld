@@ -36,6 +36,16 @@
     "SuspendTransfer": "edc:SuspendTransfer",
     "Secret": "edc:Secret",
     "EndpointDataReferenceEntry": "edc:EndpointDataReferenceEntry",
+    "PolicyValidationResult": "edc:PolicyValidationResult",
+    "PolicyEvaluationPlanRequest": "edc:PolicyEvaluationPlanRequest",
+    "PolicyEvaluationPlan": "edc:PolicyEvaluationPlan",
+    "PermissionStep": "edc:PermissionStep",
+    "ProhibitionStep": "edc:ProhibitionStep",
+    "DutyStep": "edc:DutyStep",
+    "OrConstraintStep": "edc:OrConstraintStep",
+    "AndConstraintStep": "edc:AndConstraintStep",
+    "XoneConstraintStep": "edc:XoneConstraintStep",
+    "AtomicConstraintStep": "edc:AtomicConstraintStep",
     "properties": {
       "@id": "edc:properties",
       "@context": {
@@ -111,6 +121,54 @@
     "transferProcessId": "edc:transferProcessId",
     "contractNegotiationId": "edc:contractNegotiationId",
     "agreementId": "edc:agreementId",
-    "inForceDate": "edc:inForceDate"
+    "inForceDate": "edc:inForceDate",
+    "isValid": "edc:isValid",
+    "errors": {
+      "@id": "edc:errors",
+      "@container": "@set"
+    },
+    "policyScope": "edc:policyScope",
+    "preValidators": {
+      "@id": "edc:preValidators",
+      "@container": "@set"
+    },
+    "postValidators": {
+      "@id": "edc:postValidators",
+      "@container": "@set"
+    },
+    "permissionSteps": {
+      "@id": "edc:permissionSteps",
+      "@container": "@set"
+    },
+    "prohibitionSteps": {
+      "@id": "edc:prohibitionSteps",
+      "@container": "@set"
+    },
+    "obligationSteps": {
+      "@id": "edc:obligationSteps",
+      "@container": "@set"
+    },
+    "constraintSteps": {
+      "@id": "edc:constraintSteps",
+      "@container": "@set"
+    },
+    "filteringReasons": {
+      "@id": "edc:filteringReasons",
+      "@container": "@set"
+    },
+    "isFiltered": "edc:isFiltered",
+    "functionName": "edc:functionName",
+    "functionParams": {
+      "@id": "edc:functionParams",
+      "@container": "@set"
+    },
+    "dutySteps": {
+      "@id": "edc:dutySteps",
+      "@container": "@set"
+    },
+    "ruleFunctions": {
+      "@id": "edc:ruleFunctions",
+      "@container": "@set"
+    }
   }
 }
