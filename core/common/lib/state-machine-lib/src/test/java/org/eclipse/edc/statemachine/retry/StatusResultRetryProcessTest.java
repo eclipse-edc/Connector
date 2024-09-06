@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.statemachine.retry;
 
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -29,8 +30,11 @@ import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class StatusResultRetryProcessTest {
@@ -92,5 +96,20 @@ class StatusResultRetryProcessTest {
         retryProcess.onFailure(onFailure).execute("any");
 
         verify(onFailure).accept(entity, statusResult.getFailure());
+    }
+
+
+    @Test
+    void shouldCallFatalError_whenExceptionIsThrown() {
+        when(process.get()).thenThrow(new EdcException("code throws an exception"));
+        var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).clock(clock).build();
+        var retryProcess = new StatusResultRetryProcess<>(entity, process, mock(Monitor.class), clock, configuration);
+
+        var result = retryProcess.onSuccess(onSuccess).onFatalError(onFatalError).execute("any");
+
+        assertThat(result).isTrue();
+        verify(process).get();
+        verify(onFatalError).accept(same(entity), any());
+        verifyNoInteractions(onSuccess);
     }
 }
