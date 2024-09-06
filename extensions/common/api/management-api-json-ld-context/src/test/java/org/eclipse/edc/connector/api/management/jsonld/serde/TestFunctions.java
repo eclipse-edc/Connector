@@ -100,6 +100,16 @@ public class TestFunctions {
                 .build();
     }
 
+    public static JsonObject dataAddressObject() {
+        return createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, "DataAddress")
+                .add("type", "address-type")
+                .add("propertyOne", "foo")
+                .add("propertyTwo", "bar")
+                .build();
+    }
+
     public static JsonObject contractDefinitionObject() {
         var criterion = Json.createObjectBuilder()
                 .add(TYPE, "Criterion")
@@ -163,11 +173,17 @@ public class TestFunctions {
     }
 
     public static JsonObject transferRequestObject() {
-        var propertiesJson = Json.createObjectBuilder().add("foo", "bar").build();
-        var privatePropertiesJson = Json.createObjectBuilder().add("fooPrivate", "bar").build();
         var dataDestination = createObjectBuilder()
                 .add(TYPE, "DataAddress")
                 .add("type", "type").build();
+
+        return transferRequestObject(dataDestination);
+    }
+
+    public static JsonObject transferRequestObject(JsonObject dataDestination) {
+        var propertiesJson = Json.createObjectBuilder().add("foo", "bar").build();
+        var privatePropertiesJson = Json.createObjectBuilder().add("fooPrivate", "bar").build();
+
 
         return createObjectBuilder()
                 .add(TYPE, "TransferRequest")
@@ -180,6 +196,7 @@ public class TestFunctions {
                 .add("privateProperties", privatePropertiesJson)
                 .add("protocol", "protocol")
                 .add("callbackAddresses", createCallbackAddress())
+                .add("transferType", "myTransferType")
                 .build();
     }
 
