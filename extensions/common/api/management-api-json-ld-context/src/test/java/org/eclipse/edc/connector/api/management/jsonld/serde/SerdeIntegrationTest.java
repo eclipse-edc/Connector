@@ -17,7 +17,10 @@ package org.eclipse.edc.connector.api.management.jsonld.serde;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
+import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest;
+import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState;
@@ -54,8 +57,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,9 +75,11 @@ import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunction
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createContractAgreement;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createContractNegotiation;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createEdrEntry;
+import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createPolicyEvaluationPlan;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.inForceDatePermission;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.policyDefinitionObject;
+import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.policyEvaluationPlanRequest;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.querySpecObject;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.secretObject;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.suspendTransferObject;
@@ -209,6 +217,62 @@ public class SerdeIntegrationTest {
     }
 
     @Test
+    void ser_PolicyValidationResult() {
+        var result = new PolicyValidationResult(false, List.of("error1", "error2"));
+        var compactResult = serialize(result);
+
+        assertThat(compactResult).isNotNull();
+        assertThat(compactResult.getString(TYPE)).isEqualTo("PolicyValidationResult");
+        assertThat(compactResult.getBoolean("isValid")).isEqualTo(false);
+        assertThat(compactResult.getJsonArray("errors")).contains(Json.createValue("error1"), Json.createValue("error2"));
+
+    }
+
+    @Test
+    void ser_PolicyEvaluationPlan() {
+        var plan = createPolicyEvaluationPlan();
+        var compactResult = serialize(plan);
+
+        assertThat(compactResult).isNotNull();
+        assertThat(compactResult.getString(TYPE)).isEqualTo("PolicyEvaluationPlan");
+        assertThat(compactResult.getJsonArray("preValidators")).hasSize(1);
+        assertThat(compactResult.getJsonArray("postValidators")).hasSize(1);
+
+
+        BiFunction<String, String, Consumer<JsonValue>> ruleAsser = (ruleType, multiplicityType) -> (ruleValue) -> {
+            var rule = ruleValue.asJsonObject();
+            assertThat(rule.getString(TYPE)).isEqualTo(ruleType);
+            assertThat(rule.getJsonArray("ruleFunctions")).hasSize(0);
+            assertThat(rule.getJsonArray("constraintSteps")).hasSize(1);
+
+            var constraint = rule.getJsonArray("constraintSteps").get(0).asJsonObject();
+            assertThat(constraint.getString(TYPE)).isEqualTo(multiplicityType);
+            assertThat(constraint.getJsonArray("constraintSteps")).hasSize(2)
+                    .allSatisfy(value -> {
+                        var atomicConstraint = value.asJsonObject();
+                        assertThat(atomicConstraint.getString(TYPE)).isEqualTo("AtomicConstraintStep");
+                        assertThat(atomicConstraint.getJsonArray("filteringReasons")).hasSize(1);
+                        assertThat(atomicConstraint.getBoolean("isFiltered")).isTrue();
+                        assertThat(atomicConstraint.getString("functionName")).isEqualTo("AtomicConstraintFunction");
+                        assertThat(atomicConstraint.getJsonArray("functionParams")).hasSize(3);
+                    });
+        };
+
+        assertThat(compactResult.getJsonArray("permissionSteps")).hasSize(1)
+                .first()
+                .satisfies(ruleAsser.apply("PermissionStep", "OrConstraintStep"));
+
+        assertThat(compactResult.getJsonArray("prohibitionSteps")).hasSize(1)
+                .first()
+                .satisfies(ruleAsser.apply("ProhibitionStep", "AndConstraintStep"));
+
+        assertThat(compactResult.getJsonArray("obligationSteps")).hasSize(1)
+                .first()
+                .satisfies(ruleAsser.apply("DutyStep", "XoneConstraintStep"));
+
+    }
+
+    @Test
     void de_ContractRequest() {
         var inputObject = contractRequestObject();
         var request = deserialize(inputObject, ContractRequest.class);
@@ -290,6 +354,16 @@ public class SerdeIntegrationTest {
         assertThat(terminateTransfer).isNotNull();
         assertThat(terminateTransfer.getPolicy().getPermissions().get(0).getConstraints())
                 .usingRecursiveFieldByFieldElementComparator().containsOnly(andConstraint);
+
+    }
+
+    @Test
+    void de_PolicyEvaluationPlanRequest() {
+        var inputObject = policyEvaluationPlanRequest();
+        var terminateTransfer = deserialize(inputObject, PolicyEvaluationPlanRequest.class);
+
+        assertThat(terminateTransfer).isNotNull();
+        assertThat(terminateTransfer.policyScope()).isEqualTo(inputObject.getString("policyScope"));
 
     }
 

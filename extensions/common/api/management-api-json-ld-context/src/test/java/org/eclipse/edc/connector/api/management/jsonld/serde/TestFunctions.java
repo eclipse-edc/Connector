@@ -22,7 +22,21 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
+import org.eclipse.edc.policy.engine.spi.plan.step.AndConstraintStep;
+import org.eclipse.edc.policy.engine.spi.plan.step.AtomicConstraintStep;
+import org.eclipse.edc.policy.engine.spi.plan.step.ConstraintStep;
+import org.eclipse.edc.policy.engine.spi.plan.step.DutyStep;
+import org.eclipse.edc.policy.engine.spi.plan.step.OrConstraintStep;
+import org.eclipse.edc.policy.engine.spi.plan.step.PermissionStep;
+import org.eclipse.edc.policy.engine.spi.plan.step.ProhibitionStep;
+import org.eclipse.edc.policy.engine.spi.plan.step.ValidatorStep;
+import org.eclipse.edc.policy.engine.spi.plan.step.XoneConstraintStep;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
@@ -42,10 +56,13 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.policy.model.Operator.EQ;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestFunctions {
 
@@ -225,6 +242,30 @@ public class TestFunctions {
                 .build();
     }
 
+    public static PolicyEvaluationPlan createPolicyEvaluationPlan() {
+
+        var firstConstraint = atomicConstraintStep(atomicConstraint("foo", "bar"));
+        var secondConstraint = atomicConstraintStep(atomicConstraint("baz", "bar"));
+
+        List<ConstraintStep> constraints = List.of(firstConstraint, secondConstraint);
+
+        var orConstraintStep = new OrConstraintStep(constraints, mock());
+        var andConstraintStep = new AndConstraintStep(constraints, mock());
+        var xoneConstraintStep = new XoneConstraintStep(constraints, mock());
+
+        var permission = PermissionStep.Builder.newInstance().constraint(orConstraintStep).rule(mock()).build();
+        var duty = DutyStep.Builder.newInstance().constraint(xoneConstraintStep).rule(mock()).build();
+        var prohibition = ProhibitionStep.Builder.newInstance().constraint(andConstraintStep).rule(mock()).build();
+
+        return PolicyEvaluationPlan.Builder.newInstance()
+                .postValidator(new ValidatorStep(mock()))
+                .prohibition(prohibition)
+                .permission(permission)
+                .duty(duty)
+                .preValidator(new ValidatorStep(mock()))
+                .build();
+    }
+
     public static JsonObject policyDefinitionObject() {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
@@ -310,6 +351,30 @@ public class TestFunctions {
                                 .add(atomicConstraint("inForceDate", operatorEnd, endDate))
                                 .build())
                         .build())
+                .build();
+    }
+
+    public static JsonObject policyEvaluationPlanRequest() {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, "PolicyEvaluationPlanRequest")
+                .add("policyScope", "catalog")
+                .build();
+    }
+
+    private static AtomicConstraintStep atomicConstraintStep(AtomicConstraint atomicConstraint) {
+        AtomicConstraintFunction<Rule> function = mock();
+        when(function.name()).thenReturn("AtomicConstraintFunction");
+        return new AtomicConstraintStep(atomicConstraint, List.of("filtered constraint"), mock(), function);
+    }
+
+    private static AtomicConstraint atomicConstraint(String key, String value) {
+        var left = new LiteralExpression(key);
+        var right = new LiteralExpression(value);
+        return AtomicConstraint.Builder.newInstance()
+                .leftExpression(left)
+                .operator(EQ)
+                .rightExpression(right)
                 .build();
     }
 }
