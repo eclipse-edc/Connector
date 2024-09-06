@@ -24,6 +24,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * Provides retry capabilities to a synchronous process that returns a {@link StatusResult} object
@@ -45,7 +46,13 @@ public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends Re
     @Override
     boolean process(E entity, String description) {
         monitor.debug(format("%s: ID %s. %s", entity.getClass().getSimpleName(), entity.getId(), description));
-        var result = process.get();
+
+        StatusResult<C> result;
+        try {
+            result = process.get();
+        } catch (Exception e) {
+            result = StatusResult.failure(FATAL_ERROR, "Unexpected exception thrown %s: %s".formatted(e, e.getMessage()));
+        }
 
         handleResult(entity, description, result);
 
