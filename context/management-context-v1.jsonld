@@ -7,7 +7,8 @@
     "DataAddress": {
       "@id": "edc:DataAddress",
       "@context": {
-        "type": "edc:type"
+        "type": "edc:type",
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
       }
     },
     "ContractDefinition": "edc:ContractDefinition",
@@ -114,7 +115,13 @@
     "consumerId": "edc:consumerId",
     "contractSigningDate": "edc:contractSigningDate",
     "contractId": "edc:contractId",
-    "dataDestination": "edc:dataDestination",
+    "dataDestination": {
+      "@id": "edc:dataDestination",
+      "@context": {
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+      }
+    },
+    "transferType": "edc:transferType",
     "correlationId": "edc:correlationId",
     "stateTimestamp": "edc:stateTimestamp",
     "value": "edc:value",
