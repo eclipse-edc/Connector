@@ -15,6 +15,7 @@
 package org.eclipse.edc.policy.engine;
 
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
@@ -38,6 +39,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -211,6 +213,25 @@ class PolicyEngineImplTest {
         policyEngine.registerFunction("foo", Permission.class, (rule, ctx) -> Assertions.fail("Foo permission should be out of scope"));
         policyEngine.registerFunction("bar", Permission.class, (rule, ctx) -> rule.getAction().getType().equals(action.getType()));
         assertThat(policyEngine.evaluate("bar", policy, context).succeeded()).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void validateAllScopesPrePostFunctionalValidator(boolean preValidation) {
+        bindingRegistry.bind("foo", ALL_SCOPES);
+
+        BiFunction<Policy, PolicyContext, Boolean> function = (policy, context) -> false;
+        if (preValidation) {
+            policyEngine.registerPreValidator(ALL_SCOPES, function);
+        } else {
+            policyEngine.registerPostValidator(ALL_SCOPES, function);
+        }
+        var policy = Policy.Builder.newInstance().build();
+        var context = PolicyContextImpl.Builder.newInstance().build();
+
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+
+        assertThat(result).isFailed();
     }
 
     @ParameterizedTest

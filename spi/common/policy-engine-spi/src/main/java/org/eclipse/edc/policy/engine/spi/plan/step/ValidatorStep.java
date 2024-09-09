@@ -14,20 +14,17 @@
 
 package org.eclipse.edc.policy.engine.spi.plan.step;
 
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
-import org.eclipse.edc.policy.model.Policy;
-
-import java.util.function.BiFunction;
+import org.eclipse.edc.policy.engine.spi.PolicyValidatorFunction;
 
 /**
  * An evaluation step for pre- and post-validators invoked during the evaluation process.
  */
-public record ValidatorStep(BiFunction<Policy, PolicyContext, Boolean> validator) {
+public record ValidatorStep(PolicyValidatorFunction validator) {
 
     /**
      * Returns the name of the validator
      */
     public String name() {
-        return validator.getClass().getSimpleName();
+        return validator.name();
     }
 }

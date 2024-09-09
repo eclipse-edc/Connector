@@ -17,6 +17,7 @@ package org.eclipse.edc.policy.engine.plan;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.engine.spi.PolicyValidatorFunction;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AndConstraintStep;
@@ -51,7 +52,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.policy.engine.PolicyEngineImpl.scopeFilter;
@@ -60,8 +60,8 @@ import static org.eclipse.edc.policy.engine.spi.PolicyEngine.DELIMITER;
 public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationPlan>, Rule.Visitor<RuleStep<? extends Rule>>, Constraint.Visitor<ConstraintStep> {
 
     private final Stack<Rule> ruleContext = new Stack<>();
-    private final List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
-    private final List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
+    private final List<PolicyValidatorFunction> preValidators = new ArrayList<>();
+    private final List<PolicyValidatorFunction> postValidators = new ArrayList<>();
     private final Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
     private final List<DynamicAtomicConstraintFunctionEntry<Rule>> dynamicConstraintFunctions = new ArrayList<>();
     private final List<RuleFunctionFunctionEntry<Rule>> ruleFunctions = new ArrayList<>();
@@ -270,7 +270,7 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
             return this;
         }
 
-        public Builder preValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
+        public Builder preValidator(String scope, PolicyValidatorFunction validator) {
 
             if (scopeFilter(scope, planner.delimitedScope)) {
                 planner.preValidators.add(validator);
@@ -279,19 +279,19 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
             return this;
         }
 
-        public Builder preValidators(String scope, List<BiFunction<Policy, PolicyContext, Boolean>> validators) {
+        public Builder preValidators(String scope, List<PolicyValidatorFunction> validators) {
             validators.forEach(validator -> preValidator(scope, validator));
             return this;
         }
 
-        public Builder postValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
+        public Builder postValidator(String scope, PolicyValidatorFunction validator) {
             if (scopeFilter(scope, planner.delimitedScope)) {
                 planner.postValidators.add(validator);
             }
             return this;
         }
 
-        public Builder postValidators(String scope, List<BiFunction<Policy, PolicyContext, Boolean>> validators) {
+        public Builder postValidators(String scope, List<PolicyValidatorFunction> validators) {
             validators.forEach(validator -> postValidator(scope, validator));
             return this;
         }

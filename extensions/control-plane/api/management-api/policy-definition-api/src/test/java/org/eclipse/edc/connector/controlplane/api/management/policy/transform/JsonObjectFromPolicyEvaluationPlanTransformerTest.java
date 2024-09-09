@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.api.management.policy.transform;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.PolicyValidatorFunction;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AndConstraintStep;
@@ -73,7 +74,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class JsonObjectFromPolicyEvaluationPlanTransformerTest {
-    
+
     private final JsonObjectFromPolicyEvaluationPlanTransformer transformer = new JsonObjectFromPolicyEvaluationPlanTransformer(Json.createBuilderFactory(emptyMap()));
     private final TransformerContext context = mock(TransformerContext.class);
 
@@ -132,7 +133,10 @@ public class JsonObjectFromPolicyEvaluationPlanTransformerTest {
     @Test
     void transform_withValidators() {
 
-        var validator = new ValidatorStep(mock());
+        var validatorFunction = mock(PolicyValidatorFunction.class);
+        when(validatorFunction.name()).thenReturn("Name");
+
+        var validator = new ValidatorStep(validatorFunction);
         var plan = PolicyEvaluationPlan.Builder.newInstance()
                 .preValidator(validator)
                 .postValidator(validator)
