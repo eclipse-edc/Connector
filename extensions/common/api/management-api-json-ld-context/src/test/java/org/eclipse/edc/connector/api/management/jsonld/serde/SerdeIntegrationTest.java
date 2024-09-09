@@ -66,6 +66,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.MANAGEMENT_API_CONTEXT;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.MANAGEMENT_API_SCOPE;
@@ -77,6 +78,7 @@ import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunction
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createEdrEntry;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createPolicyEvaluationPlan;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createTransferProcess;
+import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.dataAddressObject;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.inForceDatePermission;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.policyDefinitionObject;
 import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.policyEvaluationPlanRequest;
@@ -299,6 +301,27 @@ public class SerdeIntegrationTest {
         assertThat(transferRequest.getPrivateProperties()).containsEntry(EDC_NAMESPACE + "fooPrivate", "bar");
         assertThat(transferRequest.getProtocol()).isEqualTo(inputObject.getString("protocol"));
         assertThat(transferRequest.getCallbackAddresses()).hasSize(inputObject.getJsonArray("callbackAddresses").size());
+        assertThat(transferRequest.getTransferType()).isEqualTo(inputObject.getString("transferType"));
+    }
+
+    @Test
+    void de_TransferRequest_withoutDataAddressType() {
+        var dataDestination = createObjectBuilder()
+                .add("type", "type").build();
+
+        var inputObject = transferRequestObject(dataDestination);
+        var transferRequest = deserialize(inputObject, TransferRequest.class);
+
+        assertThat(transferRequest).isNotNull();
+        assertThat(transferRequest.getId()).isEqualTo(inputObject.getString(ID));
+        assertThat(transferRequest.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
+        assertThat(transferRequest.getContractId()).isEqualTo(inputObject.getString("contractId"));
+        assertThat(transferRequest.getDataDestination()).extracting(DataAddress::getType).isEqualTo(inputObject.getJsonObject("dataDestination").getString("type"));
+        assertThat(transferRequest.getPrivateProperties()).containsEntry(EDC_NAMESPACE + "fooPrivate", "bar");
+        assertThat(transferRequest.getProtocol()).isEqualTo(inputObject.getString("protocol"));
+        assertThat(transferRequest.getCallbackAddresses()).hasSize(inputObject.getJsonArray("callbackAddresses").size());
+        assertThat(transferRequest.getTransferType()).isEqualTo(inputObject.getString("transferType"));
+
     }
 
 
@@ -431,7 +454,8 @@ public class SerdeIntegrationTest {
                     Arguments.of(contractDefinitionObject(), ContractDefinition.class, null),
                     Arguments.of(secretObject(), Secret.class, null),
                     Arguments.of(querySpecObject(), QuerySpec.class, null),
-                    Arguments.of(policyDefinitionObject(), PolicyDefinition.class, mapper)
+                    Arguments.of(policyDefinitionObject(), PolicyDefinition.class, mapper),
+                    Arguments.of(dataAddressObject(), DataAddress.class, null)
             );
         }
 
