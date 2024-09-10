@@ -61,10 +61,15 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientExtension.CONTROL_CLIENT_SCOPE;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
@@ -94,13 +99,17 @@ class DataPlaneSignalingClientTest {
     private final ControlApiHttpClient httpClient = new ControlApiHttpClientImpl(testHttpClient(), mock());
 
     private final DataPlaneClient dataPlaneClient = new DataPlaneSignalingClient(httpClient, TRANSFORMER_REGISTRY,
-            JSON_LD, MAPPER, instance);
+            JSON_LD, CONTROL_CLIENT_SCOPE, MAPPER, instance);
 
     @BeforeAll
     public static void setUp() {
         var factory = Json.createBuilderFactory(Map.of());
 
         JSON_LD.registerNamespace(VOCAB, EDC_NAMESPACE);
+        JSON_LD.registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_CLIENT_SCOPE);
+        JSON_LD.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_CLIENT_SCOPE);
+        JSON_LD.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_CLIENT_SCOPE);
+
         dataPlane = startClientAndServer(DATA_PLANE_API_PORT);
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowTerminateMessageTransformer(factory));
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowSuspendMessageTransformer(factory));
@@ -116,6 +125,10 @@ class DataPlaneSignalingClientTest {
         stopQuietly(dataPlane);
     }
 
+    private static Result<JsonObject> compact(JsonObject input) {
+        return JSON_LD.compact(input, CONTROL_CLIENT_SCOPE);
+    }
+
     @AfterEach
     public void resetMockServer() {
         dataPlane.reset();
@@ -129,7 +142,7 @@ class DataPlaneSignalingClientTest {
             var flowRequest = createDataFlowRequest();
 
             var expected = TRANSFORMER_REGISTRY.transform(flowRequest, JsonObject.class)
-                    .compose(JSON_LD::compact)
+                    .compose(DataPlaneSignalingClientTest::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
             var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
@@ -150,7 +163,7 @@ class DataPlaneSignalingClientTest {
             var flowRequest = createDataFlowRequest();
 
             var expected = TRANSFORMER_REGISTRY.transform(flowRequest, JsonObject.class)
-                    .compose(JSON_LD::compact)
+                    .compose(DataPlaneSignalingClientTest::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
             var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
@@ -170,7 +183,7 @@ class DataPlaneSignalingClientTest {
         void verifyReturnFatalErrorIfTransformFails() {
             var flowRequest = createDataFlowRequest();
             TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, MAPPER, instance);
+            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, MAPPER, instance);
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 
@@ -188,7 +201,7 @@ class DataPlaneSignalingClientTest {
         void verifyReturnFatalError_whenBadResponse() throws JsonProcessingException {
             var flowRequest = createDataFlowRequest();
             var expected = TRANSFORMER_REGISTRY.transform(flowRequest, JsonObject.class)
-                    .compose(JSON_LD::compact)
+                    .compose(DataPlaneSignalingClientTest::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
 
@@ -211,7 +224,7 @@ class DataPlaneSignalingClientTest {
         void verifyTransferSuccess() throws JsonProcessingException {
             var flowRequest = createDataFlowRequest();
             var expected = TRANSFORMER_REGISTRY.transform(flowRequest, JsonObject.class)
-                    .compose(JSON_LD::compact)
+                    .compose(DataPlaneSignalingClientTest::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
             var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("type").build()).build();
@@ -234,7 +247,7 @@ class DataPlaneSignalingClientTest {
         void verifyTransferSuccess_withoutDataAddress() throws JsonProcessingException {
             var flowRequest = createDataFlowRequest();
             var expected = TRANSFORMER_REGISTRY.transform(flowRequest, JsonObject.class)
-                    .compose(JSON_LD::compact)
+                    .compose(DataPlaneSignalingClientTest::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
             var flowResponse = DataFlowResponseMessage.Builder.newInstance().build();
@@ -303,7 +316,7 @@ class DataPlaneSignalingClientTest {
         @Test
         void verifyReturnFatalErrorIfTransformFails() {
             TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, MAPPER, instance);
+            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, MAPPER, instance);
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 
@@ -346,7 +359,7 @@ class DataPlaneSignalingClientTest {
         @Test
         void verifyReturnFatalErrorIfTransformFails() {
             TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, MAPPER, instance);
+            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, MAPPER, instance);
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 

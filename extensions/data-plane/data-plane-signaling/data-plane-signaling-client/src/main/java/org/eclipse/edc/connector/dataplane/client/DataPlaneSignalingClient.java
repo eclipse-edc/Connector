@@ -53,15 +53,21 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonLd jsonLd;
 
+    private final String jsonLdScope;
     private final ObjectMapper mapper;
 
-    public DataPlaneSignalingClient(ControlApiHttpClient httpClient, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd,
+    public DataPlaneSignalingClient(ControlApiHttpClient httpClient, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, String jsonLdScope,
                                     ObjectMapper mapper, DataPlaneInstance dataPlane) {
         this.httpClient = httpClient;
         this.transformerRegistry = transformerRegistry;
         this.jsonLd = jsonLd;
+        this.jsonLdScope = jsonLdScope;
         this.mapper = mapper;
         this.dataPlane = dataPlane;
+    }
+
+    private static <T> @NotNull StatusResult<T> failedResult(String processId, ServiceFailure failure) {
+        return StatusResult.failure(FATAL_ERROR, format("Transfer request for process %s failed: %s", processId, failure.getFailureDetail()));
     }
 
     @WithSpan
@@ -102,13 +108,9 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
                         .orElse(failure -> failedResult(null, failure)));
     }
 
-    private static <T> @NotNull StatusResult<T> failedResult(String processId, ServiceFailure failure) {
-        return StatusResult.failure(FATAL_ERROR, format("Transfer request for process %s failed: %s", processId, failure.getFailureDetail()));
-    }
-
     private StatusResult<Request.Builder> createRequestBuilder(Object message, String url) {
         return transformerRegistry.transform(message, JsonObject.class)
-                .compose(jsonLd::compact)
+                .compose(this::compact)
                 .compose(this::serializeMessage)
                 .map(rawBody -> RequestBody.create(rawBody, TYPE_JSON))
                 .map(body -> new Request.Builder().post(body).url(url))
@@ -141,6 +143,10 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
             return StatusResult.failure(FATAL_ERROR, e.getMessage());
 
         }
+    }
+
+    private Result<JsonObject> compact(JsonObject object) {
+        return jsonLd.compact(object, jsonLdScope);
     }
 
     private Result<String> serializeMessage(Object message) {
