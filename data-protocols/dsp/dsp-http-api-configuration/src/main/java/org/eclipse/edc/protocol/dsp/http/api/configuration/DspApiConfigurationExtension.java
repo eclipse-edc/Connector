@@ -52,6 +52,7 @@ import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import java.util.Map;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
@@ -61,6 +62,8 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -122,6 +125,9 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         jsonLd.registerNamespace(DCT_PREFIX, DCT_SCHEMA, DSP_SCOPE);
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE);
         jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, DSP_SCOPE);
+        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, DSP_SCOPE);
+        jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, DSP_SCOPE);
+
 
         webService.registerResource(ApiContext.PROTOCOL, new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(ApiContext.PROTOCOL, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE));

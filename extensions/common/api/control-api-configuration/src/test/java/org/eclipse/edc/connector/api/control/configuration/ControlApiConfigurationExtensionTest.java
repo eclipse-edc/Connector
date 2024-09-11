@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.control.configuration;
 
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.json.JacksonTypeManager;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
@@ -33,6 +34,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.CONTROL_API_ENDPOINT;
+import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.CONTROL_SCOPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -45,6 +54,7 @@ public class ControlApiConfigurationExtensionTest {
 
     private final WebServiceConfigurer configurator = mock();
     private final WebService webService = mock();
+    private final JsonLd jsonLd = mock();
 
     private final WebServiceConfiguration webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
             .path("/path")
@@ -57,6 +67,7 @@ public class ControlApiConfigurationExtensionTest {
         context.registerService(Hostname.class, () -> "hostname");
         context.registerService(WebService.class, webService);
         context.registerService(TypeManager.class, new JacksonTypeManager());
+        context.registerService(JsonLd.class, jsonLd);
 
         when(configurator.configure(any(), any(), any())).thenReturn(webServiceConfiguration);
     }
@@ -97,5 +108,15 @@ public class ControlApiConfigurationExtensionTest {
         extension.initialize(context);
 
         verify(webService).registerResource(any(), isA(AuthenticationRequestFilter.class));
+    }
+
+    @Test
+    void shouldRegisterNamespaces(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
+        extension.initialize(context);
+
+        jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, CONTROL_SCOPE);
+        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_SCOPE);
+        jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_SCOPE);
+        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_SCOPE);
     }
 }

@@ -24,6 +24,7 @@ dependencies {
     testImplementation(project(":spi:control-plane:contract-spi"))
     testImplementation(project(":spi:data-plane-selector:data-plane-selector-spi"))
     testImplementation(project(":core:common:connector-core"))
+    testImplementation(project(":core:common:edr-store-core"))
 
     //useful for generic DTOs etc.
     testImplementation(project(":extensions:common:api:api-core"))
@@ -42,6 +43,13 @@ dependencies {
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgres)
+
+    testImplementation(project(":extensions:control-plane:api:management-api:contract-definition-api"))
+    testImplementation(project(":extensions:control-plane:api:management-api:contract-negotiation-api"))
+    testImplementation(project(":extensions:control-plane:api:management-api:policy-definition-api"))
+    testImplementation(project(":extensions:control-plane:api:management-api:transfer-process-api"))
+    testImplementation(project(":extensions:control-plane:api:management-api:secrets-api"))
+    testImplementation(project(":extensions:control-plane:api:management-api:edr-cache-api"))
 }
 
 edcBuild {

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.jsonld.serde;
+package org.eclipse.edc.test.e2e.managementapi;
 
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
@@ -49,16 +49,14 @@ import java.util.Set;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Collections.emptySet;
-import static org.eclipse.edc.connector.api.management.jsonld.ManagementApiJsonLdContextExtension.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.policy.model.Operator.EQ;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
@@ -79,10 +77,7 @@ public class TestFunctions {
 
     public static JsonArrayBuilder createContextBuilder() {
         return createArrayBuilder()
-                .add(EDC_CONNECTOR_MANAGEMENT_CONTEXT)
-                .add(createObjectBuilder()
-                        .add("edc", EDC_NAMESPACE)
-                        .add("odrl", ODRL_SCHEMA));
+                .add(EDC_CONNECTOR_MANAGEMENT_CONTEXT);
     }
 
     public static JsonObject assetObject() {
@@ -324,7 +319,7 @@ public class TestFunctions {
 
     public static JsonObjectBuilder policy(JsonObject permission) {
         return createObjectBuilder()
-                .add(TYPE, "odrl:Set")
+                .add(TYPE, "http://www.w3.org/ns/odrl/2/Set")
                 .add("obligation", createArrayBuilder().build())
                 .add("permission", permission)
                 .add("target", "assetId")

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.http.api.configuration;
 
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.Hostname;
@@ -36,8 +37,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.DSP_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.SETTINGS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -52,6 +63,8 @@ class DspApiConfigurationExtensionTest {
     private final WebServer webServer = mock();
     private final WebService webService = mock();
     private final TypeManager typeManager = mock();
+    private final JsonLd jsonLd = mock();
+
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -60,6 +73,7 @@ class DspApiConfigurationExtensionTest {
         context.registerService(WebServiceConfigurer.class, configurer);
         context.registerService(TypeManager.class, typeManager);
         context.registerService(Hostname.class, () -> "hostname");
+        context.registerService(JsonLd.class, jsonLd);
         TypeTransformerRegistry typeTransformerRegistry = mock();
         when(typeTransformerRegistry.forContext(any())).thenReturn(mock());
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
@@ -103,6 +117,18 @@ class DspApiConfigurationExtensionTest {
 
         verify(webService).registerResource(eq(ApiContext.PROTOCOL), isA(ObjectMapperProvider.class));
         verify(webService).registerResource(eq(ApiContext.PROTOCOL), isA(JerseyJsonLdInterceptor.class));
+    }
+
+    @Test
+    void initialize_shouldRegisterNamespaces(DspApiConfigurationExtension extension, ServiceExtensionContext context) {
+        extension.initialize(context);
+
+        verify(jsonLd).registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, DSP_SCOPE);
+        verify(jsonLd).registerNamespace(DCT_PREFIX, DCT_SCHEMA, DSP_SCOPE);
+        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE);
+        verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE, DSP_SCOPE);
+        verify(jsonLd).registerNamespace(EDC_PREFIX, EDC_NAMESPACE, DSP_SCOPE);
+        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE);
     }
 
 }

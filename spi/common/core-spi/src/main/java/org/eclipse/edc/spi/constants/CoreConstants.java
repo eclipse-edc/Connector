@@ -18,4 +18,5 @@ public interface CoreConstants {
     String JSON_LD = "json-ld";
     String EDC_PREFIX = "edc";
     String EDC_NAMESPACE = "https://w3id.org/edc/v0.0.1/ns/";
+    String EDC_CONNECTOR_MANAGEMENT_CONTEXT = "https://w3id.org/edc/connector/management/v0.0.1";
 }

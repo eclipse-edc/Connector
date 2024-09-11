@@ -49,6 +49,7 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createBuilderFactory;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 
 /**
  * Implementation of the {@link JsonLd} interface that uses the Titanium library for all JSON-LD operations.
@@ -66,6 +67,7 @@ public class TitaniumJsonLd implements JsonLd {
     private final JsonObjectValidator validator;
 
     private final boolean shouldCheckPrefixes;
+    private final boolean isVocabEnabled;
 
     public TitaniumJsonLd(Monitor monitor) {
         this(monitor, JsonLdConfiguration.Builder.newInstance().build());
@@ -75,6 +77,7 @@ public class TitaniumJsonLd implements JsonLd {
         this.monitor = monitor;
         this.documentLoader = new CachedDocumentLoader(configuration, monitor);
         this.shouldCheckPrefixes = configuration.shouldCheckPrefixes();
+        this.isVocabEnabled = configuration.isAvoidVocab();
         this.validator = JsonObjectValidator.newValidator()
                 .verify((path) -> new MissingPrefixes(path, this::getAllPrefixes))
                 .build();
@@ -124,6 +127,10 @@ public class TitaniumJsonLd implements JsonLd {
 
     @Override
     public void registerNamespace(String prefix, String contextIri, String scope) {
+        // skip the @vocab if it's not enabled
+        if (isVocabEnabled && VOCAB.equals(prefix)) {
+            return;
+        }
         var namespaces = scopedNamespaces.computeIfAbsent(scope, k -> new LinkedHashMap<>());
         namespaces.put(prefix, contextIri);
     }
@@ -146,9 +153,9 @@ public class TitaniumJsonLd implements JsonLd {
         if (json.get(JsonLdKeywords.CONTEXT) instanceof JsonObject) {
             var contextObject = ofNullable(json.getJsonObject(JsonLdKeywords.CONTEXT)).orElseGet(() -> createObjectBuilder().build());
             var contextBuilder = createObjectBuilder(contextObject);
-            if (!contextObject.containsKey(JsonLdKeywords.VOCAB)) {
+            if (!contextObject.containsKey(VOCAB)) {
                 var newContextObject = contextBuilder
-                        .add(JsonLdKeywords.VOCAB, CoreConstants.EDC_NAMESPACE)
+                        .add(VOCAB, CoreConstants.EDC_NAMESPACE)
                         .build();
                 jsonObjectBuilder.add(JsonLdKeywords.CONTEXT, newContextObject);
             }

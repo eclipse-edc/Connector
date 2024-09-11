@@ -33,7 +33,9 @@ import java.net.URI;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.Mockito.mock;
 
 class TitaniumJsonLdTest {
@@ -144,6 +146,34 @@ class TitaniumJsonLdTest {
             Assertions.assertThat(c.getJsonObject(ns + "item")).isNotNull();
             Assertions.assertThat(c.getJsonObject(ns + "item").getJsonString(ns + "key1").getString()).isEqualTo("value1");
             Assertions.assertThat(c.getJsonObject(ns + "item").getJsonString(ns + "key2").getString()).isEqualTo("value2");
+        });
+    }
+
+    @Test
+    void compact_withVocab() {
+        var expanded = Json.createObjectBuilder()
+                .add(EDC_NAMESPACE + "item", "test")
+                .build();
+        var jsonLd = defaultService();
+        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE);
+        var compacted = jsonLd.compact(expanded);
+
+        assertThat(compacted).isSucceeded().satisfies(c -> {
+            Assertions.assertThat(c.getString("item")).isEqualTo("test");
+        });
+    }
+
+    @Test
+    void compact_withVocabDisabled() {
+        var expanded = Json.createObjectBuilder()
+                .add(EDC_NAMESPACE + "item", "test")
+                .build();
+        var jsonLd = defaultService(JsonLdConfiguration.Builder.newInstance().avoidVocab(true).build());
+        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE);
+        var compacted = jsonLd.compact(expanded);
+
+        assertThat(compacted).isSucceeded().satisfies(c -> {
+            Assertions.assertThat(c.getString(EDC_NAMESPACE + "item")).isEqualTo("test");
         });
     }
 
