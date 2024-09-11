@@ -215,17 +215,13 @@ class PolicyEngineImplTest {
         assertThat(policyEngine.evaluate("bar", policy, context).succeeded()).isTrue();
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = { true, false })
-    void validateAllScopesPrePostFunctionalValidator(boolean preValidation) {
+    @Test
+    void validateAllScopesPreFunctionalValidator() {
         bindingRegistry.bind("foo", ALL_SCOPES);
 
         BiFunction<Policy, PolicyContext, Boolean> function = (policy, context) -> false;
-        if (preValidation) {
-            policyEngine.registerPreValidator(ALL_SCOPES, function);
-        } else {
-            policyEngine.registerPostValidator(ALL_SCOPES, function);
-        }
+        policyEngine.registerPreValidator(ALL_SCOPES, function);
+
         var policy = Policy.Builder.newInstance().build();
         var context = PolicyContextImpl.Builder.newInstance().build();
 
@@ -233,6 +229,22 @@ class PolicyEngineImplTest {
 
         assertThat(result).isFailed();
     }
+
+    @Test
+    void validateAllScopesPostFunctionalValidator() {
+        bindingRegistry.bind("foo", ALL_SCOPES);
+
+        BiFunction<Policy, PolicyContext, Boolean> function = (policy, context) -> false;
+        policyEngine.registerPostValidator(ALL_SCOPES, function);
+
+        var policy = Policy.Builder.newInstance().build();
+        var context = PolicyContextImpl.Builder.newInstance().build();
+
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+
+        assertThat(result).isFailed();
+    }
+
 
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
