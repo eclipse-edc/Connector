@@ -15,13 +15,16 @@
 package org.eclipse.edc.policy.engine;
 
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.PolicyValidatorFunction;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AtomicConstraintStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.MultiplicityConstraintStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.RuleStep;
+import org.eclipse.edc.policy.engine.spi.plan.step.ValidatorStep;
 import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AndConstraint;
@@ -44,6 +47,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -442,16 +446,53 @@ class PolicyEngineImplPlannerTest {
         }
 
         @Test
-        void shouldEvaluate_withValidators() {
+        void shouldEvaluate_withFunctionalValidators() {
             var emptyPolicy = Policy.Builder.newInstance().build();
-            policyEngine.registerPreValidator(TEST_SCOPE, (policy, policyContext) -> true);
-            policyEngine.registerPostValidator(TEST_SCOPE, (policy, policyContext) -> true);
+
+            BiFunction<Policy, PolicyContext, Boolean> function = (policy, policyContext) -> true;
+            policyEngine.registerPreValidator(TEST_SCOPE, function);
+            policyEngine.registerPostValidator(TEST_SCOPE, function);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, emptyPolicy);
 
-            assertThat(plan.getPreValidators()).hasSize(1);
-            assertThat(plan.getPostValidators()).hasSize(1);
+            assertThat(plan.getPreValidators()).hasSize(1)
+                    .extracting(ValidatorStep::name)
+                    .allMatch(s -> s.contains(PolicyEngineImplPlannerTest.class.getSimpleName()));
 
+            assertThat(plan.getPostValidators()).hasSize(1)
+                    .extracting(ValidatorStep::name)
+                    .allMatch(s -> s.contains(PolicyEngineImplPlannerTest.class.getSimpleName()));
+
+        }
+
+        @Test
+        void shouldEvaluate_withValidators() {
+            var emptyPolicy = Policy.Builder.newInstance().build();
+            policyEngine.registerPreValidator(TEST_SCOPE, new MyValidatorFunction());
+            policyEngine.registerPostValidator(TEST_SCOPE, new MyValidatorFunction());
+
+            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, emptyPolicy);
+
+            assertThat(plan.getPreValidators()).hasSize(1)
+                    .extracting(ValidatorStep::name)
+                    .contains("MyCustomValidator");
+            assertThat(plan.getPostValidators()).hasSize(1)
+                    .extracting(ValidatorStep::name)
+                    .contains("MyCustomValidator");
+
+        }
+
+        static class MyValidatorFunction implements PolicyValidatorFunction {
+
+            @Override
+            public Boolean apply(Policy policy, PolicyContext policyContext) {
+                return true;
+            }
+
+            @Override
+            public String name() {
+                return "MyCustomValidator";
+            }
         }
     }
 

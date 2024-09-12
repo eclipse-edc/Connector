@@ -19,6 +19,7 @@ import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.PolicyValidatorFunction;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.validation.PolicyValidator;
@@ -57,8 +58,8 @@ public class PolicyEngineImpl implements PolicyEngine {
     private final List<DynamicConstraintFunctionEntry<Rule>> dynamicConstraintFunctions = new ArrayList<>();
 
     private final Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
-    private final Map<String, List<BiFunction<Policy, PolicyContext, Boolean>>> preValidators = new HashMap<>();
-    private final Map<String, List<BiFunction<Policy, PolicyContext, Boolean>>> postValidators = new HashMap<>();
+    private final Map<String, List<PolicyValidatorFunction>> preValidators = new HashMap<>();
+    private final Map<String, List<PolicyValidatorFunction>> postValidators = new HashMap<>();
     private final ScopeFilter scopeFilter;
     private final RuleValidator ruleValidator;
 
@@ -196,16 +197,26 @@ public class PolicyEngineImpl implements PolicyEngine {
 
     @Override
     public void registerPreValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
+        registerPreValidator(scope, new PolicyValidatorFunctionWrapper(validator));
+    }
+
+    @Override
+    public void registerPreValidator(String scope, PolicyValidatorFunction validator) {
         preValidators.computeIfAbsent(scope + DELIMITER, k -> new ArrayList<>()).add(validator);
     }
 
     @Override
     public void registerPostValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
+        registerPostValidator(scope, new PolicyValidatorFunctionWrapper(validator));
+    }
+
+    @Override
+    public void registerPostValidator(String scope, PolicyValidatorFunction validator) {
         postValidators.computeIfAbsent(scope + DELIMITER, k -> new ArrayList<>()).add(validator);
     }
 
     @NotNull
-    private Result<Void> failValidator(String type, BiFunction<Policy, PolicyContext, Boolean> validator, PolicyContext context) {
+    private Result<Void> failValidator(String type, PolicyValidatorFunction validator, PolicyContext context) {
         return failure(context.hasProblems() ? context.getProblems() : List.of(type + " failed: " + validator.getClass().getName()));
     }
 
@@ -240,6 +251,20 @@ public class PolicyEngineImpl implements PolicyEngine {
         RuleFunctionEntry(Class<R> type, RuleFunction<R> function) {
             this.type = type;
             this.function = function;
+        }
+    }
+
+    private record PolicyValidatorFunctionWrapper(
+            BiFunction<Policy, PolicyContext, Boolean> function) implements PolicyValidatorFunction {
+
+        @Override
+        public Boolean apply(Policy policy, PolicyContext policyContext) {
+            return function.apply(policy, policyContext);
+        }
+
+        @Override
+        public String name() {
+            return function.getClass().getSimpleName();
         }
     }
 

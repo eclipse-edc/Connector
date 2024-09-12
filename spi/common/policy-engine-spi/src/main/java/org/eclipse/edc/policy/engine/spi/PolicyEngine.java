@@ -100,11 +100,27 @@ public interface PolicyEngine {
 
     /**
      * Registers a function that performs pre-validation on the policy for the given scope.
+     *
+     * @deprecated Please use {@link PolicyEngine#registerPreValidator(String, PolicyValidatorFunction)}
      */
+    @Deprecated(since = "0.10.0")
     void registerPreValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator);
+
+    /**
+     * Registers a function that performs pre-validation on the policy for the given scope.
+     */
+    void registerPreValidator(String scope, PolicyValidatorFunction validator);
+
+    /**
+     * Registers a function that performs post-validation on the policy for the given scope.
+     *
+     * @deprecated Please use {@link PolicyEngine#registerPostValidator(String, PolicyValidatorFunction)}
+     */
+    @Deprecated(since = "0.10.0")
+    void registerPostValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator);
 
     /**
      * Registers a function that performs post-validation on the policy for the given scope.
      */
-    void registerPostValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator);
+    void registerPostValidator(String scope, PolicyValidatorFunction validator);
 }
