@@ -15,13 +15,16 @@
 
 package org.eclipse.edc.boot.system.runtime;
 
+import org.eclipse.edc.boot.config.ConfigurationLoader;
 import org.eclipse.edc.boot.system.ServiceLocator;
 import org.eclipse.edc.boot.system.testextensions.BaseExtension;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -29,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -45,6 +49,7 @@ public class BaseRuntimeTest {
 
     private final Monitor monitor = mock();
     private final ServiceLocator serviceLocator = mock();
+    private final ConfigurationLoader configurationLoader = mock();
     private final BaseRuntime runtime = new BaseRuntimeFixture(monitor, serviceLocator);
 
     @NotNull
@@ -95,6 +100,19 @@ public class BaseRuntimeTest {
         runtime.boot(true);
 
         verify(serviceLocator).loadImplementors(ConfigurationExtension.class, false);
+    }
+
+    @Test
+    void configCanChangeParamArgs() {
+
+        var config = mock(Config.class);
+        when(config.getString(ConsoleMonitor.LOG_LEVEL_CONFIG, null)).thenReturn("INFO");
+
+        var consoleMonitor = mock(ConsoleMonitor.class);
+
+        var args = runtime.setConsoleMonitorLogLevelFromConfig(config, consoleMonitor, new String[0]);
+
+        assertThat(args[0]).isEqualTo(String.format("%s=INFO", ConsoleMonitor.LEVEL_PROG_ARG));
     }
 
     private static class BaseRuntimeFixture extends BaseRuntime {

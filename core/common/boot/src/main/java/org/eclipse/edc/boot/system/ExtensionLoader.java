@@ -31,7 +31,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.String;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -88,9 +87,9 @@ public class ExtensionLoader {
         return loadMonitor(loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()), programArgs);
     }
 
-    static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors, String... programArgs) {
+    public static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors, String... programArgs) {
         if (availableMonitors.isEmpty()) {
-            return new ConsoleMonitor(parseLogLevel(programArgs), !Set.of(programArgs).contains("--no-color"));
+            return new ConsoleMonitor(parseLogLevel(programArgs), !Set.of(programArgs).contains(ConsoleMonitor.COLOR_PROG_ARG));
         }
 
         if (availableMonitors.size() > 1) {
@@ -117,17 +116,13 @@ public class ExtensionLoader {
      * Parses the ConsoleMonitor log level from the program args. If no log level is provided, defaults to Level default.
      */
     private static ConsoleMonitor.Level parseLogLevel(String[] programArgs) {
-        return Set.of(programArgs).stream()
-                .filter(arg -> arg.startsWith("--log-level"))
-                .map(arg -> getLogLevel(arg.split("=")[1]))
-                .findFirst()
-                .orElse(ConsoleMonitor.Level.getDefaultLevel());
+        return Set.of(programArgs).stream().filter(arg -> arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG)).map(arg -> getLogLevel(arg.split("=")[1])).findFirst().orElse(ConsoleMonitor.Level.getDefaultLevel());
     }
 
-    private static ConsoleMonitor.Level getLogLevel(String level){
-        try{
+    private static ConsoleMonitor.Level getLogLevel(String level) {
+        try {
             return ConsoleMonitor.Level.valueOf(level);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             return ConsoleMonitor.Level.getDefaultLevel();
         }
     }

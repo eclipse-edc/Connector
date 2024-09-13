@@ -31,9 +31,14 @@ public class ConsoleMonitor implements Monitor {
     private static final String INFO = "INFO";
     private static final String DEBUG = "DEBUG";
 
+    public static final String LOG_LEVEL_CONFIG = "edc.console-monitor.log-level";
+    public static final String LEVEL_PROG_ARG = "--log-level";
+    public static final String COLOR_PROG_ARG = "--no-color";
+
+
     private final boolean useColor;
 
-    private final Level level;
+    private Level level;
     private final String prefix;
 
     public ConsoleMonitor() {
@@ -85,8 +90,12 @@ public class ConsoleMonitor implements Monitor {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {return true;}
-        if (o == null || getClass() != o.getClass()) {return false;}
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ConsoleMonitor that = (ConsoleMonitor) o;
         return useColor == that.useColor && level == that.level && Objects.equals(prefix, that.prefix);
     }
@@ -94,6 +103,10 @@ public class ConsoleMonitor implements Monitor {
     @Override
     public int hashCode() {
         return Objects.hash(useColor, level, prefix);
+    }
+
+    public void setLevel(Level level) {
+        this.level = level;
     }
 
     private void output(String level, Supplier<String> supplier, Throwable... errors) {
@@ -132,7 +145,9 @@ public class ConsoleMonitor implements Monitor {
             this.value = value;
         }
 
-        public static Level getDefaultLevel() { return Level.DEBUG; }
+        public static Level getDefaultLevel() {
+            return Level.DEBUG;
+        }
 
     }
 }

@@ -25,6 +25,7 @@ import org.eclipse.edc.boot.system.ServiceLocator;
 import org.eclipse.edc.boot.system.ServiceLocatorImpl;
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.MonitorExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -35,6 +36,7 @@ import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -85,6 +87,10 @@ public class BaseRuntime {
     public void boot(boolean addShutdownHook) {
         monitor = createMonitor();
         var config = configurationLoader.loadConfiguration(monitor);
+        if (monitor instanceof ConsoleMonitor) {
+            programArgs = setConsoleMonitorLogLevelFromConfig(config, monitor, programArgs);
+            monitor = createMonitor();
+        }
         context = createServiceExtensionContext(config);
 
         try {
@@ -133,6 +139,24 @@ public class BaseRuntime {
         var context = createContext(monitor, config);
         context.initialize();
         return context;
+    }
+
+    /**
+     * Sets the ConsoleMonitor level from config, if specified.
+     */
+    @NotNull
+    protected String[] setConsoleMonitorLogLevelFromConfig(Config config, Monitor monitor, String[] programArgs) {
+        if (monitor instanceof ConsoleMonitor) {
+            var levelConfig = config.getString(ConsoleMonitor.LOG_LEVEL_CONFIG, null);
+            if (levelConfig != null) {
+                var logLevelArgs = String.format("%s=%s", ConsoleMonitor.LEVEL_PROG_ARG, levelConfig);
+                var newProgArgs = new ArrayList<>(Arrays.asList(programArgs));
+                newProgArgs.add(logLevelArgs);
+                return newProgArgs.toArray(new String[0]);
+            }
+        }
+        return programArgs;
+
     }
 
     /**

@@ -101,7 +101,7 @@ class ExtensionLoaderTest {
     @Test
     void loadMonitor_programArgsSetConsoleMonitorLogLevel() {
 
-        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), "--log-level=INFO");
+        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG+"=INFO");
 
         var expectedMonitor = new ConsoleMonitor(ConsoleMonitor.Level.INFO, true);
 
@@ -112,6 +112,16 @@ class ExtensionLoaderTest {
     void loadMonitor_consoleMonitorDefaultLogLevelWhenNoArgs() {
 
         var monitor = ExtensionLoader.loadMonitor(new ArrayList<>());
+
+        var expectedMonitor = new ConsoleMonitor(ConsoleMonitor.Level.getDefaultLevel(), true);
+
+        assertEquals( monitor, expectedMonitor);
+    }
+
+    @Test
+    void loadMonitor_consoleMonitorDefaultLogLevelWhenWrongArgs() {
+
+        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG+"=INF");
 
         var expectedMonitor = new ConsoleMonitor(ConsoleMonitor.Level.getDefaultLevel(), true);
 
