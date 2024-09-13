@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static java.lang.Runtime.getRuntime;
 import static java.lang.String.format;
@@ -142,7 +143,7 @@ public class BaseRuntime {
     }
 
     /**
-     * Sets the ConsoleMonitor level from config, if specified.
+     * Sets the ConsoleMonitor level from config, if specified. The config has precedence over the program argument.
      */
     @NotNull
     protected String[] setLogLevelProgArgFromConfig(Config config, Monitor monitor, String[] programArgs) {
@@ -151,6 +152,9 @@ public class BaseRuntime {
             if (levelConfig != null) {
                 var logLevelArgs = String.format("%s=%s", ConsoleMonitor.LEVEL_PROG_ARG, levelConfig);
                 var newProgArgs = new ArrayList<>(Arrays.asList(programArgs));
+                newProgArgs = (ArrayList<String>) newProgArgs.stream()
+                                .filter(arg -> !arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG))
+                                .collect(Collectors.toList());
                 newProgArgs.add(logLevelArgs);
                 return newProgArgs.toArray(new String[0]);
             }

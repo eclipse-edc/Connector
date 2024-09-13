@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.boot.system.runtime;
 
-import org.eclipse.edc.boot.config.ConfigurationLoader;
 import org.eclipse.edc.boot.system.ServiceLocator;
 import org.eclipse.edc.boot.system.testextensions.BaseExtension;
 import org.eclipse.edc.spi.EdcException;
@@ -31,8 +30,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -102,16 +101,18 @@ public class BaseRuntimeTest {
     }
 
     @Test
-    void configCanChangeParamArgs() {
+    void configCanChangeProgramArgs() {
 
         var config = mock(Config.class);
         when(config.getString(ConsoleMonitor.LOG_LEVEL_CONFIG, null)).thenReturn("INFO");
 
         var consoleMonitor = mock(ConsoleMonitor.class);
 
-        var args = runtime.setLogLevelProgArgFromConfig(config, consoleMonitor, new String[0]);
+        String[] programArgs = {"--no-color", "--log-level=DEBUG"};
 
-        assertThat(args[0]).isEqualTo(String.format("%s=INFO", ConsoleMonitor.LEVEL_PROG_ARG));
+        var args = runtime.setLogLevelProgArgFromConfig(config, consoleMonitor, programArgs);
+
+        assertThat(args[1]).isEqualTo(String.format("%s=INFO", ConsoleMonitor.LEVEL_PROG_ARG));
     }
 
     private static class BaseRuntimeFixture extends BaseRuntime {
