@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.spi.model;
 
+import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.security.Vault;
 
 import java.util.Objects;
@@ -21,8 +22,7 @@ import java.util.Objects;
 /**
  * The {@link StsClient} contains information about STS clients.
  */
-public class StsClient {
-    private String id;
+public class StsClient extends Entity {
     private String clientId;
     private String did;
     private String name;
@@ -31,15 +31,6 @@ public class StsClient {
     private String publicKeyReference;
 
     private StsClient() {
-    }
-
-    /**
-     * Unique identifier of the {@link  StsClient}
-     *
-     * @return The ID of the Client
-     */
-    public String getId() {
-        return id;
     }
 
     /**
@@ -101,62 +92,68 @@ public class StsClient {
     }
 
 
-    public static class Builder {
+    public static class Builder extends Entity.Builder<StsClient, Builder> {
 
-        private final StsClient client;
 
-        private Builder(StsClient client) {
-            this.client = client;
+        private Builder() {
+            super(new StsClient());
         }
 
         public static Builder newInstance() {
-            return new Builder(new StsClient());
+            return new Builder();
         }
 
 
         public Builder id(String id) {
-            client.id = id;
+            entity.id = id;
             return this;
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
+
+        @Override
+        public StsClient build() {
+            Objects.requireNonNull(entity.id, "Client id");
+            Objects.requireNonNull(entity.clientId, "Client client_id");
+            Objects.requireNonNull(entity.name, "Client name");
+            Objects.requireNonNull(entity.did, "Client DID");
+            Objects.requireNonNull(entity.secretAlias, "Client secret alias");
+            Objects.requireNonNull(entity.privateKeyAlias, "Client private key alias");
+            Objects.requireNonNull(entity.publicKeyReference, "Client public key reference");
+            return super.build();
+        }
+
         public Builder clientId(String clientId) {
-            client.clientId = clientId;
+            entity.clientId = clientId;
             return this;
         }
 
         public Builder name(String name) {
-            client.name = name;
+            entity.name = name;
             return this;
         }
 
         public Builder did(String did) {
-            client.did = did;
+            entity.did = did;
             return this;
         }
 
         public Builder secretAlias(String secretAlias) {
-            client.secretAlias = secretAlias;
+            entity.secretAlias = secretAlias;
             return this;
         }
 
         public Builder privateKeyAlias(String privateKeyAlias) {
-            client.privateKeyAlias = privateKeyAlias;
+            entity.privateKeyAlias = privateKeyAlias;
             return this;
         }
 
         public Builder publicKeyReference(String publicKeyReference) {
-            client.publicKeyReference = publicKeyReference;
+            entity.publicKeyReference = publicKeyReference;
             return this;
-        }
-
-        public StsClient build() {
-            Objects.requireNonNull(client.id, "Client id");
-            Objects.requireNonNull(client.clientId, "Client client_id");
-            Objects.requireNonNull(client.name, "Client name");
-            Objects.requireNonNull(client.did, "Client DID");
-            Objects.requireNonNull(client.secretAlias, "Client secret alias");
-            Objects.requireNonNull(client.privateKeyAlias, "Client private key alias");
-            return client;
         }
 
     }

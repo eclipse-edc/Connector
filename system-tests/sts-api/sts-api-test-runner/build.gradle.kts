@@ -29,6 +29,8 @@ dependencies {
 
     testCompileOnly(project(":system-tests:sts-api:sts-api-test-runtime"))
     testImplementation(testFixtures(project(":spi:common:identity-trust-sts-spi")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
+    testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(libs.nimbus.jwt)
     testImplementation(libs.bouncyCastle.bcpkixJdk18on)
 

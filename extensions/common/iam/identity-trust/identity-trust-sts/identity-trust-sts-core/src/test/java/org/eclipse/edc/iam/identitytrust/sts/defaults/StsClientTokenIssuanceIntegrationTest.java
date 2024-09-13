@@ -29,6 +29,7 @@ import org.eclipse.edc.keys.keyparsers.JwkParser;
 import org.eclipse.edc.keys.keyparsers.PemParser;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.security.token.jwt.DefaultJwsSignerProvider;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.token.JwtGenerationService;
@@ -56,7 +57,7 @@ import static org.mockito.Mockito.mock;
 @ComponentTest
 public class StsClientTokenIssuanceIntegrationTest {
 
-    private final InMemoryStsClientStore clientStore = new InMemoryStsClientStore();
+    private final InMemoryStsClientStore clientStore = new InMemoryStsClientStore(CriterionOperatorRegistryImpl.ofDefaults());
     private final Vault vault = new InMemoryVault(mock());
     private final KeyParserRegistry keyParserRegistry = new KeyParserRegistryImpl();
     private StsClientServiceImpl clientService;

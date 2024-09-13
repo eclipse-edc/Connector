@@ -25,6 +25,10 @@ public class TestFunctions {
         return createClient(id, secretAlias, id, secretAlias, "did:example:subject");
     }
 
+    public static StsClient createClient(String id, String secretAlias, String clientId) {
+        return createClient(id, secretAlias, clientId, secretAlias, "did:example:subject");
+    }
+
     public static StsClient createClient(String id, String secretAlias, String clientId, String publicKeyReference, String did) {
         return createClientBuilder(id)
                 .clientId(clientId)

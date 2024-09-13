@@ -63,6 +63,7 @@ class SecureServiceTokenApiControllerTest extends RestControllerTestBase {
                 .name("Name")
                 .secretAlias(clientKeyAlias)
                 .privateKeyAlias(privateKeyAlias)
+                .publicKeyReference("publicKeyReference")
                 .did(did)
                 .build();
 
