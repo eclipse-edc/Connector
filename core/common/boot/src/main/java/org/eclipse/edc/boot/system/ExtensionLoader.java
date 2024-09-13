@@ -87,7 +87,7 @@ public class ExtensionLoader {
         return loadMonitor(loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()), programArgs);
     }
 
-    public static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors, String... programArgs) {
+    static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors, String... programArgs) {
         if (availableMonitors.isEmpty()) {
             return new ConsoleMonitor(parseLogLevel(programArgs), !Set.of(programArgs).contains(ConsoleMonitor.COLOR_PROG_ARG));
         }

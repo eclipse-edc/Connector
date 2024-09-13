@@ -88,7 +88,7 @@ public class BaseRuntime {
         monitor = createMonitor();
         var config = configurationLoader.loadConfiguration(monitor);
         if (monitor instanceof ConsoleMonitor) {
-            programArgs = setConsoleMonitorLogLevelFromConfig(config, monitor, programArgs);
+            programArgs = setLogLevelProgArgFromConfig(config, monitor, programArgs);
             monitor = createMonitor();
         }
         context = createServiceExtensionContext(config);
@@ -145,7 +145,7 @@ public class BaseRuntime {
      * Sets the ConsoleMonitor level from config, if specified.
      */
     @NotNull
-    protected String[] setConsoleMonitorLogLevelFromConfig(Config config, Monitor monitor, String[] programArgs) {
+    protected String[] setLogLevelProgArgFromConfig(Config config, Monitor monitor, String[] programArgs) {
         if (monitor instanceof ConsoleMonitor) {
             var levelConfig = config.getString(ConsoleMonitor.LOG_LEVEL_CONFIG, null);
             if (levelConfig != null) {

@@ -49,7 +49,6 @@ public class BaseRuntimeTest {
 
     private final Monitor monitor = mock();
     private final ServiceLocator serviceLocator = mock();
-    private final ConfigurationLoader configurationLoader = mock();
     private final BaseRuntime runtime = new BaseRuntimeFixture(monitor, serviceLocator);
 
     @NotNull
@@ -110,7 +109,7 @@ public class BaseRuntimeTest {
 
         var consoleMonitor = mock(ConsoleMonitor.class);
 
-        var args = runtime.setConsoleMonitorLogLevelFromConfig(config, consoleMonitor, new String[0]);
+        var args = runtime.setLogLevelProgArgFromConfig(config, consoleMonitor, new String[0]);
 
         assertThat(args[0]).isEqualTo(String.format("%s=INFO", ConsoleMonitor.LEVEL_PROG_ARG));
     }
