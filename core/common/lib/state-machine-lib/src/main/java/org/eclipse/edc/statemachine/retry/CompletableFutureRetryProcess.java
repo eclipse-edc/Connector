@@ -47,7 +47,8 @@ public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C, SELF 
     @Override
     boolean process(E entity, String description) {
         monitor.debug(format("%s: ID %s. %s", entity.getClass().getSimpleName(), entity.getId(), description));
-        process.get()
+
+        runProcess()
                 .whenComplete((result, throwable) -> {
                     var reloadedEntity = Optional.ofNullable(entityRetrieve)
                             .map(it -> it.apply(entity.getId()))
@@ -81,6 +82,14 @@ public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C, SELF 
                 });
 
         return true;
+    }
+
+    private CompletableFuture<C> runProcess() {
+        try {
+            return process.get();
+        } catch (Throwable e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     public SELF onSuccess(BiConsumer<E, C> onSuccessHandler) {

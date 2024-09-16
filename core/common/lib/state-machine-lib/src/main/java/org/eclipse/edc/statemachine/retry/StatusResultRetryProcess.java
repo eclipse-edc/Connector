@@ -24,7 +24,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 
 /**
  * Provides retry capabilities to a synchronous process that returns a {@link StatusResult} object
@@ -47,19 +47,8 @@ public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends Re
     boolean process(E entity, String description) {
         monitor.debug(format("%s: ID %s. %s", entity.getClass().getSimpleName(), entity.getId(), description));
 
-        StatusResult<C> result;
-        try {
-            result = process.get();
-        } catch (Exception e) {
-            result = StatusResult.failure(FATAL_ERROR, "Unexpected exception thrown %s: %s".formatted(e, e.getMessage()));
-        }
+        var result = runProcess();
 
-        handleResult(entity, description, result);
-
-        return true;
-    }
-
-    public void handleResult(E entity, String description, StatusResult<C> result) {
         if (result.succeeded()) {
             if (onSuccessHandler != null) {
                 onSuccessHandler.accept(entity, result.getContent());
@@ -99,6 +88,8 @@ public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends Re
                 }
             }
         }
+
+        return true;
     }
 
     public StatusResultRetryProcess<E, C> onSuccess(BiConsumer<E, C> onSuccessHandler) {
@@ -120,4 +111,13 @@ public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends Re
         this.onRetryExhausted = onRetryExhausted;
         return this;
     }
+
+    private StatusResult<C> runProcess() {
+        try {
+            return process.get();
+        } catch (Throwable e) {
+            return StatusResult.failure(ERROR_RETRY, "Unexpected exception thrown %s: %s".formatted(e, e.getMessage()));
+        }
+    }
+
 }

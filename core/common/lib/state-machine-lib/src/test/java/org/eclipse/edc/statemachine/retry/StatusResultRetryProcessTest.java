@@ -98,18 +98,17 @@ class StatusResultRetryProcessTest {
         verify(onFailure).accept(entity, statusResult.getFailure());
     }
 
-
     @Test
     void shouldCallFatalError_whenExceptionIsThrown() {
         when(process.get()).thenThrow(new EdcException("code throws an exception"));
         var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).clock(clock).build();
         var retryProcess = new StatusResultRetryProcess<>(entity, process, mock(Monitor.class), clock, configuration);
 
-        var result = retryProcess.onSuccess(onSuccess).onFatalError(onFatalError).execute("any");
+        var result = retryProcess.onSuccess(onSuccess).onFailure(onFailure).execute("any");
 
         assertThat(result).isTrue();
         verify(process).get();
-        verify(onFatalError).accept(same(entity), any());
+        verify(onFailure).accept(same(entity), any());
         verifyNoInteractions(onSuccess);
     }
 }
