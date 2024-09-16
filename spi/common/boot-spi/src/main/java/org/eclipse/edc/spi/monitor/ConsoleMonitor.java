@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -86,23 +85,6 @@ public class ConsoleMonitor implements Monitor {
             return;
         }
         output(DEBUG, supplier, errors);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ConsoleMonitor that = (ConsoleMonitor) o;
-        return useColor == that.useColor && level == that.level && Objects.equals(prefix, that.prefix);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(useColor, level, prefix);
     }
 
     public void setLevel(Level level) {

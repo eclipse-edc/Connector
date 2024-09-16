@@ -103,9 +103,7 @@ class ExtensionLoaderTest {
 
         var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "=INFO");
 
-        var expectedMonitor = new ConsoleMonitor(ConsoleMonitor.Level.INFO, true);
-
-        assertEquals(monitor, expectedMonitor);
+        assertThat(monitor).extracting("level").isEqualTo(ConsoleMonitor.Level.INFO);
     }
 
     @Test
@@ -113,19 +111,12 @@ class ExtensionLoaderTest {
 
         var monitor = ExtensionLoader.loadMonitor(new ArrayList<>());
 
-        var expectedMonitor = new ConsoleMonitor(ConsoleMonitor.Level.getDefaultLevel(), true);
-
-        assertEquals(monitor, expectedMonitor);
+        assertThat(monitor).extracting("level").isEqualTo(ConsoleMonitor.Level.getDefaultLevel());
     }
 
     @Test
     void loadMonitor_consoleMonitorDefaultLogLevelWhenWrongArgs() {
-
-        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "=INF");
-
-        var expectedMonitor = new ConsoleMonitor(ConsoleMonitor.Level.getDefaultLevel(), true);
-
-        assertEquals(monitor, expectedMonitor);
+        assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "=INF")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
