@@ -279,7 +279,12 @@ public class HashicorpVaultClient {
         var folderPath = settings.getFolderPath();
 
         if (folderPath == null) {
-            folderPath = "";
+            return settings.url()
+                    .newBuilder()
+                    .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
+                    .addPathSegment(entryType)
+                    .addPathSegments(key)
+                    .build();
         }
 
         return settings.url()
