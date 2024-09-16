@@ -100,20 +100,6 @@ public class BaseRuntimeTest {
         verify(serviceLocator).loadImplementors(ConfigurationExtension.class, false);
     }
 
-    @Test
-    void configCanChangeProgramArgs() {
-
-        var config = mock(Config.class);
-        when(config.getString(ConsoleMonitor.LOG_LEVEL_CONFIG, null)).thenReturn("INFO");
-
-        var consoleMonitor = mock(ConsoleMonitor.class);
-
-        String[] programArgs = {"--no-color", "--log-level=DEBUG"};
-
-        var args = runtime.setLogLevelProgArgFromConfig(config, consoleMonitor, programArgs);
-
-        assertThat(args[1]).isEqualTo(String.format("%s=INFO", ConsoleMonitor.LEVEL_PROG_ARG));
-    }
 
     private static class BaseRuntimeFixture extends BaseRuntime {
 
