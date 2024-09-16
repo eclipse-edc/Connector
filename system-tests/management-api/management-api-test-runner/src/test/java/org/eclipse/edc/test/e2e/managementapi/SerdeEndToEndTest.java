@@ -18,7 +18,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
 import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest;
 import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult;
@@ -317,7 +316,7 @@ public class SerdeEndToEndTest {
         var terminateTransfer = deserialize(inputObject, TerminateTransfer.class);
 
         assertThat(terminateTransfer).isNotNull();
-        Assertions.assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
+        assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
 
     }
 
@@ -327,7 +326,8 @@ public class SerdeEndToEndTest {
         var terminateTransfer = deserialize(inputObject, SuspendTransfer.class);
 
         assertThat(terminateTransfer).isNotNull();
-        Assertions.assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
+        assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
+        assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
 
     }
 
@@ -363,7 +363,7 @@ public class SerdeEndToEndTest {
         var terminateTransfer = deserialize(inputObject, PolicyEvaluationPlanRequest.class);
 
         assertThat(terminateTransfer).isNotNull();
-        Assertions.assertThat(terminateTransfer.policyScope()).isEqualTo(inputObject.getString("policyScope"));
+        assertThat(terminateTransfer.policyScope()).isEqualTo(inputObject.getString("policyScope"));
 
     }
 
