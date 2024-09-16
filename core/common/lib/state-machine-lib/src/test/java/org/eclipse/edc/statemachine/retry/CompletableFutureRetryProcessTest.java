@@ -107,4 +107,17 @@ class CompletableFutureRetryProcessTest {
 
         verify(onFailure).accept(eq(entity), isA(EdcException.class));
     }
+
+    @Test
+    void shouldFail_whenExceptionIsThrown() {
+        when(process.get()).thenThrow(new EdcException("generic error"));
+        var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).clock(clock).build();
+        var retryProcess = new CompletableFutureRetryProcess<>(entity, process, mock(Monitor.class), clock, configuration);
+
+        var result = retryProcess.onSuccess(onSuccess).onFailure(onFailure).execute("any");
+
+        assertThat(result).isTrue();
+        verify(process).get();
+        verify(onFailure).accept(eq(entity), isA(EdcException.class));
+    }
 }
