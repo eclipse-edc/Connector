@@ -32,6 +32,7 @@ import static org.eclipse.edc.iam.identitytrust.sts.client.configuration.StsClie
 import static org.eclipse.edc.iam.identitytrust.sts.client.configuration.StsClientConfigurationExtension.CLIENT_ID;
 import static org.eclipse.edc.iam.identitytrust.sts.client.configuration.StsClientConfigurationExtension.CLIENT_NAME;
 import static org.eclipse.edc.iam.identitytrust.sts.client.configuration.StsClientConfigurationExtension.CLIENT_PRIVATE_KEY_ALIAS;
+import static org.eclipse.edc.iam.identitytrust.sts.client.configuration.StsClientConfigurationExtension.CLIENT_PUBLIC_KEY_REFERENCE;
 import static org.eclipse.edc.iam.identitytrust.sts.client.configuration.StsClientConfigurationExtension.CLIENT_SECRET_ALIAS;
 import static org.eclipse.edc.iam.identitytrust.sts.client.configuration.StsClientConfigurationExtension.CONFIG_PREFIX;
 import static org.eclipse.edc.iam.identitytrust.sts.client.configuration.StsClientConfigurationExtension.ID;
@@ -65,6 +66,7 @@ public class StsClientConfigurationExtensionTest implements ServiceExtension {
                 .privateKeyAlias("pAlias")
                 .secretAlias("sAlias")
                 .did("did:example:subject")
+                .publicKeyReference("publicReference")
                 .build();
         var clientAlias = "client";
         var config = ConfigFactory.fromMap(clientConfig(client, clientAlias));
@@ -74,7 +76,9 @@ public class StsClientConfigurationExtensionTest implements ServiceExtension {
         var capture = ArgumentCaptor.forClass(StsClient.class);
         verify(clientStore).create(capture.capture());
 
-        assertThat(capture.getValue()).usingRecursiveComparison().isEqualTo(client);
+        assertThat(capture.getValue()).usingRecursiveComparison()
+                .ignoringFields("createdAt")
+                .isEqualTo(client);
     }
 
     private Map<String, String> clientConfig(StsClient client, String clientAlias) {
@@ -84,7 +88,8 @@ public class StsClientConfigurationExtensionTest implements ServiceExtension {
                 clientAlias + "." + CLIENT_ID, client.getClientId(),
                 clientAlias + "." + CLIENT_SECRET_ALIAS, client.getSecretAlias(),
                 clientAlias + "." + CLIENT_DID, client.getDid(),
-                clientAlias + "." + CLIENT_PRIVATE_KEY_ALIAS, client.getPrivateKeyAlias()
+                clientAlias + "." + CLIENT_PRIVATE_KEY_ALIAS, client.getPrivateKeyAlias(),
+                clientAlias + "." + CLIENT_PUBLIC_KEY_REFERENCE, client.getPublicKeyReference()
         );
     }
 

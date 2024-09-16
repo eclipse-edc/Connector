@@ -17,9 +17,13 @@ package org.eclipse.edc.test.e2e.sts.api;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
@@ -39,174 +43,218 @@ import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.spi.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
+import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-@EndToEndTest
-public class StsApiEndToEndTest extends StsEndToEndTestBase {
+public class StsApiEndToEndTest {
 
     public static final int PORT = getFreePort();
     public static final String BASE_STS = "http://localhost:" + PORT + "/sts";
     private static final String GRANT_TYPE = "client_credentials";
 
+    abstract static class Tests extends StsEndToEndTestBase {
 
-    @RegisterExtension
-    static RuntimePerClassExtension sts = new RuntimePerClassExtension(new EmbeddedRuntime(
-            "sts",
-            new HashMap<>() {
-                {
-                    put("web.http.path", "/");
-                    put("web.http.port", String.valueOf(getFreePort()));
-                    put("web.http.sts.path", "/sts");
-                    put("web.http.sts.port", String.valueOf(PORT));
-                }
-            },
-            ":system-tests:sts-api:sts-api-test-runtime"
-    ));
+        @Test
+        void requestToken() throws ParseException {
+            var audience = "audience";
+            var clientSecret = "client_secret";
+            var expiresIn = 300;
 
-    @Test
-    void requestToken() throws ParseException {
-        var audience = "audience";
-        var clientSecret = "client_secret";
-        var expiresIn = 300;
+            var client = initClient(clientSecret);
 
-        var client = initClient(clientSecret);
+            var params = Map.of(
+                    "client_id", client.getClientId(),
+                    "audience", audience,
+                    "client_secret", clientSecret);
 
-        var params = Map.of(
-                "client_id", client.getClientId(),
-                "audience", audience,
-                "client_secret", clientSecret);
+            var token = tokenRequest(params)
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body("access_token", notNullValue())
+                    .body("expires_in", is(expiresIn))
+                    .extract()
+                    .body()
+                    .jsonPath().getString("access_token");
 
-        var token = tokenRequest(params)
-                .statusCode(200)
-                .contentType(JSON)
-                .body("access_token", notNullValue())
-                .body("expires_in", is(expiresIn))
-                .extract()
-                .body()
-                .jsonPath().getString("access_token");
+            assertThat(parseClaims(token))
+                    .containsEntry(ISSUER, client.getDid())
+                    .containsEntry(SUBJECT, client.getDid())
+                    .containsEntry(AUDIENCE, List.of(audience))
+                    .doesNotContainKey(CLIENT_ID)
+                    .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+        }
+        
+        @Test
+        void requestToken_withBearerScope() throws ParseException {
+            var clientSecret = "client_secret";
+            var audience = "audience";
+            var bearerAccessScope = "org.test.Member:read org.test.GoldMember:read";
+            var expiresIn = 300;
 
-        assertThat(parseClaims(token))
-                .containsEntry(ISSUER, client.getDid())
-                .containsEntry(SUBJECT, client.getDid())
-                .containsEntry(AUDIENCE, List.of(audience))
-                .doesNotContainKey(CLIENT_ID)
-                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+            var client = initClient(clientSecret);
+
+
+            var params = Map.of(
+                    "client_id", client.getClientId(),
+                    "audience", audience,
+                    "bearer_access_scope", bearerAccessScope,
+                    "client_secret", clientSecret);
+
+            var token = tokenRequest(params)
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body("access_token", notNullValue())
+                    .body("expires_in", is(expiresIn))
+                    .extract()
+                    .body()
+                    .jsonPath().getString("access_token");
+
+
+            assertThat(parseClaims(token))
+                    .containsEntry(ISSUER, client.getDid())
+                    .containsEntry(SUBJECT, client.getDid())
+                    .containsEntry(AUDIENCE, List.of(audience))
+                    .doesNotContainKey(CLIENT_ID)
+                    .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
+                    .hasEntrySatisfying(PRESENTATION_TOKEN_CLAIM, (accessToken) -> {
+                        assertThat(parseClaims((String) accessToken))
+                                .containsEntry(ISSUER, client.getDid())
+                                .containsEntry(SUBJECT, audience)
+                                .containsEntry(AUDIENCE, List.of(client.getDid()))
+                                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+                    });
+        }
+
+        @Test
+        void requestToken_withAttachedAccessScope() throws IOException, ParseException {
+            var clientSecret = "client_secret";
+            var audience = "audience";
+            var token = "test_token";
+            var expiresIn = 300;
+            var client = initClient(clientSecret);
+
+
+            var params = Map.of(
+                    "client_id", client.getClientId(),
+                    "audience", audience,
+                    "token", token,
+                    "client_secret", clientSecret);
+
+            var accessToken = tokenRequest(params)
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body("access_token", notNullValue())
+                    .body("expires_in", is(expiresIn))
+                    .extract()
+                    .body()
+                    .jsonPath().getString("access_token");
+
+
+            assertThat(parseClaims(accessToken))
+                    .containsEntry(ISSUER, client.getDid())
+                    .containsEntry(SUBJECT, client.getDid())
+                    .containsEntry(AUDIENCE, List.of(audience))
+                    .doesNotContainKey(CLIENT_ID)
+                    .containsEntry(PRESENTATION_TOKEN_CLAIM, token)
+                    .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+        }
+
+        @Test
+        void requestToken_shouldReturnError_whenClientNotFound() {
+
+            var clientId = "client_id";
+            var clientSecret = "client_secret";
+            var audience = "audience";
+
+            var params = Map.of(
+                    "client_id", clientId,
+                    "audience", audience,
+                    "client_secret", clientSecret);
+
+            tokenRequest(params)
+                    .statusCode(401)
+                    .contentType(JSON);
+        }
+
+        protected ValidatableResponse tokenRequest(Map<String, String> params) {
+
+            var req = baseRequest()
+                    .contentType("application/x-www-form-urlencoded")
+                    .formParam("grant_type", GRANT_TYPE);
+            params.forEach(req::formParam);
+            return req.post("/token").then();
+        }
+
+        protected RequestSpecification baseRequest() {
+            return given()
+                    .port(PORT)
+                    .baseUri(BASE_STS)
+                    .when();
+        }
     }
 
+    @Nested
+    @EndToEndTest
+    class InMemory extends Tests {
 
-    @Test
-    void requestToken_withBearerScope() throws ParseException {
-        var clientSecret = "client_secret";
-        var audience = "audience";
-        var bearerAccessScope = "org.test.Member:read org.test.GoldMember:read";
-        var expiresIn = 300;
+        @RegisterExtension
+        static RuntimePerClassExtension sts = new RuntimePerClassExtension(new EmbeddedRuntime(
+                "sts",
+                new HashMap<>() {
+                    {
+                        put("web.http.path", "/");
+                        put("web.http.port", String.valueOf(getFreePort()));
+                        put("web.http.sts.path", "/sts");
+                        put("web.http.sts.port", String.valueOf(PORT));
+                    }
+                },
+                ":system-tests:sts-api:sts-api-test-runtime"
+        ));
 
-        var client = initClient(clientSecret);
-
-
-        var params = Map.of(
-                "client_id", client.getClientId(),
-                "audience", audience,
-                "bearer_access_scope", bearerAccessScope,
-                "client_secret", clientSecret);
-
-        var token = tokenRequest(params)
-                .statusCode(200)
-                .contentType(JSON)
-                .body("access_token", notNullValue())
-                .body("expires_in", is(expiresIn))
-                .extract()
-                .body()
-                .jsonPath().getString("access_token");
-
-
-        assertThat(parseClaims(token))
-                .containsEntry(ISSUER, client.getDid())
-                .containsEntry(SUBJECT, client.getDid())
-                .containsEntry(AUDIENCE, List.of(audience))
-                .doesNotContainKey(CLIENT_ID)
-                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
-                .hasEntrySatisfying(PRESENTATION_TOKEN_CLAIM, (accessToken) -> {
-                    assertThat(parseClaims((String) accessToken))
-                            .containsEntry(ISSUER, client.getDid())
-                            .containsEntry(SUBJECT, audience)
-                            .containsEntry(AUDIENCE, List.of(client.getDid()))
-                            .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
-                });
+        @Override
+        protected RuntimePerClassExtension getRuntime() {
+            return sts;
+        }
     }
 
-    @Test
-    void requestToken_withAttachedAccessScope() throws IOException, ParseException {
-        var clientSecret = "client_secret";
-        var audience = "audience";
-        var token = "test_token";
-        var expiresIn = 300;
-        var client = initClient(clientSecret);
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests {
 
 
-        var params = Map.of(
-                "client_id", client.getClientId(),
-                "audience", audience,
-                "token", token,
-                "client_secret", clientSecret);
+        @RegisterExtension
+        static RuntimePerClassExtension sts = new RuntimePerClassExtension(new EmbeddedRuntime(
+                "sts",
+                new HashMap<>() {
+                    {
+                        put("web.http.path", "/");
+                        put("web.http.port", String.valueOf(getFreePort()));
+                        put("web.http.sts.path", "/sts");
+                        put("web.http.sts.port", String.valueOf(PORT));
+                        put("edc.datasource.default.url", PostgresqlEndToEndInstance.JDBC_URL_PREFIX + "runtime");
+                        put("edc.datasource.default.user", PostgresqlEndToEndInstance.USER);
+                        put("edc.datasource.default.password", PostgresqlEndToEndInstance.PASSWORD);
+                        put("edc.sql.schema.autocreate", "true");
+                    }
+                },
+                ":system-tests:sts-api:sts-api-test-runtime",
+                ":extensions:common:store:sql:sts-client-store-sql",
+                ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
+                ":extensions:common:transaction:transaction-local"
+        )) {
+            @Override
+            public void beforeAll(ExtensionContext extensionContext) {
+                createDatabase("runtime");
+                super.beforeAll(extensionContext);
+            }
+        };
 
-        var accessToken = tokenRequest(params)
-                .statusCode(200)
-                .contentType(JSON)
-                .body("access_token", notNullValue())
-                .body("expires_in", is(expiresIn))
-                .extract()
-                .body()
-                .jsonPath().getString("access_token");
-
-
-        assertThat(parseClaims(accessToken))
-                .containsEntry(ISSUER, client.getDid())
-                .containsEntry(SUBJECT, client.getDid())
-                .containsEntry(AUDIENCE, List.of(audience))
-                .doesNotContainKey(CLIENT_ID)
-                .containsEntry(PRESENTATION_TOKEN_CLAIM, token)
-                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
-    }
-
-    @Test
-    void requestToken_shouldReturnError_whenClientNotFound() {
-
-        var clientId = "client_id";
-        var clientSecret = "client_secret";
-        var audience = "audience";
-
-        var params = Map.of(
-                "client_id", clientId,
-                "audience", audience,
-                "client_secret", clientSecret);
-
-        tokenRequest(params)
-                .statusCode(401)
-                .contentType(JSON);
-    }
-
-    protected ValidatableResponse tokenRequest(Map<String, String> params) {
-
-        var req = baseRequest()
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("grant_type", GRANT_TYPE);
-        params.forEach(req::formParam);
-        return req.post("/token").then();
-    }
-
-    protected RequestSpecification baseRequest() {
-        return given()
-                .port(PORT)
-                .baseUri(BASE_STS)
-                .when();
-    }
-
-    @Override
-    protected RuntimePerClassExtension getRuntime() {
-        return sts;
+        @Override
+        protected RuntimePerClassExtension getRuntime() {
+            return sts;
+        }
     }
 
 }

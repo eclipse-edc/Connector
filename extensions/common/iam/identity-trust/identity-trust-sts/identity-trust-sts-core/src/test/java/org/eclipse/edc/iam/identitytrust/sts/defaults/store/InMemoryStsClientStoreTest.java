@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.sts.defaults.store;
 
 import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
 import org.eclipse.edc.iam.identitytrust.sts.spi.store.fixtures.StsClientStoreTestBase;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.junit.jupiter.api.BeforeEach;
 
 public class InMemoryStsClientStoreTest extends StsClientStoreTestBase {
@@ -24,7 +25,7 @@ public class InMemoryStsClientStoreTest extends StsClientStoreTestBase {
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryStsClientStore();
+        store = new InMemoryStsClientStore(CriterionOperatorRegistryImpl.ofDefaults());
     }
 
     @Override
