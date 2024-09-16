@@ -82,10 +82,6 @@ public class ConsoleMonitor implements Monitor {
         output(DEBUG, supplier, errors);
     }
 
-    public void setLevel(Level level) {
-        this.level = level;
-    }
-
     private void output(String level, Supplier<String> supplier, Throwable... errors) {
         var time = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         var colorCode = useColor ? getColorCode(level) : "";
