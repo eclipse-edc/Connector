@@ -16,24 +16,23 @@ package org.eclipse.edc.iam.verifiablecredentials.rules;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
+import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.spi.result.Result;
 
-import java.util.Collection;
+import java.util.Collections;
 
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
 /**
- * A class that implements the {@link CredentialValidationRule} interface and checks if a {@link VerifiableCredential} has a valid issuer.
- * Valid issuers are stored in a global list.
- * <p>
- * If the issuer object is neither a string nor an object containing an "id" field, a failure is returned.
+ * A class that implements the {@link CredentialValidationRule} interface and checks if a {@link VerifiableCredential} has a trusted issuer,
+ * and if the credential type is supported for this issuer.
  */
 public class HasValidIssuer implements CredentialValidationRule {
-    private final Collection<String> trustedIssuers;
+    private final TrustedIssuerRegistry trustedIssuerRegistry;
 
-    public HasValidIssuer(Collection<String> trustedIssuers) {
-        this.trustedIssuers = trustedIssuers;
+    public HasValidIssuer(TrustedIssuerRegistry trustedIssuerRegistry) {
+        this.trustedIssuerRegistry = trustedIssuerRegistry;
     }
 
     @Override
@@ -42,6 +41,11 @@ public class HasValidIssuer implements CredentialValidationRule {
         if (issuer.id() == null) {
             return failure("Issuer did not contain an 'id' field.");
         }
-        return trustedIssuers.contains(issuer.id()) ? success() : failure("Issuer '%s' is not in the list of trusted issuers".formatted(issuer.id()));
+
+        var supportedTypes = trustedIssuerRegistry.getSupportedTypes(issuer);
+        return !supportedTypes.contains(TrustedIssuerRegistry.WILDCARD) && Collections.disjoint(credential.getType(), supportedTypes) ?
+                failure("Credential types '%s' are not supported for issuer '%s'".formatted(credential.getType(), issuer.id())) :
+                success();
     }
+
 }

@@ -16,17 +16,30 @@ package org.eclipse.edc.iam.verifiablecredentials.spi.validation;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 
-import java.util.Collection;
+import java.util.Set;
 
 /**
- * A list of trusted VC issuers
+ * Trusted issuer registry.
  */
 public interface TrustedIssuerRegistry {
 
-    void addIssuer(Issuer issuer);
+    String WILDCARD = "*";
 
-    Issuer getById(String id);
+    /**
+     * Register a supported type for a trusted issuer.
+     *
+     * @param issuer         the issuer
+     * @param credentialType supported credential type for this issuer
+     */
+    void register(Issuer issuer, String credentialType);
 
-    Collection<Issuer> getTrustedIssuers();
+    /**
+     * Get the supported types for a given issuer.
+     *
+     * @param issuer the issuer
+     * @return set of supported credential types for this issuer.
+     */
+    Set<String> getSupportedTypes(Issuer issuer);
+
 }
 

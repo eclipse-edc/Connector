@@ -15,52 +15,66 @@
 package org.eclipse.edc.iam.verifiablecredentials.rules;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createCredentialBuilder;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class HasValidIssuerTest {
 
-    @DisplayName("Issuer (string) is in the list of valid issuers")
+    private static final String ISSUER = "did:web:issuer1";
+
+    private final TrustedIssuerRegistry trustedIssuerRegistry = mock();
+    private final HasValidIssuer rule = new HasValidIssuer(trustedIssuerRegistry);
+
+    @DisplayName("Issuer is trusted for any credential type")
     @Test
-    void hasValidIssuer_string() {
+    void isTrustedForAnyType_shouldReturnSuccess() {
+        when(trustedIssuerRegistry.getSupportedTypes(new Issuer(ISSUER, Map.of()))).thenReturn(Set.of(TrustedIssuerRegistry.WILDCARD));
+
         var vc = createCredentialBuilder()
-                .issuer(new Issuer("did:web:issuer2", Map.of()))
+                .issuer(new Issuer(ISSUER, Map.of()))
+                .types(List.of("type1", "type2"))
                 .build();
-        assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isSucceeded();
+
+        assertThat(rule.apply(vc)).isSucceeded();
     }
 
-    @DisplayName("Issuer (object) is in the list of valid issuers")
+    @DisplayName("Issuer is trusted for the provided credential type")
     @Test
-    void hasValidIssuer_object() {
+    void isTrustedForType_shouldReturnSuccess() {
+        when(trustedIssuerRegistry.getSupportedTypes(new Issuer(ISSUER, Map.of()))).thenReturn(Set.of("type3", "type1"));
+
         var vc = createCredentialBuilder()
-                .issuer(new Issuer("did:web:issuer1", Map.of("name", "test issuer company")))
+                .issuer(new Issuer(ISSUER, Map.of()))
+                .types(List.of("type1", "type2"))
                 .build();
-        assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isSucceeded();
+
+        assertThat(rule.apply(vc)).isSucceeded();
     }
 
-    @DisplayName("Issuer (string) is not in the list of valid issuers")
+    @DisplayName("Issuer is not trusted for the provided credential type")
     @Test
-    void invalidIssuer_string() {
+    void isNotTrustedForType_shouldFail() {
+        when(trustedIssuerRegistry.getSupportedTypes(new Issuer(ISSUER, Map.of()))).thenReturn(Set.of("type2", "type3"));
+
         var vc = createCredentialBuilder()
-                .issuer(new Issuer("did:web:invalid", Map.of()))
+                .issuer(new Issuer(ISSUER, Map.of()))
+                .types(List.of("type1"))
                 .build();
-        assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isFailed()
-                .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of trusted issuers");
+
+        assertThat(rule.apply(vc))
+                .isFailed()
+                .detail()
+                .isEqualTo("Credential types '[type1]' are not supported for issuer '%s'".formatted(ISSUER));
     }
 
-    @DisplayName("Issuer (object) is not in the list of valid issuers")
-    @Test
-    void invalidIssuer_object() {
-        var vc = createCredentialBuilder()
-                .issuer(new Issuer("did:web:invalid", Map.of("id", "did:web:invalid", "name", "test issuer company")))
-                .build();
-        assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isFailed()
-                .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of trusted issuers");
-    }
 }

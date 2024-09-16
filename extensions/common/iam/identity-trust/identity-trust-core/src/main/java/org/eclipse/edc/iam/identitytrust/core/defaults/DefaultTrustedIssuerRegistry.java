@@ -17,28 +17,26 @@ package org.eclipse.edc.iam.identitytrust.core.defaults;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Simple, memory-based implementation of a {@link TrustedIssuerRegistry}
+ * Simple, memory-based implementation of a {@link TrustedIssuerRegistry}.
  */
 public class DefaultTrustedIssuerRegistry implements TrustedIssuerRegistry {
-    private final Map<String, Issuer> store = new HashMap<>();
+
+    private final Map<String, Set<String>> store = new ConcurrentHashMap<>();
 
     @Override
-    public void addIssuer(Issuer issuer) {
-        store.put(issuer.id(), issuer);
+    public void register(Issuer issuer, String credentialType) {
+        store.computeIfAbsent(issuer.id(), k -> new HashSet<>()).add(credentialType);
     }
 
     @Override
-    public Issuer getById(String id) {
-        return store.get(id);
+    public Set<String> getSupportedTypes(Issuer issuer) {
+        return store.getOrDefault(issuer.id(), Set.of());
     }
 
-    @Override
-    public Collection<Issuer> getTrustedIssuers() {
-        return store.values();
-    }
 }

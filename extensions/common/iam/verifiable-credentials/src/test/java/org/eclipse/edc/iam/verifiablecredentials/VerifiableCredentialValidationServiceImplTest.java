@@ -53,6 +53,7 @@ class VerifiableCredentialValidationServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        when(trustedIssuerRegistryMock.getSupportedTypes(TRUSTED_ISSUER)).thenReturn(Set.of(TrustedIssuerRegistry.WILDCARD));
         when(revocationServiceRegistry.checkValidity(any())).thenReturn(Result.success());
     }
 
@@ -103,7 +104,6 @@ class VerifiableCredentialValidationServiceImplTest {
 
     @Test
     void credentialHasInvalidIssuer_issuerIsUrl() {
-        var consumerDid = "did:web:test-consumer";
         var presentation = createPresentationBuilder()
                 .type("VerifiablePresentation")
                 .credentials(List.of(createCredentialBuilder()
@@ -116,7 +116,7 @@ class VerifiableCredentialValidationServiceImplTest {
         var result = service.validate(List.of(vpContainer));
         assertThat(result).isFailed().messages()
                 .hasSizeGreaterThanOrEqualTo(1)
-                .contains("Issuer 'invalid-issuer' is not in the list of trusted issuers");
+                .contains("Credential types '[test-type]' are not supported for issuer 'invalid-issuer'");
     }
 
     @Test
@@ -133,7 +133,6 @@ class VerifiableCredentialValidationServiceImplTest {
                 .build();
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
-        when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
         var result = service.validate(List.of(vpContainer));
         assertThat(result).isSucceeded();
     }
@@ -158,7 +157,6 @@ class VerifiableCredentialValidationServiceImplTest {
                 .build();
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
-        when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
         var result = service.validate(List.of(vpContainer));
         assertThat(result).isSucceeded();
     }
@@ -202,8 +200,6 @@ class VerifiableCredentialValidationServiceImplTest {
         var vpContainer2 = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation2);
 
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
-        when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
-
 
         var result = service.validate(List.of(vpContainer1, vpContainer2));
         assertThat(result).isSucceeded();
@@ -224,7 +220,6 @@ class VerifiableCredentialValidationServiceImplTest {
                 .build();
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
-        when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
         when(revocationServiceRegistry.checkValidity(any())).thenReturn(Result.failure("invalid"));
 
         var result = service.validate(List.of(vpContainer));

@@ -30,7 +30,9 @@ import org.mockito.ArgumentCaptor;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,13 +51,24 @@ public class TrustedIssuerConfigurationExtensionTest {
     }
 
     @Test
-    void initialize(ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
-        var cfg = ConfigFactory.fromMap(Map.of("issuer1.id", "issuerId1"));
+    void initialize_issuerWithSupportedTypes(ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
+        var cfg = ConfigFactory.fromMap(Map.of("issuer1.id", "issuer1", "issuer1.supportedtypes", "[\"type1\", \"type2\"]"));
         when(context.getConfig("edc.iam.trusted-issuer")).thenReturn(cfg);
 
         ext.initialize(context);
 
-        verify(trustedIssuerRegistry).addIssuer(argThat(issuer -> issuer.id().equals("issuerId1")));
+        verify(trustedIssuerRegistry).register(argThat(issuer -> issuer.id().equals("issuer1")), eq("type1"));
+        verify(trustedIssuerRegistry).register(argThat(issuer -> issuer.id().equals("issuer1")), eq("type1"));
+    }
+
+    @Test
+    void initialize_issuerWithoutSupportedType(ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
+        var cfg = ConfigFactory.fromMap(Map.of("issuer1.id", "issuer1"));
+        when(context.getConfig("edc.iam.trusted-issuer")).thenReturn(cfg);
+
+        ext.initialize(context);
+
+        verify(trustedIssuerRegistry).register(argThat(issuer -> issuer.id().equals("issuer1")), eq(TrustedIssuerRegistry.WILDCARD));
     }
 
     @Test
@@ -79,7 +92,7 @@ public class TrustedIssuerConfigurationExtensionTest {
 
         ext.initialize(context);
 
-        verify(trustedIssuerRegistry).addIssuer(argThat(issuer -> issuer.additionalProperties().get("custom").equals("test")));
+        verify(trustedIssuerRegistry).register(argThat(issuer -> issuer.additionalProperties().get("custom").equals("test")), eq(TrustedIssuerRegistry.WILDCARD));
     }
 
     @Test
@@ -91,7 +104,7 @@ public class TrustedIssuerConfigurationExtensionTest {
 
         var issuers = ArgumentCaptor.forClass(Issuer.class);
 
-        verify(trustedIssuerRegistry, times(2)).addIssuer(issuers.capture());
+        verify(trustedIssuerRegistry, times(2)).register(issuers.capture(), any());
 
         assertThat(issuers.getAllValues()).hasSize(2)
                 .extracting(Issuer::id)

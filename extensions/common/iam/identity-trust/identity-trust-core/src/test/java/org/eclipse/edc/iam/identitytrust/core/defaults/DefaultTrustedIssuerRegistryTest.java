@@ -26,40 +26,20 @@ class DefaultTrustedIssuerRegistryTest {
     private final DefaultTrustedIssuerRegistry registry = new DefaultTrustedIssuerRegistry();
 
     @Test
-    void addIssuer() {
+    void trustedIssuer() {
         var issuer = new Issuer("test-id", Map.of());
-        registry.addIssuer(issuer);
-        assertThat(registry.getTrustedIssuers()).containsExactly(issuer);
+
+        registry.register(issuer, "test-type1");
+        registry.register(issuer, "test-type2");
+
+        assertThat(registry.getSupportedTypes(issuer)).containsExactly("test-type1", "test-type2");
     }
 
     @Test
-    void addIssuer_exists_shouldReplace() {
+    void invalidIssuer() {
         var issuer = new Issuer("test-id", Map.of());
-        var issuer2 = new Issuer("test-id", Map.of("new-key", "new-val"));
-        registry.addIssuer(issuer);
-        registry.addIssuer(issuer2);
-        assertThat(registry.getTrustedIssuers()).containsExactly(issuer2);
+
+        assertThat(registry.getSupportedTypes(issuer)).isEmpty();
     }
 
-    @Test
-    void getById() {
-        var issuer = new Issuer("test-id", Map.of());
-        registry.addIssuer(issuer);
-        assertThat(registry.getById("test-id")).isEqualTo(issuer);
-    }
-
-    @Test
-    void getById_notFound() {
-        assertThat(registry.getById("nonexistent-id")).isNull();
-    }
-
-    @Test
-    void getTrustedIssuers() {
-        var issuer = new Issuer("test-id", Map.of());
-        var issuer2 = new Issuer("test-id2", Map.of("new-key", "new-val"));
-        registry.addIssuer(issuer);
-        registry.addIssuer(issuer2);
-
-        assertThat(registry.getTrustedIssuers()).containsExactlyInAnyOrder(issuer2, issuer);
-    }
 }

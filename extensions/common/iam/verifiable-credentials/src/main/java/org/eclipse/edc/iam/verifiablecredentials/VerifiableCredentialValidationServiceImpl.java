@@ -19,7 +19,6 @@ import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsInValidityPeriod;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsNotRevoked;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
@@ -68,7 +67,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
                 new IsInValidityPeriod(clock),
                 new HasValidSubjectIds(presentationHolder),
                 new IsNotRevoked(revocationServiceRegistry),
-                new HasValidIssuer(getTrustedIssuerIds())));
+                new HasValidIssuer(trustedIssuerRegistry)));
 
         filters.addAll(additionalRules);
         var results = credentials
@@ -78,7 +77,4 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
         return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
     }
 
-    private List<String> getTrustedIssuerIds() {
-        return trustedIssuerRegistry.getTrustedIssuers().stream().map(Issuer::id).toList();
-    }
 }
