@@ -113,21 +113,6 @@ public class ExtensionLoader {
     }
 
     /**
-     * Parses the ConsoleMonitor log level from the program args. If no log level is provided, defaults to Level default.
-     */
-    private static ConsoleMonitor.Level parseLogLevel(String[] programArgs) {
-        return Set.of(programArgs).stream().filter(arg -> arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG)).map(arg -> getLogLevel(arg.split("=")[1])).findFirst().orElse(ConsoleMonitor.Level.getDefaultLevel());
-    }
-
-    private static ConsoleMonitor.Level getLogLevel(String level) {
-        try {
-            return ConsoleMonitor.Level.valueOf(level);
-        } catch (IllegalArgumentException e) {
-            return ConsoleMonitor.Level.getDefaultLevel();
-        }
-    }
-
-    /**
      * Loads and orders the service extensions.
      */
     public List<InjectionContainer<ServiceExtension>> loadServiceExtensions(ServiceExtensionContext context) {
@@ -140,6 +125,23 @@ public class ExtensionLoader {
      */
     public <T> List<T> loadExtensions(Class<T> type, boolean required) {
         return serviceLocator.loadImplementors(type, required);
+    }
+
+    /**
+     * Parses the ConsoleMonitor log level from the program args. If no log level is provided, defaults to Level default.
+     */
+    private static ConsoleMonitor.Level parseLogLevel(String[] programArgs) {
+        return Set.of(programArgs).stream()
+                .filter(arg -> arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG))
+                .map(arg -> {
+                    try {
+                        return ConsoleMonitor.Level.valueOf(arg.split("=")[1]);
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException(String.format("Illegal Console Monitor log level value: %s. Possible values are DEBUG, INFO, WARNING, SEVERE", arg.split("=")[1]));
+                    }
+                })
+                .findFirst()
+                .orElse(ConsoleMonitor.Level.getDefaultLevel());
     }
 
 }
