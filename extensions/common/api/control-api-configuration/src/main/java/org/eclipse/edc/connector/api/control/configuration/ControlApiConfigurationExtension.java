@@ -45,10 +45,13 @@ import java.net.URI;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -63,12 +66,10 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
 
     @Setting(value = "Configures endpoint for reaching the Control API. If it's missing it defaults to the hostname configuration.")
     public static final String CONTROL_API_ENDPOINT = "edc.control.endpoint";
-
+    public static final String CONTROL_SCOPE = "CONTROL_API";
     private static final String WEB_SERVICE_NAME = "Control API";
-
     @SettingContext("Control API context setting key")
     private static final String CONTROL_CONFIG_KEY = "web.http." + ApiContext.CONTROL;
-
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(CONTROL_CONFIG_KEY)
             .contextAlias(ApiContext.CONTROL)
@@ -77,7 +78,6 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
             .useDefaultContext(true)
             .name(WEB_SERVICE_NAME)
             .build();
-    private static final String CONTROL_SCOPE = "CONTROL_API";
     private static final String API_VERSION_JSON_FILE = "control-api-version.json";
 
     @Inject
@@ -110,6 +110,8 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         context.registerService(ControlApiUrl.class, controlApiUrl(context, controlApiConfiguration));
 
+        jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, CONTROL_SCOPE);
+        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_SCOPE);
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_SCOPE);
         jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_SCOPE);
 

@@ -18,6 +18,7 @@ public class JsonLdConfiguration {
 
     private boolean httpEnabled = false;
     private boolean httpsEnabled = false;
+    private boolean avoidVocab = false;
     private boolean checkPrefixes = true;
 
     private JsonLdConfiguration() {
@@ -36,6 +37,10 @@ public class JsonLdConfiguration {
         return checkPrefixes;
     }
 
+    public boolean isAvoidVocab() {
+        return avoidVocab;
+    }
+
     public static class Builder {
 
         private final JsonLdConfiguration configuration = new JsonLdConfiguration();
@@ -51,6 +56,11 @@ public class JsonLdConfiguration {
 
         public Builder httpsEnabled(boolean httpsEnabled) {
             configuration.httpsEnabled = httpsEnabled;
+            return this;
+        }
+
+        public Builder avoidVocab(boolean avoidVocab) {
+            configuration.avoidVocab = avoidVocab;
             return this;
         }
 

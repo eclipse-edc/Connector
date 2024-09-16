@@ -69,10 +69,10 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
             context.getMonitor().debug(() -> "Using embedded Data Plane client.");
             return instance -> new EmbeddedDataPlaneClient(dataPlaneManager);
         }
-        
+
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_CLIENT_SCOPE);
         jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_CLIENT_SCOPE);
-        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE);
+        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_CLIENT_SCOPE);
 
         var mapper = typeManager.getMapper(JSON_LD);
         context.getMonitor().debug(() -> "Using remote Data Plane client.");

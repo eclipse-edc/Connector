@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.jsonld.serde;
+package org.eclipse.edc.test.e2e.managementapi;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -29,18 +29,12 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.command.Termina
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
-import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
-import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
-import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
-import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.connector.spi.service.SecretService;
-import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
-import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -57,8 +51,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -68,56 +62,38 @@ import java.util.stream.Stream;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.MANAGEMENT_API_CONTEXT;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.MANAGEMENT_API_SCOPE;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.assetObject;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.contractDefinitionObject;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.contractRequestObject;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createContractAgreement;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createContractNegotiation;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createEdrEntry;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createPolicyEvaluationPlan;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.createTransferProcess;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.dataAddressObject;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.inForceDatePermission;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.policyDefinitionObject;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.policyEvaluationPlanRequest;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.querySpecObject;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.secretObject;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.suspendTransferObject;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.terminateNegotiationObject;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.terminateTransferObject;
-import static org.eclipse.edc.connector.api.management.jsonld.serde.TestFunctions.transferRequestObject;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_API_CONTEXT;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_API_SCOPE;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractDefinitionObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractAgreement;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractNegotiation;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createEdrEntry;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createPolicyEvaluationPlan;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createTransferProcess;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataAddressObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.inForceDatePermission;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyDefinitionObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyEvaluationPlanRequest;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.querySpecObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.secretObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.suspendTransferObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.terminateNegotiationObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.terminateTransferObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObject;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.mockito.Mockito.mock;
 
-@ComponentTest
-public class SerdeIntegrationTest {
+@EndToEndTest
+public class SerdeEndToEndTest {
 
     @RegisterExtension
-    private static final RuntimeExtension RUNTIME;
-
-    static {
-        RUNTIME = new RuntimePerClassExtension();
-        RUNTIME.registerServiceMock(ContractDefinitionService.class, mock());
-        RUNTIME.registerServiceMock(ContractNegotiationService.class, mock());
-        RUNTIME.registerServiceMock(PolicyDefinitionService.class, mock());
-        RUNTIME.registerServiceMock(TransferProcessService.class, mock());
-        RUNTIME.registerServiceMock(SecretService.class, mock());
-        RUNTIME.registerServiceMock(EndpointDataReferenceStore.class, mock());
-        RUNTIME.setConfiguration(Map.of(
-                "web.http.port", String.valueOf(getFreePort()),
-                "web.http.path", "/api",
-                "web.http.management.port", String.valueOf(getFreePort()),
-                "web.http.management.path", "/api",
-                "edc.jsonld.vocab.disable", "true"
-        ));
-    }
+    private static final RuntimeExtension RUNTIME = new SerdeRuntime();
 
     @Test
     void ser_ContractAgreement() {
@@ -351,6 +327,7 @@ public class SerdeIntegrationTest {
 
         assertThat(terminateTransfer).isNotNull();
         assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
+        assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
 
     }
 
@@ -471,5 +448,38 @@ public class SerdeIntegrationTest {
         }
     }
 
+
+    static class SerdeRuntime extends ManagementEndToEndExtension {
+
+        protected SerdeRuntime() {
+            super(context());
+        }
+
+        private static ManagementEndToEndTestContext context() {
+            var managementPort = getFreePort();
+            var protocolPort = getFreePort();
+
+            var runtime = new EmbeddedRuntime(
+                    "control-plane",
+                    new HashMap<>() {
+                        {
+                            put("web.http.path", "/");
+                            put("web.http.port", String.valueOf(getFreePort()));
+                            put("web.http.protocol.path", "/protocol");
+                            put("web.http.protocol.port", String.valueOf(protocolPort));
+                            put("web.http.control.port", String.valueOf(getFreePort()));
+                            put("edc.dsp.callback.address", "http://localhost:" + protocolPort + "/protocol");
+                            put("web.http.management.path", "/management");
+                            put("web.http.management.port", String.valueOf(managementPort));
+                            put("edc.management.context.enabled", "true");
+                        }
+                    },
+                    ":system-tests:management-api:management-api-test-runtime"
+            );
+
+            return new ManagementEndToEndTestContext(runtime, managementPort, protocolPort);
+        }
+
+    }
 
 }

@@ -15,7 +15,6 @@
 package org.eclipse.edc.jsonld;
 
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformer;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
@@ -36,8 +35,7 @@ import java.net.URISyntaxException;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -64,8 +62,8 @@ public class JsonLdExtension implements ServiceExtension {
     private static final String HTTP_ENABLE_SETTING = "edc.jsonld.http.enabled";
     @Setting(value = "If set enable https json-ld document resolution", type = "boolean", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "")
     private static final String HTTPS_ENABLE_SETTING = "edc.jsonld.https.enabled";
-    private static final String DEFAULT_AVOID_VOCAB_CONTEXT = "false";
-    @Setting(value = "If true disable the @vocab context definition. This could be used to avoid api breaking changes", type = "boolean", defaultValue = DEFAULT_AVOID_VOCAB_CONTEXT)
+    private static final boolean DEFAULT_AVOID_VOCAB_CONTEXT = false;
+    @Setting(value = "If true disable the @vocab context definition. This could be used to avoid api breaking changes", type = "boolean", defaultValue = DEFAULT_AVOID_VOCAB_CONTEXT + "")
     private static final String AVOID_VOCAB_CONTEXT = "edc.jsonld.vocab.disable";
     private static final boolean DEFAULT_CHECK_PREFIXES = true;
     @Setting(value = "If true a validation on expended object will be made against configured prefixes", type = "boolean", defaultValue = DEFAULT_CHECK_PREFIXES + "")
@@ -90,18 +88,16 @@ public class JsonLdExtension implements ServiceExtension {
         var configuration = JsonLdConfiguration.Builder.newInstance()
                 .httpEnabled(config.getBoolean(HTTP_ENABLE_SETTING, DEFAULT_HTTP_HTTPS_RESOLUTION))
                 .httpsEnabled(config.getBoolean(HTTPS_ENABLE_SETTING, DEFAULT_HTTP_HTTPS_RESOLUTION))
+                .avoidVocab(config.getBoolean(AVOID_VOCAB_CONTEXT, DEFAULT_AVOID_VOCAB_CONTEXT))
                 .checkPrefixes(config.getBoolean(CHECK_PREFIXES, DEFAULT_CHECK_PREFIXES))
                 .build();
         var monitor = context.getMonitor();
         var service = new TitaniumJsonLd(monitor, configuration);
-        if (!config.getBoolean(AVOID_VOCAB_CONTEXT, Boolean.valueOf(DEFAULT_AVOID_VOCAB_CONTEXT))) {
-            service.registerNamespace(JsonLdKeywords.VOCAB, EDC_NAMESPACE);
-        }
-        service.registerNamespace(EDC_PREFIX, EDC_NAMESPACE);
 
         Stream.of(
                 new JsonLdContext("odrl.jsonld", "http://www.w3.org/ns/odrl.jsonld"),
-                new JsonLdContext("dspace.jsonld", "https://w3id.org/dspace/2024/1/context.json")
+                new JsonLdContext("dspace.jsonld", "https://w3id.org/dspace/2024/1/context.json"),
+                new JsonLdContext("management-context-v1.jsonld", EDC_CONNECTOR_MANAGEMENT_CONTEXT)
         ).forEach(jsonLdContext -> getResourceUri("document/" + jsonLdContext.fileName())
                 .onSuccess(uri -> service.registerCachedDocument(jsonLdContext.url(), uri))
                 .onFailure(failure -> monitor.warning("Failed to register cached json-ld document: " + failure.getFailureDetail()))

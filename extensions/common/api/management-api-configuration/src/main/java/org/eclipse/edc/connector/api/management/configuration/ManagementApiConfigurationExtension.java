@@ -61,8 +61,12 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -75,10 +79,10 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     public static final String API_VERSION_JSON_FILE = "management-api-version.json";
     public static final String NAME = "Management API configuration";
     public static final String WEB_SERVICE_NAME = "Management API";
+    public static final String MANAGEMENT_SCOPE = "MANAGEMENT_API";
 
     @SettingContext("Management API context setting key")
     private static final String MANAGEMENT_CONFIG_KEY = "web.http." + ApiContext.MANAGEMENT;
-
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(MANAGEMENT_CONFIG_KEY)
             .contextAlias(ApiContext.MANAGEMENT)
@@ -87,10 +91,13 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
             .useDefaultContext(true)
             .name(WEB_SERVICE_NAME)
             .build();
-    private static final String MANAGEMENT_SCOPE = "MANAGEMENT_API";
-
     @Setting(value = "Configures endpoint for reaching the Management API.", defaultValue = "<hostname:management.port/management.path>")
     private static final String MANAGEMENT_API_ENDPOINT = "edc.management.endpoint";
+
+    private static final boolean DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT = false;
+
+    @Setting(value = "If set enable the usage of management api JSON-LD context.", defaultValue = "" + DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT)
+    private static final String MANAGEMENT_API_ENABLE_CONTEXT = "edc.management.context.enabled";
 
     @Inject
     private WebService webService;
@@ -129,7 +136,16 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, "management-api");
         webService.registerResource(ApiContext.MANAGEMENT, authenticationFilter);
 
-        jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, MANAGEMENT_SCOPE);
+        var isManagementContextEnabled = context.getSetting(MANAGEMENT_API_ENABLE_CONTEXT, DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT);
+
+        if (isManagementContextEnabled) {
+            jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT, MANAGEMENT_SCOPE);
+        } else {
+            jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, MANAGEMENT_SCOPE);
+            jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, MANAGEMENT_SCOPE);
+            jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, MANAGEMENT_SCOPE);
+        }
+
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(ApiContext.MANAGEMENT, new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(ApiContext.MANAGEMENT, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, MANAGEMENT_SCOPE));

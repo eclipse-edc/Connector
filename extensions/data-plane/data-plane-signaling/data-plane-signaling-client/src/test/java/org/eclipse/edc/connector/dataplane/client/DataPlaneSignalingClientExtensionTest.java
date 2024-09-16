@@ -49,7 +49,7 @@ class DataPlaneSignalingClientExtensionTest {
         assertThat(client).isInstanceOf(DataPlaneSignalingClient.class);
         verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_CLIENT_SCOPE);
         verify(jsonLd).registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_CLIENT_SCOPE);
-        verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE);
+        verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_CLIENT_SCOPE);
     }
 
     @Test
