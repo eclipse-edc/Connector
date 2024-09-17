@@ -65,7 +65,7 @@ public class SqlStsClientStore extends AbstractSqlStore implements StsClientStor
                         client.getCreatedAt()
                 );
 
-                return StoreResult.success();
+                return StoreResult.success(client);
             } catch (Exception e) {
                 throw new EdcPersistenceException(e);
             }
