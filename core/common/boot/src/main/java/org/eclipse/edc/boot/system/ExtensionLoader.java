@@ -37,6 +37,7 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ExtensionLoader {
 
@@ -132,12 +133,13 @@ public class ExtensionLoader {
      */
     private static ConsoleMonitor.Level parseLogLevel(String[] programArgs) {
         return Set.of(programArgs).stream()
-                .filter(arg -> arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG))
-                .map(arg -> {
+                .filter(arg -> arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG + "="))
+                .map(arg -> arg.split("=").length == 2 ? arg.split("=")[1] : "null" )
+                .map(lvl -> {
                     try {
-                        return ConsoleMonitor.Level.valueOf(arg.split("=")[1]);
+                        return ConsoleMonitor.Level.valueOf(lvl);
                     } catch (IllegalArgumentException e) {
-                        throw new IllegalArgumentException(String.format("Illegal Console Monitor log level value: %s. Possible values are DEBUG, INFO, WARNING, SEVERE", arg.split("=")[1]));
+                        throw new IllegalArgumentException(String.format("Illegal Console Monitor log level value: %s. Possible values are %s", lvl, Stream.of(ConsoleMonitor.Level.values()).toList()));
                     }
                 })
                 .findFirst()

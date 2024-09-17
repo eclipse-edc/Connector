@@ -116,7 +116,12 @@ class ExtensionLoaderTest {
 
     @Test
     void loadMonitor_consoleMonitorDefaultLogLevelWhenWrongArgs() {
-        assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "=INF")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "=INF"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Illegal Console Monitor log level value: INF.");
+        assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "="))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Illegal Console Monitor log level value: null.");
     }
 
     @Test
