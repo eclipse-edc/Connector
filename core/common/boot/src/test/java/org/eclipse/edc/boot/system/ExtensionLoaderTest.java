@@ -37,11 +37,9 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
@@ -105,7 +103,7 @@ class ExtensionLoaderTest {
     }
 
     @ParameterizedTest
-    @ArgumentsSource(LogLevelVariantArgsProvider.class)
+    @MethodSource("provideLogLevelVariantArgs")
     void loadMonitor_programArgsSetConsoleMonitorLogLevel(String programArgs, ConsoleMonitor.Level level) {
 
         var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), programArgs);
@@ -114,7 +112,7 @@ class ExtensionLoaderTest {
     }
 
     @ParameterizedTest
-    @ArgumentsSource(LogLevelWrongArgProvider.class)
+    @MethodSource("provideLogLevelWrongArgs")
     void loadMonitor_consoleMonitorDefaultLogLevelWhenWrongArgs(String programArgs, String expectedMessage) {
         assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), programArgs))
                 .isInstanceOf(EdcException.class)
@@ -460,35 +458,26 @@ class ExtensionLoaderTest {
     private static class AnotherObject {
     }
 
-
-    private static class LogLevelWrongArgProvider implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
-            return Stream.of(
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=INF", "Invalid value \"INF\" for the --log-level argument."),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=", "Value missing for the --log-level argument."),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "= INFO", "Invalid value \" INFO\" for the --log-level argument."),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + " INFO", "Value missing for the --log-level argument.")
-
-
-            );
-        }
+    private static Stream<Arguments> provideLogLevelWrongArgs() {
+        return Stream.of(
+                Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=INF", "Invalid value \"INF\" for the --log-level argument."),
+                Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=", "Value missing for the --log-level argument."),
+                Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "= INFO", "Invalid value \" INFO\" for the --log-level argument."),
+                Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + " INFO", "Value missing for the --log-level argument.")
+        );
     }
 
-    private static class LogLevelVariantArgsProvider implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
-            return Stream.of(
-                    Arguments.of("", ConsoleMonitor.Level.DEBUG), //default case
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=INFO", ConsoleMonitor.Level.INFO),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=DEBUG", ConsoleMonitor.Level.DEBUG),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=SEVERE", ConsoleMonitor.Level.SEVERE),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=WARNING", ConsoleMonitor.Level.WARNING),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=warning", ConsoleMonitor.Level.WARNING)
+    public static Stream<Arguments> provideLogLevelVariantArgs() {
+        return Stream.of(
+                Arguments.of("", ConsoleMonitor.Level.DEBUG), //default case
+                Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=INFO", ConsoleMonitor.Level.INFO),
+                Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=DEBUG", ConsoleMonitor.Level.DEBUG),
+                Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=SEVERE", ConsoleMonitor.Level.SEVERE),
+                Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=WARNING", ConsoleMonitor.Level.WARNING),
+                Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=warning", ConsoleMonitor.Level.WARNING)
 
 
-            );
-        }
+        );
     }
 
     @BaseExtension
