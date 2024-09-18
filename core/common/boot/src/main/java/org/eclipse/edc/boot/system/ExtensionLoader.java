@@ -139,18 +139,17 @@ public class ExtensionLoader {
      */
     private static Result<?> parseLogLevel(String[] programArgs) {
         return Stream.of(programArgs)
-                .filter(arg -> arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG + "="))
-                .map(arg -> arg.split("="))
+                .filter(arg -> arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG))
                 .map(arg -> {
                     var validValueMessage = String.format("Valid values for the console level are %s", Stream.of(ConsoleMonitor.Level.values()).toList());
-
-                    if (arg.length != 2) {
+                    var splitArgs = arg.split("=");
+                    if (splitArgs.length != 2) {
                         return Result.failure(String.format("Value missing for the --log-level argument. %s", validValueMessage));
                     }
                     try {
-                        return Result.success(ConsoleMonitor.Level.valueOf(arg[1]));
+                        return Result.success(ConsoleMonitor.Level.valueOf(splitArgs[1].toUpperCase()));
                     } catch (IllegalArgumentException e) {
-                        return Result.failure(String.format("Invalid value %s for the --log-level argument. %s", arg[1], validValueMessage));
+                        return Result.failure(String.format("Invalid value \"%s\" for the --log-level argument. %s", splitArgs[1], validValueMessage));
                     }
                 })
                 .findFirst()

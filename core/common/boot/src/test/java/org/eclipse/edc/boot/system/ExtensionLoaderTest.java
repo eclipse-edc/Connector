@@ -37,12 +37,16 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -101,30 +105,21 @@ class ExtensionLoaderTest {
     }
 
     @ParameterizedTest
-    @EnumSource
-    void loadMonitor_programArgsSetConsoleMonitorLogLevel(ConsoleMonitor.Level level) {
+    @ArgumentsSource(LogLevelVariantArgsProvider.class)
+    void loadMonitor_programArgsSetConsoleMonitorLogLevel(String programArgs, ConsoleMonitor.Level level) {
 
-        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "=" + level.toString());
+        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), programArgs);
 
         assertThat(monitor).extracting("level").isEqualTo(level);
     }
 
-    @Test
-    void loadMonitor_consoleMonitorDefaultLogLevelWhenNoArgs() {
-
-        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>());
-
-        assertThat(monitor).extracting("level").isEqualTo(ConsoleMonitor.Level.getDefaultLevel());
-    }
-
-    @Test
-    void loadMonitor_consoleMonitorDefaultLogLevelWhenWrongArgs() {
-        assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "=INF"))
+    @ParameterizedTest
+    @ArgumentsSource(LogLevelWrongArgProvider.class)
+    void loadMonitor_consoleMonitorDefaultLogLevelWhenWrongArgs(String programArgs, String expectedMessage) {
+        assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), programArgs))
                 .isInstanceOf(EdcException.class)
-                .hasMessageContaining("Invalid value INF for the --log-level argument.");
-        assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "="))
-                .isInstanceOf(EdcException.class)
-                .hasMessageContaining("Value missing for the --log-level argument.");
+                .hasMessageContaining(expectedMessage);
+
     }
 
     @Test
@@ -463,6 +458,37 @@ class ExtensionLoaderTest {
     }
 
     private static class AnotherObject {
+    }
+
+
+    private static class LogLevelWrongArgProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=INF", "Invalid value \"INF\" for the --log-level argument."),
+                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=", "Value missing for the --log-level argument."),
+                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "= INFO", "Invalid value \" INFO\" for the --log-level argument."),
+                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + " INFO", "Value missing for the --log-level argument.")
+
+
+            );
+        }
+    }
+
+    private static class LogLevelVariantArgsProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of("", ConsoleMonitor.Level.DEBUG), //default case
+                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=INFO", ConsoleMonitor.Level.INFO),
+                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=DEBUG", ConsoleMonitor.Level.DEBUG),
+                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=SEVERE", ConsoleMonitor.Level.SEVERE),
+                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=WARNING", ConsoleMonitor.Level.WARNING),
+                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=warning", ConsoleMonitor.Level.WARNING)
+
+
+            );
+        }
     }
 
     @BaseExtension
