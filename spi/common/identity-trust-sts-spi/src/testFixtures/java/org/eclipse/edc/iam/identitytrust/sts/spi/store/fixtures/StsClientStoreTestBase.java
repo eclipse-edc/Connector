@@ -82,7 +82,7 @@ public abstract class StsClientStoreTestBase {
         @DisplayName("Save a single client that not exists")
         void create() {
             var client = createClient(getRandomId());
-            assertThat(getStsClientStore().create(client)).isSucceeded();
+            assertThat(getStsClientStore().create(client)).isSucceeded().usingRecursiveComparison().isEqualTo(client);
 
             var clientFromDb = getStsClientStore().findByClientId(client.getId()).getContent();
             assertThat(client).usingRecursiveComparison().isEqualTo(clientFromDb);
