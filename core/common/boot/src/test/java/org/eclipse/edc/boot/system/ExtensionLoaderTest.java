@@ -37,6 +37,8 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
@@ -98,12 +100,13 @@ class ExtensionLoaderTest {
         assertTrue(monitor instanceof ConsoleMonitor);
     }
 
-    @Test
-    void loadMonitor_programArgsSetConsoleMonitorLogLevel() {
+    @ParameterizedTest
+    @EnumSource
+    void loadMonitor_programArgsSetConsoleMonitorLogLevel(ConsoleMonitor.Level level) {
 
-        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "=INFO");
+        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "=" + level.toString());
 
-        assertThat(monitor).extracting("level").isEqualTo(ConsoleMonitor.Level.INFO);
+        assertThat(monitor).extracting("level").isEqualTo(level);
     }
 
     @Test
@@ -117,11 +120,11 @@ class ExtensionLoaderTest {
     @Test
     void loadMonitor_consoleMonitorDefaultLogLevelWhenWrongArgs() {
         assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "=INF"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Illegal Console Monitor log level value: INF.");
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("Invalid value INF for the --log-level argument.");
         assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), ConsoleMonitor.LEVEL_PROG_ARG + "="))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Illegal Console Monitor log level value: null.");
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("Value missing for the --log-level argument.");
     }
 
     @Test
