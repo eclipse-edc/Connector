@@ -132,7 +132,7 @@ public class ExtensionLoader {
      * Parses the ConsoleMonitor log level from the program args. If no log level is provided, defaults to Level default.
      */
     private static ConsoleMonitor.Level parseLogLevel(String[] programArgs) {
-        return Set.of(programArgs).stream()
+        return Stream.of(programArgs)
                 .filter(arg -> arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG + "="))
                 .map(arg -> arg.split("=").length == 2 ? arg.split("=")[1] : "null" )
                 .map(lvl -> {
