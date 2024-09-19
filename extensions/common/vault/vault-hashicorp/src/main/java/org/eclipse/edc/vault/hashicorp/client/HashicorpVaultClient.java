@@ -276,11 +276,18 @@ public class HashicorpVaultClient {
         key = key.replace("%2F", "/");
 
         var vaultApiPath = settings.secretPath();
+        var folderPath = settings.getFolderPath();
 
-        return settings.url()
+        var builder = settings.url()
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
-                .addPathSegment(entryType)
+                .addPathSegment(entryType);
+
+        if (folderPath != null) {
+            builder.addPathSegments(PathUtil.trimLeadingOrEndingSlash(folderPath));
+        }
+
+        return builder
                 .addPathSegments(key)
                 .build();
     }

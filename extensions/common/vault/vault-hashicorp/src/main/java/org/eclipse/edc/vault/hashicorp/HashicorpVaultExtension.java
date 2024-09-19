@@ -71,6 +71,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Setting(value = "The URL path of the vault's /secret endpoint", defaultValue = VAULT_API_SECRET_PATH_DEFAULT)
     public static final String VAULT_API_SECRET_PATH = "edc.vault.hashicorp.api.secret.path";
 
+    @Setting(value = "The path of the folder that the secret is stored in, relative to VAULT_FOLDER_PATH")
+    public static final String VAULT_FOLDER_PATH = "edc.vault.hashicorp.folder";
+
     @Inject
     private EdcHttpClient httpClient;
 
@@ -144,6 +147,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
         var ttl = context.getSetting(VAULT_TOKEN_TTL, VAULT_TOKEN_TTL_DEFAULT);
         var renewBuffer = context.getSetting(VAULT_TOKEN_RENEW_BUFFER, VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
         var secretPath = context.getSetting(VAULT_API_SECRET_PATH, VAULT_API_SECRET_PATH_DEFAULT);
+        var folderPath = context.getSetting(VAULT_FOLDER_PATH, null);
 
         return HashicorpVaultSettings.Builder.newInstance()
                 .url(url)
@@ -155,6 +159,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
                 .ttl(ttl)
                 .renewBuffer(renewBuffer)
                 .secretPath(secretPath)
+                .folderPath(folderPath)
                 .build();
     }
 }
