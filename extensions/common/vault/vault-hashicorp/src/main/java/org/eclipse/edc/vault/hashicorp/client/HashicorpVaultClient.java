@@ -278,20 +278,16 @@ public class HashicorpVaultClient {
         var vaultApiPath = settings.secretPath();
         var folderPath = settings.getFolderPath();
 
-        if (folderPath == null) {
-            return settings.url()
-                    .newBuilder()
-                    .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
-                    .addPathSegment(entryType)
-                    .addPathSegments(key)
-                    .build();
-        }
-
-        return settings.url()
+        var builder = settings.url()
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
-                .addPathSegment(entryType)
-                .addPathSegments(PathUtil.trimLeadingOrEndingSlash(folderPath))
+                .addPathSegment(entryType);
+
+        if (folderPath != null) {
+            builder.addPathSegments(PathUtil.trimLeadingOrEndingSlash(folderPath));
+        }
+
+        return builder
                 .addPathSegments(key)
                 .build();
     }
