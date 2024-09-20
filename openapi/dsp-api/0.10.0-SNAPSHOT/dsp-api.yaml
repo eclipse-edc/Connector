@@ -17,7 +17,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         default:
           description: default response
@@ -34,7 +33,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -42,7 +40,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         default:
           description: default response
@@ -59,7 +56,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: continuationToken
         in: query
         required: false
@@ -67,7 +63,6 @@ paths:
         explode: true
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -76,10 +71,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -90,7 +83,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -107,7 +99,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -116,10 +107,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -130,7 +119,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -147,7 +135,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -156,10 +143,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -170,7 +155,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -187,7 +171,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -195,7 +178,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         default:
           description: default response
@@ -212,7 +194,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -220,7 +201,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -229,10 +209,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -243,7 +221,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -260,7 +237,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -268,7 +244,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -277,10 +252,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -291,7 +264,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -308,7 +280,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -316,7 +287,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -325,10 +295,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -339,7 +307,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -356,7 +323,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -364,7 +330,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -373,10 +338,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -387,7 +350,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -404,7 +366,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -412,7 +373,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -421,10 +381,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -435,7 +393,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -452,7 +409,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -460,7 +416,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -469,10 +424,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -483,7 +436,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -500,7 +452,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -509,10 +460,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -523,7 +472,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -540,7 +488,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -548,7 +495,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         default:
           description: default response
@@ -565,7 +511,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -573,7 +518,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -582,10 +526,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -596,7 +538,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -613,7 +554,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -621,7 +561,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -630,10 +569,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -644,7 +581,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -661,7 +597,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -669,7 +604,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -678,10 +612,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -692,7 +624,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -709,7 +640,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -717,7 +647,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -726,10 +655,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -740,7 +667,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -757,7 +683,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -765,7 +690,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         default:
           description: default response
@@ -782,7 +706,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: continuationToken
         in: query
         required: false
@@ -790,7 +713,6 @@ paths:
         explode: true
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -799,10 +721,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -813,7 +733,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -830,7 +749,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -839,10 +757,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -853,7 +769,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -870,7 +785,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -879,10 +793,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -893,7 +805,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -910,7 +821,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -918,7 +828,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         default:
           description: default response
@@ -935,7 +844,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -943,7 +851,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -952,10 +859,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -966,7 +871,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -983,7 +887,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -991,7 +894,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -1000,10 +902,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -1014,7 +914,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -1031,7 +930,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -1039,7 +937,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -1048,10 +945,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -1062,7 +957,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -1079,7 +973,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -1087,7 +980,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -1096,10 +988,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -1110,7 +1000,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -1127,7 +1016,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -1135,7 +1023,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -1144,10 +1031,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -1158,7 +1043,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -1175,7 +1059,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -1183,7 +1066,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -1192,10 +1074,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -1206,7 +1086,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -1223,7 +1102,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -1232,10 +1110,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -1246,7 +1122,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -1263,7 +1138,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -1271,7 +1145,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         default:
           description: default response
@@ -1288,7 +1161,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -1296,7 +1168,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -1305,10 +1176,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -1319,7 +1188,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -1336,7 +1204,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -1344,7 +1211,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -1353,10 +1219,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -1367,7 +1231,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -1384,7 +1247,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -1392,7 +1254,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -1401,10 +1262,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -1415,7 +1274,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -1432,7 +1290,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       - name: Authorization
         in: header
         required: false
@@ -1440,7 +1297,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -1449,10 +1305,8 @@ paths:
               properties:
                 empty:
                   type: boolean
-                  example: null
                 valueType:
                   type: string
-                  example: null
                   enum:
                   - ARRAY
                   - OBJECT
@@ -1463,7 +1317,6 @@ paths:
                   - "NULL"
               additionalProperties:
                 $ref: "#/components/schemas/JsonValue"
-              example: null
       responses:
         default:
           description: default response
@@ -1476,10 +1329,8 @@ components:
       properties:
         empty:
           type: boolean
-          example: null
         valueType:
           type: string
-          example: null
           enum:
           - ARRAY
           - OBJECT
@@ -1490,13 +1341,11 @@ components:
           - "NULL"
       additionalProperties:
         $ref: "#/components/schemas/JsonValue"
-      example: null
     JsonValue:
       type: object
       properties:
         valueType:
           type: string
-          example: null
           enum:
           - ARRAY
           - OBJECT
@@ -1505,4 +1354,3 @@ components:
           - "TRUE"
           - "FALSE"
           - "NULL"
-      example: null

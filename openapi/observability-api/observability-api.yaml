@@ -69,35 +69,25 @@ components:
       properties:
         failureDetail:
           type: string
-          example: null
         messages:
           type: array
-          example: null
           items:
             type: string
-            example: null
-      example: null
     HealthCheckResult:
       type: object
       properties:
         component:
           type: string
-          example: null
         failure:
           $ref: "#/components/schemas/Failure"
         isHealthy:
           type: boolean
-          example: null
-      example: null
     HealthStatus:
       type: object
       properties:
         componentResults:
           type: array
-          example: null
           items:
             $ref: "#/components/schemas/HealthCheckResult"
         isSystemHealthy:
           type: boolean
-          example: null
-      example: null

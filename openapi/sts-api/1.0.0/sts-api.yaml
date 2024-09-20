@@ -25,28 +25,21 @@ paths:
                 audience:
                   type: string
                   description: Audience for the SI token
-                  example: null
                 bearer_access_scope:
                   type: string
                   description: Scope to be added in the VP token
-                  example: null
                 client_id:
                   type: string
                   description: Id of the client requesting an SI token
-                  example: null
                 client_secret:
                   type: string
                   description: Secret of the client requesting an SI token
-                  example: null
                 grant_type:
                   type: string
                   description: "Type of grant: must be set to client_credentials"
-                  example: null
                 token:
                   type: string
                   description: VP token to be added as a claim in the SI token
-                  example: null
-              example: null
             encoding:
               audience:
                 style: form
@@ -73,7 +66,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/StsTokenErrorResponse"
 components:
@@ -83,22 +75,15 @@ components:
       properties:
         error:
           type: string
-          example: null
         error_description:
           type: string
-          example: null
-      example: null
     StsTokenResponse:
       type: object
       properties:
         access_token:
           type: string
-          example: null
         expires_in:
           type: integer
           format: int64
-          example: null
         token_type:
           type: string
-          example: null
-      example: null

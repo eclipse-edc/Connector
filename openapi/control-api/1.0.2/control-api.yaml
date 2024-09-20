@@ -27,7 +27,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         "400":
           description: "Request was malformed, e.g. id was null"
@@ -35,7 +34,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
   /transferprocess/{processId}/fail:
@@ -54,7 +52,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -67,7 +64,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
   /v1/dataflows:
@@ -115,7 +111,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         "200":
           description: State of the data transfer
@@ -139,7 +134,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -166,7 +160,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       requestBody:
         content:
           application/json:
@@ -193,7 +186,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/DataPlaneInstanceSchema"
     post:
@@ -219,7 +211,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
         "409":
@@ -228,7 +219,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
   /v1/dataplanes/select:
@@ -258,7 +248,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
   /v1/dataplanes/{id}:
@@ -275,7 +264,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         "200":
           description: The Data Plane Instance
@@ -289,7 +277,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
     delete:
@@ -305,7 +292,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         "204":
           description: Dataplane successfully deleted
@@ -315,7 +301,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
         "404":
@@ -324,7 +309,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
         "409":
@@ -333,7 +317,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
   /v1/dataplanes/{id}/unregister:
@@ -350,7 +333,6 @@ paths:
         explode: false
         schema:
           type: string
-          example: null
       responses:
         "204":
           description: Dataplane successfully unregistered
@@ -360,7 +342,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
         "404":
@@ -369,7 +350,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
         "409":
@@ -378,7 +358,6 @@ paths:
             application/json:
               schema:
                 type: array
-                example: null
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
 components:
@@ -388,17 +367,12 @@ components:
       properties:
         invalidValue:
           type: object
-          example: null
         message:
           type: string
-          example: null
         path:
           type: string
-          example: null
         type:
           type: string
-          example: null
-      example: null
     DataAddress:
       type: object
       properties:
@@ -407,14 +381,11 @@ components:
           example: https://w3id.org/edc/v0.0.1/ns/DataAddress
         type:
           type: string
-          example: null
-      example: null
     DataFlowResponseMessage:
       type: object
       properties:
         '@context':
           type: object
-          example: null
         '@type':
           type: string
           example: DataFlowResponseMessage
@@ -441,37 +412,29 @@ components:
       properties:
         '@context':
           type: object
-          example: null
         '@id':
           type: string
-          example: null
         '@type':
           type: string
           example: DataFlowStartMessage
         agreementId:
           type: string
-          example: null
         callbackAddress:
           type: string
-          example: null
         datasetId:
           type: string
-          example: null
         destinationDataAddress:
           $ref: "#/components/schemas/DataAddress"
         participantId:
           type: string
-          example: null
         processId:
           type: string
-          example: null
         properties:
           $ref: "#/components/schemas/Properties"
         sourceDataAddress:
           $ref: "#/components/schemas/DataAddress"
         transferType:
           type: string
-          example: null
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -496,13 +459,11 @@ components:
       properties:
         '@context':
           type: object
-          example: null
         '@type':
           type: string
           example: DataFlowState
         state:
           type: string
-          example: null
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -516,7 +477,6 @@ components:
           example: DataFlowSuspendMessage
         state:
           type: string
-          example: null
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -530,7 +490,6 @@ components:
           example: DataFlowTerminateMessage
         state:
           type: string
-          example: null
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -547,31 +506,24 @@ components:
       properties:
         '@context':
           type: object
-          example: null
         '@id':
           type: string
-          example: null
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/DataPlaneInstance
         allowedDestTypes:
           uniqueItems: true
           type: array
-          example: null
           items:
             type: string
-            example: null
         allowedSourceTypes:
           uniqueItems: true
           type: array
-          example: null
           items:
             type: string
-            example: null
         url:
           type: string
           format: url
-          example: null
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -589,11 +541,9 @@ components:
       properties:
         '@id':
           type: string
-          example: null
         createdAt:
           type: integer
           format: int64
-          example: null
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -604,10 +554,8 @@ components:
       properties:
         empty:
           type: boolean
-          example: null
         valueType:
           type: string
-          example: null
           enum:
           - ARRAY
           - OBJECT
@@ -616,7 +564,6 @@ components:
           - "TRUE"
           - "FALSE"
           - "NULL"
-      example: null
       items:
         $ref: "#/components/schemas/JsonValue"
     JsonObject:
@@ -624,10 +571,8 @@ components:
       properties:
         empty:
           type: boolean
-          example: null
         valueType:
           type: string
-          example: null
           enum:
           - ARRAY
           - OBJECT
@@ -638,13 +583,11 @@ components:
           - "NULL"
       additionalProperties:
         $ref: "#/components/schemas/JsonValue"
-      example: null
     JsonValue:
       type: object
       properties:
         valueType:
           type: string
-          example: null
           enum:
           - ARRAY
           - OBJECT
@@ -653,10 +596,8 @@ components:
           - "TRUE"
           - "FALSE"
           - "NULL"
-      example: null
     Properties:
       type: object
-      example: null
     SelectionRequestSchema:
       required:
       - source
@@ -672,10 +613,8 @@ components:
           $ref: "#/components/schemas/DataAddress"
         strategy:
           type: string
-          example: null
         transferType:
           type: string
-          example: null
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -692,5 +631,3 @@ components:
       properties:
         errorMessage:
           type: string
-          example: null
-      example: null

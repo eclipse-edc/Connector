@@ -28,13 +28,11 @@ components:
       properties:
         '@id':
           type: string
-          example: null
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/Secret
         https://w3id.org/edc/v0.0.1/ns/value:
           type: string
-          example: null
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -47,14 +45,9 @@ components:
         lastUpdated:
           type: string
           format: date-time
-          example: null
         maturity:
           type: string
-          example: null
         urlPath:
           type: string
-          example: null
         version:
           type: string
-          example: null
-      example: null
