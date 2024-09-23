@@ -1,95 +1,3876 @@
-<html><head><style>* {
-  box-sizing: border-box;
-}
-nav {
-  float: left;
-  width: 20%;
-  padding: 20px;
-}
-article {
-  float: left;
-  padding: 20px;
-  width: 80%;
-}
-table {
-  margin: 1em 0;
-  border-collapse: collapse;
-  width: 100%;
-  overflow-x: auto;
-  display: block;
-  font-variant-numeric: lining-nums tabular-nums;
-}
-tbody {
-  margin-top: 0.5em;
-  border-top: 1px solid #1a1a1a;
-  border-bottom: 1px solid #1a1a1a;
-}
-td {
-  padding: 5px
-}
-.odd {
-  background-color: cccccc;
-}
-.even {
-  background-color: eeeeee;
-}
-</style></head><body><section><nav><ul><li><a href="#accesstokendata-store-sql">accesstokendata-store-sql</a></li><li><a href="#api-core">api-core</a></li><li><a href="#api-observability">api-observability</a></li><li><a href="#asset-api">asset-api</a></li><li><a href="#asset-index-sql">asset-index-sql</a></li><li><a href="#auth-basic">auth-basic</a></li><li><a href="#auth-configuration">auth-configuration</a></li><li><a href="#auth-delegated">auth-delegated</a></li><li><a href="#auth-spi">auth-spi</a></li><li><a href="#auth-tokenbased">auth-tokenbased</a></li><li><a href="#boot">boot</a></li><li><a href="#callback-event-dispatcher">callback-event-dispatcher</a></li><li><a href="#callback-http-dispatcher">callback-http-dispatcher</a></li><li><a href="#callback-static-endpoint">callback-static-endpoint</a></li><li><a href="#catalog-api">catalog-api</a></li><li><a href="#configuration-filesystem">configuration-filesystem</a></li><li><a href="#connector-core">connector-core</a></li><li><a href="#contract-agreement-api">contract-agreement-api</a></li><li><a href="#contract-definition-api">contract-definition-api</a></li><li><a href="#contract-definition-store-sql">contract-definition-store-sql</a></li><li><a href="#contract-negotiation-api">contract-negotiation-api</a></li><li><a href="#contract-negotiation-store-sql">contract-negotiation-store-sql</a></li><li><a href="#contract-spi">contract-spi</a></li><li><a href="#control-api-configuration">control-api-configuration</a></li><li><a href="#control-plane-aggregate-services">control-plane-aggregate-services</a></li><li><a href="#control-plane-api">control-plane-api</a></li><li><a href="#control-plane-api-client">control-plane-api-client</a></li><li><a href="#control-plane-api-client-spi">control-plane-api-client-spi</a></li><li><a href="#control-plane-catalog">control-plane-catalog</a></li><li><a href="#control-plane-contract">control-plane-contract</a></li><li><a href="#control-plane-core">control-plane-core</a></li><li><a href="#control-plane-transfer">control-plane-transfer</a></li><li><a href="#core-spi">core-spi</a></li><li><a href="#data-plane-core">data-plane-core</a></li><li><a href="#data-plane-http">data-plane-http</a></li><li><a href="#data-plane-http-oauth2-core">data-plane-http-oauth2-core</a></li><li><a href="#data-plane-iam">data-plane-iam</a></li><li><a href="#data-plane-instance-store-sql">data-plane-instance-store-sql</a></li><li><a href="#data-plane-kafka">data-plane-kafka</a></li><li><a href="#data-plane-public-api-v2">data-plane-public-api-v2</a></li><li><a href="#data-plane-selector-api">data-plane-selector-api</a></li><li><a href="#data-plane-selector-client">data-plane-selector-client</a></li><li><a href="#data-plane-selector-control-api">data-plane-selector-control-api</a></li><li><a href="#data-plane-selector-core">data-plane-selector-core</a></li><li><a href="#data-plane-selector-spi">data-plane-selector-spi</a></li><li><a href="#data-plane-self-registration">data-plane-self-registration</a></li><li><a href="#data-plane-signaling-api">data-plane-signaling-api</a></li><li><a href="#data-plane-signaling-client">data-plane-signaling-client</a></li><li><a href="#data-plane-spi">data-plane-spi</a></li><li><a href="#data-plane-store-sql">data-plane-store-sql</a></li><li><a href="#dsp-catalog-http-api">dsp-catalog-http-api</a></li><li><a href="#dsp-catalog-http-dispatcher">dsp-catalog-http-dispatcher</a></li><li><a href="#dsp-catalog-transform">dsp-catalog-transform</a></li><li><a href="#dsp-http-api-configuration">dsp-http-api-configuration</a></li><li><a href="#dsp-http-core">dsp-http-core</a></li><li><a href="#dsp-negotiation-http-api">dsp-negotiation-http-api</a></li><li><a href="#dsp-negotiation-http-dispatcher">dsp-negotiation-http-dispatcher</a></li><li><a href="#dsp-negotiation-transform">dsp-negotiation-transform</a></li><li><a href="#dsp-transfer-process-http-api">dsp-transfer-process-http-api</a></li><li><a href="#dsp-transfer-process-http-dispatcher">dsp-transfer-process-http-dispatcher</a></li><li><a href="#dsp-transfer-process-transform">dsp-transfer-process-transform</a></li><li><a href="#dsp-version-http-api">dsp-version-http-api</a></li><li><a href="#edr-cache-api">edr-cache-api</a></li><li><a href="#edr-index-sql">edr-index-sql</a></li><li><a href="#edr-store-core">edr-store-core</a></li><li><a href="#edr-store-receiver">edr-store-receiver</a></li><li><a href="#events-cloud-http">events-cloud-http</a></li><li><a href="#iam-mock">iam-mock</a></li><li><a href="#identity-did-core">identity-did-core</a></li><li><a href="#identity-did-spi">identity-did-spi</a></li><li><a href="#identity-did-web">identity-did-web</a></li><li><a href="#identity-trust-core">identity-trust-core</a></li><li><a href="#identity-trust-issuers-configuration">identity-trust-issuers-configuration</a></li><li><a href="#identity-trust-sts-api">identity-trust-sts-api</a></li><li><a href="#identity-trust-sts-client-configuration">identity-trust-sts-client-configuration</a></li><li><a href="#identity-trust-sts-core">identity-trust-sts-core</a></li><li><a href="#identity-trust-sts-remote-client">identity-trust-sts-remote-client</a></li><li><a href="#jersey-core">jersey-core</a></li><li><a href="#jersey-micrometer">jersey-micrometer</a></li><li><a href="#jetty-core">jetty-core</a></li><li><a href="#jetty-micrometer">jetty-micrometer</a></li><li><a href="#json-ld">json-ld</a></li><li><a href="#jwt-signer-spi">jwt-signer-spi</a></li><li><a href="#jwt-spi">jwt-spi</a></li><li><a href="#management-api-configuration">management-api-configuration</a></li><li><a href="#management-api-json-ld-context">management-api-json-ld-context</a></li><li><a href="#micrometer-core">micrometer-core</a></li><li><a href="#monitor-jdk-logger">monitor-jdk-logger</a></li><li><a href="#oauth2-client">oauth2-client</a></li><li><a href="#oauth2-core">oauth2-core</a></li><li><a href="#oauth2-daps">oauth2-daps</a></li><li><a href="#oauth2-spi">oauth2-spi</a></li><li><a href="#policy-definition-api">policy-definition-api</a></li><li><a href="#policy-definition-store-sql">policy-definition-store-sql</a></li><li><a href="#policy-engine-spi">policy-engine-spi</a></li><li><a href="#policy-monitor-core">policy-monitor-core</a></li><li><a href="#policy-monitor-store-sql">policy-monitor-store-sql</a></li><li><a href="#policy-spi">policy-spi</a></li><li><a href="#provision-http">provision-http</a></li><li><a href="#secrets-api">secrets-api</a></li><li><a href="#sql-bootstrapper">sql-bootstrapper</a></li><li><a href="#sql-core">sql-core</a></li><li><a href="#sql-pool-apache-commons">sql-pool-apache-commons</a></li><li><a href="#sts-server">sts-server</a></li><li><a href="#token-core">token-core</a></li><li><a href="#token-spi">token-spi</a></li><li><a href="#transaction-atomikos">transaction-atomikos</a></li><li><a href="#transaction-datasource-spi">transaction-datasource-spi</a></li><li><a href="#transaction-local">transaction-local</a></li><li><a href="#transaction-spi">transaction-spi</a></li><li><a href="#transfer-data-plane-signaling">transfer-data-plane-signaling</a></li><li><a href="#transfer-data-plane-spi">transfer-data-plane-spi</a></li><li><a href="#transfer-process-api">transfer-process-api</a></li><li><a href="#transfer-process-store-sql">transfer-process-store-sql</a></li><li><a href="#transfer-pull-http-dynamic-receiver">transfer-pull-http-dynamic-receiver</a></li><li><a href="#transfer-pull-http-receiver">transfer-pull-http-receiver</a></li><li><a href="#transfer-spi">transfer-spi</a></li><li><a href="#validator-data-address-http-data">validator-data-address-http-data</a></li><li><a href="#validator-data-address-kafka">validator-data-address-kafka</a></li><li><a href="#vault-hashicorp">vault-hashicorp</a></li><li><a href="#verifiable-credentials">verifiable-credentials</a></li><li><a href="#version-api">version-api</a></li><li><a href="#web-spi">web-spi</a></li></ul></nav><article><hr><a href="#accesstokendata-store-sql"><h2 id="accesstokendata-store-sql">accesstokendata-store-sql</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:accesstokendata-store-sql</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Sql AccessTokenData Store</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.store.sql.SqlAccessTokenDataStoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides Sql Store for {@link AccessTokenData} objects
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><s><code>edc.datasource.accesstokendata.name</code></s></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Name of the datasource to use for accessing data plane store</td></tr><tr class="odd"><td><code>edc.sql.store.accesstokendata.datasource</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The datasource to be used</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><code>org.eclipse.edc.connector.dataplane.store.sql.schema.AccessTokenDataStatements</code></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></em></li></ul><hr><a href="#api-core"><h2 id="api-core">api-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:api-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension API Core</h3><ul><li><b>Class: </b><code>org.eclipse.edc.api.ApiCoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></em></li></ul><h3>Extension ApiCoreDefaultServicesExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.api.ApiCoreDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry</code></li><li><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#api-observability"><h2 id="api-observability">api-observability</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:api-observability</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Observability API</h3><ul><li><b>Class: </b><code>org.eclipse.edc.api.observability.ObservabilityApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.spi.system.health.HealthCheckService</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.spi.system.apiversion.ApiVersionService</code></em></li></ul><hr><a href="#asset-api"><h2 id="asset-api">asset-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:asset-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API: Asset</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.api.management.asset.AssetApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li></ul><hr><a href="#asset-index-sql"><h2 id="asset-index-sql">asset-index-sql</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:asset-index-sql</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.AssetStatements</em></li></ul><h3>Extension SQL asset index</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.store.sql.assetindex.SqlAssetIndexServiceExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.sql.store.asset.datasource</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The datasource to be used</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex</code></li><li><code>org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><code>org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.AssetStatements</code></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></em></li></ul><hr><a href="#auth-basic"><h2 id="auth-basic">auth-basic</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:auth-basic</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Basic authentication</h3><ul><li><b>Class: </b><code>org.eclipse.edc.api.auth.basic.BasicAuthenticationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Extension that registers an AuthenticationService that uses API Keys
+EDC Autodoc Manifest
+====================
+
+Module `org.eclipse.edc:accesstokendata-store-sql:0.9.0`
+--------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.store.sql.SqlAccessTokenDataStoreExtension`
+**Name:** "Sql AccessTokenData Store"
+
+**Overview:**  Provides Sql Store for {@link AccessTokenData} objects
+
+
+
+##### Configuration: 
+
+| Key                                        | Required | Type     | Default   | Pattern | Min | Max | Description                                                  |
+| ------------------------------------------ | -------- | -------- | --------- | ------- | --- | --- | ------------------------------------------------------------ |
+| ~~edc.datasource.accesstokendata.name~~    |          | `string` | ``        |         |     |     | Name of the datasource to use for accessing data plane store |
+| `edc.sql.store.accesstokendata.datasource` |          | `string` | `default` |         |     |     | The datasource to be used                                    |
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.connector.dataplane.store.sql.schema.AccessTokenDataStatements` (optional)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
+
+Module `org.eclipse.edc:api-core:0.9.0`
+---------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.api.ApiCoreDefaultServicesExtension`
+**Name:** "ApiCoreDefaultServicesExtension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry`
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry`
+
+##### Referenced (injected) services:
+_None_
+
+#### Class: `org.eclipse.edc.api.ApiCoreExtension`
+**Name:** "API Core"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
+Module `org.eclipse.edc:api-observability:0.9.0`
+------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.api.observability.ObservabilityApiExtension`
+**Name:** "Observability API"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.spi.system.health.HealthCheckService` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.system.apiversion.ApiVersionService` (required)
+
+Module `org.eclipse.edc:asset-api:0.9.0`
+----------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.api.management.asset.AssetApiExtension`
+**Name:** "Management API: Asset"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+
+Module `org.eclipse.edc:asset-index-sql:0.9.0`
+----------------------------------------------
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.AssetStatements`
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.store.sql.assetindex.SqlAssetIndexServiceExtension`
+**Name:** "SQL asset index"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                              | Required | Type     | Default   | Pattern | Min | Max | Description               |
+| -------------------------------- | -------- | -------- | --------- | ------- | --- | --- | ------------------------- |
+| `edc.sql.store.asset.datasource` |          | `string` | `default` |         |     |     | The datasource to be used |
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex`
+- `org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.AssetStatements` (optional)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
+
+Module `org.eclipse.edc:auth-basic:0.9.0`
+-----------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.api.auth.basic.BasicAuthenticationExtension`
+**Name:** "Basic authentication"
+
+**Overview:**  Extension that registers an AuthenticationService that uses API Keys
 
  @deprecated this module is not supported anymore and it will be removed in the next iterations.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.api.auth.basic.vault-keys</code></td><td align="center"><code>x</code></td><td align="center"><code>map</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Key-value object defining authentication credentials stored in the vault</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.api.auth.spi.AuthenticationService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li><li><em><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry</code></em></li></ul><hr><a href="#auth-configuration"><h2 id="auth-configuration">auth-configuration</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:auth-configuration</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Api Authentication Configuration Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.api.auth.configuration.ApiAuthenticationConfigurationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>web.http.&lt;context&gt;.auth.type</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The type of the authentication provider.</td></tr><tr class="odd"><td><code>web.http.&lt;context&gt;.auth.context</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The api context where to apply the authentication. Default to the web &lt;context&gt;</td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry</code></em></li><li><em><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry</code></em></li><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li></ul><hr><a href="#auth-delegated"><h2 id="auth-delegated">auth-delegated</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:auth-delegated</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Delegating Authentication Service Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.api.auth.delegated.DelegatedAuthenticationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Extension that registers an AuthenticationService that delegates authentication and authorization to a third-party IdP
+
+
+
+##### Configuration: 
+
+| Key                             | Required | Type  | Default | Pattern | Min | Max | Description                                                              |
+| ------------------------------- | -------- | ----- | ------- | ------- | --- | --- | ------------------------------------------------------------------------ |
+| `edc.api.auth.basic.vault-keys` | `*`      | `map` | ``      |         |     |     | Key-value object defining authentication credentials stored in the vault |
+
+##### Provided services:
+- `org.eclipse.edc.api.auth.spi.AuthenticationService`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry` (required)
+
+Module `org.eclipse.edc:auth-configuration:0.9.0`
+-------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.api.auth.configuration.ApiAuthenticationConfigurationExtension`
+**Name:** "Api Authentication Configuration Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                               | Required | Type     | Default | Pattern | Min | Max | Description                                                                     |
+| --------------------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------------------------------------------- |
+| `web.http.<context>.auth.type`    | `*`      | `string` | ``      |         |     |     | The type of the authentication provider.                                        |
+| `web.http.<context>.auth.context` |          | `string` | ``      |         |     |     | The api context where to apply the authentication. Default to the web <context> |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry` (required)
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry` (required)
+- `org.eclipse.edc.web.spi.WebService` (required)
+
+Module `org.eclipse.edc:auth-delegated:0.9.0`
+---------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.api.auth.delegated.DelegatedAuthenticationExtension`
+**Name:** "Delegating Authentication Service Extension"
+
+**Overview:**  Extension that registers an AuthenticationService that delegates authentication and authorization to a third-party IdP
  and register an {@link ApiAuthenticationProvider} under the type called delegated
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><s><code>edc.api.auth.dac.cache.validity</code></s></td><td align="center"></td><td align="center"><code>Long</code></td><td><code>300000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Duration (in ms) that the internal key cache is valid</td></tr><tr class="odd"><td><s><code>edc.api.auth.dac.key.url</code></s></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">URL where the third-party IdP&#x27;s public key(s) can be resolved</td></tr><tr class="even"><td><code>web.http.&lt;context&gt;.auth.dac.key.url</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">URL where the third-party IdP&#x27;s public key(s) can be resolved for the configured &lt;context&gt;</td></tr><tr class="odd"><td><code>web.http.&lt;context&gt;.auth.dac.cache.validity</code></td><td align="center"></td><td align="center"><code>Long</code></td><td><code>300000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Duration (in ms) that the internal key cache is valid for the configured &lt;context&gt;</td></tr><tr class="even"><td><code>edc.api.auth.dac.validation.tolerance</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>5000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Default token validation time tolerance (in ms), e.g. for nbf or exp claims</td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry</code></em></li><li><em><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry</code></em></li><li><em><code>org.eclipse.edc.token.spi.TokenValidationRulesRegistry</code></em></li><li><em><code>org.eclipse.edc.keys.spi.KeyParserRegistry</code></em></li><li><em><code>org.eclipse.edc.token.spi.TokenValidationService</code></em></li><li><em><code>java.time.Clock</code></em></li></ul><hr><a href="#auth-spi"><h2 id="auth-spi">auth-spi</h2></a><ul><li><b>Name: </b>Auth services</li><li><b>Path: </b><code>org.eclipse.edc:auth-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry</em></li><li><em>org.eclipse.edc.api.auth.spi.AuthenticationService</em></li><li><em>org.eclipse.edc.api.auth.spi.ApiAuthenticationProvider</em></li></ul><hr><a href="#auth-tokenbased"><h2 id="auth-tokenbased">auth-tokenbased</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:auth-tokenbased</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Static token API Authentication</h3><ul><li><b>Class: </b><code>org.eclipse.edc.api.auth.token.TokenBasedAuthenticationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Extension that registers an AuthenticationService that uses API Keys and register
+
+
+
+##### Configuration: 
+
+| Key                                          | Required | Type     | Default  | Pattern | Min | Max | Description                                                                                |
+| -------------------------------------------- | -------- | -------- | -------- | ------- | --- | --- | ------------------------------------------------------------------------------------------ |
+| ~~edc.api.auth.dac.cache.validity~~          |          | `Long`   | `300000` |         |     |     | Duration (in ms) that the internal key cache is valid                                      |
+| ~~edc.api.auth.dac.key.url~~                 |          | `string` | ``       |         |     |     | URL where the third-party IdP's public key(s) can be resolved                              |
+| `web.http.<context>.auth.dac.key.url`        |          | `string` | ``       |         |     |     | URL where the third-party IdP's public key(s) can be resolved for the configured <context> |
+| `web.http.<context>.auth.dac.cache.validity` |          | `Long`   | `300000` |         |     |     | Duration (in ms) that the internal key cache is valid for the configured <context>         |
+| `edc.api.auth.dac.validation.tolerance`      |          | `string` | `5000`   |         |     |     | Default token validation time tolerance (in ms), e.g. for nbf or exp claims                |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry` (required)
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry` (required)
+- `org.eclipse.edc.token.spi.TokenValidationRulesRegistry` (required)
+- `org.eclipse.edc.keys.spi.KeyParserRegistry` (required)
+- `org.eclipse.edc.token.spi.TokenValidationService` (required)
+- `java.time.Clock` (required)
+
+Module `Auth services:0.9.0`
+----------------------------
+_org.eclipse.edc:auth-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry`
+  - `org.eclipse.edc.api.auth.spi.AuthenticationService`
+  - `org.eclipse.edc.api.auth.spi.ApiAuthenticationProvider`
+
+### Extensions
+Module `org.eclipse.edc:auth-tokenbased:0.9.0`
+----------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.api.auth.token.TokenBasedAuthenticationExtension`
+**Name:** "Static token API Authentication"
+
+**Overview:**  Extension that registers an AuthenticationService that uses API Keys and register
  an {@link ApiAuthenticationProvider} under the type called tokenbased
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>web.http.&lt;context&gt;.auth.key</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The api key to use for the &lt;context&gt;</td></tr><tr class="odd"><td><code>web.http.&lt;context&gt;.auth.key.alias</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The vault api key alias to use for the &lt;context&gt;</td></tr><tr class="even"><td><s><code>edc.api.auth.key</code></s></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><s><code>edc.api.auth.key.alias</code></s></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li><li><em><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry</code></em></li><li><em><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry</code></em></li></ul><hr><a href="#boot"><h2 id="boot">boot</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:boot</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Boot Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.boot.BootServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.participant.id</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Configures the participant id this runtime is operating on behalf of</td></tr><tr class="odd"><td><code>edc.runtime.id</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>&lt;random UUID&gt;</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Configures the runtime id. This should be fully or partly randomized, and need not be stable across restarts. It is recommended to leave this value blank.</td></tr><tr class="even"><td><code>edc.component.id</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>&lt;random UUID&gt;</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Configures this component&#x27;s ID. This should be a unique, stable and deterministic identifier.</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>java.time.Clock</code></li><li><code>org.eclipse.edc.spi.telemetry.Telemetry</code></li><li><code>org.eclipse.edc.spi.system.health.HealthCheckService</code></li><li><code>org.eclipse.edc.spi.security.Vault</code></li><li><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></li><li><code>org.eclipse.edc.spi.system.apiversion.ApiVersionService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#callback-event-dispatcher"><h2 id="callback-event-dispatcher">callback-event-dispatcher</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:callback-event-dispatcher</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Callback dispatcher extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.callback.dispatcher.CallbackEventDispatcherExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackProtocolResolverRegistry</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.event.EventRouter</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry</code></em></li></ul><hr><a href="#callback-http-dispatcher"><h2 id="callback-http-dispatcher">callback-http-dispatcher</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:callback-http-dispatcher</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Callback dispatcher http extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.callback.dispatcher.http.CallbackEventDispatcherHttpExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</code></em></li><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackProtocolResolverRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li></ul><hr><a href="#callback-static-endpoint"><h2 id="callback-static-endpoint">callback-static-endpoint</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:callback-static-endpoint</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Static callbacks extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.callback.staticendpoint.CallbackStaticEndpointExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Extension for configuring the static endpoints for callbacks
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry</code></em></li></ul><hr><a href="#catalog-api"><h2 id="catalog-api">catalog-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:catalog-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API: Catalog</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.api.management.catalog.CatalogApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></em></li></ul><hr><a href="#configuration-filesystem"><h2 id="configuration-filesystem">configuration-filesystem</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:configuration-filesystem</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension FS Configuration</h3><ul><li><b>Class: </b><code>org.eclipse.edc.configuration.filesystem.FsConfigurationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Sources configuration values from a properties file.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.fs.config</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#connector-core"><h2 id="connector-core">connector-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:connector-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Security Default Services Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.core.SecurityDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.keys.spi.PrivateKeyResolver</code></li><li><code>org.eclipse.edc.keys.spi.CertificateResolver</code></li><li><code>org.eclipse.edc.keys.spi.KeyParserRegistry</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><h3>Extension Security Default Services Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.core.LocalPublicKeyDefaultExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.iam.publickeys.&lt;pkAlias&gt;.id</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">ID of the public key.</td></tr><tr class="odd"><td><code>edc.iam.publickeys.&lt;pkAlias&gt;.value</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Value of the public key. Multiple formats are supported, depending on the KeyParsers registered in the runtime</td></tr><tr class="even"><td><code>edc.iam.publickeys.&lt;pkAlias&gt;.path</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Path to a file that holds the public key, e.g. a PEM file. Multiple formats are supported, depending on the KeyParsers registered in the runtime</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.keys.spi.LocalPublicKeyService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.keys.spi.KeyParserRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li></ul><h3>Extension Core Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.core.CoreServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.hostname</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>localhost</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Connector hostname, which e.g. is used in referer urls</td></tr><tr class="odd"><td><code>edc.agent.identity.key</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>client_id</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The name of the claim key used to determine the participant identity</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.spi.types.TypeManager</code></li><li><code>org.eclipse.edc.spi.system.Hostname</code></li><li><code>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</code></li><li><code>org.eclipse.edc.spi.command.CommandHandlerRegistry</code></li><li><code>org.eclipse.edc.spi.agent.ParticipantAgentService</code></li><li><code>org.eclipse.edc.policy.engine.spi.RuleBindingRegistry</code></li><li><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></li><li><code>org.eclipse.edc.spi.event.EventRouter</code></li><li><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></li><li><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></li><li><code>org.eclipse.edc.validator.spi.DataAddressValidatorRegistry</code></li><li><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></li><li><code>org.eclipse.edc.http.spi.ControlApiHttpClient</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.core.event.EventExecutorServiceContainer</code></em></li><li><code>org.eclipse.edc.spi.types.TypeManager</code></li><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider</code></em></li></ul><h3>Extension CoreDefaultServicesExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.core.CoreDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.core.retry.retries.max</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>5</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">RetryPolicy: Maximum retries before a failure is propagated</td></tr><tr class="odd"><td><code>edc.core.retry.backoff.min</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>500</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">RetryPolicy: Minimum number of milliseconds for exponential backoff</td></tr><tr class="even"><td><code>edc.core.retry.backoff.max</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>10000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">RetryPolicy: Maximum number of milliseconds for exponential backoff</td></tr><tr class="odd"><td><code>edc.core.retry.log.on.retry</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">RetryPolicy: Log onRetry events</td></tr><tr class="even"><td><code>edc.core.retry.log.on.retry.scheduled</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">RetryPolicy: Log onRetryScheduled events</td></tr><tr class="odd"><td><code>edc.core.retry.log.on.retries.exceeded</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">RetryPolicy: Log onRetriesExceeded events</td></tr><tr class="even"><td><code>edc.core.retry.log.on.failed.attempt</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">RetryPolicy: Log onFailedAttempt events</td></tr><tr class="odd"><td><code>edc.core.retry.log.on.abort</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">RetryPolicy: Log onAbort events</td></tr><tr class="even"><td><code>edc.http.client.https.enforce</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">OkHttpClient: If true, enable HTTPS call enforcement</td></tr><tr class="odd"><td><code>edc.http.client.timeout.connect</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>30</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">OkHttpClient: connect timeout, in seconds</td></tr><tr class="even"><td><code>edc.http.client.timeout.read</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>30</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">OkHttpClient: read timeout, in seconds</td></tr><tr class="odd"><td><code>edc.http.client.send.buffer.size</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>0</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">OkHttpClient: send buffer size, in bytes</td></tr><tr class="even"><td><code>edc.http.client.receive.buffer.size</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>0</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">OkHttpClient: receive buffer size, in bytes</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.transaction.spi.TransactionContext</code></li><li><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></li><li><code>org.eclipse.edc.connector.core.event.EventExecutorServiceContainer</code></li><li><code>org.eclipse.edc.http.spi.EdcHttpClient</code></li><li><code>org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider</code></li><li><code>okhttp3.OkHttpClient</code></li><li><code>dev.failsafe.RetryPolicy&lt;T&gt;</code></li><li><code>org.eclipse.edc.spi.agent.ParticipantIdMapper</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><code>okhttp3.EventListener</code></li></ul><hr><a href="#contract-agreement-api"><h2 id="contract-agreement-api">contract-agreement-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:contract-agreement-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API: Contract Agreement</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.api.management.contractagreement.ContractAgreementApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li></ul><hr><a href="#contract-definition-api"><h2 id="contract-definition-api">contract-definition-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:contract-definition-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API: Contract Definition</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></em></li></ul><hr><a href="#contract-definition-store-sql"><h2 id="contract-definition-store-sql">contract-definition-store-sql</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:contract-definition-store-sql</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension SQL contract definition store</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.store.sql.contractdefinition.SqlContractDefinitionStoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.sql.store.contractdefinition.datasource</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The datasource to be used</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><code>org.eclipse.edc.connector.controlplane.store.sql.contractdefinition.schema.ContractDefinitionStatements</code></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></em></li></ul><hr><a href="#contract-negotiation-api"><h2 id="contract-negotiation-api">contract-negotiation-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:contract-negotiation-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API: Contract Negotiation</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.ContractNegotiationApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li></ul><hr><a href="#contract-negotiation-store-sql"><h2 id="contract-negotiation-store-sql">contract-negotiation-store-sql</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:contract-negotiation-store-sql</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension SQL contract negotiation store</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.sql.store.contractnegotiation.datasource</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The datasource to be used</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><em><code>java.time.Clock</code></em></li><li><code>org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements</code></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></em></li></ul><hr><a href="#contract-spi"><h2 id="contract-spi">contract-spi</h2></a><ul><li><b>Name: </b>Contract services</li><li><b>Path: </b><code>org.eclipse.edc:contract-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationWaitStrategy</em></li><li><em>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable</em></li><li><em>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderContractNegotiationManager</em></li><li><em>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager</em></li><li><em>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard</em></li><li><em>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore</em></li><li><em>org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService</em></li><li><em>org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver</em></li><li><em>org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore</em></li></ul><hr><a href="#control-api-configuration"><h2 id="control-api-configuration">control-api-configuration</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:control-api-configuration</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Control API configuration</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Tells all the Control API controllers under which context alias they need to register their resources: either
+
+
+
+##### Configuration: 
+
+| Key                                 | Required | Type     | Default | Pattern | Min | Max | Description                                      |
+| ----------------------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------------ |
+| `web.http.<context>.auth.key`       |          | `string` | ``      |         |     |     | The api key to use for the <context>             |
+| `web.http.<context>.auth.key.alias` |          | `string` | ``      |         |     |     | The vault api key alias to use for the <context> |
+| ~~edc.api.auth.key~~                |          | `string` | ``      |         |     |     |                                                  |
+| ~~edc.api.auth.key.alias~~          |          | `string` | ``      |         |     |     |                                                  |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry` (required)
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry` (required)
+
+Module `org.eclipse.edc:boot:0.9.0`
+-----------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.boot.BootServicesExtension`
+**Name:** "Boot Services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                  | Required | Type     | Default         | Pattern | Min | Max | Description                                                                                                                                                |
+| -------------------- | -------- | -------- | --------------- | ------- | --- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `edc.participant.id` |          | `string` | ``              |         |     |     | Configures the participant id this runtime is operating on behalf of                                                                                       |
+| `edc.runtime.id`     |          | `string` | `<random UUID>` |         |     |     | Configures the runtime id. This should be fully or partly randomized, and need not be stable across restarts. It is recommended to leave this value blank. |
+| `edc.component.id`   |          | `string` | `<random UUID>` |         |     |     | Configures this component's ID. This should be a unique, stable and deterministic identifier.                                                              |
+
+##### Provided services:
+- `java.time.Clock`
+- `org.eclipse.edc.spi.telemetry.Telemetry`
+- `org.eclipse.edc.spi.system.health.HealthCheckService`
+- `org.eclipse.edc.spi.security.Vault`
+- `org.eclipse.edc.spi.system.ExecutorInstrumentation`
+- `org.eclipse.edc.spi.system.apiversion.ApiVersionService`
+
+##### Referenced (injected) services:
+_None_
+
+Module `org.eclipse.edc:callback-event-dispatcher:0.9.0`
+--------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.callback.dispatcher.CallbackEventDispatcherExtension`
+**Name:** "Callback dispatcher extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackProtocolResolverRegistry`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry` (required)
+- `org.eclipse.edc.spi.event.EventRouter` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry` (required)
+
+Module `org.eclipse.edc:callback-http-dispatcher:0.9.0`
+-------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.callback.dispatcher.http.CallbackEventDispatcherHttpExtension`
+**Name:** "Callback dispatcher http extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry` (required)
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackProtocolResolverRegistry` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
+
+Module `org.eclipse.edc:callback-static-endpoint:0.9.0`
+-------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.callback.staticendpoint.CallbackStaticEndpointExtension`
+**Name:** "Static callbacks extension"
+
+**Overview:**  Extension for configuring the static endpoints for callbacks
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry` (required)
+
+Module `org.eclipse.edc:catalog-api:0.9.0`
+------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.api.management.catalog.CatalogApiExtension`
+**Name:** "Management API: Catalog"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
+Module `org.eclipse.edc:configuration-filesystem:0.9.0`
+-------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.configuration.filesystem.FsConfigurationExtension`
+**Name:** "FS Configuration"
+
+**Overview:**  Sources configuration values from a properties file.
+
+
+
+##### Configuration: 
+
+| Key             | Required | Type     | Default | Pattern | Min | Max | Description |
+| --------------- | -------- | -------- | ------- | ------- | --- | --- | ----------- |
+| `edc.fs.config` |          | `string` | ``      |         |     |     |             |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+_None_
+
+Module `org.eclipse.edc:connector-core:0.9.0`
+---------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.core.CoreServicesExtension`
+**Name:** "Core Services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                      | Required | Type     | Default     | Pattern | Min | Max | Description                                                          |
+| ------------------------ | -------- | -------- | ----------- | ------- | --- | --- | -------------------------------------------------------------------- |
+| `edc.hostname`           |          | `string` | `localhost` |         |     |     | Connector hostname, which e.g. is used in referer urls               |
+| `edc.agent.identity.key` |          | `string` | `client_id` |         |     |     | The name of the claim key used to determine the participant identity |
+
+##### Provided services:
+- `org.eclipse.edc.spi.types.TypeManager`
+- `org.eclipse.edc.spi.system.Hostname`
+- `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry`
+- `org.eclipse.edc.spi.command.CommandHandlerRegistry`
+- `org.eclipse.edc.spi.agent.ParticipantAgentService`
+- `org.eclipse.edc.policy.engine.spi.RuleBindingRegistry`
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine`
+- `org.eclipse.edc.spi.event.EventRouter`
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry`
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry`
+- `org.eclipse.edc.validator.spi.DataAddressValidatorRegistry`
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry`
+- `org.eclipse.edc.http.spi.ControlApiHttpClient`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.core.event.EventExecutorServiceContainer` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (optional)
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider` (required)
+
+#### Class: `org.eclipse.edc.connector.core.LocalPublicKeyDefaultExtension`
+**Name:** "Security Default Services Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                  | Required | Type     | Default | Pattern | Min | Max | Description                                                                                                                                      |
+| ------------------------------------ | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `edc.iam.publickeys.<pkAlias>.id`    | `*`      | `string` | ``      |         |     |     | ID of the public key.                                                                                                                            |
+| `edc.iam.publickeys.<pkAlias>.value` |          | `string` | ``      |         |     |     | Value of the public key. Multiple formats are supported, depending on the KeyParsers registered in the runtime                                   |
+| `edc.iam.publickeys.<pkAlias>.path`  |          | `string` | ``      |         |     |     | Path to a file that holds the public key, e.g. a PEM file. Multiple formats are supported, depending on the KeyParsers registered in the runtime |
+
+##### Provided services:
+- `org.eclipse.edc.keys.spi.LocalPublicKeyService`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.keys.spi.KeyParserRegistry` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
+
+#### Class: `org.eclipse.edc.connector.core.CoreDefaultServicesExtension`
+**Name:** "CoreDefaultServicesExtension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                      | Required | Type      | Default | Pattern | Min | Max | Description                                                         |
+| ---------------------------------------- | -------- | --------- | ------- | ------- | --- | --- | ------------------------------------------------------------------- |
+| `edc.core.retry.retries.max`             |          | `int`     | `5`     |         |     |     | RetryPolicy: Maximum retries before a failure is propagated         |
+| `edc.core.retry.backoff.min`             |          | `int`     | `500`   |         |     |     | RetryPolicy: Minimum number of milliseconds for exponential backoff |
+| `edc.core.retry.backoff.max`             |          | `int`     | `10000` |         |     |     | RetryPolicy: Maximum number of milliseconds for exponential backoff |
+| `edc.core.retry.log.on.retry`            |          | `boolean` | `false` |         |     |     | RetryPolicy: Log onRetry events                                     |
+| `edc.core.retry.log.on.retry.scheduled`  |          | `boolean` | `false` |         |     |     | RetryPolicy: Log onRetryScheduled events                            |
+| `edc.core.retry.log.on.retries.exceeded` |          | `boolean` | `false` |         |     |     | RetryPolicy: Log onRetriesExceeded events                           |
+| `edc.core.retry.log.on.failed.attempt`   |          | `boolean` | `false` |         |     |     | RetryPolicy: Log onFailedAttempt events                             |
+| `edc.core.retry.log.on.abort`            |          | `boolean` | `false` |         |     |     | RetryPolicy: Log onAbort events                                     |
+| `edc.http.client.https.enforce`          |          | `boolean` | `false` |         |     |     | OkHttpClient: If true, enable HTTPS call enforcement                |
+| `edc.http.client.timeout.connect`        |          | `int`     | `30`    |         |     |     | OkHttpClient: connect timeout, in seconds                           |
+| `edc.http.client.timeout.read`           |          | `int`     | `30`    |         |     |     | OkHttpClient: read timeout, in seconds                              |
+| `edc.http.client.send.buffer.size`       |          | `int`     | `0`     |         |     |     | OkHttpClient: send buffer size, in bytes                            |
+| `edc.http.client.receive.buffer.size`    |          | `int`     | `0`     |         |     |     | OkHttpClient: receive buffer size, in bytes                         |
+
+##### Provided services:
+- `org.eclipse.edc.transaction.spi.TransactionContext`
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry`
+- `org.eclipse.edc.connector.core.event.EventExecutorServiceContainer`
+- `org.eclipse.edc.http.spi.EdcHttpClient`
+- `org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider`
+- `okhttp3.OkHttpClient`
+- `dev.failsafe.RetryPolicy<T>`
+- `org.eclipse.edc.spi.agent.ParticipantIdMapper`
+
+##### Referenced (injected) services:
+- `okhttp3.EventListener` (optional)
+
+#### Class: `org.eclipse.edc.connector.core.SecurityDefaultServicesExtension`
+**Name:** "Security Default Services Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.keys.spi.PrivateKeyResolver`
+- `org.eclipse.edc.keys.spi.CertificateResolver`
+- `org.eclipse.edc.keys.spi.KeyParserRegistry`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:contract-agreement-api:0.9.0`
+-----------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.api.management.contractagreement.ContractAgreementApiExtension`
+**Name:** "Management API: Contract Agreement"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+
+Module `org.eclipse.edc:contract-definition-api:0.9.0`
+------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApiExtension`
+**Name:** "Management API: Contract Definition"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
+Module `org.eclipse.edc:contract-definition-store-sql:0.9.0`
+------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.store.sql.contractdefinition.SqlContractDefinitionStoreExtension`
+**Name:** "SQL contract definition store"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                           | Required | Type     | Default   | Pattern | Min | Max | Description               |
+| --------------------------------------------- | -------- | -------- | --------- | ------- | --- | --- | ------------------------- |
+| `edc.sql.store.contractdefinition.datasource` |          | `string` | `default` |         |     |     | The datasource to be used |
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.connector.controlplane.store.sql.contractdefinition.schema.ContractDefinitionStatements` (optional)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
+
+Module `org.eclipse.edc:contract-negotiation-api:0.9.0`
+-------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.ContractNegotiationApiExtension`
+**Name:** "Management API: Contract Negotiation"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+
+Module `org.eclipse.edc:contract-negotiation-store-sql:0.9.0`
+-------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension`
+**Name:** "SQL contract negotiation store"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                            | Required | Type     | Default   | Pattern | Min | Max | Description               |
+| ---------------------------------------------- | -------- | -------- | --------- | ------- | --- | --- | ------------------------- |
+| `edc.sql.store.contractnegotiation.datasource` |          | `string` | `default` |         |     |     | The datasource to be used |
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements` (optional)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
+
+Module `Contract services:0.9.0`
+--------------------------------
+_org.eclipse.edc:contract-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationWaitStrategy`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderContractNegotiationManager`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore`
+
+### Extensions
+Module `org.eclipse.edc:control-api-configuration:0.9.0`
+--------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension`
+**Name:** "Control API configuration"
+
+**Overview:**  Tells all the Control API controllers under which context alias they need to register their resources: either
  `default` or `control`
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.control.endpoint</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Configures endpoint for reaching the Control API. If it&#x27;s missing it defaults to the hostname configuration.</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.web.spi.configuration.context.ControlApiUrl</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebServer</code></em></li><li><em><code>org.eclipse.edc.web.spi.configuration.WebServiceConfigurer</code></em></li><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.spi.system.Hostname</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.system.apiversion.ApiVersionService</code></em></li></ul><hr><a href="#control-plane-aggregate-services"><h2 id="control-plane-aggregate-services">control-plane-aggregate-services</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:control-plane-aggregate-services</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Control Plane Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.services.ControlPlaneServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService</code></li><li><code>org.eclipse.edc.connector.spi.service.SecretService</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li><li><em><code>org.eclipse.edc.spi.event.EventRouter</code></em></li><li><em><code>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex</code></em></li><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.offer.ConsumerOfferResolver</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable</code></em></li><li><em><code>org.eclipse.edc.spi.telemetry.Telemetry</code></em></li><li><em><code>org.eclipse.edc.spi.agent.ParticipantAgentService</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver</code></em></li><li><em><code>org.eclipse.edc.spi.command.CommandHandlerRegistry</code></em></li><li><em><code>org.eclipse.edc.validator.spi.DataAddressValidatorRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.iam.IdentityService</code></em></li><li><em><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></em></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator</code></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser</code></em></li></ul><hr><a href="#control-plane-api"><h2 id="control-plane-api">control-plane-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:control-plane-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Control Plane API</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.api.ControlPlaneApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> {@link ControlPlaneApiExtension } exposes HTTP endpoints for internal interaction with the Control Plane
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#control-plane-api-client"><h2 id="control-plane-api-client">control-plane-api-client</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:control-plane-api-client</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Control Plane HTTP API client</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.api.client.ControlPlaneApiClientExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Extensions that contains clients for Control Plane HTTP APIs
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.http.spi.ControlApiHttpClient</code></em></li></ul><hr><a href="#control-plane-api-client-spi"><h2 id="control-plane-api-client-spi">control-plane-api-client-spi</h2></a><ul><li><b>Name: </b>Control Plane API Services</li><li><b>Path: </b><code>org.eclipse.edc:control-plane-api-client-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient</em></li></ul><hr><a href="#control-plane-catalog"><h2 id="control-plane-catalog">control-plane-catalog</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:control-plane-catalog</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Catalog Default Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.catalog.CatalogDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry</code></li><li><code>org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager</code></em></li></ul><h3>Extension Catalog Core</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.catalog.CatalogCoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver</code></em></li><li><em><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></em></li></ul><hr><a href="#control-plane-contract"><h2 id="control-plane-contract">control-plane-contract</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:control-plane-contract</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Contract Negotiation Default Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.contract.ContractNegotiationDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver</code></li><li><code>org.eclipse.edc.connector.controlplane.contract.spi.offer.ConsumerOfferResolver</code></li><li><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable</code></li><li><code>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive</code></li><li><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore</code></em></li><li><em><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore</code></em></li></ul><h3>Extension Contract Core</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.contract.ContractCoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.negotiation.state-machine.iteration-wait-millis</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the iteration wait time in milliseconds in the negotiation state machine. Default value 1000</td></tr><tr class="odd"><td><code>edc.negotiation.consumer.state-machine.batch-size</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the batch size in the consumer negotiation state machine. Default value 20</td></tr><tr class="even"><td><code>edc.negotiation.provider.state-machine.batch-size</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the batch size in the provider negotiation state machine. Default value 20</td></tr><tr class="odd"><td><code>edc.negotiation.consumer.send.retry.limit</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>7</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">how many times a specific operation must be tried before terminating the consumer negotiation with error</td></tr><tr class="even"><td><code>edc.negotiation.provider.send.retry.limit</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>7</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">how many times a specific operation must be tried before terminating the provider negotiation with error</td></tr><tr class="odd"><td><code>edc.negotiation.consumer.send.retry.base-delay.ms</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code>1000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The base delay for the consumer negotiation retry mechanism in millisecond</td></tr><tr class="even"><td><code>edc.negotiation.provider.send.retry.base-delay.ms</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code>1000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The base delay for the provider negotiation retry mechanism in millisecond</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService</code></li><li><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager</code></li><li><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderContractNegotiationManager</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex</code></em></li><li><em><code>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore</code></em></li><li><em><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li><li><em><code>org.eclipse.edc.spi.telemetry.Telemetry</code></em></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.event.EventRouter</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.policy.engine.spi.RuleBindingRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.protocol.ProtocolWebhook</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard</code></em></li><li><em><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></em></li></ul><h3>Extension Contract Negotiation command handlers</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.contract.ContractNegotiationCommandExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore</code></em></li><li><em><code>org.eclipse.edc.spi.command.CommandHandlerRegistry</code></em></li></ul><hr><a href="#control-plane-core"><h2 id="control-plane-core">control-plane-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:control-plane-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Control Plane Default Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.ControlPlaneDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides default service implementations for fallback
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex</code></li><li><code>org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver</code></li><li><code>org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore</code></li><li><code>org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore</code></li><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore</code></li><li><code>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry</code></li><li><code>org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></em></li></ul><hr><a href="#control-plane-transfer"><h2 id="control-plane-transfer">control-plane-transfer</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:control-plane-transfer</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension TransferProcessCommandExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.transfer.TransferProcessCommandExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore</code></em></li></ul><h3>Extension Transfer Process Default Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.transfer.TransferProcessDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager</code></li><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator</code></li><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager</code></li><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable</code></li><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard</code></li><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></em></li></ul><h3>Extension Transfer Core</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.transfer.TransferCoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.transfer.state-machine.iteration-wait-millis</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the iteration wait time in milliseconds in the transfer process state machine. Default value 1000</td></tr><tr class="odd"><td><code>edc.transfer.state-machine.batch-size</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the batch size in the transfer process state machine. Default value 20</td></tr><tr class="even"><td><code>edc.transfer.send.retry.limit</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>7</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">how many times a specific operation must be tried before terminating the transfer with error</td></tr><tr class="odd"><td><code>edc.transfer.send.retry.base-delay.ms</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code>1000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The base delay for the transfer retry mechanism in millisecond</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager</code></li><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.edr.EndpointDataReferenceReceiverRegistry</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive</code></em></li><li><em><code>org.eclipse.edc.spi.command.CommandHandlerRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver</code></em></li><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li><li><em><code>org.eclipse.edc.spi.event.EventRouter</code></em></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.spi.telemetry.Telemetry</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.protocol.ProtocolWebhook</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard</code></em></li><li><em><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></em></li></ul><hr><a href="#core-spi"><h2 id="core-spi">core-spi</h2></a><ul><li><b>Name: </b>Core services</li><li><b>Path: </b><code>org.eclipse.edc:core-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.spi.agent.ParticipantIdMapper</em></li><li><em>org.eclipse.edc.spi.command.CommandHandlerRegistry</em></li><li><em>org.eclipse.edc.spi.iam.AudienceResolver</em></li><li><em>org.eclipse.edc.spi.iam.IdentityService</em></li><li><em>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</em></li><li><em>org.eclipse.edc.spi.event.EventRouter</em></li></ul><hr><a href="#data-plane-core"><h2 id="data-plane-core">data-plane-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Data Plane Framework Default Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.framework.DataPlaneDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy</code></li><li><code>org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore</code></li><li><code>org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore</code></li><li><code>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</code></li><li><code>org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService</code></li><li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></em></li></ul><h3>Extension Data Plane Framework</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.framework.DataPlaneFrameworkExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.dataplane.state-machine.iteration-wait-millis</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code>1000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the iteration wait time in milliseconds in the data plane state machine.</td></tr><tr class="odd"><td><code>edc.dataplane.state-machine.batch-size</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>20</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the batch size in the data plane state machine.</td></tr><tr class="even"><td><code>edc.dataplane.send.retry.limit</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>7</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">how many times a specific operation must be tried before terminating the dataplane with error</td></tr><tr class="odd"><td><code>edc.dataplane.send.retry.base-delay.ms</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code>1000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The base delay for the dataplane retry mechanism in millisecond</td></tr><tr class="even"><td><code>edc.dataplane.transfer.threads</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>20</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Size of the transfer thread pool. It is advisable to set it bigger than the state machine batch size</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager</code></li><li><code>org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry</code></li><li><code>org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient</code></em></li><li><em><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></em></li><li><em><code>org.eclipse.edc.spi.telemetry.Telemetry</code></em></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService</code></em></li></ul><hr><a href="#data-plane-http"><h2 id="data-plane-http">data-plane-http</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-http</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Data Plane HTTP</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.http.DataPlaneHttpExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides support for reading data from an HTTP endpoint and sending data to an HTTP endpoint.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.dataplane.http.sink.partition.size</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>5</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Number of partitions for parallel message push in the HttpDataSink</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer</code></em></li><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#data-plane-http-oauth2-core"><h2 id="data-plane-http-oauth2-core">data-plane-http-oauth2-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-http-oauth2-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Data Plane HTTP OAuth2</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.http.oauth2.DataPlaneHttpOauth2Extension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides support for adding OAuth2 authentication to http data transfer
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider</code></em></li><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li><li><em><code>org.eclipse.edc.jwt.signer.spi.JwsSignerProvider</code></em></li><li><em><code>org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client</code></em></li></ul><hr><a href="#data-plane-iam"><h2 id="data-plane-iam">data-plane-iam</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-iam</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Data Plane Default IAM Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.iam.DataPlaneIamDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.transfer.proxy.token.signer.privatekey.alias</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Alias of private key used for signing tokens, retrieved from private key resolver</td></tr><tr class="odd"><td><code>edc.transfer.proxy.token.verifier.publickey.alias</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Alias of public key used for verifying the tokens, retrieved from the vault</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService</code></li><li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore</code></em></li><li><em><code>org.eclipse.edc.token.spi.TokenValidationService</code></em></li><li><em><code>org.eclipse.edc.keys.spi.LocalPublicKeyService</code></em></li><li><em><code>org.eclipse.edc.jwt.signer.spi.JwsSignerProvider</code></em></li></ul><h3>Extension Data Plane IAM</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.iam.DataPlaneIamExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService</code></em></li></ul><hr><a href="#data-plane-instance-store-sql"><h2 id="data-plane-instance-store-sql">data-plane-instance-store-sql</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-instance-store-sql</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Sql Data Plane Instance Store</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.selector.store.sql.SqlDataPlaneInstanceStoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Extensions that expose an implementation of {@link DataPlaneInstanceStore} that uses SQL as backend storage
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><s><code>edc.datasource.dataplaneinstance.name</code></s></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Name of the datasource to use for accessing data plane instances</td></tr><tr class="odd"><td><code>edc.sql.store.dataplaneinstance.datasource</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The datasource to be used</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><code>org.eclipse.edc.connector.dataplane.selector.store.sql.schema.DataPlaneInstanceStatements</code></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></em></li></ul><hr><a href="#data-plane-kafka"><h2 id="data-plane-kafka">data-plane-kafka</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-kafka</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Data Plane Kafka</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.kafka.DataPlaneKafkaExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.dataplane.kafka.sink.partition.size</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>5</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The partitionSize used by the kafka data sink</td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</code></em></li><li><em><code>java.time.Clock</code></em></li></ul><hr><a href="#data-plane-public-api-v2"><h2 id="data-plane-public-api-v2">data-plane-public-api-v2</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-public-api-v2</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Data Plane Public API</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.api.DataPlanePublicApiV2Extension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> This extension provides generic endpoints which are open to public participants of the Dataspace to execute
+
+
+
+##### Configuration: 
+
+| Key                    | Required | Type     | Default | Pattern | Min | Max | Description                                                                                                  |
+| ---------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------------------------------------------------------------------------ |
+| `edc.control.endpoint` |          | `string` | ``      |         |     |     | Configures endpoint for reaching the Control API. If it's missing it defaults to the hostname configuration. |
+
+##### Provided services:
+- `org.eclipse.edc.web.spi.configuration.context.ControlApiUrl`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebServer` (required)
+- `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer` (required)
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.spi.system.Hostname` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry` (required)
+- `org.eclipse.edc.spi.system.apiversion.ApiVersionService` (required)
+
+Module `org.eclipse.edc:control-plane-aggregate-services:0.9.0`
+---------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.services.ControlPlaneServicesExtension`
+**Name:** "Control Plane Services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService`
+- `org.eclipse.edc.connector.spi.service.SecretService`
+- `org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService`
+- `org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService`
+- `org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService`
+- `org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService`
+- `org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService`
+- `org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService`
+- `org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService`
+- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService`
+- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService`
+- `org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator`
+- `org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService`
+
+##### Referenced (injected) services:
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+- `org.eclipse.edc.spi.event.EventRouter` (required)
+- `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager` (required)
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.offer.ConsumerOfferResolver` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable` (required)
+- `org.eclipse.edc.spi.telemetry.Telemetry` (required)
+- `org.eclipse.edc.spi.agent.ParticipantAgentService` (required)
+- `org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver` (required)
+- `org.eclipse.edc.spi.command.CommandHandlerRegistry` (required)
+- `org.eclipse.edc.validator.spi.DataAddressValidatorRegistry` (required)
+- `org.eclipse.edc.spi.iam.IdentityService` (required)
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator` (optional)
+- `org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser` (required)
+
+Module `org.eclipse.edc:control-plane-api:0.9.0`
+------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.api.ControlPlaneApiExtension`
+**Name:** "Control Plane API"
+
+**Overview:**  {@link ControlPlaneApiExtension } exposes HTTP endpoints for internal interaction with the Control Plane
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:control-plane-api-client:0.9.0`
+-------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.api.client.ControlPlaneApiClientExtension`
+**Name:** "Control Plane HTTP API client"
+
+**Overview:**  Extensions that contains clients for Control Plane HTTP APIs
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.http.spi.ControlApiHttpClient` (required)
+
+Module `Control Plane API Services:0.9.0`
+-----------------------------------------
+_org.eclipse.edc:control-plane-api-client-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient`
+
+### Extensions
+Module `org.eclipse.edc:control-plane-catalog:0.9.0`
+----------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.catalog.CatalogCoreExtension`
+**Name:** "Catalog Core"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver` (required)
+- `org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex` (required)
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore` (required)
+- `org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
+#### Class: `org.eclipse.edc.connector.controlplane.catalog.CatalogDefaultServicesExtension`
+**Name:** "Catalog Default Services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry`
+- `org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager` (required)
+
+Module `org.eclipse.edc:control-plane-contract:0.9.0`
+-----------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.contract.ContractCoreExtension`
+**Name:** "Contract Core"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                                   | Required | Type   | Default | Pattern | Min | Max | Description                                                                                              |
+| ----------------------------------------------------- | -------- | ------ | ------- | ------- | --- | --- | -------------------------------------------------------------------------------------------------------- |
+| `edc.negotiation.state-machine.iteration-wait-millis` |          | `long` | ``      |         |     |     | the iteration wait time in milliseconds in the negotiation state machine. Default value 1000             |
+| `edc.negotiation.consumer.state-machine.batch-size`   |          | `int`  | ``      |         |     |     | the batch size in the consumer negotiation state machine. Default value 20                               |
+| `edc.negotiation.provider.state-machine.batch-size`   |          | `int`  | ``      |         |     |     | the batch size in the provider negotiation state machine. Default value 20                               |
+| `edc.negotiation.consumer.send.retry.limit`           |          | `int`  | `7`     |         |     |     | how many times a specific operation must be tried before terminating the consumer negotiation with error |
+| `edc.negotiation.provider.send.retry.limit`           |          | `int`  | `7`     |         |     |     | how many times a specific operation must be tried before terminating the provider negotiation with error |
+| `edc.negotiation.consumer.send.retry.base-delay.ms`   |          | `long` | `1000`  |         |     |     | The base delay for the consumer negotiation retry mechanism in millisecond                               |
+| `edc.negotiation.provider.send.retry.base-delay.ms`   |          | `long` | `1000`  |         |     |     | The base delay for the provider negotiation retry mechanism in millisecond                               |
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService`
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager`
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderContractNegotiationManager`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex` (required)
+- `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore` (required)
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+- `org.eclipse.edc.spi.telemetry.Telemetry` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.event.EventRouter` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.policy.engine.spi.RuleBindingRegistry` (required)
+- `org.eclipse.edc.spi.protocol.ProtocolWebhook` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard` (required)
+- `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
+
+#### Class: `org.eclipse.edc.connector.controlplane.contract.ContractNegotiationCommandExtension`
+**Name:** "Contract Negotiation command handlers"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore` (required)
+- `org.eclipse.edc.spi.command.CommandHandlerRegistry` (required)
+
+#### Class: `org.eclipse.edc.connector.controlplane.contract.ContractNegotiationDefaultServicesExtension`
+**Name:** "Contract Negotiation Default Services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver`
+- `org.eclipse.edc.connector.controlplane.contract.spi.offer.ConsumerOfferResolver`
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable`
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive`
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore` (required)
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore` (required)
+
+Module `org.eclipse.edc:control-plane-core:0.9.0`
+-------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.ControlPlaneDefaultServicesExtension`
+**Name:** "Control Plane Default Services"
+
+**Overview:**  Provides default service implementations for fallback
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex`
+- `org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver`
+- `org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore`
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore`
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore`
+- `org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry`
+- `org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry`
+
+##### Referenced (injected) services:
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
+Module `org.eclipse.edc:control-plane-transfer:0.9.0`
+-----------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferCoreExtension`
+**Name:** "Transfer Core"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                                | Required | Type   | Default | Pattern | Min | Max | Description                                                                                       |
+| -------------------------------------------------- | -------- | ------ | ------- | ------- | --- | --- | ------------------------------------------------------------------------------------------------- |
+| `edc.transfer.state-machine.iteration-wait-millis` |          | `long` | ``      |         |     |     | the iteration wait time in milliseconds in the transfer process state machine. Default value 1000 |
+| `edc.transfer.state-machine.batch-size`            |          | `int`  | ``      |         |     |     | the batch size in the transfer process state machine. Default value 20                            |
+| `edc.transfer.send.retry.limit`                    |          | `int`  | `7`     |         |     |     | how many times a specific operation must be tried before terminating the transfer with error      |
+| `edc.transfer.send.retry.base-delay.ms`            |          | `long` | `1000`  |         |     |     | The base delay for the transfer retry mechanism in millisecond                                    |
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.edr.EndpointDataReferenceReceiverRegistry`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable` (required)
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive` (required)
+- `org.eclipse.edc.spi.command.CommandHandlerRegistry` (required)
+- `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.spi.event.EventRouter` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.telemetry.Telemetry` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.spi.protocol.ProtocolWebhook` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard` (required)
+- `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
+
+#### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferProcessDefaultServicesExtension`
+**Name:** "Transfer Process Default Services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+
+#### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferProcessCommandExtension`
+**Name:** "TransferProcessCommandExtension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore` (required)
+
+Module `Core services:0.9.0`
+----------------------------
+_org.eclipse.edc:core-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.spi.agent.ParticipantIdMapper`
+  - `org.eclipse.edc.spi.command.CommandHandlerRegistry`
+  - `org.eclipse.edc.spi.iam.AudienceResolver`
+  - `org.eclipse.edc.spi.iam.IdentityService`
+  - `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry`
+  - `org.eclipse.edc.spi.event.EventRouter`
+
+### Extensions
+Module `org.eclipse.edc:data-plane-core:0.9.0`
+----------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.framework.DataPlaneDefaultServicesExtension`
+**Name:** "Data Plane Framework Default Services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy`
+- `org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore`
+- `org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore`
+- `org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService`
+- `org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService`
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService`
+
+##### Referenced (injected) services:
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
+#### Class: `org.eclipse.edc.connector.dataplane.framework.DataPlaneFrameworkExtension`
+**Name:** "Data Plane Framework"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                                 | Required | Type   | Default | Pattern | Min | Max | Description                                                                                          |
+| --------------------------------------------------- | -------- | ------ | ------- | ------- | --- | --- | ---------------------------------------------------------------------------------------------------- |
+| `edc.dataplane.state-machine.iteration-wait-millis` |          | `long` | `1000`  |         |     |     | the iteration wait time in milliseconds in the data plane state machine.                             |
+| `edc.dataplane.state-machine.batch-size`            |          | `int`  | `20`    |         |     |     | the batch size in the data plane state machine.                                                      |
+| `edc.dataplane.send.retry.limit`                    |          | `int`  | `7`     |         |     |     | how many times a specific operation must be tried before terminating the dataplane with error        |
+| `edc.dataplane.send.retry.base-delay.ms`            |          | `long` | `1000`  |         |     |     | The base delay for the dataplane retry mechanism in millisecond                                      |
+| `edc.dataplane.transfer.threads`                    |          | `int`  | `20`    |         |     |     | Size of the transfer thread pool. It is advisable to set it bigger than the state machine batch size |
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager`
+- `org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry`
+- `org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy` (required)
+- `org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore` (required)
+- `org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient` (required)
+- `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
+- `org.eclipse.edc.spi.telemetry.Telemetry` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService` (required)
+
+Module `org.eclipse.edc:data-plane-http:0.9.0`
+----------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.http.DataPlaneHttpExtension`
+**Name:** "Data Plane HTTP"
+
+**Overview:**  Provides support for reading data from an HTTP endpoint and sending data to an HTTP endpoint.
+
+
+
+##### Configuration: 
+
+| Key                                      | Required | Type  | Default | Pattern | Min | Max | Description                                                        |
+| ---------------------------------------- | -------- | ----- | ------- | ------- | --- | --- | ------------------------------------------------------------------ |
+| `edc.dataplane.http.sink.partition.size` |          | `int` | `5`     |         |     |     | Number of partitions for parallel message push in the HttpDataSink |
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:data-plane-http-oauth2-core:0.9.0`
+----------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.http.oauth2.DataPlaneHttpOauth2Extension`
+**Name:** "Data Plane HTTP OAuth2"
+
+**Overview:**  Provides support for adding OAuth2 authentication to http data transfer
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `java.time.Clock` (required)
+- `org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider` (required)
+- `org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client` (required)
+
+Module `org.eclipse.edc:data-plane-iam:0.9.0`
+---------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.iam.DataPlaneIamExtension`
+**Name:** "Data Plane IAM"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService`
+
+##### Referenced (injected) services:
+- `java.time.Clock` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService` (required)
+
+#### Class: `org.eclipse.edc.connector.dataplane.iam.DataPlaneIamDefaultServicesExtension`
+**Name:** "Data Plane Default IAM Services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                                 | Required | Type     | Default | Pattern | Min | Max | Description                                                                       |
+| --------------------------------------------------- | -------- | -------- | ------- | ------- | --- | --- | --------------------------------------------------------------------------------- |
+| `edc.transfer.proxy.token.signer.privatekey.alias`  |          | `string` | ``      |         |     |     | Alias of private key used for signing tokens, retrieved from private key resolver |
+| `edc.transfer.proxy.token.verifier.publickey.alias` |          | `string` | ``      |         |     |     | Alias of public key used for verifying the tokens, retrieved from the vault       |
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService`
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore` (required)
+- `org.eclipse.edc.token.spi.TokenValidationService` (required)
+- `org.eclipse.edc.keys.spi.LocalPublicKeyService` (required)
+- `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider` (required)
+
+Module `org.eclipse.edc:data-plane-instance-store-sql:0.9.0`
+------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.selector.store.sql.SqlDataPlaneInstanceStoreExtension`
+**Name:** "Sql Data Plane Instance Store"
+
+**Overview:**  Extensions that expose an implementation of {@link DataPlaneInstanceStore} that uses SQL as backend storage
+
+
+
+##### Configuration: 
+
+| Key                                          | Required | Type     | Default   | Pattern | Min | Max | Description                                                      |
+| -------------------------------------------- | -------- | -------- | --------- | ------- | --- | --- | ---------------------------------------------------------------- |
+| ~~edc.datasource.dataplaneinstance.name~~    |          | `string` | ``        |         |     |     | Name of the datasource to use for accessing data plane instances |
+| `edc.sql.store.dataplaneinstance.datasource` |          | `string` | `default` |         |     |     | The datasource to be used                                        |
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.connector.dataplane.selector.store.sql.schema.DataPlaneInstanceStatements` (optional)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
+
+Module `org.eclipse.edc:data-plane-kafka:0.9.0`
+-----------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.kafka.DataPlaneKafkaExtension`
+**Name:** "Data Plane Kafka"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                       | Required | Type  | Default | Pattern | Min | Max | Description                                   |
+| ----------------------------------------- | -------- | ----- | ------- | ------- | --- | --- | --------------------------------------------- |
+| `edc.dataplane.kafka.sink.partition.size` |          | `int` | `5`     |         |     |     | The partitionSize used by the kafka data sink |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer` (required)
+- `org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService` (required)
+- `java.time.Clock` (required)
+
+Module `org.eclipse.edc:data-plane-public-api-v2:0.9.0`
+-------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.api.DataPlanePublicApiV2Extension`
+**Name:** "Data Plane Public API"
+
+**Overview:**  This extension provides generic endpoints which are open to public participants of the Dataspace to execute
  requests on the actual data source.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.dataplane.api.public.baseurl</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>http://&lt;HOST&gt;:8185/api/v2/public</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Base url of the public API endpoint without the trailing slash. This should correspond to the values configured in &#x27;8185&#x27; and &#x27;/api/v2/public&#x27;.</td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebServer</code></em></li><li><em><code>org.eclipse.edc.web.spi.configuration.WebServiceConfigurer</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</code></em></li><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService</code></em></li><li><em><code>org.eclipse.edc.spi.system.Hostname</code></em></li></ul><hr><a href="#data-plane-selector-api"><h2 id="data-plane-selector-api">data-plane-selector-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-selector-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension DataPlane selector API</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li><li><em><code>java.time.Clock</code></em></li></ul><hr><a href="#data-plane-selector-client"><h2 id="data-plane-selector-client">data-plane-selector-client</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-selector-client</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension DataPlane Selector client</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorClientExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.dpf.selector.url</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">DataPlane selector api URL</td></tr><tr class="odd"><td><code>edc.dataplane.client.selector.strategy</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>random</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.http.spi.ControlApiHttpClient</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li></ul><hr><a href="#data-plane-selector-control-api"><h2 id="data-plane-selector-control-api">data-plane-selector-control-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-selector-control-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataplane Selector Control API</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService</code></em></li><li><em><code>java.time.Clock</code></em></li></ul><hr><a href="#data-plane-selector-core"><h2 id="data-plane-selector-core">data-plane-selector-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-selector-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Data Plane Selector core</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.data.plane.selector.state-machine.iteration-wait-millis</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code>1000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the iteration wait time in milliseconds in the data plane selector state machine.</td></tr><tr class="odd"><td><code>edc.data.plane.selector.state-machine.batch-size</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>20</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the batch size in the data plane selector state machine.</td></tr><tr class="even"><td><code>edc.data.plane.selector.state-machine.check.period</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>60</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the check period for data plane availability, in seconds</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory</code></em></li></ul><h3>Extension DataPlaneSelectorDefaultServicesExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore</code></li><li><code>org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></em></li></ul><hr><a href="#data-plane-selector-spi"><h2 id="data-plane-selector-spi">data-plane-selector-spi</h2></a><ul><li><b>Name: </b>DataPlane selector services</li><li><b>Path: </b><code>org.eclipse.edc:data-plane-selector-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient</em></li><li><em>org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService</em></li></ul><hr><a href="#data-plane-self-registration"><h2 id="data-plane-self-registration">data-plane-self-registration</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-self-registration</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataplane Self Registration</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.registration.DataplaneSelfRegistrationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.data.plane.self.unregistration</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Enable data-plane un-registration at shutdown (not suggested for clustered environments)</td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService</code></em></li><li><em><code>org.eclipse.edc.web.spi.configuration.context.ControlApiUrl</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService</code></em></li><li><em><code>org.eclipse.edc.spi.system.health.HealthCheckService</code></em></li></ul><hr><a href="#data-plane-signaling-api"><h2 id="data-plane-signaling-api">data-plane-signaling-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-signaling-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension DataPlane Signaling API extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.api.DataPlaneSignalingApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#data-plane-signaling-client"><h2 id="data-plane-signaling-client">data-plane-signaling-client</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-signaling-client</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Data Plane Signaling Client</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> This extension registers all the transformers relevant for the data plane signaling protocol
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><code>org.eclipse.edc.http.spi.ControlApiHttpClient</code></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li><li><code>org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager</code></li></ul><h3>Extension Data Plane Signaling transform Client</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientTransformExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> This extension registers all the transformers relevant for the data plane signaling protocol
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#data-plane-spi"><h2 id="data-plane-spi">data-plane-spi</h2></a><ul><li><b>Name: </b>DataPlane services</li><li><b>Path: </b><code>org.eclipse.edc:data-plane-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry</em></li><li><em>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService</em></li><li><em>org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService</em></li><li><em>org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager</em></li><li><em>org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService</em></li></ul><hr><a href="#data-plane-store-sql"><h2 id="data-plane-store-sql">data-plane-store-sql</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:data-plane-store-sql</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Sql Data Plane Store</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.dataplane.store.sql.SqlDataPlaneStoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides Sql Store for Data Plane Flow Requests states
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><s><code>edc.datasource.dataplane.name</code></s></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Name of the datasource to use for accessing data plane store</td></tr><tr class="odd"><td><code>edc.sql.store.dataplane.datasource</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The datasource to be used</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><code>org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements</code></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></em></li></ul><hr><a href="#dsp-catalog-http-api"><h2 id="dsp-catalog-http-api">dsp-catalog-http-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-catalog-http-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol Catalog Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.catalog.http.api.DspCatalogApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Creates and registers the controller for dataspace protocol catalog requests.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.spi.protocol.ProtocolWebhook</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li><li><em><code>org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler</code></em></li><li><em><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li></ul><hr><a href="#dsp-catalog-http-dispatcher"><h2 id="dsp-catalog-http-dispatcher">dsp-catalog-http-dispatcher</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-catalog-http-dispatcher</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol Catalog HTTP Dispatcher Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.catalog.http.dispatcher.DspCatalogHttpDispatcherExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Creates and registers the HTTP dispatcher delegate for sending a catalog request as defined in
+
+
+
+##### Configuration: 
+
+| Key                                | Required | Type     | Default                            | Pattern | Min | Max | Description                                                                                                                                     |
+| ---------------------------------- | -------- | -------- | ---------------------------------- | ------- | --- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `edc.dataplane.api.public.baseurl` |          | `string` | `http://<HOST>:8185/api/v2/public` |         |     |     | Base url of the public API endpoint without the trailing slash. This should correspond to the values configured in '8185' and '/api/v2/public'. |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebServer` (required)
+- `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer` (required)
+- `org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService` (required)
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService` (required)
+- `org.eclipse.edc.spi.system.Hostname` (required)
+
+Module `org.eclipse.edc:data-plane-selector-api:0.9.0`
+------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorApiExtension`
+**Name:** "DataPlane selector API"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+- `java.time.Clock` (required)
+
+Module `org.eclipse.edc:data-plane-selector-client:0.9.0`
+---------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorClientExtension`
+**Name:** "DataPlane Selector client"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                      | Required | Type     | Default  | Pattern | Min | Max | Description                                                                                              |
+| ---------------------------------------- | -------- | -------- | -------- | ------- | --- | --- | -------------------------------------------------------------------------------------------------------- |
+| `edc.dpf.selector.url`                   | `*`      | `string` | ``       |         |     |     | DataPlane selector api URL                                                                               |
+| `edc.dataplane.client.selector.strategy` |          | `string` | `random` |         |     |     | Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime |
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.http.spi.ControlApiHttpClient` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+
+Module `org.eclipse.edc:data-plane-selector-control-api:0.9.0`
+--------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApiExtension`
+**Name:** "Dataplane Selector Control API"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService` (required)
+- `java.time.Clock` (required)
+
+Module `org.eclipse.edc:data-plane-selector-core:0.9.0`
+-------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorExtension`
+**Name:** "Data Plane Selector core"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                                           | Required | Type   | Default | Pattern | Min | Max | Description                                                                       |
+| ------------------------------------------------------------- | -------- | ------ | ------- | ------- | --- | --- | --------------------------------------------------------------------------------- |
+| `edc.data.plane.selector.state-machine.iteration-wait-millis` |          | `long` | `1000`  |         |     |     | the iteration wait time in milliseconds in the data plane selector state machine. |
+| `edc.data.plane.selector.state-machine.batch-size`            |          | `int`  | `20`    |         |     |     | the batch size in the data plane selector state machine.                          |
+| `edc.data.plane.selector.state-machine.check.period`          |          | `int`  | `60`    |         |     |     | the check period for data plane availability, in seconds                          |
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry` (required)
+- `org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory` (required)
+
+#### Class: `org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorDefaultServicesExtension`
+**Name:** "DataPlaneSelectorDefaultServicesExtension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore`
+- `org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry`
+
+##### Referenced (injected) services:
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
+Module `DataPlane selector services:0.9.0`
+------------------------------------------
+_org.eclipse.edc:data-plane-selector-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient`
+  - `org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService`
+
+### Extensions
+Module `org.eclipse.edc:data-plane-self-registration:0.9.0`
+-----------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.registration.DataplaneSelfRegistrationExtension`
+**Name:** "Dataplane Self Registration"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                  | Required | Type      | Default | Pattern | Min | Max | Description                                                                              |
+| ------------------------------------ | -------- | --------- | ------- | ------- | --- | --- | ---------------------------------------------------------------------------------------- |
+| `edc.data.plane.self.unregistration` |          | `boolean` | `false` |         |     |     | Enable data-plane un-registration at shutdown (not suggested for clustered environments) |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService` (required)
+- `org.eclipse.edc.web.spi.configuration.context.ControlApiUrl` (required)
+- `org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService` (required)
+- `org.eclipse.edc.spi.system.health.HealthCheckService` (required)
+
+Module `org.eclipse.edc:data-plane-signaling-api:0.9.0`
+-------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.api.DataPlaneSignalingApiExtension`
+**Name:** "DataPlane Signaling API extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:data-plane-signaling-client:0.9.0`
+----------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientTransformExtension`
+**Name:** "Data Plane Signaling transform Client"
+
+**Overview:**  This extension registers all the transformers relevant for the data plane signaling protocol
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+#### Class: `org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientExtension`
+**Name:** "Data Plane Signaling Client"
+
+**Overview:**  This extension registers all the transformers relevant for the data plane signaling protocol
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.http.spi.ControlApiHttpClient` (optional)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager` (optional)
+
+Module `DataPlane services:0.9.0`
+---------------------------------
+_org.eclipse.edc:data-plane-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry`
+  - `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService`
+  - `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService`
+  - `org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager`
+  - `org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService`
+
+### Extensions
+Module `org.eclipse.edc:data-plane-store-sql:0.9.0`
+---------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.store.sql.SqlDataPlaneStoreExtension`
+**Name:** "Sql Data Plane Store"
+
+**Overview:**  Provides Sql Store for Data Plane Flow Requests states
+
+
+
+##### Configuration: 
+
+| Key                                  | Required | Type     | Default   | Pattern | Min | Max | Description                                                  |
+| ------------------------------------ | -------- | -------- | --------- | ------- | --- | --- | ------------------------------------------------------------ |
+| ~~edc.datasource.dataplane.name~~    |          | `string` | ``        |         |     |     | Name of the datasource to use for accessing data plane store |
+| `edc.sql.store.dataplane.datasource` |          | `string` | `default` |         |     |     | The datasource to be used                                    |
+
+##### Provided services:
+- `org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements` (optional)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
+
+Module `org.eclipse.edc:dsp-catalog-http-api:0.9.0`
+---------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.catalog.http.api.DspCatalogApiExtension`
+**Name:** "Dataspace Protocol Catalog Extension"
+
+**Overview:**  Creates and registers the controller for dataspace protocol catalog requests.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.spi.protocol.ProtocolWebhook` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService` (required)
+- `org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+- `org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+
+Module `org.eclipse.edc:dsp-catalog-http-dispatcher:0.9.0`
+----------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.catalog.http.dispatcher.DspCatalogHttpDispatcherExtension`
+**Name:** "Dataspace Protocol Catalog HTTP Dispatcher Extension"
+
+**Overview:**  Creates and registers the HTTP dispatcher delegate for sending a catalog request as defined in
  the dataspace protocol specification.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher</code></em></li><li><em><code>org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer</code></em></li></ul><hr><a href="#dsp-catalog-transform"><h2 id="dsp-catalog-transform">dsp-catalog-transform</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-catalog-transform</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol Catalog Transform Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogTransformExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides the transformers for catalog message types via the {@link TypeTransformerRegistry}.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.spi.agent.ParticipantIdMapper</code></em></li></ul><hr><a href="#dsp-http-api-configuration"><h2 id="dsp-http-api-configuration">dsp-http-api-configuration</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-http-api-configuration</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol API Configuration Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Configure &#x27;protocol&#x27; api context.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.dsp.callback.address</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>&lt;hostname:protocol.port/protocol.path&gt;</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Configures endpoint for reaching the Protocol API.</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.spi.protocol.ProtocolWebhook</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.web.spi.WebServer</code></em></li><li><em><code>org.eclipse.edc.web.spi.configuration.WebServiceConfigurer</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.agent.ParticipantIdMapper</code></em></li><li><em><code>org.eclipse.edc.spi.system.Hostname</code></em></li></ul><hr><a href="#dsp-http-core"><h2 id="dsp-http-core">dsp-http-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-http-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol Core Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.http.DspHttpCoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides an implementation of {@link DspHttpRemoteMessageDispatcher} to support sending dataspace
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher` (required)
+- `org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer` (required)
+
+Module `org.eclipse.edc:dsp-catalog-transform:0.9.0`
+----------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogTransformExtension`
+**Name:** "Dataspace Protocol Catalog Transform Extension"
+
+**Overview:**  Provides the transformers for catalog message types via the {@link TypeTransformerRegistry}.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.agent.ParticipantIdMapper` (required)
+
+Module `org.eclipse.edc:dsp-http-api-configuration:0.9.0`
+---------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension`
+**Name:** "Dataspace Protocol API Configuration Extension"
+
+**Overview:**  Configure 'protocol' api context.
+
+
+
+##### Configuration: 
+
+| Key                        | Required | Type     | Default                                  | Pattern | Min | Max | Description                                        |
+| -------------------------- | -------- | -------- | ---------------------------------------- | ------- | --- | --- | -------------------------------------------------- |
+| `edc.dsp.callback.address` |          | `string` | `<hostname:protocol.port/protocol.path>` |         |     |     | Configures endpoint for reaching the Protocol API. |
+
+##### Provided services:
+- `org.eclipse.edc.spi.protocol.ProtocolWebhook`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.web.spi.WebServer` (required)
+- `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.spi.agent.ParticipantIdMapper` (required)
+- `org.eclipse.edc.spi.system.Hostname` (required)
+
+Module `org.eclipse.edc:dsp-http-core:0.9.0`
+--------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.http.DspHttpCoreExtension`
+**Name:** "Dataspace Protocol Core Extension"
+
+**Overview:**  Provides an implementation of {@link DspHttpRemoteMessageDispatcher} to support sending dataspace
  protocol messages. The dispatcher can then be used by other extensions to add support for
  specific message types.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher</code></li><li><code>org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler</code></li><li><code>org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry</code></em></li><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.spi.iam.IdentityService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li><li><code>org.eclipse.edc.token.spi.TokenDecorator</code></li><li><em><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></em></li><li><em><code>org.eclipse.edc.spi.iam.AudienceResolver</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li></ul><hr><a href="#dsp-negotiation-http-api"><h2 id="dsp-negotiation-http-api">dsp-negotiation-http-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-negotiation-http-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol Negotiation Api</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.negotiation.http.api.DspNegotiationApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Creates and registers the controller for dataspace protocol negotiation requests.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li><li><em><code>org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry</code></em></li></ul><hr><a href="#dsp-negotiation-http-dispatcher"><h2 id="dsp-negotiation-http-dispatcher">dsp-negotiation-http-dispatcher</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-negotiation-http-dispatcher</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol Negotiation HTTP Dispatcher Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.negotiation.http.dispatcher.DspNegotiationHttpDispatcherExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher</code></em></li><li><em><code>org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li></ul><hr><a href="#dsp-negotiation-transform"><h2 id="dsp-negotiation-transform">dsp-negotiation-transform</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-negotiation-transform</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol Negotiation Transform Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationTransformExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides the transformers for negotiation message types via the {@link TypeTransformerRegistry}.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li></ul><hr><a href="#dsp-transfer-process-http-api"><h2 id="dsp-transfer-process-http-api">dsp-transfer-process-http-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-transfer-process-http-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol: TransferProcess API Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.transferprocess.http.api.DspTransferProcessApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Creates and registers the controller for dataspace protocol transfer process requests.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService</code></em></li><li><em><code>org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry</code></em></li></ul><hr><a href="#dsp-transfer-process-http-dispatcher"><h2 id="dsp-transfer-process-http-dispatcher">dsp-transfer-process-http-dispatcher</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-transfer-process-http-dispatcher</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol Transfer HTTP Dispatcher Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.transferprocess.http.dispatcher.DspTransferProcessDispatcherExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides HTTP dispatching for Dataspace Protocol transfer process messages via the {@link DspHttpRemoteMessageDispatcher}.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher</code></em></li><li><em><code>org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li></ul><hr><a href="#dsp-transfer-process-transform"><h2 id="dsp-transfer-process-transform">dsp-transfer-process-transform</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-transfer-process-transform</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol Transfer Process Transform Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.transferprocess.transform.DspTransferProcessTransformExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides the transformers for transferprocess message types via the {@link TypeTransformerRegistry}.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#dsp-version-http-api"><h2 id="dsp-version-http-api">dsp-version-http-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:dsp-version-http-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Dataspace Protocol Version Api</h3><ul><li><b>Class: </b><code>org.eclipse.edc.protocol.dsp.version.http.api.DspVersionApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provide API for the protocol versions.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService</code></em></li></ul><hr><a href="#edr-cache-api"><h2 id="edr-cache-api">edr-cache-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:edr-cache-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API: EDR cache</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.api.management.edr.EdrCacheApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li><li><em><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li></ul><hr><a href="#edr-index-sql"><h2 id="edr-index-sql">edr-index-sql</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:edr-index-sql</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension SQL edr entry store</h3><ul><li><b>Class: </b><code>org.eclipse.edc.edr.store.index.SqlEndpointDataReferenceEntryIndexExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.sql.store.edr.datasource</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The datasource to be used</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><code>org.eclipse.edc.edr.store.index.sql.schema.EndpointDataReferenceEntryStatements</code></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></em></li></ul><hr><a href="#edr-store-core"><h2 id="edr-store-core">edr-store-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:edr-store-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Endpoint Data Reference Core Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.edr.store.EndpointDataReferenceStoreDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.edr.vault.path</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Directory/Path where to store EDRs in the vault for vaults that supports hierarchical structuring.</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceCache</code></li><li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><h3>Extension Endpoint Data Reference Core Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.edr.store.EndpointDataReferenceStoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex</code></em></li><li><em><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceCache</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li></ul><hr><a href="#edr-store-receiver"><h2 id="edr-store-receiver">edr-store-receiver</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:edr-store-receiver</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Endpoint Data Reference Store Receiver Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.edr.store.receiver.EndpointDataReferenceStoreReceiverExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.edr.receiver.sync</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">If true the EDR receiver will be registered as synchronous listener</td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.event.EventRouter</code></em></li><li><em><code>org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li></ul><hr><a href="#events-cloud-http"><h2 id="events-cloud-http">events-cloud-http</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:events-cloud-http</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Cloud events HTTP</h3><ul><li><b>Class: </b><code>org.eclipse.edc.event.cloud.http.CloudEventsHttpExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.events.cloudevents.endpoint</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.spi.event.EventRouter</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.system.Hostname</code></em></li></ul><hr><a href="#iam-mock"><h2 id="iam-mock">iam-mock</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:iam-mock</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Mock IAM</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.mock.IamMockExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> An IAM provider mock used for testing.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.spi.iam.IdentityService</code></li><li><code>org.eclipse.edc.spi.iam.AudienceResolver</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#identity-did-core"><h2 id="identity-did-core">identity-did-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:identity-did-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Identity Did Core</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.did.IdentityDidCoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry</code></li><li><code>org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.keys.spi.KeyParserRegistry</code></em></li></ul><hr><a href="#identity-did-spi"><h2 id="identity-did-spi">identity-did-spi</h2></a><ul><li><b>Name: </b>IAM DID services</li><li><b>Path: </b><code>org.eclipse.edc:identity-did-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver</em></li><li><em>org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry</em></li><li><em>org.eclipse.edc.iam.did.spi.credentials.CredentialsVerifier</em></li><li><em>org.eclipse.edc.iam.did.spi.store.DidStore</em></li></ul><hr><a href="#identity-did-web"><h2 id="identity-did-web">identity-did-web</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:identity-did-web</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Web DID</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.did.web.WebDidExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Initializes support for resolving Web DIDs.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.webdid.doh.url</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.iam.did.web.use.https</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry</code></em></li><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#identity-trust-core"><h2 id="identity-trust-core">identity-trust-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:identity-trust-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: iam, transform, jsonld, iam, transform, jsonld</em><h3>Extension Points</h3><em>none</em><h3>Extension Identity And Trust Extension to register default services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.iam.sts.privatekey.alias</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>A random EC private key</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Alias of private key used for signing tokens, retrieved from private key resolver</td></tr><tr class="odd"><td><code>edc.iam.sts.publickey.id</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>A random EC public key</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Id used by the counterparty to resolve the public key for token validation, e.g. did:example:123#public-key-0</td></tr><tr class="even"><td><code>edc.iam.sts.token.expiration</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>5</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Self-issued ID Token expiration in minutes. By default is 5 minutes</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.iam.identitytrust.spi.SecureTokenService</code></li><li><code>org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry</code></li><li><code>org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry</code></li><li><code>org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension</code></li><li><code>org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry</code></li><li><code>org.eclipse.edc.spi.iam.AudienceResolver</code></li><li><code>org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.jwt.signer.spi.JwsSignerProvider</code></em></li></ul><h3>Extension Identity And Trust Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.iam.credential.revocation.cache.validity</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code>900000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Validity period of cached StatusList2021 credential entries in milliseconds.</td></tr><tr class="odd"><td><code>edc.iam.issuer.id</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">DID of this connector</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.spi.iam.IdentityService</code></li><li><code>org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient</code></li><li><code>org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.iam.identitytrust.spi.SecureTokenService</code></em></li><li><em><code>org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry</code></em></li><li><em><code>org.eclipse.edc.token.spi.TokenValidationService</code></em></li><li><em><code>org.eclipse.edc.token.spi.TokenValidationRulesRegistry</code></em></li><li><em><code>org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver</code></em></li><li><em><code>org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction</code></em></li><li><em><code>org.eclipse.edc.spi.agent.ParticipantAgentService</code></em></li><li><em><code>org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension</code></em></li><li><em><code>org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry</code></em></li></ul><h3>Extension Identity And Trust Transform Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.core.IdentityTrustTransformExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><h3>Extension DCP scope extractor extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.core.DcpScopeExtractorExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></em></li><li><em><code>org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li></ul><hr><a href="#identity-trust-issuers-configuration"><h2 id="identity-trust-issuers-configuration">identity-trust-issuers-configuration</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:identity-trust-issuers-configuration</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Trusted Issuers Configuration Extensions</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.issuer.configuration.TrustedIssuerConfigurationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> This DCP extension makes it possible to configure a list of trusted issuers, that will be matched against the Verifiable Credential issuers.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.iam.trusted-issuer.&lt;issuerAlias&gt;.properties</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Additional properties of the issuer.</td></tr><tr class="odd"><td><code>edc.iam.trusted-issuer.&lt;issuerAlias&gt;.id</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">ID of the issuer.</td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li></ul><hr><a href="#identity-trust-sts-api"><h2 id="identity-trust-sts-api">identity-trust-sts-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:identity-trust-sts-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Secure Token Service API</h3><ul><li><b>Class: </b><code>org.eclipse.edc.api.iam.identitytrust.sts.SecureTokenServiceApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService</code></em></li><li><em><code>org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService</code></em></li><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li></ul><h3>Extension Secure Token Service API configuration</h3><ul><li><b>Class: </b><code>org.eclipse.edc.api.iam.identitytrust.sts.StsApiConfigurationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebServer</code></em></li><li><em><code>org.eclipse.edc.web.spi.configuration.WebServiceConfigurer</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.spi.system.apiversion.ApiVersionService</code></em></li></ul><hr><a href="#identity-trust-sts-client-configuration"><h2 id="identity-trust-sts-client-configuration">identity-trust-sts-client-configuration</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:identity-trust-sts-client-configuration</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension STS Client Configuration extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.sts.client.configuration.StsClientConfigurationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li><li><em><code>org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore</code></em></li></ul><hr><a href="#identity-trust-sts-core"><h2 id="identity-trust-sts-core">identity-trust-sts-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:identity-trust-sts-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Secure Token Service Default Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.sts.defaults.StsDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.iam.sts.token.expiration</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>5</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Self-issued ID Token expiration in minutes. By default is 5 minutes</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService</code></li><li><code>org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li><li><em><code>org.eclipse.edc.jwt.signer.spi.JwsSignerProvider</code></em></li><li><em><code>java.time.Clock</code></em></li></ul><h3>Extension Secure Token Service Default Stores</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.sts.defaults.StsDefaultStoresExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#identity-trust-sts-remote-client"><h2 id="identity-trust-sts-remote-client">identity-trust-sts-remote-client</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:identity-trust-sts-remote-client</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Sts remote client configuration extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Configuration Extension for the STS OAuth2 client
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.iam.identitytrust.spi.SecureTokenService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration</code></em></li><li><em><code>org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client</code></em></li><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li></ul><h3>Extension Sts remote client configuration extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientConfigurationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Configuration Extension for the STS OAuth2 client
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.iam.sts.oauth.token.url</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">STS OAuth2 endpoint for requesting a token</td></tr><tr class="odd"><td><code>edc.iam.sts.oauth.client.id</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">STS OAuth2 client id</td></tr><tr class="even"><td><code>edc.iam.sts.oauth.client.secret.alias</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Vault alias of STS OAuth2 client secret</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li></ul><hr><a href="#jersey-core"><h2 id="jersey-core">jersey-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:jersey-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: none</em><h3>Extension Points</h3><em>none</em><h3>Extension JerseyExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.web.jersey.JerseyExtension</code></li><li><b>Type: </b><span>extension</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.web.rest.cors.origins</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.web.rest.cors.enabled</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>edc.web.rest.cors.headers</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.web.rest.cors.methods</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.web.spi.WebService</code></li><li><code>org.eclipse.edc.web.spi.validation.InterceptorFunctionRegistry</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebServer</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#jersey-micrometer"><h2 id="jersey-micrometer">jersey-micrometer</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:jersey-micrometer</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: none</em><h3>Extension Points</h3><em>none</em><h3>Extension JerseyMicrometerExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.web.jersey.micrometer.JerseyMicrometerExtension</code></li><li><b>Type: </b><span>extension</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.metrics.enabled</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.metrics.jersey.enabled</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>io.micrometer.core.instrument.MeterRegistry</code></em></li></ul><hr><a href="#jetty-core"><h2 id="jetty-core">jetty-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:jetty-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: none</em><h3>Extension Points</h3><em>none</em><h3>Extension JettyExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.web.jetty.JettyExtension</code></li><li><b>Type: </b><span>extension</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.web.https.keystore.password</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.web.https.keymanager.password</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>edc.web.https.keystore.path</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.web.https.keystore.type</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.web.spi.WebServer</code></li><li><code>org.eclipse.edc.web.jetty.JettyService</code></li><li><code>org.eclipse.edc.web.spi.configuration.WebServiceConfigurer</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#jetty-micrometer"><h2 id="jetty-micrometer">jetty-micrometer</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:jetty-micrometer</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Jetty Micrometer Metrics</h3><ul><li><b>Class: </b><code>org.eclipse.edc.web.jetty.micrometer.JettyMicrometerExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> An extension that registers Micrometer {@link JettyConnectionMetrics} into Jetty to
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher`
+- `org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler`
+- `org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry` (required)
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.spi.iam.IdentityService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `org.eclipse.edc.token.spi.TokenDecorator` (optional)
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+- `org.eclipse.edc.spi.iam.AudienceResolver` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+
+Module `org.eclipse.edc:dsp-negotiation-http-api:0.9.0`
+-------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.negotiation.http.api.DspNegotiationApiExtension`
+**Name:** "Dataspace Protocol Negotiation Api"
+
+**Overview:**  Creates and registers the controller for dataspace protocol negotiation requests.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+- `org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry` (required)
+
+Module `org.eclipse.edc:dsp-negotiation-http-dispatcher:0.9.0`
+--------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.negotiation.http.dispatcher.DspNegotiationHttpDispatcherExtension`
+**Name:** "Dataspace Protocol Negotiation HTTP Dispatcher Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher` (required)
+- `org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+
+Module `org.eclipse.edc:dsp-negotiation-transform:0.9.0`
+--------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationTransformExtension`
+**Name:** "Dataspace Protocol Negotiation Transform Extension"
+
+**Overview:**  Provides the transformers for negotiation message types via the {@link TypeTransformerRegistry}.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+
+Module `org.eclipse.edc:dsp-transfer-process-http-api:0.9.0`
+------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.transferprocess.http.api.DspTransferProcessApiExtension`
+**Name:** "Dataspace Protocol: TransferProcess API Extension"
+
+**Overview:**  Creates and registers the controller for dataspace protocol transfer process requests.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService` (required)
+- `org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry` (required)
+
+Module `org.eclipse.edc:dsp-transfer-process-http-dispatcher:0.9.0`
+-------------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.transferprocess.http.dispatcher.DspTransferProcessDispatcherExtension`
+**Name:** "Dataspace Protocol Transfer HTTP Dispatcher Extension"
+
+**Overview:**  Provides HTTP dispatching for Dataspace Protocol transfer process messages via the {@link DspHttpRemoteMessageDispatcher}.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher` (required)
+- `org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+
+Module `org.eclipse.edc:dsp-transfer-process-transform:0.9.0`
+-------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.transferprocess.transform.DspTransferProcessTransformExtension`
+**Name:** "Dataspace Protocol Transfer Process Transform Extension"
+
+**Overview:**  Provides the transformers for transferprocess message types via the {@link TypeTransformerRegistry}.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:dsp-version-http-api:0.9.0`
+---------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.protocol.dsp.version.http.api.DspVersionApiExtension`
+**Name:** "Dataspace Protocol Version Api"
+
+**Overview:**  Provide API for the protocol versions.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService` (required)
+
+Module `org.eclipse.edc:edr-cache-api:0.9.0`
+--------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.api.management.edr.EdrCacheApiExtension`
+**Name:** "Management API: EDR cache"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+
+Module `org.eclipse.edc:edr-index-sql:0.9.0`
+--------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.edr.store.index.SqlEndpointDataReferenceEntryIndexExtension`
+**Name:** "SQL edr entry store"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                            | Required | Type     | Default   | Pattern | Min | Max | Description               |
+| ------------------------------ | -------- | -------- | --------- | ------- | --- | --- | ------------------------- |
+| `edc.sql.store.edr.datasource` |          | `string` | `default` |         |     |     | The datasource to be used |
+
+##### Provided services:
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.edr.store.index.sql.schema.EndpointDataReferenceEntryStatements` (optional)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
+
+Module `org.eclipse.edc:edr-store-core:0.9.0`
+---------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.edr.store.EndpointDataReferenceStoreExtension`
+**Name:** "Endpoint Data Reference Core Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex` (required)
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceCache` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+
+#### Class: `org.eclipse.edc.edr.store.EndpointDataReferenceStoreDefaultServicesExtension`
+**Name:** "Endpoint Data Reference Core Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                  | Required | Type     | Default | Pattern | Min | Max | Description                                                                                        |
+| -------------------- | -------- | -------- | ------- | ------- | --- | --- | -------------------------------------------------------------------------------------------------- |
+| `edc.edr.vault.path` |          | `string` | ``      |         |     |     | Directory/Path where to store EDRs in the vault for vaults that supports hierarchical structuring. |
+
+##### Provided services:
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceCache`
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:edr-store-receiver:0.9.0`
+-------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.edr.store.receiver.EndpointDataReferenceStoreReceiverExtension`
+**Name:** "Endpoint Data Reference Store Receiver Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                     | Required | Type     | Default | Pattern | Min | Max | Description                                                         |
+| ----------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------------------------------- |
+| `edc.edr.receiver.sync` |          | `string` | `false` |         |     |     | If true the EDR receiver will be registered as synchronous listener |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.event.EventRouter` (required)
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService` (required)
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+
+Module `org.eclipse.edc:events-cloud-http:0.9.0`
+------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.event.cloud.http.CloudEventsHttpExtension`
+**Name:** "Cloud events HTTP"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                               | Required | Type     | Default | Pattern | Min | Max | Description |
+| --------------------------------- | -------- | -------- | ------- | ------- | --- | --- | ----------- |
+| `edc.events.cloudevents.endpoint` | `*`      | `string` | ``      |         |     |     |             |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.spi.event.EventRouter` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.system.Hostname` (required)
+
+Module `org.eclipse.edc:iam-mock:0.9.0`
+---------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.mock.IamMockExtension`
+**Name:** "Mock IAM"
+
+**Overview:**  An IAM provider mock used for testing.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.spi.iam.IdentityService`
+- `org.eclipse.edc.spi.iam.AudienceResolver`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:identity-did-core:0.9.0`
+------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.did.IdentityDidCoreExtension`
+**Name:** "Identity Did Core"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry`
+- `org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.keys.spi.KeyParserRegistry` (required)
+
+Module `IAM DID services:0.9.0`
+-------------------------------
+_org.eclipse.edc:identity-did-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver`
+  - `org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry`
+  - `org.eclipse.edc.iam.did.spi.credentials.CredentialsVerifier`
+  - `org.eclipse.edc.iam.did.spi.store.DidStore`
+
+### Extensions
+Module `org.eclipse.edc:identity-did-web:0.9.0`
+-----------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.did.web.WebDidExtension`
+**Name:** "Web DID"
+
+**Overview:**  Initializes support for resolving Web DIDs.
+
+
+
+##### Configuration: 
+
+| Key                         | Required | Type     | Default | Pattern | Min | Max | Description |
+| --------------------------- | -------- | -------- | ------- | ------- | --- | --- | ----------- |
+| `edc.webdid.doh.url`        |          | `string` | ``      |         |     |     |             |
+| `edc.iam.did.web.use.https` |          | `string` | ``      |         |     |     |             |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry` (required)
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:identity-trust-core:0.9.0`
+--------------------------------------------------
+
+_Categories: iam,transform,jsonld,iam,transform,jsonld_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension`
+**Name:** "Identity And Trust Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                            | Required | Type     | Default  | Pattern | Min | Max | Description                                                                  |
+| ---------------------------------------------- | -------- | -------- | -------- | ------- | --- | --- | ---------------------------------------------------------------------------- |
+| `edc.iam.credential.revocation.cache.validity` |          | `long`   | `900000` |         |     |     | Validity period of cached StatusList2021 credential entries in milliseconds. |
+| `edc.iam.issuer.id`                            | `*`      | `string` | ``       |         |     |     | DID of this connector                                                        |
+
+##### Provided services:
+- `org.eclipse.edc.spi.iam.IdentityService`
+- `org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient`
+- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.iam.identitytrust.spi.SecureTokenService` (required)
+- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry` (required)
+- `org.eclipse.edc.token.spi.TokenValidationService` (required)
+- `org.eclipse.edc.token.spi.TokenValidationRulesRegistry` (required)
+- `org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver` (required)
+- `org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction` (required)
+- `org.eclipse.edc.spi.agent.ParticipantAgentService` (required)
+- `org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension` (required)
+- `org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry` (required)
+
+#### Class: `org.eclipse.edc.iam.identitytrust.core.IdentityTrustTransformExtension`
+**Name:** "Identity And Trust Transform Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+#### Class: `org.eclipse.edc.iam.identitytrust.core.DcpScopeExtractorExtension`
+**Name:** "DCP scope extractor extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+- `org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+
+#### Class: `org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension`
+**Name:** "Identity And Trust Extension to register default services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                            | Required | Type     | Default                   | Pattern | Min | Max | Description                                                                                                   |
+| ------------------------------ | -------- | -------- | ------------------------- | ------- | --- | --- | ------------------------------------------------------------------------------------------------------------- |
+| `edc.iam.sts.privatekey.alias` |          | `string` | `A random EC private key` |         |     |     | Alias of private key used for signing tokens, retrieved from private key resolver                             |
+| `edc.iam.sts.publickey.id`     |          | `string` | `A random EC public key`  |         |     |     | Id used by the counterparty to resolve the public key for token validation, e.g. did:example:123#public-key-0 |
+| `edc.iam.sts.token.expiration` |          | `string` | `5`                       |         |     |     | Self-issued ID Token expiration in minutes. By default is 5 minutes                                           |
+
+##### Provided services:
+- `org.eclipse.edc.iam.identitytrust.spi.SecureTokenService`
+- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry`
+- `org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry`
+- `org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension`
+- `org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry`
+- `org.eclipse.edc.spi.iam.AudienceResolver`
+- `org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction`
+
+##### Referenced (injected) services:
+- `java.time.Clock` (required)
+- `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider` (required)
+
+Module `org.eclipse.edc:identity-trust-issuers-configuration:0.9.0`
+-------------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.identitytrust.issuer.configuration.TrustedIssuerConfigurationExtension`
+**Name:** "Trusted Issuers Configuration Extensions"
+
+**Overview:**  This DCP extension makes it possible to configure a list of trusted issuers, that will be matched against the Verifiable Credential issuers.
+
+
+
+##### Configuration: 
+
+| Key                                               | Required | Type     | Default | Pattern | Min | Max | Description                          |
+| ------------------------------------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------ |
+| `edc.iam.trusted-issuer.<issuerAlias>.properties` |          | `string` | ``      |         |     |     | Additional properties of the issuer. |
+| `edc.iam.trusted-issuer.<issuerAlias>.id`         | `*`      | `string` | ``      |         |     |     | ID of the issuer.                    |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+
+Module `org.eclipse.edc:identity-trust-sts-api:0.9.0`
+-----------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.api.iam.identitytrust.sts.SecureTokenServiceApiExtension`
+**Name:** "Secure Token Service API"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService` (required)
+- `org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService` (required)
+- `org.eclipse.edc.web.spi.WebService` (required)
+
+#### Class: `org.eclipse.edc.api.iam.identitytrust.sts.StsApiConfigurationExtension`
+**Name:** "Secure Token Service API configuration"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebServer` (required)
+- `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.system.apiversion.ApiVersionService` (required)
+
+Module `org.eclipse.edc:identity-trust-sts-client-configuration:0.9.0`
+----------------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.identitytrust.sts.client.configuration.StsClientConfigurationExtension`
+**Name:** "STS Client Configuration extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+- `org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore` (required)
+
+Module `org.eclipse.edc:identity-trust-sts-core:0.9.0`
+------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.identitytrust.sts.defaults.StsDefaultStoresExtension`
+**Name:** "Secure Token Service Default Stores"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore`
+
+##### Referenced (injected) services:
+_None_
+
+#### Class: `org.eclipse.edc.iam.identitytrust.sts.defaults.StsDefaultServicesExtension`
+**Name:** "Secure Token Service Default Services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                            | Required | Type     | Default | Pattern | Min | Max | Description                                                         |
+| ------------------------------ | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------------------------------- |
+| `edc.iam.sts.token.expiration` |          | `string` | `5`     |         |     |     | Self-issued ID Token expiration in minutes. By default is 5 minutes |
+
+##### Provided services:
+- `org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService`
+- `org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider` (required)
+- `java.time.Clock` (required)
+
+Module `org.eclipse.edc:identity-trust-sts-remote-client:0.9.0`
+---------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientConfigurationExtension`
+**Name:** "Sts remote client configuration extension"
+
+**Overview:**  Configuration Extension for the STS OAuth2 client
+
+
+
+##### Configuration: 
+
+| Key                                     | Required | Type     | Default | Pattern | Min | Max | Description                                |
+| --------------------------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------ |
+| `edc.iam.sts.oauth.token.url`           |          | `string` | ``      |         |     |     | STS OAuth2 endpoint for requesting a token |
+| `edc.iam.sts.oauth.client.id`           |          | `string` | ``      |         |     |     | STS OAuth2 client id                       |
+| `edc.iam.sts.oauth.client.secret.alias` |          | `string` | ``      |         |     |     | Vault alias of STS OAuth2 client secret    |
+
+##### Provided services:
+- `org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.security.Vault` (required)
+
+#### Class: `org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientExtension`
+**Name:** "Sts remote client configuration extension"
+
+**Overview:**  Configuration Extension for the STS OAuth2 client
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.iam.identitytrust.spi.SecureTokenService`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration` (required)
+- `org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
+
+Module `org.eclipse.edc:jersey-core:0.9.0`
+------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.web.jersey.JerseyExtension`
+**Name:** "JerseyExtension"
+
+##### Configuration: 
+
+| Key                         | Required | Type     | Default | Pattern | Min | Max | Description |
+| --------------------------- | -------- | -------- | ------- | ------- | --- | --- | ----------- |
+| `edc.web.rest.cors.origins` |          | `string` | ``      |         |     |     |             |
+| `edc.web.rest.cors.enabled` |          | `string` | ``      |         |     |     |             |
+| `edc.web.rest.cors.headers` |          | `string` | ``      |         |     |     |             |
+| `edc.web.rest.cors.methods` |          | `string` | ``      |         |     |     |             |
+
+##### Provided services:
+- `org.eclipse.edc.web.spi.WebService`
+- `org.eclipse.edc.web.spi.validation.InterceptorFunctionRegistry`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebServer` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:jersey-micrometer:0.9.0`
+------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.web.jersey.micrometer.JerseyMicrometerExtension`
+**Name:** "JerseyMicrometerExtension"
+
+##### Configuration: 
+
+| Key                          | Required | Type     | Default | Pattern | Min | Max | Description |
+| ---------------------------- | -------- | -------- | ------- | ------- | --- | --- | ----------- |
+| `edc.metrics.enabled`        |          | `string` | ``      |         |     |     |             |
+| `edc.metrics.jersey.enabled` |          | `string` | ``      |         |     |     |             |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `io.micrometer.core.instrument.MeterRegistry` (required)
+
+Module `org.eclipse.edc:jetty-core:0.9.0`
+-----------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.web.jetty.JettyExtension`
+**Name:** "JettyExtension"
+
+##### Configuration: 
+
+| Key                                 | Required | Type     | Default | Pattern | Min | Max | Description |
+| ----------------------------------- | -------- | -------- | ------- | ------- | --- | --- | ----------- |
+| `edc.web.https.keystore.password`   |          | `string` | ``      |         |     |     |             |
+| `edc.web.https.keymanager.password` |          | `string` | ``      |         |     |     |             |
+| `edc.web.https.keystore.path`       |          | `string` | ``      |         |     |     |             |
+| `edc.web.https.keystore.type`       |          | `string` | ``      |         |     |     |             |
+
+##### Provided services:
+- `org.eclipse.edc.web.spi.WebServer`
+- `org.eclipse.edc.web.jetty.JettyService`
+- `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer`
+
+##### Referenced (injected) services:
+_None_
+
+Module `org.eclipse.edc:jetty-micrometer:0.9.0`
+-----------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.web.jetty.micrometer.JettyMicrometerExtension`
+**Name:** "Jetty Micrometer Metrics"
+
+**Overview:**  An extension that registers Micrometer {@link JettyConnectionMetrics} into Jetty to
  provide server metrics.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.metrics.enabled</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.metrics.jetty.enabled</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.jetty.JettyService</code></em></li><li><em><code>io.micrometer.core.instrument.MeterRegistry</code></em></li></ul><hr><a href="#json-ld"><h2 id="json-ld">json-ld</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:json-ld</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension JSON-LD Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.jsonld.JsonLdExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Adds support for working with JSON-LD. Provides an ObjectMapper that works with Jakarta JSON-P
+
+
+
+##### Configuration: 
+
+| Key                         | Required | Type     | Default | Pattern | Min | Max | Description |
+| --------------------------- | -------- | -------- | ------- | ------- | --- | --- | ----------- |
+| `edc.metrics.enabled`       |          | `string` | ``      |         |     |     |             |
+| `edc.metrics.jetty.enabled` |          | `string` | ``      |         |     |     |             |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.jetty.JettyService` (required)
+- `io.micrometer.core.instrument.MeterRegistry` (required)
+
+Module `org.eclipse.edc:json-ld:0.9.0`
+--------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.jsonld.JsonLdExtension`
+**Name:** "JSON-LD Extension"
+
+**Overview:**  Adds support for working with JSON-LD. Provides an ObjectMapper that works with Jakarta JSON-P
  types through the TypeManager context {@link CoreConstants#JSON_LD} and a registry
  for {@link JsonLdTransformer}s. The module also offers
  functions for working with JSON-LD structures.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.jsonld.document.&lt;documentAlias&gt;.path</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Path of the JSON-LD document to cache</td></tr><tr class="odd"><td><code>edc.jsonld.document.&lt;documentAlias&gt;.url</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">URL of the JSON-LD document to cache</td></tr><tr class="even"><td><code>edc.jsonld.http.enabled</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">If set enable http json-ld document resolution</td></tr><tr class="odd"><td><code>edc.jsonld.https.enabled</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">If set enable https json-ld document resolution</td></tr><tr class="even"><td><code>edc.jsonld.vocab.disable</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">If true disable the @vocab context definition. This could be used to avoid api breaking changes</td></tr><tr class="odd"><td><code>edc.jsonld.prefixes.check</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>true</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">If true a validation on expended object will be made against configured prefixes</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.jsonld.spi.JsonLd</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#jwt-signer-spi"><h2 id="jwt-signer-spi">jwt-signer-spi</h2></a><ul><li><b>Name: </b>Implementation SPI that is used to contribute custom JWSSigners to the JwtGenerationService</li><li><b>Path: </b><code>org.eclipse.edc:jwt-signer-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.jwt.signer.spi.JwsSignerProvider</em></li></ul><hr><a href="#jwt-spi"><h2 id="jwt-spi">jwt-spi</h2></a><ul><li><b>Name: </b>JTW services</li><li><b>Path: </b><code>org.eclipse.edc:jwt-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><hr><a href="#management-api-configuration"><h2 id="management-api-configuration">management-api-configuration</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:management-api-configuration</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API configuration</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Configure &#x27;management&#x27; api context.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.management.endpoint</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>&lt;hostname:management.port/management.path&gt;</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Configures endpoint for reaching the Management API.</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.web.spi.WebServer</code></em></li><li><em><code>org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry</code></em></li><li><em><code>org.eclipse.edc.web.spi.configuration.WebServiceConfigurer</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.agent.ParticipantIdMapper</code></em></li><li><em><code>org.eclipse.edc.spi.system.Hostname</code></em></li><li><em><code>org.eclipse.edc.spi.system.apiversion.ApiVersionService</code></em></li></ul><hr><a href="#management-api-json-ld-context"><h2 id="management-api-json-ld-context">management-api-json-ld-context</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:management-api-json-ld-context</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: none</em><h3>Extension Points</h3><em>none</em><h3>Extension ManagementApiJsonLdContextExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.api.management.jsonld.ManagementApiJsonLdContextExtension</code></li><li><b>Type: </b><span>extension</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.jsonld.spi.JsonLd</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li></ul><hr><a href="#micrometer-core"><h2 id="micrometer-core">micrometer-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:micrometer-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Micrometer Metrics</h3><ul><li><b>Class: </b><code>org.eclipse.edc.metrics.micrometer.MicrometerExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.metrics.enabled</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.metrics.system.enabled</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>edc.metrics.okhttp.enabled</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.metrics.executor.enabled</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>okhttp3.EventListener</code></li><li><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></li><li><code>io.micrometer.core.instrument.MeterRegistry</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#monitor-jdk-logger"><h2 id="monitor-jdk-logger">monitor-jdk-logger</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:monitor-jdk-logger</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Logger monitor</h3><ul><li><b>Class: </b><code>org.eclipse.edc.monitor.logger.LoggerMonitorExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Extension adding logging monitor.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#oauth2-client"><h2 id="oauth2-client">oauth2-client</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:oauth2-client</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension OAuth2 Client</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.oauth2.client.Oauth2ClientExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#oauth2-core"><h2 id="oauth2-core">oauth2-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:oauth2-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension OAuth2 Identity Service</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides OAuth2 client credentials flow support.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.oauth.provider.jwks.url</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.oauth.provider.audience</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">outgoing tokens &#x27;aud&#x27; claim value, by default it&#x27;s the connector id</td></tr><tr class="even"><td><code>edc.oauth.endpoint.audience</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">incoming tokens &#x27;aud&#x27; claim required value, by default it&#x27;s the provider audience value</td></tr><tr class="odd"><td><code>edc.oauth.certificate.alias</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>edc.oauth.private.key.alias</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.oauth.provider.jwks.refresh</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>edc.oauth.token.url</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.oauth.token.expiration</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Token expiration in minutes. By default is 5 minutes</td></tr><tr class="even"><td><code>edc.oauth.client.id</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.oauth.validation.nbf.leeway</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>10</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Leeway in seconds for validating the not before (nbf) claim in the token.</td></tr><tr class="even"><td><code>edc.oauth.validation.issued.at.leeway</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code>0</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Leeway in seconds for validating the issuedAt claim in the token. By default it is 0 seconds.</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.spi.iam.IdentityService</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.keys.spi.PrivateKeyResolver</code></em></li><li><em><code>org.eclipse.edc.keys.spi.CertificateResolver</code></em></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.token.spi.TokenValidationRulesRegistry</code></em></li><li><em><code>org.eclipse.edc.token.spi.TokenValidationService</code></em></li><li><em><code>org.eclipse.edc.token.spi.TokenDecoratorRegistry</code></em></li><li><em><code>org.eclipse.edc.jwt.signer.spi.JwsSignerProvider</code></em></li></ul><h3>Extension Oauth2ServiceDefaultServicesExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.oauth2.Oauth2ServiceDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides OAuth2 client credentials flow support.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.spi.iam.AudienceResolver</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#oauth2-daps"><h2 id="oauth2-daps">oauth2-daps</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:oauth2-daps</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension DAPS</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.oauth2.daps.DapsExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides specialization of Oauth2 extension to interact with DAPS instance
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.iam.token.scope</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>idsc:IDS_CONNECTOR_ATTRIBUTES_ALL</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The value of the scope claim that is passed to DAPS to obtain a DAT</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.token.spi.TokenDecorator</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.token.spi.TokenDecoratorRegistry</code></em></li></ul><hr><a href="#oauth2-spi"><h2 id="oauth2-spi">oauth2-spi</h2></a><ul><li><b>Name: </b>OAuth2 services</li><li><b>Path: </b><code>org.eclipse.edc:oauth2-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client</em></li></ul><hr><a href="#policy-definition-api"><h2 id="policy-definition-api">policy-definition-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:policy-definition-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API: Policy Definition</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#policy-definition-store-sql"><h2 id="policy-definition-store-sql">policy-definition-store-sql</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:policy-definition-store-sql</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.connector.controlplane.store.sql.policydefinition.store.schema.SqlPolicyStoreStatements</em></li></ul><h3>Extension SQL policy store</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.store.sql.policydefinition.SqlPolicyStoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.sql.store.policy.datasource</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The datasource to be used</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><code>org.eclipse.edc.connector.controlplane.store.sql.policydefinition.store.schema.SqlPolicyStoreStatements</code></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></em></li></ul><hr><a href="#policy-engine-spi"><h2 id="policy-engine-spi">policy-engine-spi</h2></a><ul><li><b>Name: </b>Policy Engine services</li><li><b>Path: </b><code>org.eclipse.edc:policy-engine-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.policy.engine.spi.PolicyEngine</em></li><li><em>org.eclipse.edc.policy.engine.spi.RuleBindingRegistry</em></li></ul><hr><a href="#policy-monitor-core"><h2 id="policy-monitor-core">policy-monitor-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:policy-monitor-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension PolicyMonitor Default Services</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.policy.monitor.PolicyMonitorDefaultServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.query.CriterionOperatorRegistry</code></em></li></ul><h3>Extension Policy Monitor</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.policy.monitor.PolicyMonitorExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.policy.monitor.state-machine.iteration-wait-millis</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the iteration wait time in milliseconds in the policy monitor state machine. Default value 1000</td></tr><tr class="odd"><td><code>edc.policy.monitor.state-machine.batch-size</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">the batch size in the policy monitor state machine. Default value 20</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></em></li><li><em><code>org.eclipse.edc.spi.telemetry.Telemetry</code></em></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.event.EventRouter</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService</code></em></li><li><em><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService</code></em></li><li><em><code>org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore</code></em></li><li><em><code>org.eclipse.edc.policy.engine.spi.RuleBindingRegistry</code></em></li></ul><hr><a href="#policy-monitor-store-sql"><h2 id="policy-monitor-store-sql">policy-monitor-store-sql</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:policy-monitor-store-sql</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: none</em><h3>Extension Points</h3><em>none</em><h3>Extension SqlPolicyMonitorStoreExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.policy.monitor.store.sql.SqlPolicyMonitorStoreExtension</code></li><li><b>Type: </b><span>extension</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><s><code>edc.datasource.policy-monitor.name</code></s></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Name of the datasource to use for accessing policy monitor store</td></tr><tr class="odd"><td><code>edc.sql.store.policy-monitor.datasource</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The datasource to be used</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><code>org.eclipse.edc.connector.policy.monitor.store.sql.schema.PolicyMonitorStatements</code></li><li><em><code>java.time.Clock</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></em></li></ul><hr><a href="#policy-spi"><h2 id="policy-spi">policy-spi</h2></a><ul><li><b>Name: </b>Policy services</li><li><b>Path: </b><code>org.eclipse.edc:policy-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive</em></li><li><em>org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore</em></li></ul><hr><a href="#provision-http"><h2 id="provision-http">provision-http</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:provision-http</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension HTTP Provisioning</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> The HTTP Provisioner extension delegates to HTTP endpoints to perform provision operations.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>provisioner.type</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>data.address.type</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>endpoint</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>policy.scope</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>http.provisioner</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager</code></em></li><li><em><code>org.eclipse.edc.policy.engine.spi.PolicyEngine</code></em></li><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerWebhookUrl</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.validator.spi.DataAddressValidatorRegistry</code></em></li></ul><h3>Extension HttpWebhookExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.provision.http.HttpWebhookExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> The HTTP Provisioner extension delegates to HTTP endpoints to perform provision operations.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerWebhookUrl</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService</code></em></li><li><em><code>org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl</code></em></li></ul><hr><a href="#secrets-api"><h2 id="secrets-api">secrets-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:secrets-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API: Secret</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.api.management.secret.SecretsApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.spi.service.SecretService</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li></ul><hr><a href="#sql-bootstrapper"><h2 id="sql-bootstrapper">sql-bootstrapper</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:sql-bootstrapper</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: sql, persistence, storage, sql, persistence, storage</em><h3>Extension Points</h3><em>none</em><h3>Extension SQL Schema Bootstrapper Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li></ul><hr><a href="#sql-core"><h2 id="sql-core">sql-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:sql-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension SQL Core</h3><ul><li><b>Class: </b><code>org.eclipse.edc.sql.SqlCoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.sql.fetch.size</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>5000</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Fetch size value used in SQL queries</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.sql.QueryExecutor</code></li><li><code>org.eclipse.edc.sql.ConnectionFactory</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li></ul><hr><a href="#sql-pool-apache-commons"><h2 id="sql-pool-apache-commons">sql-pool-apache-commons</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:sql-pool-apache-commons</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Commons Connection Pool</h3><ul><li><b>Class: </b><code>org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.datasource.&lt;name&gt;url</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">JDBC url</td></tr><tr class="odd"><td><code>edc.datasource.&lt;name&gt;user</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Username to be used for the JDBC connection. Can be omitted if not required, or if the user is encoded in the JDBC url.</td></tr><tr class="even"><td><code>edc.datasource.&lt;name&gt;password</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Username to be used for the JDBC connection. Can be omitted if not required, or if the password is encoded in the JDBC url.</td></tr><tr class="odd"><td><code>edc.datasource.&lt;name&gt;pool.connections.max-idle</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Pool max idle connections</td></tr><tr class="even"><td><code>edc.datasource.&lt;name&gt;pool.connections.max-total</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Pool max total connections</td></tr><tr class="odd"><td><code>edc.datasource.&lt;name&gt;pool.connections.min-idle</code></td><td align="center"></td><td align="center"><code>int</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Pool min idle connections</td></tr><tr class="even"><td><code>edc.datasource.&lt;name&gt;pool.connection.test.on-borrow</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Pool test on borrow</td></tr><tr class="odd"><td><code>edc.datasource.&lt;name&gt;pool.connection.test.on-create</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Pool test on create</td></tr><tr class="even"><td><code>edc.datasource.&lt;name&gt;pool.connection.test.on-return</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Pool test on return</td></tr><tr class="odd"><td><code>edc.datasource.&lt;name&gt;pool.connection.test.while-idle</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Pool test while idle</td></tr><tr class="even"><td><code>edc.datasource.&lt;name&gt;pool.connection.test.query</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Pool test query</td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.spi.monitor.Monitor</code></em></li><li><em><code>org.eclipse.edc.sql.ConnectionFactory</code></em></li><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li></ul><hr><a href="#sts-server"><h2 id="sts-server">sts-server</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:sts-server</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: none</em><h3>Extension Points</h3><em>none</em><h3>Extension StsVaultSeedExtension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.identitytrust.sts.server.StsVaultSeedExtension</code></li><li><b>Type: </b><span>extension</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.security.Vault</code></em></li></ul><hr><a href="#token-core"><h2 id="token-core">token-core</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:token-core</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: token, security, auth, token, security, auth</em><h3>Extension Points</h3><em>none</em><h3>Extension Token Services Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.token.TokenServicesExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> This extension registers the {@link TokenValidationService} and the {@link TokenValidationRulesRegistry}
+
+
+
+##### Configuration: 
+
+| Key                                        | Required | Type      | Default | Pattern | Min | Max | Description                                                                                     |
+| ------------------------------------------ | -------- | --------- | ------- | ------- | --- | --- | ----------------------------------------------------------------------------------------------- |
+| `edc.jsonld.document.<documentAlias>.path` | `*`      | `string`  | ``      |         |     |     | Path of the JSON-LD document to cache                                                           |
+| `edc.jsonld.document.<documentAlias>.url`  | `*`      | `string`  | ``      |         |     |     | URL of the JSON-LD document to cache                                                            |
+| `edc.jsonld.http.enabled`                  |          | `boolean` | `false` |         |     |     | If set enable http json-ld document resolution                                                  |
+| `edc.jsonld.https.enabled`                 |          | `boolean` | `false` |         |     |     | If set enable https json-ld document resolution                                                 |
+| `edc.jsonld.vocab.disable`                 |          | `boolean` | `false` |         |     |     | If true disable the @vocab context definition. This could be used to avoid api breaking changes |
+| `edc.jsonld.prefixes.check`                |          | `boolean` | `true`  |         |     |     | If true a validation on expended object will be made against configured prefixes                |
+
+##### Provided services:
+- `org.eclipse.edc.jsonld.spi.JsonLd`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `Implementation SPI that is used to contribute custom JWSSigners to the JwtGenerationService:0.9.0`
+----------------------------------------------------------------------------------------------------------
+_org.eclipse.edc:jwt-signer-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider`
+
+### Extensions
+Module `JTW services:0.9.0`
+---------------------------
+_org.eclipse.edc:jwt-spi_
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+Module `org.eclipse.edc:management-api-configuration:0.9.0`
+-----------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension`
+**Name:** "Management API configuration"
+
+**Overview:**  Configure 'management' api context.
+
+
+
+##### Configuration: 
+
+| Key                       | Required | Type     | Default                                      | Pattern | Min | Max | Description                                          |
+| ------------------------- | -------- | -------- | -------------------------------------------- | ------- | --- | --- | ---------------------------------------------------- |
+| `edc.management.endpoint` |          | `string` | `<hostname:management.port/management.path>` |         |     |     | Configures endpoint for reaching the Management API. |
+
+##### Provided services:
+- `org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.web.spi.WebServer` (required)
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry` (required)
+- `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.spi.agent.ParticipantIdMapper` (required)
+- `org.eclipse.edc.spi.system.Hostname` (required)
+- `org.eclipse.edc.spi.system.apiversion.ApiVersionService` (required)
+
+Module `org.eclipse.edc:management-api-json-ld-context:0.9.0`
+-------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.api.management.jsonld.ManagementApiJsonLdContextExtension`
+**Name:** "ManagementApiJsonLdContextExtension"
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+
+Module `org.eclipse.edc:micrometer-core:0.9.0`
+----------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.metrics.micrometer.MicrometerExtension`
+**Name:** "Micrometer Metrics"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                            | Required | Type     | Default | Pattern | Min | Max | Description |
+| ------------------------------ | -------- | -------- | ------- | ------- | --- | --- | ----------- |
+| `edc.metrics.enabled`          |          | `string` | ``      |         |     |     |             |
+| `edc.metrics.system.enabled`   |          | `string` | ``      |         |     |     |             |
+| `edc.metrics.okhttp.enabled`   |          | `string` | ``      |         |     |     |             |
+| `edc.metrics.executor.enabled` |          | `string` | ``      |         |     |     |             |
+
+##### Provided services:
+- `okhttp3.EventListener`
+- `org.eclipse.edc.spi.system.ExecutorInstrumentation`
+- `io.micrometer.core.instrument.MeterRegistry`
+
+##### Referenced (injected) services:
+_None_
+
+Module `org.eclipse.edc:monitor-jdk-logger:0.9.0`
+-------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.monitor.logger.LoggerMonitorExtension`
+**Name:** "Logger monitor"
+
+**Overview:**  Extension adding logging monitor.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+_None_
+
+Module `org.eclipse.edc:oauth2-client:0.9.0`
+--------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.oauth2.client.Oauth2ClientExtension`
+**Name:** "OAuth2 Client"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:oauth2-core:0.9.0`
+------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension`
+**Name:** "OAuth2 Identity Service"
+
+**Overview:**  Provides OAuth2 client credentials flow support.
+
+
+
+##### Configuration: 
+
+| Key                                     | Required | Type     | Default | Pattern | Min | Max | Description                                                                                   |
+| --------------------------------------- | -------- | -------- | ------- | ------- | --- | --- | --------------------------------------------------------------------------------------------- |
+| `edc.oauth.provider.jwks.url`           |          | `string` | ``      |         |     |     |                                                                                               |
+| `edc.oauth.provider.audience`           |          | `string` | ``      |         |     |     | outgoing tokens 'aud' claim value, by default it's the connector id                           |
+| `edc.oauth.endpoint.audience`           |          | `string` | ``      |         |     |     | incoming tokens 'aud' claim required value, by default it's the provider audience value       |
+| `edc.oauth.certificate.alias`           |          | `string` | ``      |         |     |     |                                                                                               |
+| `edc.oauth.private.key.alias`           |          | `string` | ``      |         |     |     |                                                                                               |
+| `edc.oauth.provider.jwks.refresh`       |          | `string` | ``      |         |     |     |                                                                                               |
+| `edc.oauth.token.url`                   |          | `string` | ``      |         |     |     |                                                                                               |
+| `edc.oauth.token.expiration`            |          | `string` | ``      |         |     |     | Token expiration in minutes. By default is 5 minutes                                          |
+| `edc.oauth.client.id`                   |          | `string` | ``      |         |     |     |                                                                                               |
+| `edc.oauth.validation.nbf.leeway`       |          | `int`    | `10`    |         |     |     | Leeway in seconds for validating the not before (nbf) claim in the token.                     |
+| `edc.oauth.validation.issued.at.leeway` |          | `int`    | `0`     |         |     |     | Leeway in seconds for validating the issuedAt claim in the token. By default it is 0 seconds. |
+
+##### Provided services:
+- `org.eclipse.edc.spi.iam.IdentityService`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.keys.spi.PrivateKeyResolver` (required)
+- `org.eclipse.edc.keys.spi.CertificateResolver` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.token.spi.TokenValidationRulesRegistry` (required)
+- `org.eclipse.edc.token.spi.TokenValidationService` (required)
+- `org.eclipse.edc.token.spi.TokenDecoratorRegistry` (required)
+- `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider` (required)
+
+#### Class: `org.eclipse.edc.iam.oauth2.Oauth2ServiceDefaultServicesExtension`
+**Name:** "Oauth2ServiceDefaultServicesExtension"
+
+**Overview:**  Provides OAuth2 client credentials flow support.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.spi.iam.AudienceResolver`
+
+##### Referenced (injected) services:
+_None_
+
+Module `org.eclipse.edc:oauth2-daps:0.9.0`
+------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.oauth2.daps.DapsExtension`
+**Name:** "DAPS"
+
+**Overview:**  Provides specialization of Oauth2 extension to interact with DAPS instance
+
+
+
+##### Configuration: 
+
+| Key                   | Required | Type     | Default                             | Pattern | Min | Max | Description                                                         |
+| --------------------- | -------- | -------- | ----------------------------------- | ------- | --- | --- | ------------------------------------------------------------------- |
+| `edc.iam.token.scope` |          | `string` | `idsc:IDS_CONNECTOR_ATTRIBUTES_ALL` |         |     |     | The value of the scope claim that is passed to DAPS to obtain a DAT |
+
+##### Provided services:
+- `org.eclipse.edc.token.spi.TokenDecorator`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.token.spi.TokenDecoratorRegistry` (required)
+
+Module `OAuth2 services:0.9.0`
+------------------------------
+_org.eclipse.edc:oauth2-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client`
+
+### Extensions
+Module `org.eclipse.edc:policy-definition-api:0.9.0`
+----------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApiExtension`
+**Name:** "Management API: Policy Definition"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:policy-definition-store-sql:0.9.0`
+----------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.connector.controlplane.store.sql.policydefinition.store.schema.SqlPolicyStoreStatements`
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.store.sql.policydefinition.SqlPolicyStoreExtension`
+**Name:** "SQL policy store"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                               | Required | Type     | Default   | Pattern | Min | Max | Description               |
+| --------------------------------- | -------- | -------- | --------- | ------- | --- | --- | ------------------------- |
+| `edc.sql.store.policy.datasource` |          | `string` | `default` |         |     |     | The datasource to be used |
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.connector.controlplane.store.sql.policydefinition.store.schema.SqlPolicyStoreStatements` (optional)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
+
+Module `Policy Engine services:0.9.0`
+-------------------------------------
+_org.eclipse.edc:policy-engine-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.policy.engine.spi.PolicyEngine`
+  - `org.eclipse.edc.policy.engine.spi.RuleBindingRegistry`
+
+### Extensions
+Module `org.eclipse.edc:policy-monitor-core:0.9.0`
+--------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.policy.monitor.PolicyMonitorDefaultServicesExtension`
+**Name:** "PolicyMonitor Default Services"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore`
+
+##### Referenced (injected) services:
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
+#### Class: `org.eclipse.edc.connector.policy.monitor.PolicyMonitorExtension`
+**Name:** "Policy Monitor"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                                      | Required | Type   | Default | Pattern | Min | Max | Description                                                                                     |
+| -------------------------------------------------------- | -------- | ------ | ------- | ------- | --- | --- | ----------------------------------------------------------------------------------------------- |
+| `edc.policy.monitor.state-machine.iteration-wait-millis` |          | `long` | ``      |         |     |     | the iteration wait time in milliseconds in the policy monitor state machine. Default value 1000 |
+| `edc.policy.monitor.state-machine.batch-size`            |          | `int`  | ``      |         |     |     | the batch size in the policy monitor state machine. Default value 20                            |
+
+##### Provided services:
+- `org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
+- `org.eclipse.edc.spi.telemetry.Telemetry` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.event.EventRouter` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService` (required)
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
+- `org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore` (required)
+- `org.eclipse.edc.policy.engine.spi.RuleBindingRegistry` (required)
+
+Module `org.eclipse.edc:policy-monitor-store-sql:0.9.0`
+-------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.policy.monitor.store.sql.SqlPolicyMonitorStoreExtension`
+**Name:** "SqlPolicyMonitorStoreExtension"
+
+##### Configuration: 
+
+| Key                                       | Required | Type     | Default   | Pattern | Min | Max | Description                                                      |
+| ----------------------------------------- | -------- | -------- | --------- | ------- | --- | --- | ---------------------------------------------------------------- |
+| ~~edc.datasource.policy-monitor.name~~    |          | `string` | `default` |         |     |     | Name of the datasource to use for accessing policy monitor store |
+| `edc.sql.store.policy-monitor.datasource` |          | `string` | `default` |         |     |     | The datasource to be used                                        |
+
+##### Provided services:
+- `org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.connector.policy.monitor.store.sql.schema.PolicyMonitorStatements` (optional)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
+
+Module `Policy services:0.9.0`
+------------------------------
+_org.eclipse.edc:policy-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive`
+  - `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore`
+
+### Extensions
+Module `org.eclipse.edc:provision-http:0.9.0`
+---------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.provision.http.HttpWebhookExtension`
+**Name:** "HttpWebhookExtension"
+
+**Overview:**  The HTTP Provisioner extension delegates to HTTP endpoints to perform provision operations.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerWebhookUrl`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
+- `org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl` (required)
+
+#### Class: `org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerExtension`
+**Name:** "HTTP Provisioning"
+
+**Overview:**  The HTTP Provisioner extension delegates to HTTP endpoints to perform provision operations.
+
+
+
+##### Configuration: 
+
+| Key                 | Required | Type     | Default            | Pattern | Min | Max | Description |
+| ------------------- | -------- | -------- | ------------------ | ------- | --- | --- | ----------- |
+| `provisioner.type`  | `*`      | `string` | ``                 |         |     |     |             |
+| `data.address.type` | `*`      | `string` | ``                 |         |     |     |             |
+| `endpoint`          | `*`      | `string` | ``                 |         |     |     |             |
+| `policy.scope`      |          | `string` | `http.provisioner` |         |     |     |             |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager` (required)
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator` (required)
+- `org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerWebhookUrl` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.validator.spi.DataAddressValidatorRegistry` (required)
+
+Module `org.eclipse.edc:secrets-api:0.9.0`
+------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.api.management.secret.SecretsApiExtension`
+**Name:** "Management API: Secret"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.connector.spi.service.SecretService` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+
+Module `org.eclipse.edc:sql-bootstrapper:0.9.0`
+-----------------------------------------------
+
+_Categories: sql,persistence,storage,sql,persistence,storage_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension`
+**Name:** "SQL Schema Bootstrapper Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+
+Module `org.eclipse.edc:sql-core:0.9.0`
+---------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.sql.SqlCoreExtension`
+**Name:** "SQL Core"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                  | Required | Type     | Default | Pattern | Min | Max | Description                          |
+| -------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------ |
+| `edc.sql.fetch.size` |          | `string` | `5000`  |         |     |     | Fetch size value used in SQL queries |
+
+##### Provided services:
+- `org.eclipse.edc.sql.QueryExecutor`
+- `org.eclipse.edc.sql.ConnectionFactory`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+
+Module `org.eclipse.edc:sql-pool-apache-commons:0.9.0`
+------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension`
+**Name:** "Commons Connection Pool"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                                    | Required | Type      | Default | Pattern | Min | Max | Description                                                                                                                 |
+| ------------------------------------------------------ | -------- | --------- | ------- | ------- | --- | --- | --------------------------------------------------------------------------------------------------------------------------- |
+| `edc.datasource.<name>url`                             | `*`      | `string`  | ``      |         |     |     | JDBC url                                                                                                                    |
+| `edc.datasource.<name>user`                            |          | `string`  | ``      |         |     |     | Username to be used for the JDBC connection. Can be omitted if not required, or if the user is encoded in the JDBC url.     |
+| `edc.datasource.<name>password`                        |          | `string`  | ``      |         |     |     | Username to be used for the JDBC connection. Can be omitted if not required, or if the password is encoded in the JDBC url. |
+| `edc.datasource.<name>pool.connections.max-idle`       |          | `int`     | ``      |         |     |     | Pool max idle connections                                                                                                   |
+| `edc.datasource.<name>pool.connections.max-total`      |          | `int`     | ``      |         |     |     | Pool max total connections                                                                                                  |
+| `edc.datasource.<name>pool.connections.min-idle`       |          | `int`     | ``      |         |     |     | Pool min idle connections                                                                                                   |
+| `edc.datasource.<name>pool.connection.test.on-borrow`  |          | `boolean` | ``      |         |     |     | Pool test on borrow                                                                                                         |
+| `edc.datasource.<name>pool.connection.test.on-create`  |          | `boolean` | ``      |         |     |     | Pool test on create                                                                                                         |
+| `edc.datasource.<name>pool.connection.test.on-return`  |          | `boolean` | ``      |         |     |     | Pool test on return                                                                                                         |
+| `edc.datasource.<name>pool.connection.test.while-idle` |          | `boolean` | ``      |         |     |     | Pool test while idle                                                                                                        |
+| `edc.datasource.<name>pool.connection.test.query`      |          | `string`  | ``      |         |     |     | Pool test query                                                                                                             |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+- `org.eclipse.edc.sql.ConnectionFactory` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
+
+Module `org.eclipse.edc:sts-server:0.9.0`
+-----------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.identitytrust.sts.server.StsVaultSeedExtension`
+**Name:** "StsVaultSeedExtension"
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.security.Vault` (required)
+
+Module `org.eclipse.edc:token-core:0.9.0`
+-----------------------------------------
+
+_Categories: token,security,auth,token,security,auth_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.token.TokenServicesExtension`
+**Name:** "Token Services Extension"
+
+**Overview:**  This extension registers the {@link TokenValidationService} and the {@link TokenValidationRulesRegistry}
  which can then be used by downstream modules.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.token.spi.TokenValidationRulesRegistry</code></li><li><code>org.eclipse.edc.token.spi.TokenValidationService</code></li><li><code>org.eclipse.edc.token.spi.TokenDecoratorRegistry</code></li><li><code>org.eclipse.edc.jwt.signer.spi.JwsSignerProvider</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.keys.spi.PrivateKeyResolver</code></em></li></ul><hr><a href="#token-spi"><h2 id="token-spi">token-spi</h2></a><ul><li><b>Name: </b>Token services</li><li><b>Path: </b><code>org.eclipse.edc:token-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><hr><a href="#transaction-atomikos"><h2 id="transaction-atomikos">transaction-atomikos</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:transaction-atomikos</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Atomikos Transaction</h3><ul><li><b>Class: </b><code>org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Provides an implementation of a {@link DataSourceRegistry} and a {@link TransactionContext} backed by Atomikos.
-</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>driver.class</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>url</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>type</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>username</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>password</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>pool.size</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>max.pool.size</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>min.pool.size</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>connection.timeout</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>login.timeout</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>maintenance.interval</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>max.idle</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>query</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>properties</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>edc.atomikos.timeout</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.atomikos.directory</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>edc.atomikos.threaded2pc</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.atomikos.logging</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>edc.atomikos.checkpoint.interval</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.transaction.spi.TransactionContext</code></li><li><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#transaction-datasource-spi"><h2 id="transaction-datasource-spi">transaction-datasource-spi</h2></a><ul><li><b>Name: </b>DataSource services</li><li><b>Path: </b><code>org.eclipse.edc:transaction-datasource-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</em></li></ul><hr><a href="#transaction-local"><h2 id="transaction-local">transaction-local</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:transaction-local</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Local Transaction</h3><ul><li><b>Class: </b><code>org.eclipse.edc.transaction.local.LocalTransactionExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span> Support for transaction context backed by one or more local resources, including a {@link DataSourceRegistry}.
-</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></li><li><code>org.eclipse.edc.transaction.spi.TransactionContext</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#transaction-spi"><h2 id="transaction-spi">transaction-spi</h2></a><ul><li><b>Name: </b>Transactional context services</li><li><b>Path: </b><code>org.eclipse.edc:transaction-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.transaction.spi.TransactionContext</em></li></ul><hr><a href="#transfer-data-plane-signaling"><h2 id="transfer-data-plane-signaling">transfer-data-plane-signaling</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:transfer-data-plane-signaling</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Transfer Data Plane Signaling Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.transfer.dataplane.TransferDataPlaneSignalingExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.dataplane.client.selector.strategy</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>random</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime</td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager</code></em></li><li><code>org.eclipse.edc.web.spi.configuration.context.ControlApiUrl</code></li><li><em><code>org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService</code></em></li><li><em><code>org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory</code></em></li><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider</code></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser</code></em></li></ul><hr><a href="#transfer-data-plane-spi"><h2 id="transfer-data-plane-spi">transfer-data-plane-spi</h2></a><ul><li><b>Name: </b>Transfer data plane services</li><li><b>Path: </b><code>org.eclipse.edc:transfer-data-plane-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.security.DataEncrypter</em></li></ul><hr><a href="#transfer-process-api"><h2 id="transfer-process-api">transfer-process-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:transfer-process-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API: Transfer Process</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.transform.spi.TypeTransformerRegistry</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService</code></em></li><li><em><code>org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry</code></em></li></ul><hr><a href="#transfer-process-store-sql"><h2 id="transfer-process-store-sql">transfer-process-store-sql</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:transfer-process-store-sql</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.TransferProcessStoreStatements</em></li></ul><h3>Extension SQL transfer process store</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.store.sql.transferprocess.SqlTransferProcessStoreExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.sql.store.transferprocess.datasource</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>default</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The datasource to be used</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry</code></em></li><li><em><code>org.eclipse.edc.transaction.spi.TransactionContext</code></em></li><li><em><code>java.time.Clock</code></em></li><li><code>org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.TransferProcessStoreStatements</code></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.sql.QueryExecutor</code></em></li><li><em><code>org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper</code></em></li></ul><hr><a href="#transfer-pull-http-dynamic-receiver"><h2 id="transfer-pull-http-dynamic-receiver">transfer-pull-http-dynamic-receiver</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:transfer-pull-http-dynamic-receiver</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Http Dynamic Endpoint Data Reference Receiver</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.receiver.http.dynamic.HttpDynamicEndpointDataReferenceReceiverExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.receiver.http.dynamic.endpoint</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Fallback endpoint when url is missing the the transfer process</td></tr><tr class="odd"><td><code>edc.receiver.http.dynamic.auth-key</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Header name that will be sent with the EDR</td></tr><tr class="even"><td><code>edc.receiver.http.dynamic.auth-code</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Header value that will be sent with the EDR</td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.edr.EndpointDataReferenceReceiverRegistry</code></em></li><li><em><code>okhttp3.OkHttpClient</code></em></li><li><em><code>dev.failsafe.RetryPolicy&lt;java.lang.Object&gt;</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore</code></em></li><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#transfer-pull-http-receiver"><h2 id="transfer-pull-http-receiver">transfer-pull-http-receiver</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:transfer-pull-http-receiver</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Http Endpoint Data Reference Receiver</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.controlplane.receiver.http.HttpEndpointDataReferenceReceiverExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.receiver.http.endpoint</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="odd"><td><code>edc.receiver.http.auth-key</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr><tr class="even"><td><code>edc.receiver.http.auth-code</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%"></td></tr></tbody></table><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.connector.controlplane.transfer.spi.edr.EndpointDataReferenceReceiverRegistry</code></em></li><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li></ul><hr><a href="#transfer-spi"><h2 id="transfer-spi">transfer-spi</h2></a><ul><li><b>Name: </b>Transfer services</li><li><b>Path: </b><code>org.eclipse.edc:transfer-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable</em></li><li><em>org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager</em></li><li><em>org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator</em></li><li><em>org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager</em></li><li><em>org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider</em></li><li><em>org.eclipse.edc.connector.controlplane.transfer.spi.edr.EndpointDataReferenceReceiverRegistry</em></li><li><em>org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore</em></li><li><em>org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard</em></li><li><em>org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager</em></li></ul><hr><a href="#validator-data-address-http-data"><h2 id="validator-data-address-http-data">validator-data-address-http-data</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:validator-data-address-http-data</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension DataAddress HttpData Validator</h3><ul><li><b>Class: </b><code>org.eclipse.edc.validator.dataaddress.httpdata.HttpDataDataAddressValidatorExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.validator.spi.DataAddressValidatorRegistry</code></em></li></ul><hr><a href="#validator-data-address-kafka"><h2 id="validator-data-address-kafka">validator-data-address-kafka</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:validator-data-address-kafka</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension DataAddress Kafka Validator</h3><ul><li><b>Class: </b><code>org.eclipse.edc.validator.dataaddress.kafka.KafkaDataAddressValidatorExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.validator.spi.DataAddressValidatorRegistry</code></em></li></ul><hr><a href="#vault-hashicorp"><h2 id="vault-hashicorp">vault-hashicorp</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:vault-hashicorp</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Hashicorp Vault</h3><ul><li><b>Class: </b><code>org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><table><thead><tr><th>Key</th><th>Required</th><th>Type</th><th>Default</th><th>Pattern</th><th>Min</th><th>Max</th><th>Description</th></tr></thead><tbody><tr class="even"><td><code>edc.vault.hashicorp.url</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The URL of the Hashicorp Vault</td></tr><tr class="odd"><td><code>edc.vault.hashicorp.health.check.enabled</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>true</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Whether or not the vault health check is enabled</td></tr><tr class="even"><td><code>edc.vault.hashicorp.api.health.check.path</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>/v1/sys/health</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The URL path of the vault&#x27;s /health endpoint</td></tr><tr class="odd"><td><code>edc.vault.hashicorp.health.check.standby.ok</code></td><td align="center"></td><td align="center"><code>boolean</code></td><td><code>false</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Specifies if being a standby should still return the active status code instead of the standby status code</td></tr><tr class="even"><td><code>edc.vault.hashicorp.token</code></td><td align="center"><code>x</code></td><td align="center"><code>string</code></td><td><code></code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The token used to access the Hashicorp Vault</td></tr><tr class="odd"><td><code>edc.vault.hashicorp.token.scheduled-renew-enabled</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>true</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes</td></tr><tr class="even"><td><code>edc.vault.hashicorp.token.ttl</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code>300</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The time-to-live (ttl) value of the Hashicorp Vault token in seconds</td></tr><tr class="odd"><td><code>edc.vault.hashicorp.token.renew-buffer</code></td><td align="center"></td><td align="center"><code>long</code></td><td><code>30</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The renew buffer of the Hashicorp Vault token in seconds</td></tr><tr class="even"><td><code>edc.vault.hashicorp.api.secret.path</code></td><td align="center"></td><td align="center"><code>string</code></td><td><code>/v1/secret</code></td><td align="center"></td><td align="right"></td><td align="right"></td><td width="40%">The URL path of the vault&#x27;s /secret endpoint</td></tr></tbody></table><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient</code></li><li><code>org.eclipse.edc.spi.security.Vault</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.http.spi.EdcHttpClient</code></em></li><li><em><code>org.eclipse.edc.spi.system.ExecutorInstrumentation</code></em></li></ul><h3>Extension Hashicorp Vault Health</h3><ul><li><b>Class: </b><code>org.eclipse.edc.vault.hashicorp.health.HashicorpVaultHealthExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.spi.system.health.HealthCheckService</code></em></li><li><em><code>org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient</code></em></li></ul><hr><a href="#verifiable-credentials"><h2 id="verifiable-credentials">verifiable-credentials</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:verifiable-credentials</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Revocation Service Extension</h3><ul><li><b>Class: </b><code>org.eclipse.edc.iam.verifiablecredentials.RevocationServiceRegistryExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><ul><li><code>org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry</code></li></ul><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><em>none</em><hr><a href="#version-api"><h2 id="version-api">version-api</h2></a><ul><li><b>Path: </b><code>org.eclipse.edc:version-api</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><em>none</em><h3>Extension Management API: Version Information</h3><ul><li><b>Class: </b><code>org.eclipse.edc.connector.api.management.version.VersionApiExtension</code></li><li><b>Type: </b><span>extension</span></li><li><b>Overview: </b><span>No overview provided.</span></li></ul><h4>Configuration: </h4><em>none</em><h4>Provided Services: </h4><em>none</em><h4>Referenced (injected) Services (<em>emphasized if required</em>): </h4><ul><li><em><code>org.eclipse.edc.web.spi.WebService</code></em></li><li><em><code>org.eclipse.edc.spi.types.TypeManager</code></em></li><li><em><code>org.eclipse.edc.spi.system.apiversion.ApiVersionService</code></em></li><li><em><code>org.eclipse.edc.web.spi.configuration.WebServiceConfigurer</code></em></li><li><em><code>org.eclipse.edc.web.spi.WebServer</code></em></li></ul><hr><a href="#web-spi"><h2 id="web-spi">web-spi</h2></a><ul><li><b>Name: </b>Web services</li><li><b>Path: </b><code>org.eclipse.edc:web-spi</code></li><li><b>Version: </b><code>0.9.0</code></li></ul><em>Categories: </em><h3>Extension Points</h3><ul><li><em>org.eclipse.edc.web.spi.validation.InterceptorFunctionRegistry</em></li><li><em>org.eclipse.edc.web.spi.WebServer</em></li><li><em>org.eclipse.edc.web.spi.WebService</em></li><li><em>org.eclipse.edc.web.spi.configuration.WebServiceConfigurer</em></li></ul></article></section></body></html>
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.token.spi.TokenValidationRulesRegistry`
+- `org.eclipse.edc.token.spi.TokenValidationService`
+- `org.eclipse.edc.token.spi.TokenDecoratorRegistry`
+- `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.keys.spi.PrivateKeyResolver` (required)
+
+Module `Token services:0.9.0`
+-----------------------------
+_org.eclipse.edc:token-spi_
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+Module `org.eclipse.edc:transaction-atomikos:0.9.0`
+---------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.transaction.atomikos.AtomikosTransactionExtension`
+**Name:** "Atomikos Transaction"
+
+**Overview:**  Provides an implementation of a {@link DataSourceRegistry} and a {@link TransactionContext} backed by Atomikos.
+
+
+
+##### Configuration: 
+
+| Key                                | Required | Type     | Default | Pattern | Min | Max | Description |
+| ---------------------------------- | -------- | -------- | ------- | ------- | --- | --- | ----------- |
+| `driver.class`                     | `*`      | `string` | ``      |         |     |     |             |
+| `url`                              | `*`      | `string` | ``      |         |     |     |             |
+| `type`                             |          | `string` | ``      |         |     |     |             |
+| `username`                         |          | `string` | ``      |         |     |     |             |
+| `password`                         |          | `string` | ``      |         |     |     |             |
+| `pool.size`                        |          | `string` | ``      |         |     |     |             |
+| `max.pool.size`                    |          | `string` | ``      |         |     |     |             |
+| `min.pool.size`                    |          | `string` | ``      |         |     |     |             |
+| `connection.timeout`               |          | `string` | ``      |         |     |     |             |
+| `login.timeout`                    |          | `string` | ``      |         |     |     |             |
+| `maintenance.interval`             |          | `string` | ``      |         |     |     |             |
+| `max.idle`                         |          | `string` | ``      |         |     |     |             |
+| `query`                            |          | `string` | ``      |         |     |     |             |
+| `properties`                       |          | `string` | ``      |         |     |     |             |
+| `edc.atomikos.timeout`             |          | `string` | ``      |         |     |     |             |
+| `edc.atomikos.directory`           |          | `string` | ``      |         |     |     |             |
+| `edc.atomikos.threaded2pc`         |          | `string` | ``      |         |     |     |             |
+| `edc.atomikos.logging`             |          | `string` | ``      |         |     |     |             |
+| `edc.atomikos.checkpoint.interval` |          | `string` | ``      |         |     |     |             |
+
+##### Provided services:
+- `org.eclipse.edc.transaction.spi.TransactionContext`
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry`
+
+##### Referenced (injected) services:
+_None_
+
+Module `DataSource services:0.9.0`
+----------------------------------
+_org.eclipse.edc:transaction-datasource-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry`
+
+### Extensions
+Module `org.eclipse.edc:transaction-local:0.9.0`
+------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.transaction.local.LocalTransactionExtension`
+**Name:** "Local Transaction"
+
+**Overview:**  Support for transaction context backed by one or more local resources, including a {@link DataSourceRegistry}.
+
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry`
+- `org.eclipse.edc.transaction.spi.TransactionContext`
+
+##### Referenced (injected) services:
+_None_
+
+Module `Transactional context services:0.9.0`
+---------------------------------------------
+_org.eclipse.edc:transaction-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.transaction.spi.TransactionContext`
+
+### Extensions
+Module `org.eclipse.edc:transfer-data-plane-signaling:0.9.0`
+------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.transfer.dataplane.TransferDataPlaneSignalingExtension`
+**Name:** "Transfer Data Plane Signaling Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                      | Required | Type     | Default  | Pattern | Min | Max | Description                                                                                              |
+| ---------------------------------------- | -------- | -------- | -------- | ------- | --- | --- | -------------------------------------------------------------------------------------------------------- |
+| `edc.dataplane.client.selector.strategy` |          | `string` | `random` |         |     |     | Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager` (required)
+- `org.eclipse.edc.web.spi.configuration.context.ControlApiUrl` (optional)
+- `org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService` (required)
+- `org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider` (optional)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser` (required)
+
+Module `Transfer data plane services:0.9.0`
+-------------------------------------------
+_org.eclipse.edc:transfer-data-plane-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.connector.controlplane.transfer.dataplane.spi.security.DataEncrypter`
+
+### Extensions
+Module `org.eclipse.edc:transfer-process-api:0.9.0`
+---------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApiExtension`
+**Name:** "Management API: Transfer Process"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
+
+Module `org.eclipse.edc:transfer-process-store-sql:0.9.0`
+---------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.TransferProcessStoreStatements`
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.store.sql.transferprocess.SqlTransferProcessStoreExtension`
+**Name:** "SQL transfer process store"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                        | Required | Type     | Default   | Pattern | Min | Max | Description               |
+| ------------------------------------------ | -------- | -------- | --------- | ------- | --- | --- | ------------------------- |
+| `edc.sql.store.transferprocess.datasource` |          | `string` | `default` |         |     |     | The datasource to be used |
+
+##### Provided services:
+- `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.TransferProcessStoreStatements` (optional)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.sql.QueryExecutor` (required)
+- `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
+
+Module `org.eclipse.edc:transfer-pull-http-dynamic-receiver:0.9.0`
+------------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.receiver.http.dynamic.HttpDynamicEndpointDataReferenceReceiverExtension`
+**Name:** "Http Dynamic Endpoint Data Reference Receiver"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                   | Required | Type     | Default | Pattern | Min | Max | Description                                                    |
+| ------------------------------------- | -------- | -------- | ------- | ------- | --- | --- | -------------------------------------------------------------- |
+| `edc.receiver.http.dynamic.endpoint`  |          | `string` | ``      |         |     |     | Fallback endpoint when url is missing the the transfer process |
+| `edc.receiver.http.dynamic.auth-key`  |          | `string` | ``      |         |     |     | Header name that will be sent with the EDR                     |
+| `edc.receiver.http.dynamic.auth-code` |          | `string` | ``      |         |     |     | Header value that will be sent with the EDR                    |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.transfer.spi.edr.EndpointDataReferenceReceiverRegistry` (required)
+- `okhttp3.OkHttpClient` (required)
+- `dev.failsafe.RetryPolicy<java.lang.Object>` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `org.eclipse.edc:transfer-pull-http-receiver:0.9.0`
+----------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.receiver.http.HttpEndpointDataReferenceReceiverExtension`
+**Name:** "Http Endpoint Data Reference Receiver"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                           | Required | Type     | Default | Pattern | Min | Max | Description |
+| ----------------------------- | -------- | -------- | ------- | ------- | --- | --- | ----------- |
+| `edc.receiver.http.endpoint`  |          | `string` | ``      |         |     |     |             |
+| `edc.receiver.http.auth-key`  |          | `string` | ``      |         |     |     |             |
+| `edc.receiver.http.auth-code` |          | `string` | ``      |         |     |     |             |
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.connector.controlplane.transfer.spi.edr.EndpointDataReferenceReceiverRegistry` (required)
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
+Module `Transfer services:0.9.0`
+--------------------------------
+_org.eclipse.edc:transfer-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.edr.EndpointDataReferenceReceiverRegistry`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager`
+
+### Extensions
+Module `org.eclipse.edc:validator-data-address-http-data:0.9.0`
+---------------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.validator.dataaddress.httpdata.HttpDataDataAddressValidatorExtension`
+**Name:** "DataAddress HttpData Validator"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.validator.spi.DataAddressValidatorRegistry` (required)
+
+Module `org.eclipse.edc:validator-data-address-kafka:0.9.0`
+-----------------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.validator.dataaddress.kafka.KafkaDataAddressValidatorExtension`
+**Name:** "DataAddress Kafka Validator"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.validator.spi.DataAddressValidatorRegistry` (required)
+
+Module `org.eclipse.edc:vault-hashicorp:0.9.0`
+----------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension`
+**Name:** "Hashicorp Vault"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: 
+
+| Key                                                 | Required | Type      | Default          | Pattern | Min | Max | Description                                                                                                                        |
+| --------------------------------------------------- | -------- | --------- | ---------------- | ------- | --- | --- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `edc.vault.hashicorp.url`                           | `*`      | `string`  | ``               |         |     |     | The URL of the Hashicorp Vault                                                                                                     |
+| `edc.vault.hashicorp.health.check.enabled`          |          | `boolean` | `true`           |         |     |     | Whether or not the vault health check is enabled                                                                                   |
+| `edc.vault.hashicorp.api.health.check.path`         |          | `string`  | `/v1/sys/health` |         |     |     | The URL path of the vault's /health endpoint                                                                                       |
+| `edc.vault.hashicorp.health.check.standby.ok`       |          | `boolean` | `false`          |         |     |     | Specifies if being a standby should still return the active status code instead of the standby status code                         |
+| `edc.vault.hashicorp.token`                         | `*`      | `string`  | ``               |         |     |     | The token used to access the Hashicorp Vault                                                                                       |
+| `edc.vault.hashicorp.token.scheduled-renew-enabled` |          | `string`  | `true`           |         |     |     | Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes |
+| `edc.vault.hashicorp.token.ttl`                     |          | `long`    | `300`            |         |     |     | The time-to-live (ttl) value of the Hashicorp Vault token in seconds                                                               |
+| `edc.vault.hashicorp.token.renew-buffer`            |          | `long`    | `30`             |         |     |     | The renew buffer of the Hashicorp Vault token in seconds                                                                           |
+| `edc.vault.hashicorp.api.secret.path`               |          | `string`  | `/v1/secret`     |         |     |     | The URL path of the vault's /secret endpoint                                                                                       |
+
+##### Provided services:
+- `org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient`
+- `org.eclipse.edc.spi.security.Vault`
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
+
+#### Class: `org.eclipse.edc.vault.hashicorp.health.HashicorpVaultHealthExtension`
+**Name:** "Hashicorp Vault Health"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.spi.system.health.HealthCheckService` (required)
+- `org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient` (required)
+
+Module `org.eclipse.edc:verifiable-credentials:0.9.0`
+-----------------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.verifiablecredentials.RevocationServiceRegistryExtension`
+**Name:** "Revocation Service Extension"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+- `org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry`
+
+##### Referenced (injected) services:
+_None_
+
+Module `org.eclipse.edc:version-api:0.9.0`
+------------------------------------------
+
+_Categories: None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.connector.api.management.version.VersionApiExtension`
+**Name:** "Management API: Version Information"
+
+**Overview:** No overview provided.
+
+
+##### Configuration: _None_
+
+##### Provided services:
+_None_
+
+##### Referenced (injected) services:
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.system.apiversion.ApiVersionService` (required)
+- `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer` (required)
+- `org.eclipse.edc.web.spi.WebServer` (required)
+
+Module `Web services:0.9.0`
+---------------------------
+_org.eclipse.edc:web-spi_
+
+_Categories: None_
+
+### Extension points
+  - `org.eclipse.edc.web.spi.validation.InterceptorFunctionRegistry`
+  - `org.eclipse.edc.web.spi.WebServer`
+  - `org.eclipse.edc.web.spi.WebService`
+  - `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer`
+
+### Extensions
