@@ -319,7 +319,7 @@ public class TestFunctions {
 
     public static JsonObjectBuilder policy(JsonObject permission) {
         return createObjectBuilder()
-                .add(TYPE, "http://www.w3.org/ns/odrl/2/Set")
+                .add(TYPE, "Set")
                 .add("obligation", createArrayBuilder().build())
                 .add("permission", permission)
                 .add("target", "assetId")

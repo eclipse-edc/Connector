@@ -3,7 +3,15 @@
     "@version": 1.1,
     "edc": "https://w3id.org/edc/v0.0.1/ns/",
     "Asset": "edc:Asset",
-    "PolicyDefinition": "edc:PolicyDefinition",
+    "PolicyDefinition": {
+      "@id": "edc:PolicyDefinition",
+      "@context": {
+        "@import": "http://www.w3.org/ns/odrl.jsonld",
+        "@propagate": true,
+        "uid": null,
+        "type": null
+      }
+    },
     "DataAddress": {
       "@id": "edc:DataAddress",
       "@context": {
@@ -13,7 +21,15 @@
     },
     "ContractDefinition": "edc:ContractDefinition",
     "Criterion": "edc:Criterion",
-    "ContractRequest": "edc:ContractRequest",
+    "ContractRequest": {
+      "@id": "edc:ContractRequest",
+      "@context": {
+        "@import": "http://www.w3.org/ns/odrl.jsonld",
+        "@propagate": true,
+        "uid": null,
+        "type": null
+      }
+    },
     "QuerySpec": "edc:QuerySpec",
     "ContractNegotiation": {
       "@id": "edc:ContractNegotiation",
@@ -91,14 +107,7 @@
     },
     "providerId": "edc:providerId",
     "policy": {
-      "@id": "edc:policy",
-      "@context": [
-        "http://www.w3.org/ns/odrl.jsonld",
-        {
-          "uid": null,
-          "type": null
-        }
-      ]
+      "@id": "edc:policy"
     },
     "counterPartyId": "edc:counterPartyId",
     "state": "edc:state",
