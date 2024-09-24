@@ -23,8 +23,10 @@ import org.eclipse.edc.boot.system.injection.InjectorImpl;
 import org.eclipse.edc.boot.system.injection.ProviderMethod;
 import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
 import org.eclipse.edc.boot.system.injection.lifecycle.ExtensionLifecycleManager;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.MonitorExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -37,6 +39,7 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ExtensionLoader {
 
@@ -89,7 +92,11 @@ public class ExtensionLoader {
 
     static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors, String... programArgs) {
         if (availableMonitors.isEmpty()) {
-            return new ConsoleMonitor(!Set.of(programArgs).contains("--no-color"));
+            var parseResult = parseLogLevel(programArgs);
+            if (parseResult.failed()) {
+                throw new EdcException(parseResult.getFailureDetail());
+            }
+            return new ConsoleMonitor((ConsoleMonitor.Level) parseResult.getContent(), !Set.of(programArgs).contains(ConsoleMonitor.COLOR_PROG_ARG));
         }
 
         if (availableMonitors.size() > 1) {
@@ -125,6 +132,28 @@ public class ExtensionLoader {
      */
     public <T> List<T> loadExtensions(Class<T> type, boolean required) {
         return serviceLocator.loadImplementors(type, required);
+    }
+
+    /**
+     * Parses the ConsoleMonitor log level from the program args. If no log level is provided, defaults to Level default.
+     */
+    private static Result<?> parseLogLevel(String[] programArgs) {
+        return Stream.of(programArgs)
+                .filter(arg -> arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG))
+                .map(arg -> {
+                    var validValueMessage = String.format("Valid values for the console level are %s", Stream.of(ConsoleMonitor.Level.values()).toList());
+                    var splitArgs = arg.split("=");
+                    if (splitArgs.length != 2) {
+                        return Result.failure(String.format("Value missing for the --log-level argument. %s", validValueMessage));
+                    }
+                    try {
+                        return Result.success(ConsoleMonitor.Level.valueOf(splitArgs[1].toUpperCase()));
+                    } catch (IllegalArgumentException e) {
+                        return Result.failure(String.format("Invalid value \"%s\" for the --log-level argument. %s", splitArgs[1], validValueMessage));
+                    }
+                })
+                .findFirst()
+                .orElse(Result.success(ConsoleMonitor.Level.getDefaultLevel()));
     }
 
 }

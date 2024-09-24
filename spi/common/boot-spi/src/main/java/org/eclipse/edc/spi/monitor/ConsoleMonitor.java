@@ -30,21 +30,21 @@ public class ConsoleMonitor implements Monitor {
     private static final String INFO = "INFO";
     private static final String DEBUG = "DEBUG";
 
+    public static final String LEVEL_PROG_ARG = "--log-level";
+    public static final String COLOR_PROG_ARG = "--no-color";
+
+
     private final boolean useColor;
 
-    private final Level level;
+    private Level level;
     private final String prefix;
 
     public ConsoleMonitor() {
-        this(true);
+        this(Level.getDefaultLevel(), true);
     }
 
-    public ConsoleMonitor(boolean useColor) {
-        this(null, Level.DEBUG, useColor);
-    }
-
-    public ConsoleMonitor(@Nullable String runtimeName, Level level) {
-        this(runtimeName, level, true);
+    public ConsoleMonitor(Level level, boolean useColor) {
+        this(null, level, useColor);
     }
 
     public ConsoleMonitor(@Nullable String runtimeName, Level level, boolean useColor) {
@@ -117,5 +117,10 @@ public class ConsoleMonitor implements Monitor {
         Level(int value) {
             this.value = value;
         }
+
+        public static Level getDefaultLevel() {
+            return Level.DEBUG;
+        }
+
     }
 }
