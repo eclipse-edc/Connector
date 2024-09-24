@@ -91,6 +91,10 @@ public class StsAccount extends Entity {
         return publicKeyReference;
     }
 
+    public void updateSecretAlias(String secretAlias) {
+        this.secretAlias = secretAlias;
+    }
+
 
     public static class Builder extends Entity.Builder<StsAccount, Builder> {
 

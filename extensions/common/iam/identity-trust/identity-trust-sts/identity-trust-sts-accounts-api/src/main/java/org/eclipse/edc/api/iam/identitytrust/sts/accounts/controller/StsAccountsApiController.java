@@ -31,7 +31,8 @@ import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService;
 import org.eclipse.edc.spi.query.QuerySpec;
 
 import java.util.Collection;
-import java.util.List;
+
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -48,41 +49,42 @@ public class StsAccountsApiController implements StsAccountsApi {
     @POST
     @Override
     public StsAccountCreation createAccount(StsAccountCreation request) {
-        return null;
+        var secret = accountService.create(request.account(), request.clientSecret()).orElseThrow(exceptionMapper(StsAccount.class));
+        return new StsAccountCreation(request.account(), secret);
     }
 
     @Path("/")
     @PUT
     @Override
     public void updateAccount(StsAccount updatedAccount) {
-
+        accountService.update(updatedAccount).orElseThrow(exceptionMapper(StsAccount.class, updatedAccount.getId()));
     }
 
     @GET
     @Path("/{id}")
     @Override
     public StsAccount getAccount(@PathParam("id") String accountId) {
-        return null;
+        return accountService.findById(accountId).orElseThrow(exceptionMapper(StsAccount.class, accountId));
     }
 
     @POST
     @Path("/query")
     @Override
     public Collection<StsAccount> queryAccounts(QuerySpec querySpec) {
-        return List.of();
+        return accountService.queryAccounts(querySpec);
     }
 
     @PUT
     @Path("/{id}/secret")
     @Override
     public String updateClientSecret(@PathParam("id") String accountId, UpdateClientSecret request) {
-        return "";
+        return accountService.updateSecret(accountId, request.newAlias(), request.newSecret()).orElseThrow(exceptionMapper(StsAccount.class, accountId));
     }
 
     @DELETE
     @Path("/{id}")
     @Override
     public void deleteAccount(@PathParam("id") String accountId) {
-
+        accountService.deleteById(accountId).orElseThrow(exceptionMapper(StsAccount.class, accountId));
     }
 }
