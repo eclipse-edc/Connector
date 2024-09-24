@@ -30,7 +30,7 @@ Create a new `StsAccount`. Key pairs must be managed _out-of-band_. If no `clien
 generated. This endpoint returns the _entire_ `StsAccount`, including the `client_secret`. Note that there is **no way**
 to obtain the `client_secret` again at a later point in time!
 
-### `PUT /v1/accounts/{id}`
+### `PUT /v1/accounts/`
 
 Update an existing `StsAccount`. Note that there is a dedicated endpoint for rotating the `client_secret`.
 
@@ -43,7 +43,7 @@ Fetch a particular `StsAccount` by ID. The ID is the entity ID (database ID) of 
 
 Query STS accounts, taking a `QuerySpec` in the request body. The `client_secret` is **not** returned, only its alias.
 
-### `POST /v1/accounts/{id}/secret`
+### `PUT /v1/accounts/{id}/secret`
 
 Updates the `client_secret`. The new secret alias - and optionally the new secret - are provided in the request body. If
 no secret is provided, one is generated at random. The old client secret is deleted from the Vault and replaced with the
