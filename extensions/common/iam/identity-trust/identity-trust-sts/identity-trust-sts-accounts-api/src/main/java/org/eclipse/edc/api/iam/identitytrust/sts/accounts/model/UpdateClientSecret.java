@@ -12,22 +12,9 @@
  *
  */
 
-package org.eclipse.edc.web.spi.configuration;
+package org.eclipse.edc.api.iam.identitytrust.sts.accounts.model;
 
-/**
- * Core Api Context constants
- */
-public interface ApiContext {
+import org.jetbrains.annotations.Nullable;
 
-    String MANAGEMENT = "management";
-    String CONTROL = "control";
-    String PROTOCOL = "protocol";
-    String PUBLIC = "public";
-    String VERSION = "version";
-    String STS = "sts";
-    String STS_ACCOUNTS = "accounts";
-
-    @Deprecated(since = "0.6.4")
-    String SIGNALING = "signaling";
-
+public record UpdateClientSecret(String newAlias, @Nullable String newSecret) {
 }
