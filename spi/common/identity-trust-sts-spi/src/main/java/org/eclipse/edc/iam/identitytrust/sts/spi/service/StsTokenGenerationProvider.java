@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.spi.service;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 
@@ -27,10 +27,10 @@ import org.eclipse.edc.token.spi.TokenGenerationService;
 public interface StsTokenGenerationProvider {
 
     /**
-     * Returns a {@link TokenGenerationService} for the input {@link StsClient}
+     * Returns a {@link TokenGenerationService} for the input {@link StsAccount}
      *
-     * @param client The {@link StsClient}
+     * @param client The {@link StsAccount}
      * @return The {@link TokenGenerationService}
      */
-    TokenGenerationService tokenGeneratorFor(StsClient client);
+    TokenGenerationService tokenGeneratorFor(StsAccount client);
 }

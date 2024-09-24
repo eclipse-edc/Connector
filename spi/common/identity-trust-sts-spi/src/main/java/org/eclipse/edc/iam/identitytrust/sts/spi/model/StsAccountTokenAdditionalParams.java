@@ -19,17 +19,17 @@ import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGenerator
 import java.util.Objects;
 
 /**
- * The {@link StsClientTokenAdditionalParams} contains additional parameters for the {@link StsClientTokenGeneratorService }
- * when creating the Self-Issued ID token for the {@link StsClient}
+ * The {@link StsAccountTokenAdditionalParams} contains additional parameters for the {@link StsClientTokenGeneratorService }
+ * when creating the Self-Issued ID token for the {@link StsAccount}
  */
-public class StsClientTokenAdditionalParams {
+public class StsAccountTokenAdditionalParams {
 
     private String bearerAccessScope;
 
     private String audience;
     private String accessToken;
 
-    private StsClientTokenAdditionalParams() {
+    private StsAccountTokenAdditionalParams() {
 
     }
 
@@ -47,14 +47,14 @@ public class StsClientTokenAdditionalParams {
 
     public static class Builder {
 
-        private final StsClientTokenAdditionalParams params;
+        private final StsAccountTokenAdditionalParams params;
 
-        private Builder(StsClientTokenAdditionalParams params) {
+        private Builder(StsAccountTokenAdditionalParams params) {
             this.params = params;
         }
 
         public static Builder newInstance() {
-            return new Builder(new StsClientTokenAdditionalParams());
+            return new Builder(new StsAccountTokenAdditionalParams());
         }
 
 
@@ -73,7 +73,7 @@ public class StsClientTokenAdditionalParams {
             return this;
         }
 
-        public StsClientTokenAdditionalParams build() {
+        public StsAccountTokenAdditionalParams build() {
             Objects.requireNonNull(params.audience, "Param audience missing");
             return params;
         }

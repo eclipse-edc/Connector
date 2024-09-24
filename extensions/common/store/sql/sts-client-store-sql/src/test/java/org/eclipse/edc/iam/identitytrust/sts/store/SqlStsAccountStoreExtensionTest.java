@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.store;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
-public class SqlStsClientStoreExtensionTest {
+public class SqlStsAccountStoreExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -48,8 +48,8 @@ public class SqlStsClientStoreExtensionTest {
 
         extension.initialize(context);
 
-        var service = context.getService(StsClientStore.class);
-        assertThat(service).isInstanceOf(SqlStsClientStore.class);
+        var service = context.getService(StsAccountStore.class);
+        assertThat(service).isInstanceOf(SqlStsAccountStore.class);
 
         verify(config).getString(eq(DATASOURCE_NAME), any());
     }

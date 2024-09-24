@@ -24,8 +24,8 @@ import org.eclipse.edc.api.iam.identitytrust.sts.SecureTokenServiceApi;
 import org.eclipse.edc.api.iam.identitytrust.sts.exception.StsTokenException;
 import org.eclipse.edc.api.iam.identitytrust.sts.model.StsTokenRequest;
 import org.eclipse.edc.api.iam.identitytrust.sts.model.StsTokenResponse;
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClientTokenAdditionalParams;
-import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccountTokenAdditionalParams;
+import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.validator.spi.Validator;
@@ -33,13 +33,13 @@ import org.eclipse.edc.validator.spi.Validator;
 @Path("/")
 public class SecureTokenServiceApiController implements SecureTokenServiceApi {
 
-    private final StsClientService clientService;
+    private final StsAccountService clientService;
 
     private final StsClientTokenGeneratorService tokenService;
 
     private final Validator<StsTokenRequest> tokenRequestValidator;
 
-    public SecureTokenServiceApiController(StsClientService clientService, StsClientTokenGeneratorService tokenService, Validator<StsTokenRequest> tokenRequestValidator) {
+    public SecureTokenServiceApiController(StsAccountService clientService, StsClientTokenGeneratorService tokenService, Validator<StsTokenRequest> tokenRequestValidator) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.tokenRequestValidator = tokenRequestValidator;
@@ -60,8 +60,8 @@ public class SecureTokenServiceApiController implements SecureTokenServiceApi {
 
     }
 
-    private StsClientTokenAdditionalParams additionalParams(StsTokenRequest request) {
-        return StsClientTokenAdditionalParams.Builder.newInstance()
+    private StsAccountTokenAdditionalParams additionalParams(StsTokenRequest request) {
+        return StsAccountTokenAdditionalParams.Builder.newInstance()
                 .audience(request.getAudience())
                 .accessToken(request.getToken())
                 .bearerAccessScope(request.getBearerAccessScope())

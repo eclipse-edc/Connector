@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.defaults.service;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
+import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -25,30 +25,30 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 
-public class StsClientServiceImpl implements StsClientService {
+public class StsAccountServiceImpl implements StsAccountService {
 
-    private final StsClientStore stsClientStore;
+    private final StsAccountStore stsAccountStore;
     private final TransactionContext transactionContext;
     private final Vault vault;
 
-    public StsClientServiceImpl(StsClientStore stsClientStore, Vault vault, TransactionContext transactionContext) {
-        this.stsClientStore = stsClientStore;
+    public StsAccountServiceImpl(StsAccountStore stsAccountStore, Vault vault, TransactionContext transactionContext) {
+        this.stsAccountStore = stsAccountStore;
         this.vault = vault;
         this.transactionContext = transactionContext;
     }
 
     @Override
-    public ServiceResult<StsClient> create(StsClient client) {
-        return transactionContext.execute(() -> ServiceResult.from(stsClientStore.create(client)));
+    public ServiceResult<StsAccount> create(StsAccount client) {
+        return transactionContext.execute(() -> ServiceResult.from(stsAccountStore.create(client)));
     }
 
     @Override
-    public ServiceResult<StsClient> findByClientId(String clientId) {
-        return transactionContext.execute(() -> ServiceResult.from(stsClientStore.findByClientId(clientId)));
+    public ServiceResult<StsAccount> findByClientId(String clientId) {
+        return transactionContext.execute(() -> ServiceResult.from(stsAccountStore.findByClientId(clientId)));
     }
 
     @Override
-    public ServiceResult<StsClient> authenticate(StsClient client, String secret) {
+    public ServiceResult<StsAccount> authenticate(StsAccount client, String secret) {
         return Optional.ofNullable(vault.resolveSecret(client.getSecretAlias()))
                 .filter(vaultSecret -> vaultSecret.equals(secret))
                 .map(s -> ServiceResult.success(client))

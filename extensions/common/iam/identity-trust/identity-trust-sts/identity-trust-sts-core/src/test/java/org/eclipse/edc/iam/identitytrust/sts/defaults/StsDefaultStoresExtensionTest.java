@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.defaults;
 
-import org.eclipse.edc.iam.identitytrust.sts.defaults.store.InMemoryStsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.defaults.store.InMemoryStsAccountStore;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.Test;
@@ -29,6 +29,6 @@ public class StsDefaultStoresExtensionTest {
     void initialize(StsDefaultStoresExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        assertThat(extension.clientStore()).isInstanceOf(InMemoryStsClientStore.class);
+        assertThat(extension.clientStore()).isInstanceOf(InMemoryStsAccountStore.class);
     }
 }

@@ -17,7 +17,7 @@ package org.eclipse.edc.api.iam.identitytrust.sts;
 import org.eclipse.edc.api.iam.identitytrust.sts.controller.SecureTokenServiceApiController;
 import org.eclipse.edc.api.iam.identitytrust.sts.exception.StsTokenExceptionMapper;
 import org.eclipse.edc.api.iam.identitytrust.sts.validation.StsTokenRequestValidator;
-import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService;
+import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -32,7 +32,7 @@ public class SecureTokenServiceApiExtension implements ServiceExtension {
     public static final String NAME = "Secure Token Service API";
 
     @Inject
-    private StsClientService clientService;
+    private StsAccountService clientService;
 
     @Inject
     private StsClientTokenGeneratorService tokenService;

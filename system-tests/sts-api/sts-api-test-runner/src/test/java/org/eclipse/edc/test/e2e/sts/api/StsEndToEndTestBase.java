@@ -15,8 +15,8 @@
 package org.eclipse.edc.test.e2e.sts.api;
 
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.security.Vault;
 
@@ -34,7 +34,7 @@ public abstract class StsEndToEndTestBase {
 
     protected abstract RuntimePerClassExtension getRuntime();
 
-    protected StsClient initClient(String clientId, String clientSecret) {
+    protected StsAccount initClient(String clientId, String clientSecret) {
         var store = getClientStore();
         var vault = getVault();
         var clientSecretAlias = "client_secret_alias";
@@ -47,7 +47,7 @@ public abstract class StsEndToEndTestBase {
         return client;
     }
 
-    protected StsClient initClient(String clientSecret) {
+    protected StsAccount initClient(String clientSecret) {
         return initClient(UUID.randomUUID().toString(), clientSecret);
     }
 
@@ -59,8 +59,8 @@ public abstract class StsEndToEndTestBase {
         }
     }
 
-    private StsClientStore getClientStore() {
-        return getRuntime().getService(StsClientStore.class);
+    private StsAccountStore getClientStore() {
+        return getRuntime().getService(StsAccountStore.class);
     }
 
     private Vault getVault() {

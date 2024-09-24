@@ -15,8 +15,8 @@
 package org.eclipse.edc.iam.identitytrust.sts.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.fixtures.StsClientStoreTestBase;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.fixtures.StsAccountStoreTestBase;
 import org.eclipse.edc.iam.identitytrust.sts.store.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.iam.identitytrust.sts.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.json.JacksonTypeManager;
@@ -31,18 +31,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
-public class SqlStsClientStoreTest extends StsClientStoreTestBase {
+public class SqlStsAccountStoreTest extends StsAccountStoreTestBase {
 
     private final BaseSqlDialectStatements sqlStatements = new PostgresDialectStatements();
 
-    private SqlStsClientStore stsClientStore;
+    private SqlStsAccountStore stsClientStore;
 
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) {
         var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        stsClientStore = new SqlStsClientStore(setupExtension.getDataSourceRegistry(), setupExtension.getDatasourceName(),
+        stsClientStore = new SqlStsAccountStore(setupExtension.getDataSourceRegistry(), setupExtension.getDatasourceName(),
                 setupExtension.getTransactionContext(), new ObjectMapper(), sqlStatements, queryExecutor);
 
         var schema = TestUtils.getResourceFileContentAsString("sts-client-schema.sql");
@@ -55,7 +55,7 @@ public class SqlStsClientStoreTest extends StsClientStoreTestBase {
     }
 
     @Override
-    protected StsClientStore getStsClientStore() {
+    protected StsAccountStore getStsClientStore() {
         return stsClientStore;
     }
 }

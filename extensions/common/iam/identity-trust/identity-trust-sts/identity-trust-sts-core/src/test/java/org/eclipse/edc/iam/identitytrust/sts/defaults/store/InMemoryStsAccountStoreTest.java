@@ -14,22 +14,22 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.defaults.store;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.fixtures.StsClientStoreTestBase;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.fixtures.StsAccountStoreTestBase;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.junit.jupiter.api.BeforeEach;
 
-public class InMemoryStsClientStoreTest extends StsClientStoreTestBase {
+public class InMemoryStsAccountStoreTest extends StsAccountStoreTestBase {
 
-    private InMemoryStsClientStore store;
+    private InMemoryStsAccountStore store;
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryStsClientStore(CriterionOperatorRegistryImpl.ofDefaults());
+        store = new InMemoryStsAccountStore(CriterionOperatorRegistryImpl.ofDefaults());
     }
 
     @Override
-    protected StsClientStore getStsClientStore() {
+    protected StsAccountStore getStsClientStore() {
         return store;
     }
 }

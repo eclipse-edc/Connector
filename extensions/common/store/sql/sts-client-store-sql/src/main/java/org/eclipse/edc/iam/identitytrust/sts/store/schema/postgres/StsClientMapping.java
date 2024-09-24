@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.store.schema.postgres;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
 import org.eclipse.edc.iam.identitytrust.sts.store.schema.StsClientStatements;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
- * Maps fields of a {@link StsClient} onto the
+ * Maps fields of a {@link StsAccount} onto the
  * corresponding SQL schema (= column names)
  */
 public class StsClientMapping extends TranslationMapping {

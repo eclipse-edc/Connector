@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.defaults.service;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -29,16 +29,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-public class StsClientServiceImplTest {
+public class StsAccountServiceImplTest {
 
-    private final StsClientStore store = mock();
+    private final StsAccountStore store = mock();
     private final Vault vault = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
-    private StsClientServiceImpl clientService;
+    private StsAccountServiceImpl clientService;
 
     @BeforeEach
     void setup() {
-        clientService = new StsClientServiceImpl(store, vault, transactionContext);
+        clientService = new StsAccountServiceImpl(store, vault, transactionContext);
     }
 
     @Test

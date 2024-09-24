@@ -15,8 +15,8 @@
 package org.eclipse.edc.iam.identitytrust.sts.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.iam.identitytrust.sts.store.schema.StsClientStatements;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -35,18 +35,18 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
-public class SqlStsClientStore extends AbstractSqlStore implements StsClientStore {
+public class SqlStsAccountStore extends AbstractSqlStore implements StsAccountStore {
 
     private final StsClientStatements statements;
 
-    public SqlStsClientStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                             ObjectMapper objectMapper, StsClientStatements statements, QueryExecutor queryExecutor) {
+    public SqlStsAccountStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
+                              ObjectMapper objectMapper, StsClientStatements statements, QueryExecutor queryExecutor) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
     }
 
     @Override
-    public StoreResult<StsClient> create(StsClient client) {
+    public StoreResult<StsAccount> create(StsAccount client) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 if (findById(connection, client.getId()) != null) {
@@ -73,14 +73,14 @@ public class SqlStsClientStore extends AbstractSqlStore implements StsClientStor
     }
 
     @Override
-    public StoreResult<Void> update(StsClient stsClient) {
+    public StoreResult<Void> update(StsAccount stsAccount) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                if (findById(connection, stsClient.getId()) != null) {
-                    updateInternal(connection, stsClient);
+                if (findById(connection, stsAccount.getId()) != null) {
+                    updateInternal(connection, stsAccount);
                     return StoreResult.success();
                 } else {
-                    return StoreResult.notFound(format(CLIENT_NOT_FOUND_BY_ID_TEMPLATE, stsClient.getId()));
+                    return StoreResult.notFound(format(CLIENT_NOT_FOUND_BY_ID_TEMPLATE, stsAccount.getId()));
                 }
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
@@ -89,7 +89,7 @@ public class SqlStsClientStore extends AbstractSqlStore implements StsClientStor
     }
 
     @Override
-    public @NotNull Stream<StsClient> findAll(QuerySpec spec) {
+    public @NotNull Stream<StsAccount> findAll(QuerySpec spec) {
         return transactionContext.execute(() -> {
             Objects.requireNonNull(spec);
 
@@ -103,7 +103,7 @@ public class SqlStsClientStore extends AbstractSqlStore implements StsClientStor
     }
 
     @Override
-    public StoreResult<StsClient> findById(String id) {
+    public StoreResult<StsAccount> findById(String id) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var client = findById(connection, id);
@@ -118,7 +118,7 @@ public class SqlStsClientStore extends AbstractSqlStore implements StsClientStor
     }
 
     @Override
-    public StoreResult<StsClient> findByClientId(String clientId) {
+    public StoreResult<StsAccount> findByClientId(String clientId) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var client = findByClientIdId(connection, clientId);
@@ -133,7 +133,7 @@ public class SqlStsClientStore extends AbstractSqlStore implements StsClientStor
     }
 
     @Override
-    public StoreResult<StsClient> deleteById(String id) {
+    public StoreResult<StsAccount> deleteById(String id) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var entity = findById(connection, id);
@@ -150,31 +150,31 @@ public class SqlStsClientStore extends AbstractSqlStore implements StsClientStor
         });
     }
 
-    private void updateInternal(Connection connection, StsClient stsClient) {
+    private void updateInternal(Connection connection, StsAccount stsAccount) {
         queryExecutor.execute(connection, statements.getUpdateTemplate(),
-                stsClient.getId(),
-                stsClient.getName(),
-                stsClient.getClientId(),
-                stsClient.getDid(),
-                stsClient.getSecretAlias(),
-                stsClient.getPrivateKeyAlias(),
-                stsClient.getPublicKeyReference(),
-                stsClient.getCreatedAt(),
-                stsClient.getId());
+                stsAccount.getId(),
+                stsAccount.getName(),
+                stsAccount.getClientId(),
+                stsAccount.getDid(),
+                stsAccount.getSecretAlias(),
+                stsAccount.getPrivateKeyAlias(),
+                stsAccount.getPublicKeyReference(),
+                stsAccount.getCreatedAt(),
+                stsAccount.getId());
     }
 
-    private StsClient findById(Connection connection, String id) {
+    private StsAccount findById(Connection connection, String id) {
         var sql = statements.getFindByTemplate();
         return queryExecutor.single(connection, false, this::mapResultSet, sql, id);
     }
 
-    private StsClient findByClientIdId(Connection connection, String id) {
+    private StsAccount findByClientIdId(Connection connection, String id) {
         var sql = statements.getFindByClientIdTemplate();
         return queryExecutor.single(connection, false, this::mapResultSet, sql, id);
     }
 
-    private StsClient mapResultSet(ResultSet resultSet) throws Exception {
-        return StsClient.Builder.newInstance()
+    private StsAccount mapResultSet(ResultSet resultSet) throws Exception {
+        return StsAccount.Builder.newInstance()
                 .id(resultSet.getString(statements.getIdColumn()))
                 .did(resultSet.getString(statements.getDidColumn()))
                 .name(resultSet.getString(statements.getNameColumn()))

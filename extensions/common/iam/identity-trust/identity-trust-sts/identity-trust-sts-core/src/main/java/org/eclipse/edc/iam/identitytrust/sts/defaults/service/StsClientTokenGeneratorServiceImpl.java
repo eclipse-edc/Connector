@@ -15,8 +15,8 @@
 package org.eclipse.edc.iam.identitytrust.sts.defaults.service;
 
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClientTokenAdditionalParams;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccountTokenAdditionalParams;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsTokenGenerationProvider;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -36,15 +36,15 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGeneratorService {
 
-    private static final Map<String, Function<StsClientTokenAdditionalParams, String>> CLAIM_MAPPERS = Map.of(
-            PRESENTATION_TOKEN_CLAIM, StsClientTokenAdditionalParams::getAccessToken);
+    private static final Map<String, Function<StsAccountTokenAdditionalParams, String>> CLAIM_MAPPERS = Map.of(
+            PRESENTATION_TOKEN_CLAIM, StsAccountTokenAdditionalParams::getAccessToken);
 
     private final long tokenExpiration;
     private final StsTokenGenerationProvider tokenGenerationProvider;
-    private final Function<StsClient, String> keyFunction;
+    private final Function<StsAccount, String> keyFunction;
     private final Clock clock;
 
-    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Function<StsClient, String> keyFunction, Clock clock, long tokenExpiration) {
+    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Function<StsAccount, String> keyFunction, Clock clock, long tokenExpiration) {
         this.tokenGenerationProvider = tokenGenerationProvider;
         this.keyFunction = keyFunction;
         this.clock = clock;
@@ -52,7 +52,7 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
     }
 
     @Override
-    public ServiceResult<TokenRepresentation> tokenFor(StsClient client, StsClientTokenAdditionalParams additionalParams) {
+    public ServiceResult<TokenRepresentation> tokenFor(StsAccount client, StsAccountTokenAdditionalParams additionalParams) {
 
         var embeddedTokenGenerator = new EmbeddedSecureTokenService(tokenGenerationProvider.tokenGeneratorFor(client), () -> keyFunction.apply(client), client::getPublicKeyReference,
                 clock, tokenExpiration);

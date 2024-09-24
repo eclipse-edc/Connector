@@ -17,8 +17,8 @@ package org.eclipse.edc.api.iam.identitytrust.sts.controller;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.iam.identitytrust.sts.exception.StsTokenExceptionMapper;
 import org.eclipse.edc.api.iam.identitytrust.sts.model.StsTokenRequest;
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
+import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 class SecureServiceTokenApiControllerTest extends RestControllerTestBase {
 
     private static final String GRANT_TYPE = "client_credentials";
-    private final StsClientService clientService = mock();
+    private final StsAccountService clientService = mock();
     private final StsClientTokenGeneratorService tokenService = mock();
     private final Validator<StsTokenRequest> validator = mock();
 
@@ -59,7 +59,7 @@ class SecureServiceTokenApiControllerTest extends RestControllerTestBase {
         var name = "Name";
         var expiresIn = 3600;
 
-        var client = StsClient.Builder.newInstance()
+        var client = StsAccount.Builder.newInstance()
                 .id(id)
                 .clientId(clientId)
                 .name(name)
