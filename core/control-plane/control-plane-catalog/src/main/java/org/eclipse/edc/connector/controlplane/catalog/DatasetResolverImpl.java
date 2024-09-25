@@ -62,6 +62,10 @@ public class DatasetResolverImpl implements DatasetResolver {
     @NotNull
     public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec) {
         var contractDefinitions = contractDefinitionResolver.definitionsFor(agent).toList();
+        if (contractDefinitions.isEmpty()) {
+            return Stream.empty();
+        }
+        
         var assetsQuery = QuerySpec.Builder.newInstance().offset(0).limit(MAX_VALUE).filter(querySpec.getFilterExpression()).build();
         return assetIndex.queryAssets(assetsQuery)
                 .map(asset -> toDataset(contractDefinitions, asset))
@@ -73,9 +77,14 @@ public class DatasetResolverImpl implements DatasetResolver {
     @Override
     public Dataset getById(ParticipantAgent agent, String id) {
         var contractDefinitions = contractDefinitionResolver.definitionsFor(agent).toList();
+        if (contractDefinitions.isEmpty()) {
+            return null;
+        }
+        
         return Optional.of(id)
                 .map(assetIndex::findById)
                 .map(asset -> toDataset(contractDefinitions, asset))
+                .filter(Dataset::hasOffers)
                 .orElse(null);
     }
 
