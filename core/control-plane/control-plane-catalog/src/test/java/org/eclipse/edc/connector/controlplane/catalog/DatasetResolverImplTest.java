@@ -295,6 +295,39 @@ class DatasetResolverImplTest {
 
         assertThat(dataset).isNull();
     }
+    
+    @Test
+    void getById_shouldReturnNull_whenNoValidContractDefinition() {
+        var participantAgent = createParticipantAgent();
+        
+        when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.empty());
+        when(assetIndex.findById(any())).thenReturn(createAsset("datasetId").build());
+        
+        var dataset = datasetResolver.getById(participantAgent, "datasetId");
+        
+        assertThat(dataset).isNull();
+    }
+    
+    @Test
+    void getById_shouldReturnNull_whenNoValidContractDefinitionForAsset() {
+        var assetId = "assetId";
+        var participantAgent = createParticipantAgent();
+        
+        when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(
+                contractDefinitionBuilder("definition")
+                        .assetsSelectorCriterion(Criterion.Builder.newInstance()
+                                .operandRight(EDC_NAMESPACE + "id")
+                                .operator("=")
+                                .operandLeft("a-different-asset")
+                                .build())
+                        .build()
+        ));
+        when(assetIndex.findById(any())).thenReturn(createAsset(assetId).build());
+        
+        var dataset = datasetResolver.getById(participantAgent, assetId);
+        
+        assertThat(dataset).isNull();
+    }
 
     private ContractDefinition.Builder contractDefinitionBuilder(String id) {
         return ContractDefinition.Builder.newInstance()
