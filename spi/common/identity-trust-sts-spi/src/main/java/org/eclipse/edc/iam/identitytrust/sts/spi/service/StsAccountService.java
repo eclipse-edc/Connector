@@ -76,6 +76,18 @@ public interface StsAccountService {
     ServiceResult<String> updateSecret(String id, String secretAlias, @Nullable String newSecret);
 
     /**
+     * Updates the client secret associated with this {@link StsAccount}. The old secret is removed from the {@link org.eclipse.edc.spi.security.Vault},
+     * and the new secret is stored using the given alias. A new secret is generated at random.
+     *
+     * @param id       the ID of the {@link StsAccount} to update
+     * @param newAlias The alias under which the new secret is stored in the {@link org.eclipse.edc.spi.security.Vault}
+     * @return A successful result, or a failure indicating what went wrong.
+     */
+    default ServiceResult<String> updateSecret(String id, String newAlias) {
+        return updateSecret(id, newAlias, null);
+    }
+
+    /**
      * Deletes an {@link StsAccount} by its ID.
      *
      * @param id The (database) ID
@@ -101,4 +113,5 @@ public interface StsAccountService {
     ServiceResult<StsAccount> authenticate(StsAccount client, String secret);
 
     ServiceResult<StsAccount> findById(String accountId);
+
 }

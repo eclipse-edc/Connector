@@ -78,7 +78,7 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
         return createAccessToken(claims, scope)
                 .compose(tokenRepresentation -> success(tokenRepresentation.getToken()))
                 .onSuccess(withClaim(PRESENTATION_TOKEN_CLAIM, consumer))
-                .mapTo();
+                .mapEmpty();
     }
 
     private Result<TokenRepresentation> createAccessToken(Map<String, String> claims, String bearerAccessScope) {

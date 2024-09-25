@@ -18,6 +18,7 @@ import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsAccountServiceI
 import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsClientTokenGeneratorServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService;
+import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientSecretGenerator;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
@@ -33,6 +34,8 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.Optional.ofNullable;
 
 @Extension(StsDefaultServicesExtension.NAME)
 public class StsDefaultServicesExtension implements ServiceExtension {
@@ -58,6 +61,8 @@ public class StsDefaultServicesExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
+    @Inject(required = false)
+    private StsClientSecretGenerator stsClientSecretGenerator;
 
     @Override
     public String name() {
@@ -76,6 +81,11 @@ public class StsDefaultServicesExtension implements ServiceExtension {
 
     @Provider
     public StsAccountService clientService() {
-        return new StsAccountServiceImpl(clientStore, vault, transactionContext);
+        return new StsAccountServiceImpl(clientStore, vault, transactionContext, stsClientSecretGenerator());
+    }
+
+    private StsClientSecretGenerator stsClientSecretGenerator() {
+        return ofNullable(stsClientSecretGenerator)
+                .orElseGet(RandomStringGenerator::new);
     }
 }

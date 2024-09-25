@@ -66,7 +66,7 @@ public class StsAccountTokenIssuanceIntegrationTest {
 
     @BeforeEach
     void setup() {
-        clientService = new StsAccountServiceImpl(clientStore, vault, new NoopTransactionContext());
+        clientService = new StsAccountServiceImpl(clientStore, vault, new NoopTransactionContext(), new RandomStringGenerator());
 
         keyParserRegistry.register(new PemParser(mock()));
         keyParserRegistry.register(new JwkParser(new ObjectMapper(), mock()));
@@ -83,13 +83,13 @@ public class StsAccountTokenIssuanceIntegrationTest {
     void authenticateAndGenerateToken() throws Exception {
         var id = "id";
         var clientId = "client_id";
-        var secretAlias = "client_id";
-        var privateKeyAlis = "client_id";
+        var secretAlias = "client_secret_alias";
+        var privateKeyAlias = "client_id";
         var audience = "aud";
         var did = "did:example:subject";
         var client = createClientBuilder(id)
                 .clientId(clientId)
-                .privateKeyAlias(privateKeyAlis)
+                .privateKeyAlias(privateKeyAlias)
                 .secretAlias(secretAlias)
                 .publicKeyReference("public-key")
                 .did(did)
@@ -97,7 +97,7 @@ public class StsAccountTokenIssuanceIntegrationTest {
 
         var additional = StsAccountTokenAdditionalParams.Builder.newInstance().audience(audience).build();
 
-        vault.storeSecret(privateKeyAlis, loadResourceFile("ec-privatekey.pem"));
+        vault.storeSecret(privateKeyAlias, loadResourceFile("ec-privatekey.pem"));
 
         var createResult = clientService.create(client);
         assertThat(createResult.succeeded()).isTrue();
@@ -118,14 +118,14 @@ public class StsAccountTokenIssuanceIntegrationTest {
     void authenticateAndGenerateToken_withBearerAccessScope() throws Exception {
         var id = "id";
         var clientId = "client_id";
-        var secretAlias = "client_id";
-        var privateKeyAlis = "client_id";
+        var secretAlias = "client_secret_alias";
+        var privateKeyAlias = "client_id";
         var did = "did:example:subject";
         var audience = "aud";
         var scope = "scope:test";
         var client = createClientBuilder(id)
                 .clientId(clientId)
-                .privateKeyAlias(privateKeyAlis)
+                .privateKeyAlias(privateKeyAlias)
                 .secretAlias(secretAlias)
                 .did(did)
                 .publicKeyReference("public-key")
@@ -133,7 +133,7 @@ public class StsAccountTokenIssuanceIntegrationTest {
 
         var additional = StsAccountTokenAdditionalParams.Builder.newInstance().audience(audience).bearerAccessScope(scope).build();
 
-        vault.storeSecret(privateKeyAlis, loadResourceFile("ec-privatekey.pem"));
+        vault.storeSecret(privateKeyAlias, loadResourceFile("ec-privatekey.pem"));
 
         var createResult = clientService.create(client);
         assertThat(createResult.succeeded()).isTrue();
@@ -154,15 +154,15 @@ public class StsAccountTokenIssuanceIntegrationTest {
     void authenticateAndGenerateToken_withAccessToken() throws Exception {
         var id = "id";
         var clientId = "client_id";
-        var secretAlias = "client_id";
-        var privateKeyAlis = "client_id";
+        var secretAlias = "client_secret_alias";
+        var privateKeyAlias = "client_id";
         var audience = "aud";
         var accessToken = "tokenTest";
         var did = "did:example:subject";
 
         var client = createClientBuilder(id)
                 .clientId(clientId)
-                .privateKeyAlias(privateKeyAlis)
+                .privateKeyAlias(privateKeyAlias)
                 .secretAlias(secretAlias)
                 .publicKeyReference("public-key")
                 .did(did)
@@ -170,7 +170,7 @@ public class StsAccountTokenIssuanceIntegrationTest {
 
         var additional = StsAccountTokenAdditionalParams.Builder.newInstance().audience(audience).accessToken(accessToken).build();
 
-        vault.storeSecret(privateKeyAlis, loadResourceFile("ec-privatekey.pem"));
+        vault.storeSecret(privateKeyAlias, loadResourceFile("ec-privatekey.pem"));
 
         var createResult = clientService.create(client);
         assertThat(createResult.succeeded()).isTrue();

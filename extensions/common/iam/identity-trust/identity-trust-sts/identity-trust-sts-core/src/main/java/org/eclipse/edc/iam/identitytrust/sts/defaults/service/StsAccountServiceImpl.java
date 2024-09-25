@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.sts.defaults.service;
 
 import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService;
+import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientSecretGenerator;
 import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -25,7 +26,6 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -38,11 +38,13 @@ public class StsAccountServiceImpl implements StsAccountService {
     private final StsAccountStore stsAccountStore;
     private final TransactionContext transactionContext;
     private final Vault vault;
+    private final StsClientSecretGenerator stsClientSecretGenerator;
 
-    public StsAccountServiceImpl(StsAccountStore stsAccountStore, Vault vault, TransactionContext transactionContext) {
+    public StsAccountServiceImpl(StsAccountStore stsAccountStore, Vault vault, TransactionContext transactionContext, StsClientSecretGenerator stsClientSecretGenerator) {
         this.stsAccountStore = stsAccountStore;
         this.vault = vault;
         this.transactionContext = transactionContext;
+        this.stsClientSecretGenerator = stsClientSecretGenerator;
     }
 
     @Override
@@ -60,8 +62,9 @@ public class StsAccountServiceImpl implements StsAccountService {
             if (vaultResult.failed()) {
                 return ServiceResult.unexpected("Error storing client secret. Manual intervention is required for alias %s. %s".formatted(client.getSecretAlias(), vaultResult.getFailureDetail()));
             }
+            return ServiceResult.success(clientSecret);
         }
-        return ServiceResult.success(clientSecret);
+        return result.mapFailure();
     }
 
     @Override
@@ -97,7 +100,8 @@ public class StsAccountServiceImpl implements StsAccountService {
                 vaultInteractionResult = vaultInteractionResult.merge(vault.deleteSecret(oldSecretAlias));
             }
 
-            vaultInteractionResult = vaultInteractionResult.merge(vault.storeSecret(newSecretAlias, newSecret));
+            var finalNewSecret = newSecret;
+            vaultInteractionResult = vaultInteractionResult.compose(v -> vault.storeSecret(newSecretAlias, finalNewSecret));
             return vaultInteractionResult.succeeded()
                     ? ServiceResult.success(newSecretAlias)
                     : ServiceResult.unexpected(vaultInteractionResult.getFailureDetail());
@@ -107,12 +111,14 @@ public class StsAccountServiceImpl implements StsAccountService {
 
     @Override
     public ServiceResult<Void> deleteById(String id) {
-        return null;
+        return transactionContext.execute(() -> ServiceResult.from(stsAccountStore.deleteById(id))
+                .onSuccess(stsAccount -> vault.deleteSecret(stsAccount.getSecretAlias()))
+                .mapEmpty());
     }
 
     @Override
     public Collection<StsAccount> queryAccounts(QuerySpec querySpec) {
-        return List.of();
+        return transactionContext.execute(() -> stsAccountStore.findAll(querySpec).toList());
     }
 
     @Override
@@ -123,7 +129,12 @@ public class StsAccountServiceImpl implements StsAccountService {
                 .orElseGet(() -> ServiceResult.unauthorized(format("Failed to authenticate client with id %s", client.getId())));
     }
 
+    @Override
+    public ServiceResult<StsAccount> findById(String accountId) {
+        return transactionContext.execute(() -> from(stsAccountStore.findById(accountId)));
+    }
+
     private String generateSecret() {
-        return null;
+        return stsClientSecretGenerator.generateClientSecret(null);
     }
 }
