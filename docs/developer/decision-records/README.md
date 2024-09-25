@@ -60,3 +60,4 @@
 - [2024-07-03 Additional CatalogRequest scope parameter](./2024-07-03-additional-catalogrequest-param/)
 - [2024-08-05 Custom JWSSigner Implementations](./2024-08-05-custom-jwssigners/)
 - [2024-08-16 Policy_Validation](./2024-08-16-policy-validation)
+- [2024-09-24 STS Accounts API](./2024-09-24-sts-accounts-api)
