@@ -20,7 +20,9 @@ plugins {
 
 dependencies {
     api(project(":spi:common:web-spi"))
+    api(project(":spi:common:auth-spi"))
     api(project(":spi:common:identity-trust-sts-spi"))
+    api(project(":extensions:common:auth:auth-tokenbased"))
 
     implementation(libs.jakarta.rsApi)
 

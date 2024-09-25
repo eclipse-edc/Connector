@@ -43,7 +43,6 @@ public class StsApiConfigurationExtensionTest {
     private final WebServiceConfigurer configurer = mock();
     private final Monitor monitor = mock(Monitor.class);
     private final WebService webService = mock(WebService.class);
-    private StsApiConfigurationExtension extension;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
