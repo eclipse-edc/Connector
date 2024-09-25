@@ -56,6 +56,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -97,6 +98,16 @@ class DatasetResolverImplTest {
             });
             assertThat(dataset.getProperties()).contains(entry("key", "value"));
         });
+    }
+    
+    @Test
+    void query_shouldNotQueryAssets_whenNoValidContractDefinition() {
+        when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.empty());
+        
+        var datasets = datasetResolver.query(createParticipantAgent(), QuerySpec.none());
+        
+        assertThat(datasets).isNotNull().isEmpty();
+        verify(assetIndex, never()).queryAssets(any());
     }
 
     @Test
@@ -301,11 +312,11 @@ class DatasetResolverImplTest {
         var participantAgent = createParticipantAgent();
         
         when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.empty());
-        when(assetIndex.findById(any())).thenReturn(createAsset("datasetId").build());
         
         var dataset = datasetResolver.getById(participantAgent, "datasetId");
         
         assertThat(dataset).isNull();
+        verify(assetIndex, never()).findById(any());
     }
     
     @Test
