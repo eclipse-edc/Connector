@@ -29,7 +29,7 @@ public interface StsTokenGenerationProvider {
     /**
      * Returns a {@link TokenGenerationService} for the input {@link StsAccount}
      *
-     * @param client The {@link StsAccount}
+     * @param stsAccount The {@link StsAccount}
      * @return The {@link TokenGenerationService}
      */
     TokenGenerationService tokenGeneratorFor(StsAccount stsAccount);
