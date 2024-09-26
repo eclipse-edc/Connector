@@ -112,6 +112,12 @@ public interface StsAccountService {
      */
     ServiceResult<StsAccount> authenticate(StsAccount client, String secret);
 
+    /**
+     * Finds a particular {@link StsAccount} by its (database-)ID
+     *
+     * @param accountId the (database-)ID
+     * @return a {@link ServiceResult} containing the account, a failure otherwise.
+     */
     ServiceResult<StsAccount> findById(String accountId);
 
 }

@@ -17,5 +17,12 @@ package org.eclipse.edc.api.iam.identitytrust.sts.accounts.model;
 import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * This container object serves as request DTO for creating {@link StsAccount} entries.
+ *
+ * @param account      The STS Account to be created
+ * @param clientSecret If present, this value will be used as {@code client_secret} for the account. If null, a client secret
+ *                     will be generated.
+ */
 public record StsAccountCreation(StsAccount account, @Nullable String clientSecret) {
 }

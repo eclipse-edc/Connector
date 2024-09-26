@@ -31,7 +31,7 @@ import org.eclipse.edc.web.spi.ApiErrorDetail;
 import java.util.Collection;
 
 @OpenAPIDefinition
-@Tag(name = "Secure Token Service Api")
+@Tag(name = "Secure Token Service Accounts Api")
 public interface StsAccountsApi {
 
     @Operation(description = "Creates a new STS Account with the given parameters",

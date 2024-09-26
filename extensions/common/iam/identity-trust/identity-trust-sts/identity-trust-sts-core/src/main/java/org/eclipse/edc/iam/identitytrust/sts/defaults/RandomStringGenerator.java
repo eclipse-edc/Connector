@@ -20,11 +20,20 @@ import org.jetbrains.annotations.Nullable;
 import java.security.SecureRandom;
 
 /**
- * Default client secret generator that creates an alpha-numeric string of length {@link RandomStringGenerator#DEFAULT_CLIENT_SECRET_LENGTH}
+ * Default client secret generator that creates an alphanumeric string of length {@link RandomStringGenerator#DEFAULT_CLIENT_SECRET_LENGTH}
  * (16).
  */
 public class RandomStringGenerator implements StsClientSecretGenerator {
     public static final int DEFAULT_CLIENT_SECRET_LENGTH = 16;
+    private final int length;
+
+    public RandomStringGenerator() {
+        length = DEFAULT_CLIENT_SECRET_LENGTH;
+    }
+
+    public RandomStringGenerator(int length) {
+        this.length = length;
+    }
 
     @Override
     public String generateClientSecret(@Nullable Object parameters) {
@@ -35,7 +44,7 @@ public class RandomStringGenerator implements StsClientSecretGenerator {
 
         return random.ints(leftLimit, rightLimit + 1)
                 .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
-                .limit(DEFAULT_CLIENT_SECRET_LENGTH)
+                .limit(length)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
     }
