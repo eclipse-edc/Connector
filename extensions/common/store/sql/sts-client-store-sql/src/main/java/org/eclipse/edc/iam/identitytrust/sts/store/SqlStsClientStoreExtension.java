@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.sts.store;
 
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.iam.identitytrust.sts.store.schema.StsClientStatements;
 import org.eclipse.edc.iam.identitytrust.sts.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -32,8 +32,8 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import static org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry.DEFAULT_DATASOURCE;
 
-@Provides({ StsClientStore.class })
-@Extension(value = "SQL sts client store")
+@Provides({ StsAccountStore.class })
+@Extension(value = "SQL sts accounts store")
 public class SqlStsClientStoreExtension implements ServiceExtension {
 
     @Setting(value = "The datasource to be used", defaultValue = DEFAULT_DATASOURCE)
@@ -61,10 +61,10 @@ public class SqlStsClientStoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var dataSourceName = context.getSetting(DATASOURCE_NAME, DEFAULT_DATASOURCE);
 
-        var sqlStore = new SqlStsClientStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(),
+        var sqlStore = new SqlStsAccountStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(),
                 getStatementImpl(), queryExecutor);
 
-        context.registerService(StsClientStore.class, sqlStore);
+        context.registerService(StsAccountStore.class, sqlStore);
 
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "sts-client-schema.sql");
     }

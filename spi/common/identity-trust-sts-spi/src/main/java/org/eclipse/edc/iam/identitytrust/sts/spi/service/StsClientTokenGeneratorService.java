@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.spi.service;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClientTokenAdditionalParams;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccountTokenAdditionalParams;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -27,12 +27,12 @@ import org.eclipse.edc.spi.result.ServiceResult;
 public interface StsClientTokenGeneratorService {
 
     /**
-     * Mint a Self-Issued ID Token for the input {@link StsClient} with additional parameters.
+     * Mint a Self-Issued ID Token for the input {@link StsAccount} with additional parameters.
      *
-     * @param client           The {@link StsClient}
-     * @param additionalParams The {@link StsClientTokenAdditionalParams}
+     * @param client           The {@link StsAccount}
+     * @param additionalParams The {@link StsAccountTokenAdditionalParams}
      * @return The issued token if successful, failure otherwise
      */
-    ServiceResult<TokenRepresentation> tokenFor(StsClient client, StsClientTokenAdditionalParams additionalParams);
+    ServiceResult<TokenRepresentation> tokenFor(StsAccount client, StsAccountTokenAdditionalParams additionalParams);
 
 }

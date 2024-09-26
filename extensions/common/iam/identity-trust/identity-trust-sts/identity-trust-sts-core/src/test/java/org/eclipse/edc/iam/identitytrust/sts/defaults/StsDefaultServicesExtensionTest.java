@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.defaults;
 
-import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsClientServiceImpl;
+import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsAccountServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsClientTokenGeneratorServiceImpl;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -30,7 +30,7 @@ public class StsDefaultServicesExtensionTest {
     void initialize(StsDefaultServicesExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        assertThat(extension.clientService()).isInstanceOf(StsClientServiceImpl.class);
+        assertThat(extension.clientService()).isInstanceOf(StsAccountServiceImpl.class);
         assertThat(extension.clientTokenService(context)).isInstanceOf(StsClientTokenGeneratorServiceImpl.class);
     }
 }

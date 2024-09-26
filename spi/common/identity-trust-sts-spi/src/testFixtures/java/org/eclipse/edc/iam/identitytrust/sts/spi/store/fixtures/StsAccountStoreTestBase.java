@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.spi.store.fixtures;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -48,17 +48,17 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 /**
- * Base compliance tests for implementors of {@link StsClientStore}.
+ * Base compliance tests for implementors of {@link StsAccountStore}.
  */
-public abstract class StsClientStoreTestBase {
+public abstract class StsAccountStoreTestBase {
 
-    protected abstract StsClientStore getStsClientStore();
+    protected abstract StsAccountStore getStsClientStore();
 
     protected String getRandomId() {
         return UUID.randomUUID().toString();
     }
 
-    private List<StsClient> createClients(int size) {
+    private List<StsAccount> createClients(int size) {
         return IntStream.range(0, size).mapToObj(i -> createClient("id" + i))
                 .toList();
     }
@@ -71,7 +71,7 @@ public abstract class StsClientStoreTestBase {
         }
     }
 
-    private void saveClients(List<StsClient> clients) {
+    private void saveClients(List<StsAccount> clients) {
         clients.forEach(getStsClientStore()::create);
     }
 
@@ -158,7 +158,7 @@ public abstract class StsClientStoreTestBase {
 
         @ParameterizedTest
         @ArgumentsSource(FilterArgumentProvider.class)
-        void query_withQuerySpec(String field, Function<StsClient, String> mapping) {
+        void query_withQuerySpec(String field, Function<StsAccount, String> mapping) {
             var clients = createClients(10);
             saveClients(clients);
 
@@ -252,7 +252,7 @@ public abstract class StsClientStoreTestBase {
 
             assertThat(getStsClientStore().findAll(QuerySpec.Builder.newInstance().sortField("createdAt").sortOrder(SortOrder.ASC).build()))
                     .hasSize(10)
-                    .isSortedAccordingTo(Comparator.comparing(StsClient::getCreatedAt));
+                    .isSortedAccordingTo(Comparator.comparing(StsAccount::getCreatedAt));
 
             assertThat(getStsClientStore().findAll(QuerySpec.Builder.newInstance().sortField("createdAt").sortOrder(SortOrder.DESC).build()))
                     .hasSize(10)
@@ -275,13 +275,13 @@ public abstract class StsClientStoreTestBase {
             public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
 
                 return Stream.of(
-                        Arguments.of("id", (Function<StsClient, String>) StsClient::getId),
-                        Arguments.of("clientId", (Function<StsClient, String>) StsClient::getClientId),
-                        Arguments.of("name", (Function<StsClient, String>) StsClient::getName),
-                        Arguments.of("did", (Function<StsClient, String>) StsClient::getDid),
-                        Arguments.of("secretAlias", (Function<StsClient, String>) StsClient::getSecretAlias),
-                        Arguments.of("privateKeyAlias", (Function<StsClient, String>) StsClient::getPrivateKeyAlias),
-                        Arguments.of("publicKeyReference", (Function<StsClient, String>) StsClient::getPublicKeyReference)
+                        Arguments.of("id", (Function<StsAccount, String>) StsAccount::getId),
+                        Arguments.of("clientId", (Function<StsAccount, String>) StsAccount::getClientId),
+                        Arguments.of("name", (Function<StsAccount, String>) StsAccount::getName),
+                        Arguments.of("did", (Function<StsAccount, String>) StsAccount::getDid),
+                        Arguments.of("secretAlias", (Function<StsAccount, String>) StsAccount::getSecretAlias),
+                        Arguments.of("privateKeyAlias", (Function<StsAccount, String>) StsAccount::getPrivateKeyAlias),
+                        Arguments.of("publicKeyReference", (Function<StsAccount, String>) StsAccount::getPublicKeyReference)
                 );
             }
         }

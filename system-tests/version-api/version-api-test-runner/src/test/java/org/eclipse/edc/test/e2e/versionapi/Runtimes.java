@@ -16,7 +16,7 @@ package org.eclipse.edc.test.e2e.versionapi;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService;
+import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -34,7 +34,7 @@ public interface Runtimes {
         var rt = new RuntimePerClassExtension(new EmbeddedRuntime("control-plane", inMemoryConfiguration(), ":system-tests:version-api:version-api-test-runtime"));
         rt.registerServiceMock(DataPlaneManager.class, mock());
         rt.registerServiceMock(DataPlaneClientFactory.class, mock());
-        rt.registerServiceMock(StsClientService.class, mock());
+        rt.registerServiceMock(StsAccountService.class, mock());
         rt.registerServiceMock(StsClientTokenGeneratorService.class, mock());
         return rt;
     }

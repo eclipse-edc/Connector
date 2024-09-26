@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.sts.defaults.service;
 
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClientTokenAdditionalParams;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccountTokenAdditionalParams;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsTokenGenerationProvider;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -34,7 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class StsClientTokenGeneratorServiceImplTest {
+public class StsAccountTokenGeneratorServiceImplTest {
 
     public static final long TOKEN_EXPIRATION = 60 * 5;
     private final StsTokenGenerationProvider tokenGenerationProvider = mock();
@@ -53,7 +53,7 @@ public class StsClientTokenGeneratorServiceImplTest {
         when(tokenGenerationProvider.tokenGeneratorFor(client)).thenReturn(tokenGenerator);
         when(tokenGenerator.generate(any(), any(TokenDecorator[].class))).thenReturn(Result.success(token));
 
-        var inserted = clientTokenService.tokenFor(client, StsClientTokenAdditionalParams.Builder.newInstance().audience("aud").build());
+        var inserted = clientTokenService.tokenFor(client, StsAccountTokenAdditionalParams.Builder.newInstance().audience("aud").build());
 
         assertThat(inserted).isSucceeded().usingRecursiveComparison().isEqualTo(token);
     }
@@ -64,7 +64,7 @@ public class StsClientTokenGeneratorServiceImplTest {
         when(tokenGenerationProvider.tokenGeneratorFor(client)).thenReturn(tokenGenerator);
         when(tokenGenerator.generate(any(), any(TokenDecorator[].class))).thenReturn(Result.failure("failure"));
 
-        var inserted = clientTokenService.tokenFor(client, StsClientTokenAdditionalParams.Builder.newInstance().audience("aud").build());
+        var inserted = clientTokenService.tokenFor(client, StsAccountTokenAdditionalParams.Builder.newInstance().audience("aud").build());
 
         assertThat(inserted).isFailed()
                 .satisfies(serviceFailure -> {

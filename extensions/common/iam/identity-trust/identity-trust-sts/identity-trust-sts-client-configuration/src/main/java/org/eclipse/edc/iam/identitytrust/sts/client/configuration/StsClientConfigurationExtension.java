@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.client.configuration;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -43,7 +43,7 @@ public class StsClientConfigurationExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Inject
-    private StsClientStore clientStore;
+    private StsAccountStore clientStore;
 
 
     @Override
@@ -68,7 +68,7 @@ public class StsClientConfigurationExtension implements ServiceExtension {
         var clientPrivateKeyAlias = config.getString(CLIENT_PRIVATE_KEY_ALIAS);
         var publicKeyRef = config.getString(CLIENT_PUBLIC_KEY_REFERENCE, null);
 
-        var client = StsClient.Builder.newInstance()
+        var client = StsAccount.Builder.newInstance()
                 .id(id)
                 .clientId(clientId)
                 .secretAlias(clientSecretAlias)

@@ -14,12 +14,13 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.defaults;
 
-import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsClientServiceImpl;
+import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsAccountServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.defaults.service.StsClientTokenGeneratorServiceImpl;
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientService;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
+import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService;
+import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientSecretGenerator;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -34,6 +35,8 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import java.time.Clock;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Optional.ofNullable;
+
 @Extension(StsDefaultServicesExtension.NAME)
 public class StsDefaultServicesExtension implements ServiceExtension {
 
@@ -45,7 +48,7 @@ public class StsDefaultServicesExtension implements ServiceExtension {
     private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
 
     @Inject
-    private StsClientStore clientStore;
+    private StsAccountStore clientStore;
 
     @Inject
     private TransactionContext transactionContext;
@@ -58,6 +61,8 @@ public class StsDefaultServicesExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
+    @Inject(required = false)
+    private StsClientSecretGenerator stsClientSecretGenerator;
 
     @Override
     public String name() {
@@ -69,13 +74,18 @@ public class StsDefaultServicesExtension implements ServiceExtension {
         var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION_MIN);
         return new StsClientTokenGeneratorServiceImpl(
                 (client) -> new JwtGenerationService(jwsSignerProvider),
-                StsClient::getPrivateKeyAlias,
+                StsAccount::getPrivateKeyAlias,
                 clock,
                 TimeUnit.MINUTES.toSeconds(tokenExpiration));
     }
 
     @Provider
-    public StsClientService clientService() {
-        return new StsClientServiceImpl(clientStore, vault, transactionContext);
+    public StsAccountService clientService() {
+        return new StsAccountServiceImpl(clientStore, vault, transactionContext, stsClientSecretGenerator());
+    }
+
+    private StsClientSecretGenerator stsClientSecretGenerator() {
+        return ofNullable(stsClientSecretGenerator)
+                .orElseGet(RandomStringGenerator::new);
     }
 }

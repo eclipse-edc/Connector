@@ -14,22 +14,22 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.spi.store.fixtures;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
 
 import java.util.UUID;
 
 
 public class TestFunctions {
 
-    public static StsClient createClient(String id, String secretAlias) {
+    public static StsAccount createClient(String id, String secretAlias) {
         return createClient(id, secretAlias, id, secretAlias, "did:example:subject");
     }
 
-    public static StsClient createClient(String id, String secretAlias, String clientId) {
+    public static StsAccount createClient(String id, String secretAlias, String clientId) {
         return createClient(id, secretAlias, clientId, secretAlias, "did:example:subject");
     }
 
-    public static StsClient createClient(String id, String secretAlias, String clientId, String publicKeyReference, String did) {
+    public static StsAccount createClient(String id, String secretAlias, String clientId, String publicKeyReference, String did) {
         return createClientBuilder(id)
                 .clientId(clientId)
                 .name(UUID.randomUUID().toString())
@@ -39,13 +39,13 @@ public class TestFunctions {
                 .privateKeyAlias(UUID.randomUUID().toString()).build();
     }
 
-    public static StsClient.Builder createClientBuilder(String id) {
-        return StsClient.Builder.newInstance()
+    public static StsAccount.Builder createClientBuilder(String id) {
+        return StsAccount.Builder.newInstance()
                 .id(id)
                 .name(UUID.randomUUID().toString());
     }
 
-    public static StsClient createClient(String id) {
+    public static StsAccount createClient(String id) {
         return createClient(id, UUID.randomUUID().toString());
     }
 

@@ -20,9 +20,9 @@ import org.eclipse.edc.spi.security.Vault;
 import java.util.Objects;
 
 /**
- * The {@link StsClient} contains information about STS clients.
+ * The {@link StsAccount} contains information about STS clients.
  */
-public class StsClient extends Entity {
+public class StsAccount extends Entity {
     private String clientId;
     private String did;
     private String name;
@@ -30,11 +30,11 @@ public class StsClient extends Entity {
     private String privateKeyAlias;
     private String publicKeyReference;
 
-    private StsClient() {
+    private StsAccount() {
     }
 
     /**
-     * The alias of the {@link StsClient} secret stored in the {@link Vault}
+     * The alias of the {@link StsAccount} secret stored in the {@link Vault}
      *
      * @return The secret alias
      */
@@ -43,7 +43,7 @@ public class StsClient extends Entity {
     }
 
     /**
-     * The alias of the {@link StsClient} private key stored in the {@link Vault}
+     * The alias of the {@link StsAccount} private key stored in the {@link Vault}
      *
      * @return The private key alias
      */
@@ -53,7 +53,7 @@ public class StsClient extends Entity {
 
 
     /**
-     * The name of the {@link StsClient}
+     * The name of the {@link StsAccount}
      *
      * @return The name
      */
@@ -62,7 +62,7 @@ public class StsClient extends Entity {
     }
 
     /**
-     * The client_id of the {@link StsClient}
+     * The client_id of the {@link StsAccount}
      *
      * @return The clientId
      */
@@ -80,7 +80,7 @@ public class StsClient extends Entity {
     }
 
     /**
-     * A reference, e.g. a URL, where the public key that corresponds to the {@link StsClient#getPrivateKeyAlias()} can be obtained.
+     * A reference, e.g. a URL, where the public key that corresponds to the {@link StsAccount#getPrivateKeyAlias()} can be obtained.
      * In most situations this will be a DID with a key identifier, e.g. "did:web:foo:bar#key-1".
      * <p>
      * This can be null, in which case there has to be an out-of-band public key exchange (PKI), for example a well-known location.
@@ -91,12 +91,16 @@ public class StsClient extends Entity {
         return publicKeyReference;
     }
 
+    public void updateSecretAlias(String secretAlias) {
+        this.secretAlias = secretAlias;
+    }
 
-    public static class Builder extends Entity.Builder<StsClient, Builder> {
+
+    public static class Builder extends Entity.Builder<StsAccount, Builder> {
 
 
         private Builder() {
-            super(new StsClient());
+            super(new StsAccount());
         }
 
         public static Builder newInstance() {
@@ -115,7 +119,7 @@ public class StsClient extends Entity {
         }
 
         @Override
-        public StsClient build() {
+        public StsAccount build() {
             Objects.requireNonNull(entity.id, "Client id");
             Objects.requireNonNull(entity.clientId, "Client client_id");
             Objects.requireNonNull(entity.name, "Client name");

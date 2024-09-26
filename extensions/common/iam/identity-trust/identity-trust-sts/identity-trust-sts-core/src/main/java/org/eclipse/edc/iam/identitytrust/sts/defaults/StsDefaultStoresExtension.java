@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.defaults;
 
-import org.eclipse.edc.iam.identitytrust.sts.defaults.store.InMemoryStsClientStore;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.defaults.store.InMemoryStsAccountStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -36,7 +36,7 @@ public class StsDefaultStoresExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
-    public StsClientStore clientStore() {
-        return new InMemoryStsClientStore(criterionOperatorRegistry);
+    public StsAccountStore clientStore() {
+        return new InMemoryStsAccountStore(criterionOperatorRegistry);
     }
 }

@@ -14,16 +14,16 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.store.schema;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.statement.SqlStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 /**
- * Defines all statements that are needed for the {@link StsClient} store
+ * Defines all statements that are needed for the {@link StsAccount} store
  */
 public interface StsClientStatements extends SqlStatements {
-    
+
     default String getIdColumn() {
         return "id";
     }

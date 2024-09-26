@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.client.configuration;
 
-import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsClientStore;
+import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
+import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -42,13 +42,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
-public class StsClientConfigurationExtensionTest implements ServiceExtension {
+public class StsAccountConfigurationExtensionTest implements ServiceExtension {
 
-    private final StsClientStore clientStore = mock();
+    private final StsAccountStore clientStore = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(StsClientStore.class, clientStore);
+        context.registerService(StsAccountStore.class, clientStore);
     }
 
     @Test
@@ -59,7 +59,7 @@ public class StsClientConfigurationExtensionTest implements ServiceExtension {
 
     @Test
     void initialize_withClient(ServiceExtensionContext context, StsClientConfigurationExtension extension) {
-        var client = StsClient.Builder.newInstance()
+        var client = StsAccount.Builder.newInstance()
                 .id("id")
                 .name("name")
                 .clientId("client_id")
@@ -73,7 +73,7 @@ public class StsClientConfigurationExtensionTest implements ServiceExtension {
 
         when(context.getConfig(CONFIG_PREFIX)).thenReturn(config);
         extension.initialize(context);
-        var capture = ArgumentCaptor.forClass(StsClient.class);
+        var capture = ArgumentCaptor.forClass(StsAccount.class);
         verify(clientStore).create(capture.capture());
 
         assertThat(capture.getValue()).usingRecursiveComparison()
@@ -81,7 +81,7 @@ public class StsClientConfigurationExtensionTest implements ServiceExtension {
                 .isEqualTo(client);
     }
 
-    private Map<String, String> clientConfig(StsClient client, String clientAlias) {
+    private Map<String, String> clientConfig(StsAccount client, String clientAlias) {
         return Map.of(
                 clientAlias + "." + ID, client.getId(),
                 clientAlias + "." + CLIENT_NAME, client.getName(),
