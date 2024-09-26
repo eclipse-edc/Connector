@@ -265,6 +265,6 @@ class StsAccountsApiControllerTest extends RestControllerTestBase {
     private RequestSpecification baseRequest() {
         return given()
                 .port(port)
-                .baseUri("http://localhost:" + port + "/v1/accounts");
+                .baseUri("http://localhost:" + port + "/v1alpha/accounts");
     }
 }
