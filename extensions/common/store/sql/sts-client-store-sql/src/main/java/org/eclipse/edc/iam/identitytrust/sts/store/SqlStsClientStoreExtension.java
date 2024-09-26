@@ -33,7 +33,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import static org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry.DEFAULT_DATASOURCE;
 
 @Provides({ StsAccountStore.class })
-@Extension(value = "SQL sts client store")
+@Extension(value = "SQL sts accounts store")
 public class SqlStsClientStoreExtension implements ServiceExtension {
 
     @Setting(value = "The datasource to be used", defaultValue = DEFAULT_DATASOURCE)

@@ -32,5 +32,5 @@ public interface StsTokenGenerationProvider {
      * @param client The {@link StsAccount}
      * @return The {@link TokenGenerationService}
      */
-    TokenGenerationService tokenGeneratorFor(StsAccount client);
+    TokenGenerationService tokenGeneratorFor(StsAccount stsAccount);
 }
