@@ -50,7 +50,6 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.AdditionalMatchers.and;
@@ -98,11 +97,6 @@ class DspHttpRemoteMessageDispatcherImplTest {
     @BeforeEach
     void setUp() {
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0));
-    }
-
-    @Test
-    void protocol_returnDsp() {
-        assertThat(dispatcher.protocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
     }
 
     @Test

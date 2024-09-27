@@ -24,11 +24,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface RemoteMessageDispatcher {
 
-    /**
-     * Return the protocol this dispatcher uses.
-     */
-    String protocol();
-
+    
     /**
      * Binds and sends the message.
      *

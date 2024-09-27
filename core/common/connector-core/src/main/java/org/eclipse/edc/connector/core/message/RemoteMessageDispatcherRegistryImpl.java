@@ -33,8 +33,8 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
     private final Map<String, RemoteMessageDispatcher> dispatchers = new HashMap<>();
 
     @Override
-    public void register(RemoteMessageDispatcher dispatcher) {
-        dispatchers.put(dispatcher.protocol(), dispatcher);
+    public void register(String protocol, RemoteMessageDispatcher dispatcher) {
+        dispatchers.put(protocol, dispatcher);
     }
 
     @Override

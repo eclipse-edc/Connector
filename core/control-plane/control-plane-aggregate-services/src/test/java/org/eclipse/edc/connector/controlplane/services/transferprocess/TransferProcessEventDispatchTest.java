@@ -84,8 +84,6 @@ import static org.mockito.Mockito.when;
 public class TransferProcessEventDispatchTest {
 
     public static final Duration TIMEOUT = Duration.ofSeconds(30);
-    private final EventSubscriber eventSubscriber = mock();
-
     @RegisterExtension
     static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
             .setConfiguration(Map.of(
@@ -100,6 +98,7 @@ public class TransferProcessEventDispatchTest {
             .registerServiceMock(ContractNegotiationStore.class, mock())
             .registerServiceMock(ParticipantAgentService.class, mock())
             .registerServiceMock(DataPlaneClientFactory.class, mock());
+    private final EventSubscriber eventSubscriber = mock();
 
     @Test
     void shouldDispatchEventsOnTransferProcessStateChanges(TransferProcessService service,
@@ -128,7 +127,7 @@ public class TransferProcessEventDispatchTest {
 
         when(agent.getIdentity()).thenReturn(providerId);
 
-        dispatcherRegistry.register(getTestDispatcher());
+        dispatcherRegistry.register("test", getTestDispatcher());
         when(policyArchive.findPolicyForContract(matches(transferRequest.getContractId()))).thenReturn(Policy.Builder.newInstance().target("assetId").build());
         when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
         when(agentService.createFor(token)).thenReturn(agent);
@@ -194,7 +193,7 @@ public class TransferProcessEventDispatchTest {
                 .policy(Policy.Builder.newInstance().build())
                 .build();
         when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
-        dispatcherRegistry.register(getTestDispatcher());
+        dispatcherRegistry.register("test", getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var initiateResult = service.initiateTransfer(transferRequest);
@@ -213,7 +212,7 @@ public class TransferProcessEventDispatchTest {
     @Test
     void shouldDispatchEventOnTransferProcessFailure(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry,
                                                      ContractNegotiationStore negotiationStore, PolicyArchive policyArchive) {
-        dispatcherRegistry.register(getFailingDispatcher());
+        dispatcherRegistry.register("test", getFailingDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
         var transferRequest = createTransferRequest();
         var agreement = ContractAgreement.Builder.newInstance()
@@ -233,7 +232,6 @@ public class TransferProcessEventDispatchTest {
     @NotNull
     private RemoteMessageDispatcher getTestDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.protocol()).thenReturn("test");
         var ack = TransferProcessAck.Builder.newInstance().build();
         when(testDispatcher.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         return testDispatcher;
@@ -242,7 +240,6 @@ public class TransferProcessEventDispatchTest {
     @NotNull
     private RemoteMessageDispatcher getFailingDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.protocol()).thenReturn("test");
         when(testDispatcher.dispatch(any(), any())).thenReturn(failedFuture(new EdcException("cannot send message")));
         return testDispatcher;
     }
