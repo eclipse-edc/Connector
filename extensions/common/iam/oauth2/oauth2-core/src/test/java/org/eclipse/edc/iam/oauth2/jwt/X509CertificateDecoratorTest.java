@@ -36,7 +36,7 @@ class X509CertificateDecoratorTest {
     private static X509Certificate createCertificate() throws CertificateException, IOException {
         var classloader = Thread.currentThread().getContextClassLoader();
         var pem = new String(Objects.requireNonNull(classloader.getResourceAsStream(TEST_CERT_FILE)).readAllBytes());
-        var encoded = pem.replace(HEADER, "").replaceAll(System.lineSeparator(), "").replace(FOOTER, "");
+        var encoded = pem.replace(HEADER, "").replaceAll("\\R", "").replace(FOOTER, "");
         CertificateFactory fact = CertificateFactory.getInstance("X.509");
         return (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes())));
     }

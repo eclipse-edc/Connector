@@ -47,7 +47,7 @@ public class VaultCertificateResolver implements CertificateResolver {
         }
 
         try {
-            var encoded = certificateRepresentation.replace(HEADER, "").replaceAll(System.lineSeparator(), "").replace(FOOTER, "");
+            var encoded = certificateRepresentation.replace(HEADER, "").replaceAll("\\R", "").replace(FOOTER, "");
             CertificateFactory fact = CertificateFactory.getInstance("X.509");
             return (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes())));
         } catch (GeneralSecurityException | IllegalArgumentException e) {
