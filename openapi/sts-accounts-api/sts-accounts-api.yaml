@@ -1,0 +1,296 @@
+openapi: 3.0.1
+info:
+  title: sts-accounts-api
+  description: REST API documentation for the sts-accounts-api
+  version: 1.0.0-alpha
+servers:
+- url: /
+paths:
+  /v1alpha/accounts:
+    put:
+      tags:
+      - Secure Token Service Accounts Api
+      description: "Updates an existing STS account with new values. To update the\
+        \ client secret, please use the relevant API endpoint."
+      operationId: updateAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StsAccount"
+      responses:
+        "400":
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "401":
+          description: "Not authenticated: principal could not be identified"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An account with the given ID was not found
+    post:
+      tags:
+      - Secure Token Service Accounts Api
+      description: Creates a new STS Account with the given parameters
+      operationId: createAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StsAccountCreation"
+      responses:
+        "200":
+          description: The newly created STS Account including the client_secret.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StsAccountCreation"
+        "400":
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "401":
+          description: "Not authenticated: principal could not be identified"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v1alpha/accounts/query:
+    post:
+      tags:
+      - Secure Token Service Accounts Api
+      description: Queries for STS Account conforming to the given query object
+      operationId: queryAccounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The STS Accounts.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StsAccount"
+        "400":
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "401":
+          description: "Not authenticated: principal could not be identified"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v1alpha/accounts/{id}:
+    get:
+      tags:
+      - Secure Token Service Accounts Api
+      description: Gets the STS Account for the given ID
+      operationId: getAccount
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The STS Account.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StsAccount"
+        "400":
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "401":
+          description: "Not authenticated: principal could not be identified"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An account with the given ID was not found
+    delete:
+      tags:
+      - Secure Token Service Accounts Api
+      description: Deletes an STS Account
+      operationId: deleteAccount
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "400":
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "401":
+          description: "Not authenticated: principal could not be identified"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An account with the given ID was not found
+  /v1alpha/accounts/{id}/secret:
+    put:
+      tags:
+      - Secure Token Service Accounts Api
+      description: "Updates the client secret for an account. If the secret is null,\
+        \ then one will be generated."
+      operationId: updateClientSecret
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The secret alias that is now used by the account.
+        "400":
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "401":
+          description: "Not authenticated: principal could not be identified"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An account with the given ID was not found
+components:
+  schemas:
+    ApiErrorDetail:
+      type: object
+      properties:
+        invalidValue:
+          type: object
+        message:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
+    Criterion:
+      type: object
+      properties:
+        operandLeft:
+          type: object
+        operandRight:
+          type: object
+        operator:
+          type: string
+    QuerySpec:
+      type: object
+      properties:
+        filterExpression:
+          type: array
+          items:
+            $ref: "#/components/schemas/Criterion"
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+    StsAccount:
+      type: object
+      properties:
+        clientId:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+        did:
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        privateKeyAlias:
+          type: string
+        publicKeyReference:
+          type: string
+        secretAlias:
+          type: string
+    StsAccountCreation:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/StsAccount"
+        clientSecret:
+          type: string
+    UpdateClientSecret:
+      type: object
+      properties:
+        newAlias:
+          type: string
+        newSecret:
+          type: string
