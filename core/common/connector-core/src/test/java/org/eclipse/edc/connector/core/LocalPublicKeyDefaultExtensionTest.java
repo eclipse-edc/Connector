@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.nio.file.Paths;
 import java.security.PublicKey;
 import java.util.Map;
 
@@ -73,7 +74,7 @@ class LocalPublicKeyDefaultExtensionTest {
         var value = TestUtils.getResourceFileContentAsString("rsa_2048.pem");
         var keys = Map.of(
                 "key1.id", "key1",
-                "key1.path", path.getPath());
+                "key1.path", Paths.get(path).toString());
 
         when(keyParserRegistry.parsePublic(value)).thenReturn(Result.success(mock(PublicKey.class)));
         when(context.getConfig(EDC_PUBLIC_KEYS_PREFIX)).thenReturn(ConfigFactory.fromMap(keys));

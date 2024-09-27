@@ -58,7 +58,7 @@ class VaultCertificateResolverTest {
         var pemReceived = convertCertificateToPem(certificate);
 
         verify(vault, times(1)).resolveSecret(KEY);
-        assertThat(pemReceived).isEqualTo(pemExpected);
+        assertThat(pemReceived.split("\\R")).isEqualTo(pemExpected.split("\\R"));
     }
 
     @Test

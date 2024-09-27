@@ -40,6 +40,9 @@ public class ClasspathReader {
      */
     public static URL[] classpathFor(String... modules) {
         try {
+            if (modules.length == 0) {
+                return new URL[0];
+            }
             // Run a Gradle custom task to determine the runtime classpath of the module to run
             var printClasspath = Arrays.stream(modules).map(it -> it + ":printClasspath");
             var commandStream = Stream.of(GRADLE_WRAPPER.getCanonicalPath(), "-q");
