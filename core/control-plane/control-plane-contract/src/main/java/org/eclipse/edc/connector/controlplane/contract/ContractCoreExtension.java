@@ -34,6 +34,7 @@ import org.eclipse.edc.connector.controlplane.contract.validation.ContractValida
 import org.eclipse.edc.connector.controlplane.policy.contract.ContractExpiryCheckFunction;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
@@ -94,6 +95,9 @@ public class ContractCoreExtension implements ServiceExtension {
 
     @Setting(value = "The base delay for the provider negotiation retry mechanism in millisecond", type = "long", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
     private static final String NEGOTIATION_PROVIDER_SEND_RETRY_BASE_DELAY_MS = "edc.negotiation.provider.send.retry.base-delay.ms";
+
+    @PolicyScope
+    public static final String CATALOG_SCOPE = "catalog";
 
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
 
