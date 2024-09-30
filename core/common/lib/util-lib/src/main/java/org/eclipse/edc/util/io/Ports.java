@@ -18,9 +18,9 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 /**
@@ -29,7 +29,7 @@ import java.util.function.Predicate;
 public final class Ports {
     public static final int MAX_TCP_PORT = 65_535;
     private static final Random RANDOM = new Random();
-    private static final Set<Integer> ALREADY_RETURNED = new HashSet<>();
+    private static final Set<Integer> ALREADY_RETURNED = ConcurrentHashMap.newKeySet();
 
     /**
      * Gets a free port in the range 1024 - 65535 by trying them randomly.
