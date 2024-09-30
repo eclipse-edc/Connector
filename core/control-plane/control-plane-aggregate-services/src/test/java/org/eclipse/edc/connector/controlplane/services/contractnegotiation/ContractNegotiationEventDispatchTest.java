@@ -101,7 +101,7 @@ class ContractNegotiationEventDispatchTest {
                                                                        ContractDefinitionStore contractDefinitionStore,
                                                                        PolicyDefinitionStore policyDefinitionStore,
                                                                        AssetIndex assetIndex) {
-        dispatcherRegistry.register(succeedingDispatcher());
+        dispatcherRegistry.register("test", succeedingDispatcher());
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
         eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
@@ -143,7 +143,6 @@ class ContractNegotiationEventDispatchTest {
     @NotNull
     private RemoteMessageDispatcher succeedingDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.protocol()).thenReturn("test");
         when(testDispatcher.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         return testDispatcher;
     }

@@ -52,6 +52,7 @@ import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
@@ -127,7 +128,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
         registerNegotiationPolicyScopes(dispatcher);
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);
-        dispatcherRegistry.register(dispatcher);
+        dispatcherRegistry.register(DATASPACE_PROTOCOL_HTTP, dispatcher);
         return dispatcher;
     }
 

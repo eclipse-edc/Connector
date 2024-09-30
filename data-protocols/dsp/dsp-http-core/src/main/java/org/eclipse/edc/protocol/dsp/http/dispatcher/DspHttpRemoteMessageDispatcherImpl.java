@@ -24,7 +24,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response.DspHttpResponseBodyExtractor;
-import org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -76,11 +75,6 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
         this.policyEngine = policyEngine;
         this.tokenDecorator = decorator;
         this.audienceResolver = audienceResolver;
-    }
-
-    @Override
-    public String protocol() {
-        return HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
     }
 
     @Override

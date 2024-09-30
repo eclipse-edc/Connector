@@ -23,10 +23,10 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatcher;
 
 import static org.eclipse.edc.connector.controlplane.callback.dispatcher.http.GenericHttpRemoteDispatcherImpl.CALLBACK_EVENT_HTTP;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -50,10 +50,7 @@ public class GenericHttpRemoteDispatcherWrapperExtensionTest {
     void initialize_shouldRegisterBothDispatcher(ServiceExtensionContext context) {
 
         extension.initialize(context);
-        verify(registry).register(argThat(dispatcher(CALLBACK_EVENT_HTTP)));
+        verify(registry).register(eq(CALLBACK_EVENT_HTTP), isA(GenericHttpRemoteDispatcherImpl.class));
     }
 
-    private ArgumentMatcher<GenericHttpRemoteDispatcherImpl> dispatcher(String scheme) {
-        return dispatcher -> dispatcher.protocol().equals(scheme);
-    }
 }

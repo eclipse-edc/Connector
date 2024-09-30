@@ -24,6 +24,8 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
+import static org.eclipse.edc.connector.controlplane.callback.dispatcher.http.GenericHttpRemoteDispatcherImpl.CALLBACK_EVENT_HTTP;
+
 @Extension(value = CallbackEventDispatcherHttpExtension.NAME)
 public class CallbackEventDispatcherHttpExtension implements ServiceExtension {
 
@@ -55,13 +57,13 @@ public class CallbackEventDispatcherHttpExtension implements ServiceExtension {
         var baseDispatcher = new GenericHttpRemoteDispatcherImpl(client);
         baseDispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper(), vault));
 
-        registry.register(baseDispatcher);
+        registry.register(CALLBACK_EVENT_HTTP, baseDispatcher);
     }
 
 
     private String resolveScheme(String scheme) {
         if (scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("http")) {
-            return GenericHttpRemoteDispatcherImpl.CALLBACK_EVENT_HTTP;
+            return CALLBACK_EVENT_HTTP;
         }
         return null;
     }

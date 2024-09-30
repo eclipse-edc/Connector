@@ -31,7 +31,7 @@ public interface RemoteMessageDispatcherRegistry {
     /**
      * Registers a dispatcher.
      */
-    void register(RemoteMessageDispatcher dispatcher);
+    void register(String protocol, RemoteMessageDispatcher dispatcher);
 
     /**
      * Sends the message.
