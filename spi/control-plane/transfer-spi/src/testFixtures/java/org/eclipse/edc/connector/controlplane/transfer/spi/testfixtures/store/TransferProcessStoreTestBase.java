@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +49,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.hamcrest.Matchers.hasSize;
@@ -100,7 +100,7 @@ public abstract class TransferProcessStoreTestBase {
             var t = TestFunctions.createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).callbackAddresses(callbacks).build();
             getTransferProcessStore().save(t);
 
-            var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            var all = getTransferProcessStore().findAll(QuerySpec.none()).toList();
             assertThat(all).containsExactly(t);
             assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
             assertThat(all.get(0).getCallbackAddresses()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsAll(callbacks);
@@ -111,7 +111,7 @@ public abstract class TransferProcessStoreTestBase {
             var t = TestFunctions.createTransferProcessBuilder("test-id").transferType("transferType").build();
             getTransferProcessStore().save(t);
 
-            var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            var all = getTransferProcessStore().findAll(QuerySpec.none()).toList();
             assertThat(all).containsExactly(t);
             assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
             assertThat(all.get(0).getTransferType()).isEqualTo("transferType");
@@ -122,7 +122,7 @@ public abstract class TransferProcessStoreTestBase {
             var t = TestFunctions.createTransferProcessBuilder("test-id").dataPlaneId("dataPlaneId").build();
             getTransferProcessStore().save(t);
 
-            var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            var all = getTransferProcessStore().findAll(QuerySpec.none()).toList();
             assertThat(all).containsExactly(t);
             assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
             assertThat(all.get(0).getDataPlaneId()).isEqualTo("dataPlaneId");
@@ -153,7 +153,7 @@ public abstract class TransferProcessStoreTestBase {
             assertThat(getTransferProcessStore().nextNotLeased(5, hasState(state.code())))
                     .hasSize(5)
                     .extracting(TransferProcess::getId)
-                    .isSubsetOf(all.stream().map(TransferProcess::getId).collect(Collectors.toList()))
+                    .isSubsetOf(all.stream().map(TransferProcess::getId).toList())
                     .allMatch(id -> isLeasedBy(id, CONNECTOR_NAME));
         }
 
@@ -163,7 +163,7 @@ public abstract class TransferProcessStoreTestBase {
             var all = range(0, 10)
                     .mapToObj(i -> createTransferProcess("id" + i, state))
                     .peek(getTransferProcessStore()::save)
-                    .collect(Collectors.toList());
+                    .toList();
 
             // lease a few
             var leasedTp = all.stream().skip(5).peek(tp -> leaseEntity(tp.getId(), CONNECTOR_NAME)).toList();
@@ -285,7 +285,7 @@ public abstract class TransferProcessStoreTestBase {
 
         @Test
         void avoidsStarvation() throws InterruptedException {
-            for (int i = 0; i < 10; i++) {
+            for (var i = 0; i < 10; i++) {
                 var process = createTransferProcess("test-process-" + i);
                 getTransferProcessStore().save(process);
             }
@@ -480,7 +480,7 @@ public abstract class TransferProcessStoreTestBase {
             var all = range(0, 10)
                     .mapToObj(i -> createTransferProcess("id" + i))
                     .peek(getTransferProcessStore()::save)
-                    .collect(Collectors.toList());
+                    .toList();
 
             assertThat(getTransferProcessStore().findAll(QuerySpec.none())).containsExactlyInAnyOrderElementsOf(all);
         }
@@ -488,7 +488,7 @@ public abstract class TransferProcessStoreTestBase {
         @Test
         void verifyFiltering() {
             range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
-            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", "test-neg-3")).build();
+            var querySpec = QuerySpec.Builder.newInstance().filter(criterion("id", "=", "test-neg-3")).build();
 
             var result = getTransferProcessStore().findAll(querySpec);
 
@@ -498,7 +498,7 @@ public abstract class TransferProcessStoreTestBase {
         @Test
         void shouldThrowException_whenInvalidOperator() {
             range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
-            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "foobar", "other")).build();
+            var querySpec = QuerySpec.Builder.newInstance().filter(criterion("id", "foobar", "other")).build();
 
             assertThatThrownBy(() -> getTransferProcessStore().findAll(querySpec).toList()).isInstanceOf(IllegalArgumentException.class);
         }
@@ -521,7 +521,7 @@ public abstract class TransferProcessStoreTestBase {
             range(0, 10).forEach(i -> getTransferProcessStore().save(TestFunctions.createTransferProcessBuilder("test-tp-" + i)
                     .transferType("type" + i)
                     .build()));
-            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("transferType", "=", "type4")).build();
+            var querySpec = QuerySpec.Builder.newInstance().filter(criterion("transferType", "=", "type4")).build();
 
             var result = getTransferProcessStore().findAll(querySpec);
 
@@ -790,7 +790,7 @@ public abstract class TransferProcessStoreTestBase {
             getTransferProcessStore().save(process2);
 
             var query = QuerySpec.Builder.newInstance()
-                    .filter(Criterion.criterion("deprovisionedResources.inProcess", "=", true))
+                    .filter(criterion("deprovisionedResources.inProcess", "=", true))
                     .build();
 
             var result = getTransferProcessStore().findAll(query);
@@ -832,7 +832,7 @@ public abstract class TransferProcessStoreTestBase {
                     ))
                     .build();
 
-            var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
+            var result = getTransferProcessStore().findAll(query).toList();
 
             assertThat(result).hasSize(1)
                     .usingRecursiveFieldByFieldElementComparator()
@@ -865,10 +865,10 @@ public abstract class TransferProcessStoreTestBase {
             getTransferProcessStore().save(process2);
 
             var query = QuerySpec.Builder.newInstance()
-                    .filter(Criterion.criterion("deprovisionedResources.inProcess", "=", false))
+                    .filter(criterion("deprovisionedResources.inProcess", "=", false))
                     .build();
 
-            var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
+            var result = getTransferProcessStore().findAll(query).toList();
 
             assertThat(result).hasSize(2)
                     .usingRecursiveFieldByFieldElementComparator()
@@ -892,7 +892,7 @@ public abstract class TransferProcessStoreTestBase {
             getTransferProcessStore().save(process1);
 
             var query = QuerySpec.Builder.newInstance()
-                    .filter(Criterion.criterion("deprovisionedResources.foobar", "=", "barbaz"))
+                    .filter(criterion("deprovisionedResources.foobar", "=", "barbaz"))
                     .build();
 
             assertThat(getTransferProcessStore().findAll(query)).isEmpty();
@@ -917,10 +917,10 @@ public abstract class TransferProcessStoreTestBase {
             getTransferProcessStore().save(process1);
 
             var query = QuerySpec.Builder.newInstance()
-                    .filter(Criterion.criterion("deprovisionedResources.errorMessage", "=", "notexist"))
+                    .filter(criterion("deprovisionedResources.errorMessage", "=", "notexist"))
                     .build();
 
-            var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
+            var result = getTransferProcessStore().findAll(query).toList();
 
             assertThat(result).isEmpty();
         }
