@@ -37,6 +37,7 @@ import org.eclipse.edc.policy.engine.spi.plan.step.XoneConstraintStep;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -202,7 +203,7 @@ public class TestFunctions {
                 .providerId("providerId")
                 .consumerId("consumerId")
                 .assetId("assetId")
-                .policy(Policy.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().type(PolicyType.CONTRACT).build())
                 .build();
     }
 
