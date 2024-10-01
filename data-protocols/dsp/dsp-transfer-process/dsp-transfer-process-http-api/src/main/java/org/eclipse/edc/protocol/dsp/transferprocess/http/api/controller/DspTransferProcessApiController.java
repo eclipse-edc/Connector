@@ -36,6 +36,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
@@ -60,10 +61,16 @@ public class DspTransferProcessApiController {
 
     private final TransferProcessProtocolService protocolService;
     private final DspRequestHandler dspRequestHandler;
+    private final String protocol;
 
     public DspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler) {
+        this(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP);
+    }
+
+    public DspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler, String protocol) {
         this.protocolService = protocolService;
         this.dspRequestHandler = dspRequestHandler;
+        this.protocol = protocol;
     }
 
     /**
@@ -78,6 +85,7 @@ public class DspTransferProcessApiController {
         var request = GetDspRequest.Builder.newInstance(TransferProcess.class)
                 .id(id).token(token).errorType(DSPACE_TYPE_TRANSFER_ERROR)
                 .serviceCall(protocolService::findById)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.getResource(request);
@@ -99,6 +107,7 @@ public class DspTransferProcessApiController {
                 .expectedMessageType(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
                 .serviceCall(protocolService::notifyRequested)
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.createResource(request);
@@ -122,6 +131,7 @@ public class DspTransferProcessApiController {
                 .token(token)
                 .serviceCall(protocolService::notifyStarted)
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -145,6 +155,7 @@ public class DspTransferProcessApiController {
                 .token(token)
                 .serviceCall(protocolService::notifyCompleted)
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -168,6 +179,7 @@ public class DspTransferProcessApiController {
                 .token(token)
                 .serviceCall(protocolService::notifyTerminated)
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -191,6 +203,7 @@ public class DspTransferProcessApiController {
                 .token(token)
                 .serviceCall(protocolService::notifySuspended)
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.updateResource(request);

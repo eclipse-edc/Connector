@@ -20,21 +20,22 @@ import jakarta.ws.rs.Produces;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
-import org.eclipse.edc.protocol.dsp.spi.version.DspVersions;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_PATH;
 
 /**
  * Versioned Catalog endpoint, same as {@link DspCatalogApiController} but exposed on the /2024/1 path
  */
 @Consumes({ APPLICATION_JSON })
 @Produces({ APPLICATION_JSON })
-@Path(DspVersions.V_2024_1_PATH + BASE_PATH)
+@Path(V_2024_1_PATH + BASE_PATH)
 public class DspCatalogApiController20241 extends DspCatalogApiController {
 
     public DspCatalogApiController20241(CatalogProtocolService service, DspRequestHandler dspRequestHandler,
                                         ContinuationTokenManager responseDecorator) {
-        super(service, dspRequestHandler, responseDecorator);
+        super(service, dspRequestHandler, responseDecorator, DATASPACE_PROTOCOL_HTTP_V_2024_1);
     }
 }

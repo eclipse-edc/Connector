@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
+import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -31,14 +32,14 @@ import static java.lang.String.join;
  */
 public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSerializer {
 
-    private final TypeTransformerRegistry registry;
     private final ObjectMapper mapper;
     private final JsonLd jsonLdService;
-
     private final String scope;
+    private final DspProtocolTypeTransformerRegistry dspTransformerRegistry;
 
-    public JsonLdRemoteMessageSerializerImpl(TypeTransformerRegistry registry, ObjectMapper mapper, JsonLd jsonLdService, String scope) {
-        this.registry = registry;
+    public JsonLdRemoteMessageSerializerImpl(DspProtocolTypeTransformerRegistry dspTransformerRegistry,
+                                             ObjectMapper mapper, JsonLd jsonLdService, String scope) {
+        this.dspTransformerRegistry = dspTransformerRegistry;
         this.mapper = mapper;
         this.jsonLdService = jsonLdService;
         this.scope = scope;
@@ -55,7 +56,14 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
     @Override
     public String serialize(RemoteMessage message) {
         try {
-            var transformResult = registry.transform(message, JsonObject.class);
+            var transformerRegistryResult = dspTransformerRegistry.forProtocol(message.getProtocol());
+            if (transformerRegistryResult.failed()) {
+                throw new EdcException(format("Failed to serialize %s: %s", message.getClass().getSimpleName(), join(", ", transformerRegistryResult.getFailureMessages())));
+
+            }
+
+            var transformerRegistry = transformerRegistryResult.getContent();
+            var transformResult = transformerRegistry.transform(message, JsonObject.class);
 
             if (transformResult.succeeded()) {
                 var compacted = jsonLdService.compact(transformResult.getContent(), scope);
@@ -69,4 +77,5 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
             throw new EdcException(format("Failed to serialize %s", message.getClass().getSimpleName()), e);
         }
     }
+
 }

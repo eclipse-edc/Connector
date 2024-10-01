@@ -12,18 +12,19 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.spi.version;
+package org.eclipse.edc.protocol.dsp.http.spi;
 
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
+import org.eclipse.edc.spi.result.Result;
 
-public interface DspVersions {
+/**
+ * DSP protocol string parser
+ */
+public interface DspProtocolParser {
 
-    String V_2024_1_VERSION = "2024/1";
-    String V_2024_1_PATH = "/" + V_2024_1_VERSION;
-    ProtocolVersion V_2024_1 = new ProtocolVersion(V_2024_1_VERSION, V_2024_1_PATH);
-
-    String V_08_VERSION = "v0.8";
-    String V_08_PATH = "/";
-    ProtocolVersion V_08 = new ProtocolVersion(V_08_VERSION, V_08_PATH);
-
+    /**
+     * Parses the DSP protocol string with format {@literal dataspace-protocol-http:<version>}
+     * and extract the resulting {@link ProtocolVersion}
+     */
+    Result<ProtocolVersion> parse(String protocol);
 }

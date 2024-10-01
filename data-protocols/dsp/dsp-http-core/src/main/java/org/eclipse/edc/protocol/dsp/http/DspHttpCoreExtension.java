@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
@@ -34,10 +35,14 @@ import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.dsp.http.message.DspRequestHandlerImpl;
+import org.eclipse.edc.protocol.dsp.http.protocol.DspProtocolParserImpl;
 import org.eclipse.edc.protocol.dsp.http.serialization.JsonLdRemoteMessageSerializerImpl;
+import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
+import org.eclipse.edc.protocol.dsp.http.transform.DspProtocolTypeTransformerRegistryImpl;
+import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -53,7 +58,9 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -109,6 +116,13 @@ public class DspHttpCoreExtension implements ServiceExtension {
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
 
+    @Inject
+    private ProtocolVersionRegistry versionRegistry;
+
+    private DspProtocolTypeTransformerRegistry dspTransformerRegistry;
+    private DspProtocolParser dspProtocolParser;
+
+
     @Override
     public String name() {
         return NAME;
@@ -129,17 +143,34 @@ public class DspHttpCoreExtension implements ServiceExtension {
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);
         dispatcherRegistry.register(DATASPACE_PROTOCOL_HTTP, dispatcher);
+        dispatcherRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2024_1, dispatcher);
         return dispatcher;
     }
 
     @Provider
     public DspRequestHandler dspRequestHandler() {
-        return new DspRequestHandlerImpl(monitor, validatorRegistry, transformerRegistry.forContext("dsp-api"));
+        return new DspRequestHandlerImpl(monitor, validatorRegistry, dspTransformerRegistry());
     }
 
     @Provider
     public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
-        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry.forContext("dsp-api"), typeManager.getMapper(JSON_LD), jsonLdService, DSP_SCOPE);
+        return new JsonLdRemoteMessageSerializerImpl(dspTransformerRegistry(), typeManager.getMapper(JSON_LD), jsonLdService, DSP_SCOPE);
+    }
+
+    @Provider
+    public DspProtocolTypeTransformerRegistry dspTransformerRegistry() {
+        if (dspTransformerRegistry == null) {
+            dspTransformerRegistry = new DspProtocolTypeTransformerRegistryImpl(transformerRegistry, DSP_TRANSFORMER_CONTEXT, dspProtocolParser());
+        }
+        return dspTransformerRegistry;
+    }
+
+    @Provider
+    public DspProtocolParser dspProtocolParser() {
+        if (dspProtocolParser == null) {
+            dspProtocolParser = new DspProtocolParserImpl(versionRegistry);
+        }
+        return dspProtocolParser;
     }
 
     private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
@@ -162,5 +193,4 @@ public class DspHttpCoreExtension implements ServiceExtension {
         dispatcher.registerPolicyScope(CatalogRequestMessage.class, CATALOGING_REQUEST_SCOPE, CatalogRequestMessage::getPolicy);
         dispatcher.registerPolicyScope(DatasetRequestMessage.class, CATALOGING_REQUEST_SCOPE, DatasetRequestMessage::getPolicy);
     }
-
 }

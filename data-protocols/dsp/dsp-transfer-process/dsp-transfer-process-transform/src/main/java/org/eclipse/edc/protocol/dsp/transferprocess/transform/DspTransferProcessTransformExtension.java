@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transform;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferCompletionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferProcessTransformer;
@@ -37,6 +38,8 @@ import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataAddressT
 
 import java.util.Map;
 
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -60,10 +63,16 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var builderFactory = Json.createBuilderFactory(Map.of());
         var objectMapper = typeManager.getMapper(JSON_LD);
 
-        var dspRegistry = registry.forContext("dsp-api");
+        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, objectMapper);
+        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, objectMapper);
+    }
+
+    private void registerTransformers(String version, ObjectMapper objectMapper) {
+        var builderFactory = Json.createBuilderFactory(Map.of());
+
+        var dspRegistry = registry.forContext(version);
 
         dspRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
         dspRegistry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory));
@@ -80,4 +89,5 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
         dspRegistry.register(new JsonObjectToTransferProcessAckTransformer());
         dspRegistry.register(new JsonObjectToTransferSuspensionMessageTransformer(objectMapper));
     }
+
 }

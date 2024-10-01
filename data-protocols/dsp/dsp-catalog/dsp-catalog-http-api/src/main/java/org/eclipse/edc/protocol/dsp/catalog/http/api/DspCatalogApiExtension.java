@@ -24,9 +24,11 @@ import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiCon
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.Base64continuationTokenSerDes;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.ContinuationTokenManagerImpl;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.validation.CatalogRequestMessageValidator;
+import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -37,6 +39,9 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 
 /**
@@ -64,7 +69,10 @@ public class DspCatalogApiExtension implements ServiceExtension {
     @Inject
     private ProtocolVersionRegistry versionRegistry;
     @Inject
-    private TypeTransformerRegistry typeTransformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
+    @Inject
+    private Monitor monitor;
+
     @Inject
     private JsonLd jsonLd;
 
@@ -77,10 +85,9 @@ public class DspCatalogApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         validatorRegistry.register(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE, CatalogRequestMessageValidator.instance(criterionOperatorRegistry));
 
-        var continuationTokenSerDes = new Base64continuationTokenSerDes(typeTransformerRegistry.forContext("dsp-api"), jsonLd);
-        var catalogPaginationResponseDecoratorFactory = new ContinuationTokenManagerImpl(continuationTokenSerDes, context.getMonitor());
-        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController(service, dspRequestHandler, catalogPaginationResponseDecoratorFactory));
-        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController20241(service, dspRequestHandler, catalogPaginationResponseDecoratorFactory));
+
+        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController(service, dspRequestHandler, continuationTokenManager(monitor, DSP_TRANSFORMER_CONTEXT_V_08)));
+        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController20241(service, dspRequestHandler, continuationTokenManager(monitor, DSP_TRANSFORMER_CONTEXT_V_2024_1)));
 
         dataServiceRegistry.register(DataService.Builder.newInstance()
                 .endpointDescription("dspace:connector")
@@ -88,5 +95,11 @@ public class DspCatalogApiExtension implements ServiceExtension {
                 .build());
 
         versionRegistry.register(V_2024_1);
+        versionRegistry.register(V_08);
+    }
+
+    private ContinuationTokenManager continuationTokenManager(Monitor monitor, String version) {
+        var continuationTokenSerDes = new Base64continuationTokenSerDes(transformerRegistry.forContext(version), jsonLd);
+        return new ContinuationTokenManagerImpl(continuationTokenSerDes, monitor);
     }
 }

@@ -17,8 +17,11 @@ package org.eclipse.edc.protocol.dsp.http.dispatcher;
 import okhttp3.MediaType;
 import okio.Buffer;
 import org.eclipse.edc.protocol.dsp.http.TestMessage;
+import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.RequestPathProvider;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
+import org.eclipse.edc.protocol.dsp.spi.version.DspVersions;
+import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,11 +33,13 @@ class PostDspHttpRequestFactoryTest {
 
     private final RequestPathProvider<TestMessage> pathProvider = mock();
     private final JsonLdRemoteMessageSerializer serializer = mock();
-    private final PostDspHttpRequestFactory<TestMessage> factory = new PostDspHttpRequestFactory<>(serializer, pathProvider);
+    private final DspProtocolParser dspProtocolParser = mock();
+    private final PostDspHttpRequestFactory<TestMessage> factory = new PostDspHttpRequestFactory<>(serializer, dspProtocolParser, pathProvider);
 
     @Test
     void shouldCreateProperHttpRequest() {
         when(serializer.serialize(any())).thenReturn("serializedMessage");
+        when(dspProtocolParser.parse("protocol")).thenReturn(Result.success(DspVersions.V_08));
         when(pathProvider.providePath(any())).thenReturn("/message/request/path");
 
         var message = new TestMessage("protocol", "http://counter-party", "counterPartyId");
@@ -52,4 +57,6 @@ class PostDspHttpRequestFactoryTest {
 
         });
     }
+
+
 }

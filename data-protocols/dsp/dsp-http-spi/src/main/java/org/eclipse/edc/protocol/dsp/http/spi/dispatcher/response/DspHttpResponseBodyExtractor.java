@@ -24,7 +24,7 @@ import okhttp3.ResponseBody;
 @FunctionalInterface
 public interface DspHttpResponseBodyExtractor<R> {
 
-    DspHttpResponseBodyExtractor<Object> NOOP = r -> null;
+    DspHttpResponseBodyExtractor<Object> NOOP = (r, p) -> null;
 
     /**
      * Extract the body from the Response
@@ -32,5 +32,5 @@ public interface DspHttpResponseBodyExtractor<R> {
      * @param responseBody the Response.
      * @return the body.
      */
-    R extractBody(ResponseBody responseBody);
+    R extractBody(ResponseBody responseBody, String protocol);
 }

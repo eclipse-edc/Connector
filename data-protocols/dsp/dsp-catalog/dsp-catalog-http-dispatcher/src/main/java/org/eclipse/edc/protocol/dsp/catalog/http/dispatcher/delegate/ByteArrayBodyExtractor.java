@@ -25,7 +25,7 @@ import java.io.IOException;
  */
 public class ByteArrayBodyExtractor implements DspHttpResponseBodyExtractor<byte[]> {
     @Override
-    public byte[] extractBody(ResponseBody responseBody) {
+    public byte[] extractBody(ResponseBody responseBody, String protocol) {
         try {
             if (responseBody == null) {
                 return null;

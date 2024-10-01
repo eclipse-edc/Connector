@@ -14,9 +14,17 @@
 
 package org.eclipse.edc.protocol.dsp.spi.type;
 
+import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08_VERSION;
+import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_VERSION;
+
 /**
  * Dataspace protocol constants.
  */
 public interface DspConstants {
+
+    String DSP_CONTEXT_SEPARATOR = ":";
     String DSP_SCOPE = "DSP";
+    String DSP_TRANSFORMER_CONTEXT = "dsp-api";
+    String DSP_TRANSFORMER_CONTEXT_V_08 = DSP_TRANSFORMER_CONTEXT + DSP_CONTEXT_SEPARATOR + V_08_VERSION;
+    String DSP_TRANSFORMER_CONTEXT_V_2024_1 = DSP_TRANSFORMER_CONTEXT + DSP_CONTEXT_SEPARATOR + V_2024_1_VERSION;
 }
