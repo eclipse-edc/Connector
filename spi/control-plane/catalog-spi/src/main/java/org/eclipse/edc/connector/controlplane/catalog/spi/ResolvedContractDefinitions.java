@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Contributors to the Eclipse Foundation
+ *  Copyright (c) 2024 Cofinity-X
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Contributors to the Eclipse Foundation - initial API and implementation
+ *       Cofinity-X - initial API and implementation
  *
  */
 
@@ -21,6 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represent resolved contract definitions and cached policy objects by {@link ContractDefinitionResolver}
+ *
+ * @param contractDefinitions the contract definitions.
+ * @param policies the cached access policies.
+ */
 public record ResolvedContractDefinitions(List<ContractDefinition> contractDefinitions, Map<String, Policy> policies) {
 
     public ResolvedContractDefinitions(List<ContractDefinition> contractDefinitions) {
