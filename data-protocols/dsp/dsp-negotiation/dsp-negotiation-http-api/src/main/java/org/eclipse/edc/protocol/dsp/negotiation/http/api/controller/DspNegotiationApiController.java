@@ -37,6 +37,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.CONTRACT_OFFER;
@@ -64,12 +65,21 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
 public class DspNegotiationApiController {
 
     private final DspRequestHandler dspRequestHandler;
+    private final String protocol;
     private final ContractNegotiationProtocolService protocolService;
 
     public DspNegotiationApiController(ContractNegotiationProtocolService protocolService,
                                        DspRequestHandler dspRequestHandler) {
+
+        this(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP);
+    }
+
+    public DspNegotiationApiController(ContractNegotiationProtocolService protocolService,
+                                       DspRequestHandler dspRequestHandler,
+                                       String protocol) {
         this.protocolService = protocolService;
         this.dspRequestHandler = dspRequestHandler;
+        this.protocol = protocol;
     }
 
     /**
@@ -85,6 +95,7 @@ public class DspNegotiationApiController {
         var request = GetDspRequest.Builder.newInstance(ContractNegotiation.class)
                 .id(id).token(token).serviceCall(protocolService::findById)
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.getResource(request);
@@ -106,6 +117,7 @@ public class DspNegotiationApiController {
                 .token(token)
                 .serviceCall(protocolService::notifyRequested)
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.createResource(request);
@@ -127,6 +139,7 @@ public class DspNegotiationApiController {
                 .token(token)
                 .serviceCall(protocolService::notifyOffered)
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.createResource(request);
@@ -152,6 +165,7 @@ public class DspNegotiationApiController {
                 .token(token)
                 .serviceCall(protocolService::notifyRequested)
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -180,6 +194,7 @@ public class DspNegotiationApiController {
                     case ACCEPTED -> protocolService.notifyAccepted(message, claimToken);
                 })
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -205,6 +220,7 @@ public class DspNegotiationApiController {
                 .token(token)
                 .serviceCall(protocolService::notifyVerified)
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -230,6 +246,7 @@ public class DspNegotiationApiController {
                 .token(token)
                 .serviceCall(protocolService::notifyTerminated)
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -255,6 +272,7 @@ public class DspNegotiationApiController {
                 .token(token)
                 .serviceCall(protocolService::notifyOffered)
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -280,6 +298,7 @@ public class DspNegotiationApiController {
                 .token(token)
                 .serviceCall(protocolService::notifyAgreed)
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.updateResource(request);

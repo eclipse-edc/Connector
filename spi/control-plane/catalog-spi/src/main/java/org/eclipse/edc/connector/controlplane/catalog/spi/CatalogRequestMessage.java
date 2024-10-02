@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import java.util.Objects;
  * A request for a participant's {@link Catalog}.
  */
 @JsonDeserialize(builder = CatalogRequestMessage.Builder.class)
-public class CatalogRequestMessage implements RemoteMessage {
+public class CatalogRequestMessage extends ProtocolRemoteMessage {
 
     private final Policy policy;
     private List<String> additionalScopes = new ArrayList<>();

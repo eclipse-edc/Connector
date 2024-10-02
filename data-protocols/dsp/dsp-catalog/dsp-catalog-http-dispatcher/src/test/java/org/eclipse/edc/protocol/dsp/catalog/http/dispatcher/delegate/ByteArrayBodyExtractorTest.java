@@ -35,14 +35,14 @@ class ByteArrayBodyExtractorTest {
         var bytes = "test".getBytes();
         when(responseBody.bytes()).thenReturn(bytes);
 
-        var result = extractor.extractBody(responseBody);
+        var result = extractor.extractBody(responseBody, "protocol");
 
         assertThat(result).isEqualTo(bytes);
     }
 
     @Test
     void shouldReturnNull_whenBodyIsNull() {
-        var result = extractor.extractBody(null);
+        var result = extractor.extractBody(null, "protocol");
 
         assertThat(result).isNull();
     }
@@ -52,7 +52,7 @@ class ByteArrayBodyExtractorTest {
         var responseBody = mock(ResponseBody.class);
         when(responseBody.bytes()).thenThrow(new IOException());
 
-        assertThatThrownBy(() -> extractor.extractBody(responseBody)).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> extractor.extractBody(responseBody, "protocol")).isInstanceOf(EdcException.class);
     }
 
 }

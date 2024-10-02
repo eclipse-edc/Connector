@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.transform;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogTransformer;
@@ -31,6 +32,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -57,10 +60,16 @@ public class DspCatalogTransformExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var jsonFactory = Json.createBuilderFactory(Map.of());
         var mapper = typeManager.getMapper(JSON_LD);
 
-        var dspApiTransformerRegistry = registry.forContext("dsp-api");
+        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, mapper);
+        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, mapper);
+    }
+
+    private void registerTransformers(String version, ObjectMapper mapper) {
+        var jsonFactory = Json.createBuilderFactory(Map.of());
+
+        var dspApiTransformerRegistry = registry.forContext(version);
         dspApiTransformerRegistry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory));
         dspApiTransformerRegistry.register(new JsonObjectToCatalogRequestMessageTransformer());
 

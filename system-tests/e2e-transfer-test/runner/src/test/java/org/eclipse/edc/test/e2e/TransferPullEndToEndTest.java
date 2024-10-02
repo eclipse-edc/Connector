@@ -353,6 +353,38 @@ class TransferPullEndToEndTest {
 
     @Nested
     @EndToEndTest
+    class InMemoryV2024Rev1 extends Tests {
+
+
+        @RegisterExtension
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane", PROVIDER.controlPlaneConfiguration()));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane", PROVIDER.dataPlaneConfiguration()));
+
+        // TODO: replace with something better. Temporary hack
+        @BeforeAll
+        static void beforeAll() {
+            CONSUMER.setProtocol("dataspace-protocol-http:2024/1");
+        }
+
+        @AfterAll
+        static void afterAll() {
+            CONSUMER.setProtocol("dataspace-protocol-http");
+        }
+
+        @Override
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
+        }
+    }
+
+    @Nested
+    @EndToEndTest
     class EmbeddedDataPlane extends Tests {
 
         @RegisterExtension

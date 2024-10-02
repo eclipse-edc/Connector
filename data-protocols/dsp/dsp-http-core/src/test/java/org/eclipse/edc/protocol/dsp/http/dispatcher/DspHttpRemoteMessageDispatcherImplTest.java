@@ -362,7 +362,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         @Test
         void shouldShouldReturnSuccess_whenResponseIsSuccessful() {
             respondWith(dummyResponse(200), bodyExtractor);
-            when(bodyExtractor.extractBody(any())).thenReturn("response");
+            when(bodyExtractor.extractBody(any(), any())).thenReturn("response");
 
             var future = dispatcher.dispatch(String.class, new TestMessage());
 
@@ -384,7 +384,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
                     assertThat(failure.getMessages()).containsOnly("expectedValue");
                 });
             });
-            verify(bodyExtractor, never()).extractBody(any());
+            verify(bodyExtractor, never()).extractBody(any(), any());
         }
 
         @Test
@@ -399,7 +399,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
                     assertThat(failure.getMessages()).allMatch(it -> it.contains("is null"));
                 });
             });
-            verify(bodyExtractor, never()).extractBody(any());
+            verify(bodyExtractor, never()).extractBody(any(), any());
         }
 
         @Test
@@ -413,7 +413,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
                     assertThat(failure.status()).isEqualTo(ERROR_RETRY);
                 });
             });
-            verify(bodyExtractor, never()).extractBody(any());
+            verify(bodyExtractor, never()).extractBody(any(), any());
         }
 
         private void respondWith(okhttp3.Response response, DspHttpResponseBodyExtractor<Object> bodyExtractor) {

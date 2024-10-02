@@ -126,7 +126,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
                             .build();
 
                     return httpClient.executeAsync(requestWithAuth, List.of(retryWhenStatusNot2xxOr4xx()))
-                            .thenApply(response -> handleResponse(response, responseType, handler.bodyExtractor));
+                            .thenApply(response -> handleResponse(response, message.getProtocol(), responseType, handler.bodyExtractor));
                 })
                 .orElse(failure -> failedFuture(new EdcException(format("Unable to obtain credentials: %s", failure.getFailureDetail()))));
     }
@@ -143,10 +143,10 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     }
 
     @NotNull
-    private <T> StatusResult<T> handleResponse(Response response, Class<T> responseType, DspHttpResponseBodyExtractor<T> bodyExtractor) {
+    private <T> StatusResult<T> handleResponse(Response response, String protocol, Class<T> responseType, DspHttpResponseBodyExtractor<T> bodyExtractor) {
         try (var responseBody = response.body()) {
             if (response.isSuccessful()) {
-                var responsePayload = bodyExtractor.extractBody(responseBody);
+                var responsePayload = bodyExtractor.extractBody(responseBody, protocol);
 
                 return StatusResult.success(responseType.cast(responsePayload));
             } else {

@@ -26,6 +26,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_TYPE_VERSIONS_ERROR;
 
 @Produces(APPLICATION_JSON)
@@ -46,6 +47,7 @@ public class DspVersionApiController {
                 .token(token)
                 .errorType(DSPACE_TYPE_VERSIONS_ERROR)
                 .serviceCall((id, tokenRepresentation) -> service.getAll(tokenRepresentation))
+                .protocol(DATASPACE_PROTOCOL_HTTP)
                 .build();
 
         return requestHandler.getResource(request);

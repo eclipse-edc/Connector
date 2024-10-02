@@ -83,6 +83,10 @@ public class Participant {
         return protocol;
     }
 
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
+
     public Endpoint getProtocolEndpoint() {
         return protocolEndpoint;
     }

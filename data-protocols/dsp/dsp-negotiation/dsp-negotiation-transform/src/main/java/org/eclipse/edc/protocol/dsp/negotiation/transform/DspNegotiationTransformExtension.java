@@ -37,6 +37,9 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2024_1;
+
 /**
  * Provides the transformers for negotiation message types via the {@link TypeTransformerRegistry}.
  */
@@ -55,9 +58,14 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08);
+        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1);
+    }
+
+    private void registerTransformers(String version) {
         var builderFactory = Json.createBuilderFactory(Map.of());
 
-        var dspApiTransformerRegistry = registry.forContext("dsp-api");
+        var dspApiTransformerRegistry = registry.forContext(version);
         dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementMessageTransformer(builderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementVerificationMessageTransformer(builderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationEventMessageTransformer(builderFactory));

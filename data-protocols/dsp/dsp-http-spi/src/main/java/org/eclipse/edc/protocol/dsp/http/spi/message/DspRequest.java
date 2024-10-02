@@ -27,6 +27,7 @@ public class DspRequest<I, R> {
     protected final Class<I> inputClass;
     protected String token;
     protected String errorType;
+    protected String protocol;
     protected BiFunction<I, TokenRepresentation, ServiceResult<R>> serviceCall;
 
     public DspRequest(Class<I> inputClass, Class<R> resultClass) {
@@ -36,6 +37,10 @@ public class DspRequest<I, R> {
 
     public String getToken() {
         return token;
+    }
+
+    public String getProtocol() {
+        return protocol;
     }
 
     public Class<I> getInputClass() {
@@ -67,6 +72,11 @@ public class DspRequest<I, R> {
             return self();
         }
 
+        public B protocol(String protocol) {
+            message.protocol = protocol;
+            return self();
+        }
+
         public B serviceCall(BiFunction<I, TokenRepresentation, ServiceResult<R>> serviceCall) {
             message.serviceCall = serviceCall;
             return self();
@@ -80,6 +90,7 @@ public class DspRequest<I, R> {
         public M build() {
             requireNonNull(message.serviceCall);
             requireNonNull(message.errorType);
+            requireNonNull(message.protocol);
             return message;
         }
 
