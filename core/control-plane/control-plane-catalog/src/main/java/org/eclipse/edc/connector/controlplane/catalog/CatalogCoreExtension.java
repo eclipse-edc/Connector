@@ -17,8 +17,10 @@ package org.eclipse.edc.connector.controlplane.catalog;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
-import org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver;
+import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -30,8 +32,8 @@ public class CatalogCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Catalog Core";
 
-    @Inject
-    private ContractDefinitionResolver contractDefinitionResolver;
+    @PolicyScope
+    public static final String CATALOG_SCOPE = "catalog";
 
     @Inject
     private AssetIndex assetIndex;
@@ -45,6 +47,12 @@ public class CatalogCoreExtension implements ServiceExtension {
     @Inject
     private CriterionOperatorRegistry criterionOperatorRegistry;
 
+    @Inject
+    private ContractDefinitionStore contractDefinitionStore;
+
+    @Inject
+    private PolicyEngine policyEngine;
+
     @Override
     public String name() {
         return NAME;
@@ -52,7 +60,9 @@ public class CatalogCoreExtension implements ServiceExtension {
 
     @Provider
     public DatasetResolver datasetResolver() {
+        var contractDefinitionResolver = new ContractDefinitionResolverImpl(contractDefinitionStore, policyEngine, policyDefinitionStore);
         return new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyDefinitionStore,
                 distributionResolver, criterionOperatorRegistry);
     }
+
 }

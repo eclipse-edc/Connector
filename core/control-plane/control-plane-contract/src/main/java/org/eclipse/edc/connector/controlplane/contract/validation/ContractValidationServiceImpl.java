@@ -40,7 +40,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver.CATALOGING_SCOPE;
+import static org.eclipse.edc.connector.controlplane.contract.ContractCoreExtension.CATALOG_SCOPE;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -128,7 +128,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure("Invalid consumer identity");
         }
 
-        var accessPolicyResult = evaluatePolicy(consumerOffer.getAccessPolicy(), CATALOGING_SCOPE, agent, consumerOffer.getOfferId());
+        var accessPolicyResult = evaluatePolicy(consumerOffer.getAccessPolicy(), CATALOG_SCOPE, agent, consumerOffer.getOfferId());
 
         if (accessPolicyResult.failed()) {
             return accessPolicyResult;
