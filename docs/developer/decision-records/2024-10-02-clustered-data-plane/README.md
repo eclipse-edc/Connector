@@ -26,7 +26,12 @@ For termination (the same logic will be duplicated for suspension), in the `Data
 two new `Processor` registered:
 - one filters by `TERMINATING` state and `runtimeId`: it will stop the data flow and transition it to `TERMINATED`
 - one filters by `TERMINATING` and by `updatedAt` passed by at least 2/3 times `flowLease`: it will transition the data flow to 
-  `TERMINATED` (as cleanup for dangling data flows) 
+  `TERMINATED` (as cleanup for dangling data flows).
+
+Note: once the "termination" message is sent from the control-plane to the data-plane and the ACK received, the control-plane
+will consider the `DataFlow` as terminated, and it will continue evaluating the termination logic on the `TransferProcess` 
+(send protocol message, transition to `TERMINATED`).
+We consider this acceptable because `DataFlow` termination is generally a cleanup operation that shouldn't take too much time.
 
 ### Re-start interrupted data flow
 
