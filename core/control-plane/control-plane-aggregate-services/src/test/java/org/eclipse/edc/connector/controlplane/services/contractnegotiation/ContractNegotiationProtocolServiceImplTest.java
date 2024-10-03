@@ -688,7 +688,7 @@ class ContractNegotiationProtocolServiceImplTest {
             var updatedNegotiation = result.getContent();
             assertThat(updatedNegotiation.getContractOffers()).hasSize(2);
             assertThat(updatedNegotiation.getLastContractOffer()).isEqualTo(contractOffer);
-            verify(store).findByIdAndLease("providerPid");
+            verify(store).findByIdAndLease("consumerPid");
             verify(listener).offered(any());
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
         }
