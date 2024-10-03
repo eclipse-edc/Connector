@@ -115,7 +115,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                 .compose(agent -> {
                     ServiceResult<ContractNegotiation> result = message.getConsumerPid() == null
                             ? createNegotiation(message, agent.getIdentity(), CONSUMER, message.getCallbackAddress())
-                            : getAndLeaseNegotiation(message.getProviderPid())
+                            : getAndLeaseNegotiation(message.getConsumerPid())
                             .compose(negotiation -> validateRequest(agent, negotiation).map(it -> negotiation));
 
                     return result.onSuccess(negotiation -> {
