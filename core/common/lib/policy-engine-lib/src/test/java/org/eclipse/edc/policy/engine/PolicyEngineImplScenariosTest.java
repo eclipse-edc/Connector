@@ -41,6 +41,7 @@ import static org.eclipse.edc.policy.model.Operator.IN;
  */
 public class PolicyEngineImplScenariosTest {
     private static final String TEST_SCOPE = "test";
+    private static final String TEST_AGENT_SCOPE = "test.agent";
     private static final String ABS_SPATIAL_CONSTRAINT = "absoluteSpatialPosition";
     private static final String CONNECTOR_CONSTRAINT = "connector";
     private static final Action USE_ACTION = Action.Builder.newInstance().type("use").build();
@@ -61,9 +62,9 @@ public class PolicyEngineImplScenariosTest {
         bindingRegistry.bind(USE_ACTION.getType(), ALL_SCOPES);
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).build();
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
-        var context = PolicyContextImpl.Builder.newInstance().build();
+        var context = new TestContext();
 
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+        var result = policyEngine.evaluate(policy, context);
 
         assertThat(result).isSucceeded();
     }
@@ -74,12 +75,12 @@ public class PolicyEngineImplScenariosTest {
     @Test
     void verifyNoUse() {
         bindingRegistry.bind(USE_ACTION.getType(), ALL_SCOPES);
-        policyEngine.registerFunction(ALL_SCOPES, Prohibition.class, (rule, ctx) -> rule.getAction().getType().equals(USE_ACTION.getType()));
+        policyEngine.registerFunction(TestContext.class, Prohibition.class, (rule, ctx) -> rule.getAction().getType().equals(USE_ACTION.getType()));
         var prohibition = Prohibition.Builder.newInstance().action(USE_ACTION).build();
         var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
-        var context = PolicyContextImpl.Builder.newInstance().build();
+        var context = new TestContext();
 
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+        var result = policyEngine.evaluate(policy, context);
 
         assertThat(result.succeeded()).isFalse();
     }
@@ -93,10 +94,11 @@ public class PolicyEngineImplScenariosTest {
         bindingRegistry.bind(ABS_SPATIAL_CONSTRAINT, ALL_SCOPES);
 
         // function that verifies the EU region
-        policyEngine.registerFunction(ALL_SCOPES, Permission.class, ABS_SPATIAL_CONSTRAINT, (operator, value, permission, context) -> {
-            var claims = context.getContextData(ParticipantAgent.class).getClaims();
-            return claims.containsKey("region") && claims.get("region").equals(value);
-        });
+        policyEngine.registerFunction(TestAgentContext.class, Permission.class, ABS_SPATIAL_CONSTRAINT,
+                (operator, rightValue, rule, context) -> {
+                    var claims = context.participantAgent().getClaims();
+                    return claims.containsKey("region") && claims.get("region").equals(rightValue);
+                });
 
         var left = new LiteralExpression(ABS_SPATIAL_CONSTRAINT);
         var right = new LiteralExpression("eu");
@@ -104,16 +106,12 @@ public class PolicyEngineImplScenariosTest {
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).constraint(spatialConstraint).build();
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
-        var euContext = PolicyContextImpl.Builder.newInstance()
-                .additional(ParticipantAgent.class, new ParticipantAgent(Map.of("region", "eu"), emptyMap()))
-                .build();
-        var euResult = policyEngine.evaluate(TEST_SCOPE, policy, euContext);
+        var euContext = new TestAgentContext(new ParticipantAgent(Map.of("region", "eu"), emptyMap()));
+        var euResult = policyEngine.evaluate(policy, euContext);
         assertThat(euResult).isSucceeded();
 
-        var noRegionContext = PolicyContextImpl.Builder.newInstance()
-                .additional(ParticipantAgent.class, new ParticipantAgent(emptyMap(), emptyMap()))
-                .build();
-        var noRegionResult = policyEngine.evaluate(TEST_SCOPE, policy, noRegionContext);
+        var noRegionContext = new TestAgentContext(new ParticipantAgent(emptyMap(), emptyMap()));
+        var noRegionResult = policyEngine.evaluate(policy, noRegionContext);
         assertThat(noRegionResult).isFailed();
     }
 
@@ -122,7 +120,7 @@ public class PolicyEngineImplScenariosTest {
      */
     @Test
     void verifyConnectorUse() {
-        policyEngine.registerFunction(ALL_SCOPES, Permission.class, CONNECTOR_CONSTRAINT, (operator, value, permission, context) -> {
+        policyEngine.registerFunction(TestContext.class, Permission.class, CONNECTOR_CONSTRAINT, (operator, value, permission, context) -> {
             if (!(value instanceof List)) {
                 context.reportProblem("Unsupported right operand type: " + value.getClass().getName());
                 return false;
@@ -136,11 +134,36 @@ public class PolicyEngineImplScenariosTest {
         var connectorConstraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(IN).rightExpression(right).build();
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).constraint(connectorConstraint).build();
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
-        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+        var result = policyEngine.evaluate(policy, new TestContext());
 
         assertThat(result.succeeded()).isTrue();
+    }
+
+    private static class TestContext extends PolicyContextImpl {
+
+        @Override
+        public String scope() {
+            return TEST_SCOPE;
+        }
+    }
+
+    private static class TestAgentContext extends PolicyContextImpl {
+
+        private final ParticipantAgent participantAgent;
+
+        TestAgentContext(ParticipantAgent participantAgent) {
+            this.participantAgent = participantAgent;
+        }
+
+        public ParticipantAgent participantAgent() {
+            return participantAgent;
+        }
+
+        @Override
+        public String scope() {
+            return TEST_AGENT_SCOPE;
+        }
     }
 
 }

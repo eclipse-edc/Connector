@@ -18,14 +18,11 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolToke
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
-import org.eclipse.edc.policy.engine.spi.PolicyScope;
+import org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 
 public class VersionProtocolServiceImpl implements VersionProtocolService {
-
-    @PolicyScope
-    public static final String VERSIONING_REQUEST_SCOPE = "request.version";
 
     private final ProtocolVersionRegistry registry;
     private final ProtocolTokenValidator tokenValidator;
@@ -37,7 +34,7 @@ public class VersionProtocolServiceImpl implements VersionProtocolService {
 
     @Override
     public ServiceResult<ProtocolVersions> getAll(TokenRepresentation tokenRepresentation) {
-        return tokenValidator.verify(tokenRepresentation, VERSIONING_REQUEST_SCOPE)
+        return tokenValidator.verify(tokenRepresentation, RequestVersionPolicyContext::new)
                 .map(it -> registry.getAll());
     }
 }

@@ -16,6 +16,9 @@ package org.eclipse.edc.iam.identitytrust.core;
 
 import org.eclipse.edc.iam.identitytrust.core.scope.DcpScopeExtractorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
+import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -29,10 +32,6 @@ import static org.eclipse.edc.iam.identitytrust.core.DcpScopeExtractorExtension.
 public class DcpScopeExtractorExtension implements ServiceExtension {
 
     public static final String NAME = "DCP scope extractor extension";
-
-    public static final String CATALOG_REQUEST_SCOPE = "request.catalog";
-    public static final String NEGOTIATION_REQUEST_SCOPE = "request.contract.negotiation";
-    public static final String TRANSFER_PROCESS_REQUEST_SCOPE = "request.transfer.process";
 
     @Inject
     private PolicyEngine policyEngine;
@@ -50,9 +49,8 @@ public class DcpScopeExtractorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var contextMappingFunction = new DcpScopeExtractorFunction(scopeExtractorRegistry, monitor);
-        policyEngine.registerPreValidator(CATALOG_REQUEST_SCOPE, contextMappingFunction);
-        policyEngine.registerPreValidator(NEGOTIATION_REQUEST_SCOPE, contextMappingFunction);
-        policyEngine.registerPreValidator(TRANSFER_PROCESS_REQUEST_SCOPE, contextMappingFunction);
+        policyEngine.registerPreValidator(RequestCatalogPolicyContext.class, new DcpScopeExtractorFunction<>(scopeExtractorRegistry, monitor));
+        policyEngine.registerPreValidator(RequestContractNegotiationPolicyContext.class, new DcpScopeExtractorFunction<>(scopeExtractorRegistry, monitor));
+        policyEngine.registerPreValidator(RequestTransferProcessPolicyContext.class, new DcpScopeExtractorFunction<>(scopeExtractorRegistry, monitor));
     }
 }

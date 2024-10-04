@@ -19,8 +19,11 @@ package org.eclipse.edc.connector.controlplane.contract.validation;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.policy.PolicyEquality;
 import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext;
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
@@ -48,9 +51,6 @@ import java.util.UUID;
 import static java.time.Instant.MIN;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.contract.ContractCoreExtension.CATALOG_SCOPE;
-import static org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService.NEGOTIATION_SCOPE;
-import static org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService.TRANSFER_SCOPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.AdditionalMatchers.and;
@@ -99,8 +99,8 @@ class ContractValidationServiceImplTest {
         var asset = Asset.Builder.newInstance().id("1").build();
 
         when(assetIndex.findById("1")).thenReturn(asset);
-        when(policyEngine.evaluate(eq(CATALOG_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
-        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), isA(ContractNegotiationPolicyContext.class))).thenReturn(Result.success());
 
         var validatableOffer = createValidatableConsumerOffer(asset, originalPolicy);
 
@@ -114,14 +114,12 @@ class ContractValidationServiceImplTest {
 
         verify(assetIndex).findById("1");
         verify(policyEngine).evaluate(
-                eq(CATALOG_SCOPE),
                 eq(newPolicy),
-                and(isA(PolicyContext.class), argThat(c -> c.getContextData(ParticipantAgent.class).equals(participantAgent)))
+                and(isA(CatalogPolicyContext.class), argThat(c -> c.agent().equals(participantAgent)))
         );
         verify(policyEngine).evaluate(
-                eq(NEGOTIATION_SCOPE),
                 eq(newPolicy),
-                and(isA(PolicyContext.class), argThat(c -> c.getContextData(ParticipantAgent.class).equals(participantAgent)))
+                and(isA(ContractNegotiationPolicyContext.class), argThat(c -> c.agent().equals(participantAgent)))
         );
     }
 
@@ -174,9 +172,8 @@ class ContractValidationServiceImplTest {
     void verifyContractAgreementValidation() {
         var newPolicy = Policy.Builder.newInstance().build();
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
-        var captor = ArgumentCaptor.forClass(PolicyContext.class);
 
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), any())).thenReturn(Result.success());
 
         var agreement = createContractAgreement()
                 .contractSigningDate(now.getEpochSecond())
@@ -187,10 +184,10 @@ class ContractValidationServiceImplTest {
 
         assertThat(isValid.succeeded()).isTrue();
 
-        verify(policyEngine).evaluate(eq(TRANSFER_SCOPE), eq(newPolicy), captor.capture());
-
+        var captor = ArgumentCaptor.forClass(TransferProcessPolicyContext.class);
+        verify(policyEngine).evaluate(eq(newPolicy), captor.capture());
         var context = captor.getValue();
-        assertThat(context.getContextData(ContractAgreement.class)).isNotNull().isInstanceOf(ContractAgreement.class);
+        assertThat(context.contractAgreement()).isNotNull().isInstanceOf(ContractAgreement.class);
     }
 
     @ParameterizedTest
@@ -326,7 +323,7 @@ class ContractValidationServiceImplTest {
         var validatableOffer = createValidatableConsumerOffer();
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
 
-        when(policyEngine.evaluate(eq(CATALOG_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
         when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
         when(assetIndex.countAssets(anyList())).thenReturn(0L);
 
@@ -341,15 +338,14 @@ class ContractValidationServiceImplTest {
         var validatableOffer = createValidatableConsumerOffer();
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
 
-        when(policyEngine.evaluate(eq(CATALOG_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
-        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.failure("evaluation failure"));
+        when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), isA(ContractNegotiationPolicyContext.class))).thenReturn(Result.failure("evaluation failure"));
         when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
         when(assetIndex.countAssets(anyList())).thenReturn(1L);
 
         var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
 
         assertThat(result).isFailed().detail()
-                .startsWith("Policy in scope %s not fulfilled for offer %s, policy evaluation".formatted(NEGOTIATION_SCOPE, validatableOffer.getOfferId().toString()))
                 .contains("evaluation failure");
     }
 
@@ -375,7 +371,7 @@ class ContractValidationServiceImplTest {
     @Test
     void validateAgreement_failWhenOutsideInForcePeriod_fixed() {
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("test-failure"));
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.failure("test-failure"));
 
         var agreement = createContractAgreement()
                 .id(ContractOfferId.create("1", "2").toString())
@@ -387,7 +383,7 @@ class ContractValidationServiceImplTest {
     }
 
     private Result<ContractAgreement> validateAgreementDate(long signingDate) {
-        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(isA(Policy.class), isA(ContractNegotiationPolicyContext.class))).thenReturn(Result.success());
 
         var agreement = createContractAgreement()
                 .id(ContractOfferId.create("1", "2").toString())

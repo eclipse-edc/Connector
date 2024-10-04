@@ -43,7 +43,6 @@ import static org.mockito.Mockito.when;
 
 class DelegatedAuthenticationServiceTest {
 
-    private static final long TEST_CACHE_VALIDITY = 50;
     private final TokenValidationRulesRegistry rulesRegistry = mock();
     private final PublicKeyResolver publicKeyResolver = mock();
     private final ObjectMapper mapper = new ObjectMapper();

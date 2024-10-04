@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
-import org.eclipse.edc.policy.engine.spi.PolicyScope;
+import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -30,9 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import static java.lang.String.format;
 
 public class CatalogProtocolServiceImpl implements CatalogProtocolService {
-
-    @PolicyScope
-    public static final String CATALOGING_REQUEST_SCOPE = "request.catalog";
 
     private final DatasetResolver datasetResolver;
     private final DataServiceRegistry dataServiceRegistry;
@@ -56,7 +53,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     @Override
     @NotNull
     public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, CATALOGING_REQUEST_SCOPE, message)
+        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new, message)
                 .map(agent -> {
                     try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
                         var dataServices = dataServiceRegistry.getDataServices();
@@ -73,7 +70,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
     @Override
     public @NotNull ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, CATALOGING_REQUEST_SCOPE)
+        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new)
                 .map(agent -> datasetResolver.getById(agent, datasetId))
                 .compose(dataset -> {
                     if (dataset == null) {

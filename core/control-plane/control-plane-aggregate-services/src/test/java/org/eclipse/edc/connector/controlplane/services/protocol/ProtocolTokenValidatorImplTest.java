@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.protocol;
 
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
@@ -21,6 +22,7 @@ import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.RequestContext;
+import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -30,9 +32,10 @@ import org.junit.jupiter.api.Test;
 import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
+import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -54,14 +57,14 @@ class ProtocolTokenValidatorImplTest {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
         when(agentService.createFor(any())).thenReturn(participantAgent);
 
-        var result = validator.verify(tokenRepresentation, "scope", policy, new TestMessage());
+        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
 
         assertThat(result).isSucceeded().isSameAs(participantAgent);
         verify(agentService).createFor(claimToken);
-        verify(policyEngine).evaluate(eq("scope"), same(policy), argThat(ctx -> {
-            var reqContext = ctx.getContextData(RequestContext.class);
+        verify(policyEngine).evaluate(same(policy), and(isA(RequestPolicyContext.class), argThat(ctx -> {
+            var reqContext = ctx.requestContext();
             return reqContext.getMessage().getClass().equals(TestMessage.class) && reqContext.getDirection().equals(RequestContext.Direction.Ingress);
-        }));
+        })));
         verify(identityService).verifyJwtToken(same(tokenRepresentation), any());
     }
 
@@ -69,9 +72,15 @@ class ProtocolTokenValidatorImplTest {
     void shouldReturnUnauthorized_whenTokenIsNotValid() {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("failure"));
 
-        var result = validator.verify(TokenRepresentation.Builder.newInstance().build(), "scope", Policy.Builder.newInstance().build(), new TestMessage());
+        var result = validator.verify(TokenRepresentation.Builder.newInstance().build(), TestRequestPolicyContext::new, Policy.Builder.newInstance().build(), new TestMessage());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
+    }
+
+    private RequestPolicyContext policyContext() {
+        var requestScopeBuilder = RequestScope.Builder.newInstance();
+        var requestContext = RequestContext.Builder.newInstance().build();
+        return new TestRequestPolicyContext(requestContext, requestScopeBuilder);
     }
 
     static class TestMessage implements RemoteMessage {
@@ -88,6 +97,18 @@ class ProtocolTokenValidatorImplTest {
         @Override
         public String getCounterPartyId() {
             return null;
+        }
+    }
+
+    private static class TestRequestPolicyContext extends RequestPolicyContext {
+
+        TestRequestPolicyContext(RequestContext requestContext, RequestScope.Builder requestScopeBuilder) {
+            super(requestContext, requestScopeBuilder);
+        }
+
+        @Override
+        public String scope() {
+            return "request.test";
         }
     }
 }

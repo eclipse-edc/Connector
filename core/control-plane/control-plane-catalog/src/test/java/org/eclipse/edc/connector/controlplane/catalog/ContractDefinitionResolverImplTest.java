@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.controlplane.catalog;
 
+import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
@@ -32,7 +33,6 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.eclipse.edc.connector.controlplane.catalog.CatalogCoreExtension.CATALOG_SCOPE;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -59,7 +59,7 @@ class ContractDefinitionResolverImplTest {
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
         var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         when(policyStore.findById(any())).thenReturn(def);
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(any())).thenReturn(Stream.of(createContractDefinition()));
 
         var result = resolver.resolveFor(agent);
@@ -67,9 +67,8 @@ class ContractDefinitionResolverImplTest {
         assertThat(result.contractDefinitions()).hasSize(1);
         assertThat(result.policies()).hasSize(1);
         verify(policyEngine, atLeastOnce()).evaluate(
-                eq(CATALOG_SCOPE),
                 eq(def.getPolicy()),
-                and(isA(PolicyContext.class), argThat(c -> c.getContextData(ParticipantAgent.class).equals(agent)))
+                and(isA(CatalogPolicyContext.class), argThat(c -> c.agent().equals(agent)))
         );
         verify(definitionStore).findAll(any());
     }
@@ -80,7 +79,7 @@ class ContractDefinitionResolverImplTest {
         var definition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("access").build();
         when(policyStore.findById(any())).thenReturn(definition);
         var contractDefinition = createContractDefinition();
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("invalid"));
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.failure("invalid"));
         when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
 
         var result = resolver.resolveFor(agent);
@@ -94,7 +93,7 @@ class ContractDefinitionResolverImplTest {
     void shouldNotReturnDefinition_whenAccessPolicyDoesNotExist() {
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
         when(policyStore.findById(any())).thenReturn(null);
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(QuerySpec.max())).thenReturn(Stream.of(createContractDefinition()));
 
         var result = resolver.resolveFor(agent);
@@ -111,7 +110,7 @@ class ContractDefinitionResolverImplTest {
         var policy = Policy.Builder.newInstance().build();
         var policyDefinition = PolicyDefinition.Builder.newInstance().policy(policy).build();
         when(policyStore.findById(any())).thenReturn(policyDefinition);
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition1, contractDefinition2));
 
         var result = resolver.resolveFor(new ParticipantAgent(emptyMap(), emptyMap()));

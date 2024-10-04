@@ -17,23 +17,23 @@ package org.eclipse.edc.connector.controlplane.catalog;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
+import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
-import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import static org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext.CATALOG_SCOPE;
 
 @Extension(CatalogCoreExtension.NAME)
 public class CatalogCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Catalog Core";
-
-    @PolicyScope
-    public static final String CATALOG_SCOPE = "catalog";
 
     @Inject
     private AssetIndex assetIndex;
@@ -56,6 +56,11 @@ public class CatalogCoreExtension implements ServiceExtension {
     @Override
     public String name() {
         return NAME;
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        policyEngine.registerScope(CATALOG_SCOPE, CatalogPolicyContext.class);
     }
 
     @Provider

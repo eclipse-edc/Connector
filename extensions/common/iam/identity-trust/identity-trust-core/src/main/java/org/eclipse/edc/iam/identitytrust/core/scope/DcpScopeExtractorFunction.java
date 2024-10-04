@@ -16,13 +16,12 @@ package org.eclipse.edc.iam.identitytrust.core.scope;
 
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractor;
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
+import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.monitor.Monitor;
-
-import java.util.function.BiFunction;
 
 import static java.lang.String.format;
 
@@ -30,7 +29,7 @@ import static java.lang.String.format;
  * DCP pre-validator function for extracting scopes from a {@link Policy} using the registered {@link ScopeExtractor}
  * in the {@link ScopeExtractorRegistry}.
  */
-public class DcpScopeExtractorFunction implements BiFunction<Policy, PolicyContext, Boolean> {
+public class DcpScopeExtractorFunction<C extends RequestPolicyContext> implements PolicyValidatorRule<C> {
 
     private final ScopeExtractorRegistry registry;
     private final Monitor monitor;
@@ -41,8 +40,8 @@ public class DcpScopeExtractorFunction implements BiFunction<Policy, PolicyConte
     }
 
     @Override
-    public Boolean apply(Policy policy, PolicyContext context) {
-        var params = context.getContextData(RequestScope.Builder.class);
+    public Boolean apply(Policy policy, C context) {
+        var params = context.requestScopeBuilder();
         if (params == null) {
             throw new EdcException(format("%s not set in policy context", RequestScope.Builder.class.getName()));
         }
@@ -54,5 +53,6 @@ public class DcpScopeExtractorFunction implements BiFunction<Policy, PolicyConte
             monitor.warning("Failed to extract scopes from a policy");
             return false;
         }
+
     }
 }

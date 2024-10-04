@@ -19,11 +19,11 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.Con
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
@@ -39,7 +39,6 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.policy.monitor.PolicyMonitorExtension.POLICY_MONITOR_SCOPE;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.COMPLETED;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.FAILED;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
@@ -48,7 +47,6 @@ import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
@@ -103,17 +101,17 @@ class PolicyMonitorManagerImplTest {
         when(transferProcessService.findById(entry.getId()))
                 .thenReturn(TransferProcess.Builder.newInstance().state(TransferProcessStates.STARTED.code()).build());
         when(contractAgreementService.findById(any())).thenReturn(contractAgreement);
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("policy is not valid"));
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.failure("policy is not valid"));
         when(transferProcessService.terminate(any())).thenReturn(ServiceResult.success());
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(contractAgreementService).findById("contractId");
-            var captor = ArgumentCaptor.forClass(PolicyContextImpl.class);
-            verify(policyEngine).evaluate(eq(POLICY_MONITOR_SCOPE), same(policy), captor.capture());
+            var captor = ArgumentCaptor.forClass(PolicyMonitorContext.class);
+            verify(policyEngine).evaluate(same(policy), captor.capture());
             var policyContext = captor.getValue();
-            assertThat(policyContext.getContextData(ContractAgreement.class)).isSameAs(contractAgreement);
+            assertThat(policyContext.contractAgreement()).isSameAs(contractAgreement);
             verify(transferProcessService).terminate(argThat(c -> c.getEntityId().equals("transferProcessId")));
             verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
         });
@@ -131,7 +129,7 @@ class PolicyMonitorManagerImplTest {
         when(transferProcessService.findById(entry.getId()))
                 .thenReturn(TransferProcess.Builder.newInstance().state(TransferProcessStates.STARTED.code()).build());
         when(contractAgreementService.findById(any())).thenReturn(createContractAgreement(policy));
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("policy is not valid"));
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.failure("policy is not valid"));
         when(transferProcessService.terminate(any())).thenReturn(ServiceResult.conflict("failure"));
 
         manager.start();
@@ -155,7 +153,7 @@ class PolicyMonitorManagerImplTest {
         when(transferProcessService.findById(entry.getId()))
                 .thenReturn(TransferProcess.Builder.newInstance().state(TransferProcessStates.STARTED.code()).build());
         when(contractAgreementService.findById(any())).thenReturn(createContractAgreement(policy));
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
 
         manager.start();
 
