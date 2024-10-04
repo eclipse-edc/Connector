@@ -17,15 +17,17 @@ package org.eclipse.edc.connector.controlplane.catalog;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
+import org.eclipse.edc.connector.controlplane.catalog.spi.ContractDefinitionResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
-import org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -34,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -61,14 +64,15 @@ public class DatasetResolverImpl implements DatasetResolver {
     @Override
     @NotNull
     public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec) {
-        var contractDefinitions = contractDefinitionResolver.definitionsFor(agent).toList();
+        var resolved = contractDefinitionResolver.resolveFor(agent);
+        var contractDefinitions = resolved.contractDefinitions();
         if (contractDefinitions.isEmpty()) {
             return Stream.empty();
         }
         
         var assetsQuery = QuerySpec.Builder.newInstance().offset(0).limit(MAX_VALUE).filter(querySpec.getFilterExpression()).build();
         return assetIndex.queryAssets(assetsQuery)
-                .map(asset -> toDataset(contractDefinitions, asset))
+                .map(asset -> toDataset(contractDefinitions, asset, resolved.policies()))
                 .filter(Dataset::hasOffers)
                 .skip(querySpec.getOffset())
                 .limit(querySpec.getLimit());
@@ -76,19 +80,20 @@ public class DatasetResolverImpl implements DatasetResolver {
 
     @Override
     public Dataset getById(ParticipantAgent agent, String id) {
-        var contractDefinitions = contractDefinitionResolver.definitionsFor(agent).toList();
+        var resolved = contractDefinitionResolver.resolveFor(agent);
+        var contractDefinitions = resolved.contractDefinitions();
         if (contractDefinitions.isEmpty()) {
             return null;
         }
         
         return Optional.of(id)
                 .map(assetIndex::findById)
-                .map(asset -> toDataset(contractDefinitions, asset))
+                .map(asset -> toDataset(contractDefinitions, asset, resolved.policies()))
                 .filter(Dataset::hasOffers)
                 .orElse(null);
     }
 
-    private Dataset.Builder buildDataset(Asset asset) {
+    private Dataset.Builder<?, ?> buildDataset(Asset asset) {
         if (!asset.isCatalog()) {
             return Dataset.Builder.newInstance();
         }
@@ -101,7 +106,7 @@ public class DatasetResolverImpl implements DatasetResolver {
                         .build());
     }
 
-    private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset) {
+    private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset, Map<String, Policy> policies) {
 
         var distributions = distributionResolver.getDistributions(asset);
         var datasetBuilder = buildDataset(asset)
@@ -116,10 +121,15 @@ public class DatasetResolverImpl implements DatasetResolver {
                         .test(asset)
                 )
                 .forEach(contractDefinition -> {
-                    var policyDefinition = policyDefinitionStore.findById(contractDefinition.getContractPolicyId());
-                    if (policyDefinition != null) {
+                    var policy = policies.computeIfAbsent(contractDefinition.getContractPolicyId(), policyId ->
+                            Optional.ofNullable(policyDefinitionStore.findById(policyId))
+                                    .map(PolicyDefinition::getPolicy)
+                                    .orElse(null)
+                    );
+
+                    if (policy != null) {
                         var contractId = ContractOfferId.create(contractDefinition.getId(), asset.getId());
-                        var offerPolicy = policyDefinition.getPolicy().toBuilder().type(PolicyType.OFFER).build();
+                        var offerPolicy = policy.toBuilder().type(PolicyType.OFFER).build();
                         datasetBuilder.offer(contractId.toString(), offerPolicy);
                     }
                 });

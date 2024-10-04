@@ -74,7 +74,9 @@ public class DeprovisionedResource {
 
         public Builder errorMessage(String message) {
             resource.errorMessage = message;
-            resource.error = true;
+            if (message != null) {
+                resource.error = true;
+            }
             return this;
         }
 

@@ -27,13 +27,12 @@ import static java.util.UUID.randomUUID;
  * <p>
  * The {@link #processId} represent the ID of the process on the recipient part.
  */
-public abstract class ProcessRemoteMessage implements RemoteMessage {
+public abstract class ProcessRemoteMessage extends ProtocolRemoteMessage {
 
     protected String id;
     protected String processId;
     protected String consumerPid;
     protected String providerPid;
-    protected String protocol = "unknown";
     protected String counterPartyAddress;
     protected String counterPartyId;
 
@@ -52,17 +51,7 @@ public abstract class ProcessRemoteMessage implements RemoteMessage {
     public @NotNull String getId() {
         return id;
     }
-
-    @Override
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        Objects.requireNonNull(protocol);
-        this.protocol = protocol;
-    }
-
+    
     /**
      * Returns the process id for this instance, that could be consumerPid or providerPid.
      *

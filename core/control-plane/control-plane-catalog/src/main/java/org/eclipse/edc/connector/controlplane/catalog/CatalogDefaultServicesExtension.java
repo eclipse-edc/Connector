@@ -52,4 +52,5 @@ public class CatalogDefaultServicesExtension implements ServiceExtension {
     public DistributionResolver distributionResolver() {
         return new DefaultDistributionResolver(dataServiceRegistry, dataFlowManager);
     }
+
 }

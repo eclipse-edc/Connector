@@ -21,29 +21,29 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ResponseDecorator;
+import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
+import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 import java.util.UUID;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.error.DspErrorResponse.type;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 public class DspRequestHandlerImpl implements DspRequestHandler {
 
     private final Monitor monitor;
     private final JsonObjectValidatorRegistry validatorRegistry;
-    private final TypeTransformerRegistry transformerRegistry;
+    private final DspProtocolTypeTransformerRegistry dspTransformerRegistry;
 
-    public DspRequestHandlerImpl(Monitor monitor, JsonObjectValidatorRegistry validatorRegistry, TypeTransformerRegistry transformerRegistry) {
+    public DspRequestHandlerImpl(Monitor monitor, JsonObjectValidatorRegistry validatorRegistry, DspProtocolTypeTransformerRegistry dspTransformerRegistry) {
         this.monitor = monitor;
         this.validatorRegistry = validatorRegistry;
-        this.transformerRegistry = transformerRegistry;
+        this.dspTransformerRegistry = dspTransformerRegistry;
     }
 
     @Override
@@ -64,7 +64,13 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
         var resource = serviceResult.getContent();
 
-        var transformation = transformerRegistry.transform(resource, JsonObject.class);
+        var registryResult = dspTransformerRegistry.forProtocol(request.getProtocol());
+        if (registryResult.failed()) {
+            monitor.debug(() -> "DSP: Unsupported protocol %s: %s".formatted(request.getProtocol(), registryResult.getFailureMessages()));
+            return type(request.getErrorType()).badRequest();
+        }
+        var registry = registryResult.getContent();
+        var transformation = registry.transform(resource, JsonObject.class);
         if (transformation.failed()) {
             var errorCode = UUID.randomUUID();
             monitor.warning("Error transforming %s, error id %s: %s".formatted(request.getResultClass().getSimpleName(), errorCode, transformation.getFailureDetail()));
@@ -92,10 +98,18 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
             return type(request.getErrorType()).badRequest();
         }
 
-        var inputTransformation = transformerRegistry.transform(request.getMessage(), request.getInputClass())
+        var registryResult = dspTransformerRegistry.forProtocol(request.getProtocol());
+
+        if (registryResult.failed()) {
+            monitor.debug(() -> "DSP: Unsupported protocol %s: %s".formatted(request.getProtocol(), registryResult.getFailureMessages()));
+            return type(request.getErrorType()).badRequest();
+        }
+
+        var registry = registryResult.getContent();
+        var inputTransformation = registry.transform(request.getMessage(), request.getInputClass())
                 .compose(message -> {
-                    if (message instanceof ProcessRemoteMessage processRemoteMessage) {
-                        processRemoteMessage.setProtocol(DATASPACE_PROTOCOL_HTTP);
+                    if (message instanceof ProtocolRemoteMessage protocolRemoteMessage) {
+                        protocolRemoteMessage.setProtocol(request.getProtocol());
                     }
                     return Result.success(message);
                 });
@@ -116,7 +130,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
         var resource = serviceResult.getContent();
 
-        var outputTransformation = transformerRegistry.transform(resource, JsonObject.class);
+        var outputTransformation = registry.transform(resource, JsonObject.class);
         if (outputTransformation.failed()) {
             var errorCode = UUID.randomUUID();
             monitor.warning("Error transforming %s, error id %s: %s".formatted(request.getResultClass().getSimpleName(), errorCode, outputTransformation.getFailureDetail()));
@@ -149,13 +163,22 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
             return type(request.getErrorType()).processId(request.getProcessId()).badRequest();
         }
 
-        var inputTransformation = transformerRegistry.transform(request.getMessage(), request.getInputClass())
+        var registryResult = dspTransformerRegistry.forProtocol(request.getProtocol());
+
+        if (registryResult.failed()) {
+            monitor.debug(() -> "DSP: Unsupported protocol %s: %s".formatted(request.getProtocol(), registryResult.getFailureMessages()));
+            return type(request.getErrorType()).badRequest();
+        }
+
+        var registry = registryResult.getContent();
+
+        var inputTransformation = registry.transform(request.getMessage(), request.getInputClass())
                 .compose(message -> {
                     if (message instanceof ProcessRemoteMessage processRemoteMessage) {
                         var processIdValidation = processRemoteMessage.isValidProcessId(request.getProcessId());
                         if (processIdValidation.succeeded()) {
                             processRemoteMessage.setProcessId(request.getProcessId());
-                            processRemoteMessage.setProtocol(DATASPACE_PROTOCOL_HTTP);
+                            processRemoteMessage.setProtocol(request.getProtocol());
                             return Result.success(message);
                         } else {
                             return Result.failure("DSP: %s".formatted(processIdValidation.getFailureDetail()));

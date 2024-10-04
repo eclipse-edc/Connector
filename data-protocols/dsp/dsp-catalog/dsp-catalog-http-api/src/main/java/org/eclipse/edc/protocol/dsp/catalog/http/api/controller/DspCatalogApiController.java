@@ -41,6 +41,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.DATASET_REQUEST;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_ERROR;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 
@@ -55,11 +56,17 @@ public class DspCatalogApiController {
     private final CatalogProtocolService service;
     private final DspRequestHandler dspRequestHandler;
     private final ContinuationTokenManager continuationTokenManager;
+    private final String protocol;
 
     public DspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager) {
+        this(service, dspRequestHandler, continuationTokenManager, DATASPACE_PROTOCOL_HTTP);
+    }
+
+    public DspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager, String protocol) {
         this.service = service;
         this.dspRequestHandler = dspRequestHandler;
         this.continuationTokenManager = continuationTokenManager;
+        this.protocol = protocol;
     }
 
     @POST
@@ -80,6 +87,7 @@ public class DspCatalogApiController {
                 .message(messageJson)
                 .serviceCall(service::getCatalog)
                 .errorType(DSPACE_TYPE_CATALOG_ERROR)
+                .protocol(protocol)
                 .build();
 
         var responseDecorator = continuationTokenManager.createResponseDecorator(uriInfo.getAbsolutePath().toString());
@@ -94,6 +102,7 @@ public class DspCatalogApiController {
                 .id(id)
                 .serviceCall(service::getDataset)
                 .errorType(DSPACE_TYPE_CATALOG_ERROR)
+                .protocol(protocol)
                 .build();
 
         return dspRequestHandler.getResource(request);

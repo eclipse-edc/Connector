@@ -40,7 +40,15 @@
     "CallbackAddress": "edc:CallbackAddress",
     "NegotiationState": "edc:NegotiationState",
     "TerminateNegotiation": "edc:TerminateNegotiation",
-    "ContractAgreement": "edc:ContractAgreement",
+    "ContractAgreement": {
+      "@id": "edc:ContractAgreement",
+      "@context": {
+         "@import": "http://www.w3.org/ns/odrl.jsonld",
+         "@propagate": true,
+         "uid": null,
+         "type": null
+      }
+    },
     "TransferRequest": "edc:TransferRequest",
     "TransferState": "edc:TransferState",
     "TransferProcess": {

@@ -22,4 +22,8 @@ public interface DspVersions {
     String V_2024_1_PATH = "/" + V_2024_1_VERSION;
     ProtocolVersion V_2024_1 = new ProtocolVersion(V_2024_1_VERSION, V_2024_1_PATH);
 
+    String V_08_VERSION = "v0.8";
+    String V_08_PATH = "/";
+    ProtocolVersion V_08 = new ProtocolVersion(V_08_VERSION, V_08_PATH);
+
 }

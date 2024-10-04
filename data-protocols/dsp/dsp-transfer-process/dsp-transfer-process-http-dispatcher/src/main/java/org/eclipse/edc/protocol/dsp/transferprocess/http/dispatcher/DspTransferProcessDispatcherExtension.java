@@ -24,14 +24,15 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.PostDspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.http.serialization.JsonLdResponseBodyDeserializer;
+import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
+import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response.DspHttpResponseBodyExtractor.NOOP;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.dispatcher.TransferProcessApiPaths.BASE_PATH;
@@ -61,10 +62,13 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
     private TypeManager typeManager;
 
     @Inject
-    private TypeTransformerRegistry transformerRegistry;
+    private DspProtocolTypeTransformerRegistry dspTransformerRegistry;
 
     @Inject
     private JsonLd jsonLd;
+
+    @Inject
+    private DspProtocolParser dspProtocolParser;
 
     @Override
     public String name() {
@@ -75,27 +79,27 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         messageDispatcher.registerMessage(
                 TransferRequestMessage.class,
-                new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + TRANSFER_INITIAL_REQUEST),
-                new JsonLdResponseBodyDeserializer<>(TransferProcessAck.class, typeManager.getMapper(JSON_LD), jsonLd, transformerRegistry.forContext("dsp-api"))
+                new PostDspHttpRequestFactory<>(remoteMessageSerializer, dspProtocolParser, m -> BASE_PATH + TRANSFER_INITIAL_REQUEST),
+                new JsonLdResponseBodyDeserializer<>(TransferProcessAck.class, typeManager.getMapper(JSON_LD), jsonLd, dspTransformerRegistry)
         );
         messageDispatcher.registerMessage(
                 TransferCompletionMessage.class,
-                new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TRANSFER_COMPLETION),
+                new PostDspHttpRequestFactory<>(remoteMessageSerializer, dspProtocolParser, m -> BASE_PATH + m.getProcessId() + TRANSFER_COMPLETION),
                 NOOP
         );
         messageDispatcher.registerMessage(
                 TransferStartMessage.class,
-                new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TRANSFER_START),
+                new PostDspHttpRequestFactory<>(remoteMessageSerializer, dspProtocolParser, m -> BASE_PATH + m.getProcessId() + TRANSFER_START),
                 NOOP
         );
         messageDispatcher.registerMessage(
                 TransferSuspensionMessage.class,
-                new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TRANSFER_SUSPENSION),
+                new PostDspHttpRequestFactory<>(remoteMessageSerializer, dspProtocolParser, m -> BASE_PATH + m.getProcessId() + TRANSFER_SUSPENSION),
                 NOOP
         );
         messageDispatcher.registerMessage(
                 TransferTerminationMessage.class,
-                new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TRANSFER_TERMINATION),
+                new PostDspHttpRequestFactory<>(remoteMessageSerializer, dspProtocolParser, m -> BASE_PATH + m.getProcessId() + TRANSFER_TERMINATION),
                 NOOP
         );
     }

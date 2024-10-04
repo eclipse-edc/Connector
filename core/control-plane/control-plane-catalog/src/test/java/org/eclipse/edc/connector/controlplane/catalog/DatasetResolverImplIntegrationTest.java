@@ -16,8 +16,9 @@ package org.eclipse.edc.connector.controlplane.catalog;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.catalog.spi.ContractDefinitionResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
-import org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver;
+import org.eclipse.edc.connector.controlplane.catalog.spi.ResolvedContractDefinitions;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.defaults.storage.assetindex.InMemoryAssetIndex;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
@@ -28,7 +29,6 @@ import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
@@ -61,16 +61,15 @@ import static org.mockito.Mockito.when;
  */
 class DatasetResolverImplIntegrationTest {
 
-    private ContractDefinitionResolver contractDefinitionResolver;
+    private final ContractDefinitionResolver contractDefinitionResolver = mock();
     private AssetIndex assetIndex;
 
     private DatasetResolver resolver;
 
     @BeforeEach
     void setUp() {
-        contractDefinitionResolver = mock();
         PolicyDefinitionStore policyStore = mock();
-        CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
+        var criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
         criterionOperatorRegistry.registerPropertyLookup(new AssetPropertyLookup());
         assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry);
         resolver = new DatasetResolverImpl(
@@ -97,7 +96,7 @@ class DatasetResolverImplIntegrationTest {
         var def2 = getContractDefBuilder("def2").assetsSelector(selectorFrom(assets2)).build();
         var def3 = getContractDefBuilder("def3").assetsSelector(selectorFrom(assets3)).build();
 
-        when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2, def3));
+        when(contractDefinitionResolver.resolveFor(isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(def1, def2, def3)));
 
         var from = 20;
         var to = 50;
@@ -124,7 +123,7 @@ class DatasetResolverImplIntegrationTest {
         var contractDefinition2 = getContractDefBuilder("contract-definition-")
                 .assetsSelector(selectorFrom(assets2)).build();
 
-        when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(contractDefinition1, contractDefinition2));
+        when(contractDefinitionResolver.resolveFor(isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(contractDefinition1, contractDefinition2)));
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
 
         var datasets = resolver.query(createAgent(), querySpec);
@@ -143,7 +142,7 @@ class DatasetResolverImplIntegrationTest {
         var def1 = getContractDefBuilder("def1").assetsSelector(selectorFrom(assets1)).build();
         var def2 = getContractDefBuilder("def2").assetsSelector(selectorFrom(assets2)).build();
 
-        when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2));
+        when(contractDefinitionResolver.resolveFor(isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(def1, def2)));
 
         var from = 14;
         var to = 50;
@@ -158,7 +157,7 @@ class DatasetResolverImplIntegrationTest {
     @Test
     void shouldLimitResult_pageOffsetLargerThanNumAssets() {
         var contractDefinition = range(0, 2).mapToObj(i -> getContractDefBuilder(String.valueOf(i)).build());
-        when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> contractDefinition);
+        when(contractDefinitionResolver.resolveFor(isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(contractDefinition.toList()));
 
         var from = 25;
         var to = 50;

@@ -25,6 +25,13 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 @FunctionalInterface
 public interface DspHttpRequestFactory<M extends RemoteMessage> {
 
+    default String removeTrailingSlash(String path) {
+        if (path.endsWith("/")) {
+            return path.substring(0, path.length() - 1);
+        }
+        return path;
+    }
+
     /**
      * Create the request given the message and a {@link RequestPathProvider}
      *

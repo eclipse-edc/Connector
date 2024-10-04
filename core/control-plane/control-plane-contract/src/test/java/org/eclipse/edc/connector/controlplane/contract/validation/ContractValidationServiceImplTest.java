@@ -48,7 +48,7 @@ import java.util.UUID;
 import static java.time.Instant.MIN;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.contract.spi.offer.ContractDefinitionResolver.CATALOGING_SCOPE;
+import static org.eclipse.edc.connector.controlplane.contract.ContractCoreExtension.CATALOG_SCOPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService.NEGOTIATION_SCOPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService.TRANSFER_SCOPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -99,7 +99,7 @@ class ContractValidationServiceImplTest {
         var asset = Asset.Builder.newInstance().id("1").build();
 
         when(assetIndex.findById("1")).thenReturn(asset);
-        when(policyEngine.evaluate(eq(CATALOGING_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(eq(CATALOG_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
 
         var validatableOffer = createValidatableConsumerOffer(asset, originalPolicy);
@@ -114,7 +114,7 @@ class ContractValidationServiceImplTest {
 
         verify(assetIndex).findById("1");
         verify(policyEngine).evaluate(
-                eq(CATALOGING_SCOPE),
+                eq(CATALOG_SCOPE),
                 eq(newPolicy),
                 and(isA(PolicyContext.class), argThat(c -> c.getContextData(ParticipantAgent.class).equals(participantAgent)))
         );
@@ -326,7 +326,7 @@ class ContractValidationServiceImplTest {
         var validatableOffer = createValidatableConsumerOffer();
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
 
-        when(policyEngine.evaluate(eq(CATALOGING_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(eq(CATALOG_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
         when(assetIndex.countAssets(anyList())).thenReturn(0L);
 
@@ -341,7 +341,7 @@ class ContractValidationServiceImplTest {
         var validatableOffer = createValidatableConsumerOffer();
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
 
-        when(policyEngine.evaluate(eq(CATALOGING_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(eq(CATALOG_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), any(), isA(PolicyContext.class))).thenReturn(Result.failure("evaluation failure"));
         when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
         when(assetIndex.countAssets(anyList())).thenReturn(1L);
