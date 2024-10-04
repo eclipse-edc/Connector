@@ -2,7 +2,7 @@
 
 ## Decision
 
-We will implement a new implementation of the Policy Engine, with strongly typed scopes and contexts.
+We will implement a new feature of the Policy Engine, with strongly typed scopes and `PolicyContext` objects.
 
 ## Rationale
 
@@ -26,6 +26,8 @@ We will define a `record` that will represent the scope:
 public record PolicyScope<C extends PolicyContext>(String name) { }
 ```
 The record is bound to a `PolicyContext` context implementation, and it has a `name` property.
+
+### PolicyEngine
 
 The biggest part of refactor evolves around extracting a `ScopedPolicyEngine` from `PolicyEngine`, that will work only on a specific
 scope, the interface will be pretty similar to the `PolicyEngine` one, but it won't need to have the `scope` passed, because
@@ -67,11 +69,31 @@ public interface PolicyEngine {
 All the `PolicyEngine` methods with `String scope` will be deprecated, and the implementation will call `forScope` internally
 to avoid breaking changes.
 
-Other interfaces/classes will need to be duplicated with a "scoped" version of them, like: 
+### Policy functions
+
+The policy function interfaces: 
 - `AtomicConstraintFunction`
 - `DynamicAtomicConstraintFunction`
 - `RuleFunction`
-- ... (potential others, to be discovered during the refactor)
+
+Will need to be duplicated with a version with a typed context.
+e.g. the duplicate of `AtomicConstraintFunction` will be something like: 
+```java
+public interface AtomicConstraintRuleFunction<R extends Rule, C extends PolicyContext> {
+
+    boolean evaluate(Operator operator, Object rightValue, R rule, C context);
+
+    default Result<Void> validate(Operator operator, Object rightValue, R rule) {
+        return Result.success();
+    }
+
+    default String name() {
+        return getClass().getSimpleName();
+    }
+}
+```
+
+### Policy Evaluation Plan
 
 The `PolicyEvaluationPlanner` and the related "steps" will need to be adapted to the new interfaces, no need to do with
 the "duplicate/deprecate" pattern because it is an internal component.
