@@ -59,6 +59,7 @@ public abstract class PolicyContextImpl implements PolicyContext {
         additional.put(type, data);
     }
 
+    @Deprecated(since = "0.10.0")
     public static class Builder {
 
         private final PolicyContextImpl context = new PolicyContextImpl() {
@@ -73,15 +74,18 @@ public abstract class PolicyContextImpl implements PolicyContext {
 
         }
 
+        @Deprecated(since = "0.10.0")
         public static Builder newInstance() {
             return new Builder();
         }
 
+        @Deprecated(since = "0.10.0")
         public Builder additional(Class<?> clazz, Object object) {
             context.additional.put(clazz, object);
             return this;
         }
 
+        @Deprecated(since = "0.10.0")
         public PolicyContext build() {
             return context;
         }

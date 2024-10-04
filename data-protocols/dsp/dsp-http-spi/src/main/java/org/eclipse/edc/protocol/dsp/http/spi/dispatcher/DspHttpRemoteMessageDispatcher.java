@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.http.spi.dispatcher;
 
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
@@ -41,10 +42,10 @@ public interface DspHttpRemoteMessageDispatcher extends RemoteMessageDispatcher 
     /**
      * Registers a {@link Policy} scope to be evaluated for certain types of messages
      *
-     * @param messageClass the message type for which evaluate the policy.
-     * @param scope the scope to be used.
+     * @param <M>            the message type.
+     * @param messageClass   the message type for which evaluate the policy.
      * @param policyProvider function that extracts the Policy from the message.
-     * @param <M> the message type.
      */
-    <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass, String scope, Function<M, Policy> policyProvider);
+    <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass, Function<M, Policy> policyProvider,
+                                                       RequestPolicyContext.Provider contextProvider);
 }

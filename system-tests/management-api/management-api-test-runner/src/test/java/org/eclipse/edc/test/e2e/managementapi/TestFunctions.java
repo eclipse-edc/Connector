@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorFunction;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AndConstraintStep;
@@ -38,7 +37,6 @@ import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
@@ -258,8 +256,10 @@ public class TestFunctions {
 
     public static PolicyEvaluationPlan createPolicyEvaluationPlan() {
 
-        var firstConstraint = atomicConstraintStep(atomicConstraint("foo", "bar"));
-        var secondConstraint = atomicConstraintStep(atomicConstraint("baz", "bar"));
+        var firstConstraint = new AtomicConstraintStep(atomicConstraint("foo", "bar"), List.of("filtered constraint"),
+                mock(), "AtomicConstraintFunction");
+        var secondConstraint = new AtomicConstraintStep(atomicConstraint("baz", "bar"), List.of("filtered constraint"),
+                mock(), "AtomicConstraintFunction");
 
         List<ConstraintStep> constraints = List.of(firstConstraint, secondConstraint);
 
@@ -377,12 +377,6 @@ public class TestFunctions {
                 .add(TYPE, "PolicyEvaluationPlanRequest")
                 .add("policyScope", "catalog")
                 .build();
-    }
-
-    private static AtomicConstraintStep atomicConstraintStep(AtomicConstraint atomicConstraint) {
-        AtomicConstraintFunction<Rule> function = mock();
-        when(function.name()).thenReturn("AtomicConstraintFunction");
-        return new AtomicConstraintStep(atomicConstraint, List.of("filtered constraint"), mock(), function);
     }
 
     private static AtomicConstraint atomicConstraint(String key, String value) {

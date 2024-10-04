@@ -14,16 +14,15 @@
 
 package org.eclipse.edc.connector.policy.monitor.manager;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
@@ -34,7 +33,6 @@ import org.eclipse.edc.statemachine.StateMachineManager;
 import java.time.Instant;
 import java.util.function.Function;
 
-import static org.eclipse.edc.connector.policy.monitor.PolicyMonitorExtension.POLICY_MONITOR_SCOPE;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
@@ -93,12 +91,9 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyM
         }
 
         var policy = contractAgreement.getPolicy();
-        var policyContext = PolicyContextImpl.Builder.newInstance()
-                .additional(Instant.class, Instant.now(clock))
-                .additional(ContractAgreement.class, contractAgreement)
-                .build();
+        var policyContext = new PolicyMonitorContext(Instant.now(clock), contractAgreement);
 
-        var result = policyEngine.evaluate(POLICY_MONITOR_SCOPE, policy, policyContext);
+        var result = policyEngine.evaluate(policy, policyContext);
         if (result.failed()) {
             monitor.debug(() -> "[policy-monitor] Policy evaluation for TP %s failed: %s".formatted(entry.getId(), result.getFailureDetail()));
             var command = new TerminateTransferCommand(entry.getId(), result.getFailureDetail());

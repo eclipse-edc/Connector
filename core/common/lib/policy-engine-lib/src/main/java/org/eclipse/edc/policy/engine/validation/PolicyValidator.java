@@ -15,7 +15,9 @@
 package org.eclipse.edc.policy.engine.validation;
 
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -39,7 +41,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -59,8 +60,8 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
 
     private final Stack<Rule> ruleContext = new Stack<>();
 
-    private final Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
-    private final List<DynamicAtomicConstraintFunctionEntry<Rule>> dynamicConstraintFunctions = new ArrayList<>();
+    private final Map<String, List<ConstraintFunctionEntry<Rule, ? extends PolicyContext>>> constraintFunctions = new TreeMap<>();
+    private final List<DynamicAtomicConstraintFunctionEntry<Rule, ? extends PolicyContext>> dynamicConstraintFunctions = new ArrayList<>();
     private RuleValidator ruleValidator;
 
     public Result<Void> validate(Policy policy) {
@@ -133,12 +134,12 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
     }
 
     private Result<Void> validateConstraint(String leftOperand, Operator operator, Object rightOperand, Rule rule) {
-        var functions = getFunctions(leftOperand, rule.getClass());
+        var functions = getValidations(leftOperand, rule.getClass());
         if (functions.isEmpty()) {
             return Result.failure("left operand '%s' is not bound to any functions: Rule { %s }".formatted(leftOperand, rule));
         } else {
             return functions.stream()
-                    .map(f -> f.validate(operator, rightOperand, rule))
+                    .map(f -> f.validate(leftOperand, operator, rightOperand, rule))
                     .reduce(Result.success(), Result::merge);
         }
     }
@@ -164,29 +165,30 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
         }
     }
 
-    private <R extends Rule> List<AtomicConstraintFunction<Rule>> getFunctions(String key, Class<R> ruleKind) {
+    private <R extends Rule, C extends PolicyContext> List<PolicyValidation> getValidations(String key, Class<R> ruleKind) {
         // first look-up for an exact match
         var functions = constraintFunctions.getOrDefault(key, new ArrayList<>())
                 .stream()
                 .filter(entry -> ruleKind.isAssignableFrom(entry.type()))
-                .map(entry -> entry.function)
-                .collect(Collectors.toList());
+                .map(entry -> (PolicyValidation) (leftOperand, operator, rightOperand, rule) ->
+                        entry.function.validate(operator, rightOperand, rule))
+                .toList();
 
         // if not found inspect the dynamic functions
         if (functions.isEmpty()) {
-            functions = dynamicConstraintFunctions
+            return dynamicConstraintFunctions
                     .stream()
-                    .filter(f -> ruleKind.isAssignableFrom(f.type))
-                    .filter(f -> f.function.canHandle(key))
-                    .map(entry -> wrapDynamicFunction(key, entry.function))
+                    .filter(entry -> ruleKind.isAssignableFrom(entry.type))
+                    .filter(entry -> entry.function.canHandle(key))
+                    .map(entry -> (PolicyValidation) entry.function::validate)
                     .toList();
         }
 
         return functions;
     }
 
-    private <R extends Rule> AtomicConstraintFunction<R> wrapDynamicFunction(String key, DynamicAtomicConstraintFunction<R> function) {
-        return new AtomicConstraintFunctionWrapper<>(key, function);
+    private interface PolicyValidation {
+        Result<Void> validate(String leftOperand, Operator operator, Object rightOperand, Rule rule);
     }
 
     private Rule currentRule() {
@@ -210,14 +212,14 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
         }
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        public <R extends Rule> Builder evaluationFunction(String key, Class<R> ruleKind, AtomicConstraintFunction<R> function) {
+        public <R extends Rule, C extends PolicyContext> Builder evaluationFunction(String key, Class<R> ruleKind, AtomicConstraintRuleFunction<R, C> function) {
             validator.constraintFunctions.computeIfAbsent(key, k -> new ArrayList<>())
                     .add(new ConstraintFunctionEntry(ruleKind, function));
             return this;
         }
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        public <R extends Rule> Builder dynamicEvaluationFunction(Class<R> ruleKind, DynamicAtomicConstraintFunction<R> function) {
+        public <R extends Rule, C extends PolicyContext> Builder dynamicEvaluationFunction(Class<R> ruleKind, DynamicAtomicConstraintRuleFunction<R, C> function) {
             validator.dynamicConstraintFunctions.add(new DynamicAtomicConstraintFunctionEntry(ruleKind, function));
             return this;
         }
@@ -229,28 +231,13 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
 
     }
 
-    private record ConstraintFunctionEntry<R extends Rule>(
+    private record ConstraintFunctionEntry<R extends Rule, C extends PolicyContext>(
             Class<R> type,
-            AtomicConstraintFunction<R> function) {
+            AtomicConstraintRuleFunction<R, C> function) {
     }
 
-    private record DynamicAtomicConstraintFunctionEntry<R extends Rule>(
+    private record DynamicAtomicConstraintFunctionEntry<R extends Rule, C extends PolicyContext>(
             Class<R> type,
-            DynamicAtomicConstraintFunction<R> function) {
-    }
-
-    private record AtomicConstraintFunctionWrapper<R extends Rule>(
-            String leftOperand,
-            DynamicAtomicConstraintFunction<R> inner) implements AtomicConstraintFunction<R> {
-
-        @Override
-        public boolean evaluate(Operator operator, Object rightValue, R rule, PolicyContext context) {
-            throw new UnsupportedOperationException("Evaluation is not supported");
-        }
-
-        @Override
-        public Result<Void> validate(Operator operator, Object rightValue, R rule) {
-            return inner.validate(leftOperand, operator, rightValue, rule);
-        }
+            DynamicAtomicConstraintRuleFunction<R, C> function) {
     }
 }

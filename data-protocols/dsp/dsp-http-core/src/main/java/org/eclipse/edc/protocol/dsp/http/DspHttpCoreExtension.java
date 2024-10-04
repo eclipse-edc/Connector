@@ -31,8 +31,11 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
-import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.dsp.http.message.DspRequestHandlerImpl;
 import org.eclipse.edc.protocol.dsp.http.protocol.DspProtocolParserImpl;
@@ -57,6 +60,10 @@ import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
+import static org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext.CATALOGING_REQUEST_SCOPE;
+import static org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext.CONTRACT_NEGOTIATION_REQUEST_SCOPE;
+import static org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext.TRANSFER_PROCESS_REQUEST_SCOPE;
+import static org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext.VERSION_REQUEST_SCOPE;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
@@ -72,24 +79,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class DspHttpCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol Core Extension";
-
-    /**
-     * Policy scope evaluated when a contract negotiation request is made.
-     */
-    @PolicyScope
-    private static final String CONTRACT_NEGOTIATION_REQUEST_SCOPE = "request.contract.negotiation";
-
-    /**
-     * Policy scope evaluated when a transfer process request is made.
-     */
-    @PolicyScope
-    private static final String TRANSFER_PROCESS_REQUEST_SCOPE = "request.transfer.process";
-
-    /**
-     * Policy scope evaluated when an outgoing catalog request is made
-     */
-    @PolicyScope
-    private static final String CATALOGING_REQUEST_SCOPE = "request.catalog";
 
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
@@ -130,6 +119,11 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public DspHttpRemoteMessageDispatcher dspHttpRemoteMessageDispatcher(ServiceExtensionContext context) {
+        policyEngine.registerScope(TRANSFER_PROCESS_REQUEST_SCOPE, RequestTransferProcessPolicyContext.class);
+        policyEngine.registerScope(CONTRACT_NEGOTIATION_REQUEST_SCOPE, RequestContractNegotiationPolicyContext.class);
+        policyEngine.registerScope(CATALOGING_REQUEST_SCOPE, RequestCatalogPolicyContext.class);
+        policyEngine.registerScope(VERSION_REQUEST_SCOPE, RequestVersionPolicyContext.class);
+
         TokenDecorator td; // either a decorator, or noop
         if (decorator != null) {
             td = decorator;
@@ -174,23 +168,23 @@ public class DspHttpCoreExtension implements ServiceExtension {
     }
 
     private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
-        dispatcher.registerPolicyScope(ContractAgreementMessage.class, CONTRACT_NEGOTIATION_REQUEST_SCOPE, ContractRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(ContractNegotiationEventMessage.class, CONTRACT_NEGOTIATION_REQUEST_SCOPE, ContractRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(ContractRequestMessage.class, CONTRACT_NEGOTIATION_REQUEST_SCOPE, ContractRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(ContractNegotiationTerminationMessage.class, CONTRACT_NEGOTIATION_REQUEST_SCOPE, ContractRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(ContractAgreementVerificationMessage.class, CONTRACT_NEGOTIATION_REQUEST_SCOPE, ContractRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(ContractAgreementMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);
+        dispatcher.registerPolicyScope(ContractNegotiationEventMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);
+        dispatcher.registerPolicyScope(ContractRequestMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);
+        dispatcher.registerPolicyScope(ContractNegotiationTerminationMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);
+        dispatcher.registerPolicyScope(ContractAgreementVerificationMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);
     }
 
     private void registerTransferProcessPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
-        dispatcher.registerPolicyScope(TransferCompletionMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(TransferSuspensionMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(TransferTerminationMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(TransferStartMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(TransferRequestMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(TransferCompletionMessage.class, TransferRemoteMessage::getPolicy, RequestTransferProcessPolicyContext::new);
+        dispatcher.registerPolicyScope(TransferSuspensionMessage.class, TransferRemoteMessage::getPolicy, RequestTransferProcessPolicyContext::new);
+        dispatcher.registerPolicyScope(TransferTerminationMessage.class, TransferRemoteMessage::getPolicy, RequestTransferProcessPolicyContext::new);
+        dispatcher.registerPolicyScope(TransferStartMessage.class, TransferRemoteMessage::getPolicy, RequestTransferProcessPolicyContext::new);
+        dispatcher.registerPolicyScope(TransferRequestMessage.class, TransferRemoteMessage::getPolicy, RequestTransferProcessPolicyContext::new);
     }
 
     private void registerCatalogPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
-        dispatcher.registerPolicyScope(CatalogRequestMessage.class, CATALOGING_REQUEST_SCOPE, CatalogRequestMessage::getPolicy);
-        dispatcher.registerPolicyScope(DatasetRequestMessage.class, CATALOGING_REQUEST_SCOPE, DatasetRequestMessage::getPolicy);
+        dispatcher.registerPolicyScope(CatalogRequestMessage.class, CatalogRequestMessage::getPolicy, RequestCatalogPolicyContext::new);
+        dispatcher.registerPolicyScope(DatasetRequestMessage.class, DatasetRequestMessage::getPolicy, RequestCatalogPolicyContext::new);
     }
 }

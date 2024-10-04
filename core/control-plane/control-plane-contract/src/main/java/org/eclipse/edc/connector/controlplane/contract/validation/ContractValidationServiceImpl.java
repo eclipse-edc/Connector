@@ -18,15 +18,17 @@ package org.eclipse.edc.connector.controlplane.contract.validation;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.policy.PolicyEquality;
 import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext;
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatedConsumerOffer;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
@@ -40,7 +42,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.controlplane.contract.ContractCoreExtension.CATALOG_SCOPE;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -75,12 +76,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure("Invalid provider credentials");
         }
 
-        var policyContext = PolicyContextImpl.Builder.newInstance()
-                .additional(ParticipantAgent.class, agent)
-                .additional(ContractAgreement.class, agreement)
-                .additional(Instant.class, Instant.now())
-                .build();
-        var policyResult = policyEngine.evaluate(TRANSFER_SCOPE, agreement.getPolicy(), policyContext);
+        var policyContext = new TransferProcessPolicyContext(agent, agreement, Instant.now());
+        var policyResult = policyEngine.evaluate(agreement.getPolicy(), policyContext);
         if (!policyResult.succeeded()) {
             return failure(format("Policy does not fulfill the agreement %s, policy evaluation %s", agreement.getId(), policyResult.getFailureDetail()));
         }
@@ -128,10 +125,10 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure("Invalid consumer identity");
         }
 
-        var accessPolicyResult = evaluatePolicy(consumerOffer.getAccessPolicy(), CATALOG_SCOPE, agent, consumerOffer.getOfferId());
+        var accessPolicyResult = policyEngine.evaluate(consumerOffer.getAccessPolicy(), new CatalogPolicyContext(agent));
 
         if (accessPolicyResult.failed()) {
-            return accessPolicyResult;
+            return accessPolicyResult.mapFailure();
         }
 
         // verify the target asset exists
@@ -148,16 +145,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         var contractPolicy = consumerOffer.getContractPolicy().withTarget(consumerOffer.getOfferId().assetIdPart());
-        return evaluatePolicy(contractPolicy, NEGOTIATION_SCOPE, agent, consumerOffer.getOfferId());
-    }
-
-    private Result<Policy> evaluatePolicy(Policy policy, String scope, ParticipantAgent agent, ContractOfferId offerId) {
-        var policyContext = PolicyContextImpl.Builder.newInstance().additional(ParticipantAgent.class, agent).build();
-        var policyResult = policyEngine.evaluate(scope, policy, policyContext);
-        if (policyResult.failed()) {
-            return failure(format("Policy in scope %s not fulfilled for offer %s, policy evaluation %s", scope, offerId.toString(), policyResult.getFailureDetail()));
-        }
-        return Result.success(policy);
+        return policyEngine.evaluate(contractPolicy, new ContractNegotiationPolicyContext(agent))
+                .map(v -> contractPolicy);
     }
 
     @NotNull

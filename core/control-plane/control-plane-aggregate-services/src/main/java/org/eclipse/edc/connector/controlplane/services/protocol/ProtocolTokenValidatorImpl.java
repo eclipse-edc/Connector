@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.services.protocol;
 
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
@@ -50,8 +50,16 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
     }
 
     @Override
-    public ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, String policyScope, Policy policy, RemoteMessage message) {
-        var tokenValidation = identityService.verifyJwtToken(tokenRepresentation, createVerificationContext(policyScope, policy, message));
+    public ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message) {
+        var requestScopeBuilder = RequestScope.Builder.newInstance();
+        var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).build();
+        var policyContext = policyContextProvider.instantiate(requestContext, requestScopeBuilder);
+        policyEngine.evaluate(policy, policyContext);
+        var verificationContext = VerificationContext.Builder.newInstance()
+                .policy(policy)
+                .scopes(policyContext.requestScopeBuilder().build().getScopes())
+                .build();
+        var tokenValidation = identityService.verifyJwtToken(tokenRepresentation, verificationContext);
         if (tokenValidation.failed()) {
             monitor.debug(() -> "Unauthorized: %s".formatted(tokenValidation.getFailureDetail()));
             return ServiceResult.unauthorized("Unauthorized");
@@ -60,20 +68,6 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
         var claimToken = tokenValidation.getContent();
         var participantAgent = agentService.createFor(claimToken);
         return ServiceResult.success(participantAgent);
-    }
-
-    private VerificationContext createVerificationContext(String scope, Policy policy, RemoteMessage message) {
-        var requestScopeBuilder = RequestScope.Builder.newInstance();
-        var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).build();
-        var policyContext = PolicyContextImpl.Builder.newInstance()
-                .additional(RequestContext.class, requestContext)
-                .additional(RequestScope.Builder.class, requestScopeBuilder)
-                .build();
-        policyEngine.evaluate(scope, policy, policyContext);
-        return VerificationContext.Builder.newInstance()
-                .policy(policy)
-                .scopes(requestScopeBuilder.build().getScopes())
-                .build();
     }
 
 }

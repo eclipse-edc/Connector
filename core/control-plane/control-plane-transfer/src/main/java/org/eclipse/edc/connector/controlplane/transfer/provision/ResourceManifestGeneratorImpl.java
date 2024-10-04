@@ -15,14 +15,13 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.provision;
 
+import org.eclipse.edc.connector.controlplane.transfer.spi.policy.ProvisionManifestVerifyPolicyContext;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ConsumerResourceDefinitionGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestContext;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Result;
@@ -69,12 +68,13 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
         var manifestContext = new ResourceManifestContext(manifest);
 
         // Create additional context information for policy engine to make manifest context available
-        var policyContext = PolicyContextImpl.Builder.newInstance()
-                .additional(ResourceManifestContext.class, manifestContext)
-                .build();
+        var policyContext = new ProvisionManifestVerifyPolicyContext(manifestContext);
 
-        return policyEngine.evaluate(MANIFEST_VERIFICATION_SCOPE, policy, policyContext)
-                .map(a -> extractModifiedManifest(policyContext));
+        return policyEngine.evaluate(policy, policyContext)
+                .map(a -> ResourceManifest.Builder.newInstance()
+                        .definitions(policyContext.resourceManifestContext().getDefinitions())
+                        .build()
+                );
     }
 
     @Override
@@ -87,8 +87,4 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
         return ResourceManifest.Builder.newInstance().definitions(definitions).build();
     }
 
-    private ResourceManifest extractModifiedManifest(PolicyContext policyContext) {
-        var manifestContext = policyContext.getContextData(ResourceManifestContext.class);
-        return ResourceManifest.Builder.newInstance().definitions(manifestContext.getDefinitions()).build();
-    }
 }
