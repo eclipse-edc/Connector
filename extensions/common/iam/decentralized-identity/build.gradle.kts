@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:identity-did-spi"))
     api(project(":extensions:common:iam:decentralized-identity:identity-did-core"))
+    api(project(":extensions:common:iam:decentralized-identity:identity-did-web"))
 }
 
 

@@ -282,4 +282,15 @@ include(":system-tests:sts-api:sts-api-test-runtime")
 include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 
+// BOM modules ----------------------------------------------------------------
+include(":dist:bom:controlplane-base-bom")
+include(":dist:bom:controlplane-dcp-bom")
+include(":dist:bom:controlplane-oauth2-bom")
+include(":dist:bom:controlplane-feature-sql-bom")
+
+include(":dist:bom:dataplane-base-bom")
+include(":dist:bom:dataplane-feature-sql-bom")
+include(":dist:bom:sts-feature-bom")
+
+
 include(":version-catalog")
