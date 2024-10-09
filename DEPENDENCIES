@@ -303,6 +303,7 @@ maven/mavencentral/org.jetbrains.kotlin/kotlin-stdlib/1.9.10, Apache-2.0, approv
 maven/mavencentral/org.jetbrains/annotations/13.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.jetbrains/annotations/17.0.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.jetbrains/annotations/25.0.0, , restricted, clearlydefined
+maven/mavencentral/org.jetbrains/annotations/26.0.0, , restricted, clearlydefined
 maven/mavencentral/org.junit-pioneer/junit-pioneer/2.2.0, EPL-2.0, approved, #11857
 maven/mavencentral/org.junit.jupiter/junit-jupiter-api/5.11.1, EPL-2.0, approved, #15935
 maven/mavencentral/org.junit.jupiter/junit-jupiter-api/5.11.2, EPL-2.0, approved, #15935
@@ -347,7 +348,7 @@ maven/mavencentral/org.slf4j/slf4j-api/2.0.6, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
 maven/mavencentral/org.testcontainers/database-commons/1.20.2, , restricted, clearlydefined
 maven/mavencentral/org.testcontainers/jdbc/1.20.2, , restricted, clearlydefined
-maven/mavencentral/org.testcontainers/junit-jupiter/1.20.2, , restricted, clearlydefined
+maven/mavencentral/org.testcontainers/junit-jupiter/1.20.2, None, restricted, #16552
 maven/mavencentral/org.testcontainers/kafka/1.20.2, , restricted, clearlydefined
 maven/mavencentral/org.testcontainers/postgresql/1.20.2, , restricted, clearlydefined
 maven/mavencentral/org.testcontainers/testcontainers/1.20.2, MIT, approved, #15747
