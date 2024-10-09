@@ -25,8 +25,10 @@ dependencies {
     api(project(":core:common:connector-core"))
     api(project(":core:data-plane:data-plane-core"))
 
+
     // extension dependencies
     api(project(":extensions:common:api:control-api-configuration"))
+    api(project(":extensions:common:configuration:configuration-filesystem"))
     api(project(":extensions:common:json-ld"))
     api(project(":extensions:control-plane:api:control-plane-api-client"))
     api(project(":extensions:data-plane:data-plane-self-registration"))

@@ -103,8 +103,8 @@ jobs:
 
       # we can't test the "controlplane-oauth2-com" because it only starts successfully if the public key is already in the vault
       matrix:
-        bom-directory: [ "dist/bom/controlplane-dcp-bom",
-                         "dist/bom/dataplane-base-bom",
+        bom-directory: [ "dist/bom/dataplane-base-bom",
+                         "dist/bom/controlplane-dcp-bom",
                          "dist/bom/sts-feature-bom" ]
     steps:
       - uses: actions/checkout@v4
@@ -115,7 +115,7 @@ jobs:
         timeout-minutes: 10
         run: |
           # Start the program in the background
-          java "$(tr '\n' ' ' <${{ matrix.bom-directory }}/example.env)" -cp "$(./gradlew -q -p ${{ matrix.bom-directory }} printClassPath)" org.eclipse.edc.boot.system.runtime.BaseRuntime > ${{ matrix.bom-directory }}/log.txt &
+          java -Dedc.fs.config=${{ matrix.bom-directory }}/example.properties -cp "$(./gradlew -q -p ${{ matrix.bom-directory }} printClassPath)" org.eclipse.edc.boot.system.runtime.BaseRuntime > ${{ matrix.bom-directory }}/log.txt &
 
           # Get the PID of the running command
           PID=$!

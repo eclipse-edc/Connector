@@ -25,11 +25,13 @@ dependencies {
     api(project(":core:common:boot"))
     api(project(":core:common:connector-core"))
 
+
     // extension dependencies
     api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
     api(project(":extensions:common:api:api-observability"))
     api(project(":extensions:common:api:version-api"))
+    api(project(":extensions:common:configuration:configuration-filesystem"))
 
     api(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api"))
     api(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-accounts-api"))
