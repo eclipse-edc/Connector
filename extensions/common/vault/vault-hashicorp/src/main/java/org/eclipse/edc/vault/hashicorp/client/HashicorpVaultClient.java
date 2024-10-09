@@ -121,7 +121,7 @@ public class HashicorpVaultClient {
     public Result<Boolean> isTokenRenewable() {
         var uri = settings.url()
                 .newBuilder()
-                .addPathSegment(TOKEN_LOOK_UP_SELF_PATH)
+                .addPathSegments(TOKEN_LOOK_UP_SELF_PATH)
                 .build();
         var request = httpGet(uri);
 
