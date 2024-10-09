@@ -63,4 +63,4 @@
 - [2024-09-24 STS Accounts API](./2024-09-24-sts-accounts-api)
 - [2024-09-25 Multiple Protocol Versions](./2024-09-25-multiple-protocol-versions)
 - [2024-10-02 Clustered data-plane](./2024-10-02-clustered-data-plane/)
-- [2024-10-06 Typed Policy Context](./2024-10-05-typed-policy-context)
+- [2024-10-06 Typed Policy Scopes through Contexts](./2024-10-05-typed-policy-context)

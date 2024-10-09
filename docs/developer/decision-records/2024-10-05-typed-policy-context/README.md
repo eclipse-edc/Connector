@@ -1,8 +1,8 @@
-# Typed Policy Context
+# Typed Policy Scopes through Contexts
 
 ## Decision
 
-We will permit the `PolicyEngine` to accept strongly typed `PolicyContext`s
+We will bind the policy scope and the `PolicyContext` hierarchy.
 
 ## Rationale
 
@@ -11,7 +11,6 @@ object, because it's designed as an unstructured map.
 Bounding the context structure to the scope will help documentation and usability of the Policy Engine.
 
 ## Approach
-
 
 ### Function interfaces
 
@@ -38,23 +37,24 @@ After then the current interfaces will be replaced by the new one in all the sig
 
 ### Policy Engine
 
-The change in the `PolicyEngine` is pretty straightforward: we need to add the generic type on the `evaluate` method:
+The `PolicyEngine` will have new methods to register validators/function that accept also a `Class<PolicyContext>`. E.g.:
 ```java
-<C extends PolicyContext> Result<Void> evaluate(String scope, Policy policy, C context);
+<R extends Rule, C extends PolicyContext> void registerFunction(Class<C> contextType, Class<R> type, String key, AtomicConstraintRuleFunction<R, C> function);
+```
+Plus there will be a new `evaluate` method that will accept a typed context:
+```java
+<C extends PolicyContext> Result<Void> evaluate(Policy policy, C context);
 ```
 
-and add proper casting to the functions in the `PolicyEvaluator` build phase, e.g.:
-```java
-evalBuilder.dutyFunction(entry.key, (operator, value, duty) -> ((AtomicConstraintRuleFunction<Rule, C>) entry.function).evaluate(operator, value, duty, context));
-```
-
-The compiler will warn us that the cast is unchecked, there's not much to do about it, but as long as the functions are registered with the correct context on the scope,
-there will be no issue, in fact, automated tests would be our shield against hard-to-understand runtime errors.
-
-Tight binding between "scope" and the "context" is not in the scope of this PR, but it could be something to be achieved in the future.
-Please note that is highly suggested to keep aligned the scope and the context hierarchy, e.g.:
+the registered `contextType` object will then be used to filter out validators and functions during the evaluation, the validator/function
+will be used only if the registered `contextType` `isAssignableFrom` the passed `context` class.
+This means that they will be used only if the type is the same or a super type of the passed context, this will permit to
+achieve scope inheritance, for example please consider:
 - scope `foo` associated with `FooContext`
-- scope `bar` associated with `BarContext` that extends `FooContext`
+- scope `foo.bar` associated with `FooBarContext` that extends `FooContext`
+
+In this case, when a `FooBarContext` object is passed to the `evaluate` function, will select also functions that were registered
+on the `FooContext`.
 
 ### Policy Contexts
 
