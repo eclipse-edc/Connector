@@ -14,6 +14,7 @@
 
 plugins {
     `java-library`
+    application
 }
 
 dependencies {
