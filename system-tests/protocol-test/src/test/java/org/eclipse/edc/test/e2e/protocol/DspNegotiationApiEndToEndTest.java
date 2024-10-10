@@ -34,7 +34,9 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 @EndToEndTest
 public class DspNegotiationApiEndToEndTest {
@@ -84,6 +86,26 @@ public class DspNegotiationApiEndToEndTest {
 
         assertThat(runtime.getService(ProtocolVersionRegistry.class).getAll().protocolVersions())
                 .contains(V_2024_1);
+    }
+
+    @Test
+    void shouldReturnError_whenNotFound() {
+        var id = UUID.randomUUID().toString();
+
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
+                .get("/negotiations/" + id)
+                .then()
+                .log().ifError()
+                .statusCode(404)
+                .contentType(JSON)
+                .body("'@type'", equalTo("dspace:ContractNegotiationError"))
+                .body("'dspace:code'", equalTo("404"))
+                .body("'dspace:reason'", equalTo("No negotiation with id %s found".formatted(id)))
+                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
     }
 
 }

@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
@@ -26,21 +27,21 @@ public interface DspRequestHandler {
      * Verify identity, call the service to get the resource, transform it and return as response.
      *
      * @param request the request
+     * @param <R>     the resource type.
      * @return the response to be returned to the client
-     * @param <R> the resource type.
      */
-    <R> Response getResource(GetDspRequest<R> request);
+    <R, E extends ErrorMessage> Response getResource(GetDspRequest<R, E> request);
 
     /**
      * Verify identity, validate incoming message, transform, call the service to create the resource, transform it and
      * return as response.
      *
      * @param request the request.
-     * @param <I> the input type.
-     * @param <R> the result type.
+     * @param <I>     the input type.
+     * @param <R>     the result type.
      * @return the response to be returned to the client.
      */
-    default <I extends RemoteMessage, R> Response createResource(PostDspRequest<I, R> request) {
+    default <I extends RemoteMessage, R, E extends ErrorMessage> Response createResource(PostDspRequest<I, R, E> request) {
         return createResource(request, (b, i, o) -> b);
     }
 
@@ -49,20 +50,20 @@ public interface DspRequestHandler {
      * create the response, decorate it and return as response.
      *
      * @param request the request.
+     * @param <I>     the input type.
+     * @param <R>     the result type.
      * @return the response to be returned to the client.
-     * @param <I> the input type.
-     * @param <R> the result type.
      */
-    <I extends RemoteMessage, R> Response createResource(PostDspRequest<I, R> request, ResponseDecorator<I, R> responseDecorator);
+    <I extends RemoteMessage, R, E extends ErrorMessage> Response createResource(PostDspRequest<I, R, E> request, ResponseDecorator<I, R> responseDecorator);
 
     /**
      * Verify identity, validate incoming message, transform and call the service.
      *
      * @param request the request.
+     * @param <I>     the input type.
+     * @param <R>     the result type.
      * @return the response to be returned to the client.
-     * @param <I> the input type.
-     * @param <R> the result type.
      */
-    <I extends RemoteMessage, R> Response updateResource(PostDspRequest<I, R> request);
+    <I extends RemoteMessage, R, E extends ErrorMessage> Response updateResource(PostDspRequest<I, R, E> request);
 
 }

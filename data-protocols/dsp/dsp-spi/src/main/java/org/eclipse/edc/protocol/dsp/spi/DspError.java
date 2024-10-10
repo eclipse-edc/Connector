@@ -59,6 +59,10 @@ public class DspError {
     public static class Builder {
         private final DspError error;
 
+        private Builder() {
+            error = new DspError();
+        }
+
         public static DspError.Builder newInstance() {
             return new DspError.Builder();
         }
@@ -70,6 +74,7 @@ public class DspError {
 
         public DspError.Builder processId(String processId) {
             this.error.processId = processId;
+
             return this;
         }
 
@@ -87,10 +92,6 @@ public class DspError {
             Objects.requireNonNull(this.error.type, "type");
 
             return error;
-        }
-
-        private Builder() {
-            error = new DspError();
         }
     }
 }
