@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.oauth2.daps;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.token.spi.TokenDecorator;
 
+@Deprecated(since = "0.10.0")
 public class DapsJwtDecorator implements TokenDecorator {
 
     @Override
