@@ -23,6 +23,7 @@ import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegi
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -82,6 +83,25 @@ class DspRequestHandlerImplTest {
         }
     }
 
+    private static class TestError extends ErrorMessage {
+
+
+        public static final class Builder extends ErrorMessage.Builder<TestError, Builder> {
+            private Builder() {
+                super(new TestError());
+            }
+
+            public static Builder newInstance() {
+                return new Builder();
+            }
+
+            @Override
+            protected Builder self() {
+                return this;
+            }
+        }
+    }
+
     @Nested
     class GetResource {
 
@@ -92,12 +112,13 @@ class DspRequestHandlerImplTest {
             BiFunction<String, TokenRepresentation, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.success(content);
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(resourceJson));
-            var request = GetDspRequest.Builder.newInstance(Object.class)
+            var request = GetDspRequest.Builder.newInstance(Object.class, TestError.class)
                     .token("token")
                     .id("id")
                     .serviceCall(serviceCall)
                     .errorType("errorType")
                     .protocol(protocol)
+                    .errorProvider(TestError.Builder::newInstance)
                     .build();
 
             var result = handler.getResource(request);
@@ -169,12 +190,13 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(400);
         }
 
-        private GetDspRequest.Builder<Object> getDspRequestBuilder() {
-            return GetDspRequest.Builder.newInstance(Object.class)
+        private GetDspRequest.Builder<Object, TestError> getDspRequestBuilder() {
+            return GetDspRequest.Builder.newInstance(Object.class, TestError.class)
                     .token("token")
                     .id("id")
                     .serviceCall((i, c) -> ServiceResult.success())
                     .errorType("errorType")
+                    .errorProvider(TestError.Builder::newInstance)
                     .protocol(protocol);
         }
     }
@@ -192,13 +214,14 @@ class DspRequestHandlerImplTest {
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseJson));
-            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class)
+            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
                     .expectedMessageType("expected-message-type")
                     .message(jsonMessage)
                     .serviceCall(serviceCall)
                     .errorType("errorType")
                     .protocol(protocol)
+                    .errorProvider(TestError.Builder::newInstance)
                     .build();
 
             var result = handler.createResource(request);
@@ -318,13 +341,14 @@ class DspRequestHandlerImplTest {
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseJson));
-            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class)
+            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
                     .expectedMessageType("expected-message-type")
                     .message(jsonMessage)
                     .serviceCall(serviceCall)
                     .errorType("errorType")
                     .protocol(protocol)
+                    .errorProvider(TestError.Builder::newInstance)
                     .build();
 
             var result = handler.createResource(request, (r, i, o) -> r.header("test", "test"));
@@ -332,12 +356,13 @@ class DspRequestHandlerImplTest {
             assertThat(result.getHeaderString("test")).isEqualTo("test");
         }
 
-        private PostDspRequest.Builder<TestProcessRemoteMessage, Object> postDspRequestBuilder() {
+        private PostDspRequest.Builder<TestProcessRemoteMessage, Object, TestError> postDspRequestBuilder() {
             return PostDspRequest.Builder
-                    .newInstance(TestProcessRemoteMessage.class, Object.class)
+                    .newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .errorType("errorType")
                     .token("token")
                     .protocol(protocol)
+                    .errorProvider(TestError.Builder::newInstance)
                     .serviceCall((i, c) -> ServiceResult.success());
         }
 
@@ -354,7 +379,7 @@ class DspRequestHandlerImplTest {
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
-            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class)
+            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
                     .processId("processId")
                     .expectedMessageType("expected-message-type")
@@ -362,6 +387,7 @@ class DspRequestHandlerImplTest {
                     .serviceCall(serviceCall)
                     .errorType("errorType")
                     .protocol(protocol)
+                    .errorProvider(TestError.Builder::newInstance)
                     .build();
 
             var result = handler.updateResource(request);
@@ -511,12 +537,13 @@ class DspRequestHandlerImplTest {
             });
         }
 
-        private PostDspRequest.Builder<TestProcessRemoteMessage, Object> postDspRequestBuilder() {
+        private PostDspRequest.Builder<TestProcessRemoteMessage, Object, TestError> postDspRequestBuilder() {
             return PostDspRequest.Builder
-                    .newInstance(TestProcessRemoteMessage.class, Object.class)
+                    .newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .errorType("errorType")
                     .token("token")
                     .protocol(protocol)
+                    .errorProvider(TestError.Builder::new)
                     .serviceCall((i, c) -> ServiceResult.success());
         }
 

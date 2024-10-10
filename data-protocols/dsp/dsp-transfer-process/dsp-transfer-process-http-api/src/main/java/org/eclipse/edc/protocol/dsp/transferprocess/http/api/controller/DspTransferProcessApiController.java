@@ -27,6 +27,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferError;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
@@ -82,10 +83,11 @@ public class DspTransferProcessApiController {
     @GET
     @Path("/{id}")
     public Response getTransferProcess(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        var request = GetDspRequest.Builder.newInstance(TransferProcess.class)
+        var request = GetDspRequest.Builder.newInstance(TransferProcess.class, TransferError.class)
                 .id(id).token(token).errorType(DSPACE_TYPE_TRANSFER_ERROR)
                 .serviceCall(protocolService::findById)
                 .protocol(protocol)
+                .errorProvider(TransferError.Builder::newInstance)
                 .build();
 
         return dspRequestHandler.getResource(request);
@@ -101,12 +103,13 @@ public class DspTransferProcessApiController {
     @POST
     @Path(TRANSFER_INITIAL_REQUEST)
     public Response initiateTransferProcess(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var request = PostDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class)
+        var request = PostDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class, TransferError.class)
                 .message(jsonObject)
                 .token(token)
                 .expectedMessageType(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
                 .serviceCall(protocolService::notifyRequested)
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
                 .build();
 
@@ -124,13 +127,14 @@ public class DspTransferProcessApiController {
     @POST
     @Path("{id}" + TRANSFER_START)
     public Response transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var request = PostDspRequest.Builder.newInstance(TransferStartMessage.class, TransferProcess.class)
+        var request = PostDspRequest.Builder.newInstance(TransferStartMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
                 .expectedMessageType(DSPACE_TYPE_TRANSFER_START_MESSAGE)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyStarted)
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
                 .build();
 
@@ -148,13 +152,14 @@ public class DspTransferProcessApiController {
     @POST
     @Path("{id}" + TRANSFER_COMPLETION)
     public Response transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var request = PostDspRequest.Builder.newInstance(TransferCompletionMessage.class, TransferProcess.class)
+        var request = PostDspRequest.Builder.newInstance(TransferCompletionMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
                 .expectedMessageType(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyCompleted)
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
                 .build();
 
@@ -172,13 +177,14 @@ public class DspTransferProcessApiController {
     @POST
     @Path("{id}" + TRANSFER_TERMINATION)
     public Response transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var request = PostDspRequest.Builder.newInstance(TransferTerminationMessage.class, TransferProcess.class)
+        var request = PostDspRequest.Builder.newInstance(TransferTerminationMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
                 .expectedMessageType(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyTerminated)
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
                 .build();
 
@@ -196,13 +202,14 @@ public class DspTransferProcessApiController {
     @POST
     @Path("{id}" + TRANSFER_SUSPENSION)
     public Response transferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var request = PostDspRequest.Builder.newInstance(TransferSuspensionMessage.class, TransferProcess.class)
+        var request = PostDspRequest.Builder.newInstance(TransferSuspensionMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
                 .expectedMessageType(DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifySuspended)
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
                 .build();
 

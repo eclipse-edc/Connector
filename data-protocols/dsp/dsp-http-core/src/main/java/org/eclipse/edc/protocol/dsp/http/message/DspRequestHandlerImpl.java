@@ -25,6 +25,7 @@ import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegi
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
@@ -47,7 +48,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     @Override
-    public <R> Response getResource(GetDspRequest<R> request) {
+    public <R, E extends ErrorMessage> Response getResource(GetDspRequest<R, E> request) {
         monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getId()));
 
         var token = request.getToken();
@@ -81,7 +82,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     @Override
-    public <I extends RemoteMessage, R> Response createResource(PostDspRequest<I, R> request, ResponseDecorator<I, R> responseDecorator) {
+    public <I extends RemoteMessage, R, E extends ErrorMessage> Response createResource(PostDspRequest<I, R, E> request, ResponseDecorator<I, R> responseDecorator) {
         monitor.debug(() -> "DSP: Incoming %s for %s process%s".formatted(
                 request.getInputClass().getSimpleName(),
                 request.getResultClass(),
@@ -144,7 +145,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     @Override
-    public <I extends RemoteMessage, R> Response updateResource(PostDspRequest<I, R> request) {
+    public <I extends RemoteMessage, R, E extends ErrorMessage> Response updateResource(PostDspRequest<I, R, E> request) {
         monitor.debug(() -> "DSP: Incoming %s for %s process%s".formatted(
                 request.getInputClass().getSimpleName(),
                 request.getResultClass(),

@@ -64,6 +64,38 @@ class DspCatalogApiControllerTest extends RestControllerTestBase {
     private final DspRequestHandler dspRequestHandler = mock();
     private final ContinuationTokenManager continuationTokenManager = mock();
 
+    @Test
+    void getDataset_shouldGetResource() {
+        when(dspRequestHandler.getResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON).build());
+
+        baseRequest()
+                .get(DATASET_REQUEST + "/datasetId")
+                .then()
+                .statusCode(200)
+                .contentType(JSON);
+
+        var captor = ArgumentCaptor.forClass(GetDspRequest.class);
+        verify(dspRequestHandler).getResource(captor.capture());
+        var request = captor.getValue();
+        assertThat(request.getToken()).isEqualTo("auth");
+        assertThat(request.getResultClass()).isEqualTo(Dataset.class);
+        assertThat(request.getId()).isEqualTo("datasetId");
+        assertThat(request.getErrorType()).isNotNull();
+    }
+
+    @Override
+    protected Object controller() {
+        return new DspCatalogApiController(service, dspRequestHandler, continuationTokenManager);
+    }
+
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath(BASE_PATH)
+                .header(HttpHeaders.AUTHORIZATION, "auth")
+                .when();
+    }
+
     @Nested
     class RequestCatalog {
 
@@ -125,47 +157,16 @@ class DspCatalogApiControllerTest extends RestControllerTestBase {
             var requestBody = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE).build();
             when(continuationTokenManager.applyQueryFromToken(any(), any())).thenReturn(Result.failure("error"));
 
-            baseRequest()
+            var body = baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
                     .post(CATALOG_REQUEST + "?continuationToken=pagination-token")
                     .then()
-                    .statusCode(400);
+                    .statusCode(400)
+                    .extract().body();
 
             verifyNoInteractions(dspRequestHandler, transformerRegistry);
         }
-    }
-
-    @Test
-    void getDataset_shouldGetResource() {
-        when(dspRequestHandler.getResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON).build());
-
-        baseRequest()
-                .get(DATASET_REQUEST + "/datasetId")
-                .then()
-                .statusCode(200)
-                .contentType(JSON);
-
-        var captor = ArgumentCaptor.forClass(GetDspRequest.class);
-        verify(dspRequestHandler).getResource(captor.capture());
-        var request = captor.getValue();
-        assertThat(request.getToken()).isEqualTo("auth");
-        assertThat(request.getResultClass()).isEqualTo(Dataset.class);
-        assertThat(request.getId()).isEqualTo("datasetId");
-        assertThat(request.getErrorType()).isNotNull();
-    }
-
-    @Override
-    protected Object controller() {
-        return new DspCatalogApiController(service, dspRequestHandler, continuationTokenManager);
-    }
-
-    private RequestSpecification baseRequest() {
-        return given()
-                .baseUri("http://localhost:" + port)
-                .basePath(BASE_PATH)
-                .header(HttpHeaders.AUTHORIZATION, "auth")
-                .when();
     }
 
 }

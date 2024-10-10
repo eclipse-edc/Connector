@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
@@ -153,5 +154,32 @@ public class DspCatalogApiEndToEndTest {
                 .header("Link", containsString("/2024/1/catalog/request"))
                 .header("Link", containsString("prev"))
                 .header("Link", not(containsString("next")));
+    }
+
+    @Test
+    void shouldReturnError_whenNotAuthorized() {
+
+        var authorizationHeader = """
+                {"region": "any", "audience": "any", "clientId":"faultyClientId"}"
+                """;
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .header("Authorization", authorizationHeader)
+                .body(createObjectBuilder()
+                        .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
+                        .build())
+                .post("/catalog/request")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(401)
+                .contentType(JSON)
+                .body("'@type'", equalTo("dspace:CatalogError"))
+                .body("'dspace:code'", equalTo("401"))
+                .body("'dspace:reason'", equalTo("Unauthorized"))
+                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+
     }
 }

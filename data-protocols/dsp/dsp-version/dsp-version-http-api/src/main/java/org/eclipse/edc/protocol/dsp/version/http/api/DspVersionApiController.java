@@ -21,6 +21,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionsError;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 
@@ -43,11 +44,12 @@ public class DspVersionApiController {
 
     @GET
     public Response getProtocolVersions(@HeaderParam(AUTHORIZATION) String token) {
-        var request = GetDspRequest.Builder.newInstance(ProtocolVersions.class)
+        var request = GetDspRequest.Builder.newInstance(ProtocolVersions.class, VersionsError.class)
                 .token(token)
                 .errorType(DSPACE_TYPE_VERSIONS_ERROR)
                 .serviceCall((id, tokenRepresentation) -> service.getAll(tokenRepresentation))
                 .protocol(DATASPACE_PROTOCOL_HTTP)
+                .errorProvider(VersionsError.Builder::newInstance)
                 .build();
 
         return requestHandler.getResource(request);
