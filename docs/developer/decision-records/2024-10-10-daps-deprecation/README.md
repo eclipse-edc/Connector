@@ -2,7 +2,7 @@
 
 ## Decision
 
-We will stop publishing DAPS related modules.
+We will stop publishing DAPS related module.
 
 ## Rationale
 
@@ -11,8 +11,4 @@ used, makes DAPS obsolete, and maintaining it is an unneeded effort by the EDC c
 
 ## Approach
 
-In EDC version 0.10.0 we deprecated:
-- module `oauth2-daps`
-- class `Oauth2ServiceImpl`
-
-they will be removed without further warnings in the subsequent versions.
+The `oauth2-daps` has been deprecated in EDC version 0.10.0 and it  be removed without further warnings in the subsequent versions.
