@@ -55,9 +55,19 @@ public interface PolicyEngine {
     Policy filter(Policy policy, String scope);
 
     /**
-     * Evaluates the given policy with a context for the given scope.
+     * Evaluates the given policy with a specific context.
      */
-    Result<Void> evaluate(String scope, Policy policy, PolicyContext context);
+    <C extends PolicyContext> Result<Void> evaluate(Policy policy, C context);
+
+    /**
+     * Evaluates the given policy with a context for the given scope.
+     *
+     * @deprecated use {{@link #evaluate(Policy, PolicyContext)}} because scope is determined by {@link PolicyContext} hierarchy.
+     */
+    @Deprecated(since = "0.10.0")
+    default <C extends PolicyContext> Result<Void> evaluate(String scope, Policy policy, C context) {
+        return evaluate(policy, context);
+    }
 
     /**
      * Validates the given policy.
@@ -69,6 +79,19 @@ public interface PolicyEngine {
      */
     PolicyEvaluationPlan createEvaluationPlan(String scope, Policy policy);
 
+    <C extends PolicyContext> void registerScope(String scope, Class<C> contextType);
+
+    /**
+     * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression
+     * evaluates to the given key for the specified context.
+     *
+     * @param contextType the type of the context.
+     * @param type the rule type.
+     * @param key the key.
+     * @param function the function.
+     */
+    <R extends Rule, C extends PolicyContext> void registerFunction(Class<C> contextType, Class<R> type, String key, AtomicConstraintRuleFunction<R, C> function);
+
     /**
      * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression evaluates to the given key for the specified scope.
      *
@@ -76,8 +99,20 @@ public interface PolicyEngine {
      * @param type     the function type
      * @param key      the key
      * @param function the function
+     * @deprecated use {{@link #registerFunction(Class, Class, String, AtomicConstraintRuleFunction)}}
      */
-    <R extends Rule> void registerFunction(String scope, Class<R> type, String key, AtomicConstraintFunction<R> function);
+    @Deprecated(since = "0.10.0")
+    <R extends Rule, C extends PolicyContext> void registerFunction(String scope, Class<R> type, String key, AtomicConstraintRuleFunction<R, C> function);
+
+    /**
+     * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression evaluates to the given key that's not bound
+     * to an {@link AtomicConstraintRuleFunction}.
+     *
+     * @param contextType the context type
+     * @param type        the function type
+     * @param function    the function
+     */
+    <R extends Rule, C extends PolicyContext> void registerFunction(Class<C> contextType, Class<R> type, DynamicAtomicConstraintRuleFunction<R, C> function);
 
     /**
      * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression evaluates to the given key that's not bound
@@ -86,8 +121,19 @@ public interface PolicyEngine {
      * @param scope    the scope the function applies to
      * @param type     the function type
      * @param function the function
+     * @deprecated use {{@link #registerFunction(Class, Class, DynamicAtomicConstraintRuleFunction)}}
      */
-    <R extends Rule> void registerFunction(String scope, Class<R> type, DynamicAtomicConstraintFunction<R> function);
+    @Deprecated(since = "0.10.0")
+    <R extends Rule, C extends PolicyContext> void registerFunction(String scope, Class<R> type, DynamicAtomicConstraintRuleFunction<R, C> function);
+
+    /**
+     * Registers a function that is invoked when a policy contains a rule of the given type for the specified context type.
+     *
+     * @param contextType the context type
+     * @param type        the {@link Rule} subtype
+     * @param function    the function
+     */
+    <R extends Rule, C extends PolicyContext> void registerFunction(Class<C> contextType, Class<R> type, RulePolicyFunction<R, C> function);
 
     /**
      * Registers a function that is invoked when a policy contains a rule of the given type for the specified scope.
@@ -95,32 +141,50 @@ public interface PolicyEngine {
      * @param scope    the scope the function applies to
      * @param type     the {@link Rule} subtype
      * @param function the function
+     * @deprecated use {{@link #registerFunction(Class, Class, RulePolicyFunction)}}
      */
-    <R extends Rule> void registerFunction(String scope, Class<R> type, RuleFunction<R> function);
+    @Deprecated(since = "0.10.0")
+    <R extends Rule, C extends PolicyContext> void registerFunction(String scope, Class<R> type, RulePolicyFunction<R, C> function);
+
+    /**
+     * Registers a function that performs pre-validation on the policy for the given context type.
+     */
+    <C extends PolicyContext> void registerPreValidator(Class<C> contextType, PolicyValidatorRule<C> validator);
+
+    /**
+     * Registers a function that performs post-validation on the policy for the given context type.
+     */
+    <C extends PolicyContext> void registerPostValidator(Class<C> contextType, PolicyValidatorRule<C> validator);
 
     /**
      * Registers a function that performs pre-validation on the policy for the given scope.
      *
-     * @deprecated Please use {@link PolicyEngine#registerPreValidator(String, PolicyValidatorFunction)}
+     * @deprecated use {@link #registerPreValidator(Class, PolicyValidatorRule)}
      */
     @Deprecated(since = "0.10.0")
     void registerPreValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator);
 
     /**
      * Registers a function that performs pre-validation on the policy for the given scope.
+     *
+     * @deprecated use {@link #registerPreValidator(Class, PolicyValidatorRule)}
      */
+    @Deprecated(since = "0.10.0")
     void registerPreValidator(String scope, PolicyValidatorFunction validator);
 
     /**
      * Registers a function that performs post-validation on the policy for the given scope.
      *
-     * @deprecated Please use {@link PolicyEngine#registerPostValidator(String, PolicyValidatorFunction)}
+     * @deprecated use {@link #registerPostValidator(Class, PolicyValidatorRule)}
      */
     @Deprecated(since = "0.10.0")
     void registerPostValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator);
 
     /**
      * Registers a function that performs post-validation on the policy for the given scope.
+     *
+     * @deprecated use {@link #registerPostValidator(Class, PolicyValidatorRule)}
      */
+    @Deprecated(since = "0.10.0")
     void registerPostValidator(String scope, PolicyValidatorFunction validator);
 }

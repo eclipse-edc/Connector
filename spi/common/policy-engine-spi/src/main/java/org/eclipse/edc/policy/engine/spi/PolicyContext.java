@@ -46,7 +46,9 @@ public interface PolicyContext {
      * @param type the type class.
      * @param <T> the type of data.
      * @return the object associated with the type, or null.
+     * @deprecated implementations should add specific get methods
      */
+    @Deprecated(since = "0.10.0")
     <T> T getContextData(Class<T> type);
 
     /**
@@ -55,7 +57,16 @@ public interface PolicyContext {
      * @param type the type class.
      * @param data the data.
      * @param <T> the type of data.
+     * @deprecated implementations should add specific set methods
      */
+    @Deprecated(since = "0.10.0")
     <T> void putContextData(Class<T> type, T data);
+
+    /**
+     * The policy scope
+     *
+     * @return the policy scope.
+     */
+    String scope();
 
 }

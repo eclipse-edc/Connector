@@ -32,7 +32,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.Validatabl
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
-import org.eclipse.edc.policy.engine.spi.PolicyScope;
+import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -51,9 +51,6 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 
 public class ContractNegotiationProtocolServiceImpl implements ContractNegotiationProtocolService {
-
-    @PolicyScope
-    public static final String CONTRACT_NEGOTIATION_REQUEST_SCOPE = "request.contract.negotiation";
 
     private final ContractNegotiationStore store;
     private final TransactionContext transactionContext;
@@ -318,7 +315,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     private ServiceResult<ParticipantAgent> verifyRequest(TokenRepresentation tokenRepresentation, Policy policy, RemoteMessage message) {
-        return protocolTokenValidator.verify(tokenRepresentation, CONTRACT_NEGOTIATION_REQUEST_SCOPE, policy, message)
+        return protocolTokenValidator.verify(tokenRepresentation, RequestContractNegotiationPolicyContext::new, policy, message)
                 .onFailure(failure -> monitor.debug(() -> "Verification Failed: %s".formatted(failure.getFailureDetail())));
     }
 

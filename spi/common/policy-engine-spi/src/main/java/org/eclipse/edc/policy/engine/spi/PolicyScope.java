@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
 /**
  * Denotes a defined policy scope.
  */
-@Target({ElementType.FIELD})
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PolicyScope {
 }

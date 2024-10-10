@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendin
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
+import org.eclipse.edc.connector.controlplane.transfer.spi.policy.ProvisionManifestVerifyPolicyContext;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
@@ -31,6 +32,8 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import static org.eclipse.edc.connector.controlplane.transfer.spi.policy.ProvisionManifestVerifyPolicyContext.MANIFEST_VERIFICATION_SCOPE;
 
 @Extension(value = TransferProcessDefaultServicesExtension.NAME)
 public class TransferProcessDefaultServicesExtension implements ServiceExtension {
@@ -43,6 +46,11 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
     @Override
     public String name() {
         return NAME;
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        policyEngine.registerScope(MANIFEST_VERIFICATION_SCOPE, ProvisionManifestVerifyPolicyContext.class);
     }
 
     @Provider

@@ -19,6 +19,8 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:policy-engine-spi"))
+    api(project(":spi:control-plane:contract-spi"))
 
     testFixturesApi(project(":core:common:junit"))
     testFixturesImplementation(libs.bundles.jupiter)

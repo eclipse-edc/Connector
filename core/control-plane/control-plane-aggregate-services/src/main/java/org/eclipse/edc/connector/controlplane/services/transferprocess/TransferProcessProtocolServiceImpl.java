@@ -33,7 +33,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.policy.engine.spi.PolicyScope;
+import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -56,9 +56,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 
 public class TransferProcessProtocolServiceImpl implements TransferProcessProtocolService {
-
-    @PolicyScope
-    public static final String TRANSFER_PROCESS_REQUEST_SCOPE = "request.transfer.process";
 
     private final TransferProcessStore transferProcessStore;
     private final TransactionContext transactionContext;
@@ -278,7 +275,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, TransferRequestMessageContext context, RemoteMessage message) {
-        var result = protocolTokenValidator.verify(tokenRepresentation, TRANSFER_PROCESS_REQUEST_SCOPE, context.agreement().getPolicy(), message);
+        var result = protocolTokenValidator.verify(tokenRepresentation, RequestTransferProcessPolicyContext::new, context.agreement().getPolicy(), message);
         if (result.failed()) {
             monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
             return ServiceResult.notFound("Not found");

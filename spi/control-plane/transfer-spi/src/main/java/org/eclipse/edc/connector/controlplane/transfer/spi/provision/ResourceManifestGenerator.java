@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.transfer.spi.provision;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
@@ -28,9 +27,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
  */
 @ExtensionPoint
 public interface ResourceManifestGenerator {
-
-    @PolicyScope
-    String MANIFEST_VERIFICATION_SCOPE = "provision.manifest.verify";
 
     /**
      * Registers a generator for consumer-side generation.

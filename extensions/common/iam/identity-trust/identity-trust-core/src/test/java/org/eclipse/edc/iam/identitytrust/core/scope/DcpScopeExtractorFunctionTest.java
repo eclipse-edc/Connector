@@ -15,9 +15,10 @@
 package org.eclipse.edc.iam.identitytrust.core.scope;
 
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.iam.RequestContext;
 import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -36,12 +37,12 @@ import static org.mockito.Mockito.when;
 public class DcpScopeExtractorFunctionTest {
 
     private final ScopeExtractorRegistry registry = mock();
-    private final PolicyContext policyContext = mock();
-    private DcpScopeExtractorFunction function;
+    private final TestRequestPolicyContext policyContext = mock();
+    private DcpScopeExtractorFunction<TestRequestPolicyContext> function;
 
     @BeforeEach
     void setup() {
-        function = new DcpScopeExtractorFunction(registry, mock(Monitor.class));
+        function = new DcpScopeExtractorFunction<>(registry, mock(Monitor.class));
     }
 
     @Test
@@ -49,7 +50,7 @@ public class DcpScopeExtractorFunctionTest {
         var policy = Policy.Builder.newInstance().build();
         var scopeBuilder = RequestScope.Builder.newInstance();
 
-        when(policyContext.getContextData(RequestScope.Builder.class)).thenReturn(scopeBuilder);
+        when(policyContext.requestScopeBuilder()).thenReturn(scopeBuilder);
         when(registry.extractScopes(eq(policy), any())).thenReturn(Result.success(Set.of("scope1", "scope2")));
 
         assertThat(function.apply(policy, policyContext)).isTrue();
@@ -71,11 +72,23 @@ public class DcpScopeExtractorFunctionTest {
     void apply_fail_whenScopeExtractorFails() {
         var policy = Policy.Builder.newInstance().build();
         var scopeBuilder = RequestScope.Builder.newInstance();
-        when(policyContext.getContextData(RequestScope.Builder.class)).thenReturn(scopeBuilder);
+        when(policyContext.requestScopeBuilder()).thenReturn(scopeBuilder);
 
         when(registry.extractScopes(eq(policy), any())).thenReturn(Result.failure("failure"));
 
         assertThat(function.apply(policy, policyContext)).isFalse();
-
     }
+
+    private static class TestRequestPolicyContext extends RequestPolicyContext {
+
+        protected TestRequestPolicyContext(RequestContext requestContext, RequestScope.Builder requestScopeBuilder) {
+            super(requestContext, requestScopeBuilder);
+        }
+
+        @Override
+        public String scope() {
+            return "request.test";
+        }
+    }
+
 }
