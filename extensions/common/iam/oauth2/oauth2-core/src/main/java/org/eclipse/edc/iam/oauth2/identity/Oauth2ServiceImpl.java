@@ -42,7 +42,10 @@ import static org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension.OAUTH2_TOKEN_CON
 
 /**
  * Implements the OAuth2 client credentials flow and bearer token validation.
+ *
+ * @deprecated will be removed in the next versions.
  */
+@Deprecated(since = "0.10.0")
 public class Oauth2ServiceImpl implements IdentityService {
 
     private static final String GRANT_TYPE = "client_credentials";

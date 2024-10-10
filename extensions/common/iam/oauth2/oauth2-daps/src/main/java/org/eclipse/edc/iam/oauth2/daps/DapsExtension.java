@@ -25,8 +25,11 @@ import org.eclipse.edc.token.spi.TokenDecoratorRegistry;
 
 /**
  * Provides specialization of Oauth2 extension to interact with DAPS instance
+ *
+ * @deprecated will be removed in the next versions.
  */
 @Extension(value = DapsExtension.NAME)
+@Deprecated(since = "0.10.0")
 public class DapsExtension implements ServiceExtension {
 
     public static final String NAME = "DAPS";
@@ -45,6 +48,7 @@ public class DapsExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        context.getMonitor().warning("The extension %s has been deprecated, please switch to a decentralized implementation".formatted(NAME));
         jwtDecoratorRegistry.register(OAUTH_2_DAPS_TOKEN_CONTEXT, new DapsJwtDecorator());
     }
 
