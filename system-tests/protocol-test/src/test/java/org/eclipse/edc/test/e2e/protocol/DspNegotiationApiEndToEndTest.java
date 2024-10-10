@@ -32,9 +32,16 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 @EndToEndTest
 public class DspNegotiationApiEndToEndTest {
@@ -84,6 +91,70 @@ public class DspNegotiationApiEndToEndTest {
 
         assertThat(runtime.getService(ProtocolVersionRegistry.class).getAll().protocolVersions())
                 .contains(V_2024_1);
+    }
+
+    @Test
+    void shouldReturnError_whenNotFound() {
+        var id = UUID.randomUUID().toString();
+
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
+                .get("/negotiations/" + id)
+                .then()
+                .log().ifError()
+                .statusCode(404)
+                .contentType(JSON)
+                .body("'@type'", equalTo("dspace:ContractNegotiationError"))
+                .body("'dspace:code'", equalTo("404"))
+                .body("'dspace:reason'", equalTo("No negotiation with id %s found".formatted(id)))
+                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+    }
+
+    @Test
+    void terminate_ShouldReturnError_whenMissingToken() {
+        var id = UUID.randomUUID().toString();
+
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .post("/negotiations/" + id + "/termination")
+                .then()
+                .log().ifError()
+                .statusCode(401)
+                .contentType(JSON)
+                .body("'@type'", equalTo("dspace:ContractNegotiationError"))
+                .body("'dspace:code'", equalTo("401"))
+                .body("'dspace:reason'", equalTo("Unauthorized."))
+                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+    }
+
+    @Test
+    void terminate_ShouldReturnError_whenValidationFails() {
+        var id = UUID.randomUUID().toString();
+
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
+                .body(createObjectBuilder()
+                        .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                        .add(TYPE, "FakeType")
+                        .build())
+                .post("/negotiations/" + id + "/termination")
+
+                .then()
+                .log().ifError()
+                .statusCode(400)
+                .contentType(JSON)
+                .body("'@type'", equalTo("dspace:ContractNegotiationError"))
+                .body("'dspace:code'", equalTo("400"))
+                .body("'dspace:reason'", equalTo("Bad request."))
+                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
     }
 
 }

@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform;
 import jakarta.json.Json;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractAgreementMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractAgreementVerificationMessageTransformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationError;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationEventMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationTerminationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationTransformer;
@@ -73,6 +74,7 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(builderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromContractRequestMessageTransformer(builderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromContractOfferMessageTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationError(builderFactory));
 
         dspApiTransformerRegistry.register(new JsonObjectToContractAgreementMessageTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToContractAgreementVerificationMessageTransformer());

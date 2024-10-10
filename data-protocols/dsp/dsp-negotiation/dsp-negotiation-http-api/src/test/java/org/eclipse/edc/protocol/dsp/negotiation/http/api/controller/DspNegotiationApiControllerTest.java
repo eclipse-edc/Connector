@@ -56,7 +56,6 @@ import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPa
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.VERIFICATION;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
@@ -89,7 +88,6 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
         assertThat(dspMessage.getToken()).isEqualTo("auth");
         assertThat(dspMessage.getId()).isEqualTo("negotiationId");
         assertThat(dspMessage.getResultClass()).isEqualTo(ContractNegotiation.class);
-        assertThat(dspMessage.getErrorType()).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
     }
 
     @Test

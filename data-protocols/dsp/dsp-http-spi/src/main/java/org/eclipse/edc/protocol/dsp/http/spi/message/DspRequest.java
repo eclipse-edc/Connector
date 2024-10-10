@@ -16,23 +16,28 @@ package org.eclipse.edc.protocol.dsp.http.spi.message;
 
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
-public class DspRequest<I, R> {
+public class DspRequest<I, R, E extends ErrorMessage> {
 
     protected final Class<R> resultClass;
     protected final Class<I> inputClass;
+    protected final Class<E> errorClass;
+
     protected String token;
-    protected String errorType;
     protected String protocol;
     protected BiFunction<I, TokenRepresentation, ServiceResult<R>> serviceCall;
+    protected Supplier<? extends ErrorMessage.Builder<E, ?>> errorProvider;
 
-    public DspRequest(Class<I> inputClass, Class<R> resultClass) {
+    public DspRequest(Class<I> inputClass, Class<R> resultClass, Class<E> errorClass) {
         this.inputClass = inputClass;
         this.resultClass = resultClass;
+        this.errorClass = errorClass;
     }
 
     public String getToken() {
@@ -55,11 +60,11 @@ public class DspRequest<I, R> {
         return serviceCall;
     }
 
-    public String getErrorType() {
-        return errorType;
+    public Supplier<? extends ErrorMessage.Builder<E, ?>> getErrorProvider() {
+        return errorProvider;
     }
 
-    public abstract static class Builder<I, R, M extends DspRequest<I, R>, B extends Builder<I, R, M, B>> {
+    public abstract static class Builder<I, R, M extends DspRequest<I, R, E>, E extends ErrorMessage, B extends Builder<I, R, M, E, B>> {
 
         protected final M message;
 
@@ -82,15 +87,15 @@ public class DspRequest<I, R> {
             return self();
         }
 
-        public B errorType(String errorType) {
-            message.errorType = errorType;
+        public B errorProvider(Supplier<? extends ErrorMessage.Builder<E, ?>> errorProvider) {
+            message.errorProvider = errorProvider;
             return self();
         }
 
         public M build() {
             requireNonNull(message.serviceCall);
-            requireNonNull(message.errorType);
             requireNonNull(message.protocol);
+            requireNonNull(message.errorProvider);
             return message;
         }
 

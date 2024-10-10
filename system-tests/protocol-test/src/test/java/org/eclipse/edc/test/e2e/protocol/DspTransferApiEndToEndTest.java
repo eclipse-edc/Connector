@@ -39,7 +39,9 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 @EndToEndTest
 public class DspTransferApiEndToEndTest {
@@ -62,6 +64,24 @@ public class DspTransferApiEndToEndTest {
             ":core:control-plane:control-plane-core",
             ":extensions:common:http"
     ));
+
+    private static ContractNegotiation createNegotiationWithAgreement(String contractId) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).counterPartyId("any").counterPartyAddress("any").protocol("any").state(ContractNegotiationStates.REQUESTED.code())
+                .correlationId(UUID.randomUUID().toString())
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id(UUID.randomUUID().toString()).assetId(UUID.randomUUID().toString())
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
+                .contractAgreement(ContractAgreement.Builder.newInstance()
+                        .id(contractId)
+                        .providerId("any")
+                        .consumerId("any")
+                        .assetId("any")
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
+                .build();
+    }
 
     @Test
     void shouldExposeVersion2024_1() {
@@ -91,22 +111,45 @@ public class DspTransferApiEndToEndTest {
                 .contains(V_2024_1);
     }
 
-    private static ContractNegotiation createNegotiationWithAgreement(String contractId) {
-        return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString()).counterPartyId("any").counterPartyAddress("any").protocol("any").state(ContractNegotiationStates.REQUESTED.code())
-                .correlationId(UUID.randomUUID().toString())
-                .contractOffer(ContractOffer.Builder.newInstance()
-                        .id(UUID.randomUUID().toString()).assetId(UUID.randomUUID().toString())
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
-                .contractAgreement(ContractAgreement.Builder.newInstance()
-                        .id(contractId)
-                        .providerId("any")
-                        .consumerId("any")
-                        .assetId("any")
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
-                .build();
+    @Test
+    void shouldReturnError_whenNotFound() {
+        var id = UUID.randomUUID().toString();
+
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
+                .get("/transfers/" + id)
+                .then()
+                .log().ifError()
+                .statusCode(404)
+                .contentType(JSON)
+                .body("'@type'", equalTo("dspace:TransferError"))
+                .body("'dspace:code'", equalTo("404"))
+                .body("'dspace:reason'", equalTo("No transfer process with id %s found".formatted(id)))
+                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+
+    }
+
+    @Test
+    void shouldReturnError_whenTokenIsMissing() {
+        var id = UUID.randomUUID().toString();
+
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .get("/transfers/" + id)
+                .then()
+                .log().ifError()
+                .statusCode(401)
+                .contentType(JSON)
+                .body("'@type'", equalTo("dspace:TransferError"))
+                .body("'dspace:code'", equalTo("401"))
+                .body("'dspace:reason'", equalTo("Unauthorized."))
+                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+
     }
 
 }

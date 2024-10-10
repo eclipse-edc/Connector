@@ -47,7 +47,6 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE;
@@ -88,7 +87,6 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         assertThat(dspRequest.getId()).isEqualTo("transferProcessId");
         assertThat(dspRequest.getResultClass()).isEqualTo(TransferProcess.class);
         assertThat(dspRequest.getToken()).isEqualTo("auth");
-        assertThat(dspRequest.getErrorType()).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR);
     }
 
     @Test
@@ -113,7 +111,6 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         assertThat(request.getResultClass()).isEqualTo(TransferProcess.class);
         assertThat(request.getMessage()).isNotNull();
         assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE);
-        assertThat(request.getErrorType()).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR);
     }
 
     /**

@@ -45,8 +45,9 @@ public class IamMockExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var region = context.getSetting("edc.mock.region", "eu");
+        var faultyClientId = context.getSetting("edc.mock.faulty_client_id", "faultyClientId");
         var participantId = context.getParticipantId();
-        context.registerService(IdentityService.class, new MockIdentityService(typeManager, region, participantId));
+        context.registerService(IdentityService.class, new MockIdentityService(typeManager, region, participantId, faultyClientId));
     }
 
     @Provider

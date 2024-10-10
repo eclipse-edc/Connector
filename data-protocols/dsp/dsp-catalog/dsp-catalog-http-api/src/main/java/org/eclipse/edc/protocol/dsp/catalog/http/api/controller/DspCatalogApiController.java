@@ -28,6 +28,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogError;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
@@ -42,7 +43,6 @@ import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.DATASET_REQUEST;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_ERROR;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 
 /**
@@ -81,12 +81,12 @@ public class DspCatalogApiController {
                     .orElseThrow(f -> new BadRequestException(f.getFailureDetail()));
         }
 
-        var request = PostDspRequest.Builder.newInstance(CatalogRequestMessage.class, Catalog.class)
+        var request = PostDspRequest.Builder.newInstance(CatalogRequestMessage.class, Catalog.class, CatalogError.class)
                 .token(token)
                 .expectedMessageType(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
                 .message(messageJson)
                 .serviceCall(service::getCatalog)
-                .errorType(DSPACE_TYPE_CATALOG_ERROR)
+                .errorProvider(CatalogError.Builder::newInstance)
                 .protocol(protocol)
                 .build();
 
@@ -97,11 +97,11 @@ public class DspCatalogApiController {
     @GET
     @Path(DATASET_REQUEST + "/{id}")
     public Response getDataset(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        var request = GetDspRequest.Builder.newInstance(Dataset.class)
+        var request = GetDspRequest.Builder.newInstance(Dataset.class, CatalogError.class)
                 .token(token)
                 .id(id)
                 .serviceCall(service::getDataset)
-                .errorType(DSPACE_TYPE_CATALOG_ERROR)
+                .errorProvider(CatalogError.Builder::newInstance)
                 .protocol(protocol)
                 .build();
 

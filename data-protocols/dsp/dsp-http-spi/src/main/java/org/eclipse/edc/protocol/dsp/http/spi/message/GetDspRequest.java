@@ -14,35 +14,37 @@
 
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
-public class GetDspRequest<R> extends DspRequest<String, R> {
+import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
+
+public class GetDspRequest<R, E extends ErrorMessage> extends DspRequest<String, R, E> {
 
     private String id;
 
-    private GetDspRequest(Class<R> resultClass) {
-        super(String.class, resultClass);
+    private GetDspRequest(Class<R> resultClass, Class<E> errorClass) {
+        super(String.class, resultClass, errorClass);
     }
 
     public String getId() {
         return id;
     }
 
-    public static class Builder<R> extends DspRequest.Builder<String, R, GetDspRequest<R>, Builder<R>> {
+    public static class Builder<R, E extends ErrorMessage> extends DspRequest.Builder<String, R, GetDspRequest<R, E>, E, Builder<R, E>> {
 
-        public static <R> Builder<R> newInstance(Class<R> resultClass) {
-            return new Builder<>(resultClass);
+        private Builder(Class<R> resultClass, Class<E> errorClass) {
+            super(new GetDspRequest<>(resultClass, errorClass));
         }
 
-        private Builder(Class<R> resultClass) {
-            super(new GetDspRequest<>(resultClass));
+        public static <R, E extends ErrorMessage> Builder<R, E> newInstance(Class<R> resultClass, Class<E> errorClass) {
+            return new Builder<>(resultClass, errorClass);
         }
 
-        public Builder<R> id(String id) {
+        public Builder<R, E> id(String id) {
             super.message.id = id;
             return this;
         }
 
         @Override
-        protected Builder<R> self() {
+        protected Builder<R, E> self() {
             return this;
         }
     }
