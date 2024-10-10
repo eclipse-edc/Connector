@@ -157,13 +157,12 @@ class DspCatalogApiControllerTest extends RestControllerTestBase {
             var requestBody = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE).build();
             when(continuationTokenManager.applyQueryFromToken(any(), any())).thenReturn(Result.failure("error"));
 
-            var body = baseRequest()
+            baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
                     .post(CATALOG_REQUEST + "?continuationToken=pagination-token")
                     .then()
-                    .statusCode(400)
-                    .extract().body();
+                    .statusCode(400);
 
             verifyNoInteractions(dspRequestHandler, transformerRegistry);
         }

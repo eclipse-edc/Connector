@@ -22,14 +22,17 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ResponseDecorator;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -60,7 +63,8 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         var serviceResult = request.getServiceCall().apply(request.getId(), tokenRepresentation);
         if (serviceResult.failed()) {
             monitor.debug(() -> "DSP: Service call failed: %s".formatted(serviceResult.getFailureDetail()));
-            return type(request.getErrorType()).processId(request.getId()).from(serviceResult.getFailure());
+            return forFailure(serviceResult.getFailure(), request.getProtocol(), request.getErrorProvider().get().processId(request.getId()));
+//            return type(request.getErrorType()).processId(request.getId()).from(serviceResult.getFailure());
         }
 
         var resource = serviceResult.getContent();
@@ -203,4 +207,31 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
                 });
     }
 
+
+    private <E extends ErrorMessage> Response forFailure(ServiceFailure failure, String protocol, ErrorMessage.Builder<E, ?> builder) {
+        var code = getHttpStatus(failure);
+
+        builder.code(Integer.toString(code.getStatusCode()));
+        builder.messages(failure.getMessages());
+
+        var body = dspTransformerRegistry.forProtocol(protocol)
+                .compose(registry -> registry.transform(builder.build(), JsonObject.class))
+                .onFailure(f -> monitor.debug(() -> "DSP: Transformation failed: %s".formatted(f.getMessages())))
+                .orElseThrow(f -> new EdcException("DSP: Transformation failed: %s".formatted(f.getMessages())));
+
+        return Response.status(code)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(body)
+                .build();
+    }
+
+    @NotNull
+    private Response.Status getHttpStatus(ServiceFailure failure) {
+        return switch (failure.getReason()) {
+            case UNAUTHORIZED -> Response.Status.UNAUTHORIZED;
+            case CONFLICT -> Response.Status.CONFLICT;
+            case NOT_FOUND -> Response.Status.NOT_FOUND;
+            default -> Response.Status.BAD_REQUEST;
+        };
+    }
 }

@@ -14,7 +14,9 @@
 
 package org.eclipse.edc.spi.types.domain.message;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class ErrorMessage {
 
@@ -22,7 +24,28 @@ public abstract class ErrorMessage {
     protected String consumerPid;
     protected String providerPid;
     protected String code;
-    protected List<String> messages;
+    protected List<String> messages = new ArrayList<>();
+
+
+    public String getCode() {
+        return code;
+    }
+
+    public List<String> getMessages() {
+        return messages;
+    }
+
+    public String getConsumerPid() {
+        return consumerPid;
+    }
+
+    public String getProviderPid() {
+        return providerPid;
+    }
+
+    public String getProcessId() {
+        return processId;
+    }
 
     public abstract static class Builder<E extends ErrorMessage, B extends Builder<E, B>> {
         protected final E error;
@@ -47,7 +70,11 @@ public abstract class ErrorMessage {
             return self();
         }
 
-        protected abstract B self();
+        public E build() {
+            Objects.requireNonNull(error.code);
+            return error;
+        }
 
+        protected abstract B self();
     }
 }

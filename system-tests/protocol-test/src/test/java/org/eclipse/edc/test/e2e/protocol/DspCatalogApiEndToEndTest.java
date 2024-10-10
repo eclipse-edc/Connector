@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -179,6 +180,30 @@ public class DspCatalogApiEndToEndTest {
                 .body("'@type'", equalTo("dspace:CatalogError"))
                 .body("'dspace:code'", equalTo("401"))
                 .body("'dspace:reason'", equalTo("Unauthorized"))
+                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+
+    }
+
+    @Test
+    void shouldReturnError_whenDatasetNotFound() {
+
+        var id = UUID.randomUUID().toString();
+        var authorizationHeader = """
+                {"region": "any", "audience": "any", "clientId":"any"}"
+                """;
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .header("Authorization", authorizationHeader)
+                .get("/catalog/datasets/" + id)
+                .then()
+                .log().ifValidationFails()
+                .statusCode(404)
+                .contentType(JSON)
+                .body("'@type'", equalTo("dspace:CatalogError"))
+                .body("'dspace:code'", equalTo("404"))
+                .body("'dspace:reason'", equalTo("Dataset %s does not exist".formatted(id)))
                 .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
 
     }
