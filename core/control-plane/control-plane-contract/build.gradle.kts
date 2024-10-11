@@ -20,8 +20,9 @@ plugins {
 dependencies {
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:policy-engine-spi"))
-    api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:asset-spi"))
+    api(project(":spi:control-plane:catalog-spi"))
+    api(project(":spi:control-plane:contract-spi"))
 
     implementation(project(":core:common:lib:state-machine-lib"))
     implementation(project(":core:control-plane:lib:control-plane-policies-lib"))
