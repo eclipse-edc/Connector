@@ -96,8 +96,7 @@ jobs:
     uses: eclipse-edc/.github/.github/workflows/verify-openapi.yml@main
     secrets: inherit
 
-  Verify-BOM:
-    runs-on: ubuntu-latest
+  Verify-EDC-BOM:
     strategy:
       fail-fast: false
 
@@ -106,28 +105,8 @@ jobs:
         bom-directory: [ "dist/bom/dataplane-base-bom",
                          "dist/bom/controlplane-dcp-bom",
                          "dist/bom/sts-feature-bom" ]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: eclipse-edc/.github/.github/actions/setup-build@main
-      - name: Build runtime
-        run: ./gradlew -p ${{ matrix.bom-directory }} build
-      - name: Smoke Test
-        timeout-minutes: 10
-        run: |
-          # Start the program in the background
-          java -Dedc.fs.config=${{ matrix.bom-directory }}/example.properties -cp "$(./gradlew -q -p ${{ matrix.bom-directory }} printClassPath)" org.eclipse.edc.boot.system.runtime.BaseRuntime > ${{ matrix.bom-directory }}/log.txt &
+    uses: eclipse-edc/.github/.github/workflows/verify-bom.yml@main
+    with:
+      module-dir: ${{ matrix.bom-directory }}
+      properties-file: example.properties
 
-          # Get the PID of the running command
-          PID=$!
-
-          # Monitor the output and kill the process when desired output is found
-          while :; do
-            # Capture the output of the command
-            cat ${{ matrix.bom-directory }}/log.txt 2>/dev/null | grep -q "Runtime .* ready" && break
-            sleep 1
-          done
-
-          # Kill the process once the output is detected
-          kill $PID
-          echo "Runtime ${{ matrix.bom-directory }} shutdown after ready signal detected."
-          rm ${{ matrix.bom-directory }}/log.txt
