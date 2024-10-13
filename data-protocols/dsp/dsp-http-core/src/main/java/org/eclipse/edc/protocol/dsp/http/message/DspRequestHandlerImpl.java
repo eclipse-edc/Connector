@@ -189,7 +189,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
                 });
 
         if (inputTransformation.failed()) {
-            monitor.debug(() -> "DSP: Transformation failed: %s".formatted(validation.getFailureMessages()));
+            monitor.debug(() -> "DSP: Transformation failed: %s".formatted(inputTransformation.getFailureMessages()));
             return type(request.getErrorType()).processId(request.getProcessId()).badRequest();
         }
 

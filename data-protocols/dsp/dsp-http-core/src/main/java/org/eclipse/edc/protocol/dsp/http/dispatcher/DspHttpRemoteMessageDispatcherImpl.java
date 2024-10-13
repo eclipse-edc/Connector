@@ -152,7 +152,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
             } else {
                 var stringBody = Optional.ofNullable(responseBody)
                         .map(this::asString)
-                        .orElse("Response body is null");
+                        .orElse("Response body is null. Error code: " + response.code());
 
                 var status = response.code() >= 400 && response.code() < 500 ? FATAL_ERROR : ERROR_RETRY;
 

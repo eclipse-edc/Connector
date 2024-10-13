@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.C
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
@@ -210,12 +211,16 @@ class ConsumerContractNegotiationManagerImplTest {
     void accepting_shouldSendAcceptedMessageAndTransitionToApproved() {
         var negotiation = contractNegotiationBuilder().state(ACCEPTING.code()).contractOffer(contractOffer()).build();
         when(store.nextNotLeased(anyInt(), stateIs(ACCEPTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+
+        var captor = ArgumentCaptor.forClass(ContractNegotiationEventMessage.class);
+        when(dispatcherRegistry.dispatch(any(), captor.capture())).thenReturn(completedFuture(StatusResult.success("any")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
         manager.start();
 
         await().untilAsserted(() -> {
+            var message = captor.getValue();
+            assertThat(message.getPolicy()).isNotNull();
             verify(store).save(argThat(p -> p.getState() == ACCEPTED.code()));
             verify(dispatcherRegistry, only()).dispatch(any(), any());
             verify(listener).accepted(any());

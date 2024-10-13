@@ -38,6 +38,7 @@ import java.util.function.Predicate;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
@@ -190,7 +191,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTING state");
         }
-        transition(ContractNegotiationStates.REQUESTING, ContractNegotiationStates.REQUESTING, ContractNegotiationStates.INITIAL);
+        transition(ContractNegotiationStates.REQUESTING, ContractNegotiationStates.REQUESTING, ContractNegotiationStates.OFFERED, ContractNegotiationStates.INITIAL);
     }
 
     /**
@@ -209,7 +210,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionOffering() {
         if (CONSUMER == type) {
-            throw new IllegalStateException("Provider processes have no OFFERING state");
+            throw new IllegalStateException("Consumer processes have no OFFERING state");
         }
 
         transition(ContractNegotiationStates.OFFERING, ContractNegotiationStates.OFFERING, ContractNegotiationStates.OFFERED, ContractNegotiationStates.REQUESTED);
@@ -233,7 +234,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no ACCEPTING state");
         }
-        transition(ContractNegotiationStates.ACCEPTING, ContractNegotiationStates.ACCEPTING, ContractNegotiationStates.REQUESTED);
+        transition(ContractNegotiationStates.ACCEPTING, ContractNegotiationStates.ACCEPTING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.OFFERED);
     }
 
     /**
@@ -301,7 +302,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * Transition to state FINALIZED.
      */
     public void transitionFinalized() {
-        transition(ContractNegotiationStates.FINALIZED, ContractNegotiationStates.FINALIZED, ContractNegotiationStates.FINALIZING, ContractNegotiationStates.AGREED, ContractNegotiationStates.VERIFIED);
+        transition(FINALIZED, FINALIZED, ContractNegotiationStates.FINALIZING, ContractNegotiationStates.AGREED, ContractNegotiationStates.VERIFIED);
     }
 
     /**
@@ -310,7 +311,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * @return true if the negotiation can be terminated, false otherwise
      */
     public boolean canBeTerminated() {
-        return true;
+        return FINALIZED.code() != state;
     }
 
     /**

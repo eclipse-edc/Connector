@@ -151,6 +151,8 @@ class JsonObjectToPolicyTransformerTest {
         var policy = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, JsonObject.EMPTY_JSON_OBJECT)
                 .add(TYPE, type)
+                .add(ODRL_ASSIGNEE_ATTRIBUTE, "assignee")
+                .add(ODRL_ASSIGNER_ATTRIBUTE, "assigner")
                 .build();
 
         var result = transformer.transform(TestInput.getExpanded(policy), context);
@@ -179,6 +181,8 @@ class JsonObjectToPolicyTransformerTest {
 
         var policy = jsonFactory.createObjectBuilder()
                 .add(ODRL_TARGET_ATTRIBUTE, TARGET)
+                .add(ODRL_ASSIGNEE_ATTRIBUTE, "assignee")
+                .add(ODRL_ASSIGNER_ATTRIBUTE, "assigner")
                 .build();
 
         var result = transformer.transform(TestInput.getExpanded(policy), context);
