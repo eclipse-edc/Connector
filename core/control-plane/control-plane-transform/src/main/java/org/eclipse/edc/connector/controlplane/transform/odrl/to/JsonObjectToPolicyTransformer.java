@@ -85,6 +85,22 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
                     .error("Invalid type for ODRL policy, should be one of [%s, %s, %s]".formatted(ODRL_POLICY_TYPE_SET, ODRL_POLICY_TYPE_OFFER, ODRL_POLICY_TYPE_AGREEMENT))
                     .report();
             return null;
+        } else if (policyType == PolicyType.CONTRACT) {
+            if (object.get(ODRL_ASSIGNEE_ATTRIBUTE) == null) {
+                context.problem()
+                        .missingProperty()
+                        .property(ODRL_ASSIGNEE_ATTRIBUTE)
+                        .report();
+                return null;
+            }
+
+            if (object.get(ODRL_ASSIGNER_ATTRIBUTE) == null) {
+                context.problem()
+                        .missingProperty()
+                        .property(ODRL_ASSIGNER_ATTRIBUTE)
+                        .report();
+                return null;
+            }
         }
 
         builder.type(policyType);
@@ -94,8 +110,10 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
             case ODRL_PROHIBITION_ATTRIBUTE -> v -> builder.prohibitions(transformArray(v, Prohibition.class, context));
             case ODRL_OBLIGATION_ATTRIBUTE -> v -> builder.duties(transformArray(v, Duty.class, context));
             case ODRL_TARGET_ATTRIBUTE -> v -> builder.target(transformString(v, context));
-            case ODRL_ASSIGNER_ATTRIBUTE -> v -> builder.assigner(participantIdMapper.fromIri(transformString(v, context)));
-            case ODRL_ASSIGNEE_ATTRIBUTE -> v -> builder.assignee(participantIdMapper.fromIri(transformString(v, context)));
+            case ODRL_ASSIGNER_ATTRIBUTE ->
+                    v -> builder.assigner(participantIdMapper.fromIri(transformString(v, context)));
+            case ODRL_ASSIGNEE_ATTRIBUTE ->
+                    v -> builder.assignee(participantIdMapper.fromIri(transformString(v, context)));
             case ODRL_PROFILE_ATTRIBUTE -> v -> builder.profiles(transformProfile(v));
             default -> v -> builder.extensibleProperty(key, transformGenericProperty(v, context));
         });

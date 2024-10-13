@@ -126,17 +126,15 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state ACCEPTING. Tries to send a dummy contract agreement to
-     * the respective provider in order to approve the last offer sent by the provider. If this succeeds, the
-     * ContractNegotiation is transitioned to state ACCEPTED. Else, it is transitioned to ACCEPTING
-     * for a retry.
+     * Processes {@link ContractNegotiation} in state ACCEPTING. If the dispatch succeeds, the
+     * ContractNegotiation is transitioned to state ACCEPTED. Else, it is transitioned to ACCEPTING for a retry.
      *
      * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processAccepting(ContractNegotiation negotiation) {
         var messageBuilder = ContractNegotiationEventMessage.Builder.newInstance().type(ACCEPTED);
-
+        messageBuilder.policy(negotiation.getLastContractOffer().getPolicy());
         return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess((n, result) -> transitionToAccepted(n))
                 .onFailure((n, throwable) -> transitionToAccepting(n))

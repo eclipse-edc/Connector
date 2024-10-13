@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -52,6 +53,7 @@ class JsonObjectFromContractNegotiationEventMessageTransformerTest {
                 .consumerPid("consumerPid")
                 .providerPid("providerPid")
                 .counterPartyAddress("https://test.com")
+                .policy(Policy.Builder.newInstance().build())
                 .type(ACCEPTED)
                 .build();
 

@@ -488,6 +488,7 @@ class ContractNegotiationProtocolServiceImplTest {
                             .counterPartyAddress("http://any")
                             .consumerPid("consumerPid")
                             .providerPid("providerPid")
+                            .policy(Policy.Builder.newInstance().build())
                             .build(), PROVIDER, OFFERED),
                     Arguments.of(verified, ContractAgreementVerificationMessage.Builder.newInstance()
                             .protocol("protocol")
