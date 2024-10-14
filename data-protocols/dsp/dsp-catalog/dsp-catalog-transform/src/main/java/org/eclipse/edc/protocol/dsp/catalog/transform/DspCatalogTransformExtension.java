@@ -16,7 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.transform;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
-import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogError;
+import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogErrorTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDataServiceTransformer;
@@ -78,6 +78,6 @@ public class DspCatalogTransformExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectFromDatasetTransformer(jsonFactory, mapper));
         dspApiTransformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromCatalogError(jsonFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromCatalogErrorTransformer(jsonFactory));
     }
 }

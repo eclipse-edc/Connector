@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferCompletionMessageTransformer;
-import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferError;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferErrorTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferProcessTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferStartMessageTransformer;
@@ -82,7 +82,7 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
         dspRegistry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory));
         dspRegistry.register(new JsonObjectFromTransferSuspensionMessageTransformer(builderFactory));
         dspRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferError(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferErrorTransformer(builderFactory));
 
         dspRegistry.register(new JsonObjectToTransferRequestMessageTransformer());
         dspRegistry.register(new JsonObjectToTransferCompletionMessageTransformer());

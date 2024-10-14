@@ -30,11 +30,11 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 /**
  * Transforms a {@link CatalogError} to a {@link JsonObject} in JSON-LD expanded form.
  */
-public class JsonObjectFromCatalogError extends AbstractJsonLdTransformer<CatalogError, JsonObject> {
+public class JsonObjectFromCatalogErrorTransformer extends AbstractJsonLdTransformer<CatalogError, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 
-    public JsonObjectFromCatalogError(JsonBuilderFactory jsonFactory) {
+    public JsonObjectFromCatalogErrorTransformer(JsonBuilderFactory jsonFactory) {
         super(CatalogError.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
     }

@@ -36,11 +36,11 @@ class JsonObjectFromCatalogErrorTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
-    private JsonObjectFromCatalogError transformer;
+    private JsonObjectFromCatalogErrorTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromCatalogError(jsonFactory);
+        transformer = new JsonObjectFromCatalogErrorTransformer(jsonFactory);
     }
 
     @Test

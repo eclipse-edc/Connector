@@ -36,11 +36,11 @@ class JsonObjectFromContractNegotiationErrorTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
-    private JsonObjectFromContractNegotiationError transformer;
+    private JsonObjectFromContractNegotiationErrorTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromContractNegotiationError(jsonFactory);
+        transformer = new JsonObjectFromContractNegotiationErrorTransformer(jsonFactory);
     }
 
     @Test

@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.from;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferError;
-import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferError;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferErrorTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,11 +37,11 @@ class JsonObjectFromTransferErrorTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
-    private JsonObjectFromTransferError transformer;
+    private JsonObjectFromTransferErrorTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromTransferError(jsonFactory);
+        transformer = new JsonObjectFromTransferErrorTransformer(jsonFactory);
     }
 
     @Test

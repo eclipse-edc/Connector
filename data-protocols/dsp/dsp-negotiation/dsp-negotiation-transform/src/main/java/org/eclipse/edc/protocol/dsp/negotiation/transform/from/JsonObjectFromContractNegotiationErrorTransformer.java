@@ -12,37 +12,37 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from;
+package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferError;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationError;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR;
 
 /**
- * Transforms a {@link TransferError} to a {@link JsonObject} in JSON-LD expanded form.
+ * Transforms a {@link ContractNegotiationError} to a {@link JsonObject} in JSON-LD expanded form.
  */
-public class JsonObjectFromTransferError extends AbstractJsonLdTransformer<TransferError, JsonObject> {
+public class JsonObjectFromContractNegotiationErrorTransformer extends AbstractJsonLdTransformer<ContractNegotiationError, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 
-    public JsonObjectFromTransferError(JsonBuilderFactory jsonFactory) {
-        super(TransferError.class, JsonObject.class);
+    public JsonObjectFromContractNegotiationErrorTransformer(JsonBuilderFactory jsonFactory) {
+        super(ContractNegotiationError.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
     }
 
     @Override
-    public @Nullable JsonObject transform(@NotNull TransferError error, @NotNull TransformerContext context) {
+    public @Nullable JsonObject transform(@NotNull ContractNegotiationError error, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_ERROR)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .add(DSPACE_PROPERTY_CODE, error.getCode())
                 .add(DSPACE_PROPERTY_REASON, jsonFactory.createArrayBuilder(error.getMessages()))
                 .build();
