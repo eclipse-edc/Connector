@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -38,7 +38,7 @@ class ContinuationTokenManagerImplTest {
         var result = continuationTokenManager.applyQueryFromToken(Json.createObjectBuilder().build(), "token");
 
         assertThat(result).isSucceeded().satisfies(jsonObject -> {
-            assertThat(jsonObject.getJsonArray(DSPACE_PROPERTY_FILTER)).hasSize(1).first().isEqualTo(filter);
+            assertThat(jsonObject.getJsonArray(DSPACE_PROPERTY_FILTER_IRI)).hasSize(1).first().isEqualTo(filter);
         });
     }
 

@@ -43,7 +43,7 @@ import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.DATASET_REQUEST;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI;
 
 /**
  * Provides the HTTP endpoint for receiving catalog requests.
@@ -83,7 +83,7 @@ public class DspCatalogApiController {
 
         var request = PostDspRequest.Builder.newInstance(CatalogRequestMessage.class, Catalog.class, CatalogError.class)
                 .token(token)
-                .expectedMessageType(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
+                .expectedMessageType(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
                 .message(messageJson)
                 .serviceCall(service::getCatalog)
                 .errorProvider(CatalogError.Builder::newInstance)

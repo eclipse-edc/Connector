@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
 
 /**
  * Transforms a {@link JsonObject} in JSON-LD expanded form to a {@link CatalogRequestMessage}.
@@ -40,7 +40,7 @@ public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLd
         var builder = CatalogRequestMessage.Builder.newInstance();
 
         Optional.of(object)
-                .map(it -> it.get(DSPACE_PROPERTY_FILTER))
+                .map(it -> it.get(DSPACE_PROPERTY_FILTER_IRI))
                 .map(it -> transformObject(it, QuerySpec.class, context))
                 .ifPresent(builder::querySpec);
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.catalog.http.api.validation;
+package org.eclipse.edc.protocol.dsp.catalog.validation;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -21,17 +21,22 @@ import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.jsonobject.validators.model.QuerySpecValidator;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
 
 /**
  * Validator for {@link CatalogRequestMessageValidator} Json-LD representation
  */
 public class CatalogRequestMessageValidator {
     public static Validator<JsonObject> instance(CriterionOperatorRegistry criterionOperatorRegistry) {
+        return instance(criterionOperatorRegistry, DSPACE_SCHEMA);
+    }
+
+    public static Validator<JsonObject> instance(CriterionOperatorRegistry criterionOperatorRegistry, String schema) {
         return JsonObjectValidator.newValidator()
-                .verify(path -> new TypeIs(path, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE))
-                .verifyObject(DSPACE_PROPERTY_FILTER, path -> QuerySpecValidator.instance(path, criterionOperatorRegistry))
+                .verify(path -> new TypeIs(path, schema + DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM))
+                .verifyObject(schema + DSPACE_PROPERTY_FILTER_TERM, path -> QuerySpecValidator.instance(path, criterionOperatorRegistry))
                 .build();
     }
 }

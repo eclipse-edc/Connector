@@ -25,6 +25,7 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
 
     implementation(project(":core:common:lib:validator-lib"))
+    implementation(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-validation-lib"))
 
     implementation(libs.jakarta.rsApi)
 

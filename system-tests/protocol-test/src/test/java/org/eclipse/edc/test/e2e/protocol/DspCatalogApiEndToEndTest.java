@@ -45,8 +45,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -85,7 +85,7 @@ public class DspCatalogApiEndToEndTest {
                 .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
                 .body(createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
+                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
                         .build())
                 .post("/2024/1/catalog/request")
                 .then()
@@ -118,8 +118,8 @@ public class DspCatalogApiEndToEndTest {
                 .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
                 .body(createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
-                        .add(DSPACE_PROPERTY_FILTER, Json.createObjectBuilder()
+                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
+                        .add(DSPACE_PROPERTY_FILTER_IRI, Json.createObjectBuilder()
                                 .add("offset", 0)
                                 .add("limit", 5))
                         .build())
@@ -143,7 +143,7 @@ public class DspCatalogApiEndToEndTest {
                 .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
                 .body(createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
+                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
                         .build()
                 )
                 .post(nextPageUrl)
@@ -170,7 +170,7 @@ public class DspCatalogApiEndToEndTest {
                 .header("Authorization", authorizationHeader)
                 .body(createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
+                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
                         .build())
                 .post("/catalog/request")
                 .then()
@@ -193,7 +193,7 @@ public class DspCatalogApiEndToEndTest {
                 .contentType(JSON)
                 .body(createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
+                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
                         .build())
                 .post("/catalog/request")
                 .then()

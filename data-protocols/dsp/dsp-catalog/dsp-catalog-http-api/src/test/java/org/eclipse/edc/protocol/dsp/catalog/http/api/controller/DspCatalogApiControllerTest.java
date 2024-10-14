@@ -47,7 +47,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.DATASET_REQUEST;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -100,7 +100,7 @@ class DspCatalogApiControllerTest extends RestControllerTestBase {
 
         @Test
         void shouldCreateResource() {
-            var requestBody = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE).build();
+            var requestBody = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI).build();
             var catalog = createObjectBuilder().add(JsonLdKeywords.TYPE, "catalog").build();
             when(transformerRegistry.transform(any(Catalog.class), eq(JsonObject.class))).thenReturn(Result.success(catalog));
             when(dspRequestHandler.createResource(any(), any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
@@ -119,7 +119,7 @@ class DspCatalogApiControllerTest extends RestControllerTestBase {
             var request = captor.getValue();
             assertThat(request.getInputClass()).isEqualTo(CatalogRequestMessage.class);
             assertThat(request.getResultClass()).isEqualTo(Catalog.class);
-            assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE);
+            assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI);
             assertThat(request.getProcessId()).isNull();
             assertThat(request.getToken()).isEqualTo("auth");
             assertThat(request.getMessage()).isEqualTo(requestBody);
@@ -128,7 +128,7 @@ class DspCatalogApiControllerTest extends RestControllerTestBase {
 
         @Test
         void shouldApplyContinuationToken_whenPassed() {
-            var requestBody = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE).build();
+            var requestBody = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI).build();
             var catalog = createObjectBuilder().add(JsonLdKeywords.TYPE, "catalog").build();
             when(transformerRegistry.transform(any(Catalog.class), eq(JsonObject.class))).thenReturn(Result.success(catalog));
             when(dspRequestHandler.createResource(any(), any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
@@ -153,7 +153,7 @@ class DspCatalogApiControllerTest extends RestControllerTestBase {
 
         @Test
         void shouldReturnBadRequest_whenContinuationTokenIsNotValid() {
-            var requestBody = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE).build();
+            var requestBody = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI).build();
             when(continuationTokenManager.applyQueryFromToken(any(), any())).thenReturn(Result.failure("error"));
 
             baseRequest()
