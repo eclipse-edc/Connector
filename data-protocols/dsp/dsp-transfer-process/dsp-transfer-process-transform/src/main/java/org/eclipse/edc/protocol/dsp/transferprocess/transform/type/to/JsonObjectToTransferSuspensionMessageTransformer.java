@@ -34,7 +34,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 
 public class JsonObjectToTransferSuspensionMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferSuspensionMessage> {
 
@@ -78,7 +78,7 @@ public class JsonObjectToTransferSuspensionMessageTransformer extends AbstractJs
             } else {
                 context.problem()
                         .unexpectedType()
-                        .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                        .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
                         .property(DSPACE_PROPERTY_REASON)
                         .actual(reasons.getValueType())
                         .expected(ARRAY)

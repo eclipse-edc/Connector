@@ -31,7 +31,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
 
 
 public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJsonLdTransformer<TransferRequestMessage, JsonObject> {
@@ -50,7 +50,7 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
 
         var builder = jsonBuilderFactory.createObjectBuilder()
                 .add(ID, transferRequestMessage.getId())
-                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID, transferRequestMessage.getContractId())
                 .add(DCT_FORMAT_ATTRIBUTE, format)
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, transferRequestMessage.getCallbackAddress())

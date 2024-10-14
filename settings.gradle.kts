@@ -97,6 +97,7 @@ include(":data-protocols:dsp:dsp-transfer-process")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-api")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform")
+include(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-validation-lib")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-api")
 
 // modules for technology- or cloud-provider extensions --------------------------------------------

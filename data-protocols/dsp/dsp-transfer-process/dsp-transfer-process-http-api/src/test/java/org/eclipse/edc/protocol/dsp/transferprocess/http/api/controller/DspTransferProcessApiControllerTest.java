@@ -46,11 +46,11 @@ import static jakarta.json.Json.createObjectBuilder;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProcessApiPaths.TRANSFER_COMPLETION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
@@ -95,7 +95,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Json.createObjectBuilder().add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE).build())
+                .body(Json.createObjectBuilder().add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI).build())
                 .post(BASE_PATH + TRANSFER_INITIAL_REQUEST)
                 .then()
                 .statusCode(200)
@@ -110,7 +110,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         assertThat(request.getInputClass()).isEqualTo(TransferRequestMessage.class);
         assertThat(request.getResultClass()).isEqualTo(TransferProcess.class);
         assertThat(request.getMessage()).isNotNull();
-        assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE);
+        assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI);
     }
 
     /**
@@ -163,11 +163,11 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                     Arguments.of(
                             BASE_PATH + PROCESS_ID + TRANSFER_START,
                             TransferStartMessage.class,
-                            DSPACE_TYPE_TRANSFER_START_MESSAGE),
+                            DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI),
                     Arguments.of(
                             BASE_PATH + PROCESS_ID + TRANSFER_COMPLETION,
                             TransferCompletionMessage.class,
-                            DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE),
+                            DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI),
                     Arguments.of(
                             BASE_PATH + PROCESS_ID + TRANSFER_SUSPENSION,
                             TransferSuspensionMessage.class,
@@ -175,7 +175,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                     Arguments.of(
                             BASE_PATH + PROCESS_ID + TRANSFER_TERMINATION,
                             TransferTerminationMessage.class,
-                            DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                            DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
             );
         }
     }

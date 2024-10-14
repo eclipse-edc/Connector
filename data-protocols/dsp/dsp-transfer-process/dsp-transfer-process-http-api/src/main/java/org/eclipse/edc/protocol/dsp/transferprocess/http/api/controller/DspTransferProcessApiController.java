@@ -38,11 +38,11 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProcessApiPaths.TRANSFER_COMPLETION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
@@ -106,7 +106,7 @@ public class DspTransferProcessApiController {
         var request = PostDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class, TransferError.class)
                 .message(jsonObject)
                 .token(token)
-                .expectedMessageType(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+                .expectedMessageType(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI)
                 .serviceCall(protocolService::notifyRequested)
                 .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
@@ -128,7 +128,7 @@ public class DspTransferProcessApiController {
     public Response transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(TransferStartMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .expectedMessageType(DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyStarted)
@@ -152,7 +152,7 @@ public class DspTransferProcessApiController {
     public Response transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(TransferCompletionMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
+                .expectedMessageType(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyCompleted)
@@ -176,7 +176,7 @@ public class DspTransferProcessApiController {
     public Response transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(TransferTerminationMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                .expectedMessageType(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyTerminated)

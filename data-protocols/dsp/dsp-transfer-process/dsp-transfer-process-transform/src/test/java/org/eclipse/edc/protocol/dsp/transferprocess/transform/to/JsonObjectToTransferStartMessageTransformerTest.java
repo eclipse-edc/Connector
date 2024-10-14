@@ -27,7 +27,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -48,7 +48,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
     @Test
     void jsonObjectToTransferStartMessage() {
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .build();
@@ -66,7 +66,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
     void shouldReturnNullAndReportError_whenConsumerAndProviderPidNotValid() {
         when(context.problem()).thenReturn(new ProblemBuilder(context));
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);
@@ -79,7 +79,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
     void jsonObjectToTransferStartMessageWithDataAddress() {
         var dataAddressObject = Json.createObjectBuilder().add(EDC_NAMESPACE + "type", "AWS").build();
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_DATA_ADDRESS, dataAddressObject)
@@ -100,7 +100,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
     @Test
     void jsonObjectToTransferStartMessageWithEmptyDataAddress() {
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_DATA_ADDRESS, Json.createObjectBuilder().build())

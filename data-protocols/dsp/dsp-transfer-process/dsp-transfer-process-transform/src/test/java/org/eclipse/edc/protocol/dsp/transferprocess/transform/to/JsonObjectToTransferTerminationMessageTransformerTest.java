@@ -30,7 +30,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -49,7 +49,7 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
         var reasonArray = Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build();
 
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_CODE, "testCode")
@@ -75,7 +75,7 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
         var reasonArray = Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build();
 
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CODE, "testCode")
                 .add(DSPACE_PROPERTY_REASON, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
                 .build();

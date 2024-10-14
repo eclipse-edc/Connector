@@ -28,7 +28,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 
 public class JsonObjectFromTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<TransferTerminationMessage, JsonObject> {
 
@@ -43,7 +43,7 @@ public class JsonObjectFromTransferTerminationMessageTransformer extends Abstrac
     public @Nullable JsonObject transform(@NotNull TransferTerminationMessage transferTerminationMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder()
                 .add(ID, transferTerminationMessage.getId())
-                .add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, transferTerminationMessage.getConsumerPid())
                 .add(DSPACE_PROPERTY_PROVIDER_PID, transferTerminationMessage.getProviderPid());
 

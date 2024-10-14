@@ -26,7 +26,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI;
 
 
 public class JsonObjectFromTransferCompletionMessageTransformer extends AbstractJsonLdTransformer<TransferCompletionMessage, JsonObject> {
@@ -42,7 +42,7 @@ public class JsonObjectFromTransferCompletionMessageTransformer extends Abstract
     public @Nullable JsonObject transform(@NotNull TransferCompletionMessage transferCompletionMessage, @NotNull TransformerContext context) {
         return jsonBuilderFactory.createObjectBuilder()
                 .add(ID, transferCompletionMessage.getId())
-                .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, transferCompletionMessage.getConsumerPid())
                 .add(DSPACE_PROPERTY_PROVIDER_PID, transferCompletionMessage.getProviderPid())
                 .build();
