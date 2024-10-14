@@ -24,13 +24,13 @@ SPDX-License-Identifier: Apache-2.0
 
 ## Source Code
 
-The project maintains the following source code repositoriy:
+The project maintains the following source code repository:
 
 * https://github.com/eclipse-edc/Connector
 
 ## Third-party Content (Overarching All Modules)
 
-Please refer to the [DEPENDENCIES](DEPENDENCIES) file for a detailed report.
+Please refer to the [DEPENDENCIES](https://eclipse-edc.github.io/Connector/DEPENDENCIES) file for a detailed report.
 
 ## Cryptography
 

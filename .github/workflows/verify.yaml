@@ -30,10 +30,6 @@ jobs:
       - name: Run Checkstyle
         run: ./gradlew checkstyleMain checkstyleTest checkstyleTestFixtures
 
-  Dependency-Check:
-    uses: eclipse-edc/.github/.github/workflows/dependency-check.yml@main
-    secrets: inherit
-
   Javadoc:
     runs-on: ubuntu-latest
     steps:

@@ -11,3 +11,7 @@ jobs:
     # This workflow will abort if the required secrets don't exist
     uses: eclipse-edc/.github/.github/workflows/publish-snapshot.yml@main
     secrets: inherit
+
+  Publish-Dependencies:
+    uses: eclipse-edc/.github/.github/workflows/publish-dependencies.yml@main
+    secrets: inherit
