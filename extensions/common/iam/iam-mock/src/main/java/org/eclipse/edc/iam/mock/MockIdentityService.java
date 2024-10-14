@@ -28,11 +28,13 @@ public class MockIdentityService implements IdentityService {
     private final String region;
     private final TypeManager typeManager;
     private final String clientId;
+    private final String faultyClientId;
 
-    public MockIdentityService(TypeManager typeManager, String region, String clientId) {
+    public MockIdentityService(TypeManager typeManager, String region, String clientId, String faultyClientId) {
         this.typeManager = typeManager;
         this.region = region;
         this.clientId = clientId;
+        this.faultyClientId = faultyClientId;
     }
 
     @Override
@@ -50,6 +52,11 @@ public class MockIdentityService implements IdentityService {
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
         var token = typeManager.readValue(tokenRepresentation.getToken(), MockToken.class);
+
+        if (faultyClientId.equals(token.clientId)) {
+            return Result.failure("Unauthorized");
+        }
+
         return Result.success(ClaimToken.Builder.newInstance()
                 .claim("region", token.region)
                 .claim("client_id", token.clientId)

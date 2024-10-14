@@ -35,17 +35,17 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_VERSION;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 @EndToEndTest
 public class DspVersionApiEndToEndTest {
 
     private static final int PROTOCOL_PORT = Ports.getFreePort();
-    private final JsonLd jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
-
     @RegisterExtension
     static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime(
             "runtime",
@@ -61,6 +61,7 @@ public class DspVersionApiEndToEndTest {
             ":core:control-plane:control-plane-core",
             ":extensions:common:http"
     ));
+    private final JsonLd jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
 
     @Test
     void shouldReturnValidJsonLd() {
@@ -84,6 +85,28 @@ public class DspVersionApiEndToEndTest {
             assertThat(expanded.getJsonArray(DSPACE_PROPERTY_PROTOCOL_VERSIONS)).hasSize(1).extracting(JsonValue::asJsonObject)
                     .first().satisfies(protocolVersion -> versionIs(protocolVersion, "1.0", "/v1/path"));
         });
+    }
+
+    @Test
+    void shouldReturnError_whenNotAuthorized() {
+
+        var authorizationHeader = """
+                {"region": "any", "audience": "any", "clientId":"faultyClientId"}"
+                """;
+
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .header("Authorization", authorizationHeader)
+                .get("/.well-known/dspace-version")
+                .then()
+                .log().ifError()
+                .statusCode(401)
+                .contentType(ContentType.JSON)
+                .body("'@type'", equalTo("dspace:VersionsError"))
+                .body("'dspace:code'", equalTo("401"))
+                .body("'dspace:reason'", equalTo("Unauthorized"))
+                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
     }
 
     private void versionIs(JsonObject protocolVersion, String version, String path) {
