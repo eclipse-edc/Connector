@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -27,7 +27,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
  * Validator for {@link TransferTerminationMessage} Json-LD representation
  */
 public class TransferTerminationMessageValidator {
-    
+
     public static Validator<JsonObject> instance() {
         return instance(DSPACE_SCHEMA);
     }
