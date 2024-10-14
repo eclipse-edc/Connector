@@ -26,6 +26,7 @@ dependencies {
     api(project(":extensions:common:json-ld"))
 
     implementation(project(":core:common:lib:validator-lib"))
+    implementation(project(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-validation-lib"))
 
     implementation(libs.jakarta.rsApi)
 

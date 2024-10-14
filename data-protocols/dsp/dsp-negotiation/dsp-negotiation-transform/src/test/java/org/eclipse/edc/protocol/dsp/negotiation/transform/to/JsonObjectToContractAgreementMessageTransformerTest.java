@@ -41,7 +41,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_A
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,6 +67,20 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
     private JsonObjectToContractAgreementMessageTransformer transformer;
 
+    private static Policy.Builder policyBuilder() {
+        var action = Action.Builder.newInstance().type("use").build();
+        var permission = Permission.Builder.newInstance().action(action).build();
+        var prohibition = Prohibition.Builder.newInstance().action(action).build();
+        var duty = Duty.Builder.newInstance().action(action).build();
+        return Policy.Builder.newInstance()
+                .permission(permission)
+                .prohibition(prohibition)
+                .assigner("assigner")
+                .assignee("assignee")
+                .duty(duty)
+                .target(TARGET);
+    }
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToContractAgreementMessageTransformer();
@@ -77,7 +91,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
     void transform() {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
-                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_AGREEMENT, jsonFactory.createObjectBuilder()
@@ -116,7 +130,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         var value = "example";
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, value)
-                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_AGREEMENT, jsonFactory.createObjectBuilder()
@@ -148,7 +162,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, "messageId")
-                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_AGREEMENT, agreement)
@@ -172,7 +186,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, "messageId")
-                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_AGREEMENT, agreement)
@@ -187,20 +201,6 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
     private Policy policy() {
         return policyBuilder().build();
-    }
-
-    private static Policy.Builder policyBuilder() {
-        var action = Action.Builder.newInstance().type("use").build();
-        var permission = Permission.Builder.newInstance().action(action).build();
-        var prohibition = Prohibition.Builder.newInstance().action(action).build();
-        var duty = Duty.Builder.newInstance().action(action).build();
-        return Policy.Builder.newInstance()
-                .permission(permission)
-                .prohibition(prohibition)
-                .assigner("assigner")
-                .assignee("assignee")
-                .duty(duty)
-                .target(TARGET);
     }
 
 

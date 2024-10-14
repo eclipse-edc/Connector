@@ -39,7 +39,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTR
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,12 +53,11 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromContractAgreementMessageTransformerTest {
 
+    public static final String AGREEMENT_ID = UUID.randomUUID().toString();
     private static final String PROVIDER_ID = "providerId";
     private static final String CONSUMER_ID = "consumerId";
     private static final String TIMESTAMP = "1970-01-01T00:00:00Z";
     private static final String DSP = "dsp";
-    public static final String AGREEMENT_ID = UUID.randomUUID().toString();
-
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
 
@@ -95,7 +94,7 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getString(ID)).isNotNull();
         assertThat(result.getString(ID)).isNotEmpty();
-        assertThat(result.getString(TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE);
+        assertThat(result.getString(TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI);
         assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID)).isEqualTo("providerPid");
         assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID)).isEqualTo("consumerPid");
 

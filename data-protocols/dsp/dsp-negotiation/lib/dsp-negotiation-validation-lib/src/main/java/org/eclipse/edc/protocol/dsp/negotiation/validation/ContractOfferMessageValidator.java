@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.negotiation.http.api.validation;
+package org.eclipse.edc.protocol.dsp.negotiation.validation;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
@@ -23,24 +23,29 @@ import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.Validator;
 
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
 
 /**
  * Validator for {@link ContractOfferMessage} Json-LD representation
  */
 public class ContractOfferMessageValidator {
     public static Validator<JsonObject> instance() {
+        return instance(DSPACE_SCHEMA);
+    }
+
+    public static Validator<JsonObject> instance(String schema) {
         return JsonObjectValidator.newValidator()
-                .verify(path -> new TypeIs(path, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE))
-                .verifyObject(DSPACE_PROPERTY_OFFER, v -> v
+                .verify(path -> new TypeIs(path, schema + DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
+                .verifyObject(schema + DSPACE_PROPERTY_OFFER_TERM, v -> v
                         .verifyId(MandatoryIdNotBlank::new)
                         .verify(ODRL_TARGET_ATTRIBUTE, MandatoryObject::new)
                         .verifyObject(ODRL_TARGET_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new))
                 )
-                .verify(DSPACE_PROPERTY_CALLBACK_ADDRESS, MandatoryValue::new)
+                .verify(schema + DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM, MandatoryValue::new)
                 .build();
     }
 }

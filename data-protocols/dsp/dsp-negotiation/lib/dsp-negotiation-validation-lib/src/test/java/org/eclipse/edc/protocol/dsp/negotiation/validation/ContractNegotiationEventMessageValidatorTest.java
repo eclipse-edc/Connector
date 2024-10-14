@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.negotiation.http.api.validation;
+package org.eclipse.edc.protocol.dsp.negotiation.validation;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -25,16 +25,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI;
 
-class ContractNegotiationTerminationMessageValidatorTest {
+class ContractNegotiationEventMessageValidatorTest {
 
-    private final Validator<JsonObject> validator = ContractNegotiationTerminationMessageValidator.instance();
+    private final Validator<JsonObject> validator = ContractNegotiationEventMessageValidator.instance();
 
     @Test
     void shouldSucceed_whenObjectIsValid() {
         var input = Json.createObjectBuilder()
-                .add(TYPE, Json.createArrayBuilder().add(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE))
+                .add(TYPE, Json.createArrayBuilder().add(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI))
                 .build();
 
         var result = validator.validate(input);

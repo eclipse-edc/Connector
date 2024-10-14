@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.negotiation.http.api.validation;
+package org.eclipse.edc.protocol.dsp.negotiation.validation;
 
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
@@ -33,9 +33,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
 
 class ContractRequestMessageValidatorTest {
 
@@ -44,13 +44,13 @@ class ContractRequestMessageValidatorTest {
     @Test
     void shouldSucceed_whenObjectIsValid() {
         var input = createObjectBuilder()
-                .add(TYPE, createArrayBuilder().add(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE))
-                .add(DSPACE_PROPERTY_OFFER, createArrayBuilder()
+                .add(TYPE, createArrayBuilder().add(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI))
+                .add(DSPACE_PROPERTY_OFFER_IRI, createArrayBuilder()
                         .add(createObjectBuilder()
                                 .add(TYPE, ODRL_POLICY_TYPE_OFFER)
                                 .add(ID, UUID.randomUUID().toString())
                                 .add(ODRL_TARGET_ATTRIBUTE, id("target"))))
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, value("http://any/address"))
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, value("http://any/address"))
                 .build();
 
         var result = validator.validate(input);
@@ -68,28 +68,28 @@ class ContractRequestMessageValidatorTest {
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .hasSize(2)
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TYPE))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(DSPACE_PROPERTY_CALLBACK_ADDRESS));
-    }
-
-    private JsonArrayBuilder value(String value) {
-        return createArrayBuilder().add(createObjectBuilder().add(VALUE, value));
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI));
     }
 
     @Test
     void shouldFail_whenOfferMissesIdAndTarget() {
         var input = createObjectBuilder()
-                .add(TYPE, createArrayBuilder().add(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE))
-                .add(DSPACE_PROPERTY_OFFER, createArrayBuilder().add(createObjectBuilder()))
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, value("http://any/address"))
+                .add(TYPE, createArrayBuilder().add(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI))
+                .add(DSPACE_PROPERTY_OFFER_IRI, createArrayBuilder().add(createObjectBuilder()))
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, value("http://any/address"))
                 .build();
 
         var result = validator.validate(input);
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .hasSize(2)
-                .allSatisfy(violation -> assertThat(violation.path()).startsWith(DSPACE_PROPERTY_OFFER))
+                .allSatisfy(violation -> assertThat(violation.path()).startsWith(DSPACE_PROPERTY_OFFER_IRI))
                 .anySatisfy(violation -> assertThat(violation.path()).endsWith(ID))
                 .anySatisfy(violation -> assertThat(violation.path()).endsWith(ODRL_TARGET_ATTRIBUTE));
+    }
+
+    private JsonArrayBuilder value(String value) {
+        return createArrayBuilder().add(createObjectBuilder().add(VALUE, value));
     }
 
     private JsonArrayBuilder id(String id) {

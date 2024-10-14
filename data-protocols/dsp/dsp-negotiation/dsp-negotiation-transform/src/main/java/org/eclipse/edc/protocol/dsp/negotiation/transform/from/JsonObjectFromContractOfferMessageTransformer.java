@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
@@ -47,11 +47,11 @@ public class JsonObjectFromContractOfferMessageTransformer extends AbstractJsonL
     public @Nullable JsonObject transform(@NotNull ContractOfferMessage message, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder()
                 .add(ID, message.getId())
-                .add(TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_PROVIDER_PID, message.getProviderPid());
 
         addIfNotNull(message.getConsumerPid(), DSPACE_PROPERTY_CONSUMER_PID, builder);
-        addIfNotNull(message.getCallbackAddress(), DSPACE_PROPERTY_CALLBACK_ADDRESS, builder);
+        addIfNotNull(message.getCallbackAddress(), DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, builder);
 
         var offer = message.getContractOffer();
         var policy = context.transform(offer.getPolicy(), JsonObject.class);
@@ -66,7 +66,7 @@ public class JsonObjectFromContractOfferMessageTransformer extends AbstractJsonL
         var enrichedPolicy = Json.createObjectBuilder(policy)
                 .add(ID, offer.getId())
                 .build();
-        builder.add(DSPACE_PROPERTY_OFFER, enrichedPolicy);
+        builder.add(DSPACE_PROPERTY_OFFER_IRI, enrichedPolicy);
 
         return builder.build();
     }

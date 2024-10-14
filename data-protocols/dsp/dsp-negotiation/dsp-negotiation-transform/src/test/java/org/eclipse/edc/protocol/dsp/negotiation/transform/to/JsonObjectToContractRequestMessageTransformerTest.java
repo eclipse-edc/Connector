@@ -33,9 +33,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.mockito.ArgumentMatchers.any;
@@ -68,11 +68,11 @@ class JsonObjectToContractRequestMessageTransformerTest {
     void verify_usingOffer() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, OBJECT_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
-                .add(DSPACE_PROPERTY_OFFER, contractOffer())
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, CALLBACK)
+                .add(DSPACE_PROPERTY_OFFER_IRI, contractOffer())
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
@@ -98,10 +98,10 @@ class JsonObjectToContractRequestMessageTransformerTest {
     void verify_noCallbackOrDatasetOk() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, OBJECT_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_OFFER, contractOffer())
+                .add(DSPACE_PROPERTY_OFFER_IRI, contractOffer())
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
@@ -120,10 +120,10 @@ class JsonObjectToContractRequestMessageTransformerTest {
 
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, OBJECT_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_OFFER, offer)
+                .add(DSPACE_PROPERTY_OFFER_IRI, offer)
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
@@ -139,11 +139,11 @@ class JsonObjectToContractRequestMessageTransformerTest {
     void transform_nullPolicyFails() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, OBJECT_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
-                .add(DSPACE_PROPERTY_OFFER, contractOffer())
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, CALLBACK)
+                .add(DSPACE_PROPERTY_OFFER_IRI, contractOffer())
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(null);

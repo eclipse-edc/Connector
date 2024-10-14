@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
@@ -46,7 +46,7 @@ public class JsonObjectFromContractNegotiationTerminationMessageTransformer exte
     public @Nullable JsonObject transform(@NotNull ContractNegotiationTerminationMessage terminationMessage, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder()
                 .add(ID, terminationMessage.getId())
-                .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, terminationMessage.getConsumerPid())
                 .add(DSPACE_PROPERTY_PROVIDER_PID, terminationMessage.getProviderPid());
 

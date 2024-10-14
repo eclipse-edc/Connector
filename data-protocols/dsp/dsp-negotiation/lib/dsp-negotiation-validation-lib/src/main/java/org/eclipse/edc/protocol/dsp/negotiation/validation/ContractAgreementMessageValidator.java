@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.negotiation.http.api.validation;
+package org.eclipse.edc.protocol.dsp.negotiation.validation;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementMessage;
@@ -20,15 +20,21 @@ import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
 
 /**
  * Validator for {@link ContractAgreementMessage} Json-LD representation
  */
 public class ContractAgreementMessageValidator {
+
     public static Validator<JsonObject> instance() {
+        return instance(DSPACE_SCHEMA);
+    }
+
+    public static Validator<JsonObject> instance(String schema) {
         return JsonObjectValidator.newValidator()
-                .verify(path -> new TypeIs(path, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE))
+                .verify(path -> new TypeIs(path, schema + DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM))
                 .build();
     }
 }

@@ -30,7 +30,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTR
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
@@ -72,7 +72,7 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
 
         return jsonFactory.createObjectBuilder()
                 .add(ID, agreementMessage.getId())
-                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_PROVIDER_PID, agreementMessage.getProviderPid())
                 .add(DSPACE_PROPERTY_CONSUMER_PID, agreementMessage.getConsumerPid())
                 .add(DSPACE_PROPERTY_AGREEMENT, copiedPolicy)
