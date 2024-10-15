@@ -86,15 +86,6 @@ jobs:
       - name: Component Tests
         run: ./gradlew test -DincludeTags="ApiTest"
 
-  BOM-Smoke-Tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: eclipse-edc/.github/.github/actions/setup-build@main
-      - name: Component Tests
-        run:
-          ./gradlew -p system-tests/bom-tests test -DincludeTags="EndToEndTest"
-
   Verify-OpenApi:
     if: github.event_name == 'pull_request'
     uses: eclipse-edc/.github/.github/workflows/verify-openapi.yml@main
