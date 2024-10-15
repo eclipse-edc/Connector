@@ -29,10 +29,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 
@@ -67,11 +67,11 @@ public class JsonObjectToTransferSuspensionMessageTransformer extends AbstractJs
             return null;
         }
 
-        if (messageObject.containsKey(DSPACE_PROPERTY_CODE)) {
-            transformString(messageObject.get(DSPACE_PROPERTY_CODE), builder::code, context);
+        if (messageObject.containsKey(DSPACE_PROPERTY_CODE_IRI)) {
+            transformString(messageObject.get(DSPACE_PROPERTY_CODE_IRI), builder::code, context);
         }
 
-        var reasons = messageObject.get(DSPACE_PROPERTY_REASON);
+        var reasons = messageObject.get(DSPACE_PROPERTY_REASON_IRI);
         if (reasons != null) {
             if (reasons instanceof JsonArray array && !array.isEmpty()) {
                 builder.reason(array.stream().map(this::deserialize).toList());
@@ -79,7 +79,7 @@ public class JsonObjectToTransferSuspensionMessageTransformer extends AbstractJs
                 context.problem()
                         .unexpectedType()
                         .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
-                        .property(DSPACE_PROPERTY_REASON)
+                        .property(DSPACE_PROPERTY_REASON_IRI)
                         .actual(reasons.getValueType())
                         .expected(ARRAY)
                         .report();

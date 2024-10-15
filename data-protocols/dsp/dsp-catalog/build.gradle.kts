@@ -22,4 +22,5 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-dispatcher"))
     api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
     api(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-validation-lib"))
+    api(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-transform-lib"))
 }

@@ -26,10 +26,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -64,8 +64,8 @@ class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
         assertThat(result.getString(TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI);
         assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID)).isEqualTo("consumerPid");
         assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID)).isEqualTo("providerPid");
-        assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo(REJECTION_CODE);
-        assertThat(result.getString(DSPACE_PROPERTY_REASON)).isEqualTo(REJECTION_REASON);
+        assertThat(result.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo(REJECTION_CODE);
+        assertThat(result.getString(DSPACE_PROPERTY_REASON_IRI)).isEqualTo(REJECTION_REASON);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -83,8 +83,8 @@ class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CODE)).isNull();
-        assertThat(result.getJsonString(DSPACE_PROPERTY_REASON)).isNull();
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CODE_IRI)).isNull();
+        assertThat(result.getJsonString(DSPACE_PROPERTY_REASON_IRI)).isNull();
 
         verify(context, never()).reportProblem(anyString());
     }

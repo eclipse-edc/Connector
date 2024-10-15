@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -28,22 +28,27 @@ import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DISTRIBUTION_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PARTICIPANT_ID;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PARTICIPANT_ID_TERM;
 
 /**
  * Converts from a {@link Catalog} to a DCAT catalog as a {@link JsonObject} in JSON-LD expanded form.
  */
-public class JsonObjectFromCatalogTransformer extends AbstractJsonLdTransformer<Catalog, JsonObject> {
+public class JsonObjectFromCatalogTransformer extends AbstractNamespaceAwareJsonLdTransformer<Catalog, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper mapper;
     private final ParticipantIdMapper participantIdMapper;
 
     public JsonObjectFromCatalogTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper, ParticipantIdMapper participantIdMapper) {
-        super(Catalog.class, JsonObject.class);
+        this(jsonFactory, mapper, participantIdMapper, DSPACE_SCHEMA);
+    }
+
+    public JsonObjectFromCatalogTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper, ParticipantIdMapper participantIdMapper, String namespace) {
+        super(Catalog.class, JsonObject.class, namespace);
         this.jsonFactory = jsonFactory;
         this.mapper = mapper;
         this.participantIdMapper = participantIdMapper;
@@ -70,7 +75,7 @@ public class JsonObjectFromCatalogTransformer extends AbstractJsonLdTransformer<
                 .add(DCAT_DISTRIBUTION_ATTRIBUTE, distributions)
                 .add(DCAT_DATA_SERVICE_ATTRIBUTE, dataServices);
 
-        ofNullable(catalog.getParticipantId()).ifPresent(pid -> objectBuilder.add(DSPACE_PROPERTY_PARTICIPANT_ID, participantIdMapper.toIri(pid)));
+        ofNullable(catalog.getParticipantId()).ifPresent(pid -> objectBuilder.add(forNamespace(DSPACE_PROPERTY_PARTICIPANT_ID_TERM), participantIdMapper.toIri(pid)));
 
         transformProperties(catalog.getProperties(), objectBuilder, mapper, context);
 

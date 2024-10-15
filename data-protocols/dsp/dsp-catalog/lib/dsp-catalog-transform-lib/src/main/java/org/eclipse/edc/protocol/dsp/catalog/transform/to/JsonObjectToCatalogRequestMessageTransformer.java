@@ -16,7 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.transform.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -24,15 +24,20 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
 
 /**
  * Transforms a {@link JsonObject} in JSON-LD expanded form to a {@link CatalogRequestMessage}.
  */
-public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, CatalogRequestMessage> {
+public class JsonObjectToCatalogRequestMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, CatalogRequestMessage> {
 
     public JsonObjectToCatalogRequestMessageTransformer() {
-        super(JsonObject.class, CatalogRequestMessage.class);
+        this(DSPACE_SCHEMA);
+    }
+
+    public JsonObjectToCatalogRequestMessageTransformer(String namespace) {
+        super(JsonObject.class, CatalogRequestMessage.class, namespace);
     }
 
     @Override
@@ -40,7 +45,7 @@ public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLd
         var builder = CatalogRequestMessage.Builder.newInstance();
 
         Optional.of(object)
-                .map(it -> it.get(DSPACE_PROPERTY_FILTER_IRI))
+                .map(it -> it.get(forNamespace(DSPACE_PROPERTY_FILTER_TERM)))
                 .map(it -> transformObject(it, QuerySpec.class, context))
                 .ifPresent(builder::querySpec);
 

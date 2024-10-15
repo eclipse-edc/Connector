@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
@@ -17,8 +17,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    
+    api(project(":spi:common:json-ld-spi"))
+    api(project(":data-protocols:dsp:dsp-spi"))
     implementation(project(":core:common:lib:transform-lib"))
-    implementation(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-transform-lib"))
+
+    testImplementation(project(":core:common:junit"))
 }

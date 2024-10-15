@@ -24,10 +24,10 @@ import org.jetbrains.annotations.Nullable;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 
 /**
  * Creates a {@link ContractNegotiationTerminationMessage} from a {@link JsonObject}.
@@ -59,12 +59,12 @@ public class JsonObjectToContractNegotiationTerminationMessageTransformer extend
             return null;
         }
 
-        var code = object.get(DSPACE_PROPERTY_CODE);
+        var code = object.get(DSPACE_PROPERTY_CODE_IRI);
         if (code != null) { // optional property
             transformString(code, builder::code, context);
         }
 
-        var reasons = object.get(DSPACE_PROPERTY_REASON);
+        var reasons = object.get(DSPACE_PROPERTY_REASON_IRI);
         if (reasons != null) {  // optional property
             if (reasons instanceof JsonArray) {
                 var array = (JsonArray) reasons;
@@ -75,7 +75,7 @@ public class JsonObjectToContractNegotiationTerminationMessageTransformer extend
                 context.problem()
                         .unexpectedType()
                         .type(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI)
-                        .property(DSPACE_PROPERTY_REASON)
+                        .property(DSPACE_PROPERTY_REASON_IRI)
                         .actual(reasons.getValueType().toString())
                         .expected(ARRAY)
                         .report();

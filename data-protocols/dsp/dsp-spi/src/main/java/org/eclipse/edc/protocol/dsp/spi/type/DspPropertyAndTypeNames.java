@@ -21,8 +21,10 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
  */
 public interface DspPropertyAndTypeNames {
 
-    String DSPACE_PROPERTY_CODE = DSPACE_SCHEMA + "code";
-    String DSPACE_PROPERTY_REASON = DSPACE_SCHEMA + "reason";
+    String DSPACE_PROPERTY_CODE_TERM = "code";
+    String DSPACE_PROPERTY_CODE_IRI = DSPACE_SCHEMA + DSPACE_PROPERTY_CODE_TERM;
+    String DSPACE_PROPERTY_REASON_TERM = "reason";
+    String DSPACE_PROPERTY_REASON_IRI = DSPACE_SCHEMA + DSPACE_PROPERTY_REASON_TERM;
     String DSPACE_PROPERTY_CONSUMER_PID = DSPACE_SCHEMA + "consumerPid";
     String DSPACE_PROPERTY_PROVIDER_PID = DSPACE_SCHEMA + "providerPid";
     String DSPACE_PROPERTY_PROCESS_ID = DSPACE_SCHEMA + "processId";

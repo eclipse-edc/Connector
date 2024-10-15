@@ -26,10 +26,10 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -52,8 +52,8 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
                 .add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_CODE, "testCode")
-                .add(DSPACE_PROPERTY_REASON, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
+                .add(DSPACE_PROPERTY_CODE_IRI, "testCode")
+                .add(DSPACE_PROPERTY_REASON_IRI, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
                 .build();
 
         var result = transformer.transform(TestInput.getExpanded(json), context);
@@ -76,8 +76,8 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
 
         var json = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CODE, "testCode")
-                .add(DSPACE_PROPERTY_REASON, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
+                .add(DSPACE_PROPERTY_CODE_IRI, "testCode")
+                .add(DSPACE_PROPERTY_REASON_IRI, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
                 .build();
 
         var result = transformer.transform(TestInput.getExpanded(json), context);

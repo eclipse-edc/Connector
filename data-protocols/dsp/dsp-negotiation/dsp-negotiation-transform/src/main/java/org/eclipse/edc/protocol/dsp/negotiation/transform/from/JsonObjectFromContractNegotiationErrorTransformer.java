@@ -24,8 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 
 /**
  * Transforms a {@link ContractNegotiationError} to a {@link JsonObject} in JSON-LD expanded form.
@@ -43,8 +43,8 @@ public class JsonObjectFromContractNegotiationErrorTransformer extends AbstractJ
     public @Nullable JsonObject transform(@NotNull ContractNegotiationError error, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
-                .add(DSPACE_PROPERTY_CODE, error.getCode())
-                .add(DSPACE_PROPERTY_REASON, jsonFactory.createArrayBuilder(error.getMessages()))
+                .add(DSPACE_PROPERTY_CODE_IRI, error.getCode())
+                .add(DSPACE_PROPERTY_REASON_IRI, jsonFactory.createArrayBuilder(error.getMessages()))
                 .build();
     }
 }

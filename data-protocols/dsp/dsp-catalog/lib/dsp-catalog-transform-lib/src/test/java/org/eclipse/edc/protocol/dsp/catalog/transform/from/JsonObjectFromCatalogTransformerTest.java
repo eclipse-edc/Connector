@@ -39,7 +39,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PARTICIPANT_ID;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PARTICIPANT_ID_IRI;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -97,7 +97,7 @@ class JsonObjectFromCatalogTransformerTest {
                 .isInstanceOf(JsonArray.class)
                 .matches(v -> v.asJsonArray().size() == 1)
                 .matches(v -> v.asJsonArray().get(0).equals(dataServiceJson));
-        assertThat(result.getString(DSPACE_PROPERTY_PARTICIPANT_ID)).isEqualTo("urn:namespace:participantId");
+        assertThat(result.getString(DSPACE_PROPERTY_PARTICIPANT_ID_IRI)).isEqualTo("urn:namespace:participantId");
         assertThat(result.get(CATALOG_PROPERTY)).isNotNull();
 
         verify(context, times(1)).transform(catalog.getDatasets().get(0), JsonObject.class);
