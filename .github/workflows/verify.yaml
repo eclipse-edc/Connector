@@ -3,9 +3,9 @@ name: Run Tests
 on:
   workflow_dispatch:
   push:
-    branches: [main, release/*, bugfix/*]
+    branches: [ main, release/*, bugfix/* ]
   pull_request:
-    branches: [main, release/*, bugfix/*]
+    branches: [ main, release/*, bugfix/* ]
     paths-ignore:
       - "**.md"
       - "docs/**"
@@ -86,20 +86,17 @@ jobs:
       - name: Component Tests
         run: ./gradlew test -DincludeTags="ApiTest"
 
+  BOM-Smoke-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - name: Component Tests
+        run:
+          ./gradlew -p system-tests/bom-tests test -DincludeTags="EndToEndTest"
+
   Verify-OpenApi:
     if: github.event_name == 'pull_request'
     uses: eclipse-edc/.github/.github/workflows/verify-openapi.yml@main
     secrets: inherit
 
-  Verify-EDC-BOM:
-    strategy:
-      fail-fast: false
-
-      # we can't test the "controlplane-oauth2-com" because it only starts successfully if the public key is already in the vault
-      matrix:
-        bom-directory:
-          ["dist/bom/controlplane-dcp-bom", "dist/bom/sts-feature-bom"]
-    uses: eclipse-edc/.github/.github/workflows/verify-bom.yml@main
-    with:
-      module-dir: ${{ matrix.bom-directory }}
-      properties-file: example.properties
