@@ -23,6 +23,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     implementation(project(":core:common:lib:transform-lib"))
+    implementation(project(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-transform-lib"))
 
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:junit"))
