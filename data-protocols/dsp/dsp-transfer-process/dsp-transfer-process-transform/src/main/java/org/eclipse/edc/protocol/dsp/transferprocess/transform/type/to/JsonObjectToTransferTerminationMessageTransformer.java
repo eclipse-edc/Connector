@@ -27,7 +27,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 
 public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferTerminationMessage> {
 
@@ -42,7 +42,7 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
         if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                    .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
                     .property(DSPACE_PROPERTY_CONSUMER_PID)
                     .report();
             return null;
@@ -51,7 +51,7 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
         if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROVIDER_PID), builder::providerPid, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                    .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
                     .property(DSPACE_PROPERTY_PROVIDER_PID)
                     .report();
             return null;
@@ -66,7 +66,7 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
             if (!(reasons instanceof JsonArray)) {
                 context.problem()
                         .unexpectedType()
-                        .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                        .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
                         .property(DSPACE_PROPERTY_REASON)
                         .actual(reasons.getValueType())
                         .expected(ARRAY)

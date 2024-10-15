@@ -27,7 +27,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI;
 
 public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonLdTransformer<TransferStartMessage, JsonObject> {
 
@@ -42,7 +42,7 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
     public @Nullable JsonObject transform(@NotNull TransferStartMessage transferStartMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder()
                 .add(ID, transferStartMessage.getId())
-                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_PROVIDER_PID, transferStartMessage.getProviderPid())
                 .add(DSPACE_PROPERTY_CONSUMER_PID, transferStartMessage.getConsumerPid());
 

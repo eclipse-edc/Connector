@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_EVENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
@@ -48,7 +48,7 @@ public class JsonObjectFromContractNegotiationEventMessageTransformer extends Ab
     public @Nullable JsonObject transform(@NotNull ContractNegotiationEventMessage eventMessage, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
                 .add(ID, eventMessage.getId())
-                .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, eventMessage.getConsumerPid())
                 .add(DSPACE_PROPERTY_PROVIDER_PID, eventMessage.getProviderPid())
                 .add(DSPACE_PROPERTY_EVENT_TYPE, switch (eventMessage.getType()) {

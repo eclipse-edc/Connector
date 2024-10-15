@@ -23,11 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
 
 public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
 
@@ -42,7 +42,7 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
         if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+                    .type(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI)
                     .property(DSPACE_PROPERTY_CONSUMER_PID)
                     .report();
             return null;
@@ -50,8 +50,9 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
 
         visitProperties(messageObject, k -> switch (k) {
             case DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID -> v -> builder.contractId(transformString(v, context));
-            case DSPACE_PROPERTY_CALLBACK_ADDRESS -> v -> builder.callbackAddress(transformString(v, context));
-            case DSPACE_PROPERTY_DATA_ADDRESS -> v -> builder.dataDestination(transformObject(v, DataAddress.class, context));
+            case DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI -> v -> builder.callbackAddress(transformString(v, context));
+            case DSPACE_PROPERTY_DATA_ADDRESS ->
+                    v -> builder.dataDestination(transformObject(v, DataAddress.class, context));
             case DCT_FORMAT_ATTRIBUTE -> v -> builder.transferType(transformString(v, context));
             default -> doNothing();
         });

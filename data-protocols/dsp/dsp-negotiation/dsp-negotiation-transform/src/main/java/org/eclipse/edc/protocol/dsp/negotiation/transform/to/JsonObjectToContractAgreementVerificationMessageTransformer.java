@@ -21,7 +21,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
@@ -40,7 +40,7 @@ public class JsonObjectToContractAgreementVerificationMessageTransformer extends
         if (!transformMandatoryString(object.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI)
                     .property(DSPACE_PROPERTY_CONSUMER_PID)
                     .report();
             return null;
@@ -48,7 +48,7 @@ public class JsonObjectToContractAgreementVerificationMessageTransformer extends
         if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROVIDER_PID), builder::providerPid, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI)
                     .property(DSPACE_PROPERTY_PROVIDER_PID)
                     .report();
             return null;

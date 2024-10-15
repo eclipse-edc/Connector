@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
@@ -48,11 +48,11 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
     public @Nullable JsonObject transform(@NotNull ContractRequestMessage requestMessage, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder()
                 .add(ID, requestMessage.getId())
-                .add(TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, requestMessage.getConsumerPid());
 
         addIfNotNull(requestMessage.getProviderPid(), DSPACE_PROPERTY_PROVIDER_PID, builder);
-        addIfNotNull(requestMessage.getCallbackAddress(), DSPACE_PROPERTY_CALLBACK_ADDRESS, builder);
+        addIfNotNull(requestMessage.getCallbackAddress(), DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, builder);
 
         var policy = context.transform(requestMessage.getContractOffer().getPolicy(), JsonObject.class);
         if (policy == null) {
@@ -67,7 +67,7 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
         var enrichedPolicy = Json.createObjectBuilder(policy)
                 .add(ID, requestMessage.getContractOffer().getId())
                 .build();
-        builder.add(DSPACE_PROPERTY_OFFER, enrichedPolicy);
+        builder.add(DSPACE_PROPERTY_OFFER_IRI, enrichedPolicy);
 
         return builder.build();
     }

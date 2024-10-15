@@ -21,10 +21,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -44,10 +44,10 @@ class DspTransferProcessApiExtensionTest {
     void shouldRegisterMessageValidators(DspTransferProcessApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_TRANSFER_START_MESSAGE), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE), any());
+        verify(validatorRegistry).register(eq(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI), any());
+        verify(validatorRegistry).register(eq(DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI), any());
+        verify(validatorRegistry).register(eq(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI), any());
+        verify(validatorRegistry).register(eq(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI), any());
     }
 
 }

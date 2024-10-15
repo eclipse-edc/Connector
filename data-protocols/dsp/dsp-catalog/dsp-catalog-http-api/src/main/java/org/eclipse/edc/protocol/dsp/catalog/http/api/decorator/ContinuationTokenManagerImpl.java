@@ -24,7 +24,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.ResponseDecorator;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
 
 public class ContinuationTokenManagerImpl implements ContinuationTokenManager {
 
@@ -37,15 +37,15 @@ public class ContinuationTokenManagerImpl implements ContinuationTokenManager {
     }
 
     @Override
-    public ResponseDecorator<CatalogRequestMessage, Catalog> createResponseDecorator(String requestUrl) {
-        return new CatalogPaginationResponseDecorator(requestUrl, continuationTokenSerDes, monitor);
-    }
-
-    @Override
     public Result<JsonObject> applyQueryFromToken(JsonObject requestMessage, String continuationToken) {
         return continuationTokenSerDes.deserialize(continuationToken)
                 .map(query -> Json.createArrayBuilder().add(query))
-                .map(filter -> Json.createObjectBuilder(requestMessage).add(DSPACE_PROPERTY_FILTER, filter))
+                .map(filter -> Json.createObjectBuilder(requestMessage).add(DSPACE_PROPERTY_FILTER_IRI, filter))
                 .map(JsonObjectBuilder::build);
+    }
+
+    @Override
+    public ResponseDecorator<CatalogRequestMessage, Catalog> createResponseDecorator(String requestUrl) {
+        return new CatalogPaginationResponseDecorator(requestUrl, continuationTokenSerDes, monitor);
     }
 }

@@ -54,12 +54,12 @@ import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPa
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.VERIFICATION;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -92,7 +92,7 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void initialContractRequest_shouldCreateResource() {
-        var requestBody = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
+        var requestBody = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI).build();
         when(dspRequestHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
 
         var result = baseRequest()
@@ -112,12 +112,12 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
         assertThat(request.getMessage()).isNotNull();
         assertThat(request.getInputClass()).isEqualTo(ContractRequestMessage.class);
         assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
-        assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
+        assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI);
     }
 
     @Test
     void initialContractOffer_shouldCreateResource() {
-        var requestBody = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_OFFER_MESSAGE).build();
+        var requestBody = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI).build();
         when(dspRequestHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
 
         var result = baseRequest()
@@ -137,7 +137,7 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
         assertThat(request.getMessage()).isNotNull();
         assertThat(request.getInputClass()).isEqualTo(ContractOfferMessage.class);
         assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
-        assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE);
+        assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI);
     }
 
     /**
@@ -192,27 +192,27 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
                     Arguments.of(
                             BASE_PATH + "testId" + CONTRACT_REQUEST,
                             ContractRequestMessage.class,
-                            DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE),
+                            DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI),
                     Arguments.of(
                             BASE_PATH + "testId" + EVENT,
                             ContractNegotiationEventMessage.class,
-                            DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE),
+                            DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI),
                     Arguments.of(
                             BASE_PATH + "testId" + AGREEMENT + VERIFICATION,
                             ContractAgreementVerificationMessage.class,
-                            DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE),
+                            DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI),
                     Arguments.of(
                             BASE_PATH + "testId" + TERMINATION,
                             ContractNegotiationTerminationMessage.class,
-                            DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE),
+                            DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI),
                     Arguments.of(
                             BASE_PATH + "testId" + AGREEMENT,
                             ContractAgreementMessage.class,
-                            DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE),
+                            DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI),
                     Arguments.of(
                             BASE_PATH + "testId" + CONTRACT_OFFER,
                             ContractOfferMessage.class,
-                            DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
+                            DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI)
             );
         }
     }

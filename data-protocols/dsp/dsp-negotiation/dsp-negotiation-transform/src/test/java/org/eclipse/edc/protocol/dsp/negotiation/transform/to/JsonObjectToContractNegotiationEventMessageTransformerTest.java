@@ -28,7 +28,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_EVENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
@@ -57,7 +57,7 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
     void transform() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "id1")
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_EVENT_TYPE, DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED)
@@ -79,7 +79,7 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
     void verify_failTransformWhenProcessIdMissing() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "id1")
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_EVENT_TYPE, DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED)
                 .build();
 
@@ -94,7 +94,7 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
     void verify_failTransformWhenEventTypeMissing() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "id1")
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .build();
@@ -110,7 +110,7 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
     void verify_failTransformWhenEventTypeInvalid() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "id1")
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_EVENT_TYPE, "InvalidType")

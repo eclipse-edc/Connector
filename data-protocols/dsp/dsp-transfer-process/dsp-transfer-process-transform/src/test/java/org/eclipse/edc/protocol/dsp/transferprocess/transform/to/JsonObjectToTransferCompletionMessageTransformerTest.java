@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -42,7 +42,7 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
     @Test
     void shouldTransform() {
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
                 .build();
@@ -60,7 +60,7 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
     void shouldReportError_whenConsumerPidAndProviderPidNotSet() {
         when(context.problem()).thenReturn(new ProblemBuilder(context));
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI)
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);

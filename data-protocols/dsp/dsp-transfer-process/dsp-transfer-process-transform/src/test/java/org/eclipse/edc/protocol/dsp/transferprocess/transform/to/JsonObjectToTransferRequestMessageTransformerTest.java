@@ -25,11 +25,11 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,10 +54,10 @@ class JsonObjectToTransferRequestMessageTransformerTest {
     @Test
     void jsonObjectToTransferRequestWithoutDataAddress() {
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID, contractId)
                 .add(DCT_FORMAT_ATTRIBUTE, destinationType)
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress)
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, callbackAddress)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "processId")
                 .build();
 
@@ -78,11 +78,11 @@ class JsonObjectToTransferRequestMessageTransformerTest {
         var dataDestination = DataAddress.Builder.newInstance().type("any").build();
         when(context.transform(any(), eq(DataAddress.class))).thenReturn(dataDestination);
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID, contractId)
                 .add(DCT_FORMAT_ATTRIBUTE, destinationType)
                 .add(DSPACE_PROPERTY_DATA_ADDRESS, createDataAddress())
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress)
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, callbackAddress)
                 .add(DSPACE_PROPERTY_CONSUMER_PID, "processId")
                 .build();
 
@@ -101,11 +101,11 @@ class JsonObjectToTransferRequestMessageTransformerTest {
     void shouldReturnNullAndReportError_whenConsumerPidNotSet() {
         when(context.problem()).thenReturn(new ProblemBuilder(context));
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI)
                 .add(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID, contractId)
                 .add(DCT_FORMAT_ATTRIBUTE, destinationType)
                 .add(DSPACE_PROPERTY_DATA_ADDRESS, Json.createObjectBuilder().build())
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress)
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, callbackAddress)
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);

@@ -21,12 +21,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -46,11 +46,11 @@ class DspNegotiationApiExtensionTest {
     void shouldRegisterMessageValidators(DspNegotiationApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE), any());
+        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI), any());
+        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI), any());
+        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI), any());
+        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI), any());
+        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI), any());
+        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI), any());
     }
 }

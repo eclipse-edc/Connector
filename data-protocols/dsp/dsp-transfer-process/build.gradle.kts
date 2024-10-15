@@ -21,4 +21,5 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-api"))
     api(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher"))
     api(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
+    api(project(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-validation-lib"))
 }

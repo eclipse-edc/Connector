@@ -19,10 +19,10 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.transferprocess.http.api.controller.DspTransferProcessApiController;
 import org.eclipse.edc.protocol.dsp.transferprocess.http.api.controller.DspTransferProcessApiController20241;
-import org.eclipse.edc.protocol.dsp.transferprocess.http.api.validation.TransferCompletionMessageValidator;
-import org.eclipse.edc.protocol.dsp.transferprocess.http.api.validation.TransferRequestMessageValidator;
-import org.eclipse.edc.protocol.dsp.transferprocess.http.api.validation.TransferStartMessageValidator;
-import org.eclipse.edc.protocol.dsp.transferprocess.http.api.validation.TransferTerminationMessageValidator;
+import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferCompletionMessageValidator;
+import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferRequestMessageValidator;
+import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferStartMessageValidator;
+import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferTerminationMessageValidator;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -31,10 +31,10 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 
@@ -58,10 +58,10 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        validatorRegistry.register(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE, TransferRequestMessageValidator.instance());
-        validatorRegistry.register(DSPACE_TYPE_TRANSFER_START_MESSAGE, TransferStartMessageValidator.instance());
-        validatorRegistry.register(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE, TransferCompletionMessageValidator.instance());
-        validatorRegistry.register(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE, TransferTerminationMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI, TransferRequestMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI, TransferStartMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI, TransferCompletionMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI, TransferTerminationMessageValidator.instance());
 
         webService.registerResource(ApiContext.PROTOCOL, new DspTransferProcessApiController(transferProcessProtocolService, dspRequestHandler));
         webService.registerResource(ApiContext.PROTOCOL, new DspTransferProcessApiController20241(transferProcessProtocolService, dspRequestHandler));

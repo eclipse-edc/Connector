@@ -22,9 +22,11 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
+    api(project(":spi:common:json-ld-spi"))
+
     api(project(":spi:control-plane:control-plane-spi"))
 
-    implementation(project(":core:common:lib:validator-lib"))
+    implementation(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-validation-lib"))
 
     implementation(libs.jakarta.rsApi)
 

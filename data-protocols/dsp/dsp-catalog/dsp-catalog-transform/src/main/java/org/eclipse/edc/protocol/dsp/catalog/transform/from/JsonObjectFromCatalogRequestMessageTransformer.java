@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI;
 
 /**
  * Transforms a {@link CatalogRequestMessage} to a {@link JsonObject} in JSON-LD expanded form.
@@ -41,10 +41,10 @@ public class JsonObjectFromCatalogRequestMessageTransformer extends AbstractJson
     @Override
     public @Nullable JsonObject transform(@NotNull CatalogRequestMessage message, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
-        builder.add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE);
+        builder.add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI);
 
         if (message.getQuerySpec() != null) {
-            builder.add(DSPACE_PROPERTY_FILTER, context.transform(message.getQuerySpec(), JsonObject.class));
+            builder.add(DSPACE_PROPERTY_FILTER_IRI, context.transform(message.getQuerySpec(), JsonObject.class));
         }
 
         return builder.build();

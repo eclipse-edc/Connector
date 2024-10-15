@@ -19,12 +19,12 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVers
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.DspNegotiationApiController;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.DspNegotiationApiController20241;
-import org.eclipse.edc.protocol.dsp.negotiation.http.api.validation.ContractAgreementMessageValidator;
-import org.eclipse.edc.protocol.dsp.negotiation.http.api.validation.ContractAgreementVerificationMessageValidator;
-import org.eclipse.edc.protocol.dsp.negotiation.http.api.validation.ContractNegotiationEventMessageValidator;
-import org.eclipse.edc.protocol.dsp.negotiation.http.api.validation.ContractNegotiationTerminationMessageValidator;
-import org.eclipse.edc.protocol.dsp.negotiation.http.api.validation.ContractOfferMessageValidator;
-import org.eclipse.edc.protocol.dsp.negotiation.http.api.validation.ContractRequestMessageValidator;
+import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractAgreementMessageValidator;
+import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractAgreementVerificationMessageValidator;
+import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractNegotiationEventMessageValidator;
+import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractNegotiationTerminationMessageValidator;
+import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractOfferMessageValidator;
+import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractRequestMessageValidator;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -33,12 +33,12 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 
@@ -68,12 +68,12 @@ public class DspNegotiationApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        validatorRegistry.register(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE, ContractRequestMessageValidator.instance());
-        validatorRegistry.register(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE, ContractOfferMessageValidator.instance());
-        validatorRegistry.register(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE, ContractNegotiationEventMessageValidator.instance());
-        validatorRegistry.register(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE, ContractAgreementMessageValidator.instance());
-        validatorRegistry.register(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE, ContractAgreementVerificationMessageValidator.instance());
-        validatorRegistry.register(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE, ContractNegotiationTerminationMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI, ContractRequestMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI, ContractOfferMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI, ContractNegotiationEventMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI, ContractAgreementMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI, ContractAgreementVerificationMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI, ContractNegotiationTerminationMessageValidator.instance());
 
         webService.registerResource(ApiContext.PROTOCOL, new DspNegotiationApiController(protocolService, dspRequestHandler));
         webService.registerResource(ApiContext.PROTOCOL, new DspNegotiationApiController20241(protocolService, dspRequestHandler));

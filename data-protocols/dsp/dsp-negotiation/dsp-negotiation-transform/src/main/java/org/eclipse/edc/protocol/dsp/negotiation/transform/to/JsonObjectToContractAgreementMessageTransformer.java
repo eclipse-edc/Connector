@@ -33,7 +33,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
@@ -53,7 +53,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         if (!transformMandatoryString(object.get(DSPACE_PROPERTY_CONSUMER_PID), messageBuilder::consumerPid, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                     .property(DSPACE_PROPERTY_CONSUMER_PID)
                     .report();
             return null;
@@ -61,7 +61,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROVIDER_PID), messageBuilder::providerPid, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                     .property(DSPACE_PROPERTY_PROVIDER_PID)
                     .report();
             return null;
@@ -78,7 +78,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         if (policy == null) {
             context.problem()
                     .invalidProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                     .property(DSPACE_PROPERTY_AGREEMENT)
                     .report();
             return null;
@@ -110,7 +110,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         if (agreementId == null) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                     .property(ID)
                     .report();
             return null;
@@ -129,7 +129,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         if (timestamp == null) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                     .property(DSPACE_PROPERTY_TIMESTAMP)
                     .report();
             return null;
@@ -139,7 +139,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         } catch (DateTimeParseException e) {
             context.problem()
                     .invalidProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
                     .property(DSPACE_PROPERTY_TIMESTAMP)
                     .value(timestamp)
                     .error(e.getMessage())
