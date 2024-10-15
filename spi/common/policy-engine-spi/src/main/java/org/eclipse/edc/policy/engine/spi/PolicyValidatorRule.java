@@ -16,13 +16,18 @@ package org.eclipse.edc.policy.engine.spi;
 
 import org.eclipse.edc.policy.model.Policy;
 
+import java.util.function.BiFunction;
+
 /**
  * A {@link Policy} validator that can be registered in the {@link PolicyEngine} in pre- or post-evaluation phase.
- *
- * @deprecated use {@link PolicyValidatorRule}
  */
-@Deprecated(since = "0.10.0")
 @FunctionalInterface
-public interface PolicyValidatorFunction extends PolicyValidatorRule<PolicyContext> {
+public interface PolicyValidatorRule<C extends PolicyContext> extends BiFunction<Policy, C, Boolean> {
 
+    /**
+     * Returns the name of the {@link PolicyValidatorRule}
+     */
+    default String name() {
+        return getClass().getSimpleName();
+    }
 }
