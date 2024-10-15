@@ -285,6 +285,7 @@ include(":system-tests:sts-api:sts-api-test-runner")
 include(":system-tests:sts-api:sts-api-test-runtime")
 include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
+include(":system-tests:bom-tests")
 
 // BOM modules ----------------------------------------------------------------
 include(":dist:bom:controlplane-base-bom")
