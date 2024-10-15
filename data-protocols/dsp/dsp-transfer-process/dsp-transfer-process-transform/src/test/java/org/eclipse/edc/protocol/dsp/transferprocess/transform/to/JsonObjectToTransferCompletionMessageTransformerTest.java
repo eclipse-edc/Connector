@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -43,8 +43,8 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
     void shouldTransform() {
         var json = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
+                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);

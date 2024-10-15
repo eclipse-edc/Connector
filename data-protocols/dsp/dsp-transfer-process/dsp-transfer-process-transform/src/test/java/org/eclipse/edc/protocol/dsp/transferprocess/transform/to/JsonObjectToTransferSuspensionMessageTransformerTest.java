@@ -33,8 +33,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
@@ -56,8 +56,8 @@ class JsonObjectToTransferSuspensionMessageTransformerTest {
         var json = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, DSPACE_SCHEMA))
                 .add(TYPE, DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE)
-                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
+                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
                 .add(DSPACE_PROPERTY_CODE_IRI, "testCode")
                 .add(DSPACE_PROPERTY_REASON_IRI, Json.createArrayBuilder()
                         .add(createObjectBuilder().add("complex", "reason"))

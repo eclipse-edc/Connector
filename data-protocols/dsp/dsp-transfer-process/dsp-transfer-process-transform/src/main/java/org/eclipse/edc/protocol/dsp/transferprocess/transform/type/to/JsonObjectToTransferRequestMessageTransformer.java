@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
@@ -39,11 +39,11 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
     public @Nullable TransferRequestMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var builder = TransferRequestMessage.Builder.newInstance();
 
-        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CONSUMER_PID_IRI), builder::consumerPid, context)) {
             context.problem()
                     .missingProperty()
                     .type(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI)
-                    .property(DSPACE_PROPERTY_CONSUMER_PID)
+                    .property(DSPACE_PROPERTY_CONSUMER_PID_IRI)
                     .report();
             return null;
         }

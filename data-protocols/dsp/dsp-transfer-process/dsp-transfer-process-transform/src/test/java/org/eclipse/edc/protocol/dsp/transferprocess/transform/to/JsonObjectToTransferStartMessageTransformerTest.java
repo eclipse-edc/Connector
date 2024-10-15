@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
@@ -49,8 +49,8 @@ class JsonObjectToTransferStartMessageTransformerTest {
     void jsonObjectToTransferStartMessage() {
         var json = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
+                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);
@@ -80,8 +80,8 @@ class JsonObjectToTransferStartMessageTransformerTest {
         var dataAddressObject = Json.createObjectBuilder().add(EDC_NAMESPACE + "type", "AWS").build();
         var json = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
+                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
                 .add(DSPACE_PROPERTY_DATA_ADDRESS, dataAddressObject)
                 .build();
 
@@ -101,8 +101,8 @@ class JsonObjectToTransferStartMessageTransformerTest {
     void jsonObjectToTransferStartMessageWithEmptyDataAddress() {
         var json = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
+                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
                 .add(DSPACE_PROPERTY_DATA_ADDRESS, Json.createObjectBuilder().build())
                 .build();
 

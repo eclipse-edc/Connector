@@ -24,8 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 
@@ -39,20 +39,20 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
     public @Nullable TransferTerminationMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var builder = TransferTerminationMessage.Builder.newInstance();
 
-        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CONSUMER_PID_IRI), builder::consumerPid, context)) {
             context.problem()
                     .missingProperty()
                     .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
-                    .property(DSPACE_PROPERTY_CONSUMER_PID)
+                    .property(DSPACE_PROPERTY_CONSUMER_PID_IRI)
                     .report();
             return null;
         }
 
-        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROVIDER_PID), builder::providerPid, context)) {
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROVIDER_PID_IRI), builder::providerPid, context)) {
             context.problem()
                     .missingProperty()
                     .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
-                    .property(DSPACE_PROPERTY_PROVIDER_PID)
+                    .property(DSPACE_PROPERTY_PROVIDER_PID_IRI)
                     .report();
             return null;
         }

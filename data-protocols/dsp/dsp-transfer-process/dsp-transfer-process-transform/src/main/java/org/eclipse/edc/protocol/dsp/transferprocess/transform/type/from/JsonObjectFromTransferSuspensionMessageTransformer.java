@@ -25,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE;
 
@@ -44,8 +44,8 @@ public class JsonObjectFromTransferSuspensionMessageTransformer extends Abstract
         var builder = jsonBuilderFactory.createObjectBuilder()
                 .add(ID, message.getId())
                 .add(TYPE, DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE)
-                .add(DSPACE_PROPERTY_CONSUMER_PID, message.getConsumerPid())
-                .add(DSPACE_PROPERTY_PROVIDER_PID, message.getProviderPid())
+                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, message.getConsumerPid())
+                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, message.getProviderPid())
                 .add(DSPACE_PROPERTY_REASON_IRI, jsonBuilderFactory.createArrayBuilder(message.getReason()));
 
         addIfNotNull(message.getCode(), DSPACE_PROPERTY_CODE_IRI, builder);

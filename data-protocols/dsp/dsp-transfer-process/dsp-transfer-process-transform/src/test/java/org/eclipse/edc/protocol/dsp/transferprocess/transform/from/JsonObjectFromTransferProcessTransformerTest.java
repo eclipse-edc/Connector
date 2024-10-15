@@ -28,9 +28,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_PROCESS;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -67,9 +67,9 @@ class JsonObjectFromTransferProcessTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_PROCESS);
         assertThat(result.getJsonString(ID).getString()).isEqualTo("providerPid");
-        assertThat(result.getJsonString(DSPACE_PROPERTY_STATE).getString()).isEqualTo("INITIAL");
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID).getString()).isEqualTo("consumerPid");
-        assertThat(result.getJsonString(DSPACE_PROPERTY_PROVIDER_PID).getString()).isEqualTo("providerPid");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_STATE_IRI).getString()).isEqualTo("INITIAL");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID_IRI).getString()).isEqualTo("consumerPid");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROVIDER_PID_IRI).getString()).isEqualTo("providerPid");
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -95,9 +95,9 @@ class JsonObjectFromTransferProcessTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_PROCESS);
         assertThat(result.getJsonString(ID).getString()).isEqualTo("consumerPid");
-        assertThat(result.getJsonString(DSPACE_PROPERTY_STATE).getString()).isEqualTo("INITIAL");
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID).getString()).isEqualTo("consumerPid");
-        assertThat(result.getJsonString(DSPACE_PROPERTY_PROVIDER_PID).getString()).isEqualTo("providerPid");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_STATE_IRI).getString()).isEqualTo("INITIAL");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID_IRI).getString()).isEqualTo("consumerPid");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROVIDER_PID_IRI).getString()).isEqualTo("providerPid");
 
         verify(context, never()).reportProblem(anyString());
     }

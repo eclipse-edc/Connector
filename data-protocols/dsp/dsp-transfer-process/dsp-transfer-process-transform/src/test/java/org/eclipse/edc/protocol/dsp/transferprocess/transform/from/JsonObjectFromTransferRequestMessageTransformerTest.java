@@ -30,7 +30,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
@@ -85,7 +85,7 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
         assertThat(result.getJsonString(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(dataAddressType);
         assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI).getString()).isEqualTo(callbackAddress);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID).getString()).isEqualTo("consumerPid");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID_IRI).getString()).isEqualTo("consumerPid");
         assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS).getString("keyName")).isEqualTo(dataAddressKey);
 
         verify(context, never()).reportProblem(anyString());

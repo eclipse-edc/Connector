@@ -24,8 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI;
 
 
@@ -43,8 +43,8 @@ public class JsonObjectFromTransferCompletionMessageTransformer extends Abstract
         return jsonBuilderFactory.createObjectBuilder()
                 .add(ID, transferCompletionMessage.getId())
                 .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID, transferCompletionMessage.getConsumerPid())
-                .add(DSPACE_PROPERTY_PROVIDER_PID, transferCompletionMessage.getProviderPid())
+                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, transferCompletionMessage.getConsumerPid())
+                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, transferCompletionMessage.getProviderPid())
                 .build();
     }
 }

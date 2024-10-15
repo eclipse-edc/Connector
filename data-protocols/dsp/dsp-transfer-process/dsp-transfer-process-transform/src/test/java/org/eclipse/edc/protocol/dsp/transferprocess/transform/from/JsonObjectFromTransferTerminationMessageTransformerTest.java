@@ -26,8 +26,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -58,8 +58,8 @@ class JsonObjectFromTransferTerminationMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID).getString()).isEqualTo("consumerPid");
-        assertThat(result.getJsonString(DSPACE_PROPERTY_PROVIDER_PID).getString()).isEqualTo("providerPid");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID_IRI).getString()).isEqualTo("consumerPid");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROVIDER_PID_IRI).getString()).isEqualTo("providerPid");
         assertThat(result.getJsonString(DSPACE_PROPERTY_CODE_IRI).getString()).isEqualTo("testCode");
         assertThat(result.getJsonString(DSPACE_PROPERTY_REASON_IRI).getString()).isEqualTo("testReason");
 

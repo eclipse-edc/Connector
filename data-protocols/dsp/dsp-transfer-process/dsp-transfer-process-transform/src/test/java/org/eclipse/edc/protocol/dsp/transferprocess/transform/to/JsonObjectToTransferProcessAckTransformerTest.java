@@ -24,9 +24,9 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_PROCESS;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
 import static org.mockito.Mockito.mock;
@@ -42,9 +42,9 @@ class JsonObjectToTransferProcessAckTransformerTest {
     void shouldTransform() {
         var message = jsonFactory.createObjectBuilder()
                 .add(TYPE, DSPACE_TYPE_TRANSFER_PROCESS)
-                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
-                .add(DSPACE_PROPERTY_STATE, "STATE")
+                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
+                .add(DSPACE_PROPERTY_STATE_IRI, "STATE")
                 .build();
 
         var result = transformer.transform(getExpanded(message), context);
