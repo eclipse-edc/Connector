@@ -15,7 +15,12 @@
 package org.eclipse.edc.jsonld.spi.transformer;
 
 /**
- * Base JSON-LD transformer implementation.
+ * Abstract base class for JSON-LD transformers that are aware of a specific namespace.
+ * This class extends {@link AbstractJsonLdTransformer} and provides additional functionality
+ * to handle namespace-specific transformations.
+ *
+ * @param <INPUT>  the type of the input object to be transformed
+ * @param <OUTPUT> the type of the output object after transformation
  */
 public abstract class AbstractNamespaceAwareJsonLdTransformer<INPUT, OUTPUT> extends AbstractJsonLdTransformer<INPUT, OUTPUT> {
 
@@ -26,7 +31,7 @@ public abstract class AbstractNamespaceAwareJsonLdTransformer<INPUT, OUTPUT> ext
         this.namespace = namespace;
     }
 
-    public String forNamespace(String term) {
+    protected String forNamespace(String term) {
         return namespace + term;
     }
 
