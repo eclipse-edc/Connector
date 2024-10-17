@@ -45,6 +45,7 @@ import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.CATA
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.DATASET_REQUEST;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 
 /**
  * Provides the HTTP endpoint for receiving catalog requests.
@@ -61,7 +62,7 @@ public class DspCatalogApiController {
     private final DspNamespace namespace;
 
     public DspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager) {
-        this(service, dspRequestHandler, continuationTokenManager, DATASPACE_PROTOCOL_HTTP, DspNamespace.V_08);
+        this(service, dspRequestHandler, continuationTokenManager, DATASPACE_PROTOCOL_HTTP, DSP_NAMESPACE_V_08);
     }
 
     public DspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager, String protocol, DspNamespace namespace) {

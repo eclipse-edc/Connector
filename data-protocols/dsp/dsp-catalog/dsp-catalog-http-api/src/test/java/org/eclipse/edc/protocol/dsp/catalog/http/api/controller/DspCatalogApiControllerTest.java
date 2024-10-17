@@ -49,6 +49,8 @@ import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.DATASET_REQUEST;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_PATH;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -182,7 +184,7 @@ class DspCatalogApiControllerTest {
 
         @Override
         protected DspNamespace namespace() {
-            return DspNamespace.V_08;
+            return DSP_NAMESPACE_V_08;
         }
 
         @Override
@@ -202,7 +204,7 @@ class DspCatalogApiControllerTest {
 
         @Override
         protected DspNamespace namespace() {
-            return DspNamespace.V_2024_1;
+            return DSP_NAMESPACE_V_2024_1;
         }
 
         @Override

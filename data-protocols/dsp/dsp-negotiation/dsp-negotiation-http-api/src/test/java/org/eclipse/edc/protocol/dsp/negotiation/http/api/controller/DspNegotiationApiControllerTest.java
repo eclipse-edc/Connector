@@ -56,6 +56,8 @@ import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPa
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.VERIFICATION;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM;
@@ -231,7 +233,7 @@ class DspNegotiationApiControllerTest {
 
         @Override
         protected DspNamespace namespace() {
-            return DspNamespace.V_08;
+            return DSP_NAMESPACE_V_08;
         }
 
         @Override
@@ -251,7 +253,7 @@ class DspNegotiationApiControllerTest {
 
         @Override
         protected DspNamespace namespace() {
-            return DspNamespace.V_2024_1;
+            return DSP_NAMESPACE_V_2024_1;
         }
 
         @Override

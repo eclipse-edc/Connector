@@ -20,11 +20,11 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
-import org.eclipse.edc.protocol.dsp.spi.type.DspNamespace;
 import org.eclipse.edc.protocol.dsp.spi.version.DspVersions;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 
 /**
  * Versioned Negotiation endpoint, same as {@link DspNegotiationApiController} but exposed on the /2024/1 path
@@ -35,6 +35,6 @@ import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPa
 public class DspNegotiationApiController20241 extends DspNegotiationApiController {
 
     public DspNegotiationApiController20241(ContractNegotiationProtocolService protocolService, DspRequestHandler dspRequestHandler) {
-        super(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP_V_2024_1, DspNamespace.V_2024_1);
+        super(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP_V_2024_1, DSP_NAMESPACE_V_2024_1);
     }
 }

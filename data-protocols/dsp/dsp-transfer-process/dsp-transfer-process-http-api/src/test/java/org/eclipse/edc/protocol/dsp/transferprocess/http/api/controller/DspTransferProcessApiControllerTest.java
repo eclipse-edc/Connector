@@ -48,6 +48,8 @@ import static jakarta.json.Json.createObjectBuilder;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM;
@@ -197,7 +199,7 @@ class DspTransferProcessApiControllerTest {
 
         @Override
         protected DspNamespace namespace() {
-            return DspNamespace.V_08;
+            return DSP_NAMESPACE_V_08;
         }
 
         @Override
@@ -217,7 +219,7 @@ class DspTransferProcessApiControllerTest {
 
         @Override
         protected DspNamespace namespace() {
-            return DspNamespace.V_2024_1;
+            return DSP_NAMESPACE_V_2024_1;
         }
 
         @Override
