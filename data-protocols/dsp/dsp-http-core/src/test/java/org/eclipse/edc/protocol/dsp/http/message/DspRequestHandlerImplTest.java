@@ -42,9 +42,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -66,8 +66,8 @@ class DspRequestHandlerImplTest {
     private static JsonObject error(String code, String reason, String processId) {
         var json = Json.createObjectBuilder()
                 .add(TYPE, "TestError")
-                .add(DSPACE_PROPERTY_CODE, code)
-                .add(DSPACE_PROPERTY_REASON, reason);
+                .add(DSPACE_PROPERTY_CODE_IRI, code)
+                .add(DSPACE_PROPERTY_REASON_IRI, reason);
 
         Optional.ofNullable(processId).ifPresent(id -> json.add(DSPACE_PROPERTY_PROCESS_ID, id));
 
@@ -158,8 +158,8 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(401);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("401");
+                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
         }
 
@@ -176,8 +176,8 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(401);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("401");
+                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
         }
 
@@ -278,8 +278,8 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(401);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("401");
+                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
         }
 
@@ -300,8 +300,8 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(401);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("401");
+                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
         }
 
@@ -467,9 +467,9 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(401);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("401");
                 assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
         }
 
@@ -492,9 +492,9 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(401);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("401");
                 assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
         }
 
@@ -511,9 +511,9 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(400);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("400");
                 assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
         }
 
@@ -533,9 +533,9 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(400);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("400");
                 assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
         }
 
@@ -570,9 +570,9 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(400);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("400");
                 assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("anotherId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
         }
 
@@ -594,9 +594,9 @@ class DspRequestHandlerImplTest {
             assertThat(result.getStatus()).isEqualTo(409);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("409");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("409");
                 assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
+                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
         }
 

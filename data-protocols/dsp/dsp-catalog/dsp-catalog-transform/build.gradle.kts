@@ -17,11 +17,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:control-plane:catalog-spi"))
-    api(project(":extensions:common:json-ld"))
-    api(project(":data-protocols:dsp:dsp-spi"))
-    api(project(":data-protocols:dsp:dsp-http-spi"))
-
+    api(project(":spi:common:core-spi"))
+    
     implementation(project(":core:common:lib:transform-lib"))
+    implementation(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-transform-lib"))
 }

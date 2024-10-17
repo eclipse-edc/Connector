@@ -26,8 +26,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_TYPE_VERSIONS_ERROR;
 import static org.mockito.Mockito.mock;
 
@@ -55,7 +55,7 @@ class JsonObjectFromVersionsErrorTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_VERSIONS_ERROR);
-        assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("code");
-        assertThat(result.getJsonArray(DSPACE_PROPERTY_REASON)).contains(Json.createValue("message"));
+        assertThat(result.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("code");
+        assertThat(result.getJsonArray(DSPACE_PROPERTY_REASON_IRI)).contains(Json.createValue("message"));
     }
 }
