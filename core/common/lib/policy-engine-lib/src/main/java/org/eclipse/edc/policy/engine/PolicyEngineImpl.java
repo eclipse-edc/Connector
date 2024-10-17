@@ -19,9 +19,9 @@ import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.PolicyRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
-import org.eclipse.edc.policy.engine.spi.RulePolicyFunction;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.validation.PolicyValidator;
 import org.eclipse.edc.policy.engine.validation.RuleValidator;
@@ -101,13 +101,13 @@ public class PolicyEngineImpl implements PolicyEngine {
                 .forEach(entry -> {
                     if (Duty.class.isAssignableFrom(entry.type)) {
                         evalBuilder.dutyRuleFunction((rule) ->
-                                ((RulePolicyFunction<Rule, C>) entry.function).evaluate(rule, context));
+                                ((PolicyRuleFunction<Rule, C>) entry.function).evaluate(rule, context));
                     } else if (Permission.class.isAssignableFrom(entry.type)) {
                         evalBuilder.permissionRuleFunction((rule) ->
-                                ((RulePolicyFunction<Rule, C>) entry.function).evaluate(rule, context));
+                                ((PolicyRuleFunction<Rule, C>) entry.function).evaluate(rule, context));
                     } else if (Prohibition.class.isAssignableFrom(entry.type)) {
                         evalBuilder.prohibitionRuleFunction((rule) ->
-                                ((RulePolicyFunction<Rule, C>) entry.function).evaluate(rule, context));
+                                ((PolicyRuleFunction<Rule, C>) entry.function).evaluate(rule, context));
                     }
                 });
 
@@ -224,13 +224,13 @@ public class PolicyEngineImpl implements PolicyEngine {
     }
 
     @Override
-    public <R extends Rule, C extends PolicyContext> void registerFunction(Class<C> contextType, Class<R> type, RulePolicyFunction<R, C> function) {
+    public <R extends Rule, C extends PolicyContext> void registerFunction(Class<C> contextType, Class<R> type, PolicyRuleFunction<R, C> function) {
         ruleFunctions.add(new RuleFunctionEntry(contextType, type, function));
     }
 
     @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <R extends Rule, C extends PolicyContext> void registerFunction(String scope, Class<R> type, RulePolicyFunction<R, C> function) {
+    public <R extends Rule, C extends PolicyContext> void registerFunction(String scope, Class<R> type, PolicyRuleFunction<R, C> function) {
         ruleFunctions.add(new RuleFunctionEntry(contextType(scope), type, function));
     }
 
@@ -285,7 +285,7 @@ public class PolicyEngineImpl implements PolicyEngine {
     private record RuleFunctionEntry<R extends Rule, C extends PolicyContext>(
             Class<C> contextType,
             Class<R> type,
-            RulePolicyFunction<R, C> function
+            PolicyRuleFunction<R, C> function
     ) implements FunctionEntry<C>  { }
 
     private record ValidatorRuleEntry<C extends PolicyContext>(

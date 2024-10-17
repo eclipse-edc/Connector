@@ -18,9 +18,9 @@ import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.PolicyRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
-import org.eclipse.edc.policy.engine.spi.RulePolicyFunction;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AtomicConstraintStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.MultiplicityConstraintStep;
@@ -159,7 +159,7 @@ class PolicyEngineImplPlannerTest {
         @ArgumentsSource(SimplePolicyProvider.class)
         void withRuleAndRuleFunction(Policy policy, Class<Rule> ruleClass, String action, String key, Function<PolicyEvaluationPlan, List<RuleStep<? extends Rule>>> stepsProvider) {
 
-            RulePolicyFunction<Rule, TestContext> function = mock();
+            PolicyRuleFunction<Rule, TestContext> function = mock();
 
             bindingRegistry.bind(action, TEST_SCOPE);
             bindingRegistry.bind(key, TEST_SCOPE);
@@ -192,7 +192,7 @@ class PolicyEngineImplPlannerTest {
             bindingRegistry.bind(action, TEST_SCOPE);
             bindingRegistry.bind(key, TEST_SCOPE);
 
-            RulePolicyFunction<Rule, UnboundedContext> function = mock();
+            PolicyRuleFunction<Rule, UnboundedContext> function = mock();
             policyEngine.registerFunction(UnboundedContext.class, ruleClass, function);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);

@@ -133,7 +133,7 @@ public interface PolicyEngine {
      * @param type        the {@link Rule} subtype
      * @param function    the function
      */
-    <R extends Rule, C extends PolicyContext> void registerFunction(Class<C> contextType, Class<R> type, RulePolicyFunction<R, C> function);
+    <R extends Rule, C extends PolicyContext> void registerFunction(Class<C> contextType, Class<R> type, PolicyRuleFunction<R, C> function);
 
     /**
      * Registers a function that is invoked when a policy contains a rule of the given type for the specified scope.
@@ -141,10 +141,10 @@ public interface PolicyEngine {
      * @param scope    the scope the function applies to
      * @param type     the {@link Rule} subtype
      * @param function the function
-     * @deprecated use {{@link #registerFunction(Class, Class, RulePolicyFunction)}}
+     * @deprecated use {{@link #registerFunction(Class, Class, PolicyRuleFunction)}}
      */
     @Deprecated(since = "0.10.0")
-    <R extends Rule, C extends PolicyContext> void registerFunction(String scope, Class<R> type, RulePolicyFunction<R, C> function);
+    <R extends Rule, C extends PolicyContext> void registerFunction(String scope, Class<R> type, PolicyRuleFunction<R, C> function);
 
     /**
      * Registers a function that performs pre-validation on the policy for the given context type.

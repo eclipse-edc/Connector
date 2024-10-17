@@ -136,8 +136,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     @Override
     public <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass,
                                                               Function<M, Policy> policyProvider,
-                                                              RequestPolicyContext.Provider contextProvider
-    ) {
+                                                              RequestPolicyContext.Provider contextProvider) {
         policyScopes.put(messageClass, new PolicyScope<>(messageClass, policyProvider, contextProvider));
     }
 
@@ -170,15 +169,11 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
     private record MessageHandler<M extends RemoteMessage, R>(
             DspHttpRequestFactory<M> requestFactory,
-            DspHttpResponseBodyExtractor<R> bodyExtractor
-    ) {
-    }
+            DspHttpResponseBodyExtractor<R> bodyExtractor) { }
 
     private record PolicyScope<M extends RemoteMessage>(
             Class<M> messageClass,
             Function<M, Policy> policyProvider,
-            RequestPolicyContext.Provider contextProvider
-    ) {
-    }
+            RequestPolicyContext.Provider contextProvider) { }
 
 }

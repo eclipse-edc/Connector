@@ -19,9 +19,9 @@ import org.eclipse.edc.policy.model.Rule;
 /**
  * Invoked during policy evaluation to examine a rule node.
  *
- * @deprecated use {@link RulePolicyFunction}.
+ * @deprecated use {@link PolicyRuleFunction}.
  */
 @Deprecated(since = "0.10.0")
-public interface RuleFunction<R extends Rule> extends RulePolicyFunction<R, PolicyContext> {
+public interface RuleFunction<R extends Rule> extends PolicyRuleFunction<R, PolicyContext> {
 
 }

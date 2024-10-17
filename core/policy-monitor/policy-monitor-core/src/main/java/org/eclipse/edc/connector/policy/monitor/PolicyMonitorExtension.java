@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.policy.monitor;
 
+import org.eclipse.edc.connector.controlplane.policy.contract.ContractExpiryCheckFunction;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
-import org.eclipse.edc.connector.policy.monitor.function.ContractExpiryFunction;
 import org.eclipse.edc.connector.policy.monitor.manager.PolicyMonitorManagerImpl;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
@@ -39,7 +39,7 @@ import org.eclipse.edc.spi.telemetry.Telemetry;
 
 import java.time.Clock;
 
-import static org.eclipse.edc.connector.controlplane.policy.contract.ContractExpiryCheck.CONTRACT_EXPIRY_EVALUATION_KEY;
+import static org.eclipse.edc.connector.controlplane.policy.contract.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
 import static org.eclipse.edc.connector.policy.monitor.PolicyMonitorExtension.NAME;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext.POLICY_MONITOR_SCOPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
@@ -95,7 +95,7 @@ public class PolicyMonitorExtension implements ServiceExtension {
         policyEngine.registerScope(POLICY_MONITOR_SCOPE, PolicyMonitorContext.class);
         ruleBindingRegistry.bind(ODRL_USE_ACTION_ATTRIBUTE, POLICY_MONITOR_SCOPE);
         ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, POLICY_MONITOR_SCOPE);
-        policyEngine.registerFunction(PolicyMonitorContext.class, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, new ContractExpiryFunction());
+        policyEngine.registerFunction(PolicyMonitorContext.class, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, new ContractExpiryCheckFunction<>());
 
         manager = PolicyMonitorManagerImpl.Builder.newInstance()
                 .clock(clock)

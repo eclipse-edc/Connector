@@ -19,9 +19,9 @@ import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.PolicyRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
-import org.eclipse.edc.policy.engine.spi.RulePolicyFunction;
 import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -467,7 +467,7 @@ class PolicyEngineImplTest {
             var duty = Duty.Builder.newInstance().constraint(constraint).build();
             var policy = Policy.Builder.newInstance().duty(duty).build();
 
-            RulePolicyFunction<Duty, TestContext> function = mock();
+            PolicyRuleFunction<Duty, TestContext> function = mock();
 
             policyEngine.registerFunction(TestContext.class, Duty.class, function);
 

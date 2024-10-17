@@ -14,8 +14,11 @@
 
 package org.eclipse.edc.connector.controlplane.policy.contract;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.AgreementPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -30,7 +33,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.time.Instant.now;
-import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.policy.model.Operator.EQ;
 import static org.eclipse.edc.policy.model.Operator.GEQ;
 import static org.eclipse.edc.policy.model.Operator.GT;
@@ -39,61 +42,89 @@ import static org.eclipse.edc.policy.model.Operator.LT;
 import static org.eclipse.edc.policy.model.Operator.NEQ;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-class ContractExpiryCheckTest {
+class ContractExpiryCheckFunctionTest {
 
-    private final ContractExpiryCheck contractExpiryCheck = new ContractExpiryCheck();
+    private final ContractExpiryCheckFunction<TestAgreementPolicyContext> function = new ContractExpiryCheckFunction<>();
 
     @Test
     void shouldFail_whenRightValueIsNull() {
-        var result = contractExpiryCheck.evaluate(EQ, null, Instant.now(), null);
+        var context = new TestAgreementPolicyContext(now(), null);
+        var permission = Permission.Builder.newInstance().build();
 
-        assertThat(result).isFailed();
+        var result = function.evaluate(EQ, null, permission, context);
+
+        assertThat(result).isFalse();
+        assertThat(context.hasProblems()).isTrue();
     }
 
     @Test
     void shouldFail_whenRightValueIsNotString() {
-        var result = contractExpiryCheck.evaluate(EQ, 3, Instant.now(), null);
+        var context = new TestAgreementPolicyContext(now(), null);
+        var permission = Permission.Builder.newInstance().build();
 
-        assertThat(result).isFailed();
+        var result = function.evaluate(EQ, 3, permission, context);
+
+        assertThat(result).isFalse();
+        assertThat(context.hasProblems()).isTrue();
     }
 
     @Test
     void shouldFail_whenRightValueIsNotParsable() {
-        var result = contractExpiryCheck.evaluate(EQ, "unparsable", Instant.now(), null);
+        var context = new TestAgreementPolicyContext(now(), null);
+        var permission = Permission.Builder.newInstance().build();
 
-        assertThat(result).isFailed();
+        var result = function.evaluate(EQ, "unparsable", permission, context);
+
+        assertThat(result).isFalse();
+        assertThat(context.hasProblems()).isTrue();
     }
 
     @ParameterizedTest
     @ArgumentsSource(ValidInstant.class)
     void shouldSucceed_whenRightValueIsIso8061AndValid(Instant now, Operator operator, Instant bound) {
-        var result = contractExpiryCheck.evaluate(operator, bound.toString(), now, null);
+        var context = new TestAgreementPolicyContext(now, null);
+        var permission = Permission.Builder.newInstance().build();
 
-        assertThat(result).isSucceeded();
+        var result = function.evaluate(operator, bound.toString(), permission, context);
+
+        assertThat(result).isTrue();
+        assertThat(context.hasProblems()).isFalse();
     }
 
     @ParameterizedTest
     @ArgumentsSource(InvalidInstant.class)
     void shouldFail_whenRightValueIsIso8061AndInvalid(Instant now, Operator operator, Instant bound) {
-        var result = contractExpiryCheck.evaluate(operator, bound.toString(), now, null);
+        var context = new TestAgreementPolicyContext(now, null);
+        var permission = Permission.Builder.newInstance().build();
 
-        assertThat(result).isFailed();
+        var result = function.evaluate(operator, bound.toString(), permission, context);
+
+        assertThat(result).isFalse();
+        assertThat(context.hasProblems()).isFalse();
     }
 
     @ParameterizedTest
     @ArgumentsSource(ValidDuration.class)
     void shouldSucceed_whenRightValueIsDurationAndValid(Instant now, Operator operator, String duration, Instant signingTime) {
-        var result = contractExpiryCheck.evaluate(operator, "contractAgreement+" + duration, now, createAgreement(signingTime));
+        var context = new TestAgreementPolicyContext(now, createAgreement(signingTime));
+        var permission = Permission.Builder.newInstance().build();
 
-        assertThat(result).isSucceeded();
+        var result = function.evaluate(operator, "contractAgreement+" + duration,  permission, context);
+
+        assertThat(result).isTrue();
+        assertThat(context.hasProblems()).isFalse();
     }
 
     @ParameterizedTest
     @ArgumentsSource(InvalidDuration.class)
     void shouldFail_whenRightValueIsDurationAndInvalid(Instant now, Operator operator, String duration, Instant signingTime) {
-        var result = contractExpiryCheck.evaluate(operator, "contractAgreement+" + duration, now, createAgreement(signingTime));
+        var context = new TestAgreementPolicyContext(now, createAgreement(signingTime));
+        var permission = Permission.Builder.newInstance().build();
 
-        assertThat(result).isFailed();
+        var result = function.evaluate(operator, "contractAgreement+" + duration,  permission, context);
+
+        assertThat(result).isFalse();
+        assertThat(context.hasProblems()).isFalse();
     }
 
     private static class ValidInstant implements ArgumentsProvider {
@@ -177,4 +208,29 @@ class ContractExpiryCheckTest {
                 .build();
     }
 
+    private static class TestAgreementPolicyContext extends PolicyContextImpl implements AgreementPolicyContext {
+
+        private final Instant now;
+        private final ContractAgreement contractAgreement;
+
+        TestAgreementPolicyContext(Instant now, ContractAgreement contractAgreement) {
+            this.now = now;
+            this.contractAgreement = contractAgreement;
+        }
+
+        @Override
+        public ContractAgreement contractAgreement() {
+            return contractAgreement;
+        }
+
+        @Override
+        public Instant now() {
+            return now;
+        }
+
+        @Override
+        public String scope() {
+            return "any";
+        }
+    }
 }

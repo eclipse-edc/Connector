@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.policy.monitor.spi;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.AgreementPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
@@ -23,7 +24,7 @@ import java.time.Instant;
 /**
  * Policy Context for "policy-monitor" scope
  */
-public class PolicyMonitorContext extends PolicyContextImpl {
+public class PolicyMonitorContext extends PolicyContextImpl implements AgreementPolicyContext {
 
     @PolicyScope
     public static final String POLICY_MONITOR_SCOPE = "policy.monitor";
@@ -36,10 +37,12 @@ public class PolicyMonitorContext extends PolicyContextImpl {
         this.contractAgreement = contractAgreement;
     }
 
+    @Override
     public Instant now() {
         return now;
     }
 
+    @Override
     public ContractAgreement contractAgreement() {
         return contractAgreement;
     }

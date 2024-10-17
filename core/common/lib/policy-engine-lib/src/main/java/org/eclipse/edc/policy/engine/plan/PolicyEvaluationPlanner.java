@@ -17,8 +17,8 @@ package org.eclipse.edc.policy.engine.plan;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.engine.spi.PolicyRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
-import org.eclipse.edc.policy.engine.spi.RulePolicyFunction;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AndConstraintStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.AtomicConstraintStep;
@@ -224,7 +224,7 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
 
     private record RuleFunctionFunctionEntry<R extends Rule, C extends PolicyContext>(
             Class<R> type,
-            RulePolicyFunction<R, C> function) {
+            PolicyRuleFunction<R, C> function) {
     }
 
     public static class Builder {
@@ -268,7 +268,7 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
         }
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        public <R extends Rule, C extends PolicyContext> Builder evaluationFunction(Class<R> ruleKind, RulePolicyFunction<R, C> function) {
+        public <R extends Rule, C extends PolicyContext> Builder evaluationFunction(Class<R> ruleKind, PolicyRuleFunction<R, C> function) {
             planner.ruleFunctions.add(new RuleFunctionFunctionEntry(ruleKind, function));
             return this;
         }
