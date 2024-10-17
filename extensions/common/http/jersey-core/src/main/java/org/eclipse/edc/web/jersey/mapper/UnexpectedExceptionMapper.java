@@ -44,11 +44,11 @@ public class UnexpectedExceptionMapper implements ExceptionMapper<Throwable> {
 
     @Override
     public Response toResponse(Throwable exception) {
-        monitor.severe("JerseyExtension: Unexpected exception caught", exception);
-        if (exception instanceof WebApplicationException) {
-            return ((WebApplicationException) exception).getResponse();
+        if (exception instanceof WebApplicationException webApplicationException) {
+            return webApplicationException.getResponse();
         }
 
+        monitor.severe("JerseyExtension: Unexpected exception caught", exception);
         var status = exceptionMap.getOrDefault(exception.getClass(), INTERNAL_SERVER_ERROR);
 
         return Response.status(status).build();
