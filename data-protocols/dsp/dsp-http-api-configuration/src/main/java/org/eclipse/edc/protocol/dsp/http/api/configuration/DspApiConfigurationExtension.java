@@ -42,7 +42,6 @@ import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTra
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
-import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
@@ -62,7 +61,8 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -124,22 +124,25 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
 
         // registers ns for DSP scope
-        jsonLd.registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, DSP_SCOPE);
-        jsonLd.registerNamespace(DCT_PREFIX, DCT_SCHEMA, DSP_SCOPE);
-        jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE);
-        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, DSP_SCOPE);
-        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, DSP_SCOPE);
-        jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, DSP_SCOPE);
-
+        registerNamespaces(DSP_SCOPE_V_08);
+        registerNamespaces(DSP_SCOPE_V_2024_1);
 
         webService.registerResource(ApiContext.PROTOCOL, new ObjectMapperProvider(jsonLdMapper));
-        webService.registerResource(ApiContext.PROTOCOL, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE));
 
         var mapper = typeManager.getMapper(JSON_LD);
         mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
 
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, mapper);
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, mapper);
+    }
+
+    private void registerNamespaces(String scope) {
+        jsonLd.registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, scope);
+        jsonLd.registerNamespace(DCT_PREFIX, DCT_SCHEMA, scope);
+        jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, scope);
+        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, scope);
+        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, scope);
+        jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, scope);
     }
 
     private void registerTransformers(String version, ObjectMapper mapper) {
