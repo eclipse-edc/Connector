@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.spi.type;
 
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08_VERSION;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_VERSION;
 
@@ -27,4 +28,7 @@ public interface DspConstants {
     String DSP_TRANSFORMER_CONTEXT = "dsp-api";
     String DSP_TRANSFORMER_CONTEXT_V_08 = DSP_TRANSFORMER_CONTEXT + DSP_CONTEXT_SEPARATOR + V_08_VERSION;
     String DSP_TRANSFORMER_CONTEXT_V_2024_1 = DSP_TRANSFORMER_CONTEXT + DSP_CONTEXT_SEPARATOR + V_2024_1_VERSION;
+
+    DspNamespace DSP_NAMESPACE_V_08 = new DspNamespace(DSPACE_SCHEMA);
+    DspNamespace DSP_NAMESPACE_V_2024_1 = new DspNamespace(DSPACE_SCHEMA);
 }

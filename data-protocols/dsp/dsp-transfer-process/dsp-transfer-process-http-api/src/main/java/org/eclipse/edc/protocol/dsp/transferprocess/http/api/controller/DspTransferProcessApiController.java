@@ -35,14 +35,16 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
+import org.eclipse.edc.protocol.dsp.spi.type.DspNamespace;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProcessApiPaths.TRANSFER_COMPLETION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
@@ -62,15 +64,17 @@ public class DspTransferProcessApiController {
     private final TransferProcessProtocolService protocolService;
     private final DspRequestHandler dspRequestHandler;
     private final String protocol;
+    private final DspNamespace namespace;
 
     public DspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler) {
-        this(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP);
+        this(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP, DSP_NAMESPACE_V_08);
     }
 
-    public DspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler, String protocol) {
+    public DspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler, String protocol, DspNamespace namespace) {
         this.protocolService = protocolService;
         this.dspRequestHandler = dspRequestHandler;
         this.protocol = protocol;
+        this.namespace = namespace;
     }
 
     /**
@@ -106,7 +110,7 @@ public class DspTransferProcessApiController {
         var request = PostDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class, TransferError.class)
                 .message(jsonObject)
                 .token(token)
-                .expectedMessageType(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM))
                 .serviceCall(protocolService::notifyRequested)
                 .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
@@ -128,7 +132,7 @@ public class DspTransferProcessApiController {
     public Response transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(TransferStartMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyStarted)
@@ -152,7 +156,7 @@ public class DspTransferProcessApiController {
     public Response transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(TransferCompletionMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyCompleted)
@@ -176,7 +180,7 @@ public class DspTransferProcessApiController {
     public Response transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(TransferTerminationMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyTerminated)
@@ -200,7 +204,7 @@ public class DspTransferProcessApiController {
     public Response transferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(TransferSuspensionMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifySuspended)

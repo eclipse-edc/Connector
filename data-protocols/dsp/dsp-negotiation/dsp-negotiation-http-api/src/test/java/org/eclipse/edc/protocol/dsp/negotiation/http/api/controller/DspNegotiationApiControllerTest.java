@@ -29,7 +29,9 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
+import org.eclipse.edc.protocol.dsp.spi.type.DspNamespace;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -54,167 +56,209 @@ import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPa
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.VERIFICATION;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_PATH;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ApiTest
-class DspNegotiationApiControllerTest extends RestControllerTestBase {
+class DspNegotiationApiControllerTest {
 
-    private final ContractNegotiationProtocolService protocolService = mock();
-    private final DspRequestHandler dspRequestHandler = mock();
+    abstract static class Tests extends RestControllerTestBase {
 
-    @Test
-    void getNegotiation_shouldGetResource() {
-        when(dspRequestHandler.getResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
+        protected final ContractNegotiationProtocolService protocolService = mock();
+        protected final DspRequestHandler dspRequestHandler = mock();
 
-        var result = baseRequest()
-                .get(BASE_PATH + "negotiationId")
-                .then()
-                .contentType(APPLICATION_JSON)
-                .statusCode(200);
+        @Test
+        void getNegotiation_shouldGetResource() {
+            when(dspRequestHandler.getResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
 
-        assertThat(result).isNotNull();
-        var captor = ArgumentCaptor.forClass(GetDspRequest.class);
-        verify(dspRequestHandler).getResource(captor.capture());
-        var dspMessage = captor.getValue();
-        assertThat(dspMessage.getToken()).isEqualTo("auth");
-        assertThat(dspMessage.getId()).isEqualTo("negotiationId");
-        assertThat(dspMessage.getResultClass()).isEqualTo(ContractNegotiation.class);
-    }
+            var result = baseRequest()
+                    .get(basePath() + "negotiationId")
+                    .then()
+                    .contentType(APPLICATION_JSON)
+                    .statusCode(200);
 
-    @Test
-    void initialContractRequest_shouldCreateResource() {
-        var requestBody = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI).build();
-        when(dspRequestHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
+            assertThat(result).isNotNull();
+            var captor = ArgumentCaptor.forClass(GetDspRequest.class);
+            verify(dspRequestHandler).getResource(captor.capture());
+            var dspMessage = captor.getValue();
+            assertThat(dspMessage.getToken()).isEqualTo("auth");
+            assertThat(dspMessage.getId()).isEqualTo("negotiationId");
+            assertThat(dspMessage.getResultClass()).isEqualTo(ContractNegotiation.class);
+        }
 
-        var result = baseRequest()
-                .contentType(APPLICATION_JSON)
-                .body(requestBody)
-                .post(BASE_PATH + INITIAL_CONTRACT_REQUEST)
-                .then()
-                .statusCode(200)
-                .contentType(APPLICATION_JSON);
+        @Test
+        void initialContractRequest_shouldCreateResource() {
+            var requestBody = createObjectBuilder().add("@type", namespace().toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM)).build();
+            when(dspRequestHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
 
-        assertThat(result).isNotNull();
-        var captor = ArgumentCaptor.forClass(PostDspRequest.class);
-        verify(dspRequestHandler).createResource(captor.capture());
-        var request = captor.getValue();
-        assertThat(request.getToken()).isEqualTo("auth");
-        assertThat(request.getProcessId()).isEqualTo(null);
-        assertThat(request.getMessage()).isNotNull();
-        assertThat(request.getInputClass()).isEqualTo(ContractRequestMessage.class);
-        assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
-        assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI);
-    }
+            var result = baseRequest()
+                    .contentType(APPLICATION_JSON)
+                    .body(requestBody)
+                    .post(basePath() + INITIAL_CONTRACT_REQUEST)
+                    .then()
+                    .statusCode(200)
+                    .contentType(APPLICATION_JSON);
 
-    @Test
-    void initialContractOffer_shouldCreateResource() {
-        var requestBody = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI).build();
-        when(dspRequestHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
+            assertThat(result).isNotNull();
+            var captor = ArgumentCaptor.forClass(PostDspRequest.class);
+            verify(dspRequestHandler).createResource(captor.capture());
+            var request = captor.getValue();
+            assertThat(request.getToken()).isEqualTo("auth");
+            assertThat(request.getProcessId()).isEqualTo(null);
+            assertThat(request.getMessage()).isNotNull();
+            assertThat(request.getInputClass()).isEqualTo(ContractRequestMessage.class);
+            assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
+            assertThat(request.getExpectedMessageType()).isEqualTo(namespace().toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM));
+        }
 
-        var result = baseRequest()
-                .contentType(APPLICATION_JSON)
-                .body(requestBody)
-                .post(BASE_PATH + INITIAL_CONTRACT_OFFER)
-                .then()
-                .statusCode(200)
-                .contentType(APPLICATION_JSON);
+        @Test
+        void initialContractOffer_shouldCreateResource() {
+            var requestBody = createObjectBuilder().add("@type", namespace().toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM)).build();
+            when(dspRequestHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
 
-        assertThat(result).isNotNull();
-        var captor = ArgumentCaptor.forClass(PostDspRequest.class);
-        verify(dspRequestHandler).createResource(captor.capture());
-        var request = captor.getValue();
-        assertThat(request.getToken()).isEqualTo("auth");
-        assertThat(request.getProcessId()).isEqualTo(null);
-        assertThat(request.getMessage()).isNotNull();
-        assertThat(request.getInputClass()).isEqualTo(ContractOfferMessage.class);
-        assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
-        assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI);
-    }
+            var result = baseRequest()
+                    .contentType(APPLICATION_JSON)
+                    .body(requestBody)
+                    .post(basePath() + INITIAL_CONTRACT_OFFER)
+                    .then()
+                    .statusCode(200)
+                    .contentType(APPLICATION_JSON);
 
-    /**
-     * Verifies that an endpoint returns 401 if the identity service cannot verify the identity token.
-     *
-     * @param path the request path to the endpoint
-     */
-    @ParameterizedTest
-    @ArgumentsSource(ControllerMethodArguments.class)
-    void callEndpoint_shouldUpdateResource(String path, Class<?> messageClass, String messageType) {
-        when(dspRequestHandler.updateResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
-        var requestBody = createObjectBuilder().add("http://schema/key", "value").build();
+            assertThat(result).isNotNull();
+            var captor = ArgumentCaptor.forClass(PostDspRequest.class);
+            verify(dspRequestHandler).createResource(captor.capture());
+            var request = captor.getValue();
+            assertThat(request.getToken()).isEqualTo("auth");
+            assertThat(request.getProcessId()).isEqualTo(null);
+            assertThat(request.getMessage()).isNotNull();
+            assertThat(request.getInputClass()).isEqualTo(ContractOfferMessage.class);
+            assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
+            assertThat(request.getExpectedMessageType()).isEqualTo(namespace().toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM));
+        }
 
-        baseRequest()
-                .contentType(APPLICATION_JSON)
-                .body(requestBody)
-                .post(path)
-                .then()
-                .contentType(APPLICATION_JSON)
-                .statusCode(200);
+        /**
+         * Verifies that an endpoint returns 401 if the identity service cannot verify the identity token.
+         *
+         * @param path the request path to the endpoint
+         */
+        @ParameterizedTest
+        @ArgumentsSource(ControllerMethodArguments.class)
+        void callEndpoint_shouldUpdateResource(String path, Class<?> messageClass, String messageType) {
+            when(dspRequestHandler.updateResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
+            var requestBody = createObjectBuilder().add("http://schema/key", "value").build();
 
-        var captor = ArgumentCaptor.forClass(PostDspRequest.class);
-        verify(dspRequestHandler).updateResource(captor.capture());
-        var request = captor.getValue();
-        assertThat(request.getExpectedMessageType()).isEqualTo(messageType);
-        assertThat(request.getToken()).isEqualTo("auth");
-        assertThat(request.getProcessId()).isEqualTo("testId");
-        assertThat(request.getMessage()).isNotNull();
-        assertThat(request.getInputClass()).isEqualTo(messageClass);
-        assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
-        assertThat(request.getExpectedMessageType()).isEqualTo(messageType);
-    }
+            baseRequest()
+                    .contentType(APPLICATION_JSON)
+                    .body(requestBody)
+                    .post(basePath() + path)
+                    .then()
+                    .contentType(APPLICATION_JSON)
+                    .statusCode(200);
 
-    @Override
-    protected Object controller() {
-        return new DspNegotiationApiController(protocolService, dspRequestHandler);
-    }
+            var captor = ArgumentCaptor.forClass(PostDspRequest.class);
+            verify(dspRequestHandler).updateResource(captor.capture());
+            var request = captor.getValue();
+            assertThat(request.getExpectedMessageType()).isEqualTo(namespace().toIri(messageType));
+            assertThat(request.getToken()).isEqualTo("auth");
+            assertThat(request.getProcessId()).isEqualTo("testId");
+            assertThat(request.getMessage()).isNotNull();
+            assertThat(request.getInputClass()).isEqualTo(messageClass);
+            assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
+        }
 
-    private RequestSpecification baseRequest() {
-        var authHeader = "auth";
-        return given()
-                .baseUri("http://localhost:" + port)
-                .basePath("/")
-                .header(HttpHeaders.AUTHORIZATION, authHeader)
-                .when();
-    }
+        protected abstract String basePath();
 
-    private static class ControllerMethodArguments implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    Arguments.of(
-                            BASE_PATH + "testId" + CONTRACT_REQUEST,
-                            ContractRequestMessage.class,
-                            DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI),
-                    Arguments.of(
-                            BASE_PATH + "testId" + EVENT,
-                            ContractNegotiationEventMessage.class,
-                            DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI),
-                    Arguments.of(
-                            BASE_PATH + "testId" + AGREEMENT + VERIFICATION,
-                            ContractAgreementVerificationMessage.class,
-                            DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI),
-                    Arguments.of(
-                            BASE_PATH + "testId" + TERMINATION,
-                            ContractNegotiationTerminationMessage.class,
-                            DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI),
-                    Arguments.of(
-                            BASE_PATH + "testId" + AGREEMENT,
-                            ContractAgreementMessage.class,
-                            DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI),
-                    Arguments.of(
-                            BASE_PATH + "testId" + CONTRACT_OFFER,
-                            ContractOfferMessage.class,
-                            DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI)
-            );
+        protected abstract DspNamespace namespace();
+
+        private RequestSpecification baseRequest() {
+            var authHeader = "auth";
+            return given()
+                    .baseUri("http://localhost:" + port)
+                    .basePath("/")
+                    .header(HttpHeaders.AUTHORIZATION, authHeader)
+                    .when();
+        }
+
+        private static class ControllerMethodArguments implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        Arguments.of(
+                                "testId" + CONTRACT_REQUEST,
+                                ContractRequestMessage.class,
+                                DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM),
+                        Arguments.of(
+                                "testId" + EVENT,
+                                ContractNegotiationEventMessage.class,
+                                DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM),
+                        Arguments.of(
+                                "testId" + AGREEMENT + VERIFICATION,
+                                ContractAgreementVerificationMessage.class,
+                                DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM),
+                        Arguments.of(
+                                "testId" + TERMINATION,
+                                ContractNegotiationTerminationMessage.class,
+                                DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM),
+                        Arguments.of(
+                                "testId" + AGREEMENT,
+                                ContractAgreementMessage.class,
+                                DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM),
+                        Arguments.of(
+                                "testId" + CONTRACT_OFFER,
+                                ContractOfferMessage.class,
+                                DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM)
+                );
+            }
         }
     }
 
+    @ApiTest
+    @Nested
+    class DspNegotiationApiControllerV08Test extends Tests {
+
+        @Override
+        protected String basePath() {
+            return BASE_PATH;
+        }
+
+        @Override
+        protected DspNamespace namespace() {
+            return DSP_NAMESPACE_V_08;
+        }
+
+        @Override
+        protected Object controller() {
+            return new DspNegotiationApiController(protocolService, dspRequestHandler);
+        }
+    }
+
+    @ApiTest
+    @Nested
+    class DspNegotiationApiControllerV20241Test extends Tests {
+
+        @Override
+        protected String basePath() {
+            return V_2024_1_PATH + BASE_PATH;
+        }
+
+        @Override
+        protected DspNamespace namespace() {
+            return DSP_NAMESPACE_V_2024_1;
+        }
+
+        @Override
+        protected Object controller() {
+            return new DspNegotiationApiController20241(protocolService, dspRequestHandler);
+        }
+    }
 }
