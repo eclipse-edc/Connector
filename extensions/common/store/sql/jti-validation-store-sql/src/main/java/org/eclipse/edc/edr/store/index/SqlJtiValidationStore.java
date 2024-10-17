@@ -29,6 +29,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 
 public class SqlJtiValidationStore extends AbstractSqlStore implements JtiValidationStore {
 
@@ -86,6 +87,19 @@ public class SqlJtiValidationStore extends AbstractSqlStore implements JtiValida
                 var stmt = statements.getDeleteByIdTemplate();
                 queryExecutor.execute(connection, stmt, id);
                 return StoreResult.success();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
+    public StoreResult<Integer> deleteExpired() {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var stmt = statements.deleteWhereExpiredTemplate();
+                var rows = queryExecutor.execute(connection, stmt, Instant.now().toEpochMilli());
+                return StoreResult.success(rows);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

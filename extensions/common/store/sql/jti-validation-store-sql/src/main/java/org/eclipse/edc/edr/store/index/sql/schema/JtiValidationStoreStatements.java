@@ -37,4 +37,6 @@ public interface JtiValidationStoreStatements extends SqlStatements {
     String getFindByTemplate();
 
     String getInsertTemplate();
+
+    String deleteWhereExpiredTemplate();
 }

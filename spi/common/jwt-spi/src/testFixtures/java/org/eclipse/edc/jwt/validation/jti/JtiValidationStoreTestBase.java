@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
@@ -72,6 +73,27 @@ public abstract class JtiValidationStoreTestBase {
     void deleteById_notFound() {
         assertThat(getStore().deleteById("test-id")).isFailed()
                 .detail().isEqualTo("JTI Validation Entry with ID 'test-id' not found");
+    }
+
+    @Test
+    void deleteExpired_noExpiredEntries() {
+
+        assertThat(getStore().deleteExpired()).isSucceeded().isEqualTo(0);
+
+        range(0, 10).forEach(i -> assertThat(getStore().findById("test-id" + i)).isNull());
+    }
+
+    @Test
+    void deleteExpired() {
+        range(0, 10).forEach(i -> getStore().storeEntry(new JtiValidationEntry("test-id" + i, Instant.now().minusSeconds(100).toEpochMilli())));
+        getStore().storeEntry(new JtiValidationEntry("some-other-entry1"));
+        getStore().storeEntry(new JtiValidationEntry("some-other-entry2"));
+
+        assertThat(getStore().deleteExpired()).isSucceeded().isEqualTo(10);
+
+        range(0, 10).forEach(i -> assertThat(getStore().findById("test-id" + i)).isNull());
+        assertThat(getStore().findById("some-other-entry1")).isNotNull();
+        assertThat(getStore().findById("some-other-entry2")).isNotNull();
     }
 
     protected abstract JtiValidationStore getStore();

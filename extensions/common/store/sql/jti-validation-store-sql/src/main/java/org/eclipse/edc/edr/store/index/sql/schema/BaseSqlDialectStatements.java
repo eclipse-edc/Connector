@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.edr.store.index.sql.schema;
 
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 
 import static java.lang.String.format;
@@ -43,6 +44,11 @@ public class BaseSqlDialectStatements implements JtiValidationStoreStatements {
                 .column(getTokenIdColumn())
                 .column(getExpirationTimeColumn())
                 .insertInto(getJtiValidationTable());
+    }
+
+    @Override
+    public String deleteWhereExpiredTemplate() {
+        return executeStatement().delete(getJtiValidationTable(), new Criterion(getExpirationTimeColumn(), "<", "?"));
     }
 
 }
