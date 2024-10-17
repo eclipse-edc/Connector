@@ -17,6 +17,7 @@ package org.eclipse.edc.verifiablecredentials.jwt.rules;
 import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.jetbrains.annotations.NotNull;
@@ -26,13 +27,16 @@ import java.util.Map;
 
 /**
  * This rule checks that the JTI claim is valid, that means that the same JTI claim has not been encountered within the token's lifetime.
+ * <p>
  */
 public class JtiValidationRule implements TokenValidationRule {
 
     private final JtiValidationStore jtiValidationStore;
+    private final Monitor monitor;
 
-    public JtiValidationRule(JtiValidationStore jtiValidationStore) {
+    public JtiValidationRule(JtiValidationStore jtiValidationStore, Monitor monitor) {
         this.jtiValidationStore = jtiValidationStore;
+        this.monitor = monitor;
     }
 
     @Override
@@ -40,9 +44,13 @@ public class JtiValidationRule implements TokenValidationRule {
         var jti = toVerify.getStringClaim(JwtRegisteredClaimNames.JWT_ID);
         if (jti != null) {
             var entry = jtiValidationStore.findById(jti);
-            return entry != null
-                    ? Result.success()
-                    : Result.failure("The JWT id '%s' was not found".formatted(jti));
+            if (entry != null) {
+                if (entry.isExpired()) {
+                    monitor.warning("JTI Validation entry with id " + jti + " is expired");
+                }
+                return Result.success();
+            }
+            return Result.failure("The JWT id '%s' was not found".formatted(jti));
         }
         return Result.success();
     }
