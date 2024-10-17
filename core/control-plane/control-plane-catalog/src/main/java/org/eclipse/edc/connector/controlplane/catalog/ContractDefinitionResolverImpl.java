@@ -16,11 +16,11 @@ package org.eclipse.edc.connector.controlplane.catalog;
 
 import org.eclipse.edc.connector.controlplane.catalog.spi.ContractDefinitionResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.ResolvedContractDefinitions;
+import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.controlplane.catalog.CatalogCoreExtension.CATALOG_SCOPE;
 
 /**
  * Determines the contract definitions applicable to a {@link ParticipantAgent} by evaluating the access control and
@@ -54,14 +53,13 @@ public class ContractDefinitionResolverImpl implements ContractDefinitionResolve
         var policies = new HashMap<String, Policy>();
         var definitions = definitionStore.findAll(QuerySpec.max())
                 .filter(definition -> {
-                    var policyContext = PolicyContextImpl.Builder.newInstance().additional(ParticipantAgent.class, agent).build();
                     var accessResult = Optional.of(definition.getAccessPolicyId())
                             .map(policyId -> policies.computeIfAbsent(policyId,
                                     key -> Optional.ofNullable(policyStore.findById(key))
                                             .map(PolicyDefinition::getPolicy)
                                             .orElse(null))
                             )
-                            .map(policy -> policyEngine.evaluate(CATALOG_SCOPE, policy, policyContext))
+                            .map(policy -> policyEngine.evaluate(policy, new CatalogPolicyContext(agent)))
                             .orElse(Result.failure(format("Policy %s not found", definition.getAccessPolicyId())));
 
                     return accessResult.succeeded();

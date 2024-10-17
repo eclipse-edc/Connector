@@ -56,7 +56,7 @@ class ResourceManifestGeneratorImplTest {
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         when(consumerGenerator.canGenerate(any(), any())).thenReturn(true);
         when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
 
         var result = generator.generateConsumerResourceManifest(transferProcess, policy);
 
@@ -69,7 +69,7 @@ class ResourceManifestGeneratorImplTest {
     void shouldGenerateEmptyResourceManifestForNotGeneratedFilter() {
         var transferProcess = TransferProcess.Builder.newInstance().dataDestination(dataDestination()).build();
         when(consumerGenerator.canGenerate(any(), any())).thenReturn(false);
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
 
         var result = generator.generateConsumerResourceManifest(transferProcess, policy);
 
@@ -82,7 +82,7 @@ class ResourceManifestGeneratorImplTest {
         var transferProcess = TransferProcess.Builder.newInstance().dataDestination(dataDestination()).build();
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
-        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("error"));
+        when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.failure("error"));
 
         var result = generator.generateConsumerResourceManifest(transferProcess, policy);
 

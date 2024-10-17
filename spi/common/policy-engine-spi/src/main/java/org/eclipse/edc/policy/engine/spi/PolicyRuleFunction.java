@@ -19,7 +19,7 @@ import org.eclipse.edc.policy.model.Rule;
 /**
  * Invoked during policy evaluation to examine a rule node.
  */
-public interface RulePolicyFunction<R extends Rule, C extends PolicyContext> {
+public interface PolicyRuleFunction<R extends Rule, C extends PolicyContext> {
 
     /**
      * Performs the rule evaluation.

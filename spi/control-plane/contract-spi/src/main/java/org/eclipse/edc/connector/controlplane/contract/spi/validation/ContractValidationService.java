@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.controlplane.contract.spi.validation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.result.Result;
@@ -29,12 +28,6 @@ import org.jetbrains.annotations.NotNull;
  */
 @ExtensionPoint
 public interface ContractValidationService {
-
-    @PolicyScope
-    String NEGOTIATION_SCOPE = "contract.negotiation";
-
-    @PolicyScope
-    String TRANSFER_SCOPE = "transfer.process";
 
     /**
      * Validates the contract offer for the consumer represented by the given claims.

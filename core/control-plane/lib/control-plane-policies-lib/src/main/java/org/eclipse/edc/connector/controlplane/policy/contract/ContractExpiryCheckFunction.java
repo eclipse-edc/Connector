@@ -14,9 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.policy.contract;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.AgreementPolicyContext;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.EdcException;
@@ -26,7 +25,7 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static java.lang.String.format;
@@ -62,48 +61,42 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * </ul>
  * Please note that all {@link Operator}s except {@link Operator#IN} are supported.
  */
-public class ContractExpiryCheckFunction implements AtomicConstraintFunction<Permission> {
+public class ContractExpiryCheckFunction<C extends AgreementPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
 
     public static final String CONTRACT_EXPIRY_EVALUATION_KEY = EDC_NAMESPACE + "inForceDate";
+
     private static final String EXPRESSION_REGEX = "(contract[A,a]greement)\\+(-?[0-9]+)(s|m|h|d)";
     private static final int REGEX_GROUP_NUMERIC = 2;
     private static final int REGEX_GROUP_UNIT = 3;
 
-
     @Override
-    public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
-        if (!(rightValue instanceof String)) {
+    public boolean evaluate(Operator operator, Object rightValue, Permission rule, C context) {
+        if (rightValue == null) {
+            context.reportProblem("Right-value is null.");
+            return false;
+        }
+
+        if (!(rightValue instanceof String rightValueStr)) {
             context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
             return false;
         }
 
-        try {
-            var now = getContextData(Instant.class, context);
-
-            var rightValueStr = (String) rightValue;
-            var bound = asInstant(rightValueStr);
-            if (bound != null) {
-                return checkFixedPeriod(now, operator, bound);
-            }
-
-            var duration = asDuration(rightValueStr);
-            if (duration != null) {
-                var agreement = getContextData(ContractAgreement.class, context);
-                var signingDate = Instant.ofEpochSecond(agreement.getContractSigningDate());
-                return checkFixedPeriod(now, operator, signingDate.plus(duration));
-            }
-
-            context.reportProblem(format("Unsupported right-value, expected either an ISO-8061 String or a expression matching '%s', but got '%s'",
-                    CONTRACT_EXPIRY_EVALUATION_KEY, rightValueStr));
-
-        } catch (NullPointerException | DateTimeParseException ex) {
-            context.reportProblem(ex.getMessage());
-        }
-        return false;
+        return Optional.ofNullable(asInstant(rightValueStr))
+                .or(() -> Optional.ofNullable(asDuration(rightValueStr))
+                        .map(duration -> Instant.ofEpochSecond(context.contractAgreement().getContractSigningDate())
+                                .plus(duration)
+                        )
+                ).map(bound -> checkFixedPeriod(context.now(), operator, bound))
+                .orElseGet(() -> {
+                    var message = "Unsupported right-value, expected either an ISO-8061 String or a expression matching '%s', but got '%s'"
+                            .formatted(ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY, rightValueStr);
+                    context.reportProblem(message);
+                    return false;
+                });
     }
 
     /**
-     * Checks whether an input string fits the regex {@link ContractExpiryCheckFunction#EXPRESSION_REGEX}, e.g. "contractAgreement+50m"
+     * Checks whether an input string fits the regex {@link #EXPRESSION_REGEX}, e.g. "contractAgreement+50m"
      * and parses that string into a {@link Duration} if successful.
      *
      * @param rightValueStr A string potentially containing a duration expression.
@@ -157,9 +150,4 @@ public class ContractExpiryCheckFunction implements AtomicConstraintFunction<Per
             return null;
         }
     }
-
-    private <R> R getContextData(Class<R> clazz, PolicyContext context) {
-        return Objects.requireNonNull(context.getContextData(clazz), clazz.getSimpleName());
-    }
-
 }

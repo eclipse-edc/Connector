@@ -18,7 +18,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
@@ -96,12 +96,9 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
                     .direction(RequestContext.Direction.Egress)
                     .build();
 
-            var context = PolicyContextImpl.Builder.newInstance()
-                    .additional(RequestScope.Builder.class, requestScopeBuilder)
-                    .additional(RequestContext.class, requestContext)
-                    .build();
+            var context = policyScope.contextProvider.instantiate(requestContext, requestScopeBuilder);
             var policyProvider = (Function<M, Policy>) policyScope.policyProvider;
-            policyEngine.evaluate(policyScope.scope, policyProvider.apply(message), context);
+            policyEngine.evaluate(policyProvider.apply(message), context);
 
             // catalog request messages can carry additional, user-supplied scopes
             if (message instanceof CatalogRequestMessage catalogRequestMessage) {
@@ -114,7 +111,6 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
             if (!scopes.isEmpty()) {
                 tokenParametersBuilder.claims(SCOPE_CLAIM, String.join(" ", scopes));
             }
-
         }
 
         return audienceResolver.resolve(message)
@@ -138,8 +134,10 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     }
 
     @Override
-    public <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass, String scope, Function<M, Policy> policyProvider) {
-        policyScopes.put(messageClass, new PolicyScope<>(messageClass, scope, policyProvider));
+    public <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass,
+                                                              Function<M, Policy> policyProvider,
+                                                              RequestPolicyContext.Provider contextProvider) {
+        policyScopes.put(messageClass, new PolicyScope<>(messageClass, policyProvider, contextProvider));
     }
 
     @NotNull
@@ -171,14 +169,11 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
     private record MessageHandler<M extends RemoteMessage, R>(
             DspHttpRequestFactory<M> requestFactory,
-            DspHttpResponseBodyExtractor<R> bodyExtractor
-    ) {
-    }
+            DspHttpResponseBodyExtractor<R> bodyExtractor) { }
 
     private record PolicyScope<M extends RemoteMessage>(
-            Class<M> messageClass, String scope,
-            Function<M, Policy> policyProvider
-    ) {
-    }
+            Class<M> messageClass,
+            Function<M, Policy> policyProvider,
+            RequestPolicyContext.Provider contextProvider) { }
 
 }

@@ -24,7 +24,7 @@ import java.time.Instant;
 /**
  * Policy Context for "transfer.process" scope
  */
-public class TransferProcessPolicyContext extends PolicyContextImpl {
+public class TransferProcessPolicyContext extends PolicyContextImpl implements AgreementPolicyContext {
 
     @PolicyScope
     public static final String TRANSFER_SCOPE = "transfer.process";
@@ -43,10 +43,12 @@ public class TransferProcessPolicyContext extends PolicyContextImpl {
         return agent;
     }
 
+    @Override
     public Instant now() {
         return now;
     }
 
+    @Override
     public ContractAgreement contractAgreement() {
         return agreement;
     }

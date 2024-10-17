@@ -14,13 +14,14 @@
 
 package org.eclipse.edc.policy.engine.spi.plan.step;
 
+import org.eclipse.edc.policy.engine.spi.PolicyRuleFunction;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
 import org.eclipse.edc.policy.model.Rule;
 
 /**
  * An evaluation step for {@link RuleFunction} associated to a {@link Rule}
  */
-public record RuleFunctionStep<R extends Rule>(RuleFunction<R> function, R rule) {
+public record RuleFunctionStep<R extends Rule>(PolicyRuleFunction<R, ?> function, R rule) {
 
     /**
      * Returns the {@link RuleFunction#name()}

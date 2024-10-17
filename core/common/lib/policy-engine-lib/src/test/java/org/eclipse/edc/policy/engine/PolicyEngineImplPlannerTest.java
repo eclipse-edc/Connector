@@ -14,12 +14,13 @@
 
 package org.eclipse.edc.policy.engine;
 
-import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
-import org.eclipse.edc.policy.engine.spi.PolicyValidatorFunction;
+import org.eclipse.edc.policy.engine.spi.PolicyRuleFunction;
+import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
-import org.eclipse.edc.policy.engine.spi.RuleFunction;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AtomicConstraintStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.MultiplicityConstraintStep;
@@ -31,12 +32,14 @@ import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.OrConstraint;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.policy.model.XoneConstraint;
+import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -47,12 +50,10 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.policy.engine.spi.PolicyEngine.ALL_SCOPES;
 import static org.eclipse.edc.policy.model.Operator.EQ;
 import static org.junit.jupiter.params.provider.Arguments.of;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,6 +81,7 @@ class PolicyEngineImplPlannerTest {
     @BeforeEach
     void setUp() {
         policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry), new RuleValidator(bindingRegistry));
+        policyEngine.registerScope("test", TestContext.class);
     }
 
     @Nested
@@ -92,7 +94,7 @@ class PolicyEngineImplPlannerTest {
             bindingRegistry.bind(action, TEST_SCOPE);
             bindingRegistry.bind(key, TEST_SCOPE);
 
-            policyEngine.registerFunction(TEST_SCOPE, ruleClass, key, (op, rv, r, ctx) -> true);
+            policyEngine.registerFunction(TestContext.class, ruleClass, key, (op, rv, r, ctx) -> true);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
@@ -105,7 +107,7 @@ class PolicyEngineImplPlannerTest {
                                 .first()
                                 .isInstanceOfSatisfying(AtomicConstraintStep.class, (constraintStep) -> {
                                     assertThat(constraintStep.isFiltered()).isFalse();
-                                    assertThat(constraintStep.function()).isNotNull();
+                                    assertThat(constraintStep.functionName()).isNotNull();
                                     assertThat(constraintStep.constraint()).isNotNull();
                                     assertThat(constraintStep.rule()).isInstanceOf(ruleClass);
                                 });
@@ -116,14 +118,23 @@ class PolicyEngineImplPlannerTest {
         @ArgumentsSource(SimplePolicyProvider.class)
         void withRuleAndDynFunction(Policy policy, Class<Rule> ruleClass, String action, String key, Function<PolicyEvaluationPlan, List<RuleStep<? extends Rule>>> stepsProvider) {
 
-            DynamicAtomicConstraintFunction<Rule> function = mock();
+            var function = new DynamicAtomicConstraintRuleFunction<Rule, TestContext>() {
 
-            when(function.canHandle(key)).thenReturn(true);
+                @Override
+                public boolean evaluate(Object leftValue, Operator operator, Object rightValue, Rule rule, TestContext context) {
+                    throw new EdcException("should not pass here");
+                }
+
+                @Override
+                public boolean canHandle(Object leftValue) {
+                    return true;
+                }
+            };
 
             bindingRegistry.bind(action, TEST_SCOPE);
             bindingRegistry.bind(key, TEST_SCOPE);
 
-            policyEngine.registerFunction(TEST_SCOPE, ruleClass, function);
+            policyEngine.registerFunction(TestContext.class, ruleClass, function);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
@@ -136,7 +147,7 @@ class PolicyEngineImplPlannerTest {
                                 .first()
                                 .isInstanceOfSatisfying(AtomicConstraintStep.class, (constraintStep) -> {
                                     assertThat(constraintStep.isFiltered()).isFalse();
-                                    assertThat(constraintStep.function()).isNotNull();
+                                    assertThat(constraintStep.functionName()).isNotNull();
                                     assertThat(constraintStep.constraint()).isNotNull();
                                     assertThat(constraintStep.rule()).isInstanceOf(ruleClass);
                                 });
@@ -148,13 +159,13 @@ class PolicyEngineImplPlannerTest {
         @ArgumentsSource(SimplePolicyProvider.class)
         void withRuleAndRuleFunction(Policy policy, Class<Rule> ruleClass, String action, String key, Function<PolicyEvaluationPlan, List<RuleStep<? extends Rule>>> stepsProvider) {
 
-            RuleFunction<Rule> function = mock();
+            PolicyRuleFunction<Rule, TestContext> function = mock();
 
             bindingRegistry.bind(action, TEST_SCOPE);
             bindingRegistry.bind(key, TEST_SCOPE);
 
-            policyEngine.registerFunction(ALL_SCOPES, ruleClass, function);
-            policyEngine.registerFunction(TEST_SCOPE, ruleClass, function);
+            policyEngine.registerFunction(TestContext.class, ruleClass, function);
+            policyEngine.registerFunction(TestContext.class, ruleClass, function);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
@@ -167,7 +178,7 @@ class PolicyEngineImplPlannerTest {
                                 .first()
                                 .isInstanceOfSatisfying(AtomicConstraintStep.class, (constraintStep) -> {
                                     assertThat(constraintStep.isFiltered()).isTrue();
-                                    assertThat(constraintStep.function()).isNull();
+                                    assertThat(constraintStep.functionName()).isNull();
                                     assertThat(constraintStep.constraint()).isNotNull();
                                     assertThat(constraintStep.rule()).isInstanceOf(ruleClass);
                                 });
@@ -178,12 +189,11 @@ class PolicyEngineImplPlannerTest {
         @ArgumentsSource(SimplePolicyProvider.class)
         void withRuleAndRuleFunctionNotBound(Policy policy, Class<Rule> ruleClass, String action, String key, Function<PolicyEvaluationPlan, List<RuleStep<? extends Rule>>> stepsProvider) {
 
-            RuleFunction<Rule> function = mock();
-
             bindingRegistry.bind(action, TEST_SCOPE);
             bindingRegistry.bind(key, TEST_SCOPE);
 
-            policyEngine.registerFunction("invalidScope", ruleClass, function);
+            PolicyRuleFunction<Rule, UnboundedContext> function = mock();
+            policyEngine.registerFunction(UnboundedContext.class, ruleClass, function);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
@@ -209,7 +219,7 @@ class PolicyEngineImplPlannerTest {
             bindingRegistry.bind(actionType, TEST_SCOPE);
             bindingRegistry.bind(key, TEST_SCOPE);
 
-            policyEngine.registerFunction(ALL_SCOPES, Duty.class, key, (op, rv, r, ctx) -> true);
+            policyEngine.registerFunction(TestContext.class, Duty.class, key, (op, rv, r, ctx) -> true);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
@@ -223,7 +233,7 @@ class PolicyEngineImplPlannerTest {
                                 .first()
                                 .isInstanceOfSatisfying(AtomicConstraintStep.class, (constraintStep) -> {
                                     assertThat(constraintStep.isFiltered()).isTrue();
-                                    assertThat(constraintStep.function()).isNull();
+                                    assertThat(constraintStep.functionName()).isNull();
                                     assertThat(constraintStep.constraint()).isNotNull();
                                     assertThat(constraintStep.rule()).isInstanceOf(Permission.class);
                                 });
@@ -271,7 +281,7 @@ class PolicyEngineImplPlannerTest {
 
             var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("action").build()).constraint(constraint).build();
             var policy = Policy.Builder.newInstance().permission(permission).build();
-            policyEngine.registerFunction(ALL_SCOPES, Permission.class, "foo", (op, rv, r, ctx) -> true);
+            policyEngine.registerFunction(TestContext.class, Permission.class, "foo", (op, rv, r, ctx) -> true);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
@@ -339,7 +349,7 @@ class PolicyEngineImplPlannerTest {
         void shouldIgnoreAtomicConstraintStep_whenLeftExpressionNotDynFunctionBound() {
 
 
-            DynamicAtomicConstraintFunction<Duty> function = mock();
+            DynamicAtomicConstraintRuleFunction<Duty, TestContext> function = mock();
 
             when(function.canHandle(any())).thenReturn(true);
 
@@ -349,7 +359,7 @@ class PolicyEngineImplPlannerTest {
             var constraint = atomicConstraint("foo", "bar");
             var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("action").build()).constraint(constraint).build();
             var policy = Policy.Builder.newInstance().permission(permission).build();
-            policyEngine.registerFunction(ALL_SCOPES, Duty.class, function);
+            policyEngine.registerFunction(TestContext.class, Duty.class, function);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
@@ -361,7 +371,7 @@ class PolicyEngineImplPlannerTest {
                                 .first()
                                 .isInstanceOfSatisfying(AtomicConstraintStep.class, constraintStep -> {
                                     assertThat(constraintStep.isFiltered()).isTrue();
-                                    assertThat(constraintStep.function()).isNull();
+                                    assertThat(constraintStep.functionName()).isNull();
                                 });
                     });
         }
@@ -374,11 +384,10 @@ class PolicyEngineImplPlannerTest {
         @ParameterizedTest
         @ArgumentsSource(MultiplicityPolicyProvider.class)
         void shouldEvaluate_withMultiplicityConstraint(Policy policy, Class<Rule> ruleClass, String action, String key, Function<PolicyEvaluationPlan, List<RuleStep<? extends Rule>>> stepsProvider) {
-
             bindingRegistry.bind(key, TEST_SCOPE);
             bindingRegistry.bind(action, TEST_SCOPE);
 
-            policyEngine.registerFunction(ALL_SCOPES, ruleClass, key, (op, rv, r, ctx) -> true);
+            policyEngine.registerFunction(TestContext.class, ruleClass, key, (op, rv, r, ctx) -> true);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, policy);
 
@@ -436,10 +445,11 @@ class PolicyEngineImplPlannerTest {
 
         @Test
         void shouldEvaluate_withNoValidators() {
+            policyEngine.registerScope("another.scope", PolicyContext.class);
             var emptyPolicy = Policy.Builder.newInstance().build();
-            policyEngine.registerPreValidator("foo", (policy, policyContext) -> true);
+            policyEngine.registerPreValidator(TestContext.class, (policy, policyContext) -> true);
 
-            var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, emptyPolicy);
+            var plan = policyEngine.createEvaluationPlan("another.scope", emptyPolicy);
 
             assertThat(plan.getPostValidators()).isEmpty();
             assertThat(plan.getPreValidators()).isEmpty();
@@ -449,9 +459,9 @@ class PolicyEngineImplPlannerTest {
         void shouldEvaluate_withFunctionalValidators() {
             var emptyPolicy = Policy.Builder.newInstance().build();
 
-            BiFunction<Policy, PolicyContext, Boolean> function = (policy, policyContext) -> true;
-            policyEngine.registerPreValidator(TEST_SCOPE, function);
-            policyEngine.registerPostValidator(TEST_SCOPE, function);
+            PolicyValidatorRule<TestContext> function = (policy, policyContext) -> true;
+            policyEngine.registerPreValidator(TestContext.class, function);
+            policyEngine.registerPostValidator(TestContext.class, function);
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, emptyPolicy);
 
@@ -468,8 +478,8 @@ class PolicyEngineImplPlannerTest {
         @Test
         void shouldEvaluate_withValidators() {
             var emptyPolicy = Policy.Builder.newInstance().build();
-            policyEngine.registerPreValidator(TEST_SCOPE, new MyValidatorFunction());
-            policyEngine.registerPostValidator(TEST_SCOPE, new MyValidatorFunction());
+            policyEngine.registerPreValidator(TestContext.class, new MyValidatorFunction());
+            policyEngine.registerPostValidator(TestContext.class, new MyValidatorFunction());
 
             var plan = policyEngine.createEvaluationPlan(TEST_SCOPE, emptyPolicy);
 
@@ -482,10 +492,10 @@ class PolicyEngineImplPlannerTest {
 
         }
 
-        static class MyValidatorFunction implements PolicyValidatorFunction {
+        static class MyValidatorFunction implements PolicyValidatorRule<TestContext> {
 
             @Override
-            public Boolean apply(Policy policy, PolicyContext policyContext) {
+            public Boolean apply(Policy policy, TestContext policyContext) {
                 return true;
             }
 
@@ -493,6 +503,22 @@ class PolicyEngineImplPlannerTest {
             public String name() {
                 return "MyCustomValidator";
             }
+        }
+    }
+
+    static class TestContext extends PolicyContextImpl {
+
+        @Override
+        public String scope() {
+            return TEST_SCOPE;
+        }
+    }
+
+    private static class UnboundedContext extends PolicyContextImpl {
+
+        @Override
+        public String scope() {
+            return "unbounded";
         }
     }
 
