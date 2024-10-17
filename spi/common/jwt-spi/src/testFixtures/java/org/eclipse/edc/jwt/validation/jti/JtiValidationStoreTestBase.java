@@ -24,20 +24,25 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 public abstract class JtiValidationStoreTestBase {
     @Test
     void storeEntry() {
-        assertThat(getStore().storeEntry(new JtiValidationEntry("test-id", Instant.now().plusSeconds(10)))).isSucceeded();
+        assertThat(getStore().storeEntry(new JtiValidationEntry("test-id", Instant.now().plusSeconds(10).toEpochMilli()))).isSucceeded();
+    }
+
+    @Test
+    void storeEntry_noExpiresAt() {
+        assertThat(getStore().storeEntry(new JtiValidationEntry("test-id"))).isSucceeded();
     }
 
     @Test
     void storeEntry_alreadyExists() {
-        getStore().storeEntry(new JtiValidationEntry("test-id", Instant.now().plusSeconds(10)));
-        assertThat(getStore().storeEntry(new JtiValidationEntry("test-id", Instant.now().plusSeconds(10))))
+        getStore().storeEntry(new JtiValidationEntry("test-id", Instant.now().plusSeconds(10).toEpochMilli()));
+        assertThat(getStore().storeEntry(new JtiValidationEntry("test-id", Instant.now().plusSeconds(10).toEpochMilli())))
                 .isFailed()
                 .detail().isEqualTo("JTI Validation Entry with ID 'test-id' already exists");
     }
 
     @Test
     void findById() {
-        var entry = new JtiValidationEntry("test-id", Instant.now().plusSeconds(10));
+        var entry = new JtiValidationEntry("test-id", Instant.now().plusSeconds(10).toEpochMilli());
         getStore().storeEntry(entry);
         assertThat(getStore().findById("test-id")).usingRecursiveComparison().isEqualTo(entry);
         assertThat(getStore().findById("test-id")).isNull();
@@ -45,7 +50,7 @@ public abstract class JtiValidationStoreTestBase {
 
     @Test
     void findById_noAutoRemove() {
-        var entry = new JtiValidationEntry("test-id", Instant.now().plusSeconds(10));
+        var entry = new JtiValidationEntry("test-id", Instant.now().plusSeconds(10).toEpochMilli());
         getStore().storeEntry(entry);
         assertThat(getStore().findById("test-id", false)).usingRecursiveComparison().isEqualTo(entry);
         assertThat(getStore().findById("test-id", false)).usingRecursiveComparison().isEqualTo(entry);
@@ -58,7 +63,7 @@ public abstract class JtiValidationStoreTestBase {
 
     @Test
     void deleteById() {
-        var entry = new JtiValidationEntry("test-id", Instant.now().plusSeconds(10));
+        var entry = new JtiValidationEntry("test-id", Instant.now().plusSeconds(10).toEpochMilli());
         getStore().storeEntry(entry);
         assertThat(getStore().deleteById("test-id")).isSucceeded();
     }
