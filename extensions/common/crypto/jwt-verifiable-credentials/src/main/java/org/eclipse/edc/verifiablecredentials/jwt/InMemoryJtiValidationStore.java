@@ -43,4 +43,11 @@ public class InMemoryJtiValidationStore implements JtiValidationStore {
         return jtiValidationEntries.remove(id) == null ?
                 StoreResult.notFound("JTI Validation Entry with ID '%s' not found".formatted(id)) : StoreResult.success();
     }
+
+    @Override
+    public StoreResult<Integer> deleteExpired() {
+        var count = jtiValidationEntries.values().stream().filter(JtiValidationEntry::isExpired).count();
+        jtiValidationEntries.values().removeIf(JtiValidationEntry::isExpired);
+        return StoreResult.success((int) count);
+    }
 }

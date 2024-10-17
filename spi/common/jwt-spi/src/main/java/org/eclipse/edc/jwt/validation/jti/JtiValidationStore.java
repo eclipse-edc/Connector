@@ -29,4 +29,6 @@ public interface JtiValidationStore {
     }
 
     StoreResult<Void> deleteById(String id);
+
+    StoreResult<Integer> deleteExpired();
 }

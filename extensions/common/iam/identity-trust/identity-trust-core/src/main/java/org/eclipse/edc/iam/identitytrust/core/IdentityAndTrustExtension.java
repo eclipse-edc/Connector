@@ -143,8 +143,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new SubJwkIsNullRule());
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(getOwnDid(context)));
-        context.getMonitor().warning("The JTI Validation rule is not yet implemented as it depends on https://github.com/eclipse-edc/Connector/issues/3749.");
-        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new JtiValidationRule(jtiValidationStore));
+        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new JtiValidationRule(jtiValidationStore, context.getMonitor()));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new TokenNotNullRule());
 

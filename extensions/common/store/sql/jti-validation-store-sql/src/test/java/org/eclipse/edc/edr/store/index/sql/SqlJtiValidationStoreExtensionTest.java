@@ -55,4 +55,14 @@ public class SqlJtiValidationStoreExtensionTest {
 
         verify(config).getString(eq(DATASOURCE_NAME), any());
     }
+
+    @Test
+    void shouldStartReaperThread_withDefaultConfig(SqlJtiValidationStoreExtension extension, ServiceExtensionContext context) {
+        var config = mock(Config.class);
+        when(context.getConfig()).thenReturn(config);
+        when(config.getLong(SqlJtiValidationStoreExtension.CLEANUP_PERIOD, any())).thenReturn(1L);
+
+        extension.initialize(context);
+        extension.start();
+    }
 }

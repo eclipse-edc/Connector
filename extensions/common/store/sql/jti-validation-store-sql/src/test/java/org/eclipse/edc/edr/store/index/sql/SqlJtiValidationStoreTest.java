@@ -28,8 +28,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
-
 import static org.mockito.Mockito.mock;
 
 @ComponentTest
@@ -38,12 +36,11 @@ public class SqlJtiValidationStoreTest extends JtiValidationStoreTestBase {
 
     private final BaseSqlDialectStatements statements = new PostgresDialectStatements();
 
-    private SqlJtiValidationStore entryIndex;
+    private SqlJtiValidationStore store;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
-
-        entryIndex = new SqlJtiValidationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
+        store = new SqlJtiValidationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
                 extension.getTransactionContext(), new ObjectMapper(), statements, queryExecutor, mock());
         var schema = TestUtils.getResourceFileContentAsString("jti-validation-schema.sql");
         extension.runQuery(schema);
@@ -54,8 +51,9 @@ public class SqlJtiValidationStoreTest extends JtiValidationStoreTestBase {
         extension.runQuery("DROP TABLE " + statements.getJtiValidationTable() + " CASCADE");
     }
 
+
     @Override
     protected JtiValidationStore getStore() {
-        return entryIndex;
+        return store;
     }
 }
