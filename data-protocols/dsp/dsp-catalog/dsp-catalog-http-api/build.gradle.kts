@@ -25,7 +25,8 @@ dependencies {
     api(project(":spi:common:json-ld-spi"))
 
     api(project(":spi:control-plane:control-plane-spi"))
-
+    
+    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
     implementation(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-validation-lib"))
 
     implementation(libs.jakarta.rsApi)

@@ -26,6 +26,7 @@ dependencies {
 
     implementation(project(":spi:common:json-ld-spi"))
     implementation(project(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-validation-lib"))
+    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
 
     implementation(libs.jakarta.rsApi)
 
