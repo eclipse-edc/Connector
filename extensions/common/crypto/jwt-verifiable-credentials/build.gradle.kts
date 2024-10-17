@@ -29,6 +29,7 @@ dependencies {
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:crypto-common-lib"))
+    testImplementation(testFixtures(project(":spi:common:jwt-spi")))
     testFixturesImplementation(libs.nimbus.jwt)
     testFixturesImplementation(project(":spi:common:identity-did-spi"))
 }

@@ -26,6 +26,9 @@ public class InMemoryJtiValidationStore implements JtiValidationStore {
 
     @Override
     public StoreResult<Void> storeEntry(JtiValidationEntry entry) {
+        if (jtiValidationEntries.containsKey(entry.tokenId())) {
+            return StoreResult.alreadyExists("JTI Validation Entry with ID '%s' already exists".formatted(entry.tokenId()));
+        }
         jtiValidationEntries.put(entry.tokenId(), entry);
         return StoreResult.success();
     }
