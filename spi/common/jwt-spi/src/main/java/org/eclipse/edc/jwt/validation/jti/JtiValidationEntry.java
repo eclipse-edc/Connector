@@ -22,9 +22,9 @@ import java.time.Instant;
  * Represents one database row to track JTI entries.
  *
  * @param tokenId             The JWT Token ID (="jti")
- * @param expirationTimestamp optional timestamp to enable auto-cleanup
+ * @param expirationTimestamp optional timestamp (epoch millis), to enable auto-cleanup
  */
-public record JtiValidationEntry(String tokenId, @Nullable Instant expirationTimestamp) {
+public record JtiValidationEntry(String tokenId, @Nullable Long expirationTimestamp) {
     public JtiValidationEntry(String tokenId) {
         this(tokenId, null);
     }
@@ -37,6 +37,10 @@ public record JtiValidationEntry(String tokenId, @Nullable Instant expirationTim
             return false;
         }
 
-        return expirationTimestamp.isBefore(Instant.now());
+        return Instant.ofEpochMilli(expirationTimestamp).isBefore(Instant.now());
+    }
+
+    public @Nullable Instant expirationTimestampAsInstant() {
+        return expirationTimestamp != null ? Instant.ofEpochMilli(expirationTimestamp) : null;
     }
 }
