@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.C
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
+import org.eclipse.edc.protocol.dsp.spi.type.DspNamespace;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
@@ -48,12 +49,12 @@ import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPa
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.VERIFICATION;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM;
 
 /**
  * Provides consumer and provider endpoints for the contract negotiation according to the http binding
@@ -66,20 +67,23 @@ public class DspNegotiationApiController {
 
     private final DspRequestHandler dspRequestHandler;
     private final String protocol;
+    private final DspNamespace namespace;
     private final ContractNegotiationProtocolService protocolService;
 
     public DspNegotiationApiController(ContractNegotiationProtocolService protocolService,
                                        DspRequestHandler dspRequestHandler) {
 
-        this(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP);
+        this(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP, DspNamespace.V_08);
     }
 
     public DspNegotiationApiController(ContractNegotiationProtocolService protocolService,
                                        DspRequestHandler dspRequestHandler,
-                                       String protocol) {
+                                       String protocol,
+                                       DspNamespace namespace) {
         this.protocolService = protocolService;
         this.dspRequestHandler = dspRequestHandler;
         this.protocol = protocol;
+        this.namespace = namespace;
     }
 
     /**
@@ -112,7 +116,7 @@ public class DspNegotiationApiController {
     @Path(INITIAL_CONTRACT_REQUEST)
     public Response initialContractRequest(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractRequestMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
-                .expectedMessageType(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyRequested)
@@ -134,7 +138,7 @@ public class DspNegotiationApiController {
     @Path(INITIAL_CONTRACT_OFFER)
     public Response initialContractOffer(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
-                .expectedMessageType(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyOffered)
@@ -159,7 +163,7 @@ public class DspNegotiationApiController {
                                     JsonObject jsonObject,
                                     @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractRequestMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
-                .expectedMessageType(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM))
                 .processId(id)
                 .message(jsonObject)
                 .token(token)
@@ -185,7 +189,7 @@ public class DspNegotiationApiController {
                                 JsonObject jsonObject,
                                 @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractNegotiationEventMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
-                .expectedMessageType(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM))
                 .processId(id)
                 .message(jsonObject)
                 .token(token)
@@ -214,7 +218,7 @@ public class DspNegotiationApiController {
                                     JsonObject jsonObject,
                                     @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractAgreementVerificationMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
-                .expectedMessageType(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM))
                 .processId(id)
                 .message(jsonObject)
                 .token(token)
@@ -240,7 +244,7 @@ public class DspNegotiationApiController {
                                          JsonObject jsonObject,
                                          @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractNegotiationTerminationMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
-                .expectedMessageType(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM))
                 .processId(id)
                 .message(jsonObject)
                 .token(token)
@@ -266,7 +270,7 @@ public class DspNegotiationApiController {
                                   JsonObject body,
                                   @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
-                .expectedMessageType(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
                 .processId(id)
                 .message(body)
                 .token(token)
@@ -292,7 +296,7 @@ public class DspNegotiationApiController {
                                     JsonObject jsonObject,
                                     @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractAgreementMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
-                .expectedMessageType(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM))
                 .processId(id)
                 .message(jsonObject)
                 .token(token)

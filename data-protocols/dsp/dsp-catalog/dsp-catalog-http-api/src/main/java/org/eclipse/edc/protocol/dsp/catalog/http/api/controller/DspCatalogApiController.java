@@ -36,6 +36,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
+import org.eclipse.edc.protocol.dsp.spi.type.DspNamespace;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -43,7 +44,7 @@ import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.DATASET_REQUEST;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
 
 /**
  * Provides the HTTP endpoint for receiving catalog requests.
@@ -57,16 +58,18 @@ public class DspCatalogApiController {
     private final DspRequestHandler dspRequestHandler;
     private final ContinuationTokenManager continuationTokenManager;
     private final String protocol;
+    private final DspNamespace namespace;
 
     public DspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager) {
-        this(service, dspRequestHandler, continuationTokenManager, DATASPACE_PROTOCOL_HTTP);
+        this(service, dspRequestHandler, continuationTokenManager, DATASPACE_PROTOCOL_HTTP, DspNamespace.V_08);
     }
 
-    public DspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager, String protocol) {
+    public DspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager, String protocol, DspNamespace namespace) {
         this.service = service;
         this.dspRequestHandler = dspRequestHandler;
         this.continuationTokenManager = continuationTokenManager;
         this.protocol = protocol;
+        this.namespace = namespace;
     }
 
     @POST
@@ -83,7 +86,7 @@ public class DspCatalogApiController {
 
         var request = PostDspRequest.Builder.newInstance(CatalogRequestMessage.class, Catalog.class, CatalogError.class)
                 .token(token)
-                .expectedMessageType(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM))
                 .message(messageJson)
                 .serviceCall(service::getCatalog)
                 .errorProvider(CatalogError.Builder::newInstance)
