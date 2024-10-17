@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.verifiablecredentials.jwt.rules;
 
+import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationRule;
@@ -24,13 +26,24 @@ import java.util.Map;
 
 /**
  * This rule checks that the JTI claim is valid, that means that the same JTI claim has not been encountered within the token's lifetime.
- * <p>
- * Note that this rule can only be implemented after <a href="https://github.com/eclipse-edc/Connector/issues/3749">this related issue</a>
  */
 public class JtiValidationRule implements TokenValidationRule {
 
+    private final JtiValidationStore jtiValidationStore;
+
+    public JtiValidationRule(JtiValidationStore jtiValidationStore) {
+        this.jtiValidationStore = jtiValidationStore;
+    }
+
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
+        var jti = toVerify.getStringClaim(JwtRegisteredClaimNames.JWT_ID);
+        if (jti != null) {
+            var entry = jtiValidationStore.findById(jti);
+            return entry != null
+                    ? Result.success()
+                    : Result.failure("The JWT id '%s' was not found".formatted(jti));
+        }
         return Result.success();
     }
 }

@@ -37,6 +37,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -129,6 +130,9 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private RevocationServiceRegistry revocationServiceRegistry;
 
+    @Inject
+    private JtiValidationStore jtiValidationStore;
+
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
 
@@ -139,8 +143,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new SubJwkIsNullRule());
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(getOwnDid(context)));
-        context.getMonitor().warning("The JTI Validation rule is not yet implemented as it depends on https://github.com/eclipse-edc/Connector/issues/3749.");
-        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new JtiValidationRule());
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new TokenNotNullRule());
 
