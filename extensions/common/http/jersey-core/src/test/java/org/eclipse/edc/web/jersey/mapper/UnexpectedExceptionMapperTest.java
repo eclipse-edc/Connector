@@ -28,20 +28,36 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class UnexpectedExceptionMapperTest {
 
+    private final Monitor monitor = mock(Monitor.class);
+    private final UnexpectedExceptionMapper mapper = new UnexpectedExceptionMapper(monitor);
+
     @ParameterizedTest
     @ArgumentsSource(JakartaApiExceptions.class)
-    @ArgumentsSource(JavaExceptions.class)
-    void toResponse_unexpectedExceptions(Throwable throwable, int expectedCode) {
-        var mapper = new UnexpectedExceptionMapper(mock(Monitor.class));
-
+    void toResponse_jakartaExceptions(Throwable throwable, int expectedCode) {
         try (var response = mapper.toResponse(throwable)) {
             assertThat(response.getStatus()).isEqualTo(expectedCode);
             assertThat(response.getStatusInfo().getReasonPhrase()).isNotBlank();
             assertThat(response.getEntity()).isNull();
+            verifyNoInteractions(monitor);
+        }
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(JavaExceptions.class)
+    void toResponse_unexpectedExceptions(Throwable throwable, int expectedCode) {
+        try (var response = mapper.toResponse(throwable)) {
+            assertThat(response.getStatus()).isEqualTo(expectedCode);
+            assertThat(response.getStatusInfo().getReasonPhrase()).isNotBlank();
+            assertThat(response.getEntity()).isNull();
+            verify(monitor).severe(anyString(), same(throwable));
         }
     }
 
