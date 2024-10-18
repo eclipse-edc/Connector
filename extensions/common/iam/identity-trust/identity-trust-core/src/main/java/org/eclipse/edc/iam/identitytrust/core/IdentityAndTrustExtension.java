@@ -45,6 +45,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -66,6 +67,9 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URISyntaxException;
 import java.time.Clock;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
@@ -83,6 +87,9 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     public static final String JSON_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
 
+    public static final long DEFAULT_CLEANUP_PERIOD_SECONDS = 60;
+    @Setting(value = "The period of the JTI entry reaper thread in seconds", defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "")
+    public static final String CLEANUP_PERIOD = "edc.sql.store.jti.cleanup.period";
 
     @Inject
     private SecureTokenService secureTokenService;
@@ -132,9 +139,12 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Inject
     private JtiValidationStore jtiValidationStore;
-
+    @Inject
+    private ExecutorInstrumentation executorInstrumentation;
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
+    private long reaperThreadPeriod;
+    private ScheduledFuture<?> jtiEntryReaperThread;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -152,6 +162,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         // TODO move in a separated extension?
         signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD)));
 
+        reaperThreadPeriod = context.getSetting(CLEANUP_PERIOD, DEFAULT_CLEANUP_PERIOD_SECONDS);
+
         try {
             jsonLd.registerCachedDocument(STATUSLIST_2021_URL, getClass().getClassLoader().getResource("statuslist2021.json").toURI());
         } catch (URISyntaxException e) {
@@ -164,6 +176,17 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         var validity = context.getConfig().getLong(REVOCATION_CACHE_VALIDITY, DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS);
         revocationServiceRegistry.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(), validity));
         revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(), validity));
+    }
+
+    @Override
+    public void start() {
+        jtiEntryReaperThread = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), "JTI Validation Entry Reaper Thread")
+                .scheduleAtFixedRate(jtiValidationStore::deleteExpired, reaperThreadPeriod, reaperThreadPeriod, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void shutdown() {
+        jtiEntryReaperThread.cancel(true);
     }
 
     @Provider
