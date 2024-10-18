@@ -24,6 +24,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_PATH;
 
 /**
@@ -36,6 +37,6 @@ public class DspCatalogApiController20241 extends DspCatalogApiController {
 
     public DspCatalogApiController20241(CatalogProtocolService service, DspRequestHandler dspRequestHandler,
                                         ContinuationTokenManager responseDecorator) {
-        super(service, dspRequestHandler, responseDecorator, DATASPACE_PROTOCOL_HTTP_V_2024_1);
+        super(service, dspRequestHandler, responseDecorator, DATASPACE_PROTOCOL_HTTP_V_2024_1, DSP_NAMESPACE_V_2024_1);
     }
 }
