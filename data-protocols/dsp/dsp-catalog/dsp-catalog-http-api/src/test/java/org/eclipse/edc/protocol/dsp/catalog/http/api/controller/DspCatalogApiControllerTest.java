@@ -24,13 +24,13 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ResponseDecorator;
-import org.eclipse.edc.protocol.dsp.spi.type.DspNamespace;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
@@ -90,7 +90,7 @@ class DspCatalogApiControllerTest {
 
         protected abstract String basePath();
 
-        protected abstract DspNamespace namespace();
+        protected abstract JsonLdNamespace namespace();
 
         private RequestSpecification baseRequest() {
             return given()
@@ -183,7 +183,7 @@ class DspCatalogApiControllerTest {
         }
 
         @Override
-        protected DspNamespace namespace() {
+        protected JsonLdNamespace namespace() {
             return DSP_NAMESPACE_V_08;
         }
 
@@ -203,7 +203,7 @@ class DspCatalogApiControllerTest {
         }
 
         @Override
-        protected DspNamespace namespace() {
+        protected JsonLdNamespace namespace() {
             return DSP_NAMESPACE_V_2024_1;
         }
 

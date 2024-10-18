@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
@@ -36,10 +37,10 @@ public class JsonObjectFromTransferSuspensionMessageTransformer extends Abstract
     private final JsonBuilderFactory jsonBuilderFactory;
 
     public JsonObjectFromTransferSuspensionMessageTransformer(JsonBuilderFactory jsonBuilderFactory) {
-        this(jsonBuilderFactory, DSPACE_SCHEMA);
+        this(jsonBuilderFactory, DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectFromTransferSuspensionMessageTransformer(JsonBuilderFactory jsonBuilderFactory, String namespace) {
+    public JsonObjectFromTransferSuspensionMessageTransformer(JsonBuilderFactory jsonBuilderFactory, JsonLdNamespace namespace) {
         super(TransferSuspensionMessage.class, JsonObject.class, namespace);
         this.jsonBuilderFactory = jsonBuilderFactory;
     }

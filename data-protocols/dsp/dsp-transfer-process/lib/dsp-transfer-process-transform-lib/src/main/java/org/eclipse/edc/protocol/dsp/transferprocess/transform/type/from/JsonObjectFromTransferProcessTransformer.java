@@ -18,6 +18,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE_TERM;
@@ -36,10 +37,10 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractNamespaceA
     private final JsonBuilderFactory jsonBuilderFactory;
 
     public JsonObjectFromTransferProcessTransformer(JsonBuilderFactory jsonBuilderFactory) {
-        this(jsonBuilderFactory, DSPACE_SCHEMA);
+        this(jsonBuilderFactory, DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectFromTransferProcessTransformer(JsonBuilderFactory jsonBuilderFactory, String namespace) {
+    public JsonObjectFromTransferProcessTransformer(JsonBuilderFactory jsonBuilderFactory, JsonLdNamespace namespace) {
         super(TransferProcess.class, JsonObject.class, namespace);
         this.jsonBuilderFactory = jsonBuilderFactory;
     }

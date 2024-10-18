@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
@@ -37,10 +38,10 @@ public class JsonObjectFromContractAgreementVerificationMessageTransformer exten
     private final JsonBuilderFactory jsonFactory;
 
     public JsonObjectFromContractAgreementVerificationMessageTransformer(JsonBuilderFactory jsonFactory) {
-        this(jsonFactory, DSPACE_SCHEMA);
+        this(jsonFactory, DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectFromContractAgreementVerificationMessageTransformer(JsonBuilderFactory jsonFactory, String namespace) {
+    public JsonObjectFromContractAgreementVerificationMessageTransformer(JsonBuilderFactory jsonFactory, JsonLdNamespace namespace) {
         super(ContractAgreementVerificationMessage.class, JsonObject.class, namespace);
         this.jsonFactory = jsonFactory;
     }

@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.transform.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -24,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 
 /**
  * Transforms a {@link JsonObject} in JSON-LD expanded form to a {@link CatalogRequestMessage}.
@@ -33,10 +34,10 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNam
 public class JsonObjectToCatalogRequestMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, CatalogRequestMessage> {
 
     public JsonObjectToCatalogRequestMessageTransformer() {
-        this(DSPACE_SCHEMA);
+        this(DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectToCatalogRequestMessageTransformer(String namespace) {
+    public JsonObjectToCatalogRequestMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, CatalogRequestMessage.class, namespace);
     }
 

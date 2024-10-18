@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -28,12 +29,12 @@ import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DISTRIBUTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PARTICIPANT_ID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 
 /**
  * Converts from a {@link Catalog} to a DCAT catalog as a {@link JsonObject} in JSON-LD expanded form.
@@ -44,10 +45,10 @@ public class JsonObjectFromCatalogTransformer extends AbstractNamespaceAwareJson
     private final ParticipantIdMapper participantIdMapper;
 
     public JsonObjectFromCatalogTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper, ParticipantIdMapper participantIdMapper) {
-        this(jsonFactory, mapper, participantIdMapper, DSPACE_SCHEMA);
+        this(jsonFactory, mapper, participantIdMapper, DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectFromCatalogTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper, ParticipantIdMapper participantIdMapper, String namespace) {
+    public JsonObjectFromCatalogTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper, ParticipantIdMapper participantIdMapper, JsonLdNamespace namespace) {
         super(Catalog.class, JsonObject.class, namespace);
         this.jsonFactory = jsonFactory;
         this.mapper = mapper;

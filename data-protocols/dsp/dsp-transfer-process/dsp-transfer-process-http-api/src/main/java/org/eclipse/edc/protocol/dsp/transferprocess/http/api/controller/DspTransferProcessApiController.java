@@ -32,10 +32,10 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
-import org.eclipse.edc.protocol.dsp.spi.type.DspNamespace;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
@@ -64,13 +64,13 @@ public class DspTransferProcessApiController {
     private final TransferProcessProtocolService protocolService;
     private final DspRequestHandler dspRequestHandler;
     private final String protocol;
-    private final DspNamespace namespace;
+    private final JsonLdNamespace namespace;
 
     public DspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler) {
         this(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP, DSP_NAMESPACE_V_08);
     }
 
-    public DspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler, String protocol, DspNamespace namespace) {
+    public DspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler, String protocol, JsonLdNamespace namespace) {
         this.protocolService = protocolService;
         this.dspRequestHandler = dspRequestHandler;
         this.protocol = protocol;

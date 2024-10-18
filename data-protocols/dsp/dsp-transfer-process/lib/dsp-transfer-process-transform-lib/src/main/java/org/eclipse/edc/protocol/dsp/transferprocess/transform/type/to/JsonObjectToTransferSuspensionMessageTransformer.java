@@ -20,6 +20,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
@@ -42,10 +43,10 @@ public class JsonObjectToTransferSuspensionMessageTransformer extends AbstractNa
     private final ObjectMapper objectMapper;
 
     public JsonObjectToTransferSuspensionMessageTransformer(ObjectMapper objectMapper) {
-        this(objectMapper, DSPACE_SCHEMA);
+        this(objectMapper, DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectToTransferSuspensionMessageTransformer(ObjectMapper objectMapper, String namespace) {
+    public JsonObjectToTransferSuspensionMessageTransformer(ObjectMapper objectMapper, JsonLdNamespace namespace) {
         super(JsonObject.class, TransferSuspensionMessage.class, namespace);
         this.objectMapper = objectMapper;
     }

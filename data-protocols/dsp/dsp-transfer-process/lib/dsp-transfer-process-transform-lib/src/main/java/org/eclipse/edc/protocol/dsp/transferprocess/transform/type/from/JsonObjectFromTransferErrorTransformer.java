@@ -17,13 +17,14 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferError;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR_TERM;
@@ -36,10 +37,10 @@ public class JsonObjectFromTransferErrorTransformer extends AbstractNamespaceAwa
     private final JsonBuilderFactory jsonFactory;
 
     public JsonObjectFromTransferErrorTransformer(JsonBuilderFactory jsonFactory) {
-        this(jsonFactory, DSPACE_SCHEMA);
+        this(jsonFactory, DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectFromTransferErrorTransformer(JsonBuilderFactory jsonFactory, String namespace) {
+    public JsonObjectFromTransferErrorTransformer(JsonBuilderFactory jsonFactory, JsonLdNamespace namespace) {
         super(TransferError.class, JsonObject.class, namespace);
         this.jsonFactory = jsonFactory;
     }
