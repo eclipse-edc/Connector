@@ -48,9 +48,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class JerseyRestServiceTest {
     private final int httpPort = getFreePort();
+    private final Monitor monitor = mock(Monitor.class);
     private JerseyRestService jerseyRestService;
     private JettyService jettyService;
-    private final Monitor monitor = mock(Monitor.class);
 
     @AfterEach
     void teardown() {
@@ -195,6 +195,47 @@ public class JerseyRestServiceTest {
     }
 
     @Test
+    @DisplayName("Verifies that different filters fire for different controllers")
+    void verifySeparateFiltersForDifferentControllers() {
+        var port1 = getFreePort();
+        startJetty(
+                PortMapping.getDefault(httpPort),
+                new PortMapping("foo", port1, "/foo")
+        );
+        // mocking the ContextRequestFilter doesn't work here, Mockito apparently re-uses mocks for the same target class
+        var testControllerFilter = mock(BarRequestFilter.class);
+        var bazControllerFilter = mock(FooRequestFilter.class);
+
+        jerseyRestService.registerResource("foo", new TestController());
+        jerseyRestService.registerResource("foo", new BazController());
+        jerseyRestService.registerDynamicResource("foo", TestController.class, testControllerFilter);
+        jerseyRestService.registerDynamicResource("foo", BazController.class, bazControllerFilter);
+        jerseyRestService.start();
+
+        //verify that the first request hits only the TestController filter
+        given()
+                .get("http://localhost:" + port1 + "/foo/test/resource")
+                .then()
+                .statusCode(200);
+
+        verify(bazControllerFilter, never()).filter(any(ContainerRequestContext.class));
+        verify(testControllerFilter).filter(any(ContainerRequestContext.class));
+        verifyNoMoreInteractions(testControllerFilter);
+
+        reset(bazControllerFilter, testControllerFilter);
+
+        //  verify that the second request only hits the BazController filter
+        given()
+                .get("http://localhost:" + port1 + "/foo/baz/resource")
+                .then()
+                .statusCode(200);
+
+        verify(testControllerFilter, never()).filter(any());
+        verify(bazControllerFilter).filter(any());
+        verifyNoMoreInteractions(bazControllerFilter);
+    }
+
+    @Test
     @DisplayName("Verifies that registering two identical paths raises an exception")
     void verifyIdenticalPathsRaiseException() {
         var port1 = getFreePort();
@@ -239,6 +280,17 @@ public class JerseyRestServiceTest {
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/test")
     public static class TestController { //needs to be public, otherwise it won't get picked up
+
+        @GET
+        @Path("/resource")
+        public String foo() {
+            return "exists";
+        }
+    }
+
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path("/baz")
+    public static class BazController { //needs to be public, otherwise it won't get picked up
 
         @GET
         @Path("/resource")
