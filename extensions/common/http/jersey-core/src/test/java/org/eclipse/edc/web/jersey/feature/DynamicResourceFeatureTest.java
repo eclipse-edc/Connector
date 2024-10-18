@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 
 public class DynamicResourceFeatureTest {
 
-
     @Test
     void configure() {
         var feature = new DynamicResourceFeature(Map.of(Target.class, List.of(new Feature())));
@@ -44,10 +43,8 @@ public class DynamicResourceFeatureTest {
     }
 
     record Feature() {
-
     }
 
     record Target() {
-
     }
 }
