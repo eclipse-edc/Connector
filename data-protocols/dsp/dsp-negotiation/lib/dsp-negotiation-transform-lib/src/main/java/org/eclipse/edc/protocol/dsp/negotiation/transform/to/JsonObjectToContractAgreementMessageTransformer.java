@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -29,7 +30,7 @@ import java.time.format.DateTimeParseException;
 import java.util.Set;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID_TERM;
@@ -45,10 +46,10 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractNam
     private final Set<String> excludedPolicyKeywords;
 
     public JsonObjectToContractAgreementMessageTransformer() {
-        this(DSPACE_SCHEMA);
+        this(DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectToContractAgreementMessageTransformer(String namespace) {
+    public JsonObjectToContractAgreementMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractAgreementMessage.class, namespace);
         excludedPolicyKeywords = Set.of(forNamespace(DSPACE_PROPERTY_TIMESTAMP_TERM),
                 forNamespace(forNamespace(DSPACE_PROPERTY_CONSUMER_ID_TERM)),

@@ -16,12 +16,13 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
@@ -32,10 +33,10 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 public class JsonObjectToContractAgreementVerificationMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, ContractAgreementVerificationMessage> {
 
     public JsonObjectToContractAgreementVerificationMessageTransformer() {
-        this(DSPACE_SCHEMA);
+        this(DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectToContractAgreementVerificationMessageTransformer(String namespace) {
+    public JsonObjectToContractAgreementVerificationMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractAgreementVerificationMessage.class, namespace);
     }
 

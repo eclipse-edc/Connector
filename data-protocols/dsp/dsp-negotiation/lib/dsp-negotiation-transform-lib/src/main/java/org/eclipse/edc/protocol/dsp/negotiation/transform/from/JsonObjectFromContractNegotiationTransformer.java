@@ -18,6 +18,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_IRI;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_AGREED_TERM;
@@ -47,10 +48,10 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractNamesp
     private final JsonBuilderFactory jsonFactory;
 
     public JsonObjectFromContractNegotiationTransformer(JsonBuilderFactory jsonFactory) {
-        this(jsonFactory, DSPACE_SCHEMA);
+        this(jsonFactory, DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectFromContractNegotiationTransformer(JsonBuilderFactory jsonFactory, String namespace) {
+    public JsonObjectFromContractNegotiationTransformer(JsonBuilderFactory jsonFactory, JsonLdNamespace namespace) {
         super(ContractNegotiation.class, JsonObject.class, namespace);
         this.jsonFactory = jsonFactory;
     }

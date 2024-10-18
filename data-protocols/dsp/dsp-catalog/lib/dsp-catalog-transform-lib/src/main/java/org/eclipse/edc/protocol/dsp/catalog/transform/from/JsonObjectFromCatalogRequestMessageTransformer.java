@@ -17,15 +17,16 @@ package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 
 /**
  * Transforms a {@link CatalogRequestMessage} to a {@link JsonObject} in JSON-LD expanded form.
@@ -35,11 +36,11 @@ public class JsonObjectFromCatalogRequestMessageTransformer extends AbstractName
     private final JsonBuilderFactory jsonFactory;
 
     public JsonObjectFromCatalogRequestMessageTransformer(JsonBuilderFactory jsonFactory) {
-        this(jsonFactory, DSPACE_SCHEMA);
+        this(jsonFactory, DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectFromCatalogRequestMessageTransformer(JsonBuilderFactory jsonFactory, String schema) {
-        super(CatalogRequestMessage.class, JsonObject.class, schema);
+    public JsonObjectFromCatalogRequestMessageTransformer(JsonBuilderFactory jsonFactory, JsonLdNamespace namespace) {
+        super(CatalogRequestMessage.class, JsonObject.class, namespace);
         this.jsonFactory = jsonFactory;
     }
 

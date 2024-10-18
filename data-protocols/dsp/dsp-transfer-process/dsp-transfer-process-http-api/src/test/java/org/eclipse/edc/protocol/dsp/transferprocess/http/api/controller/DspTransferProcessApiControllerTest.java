@@ -26,11 +26,11 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
-import org.eclipse.edc.protocol.dsp.spi.type.DspNamespace;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -152,7 +152,7 @@ class DspTransferProcessApiControllerTest {
 
         protected abstract String basePath();
 
-        protected abstract DspNamespace namespace();
+        protected abstract JsonLdNamespace namespace();
 
         private RequestSpecification baseRequest() {
             return given()
@@ -198,7 +198,7 @@ class DspTransferProcessApiControllerTest {
         }
 
         @Override
-        protected DspNamespace namespace() {
+        protected JsonLdNamespace namespace() {
             return DSP_NAMESPACE_V_08;
         }
 
@@ -218,7 +218,7 @@ class DspTransferProcessApiControllerTest {
         }
 
         @Override
-        protected DspNamespace namespace() {
+        protected JsonLdNamespace namespace() {
             return DSP_NAMESPACE_V_2024_1;
         }
 

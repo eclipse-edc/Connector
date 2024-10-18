@@ -12,12 +12,12 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.spi.type;
+package org.eclipse.edc.jsonld.spi;
 
 /**
- * Represents a namespace for DSP terms.
+ * Represents a namespace for terms.
  */
-public record DspNamespace(String namespace) {
+public record JsonLdNamespace(String namespace) {
 
     /**
      * Converts a given term to its IRI (Internationalized Resource Identifier) by appending it to the namespace.

@@ -16,11 +16,12 @@ package org.eclipse.edc.protocol.dsp.negotiation.validation;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM;
 
 /**
@@ -28,12 +29,12 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
  */
 public class ContractNegotiationTerminationMessageValidator {
     public static Validator<JsonObject> instance() {
-        return instance(DSPACE_SCHEMA);
+        return instance(DSP_NAMESPACE_V_08);
     }
 
-    public static Validator<JsonObject> instance(String schema) {
+    public static Validator<JsonObject> instance(JsonLdNamespace namespace) {
         return JsonObjectValidator.newValidator()
-                .verify(path -> new TypeIs(path, schema + DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM))
+                .verify(path -> new TypeIs(path, namespace.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM)))
                 .build();
     }
 }

@@ -33,10 +33,10 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
-import org.eclipse.edc.protocol.dsp.spi.type.DspNamespace;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
@@ -68,7 +68,7 @@ public class DspNegotiationApiController {
 
     private final DspRequestHandler dspRequestHandler;
     private final String protocol;
-    private final DspNamespace namespace;
+    private final JsonLdNamespace namespace;
     private final ContractNegotiationProtocolService protocolService;
 
     public DspNegotiationApiController(ContractNegotiationProtocolService protocolService,
@@ -80,7 +80,7 @@ public class DspNegotiationApiController {
     public DspNegotiationApiController(ContractNegotiationProtocolService protocolService,
                                        DspRequestHandler dspRequestHandler,
                                        String protocol,
-                                       DspNamespace namespace) {
+                                       JsonLdNamespace namespace) {
         this.protocolService = protocolService;
         this.dspRequestHandler = dspRequestHandler;
         this.protocol = protocol;

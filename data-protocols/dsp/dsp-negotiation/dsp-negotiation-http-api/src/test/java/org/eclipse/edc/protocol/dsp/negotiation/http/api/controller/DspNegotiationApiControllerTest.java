@@ -25,11 +25,11 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
-import org.eclipse.edc.protocol.dsp.spi.type.DspNamespace;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -178,7 +178,7 @@ class DspNegotiationApiControllerTest {
 
         protected abstract String basePath();
 
-        protected abstract DspNamespace namespace();
+        protected abstract JsonLdNamespace namespace();
 
         private RequestSpecification baseRequest() {
             var authHeader = "auth";
@@ -232,7 +232,7 @@ class DspNegotiationApiControllerTest {
         }
 
         @Override
-        protected DspNamespace namespace() {
+        protected JsonLdNamespace namespace() {
             return DSP_NAMESPACE_V_08;
         }
 
@@ -252,7 +252,7 @@ class DspNegotiationApiControllerTest {
         }
 
         @Override
-        protected DspNamespace namespace() {
+        protected JsonLdNamespace namespace() {
             return DSP_NAMESPACE_V_2024_1;
         }
 
