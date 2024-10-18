@@ -26,6 +26,7 @@ import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -36,6 +37,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.JwtGenerationService;
+import org.eclipse.edc.verifiablecredentials.jwt.InMemoryJtiValidationStore;
 
 import java.time.Clock;
 import java.util.Map;
@@ -70,7 +72,7 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
 
         if (context.getSetting(OAUTH_TOKENURL_PROPERTY, null) != null) {
             context.getMonitor().warning("The property '%s' was configured, but no remote SecureTokenService was found on the classpath. ".formatted(OAUTH_TOKENURL_PROPERTY) +
-                    "This could be an indicator of a configuration problem.");
+                                         "This could be an indicator of a configuration problem.");
         }
 
 
@@ -119,4 +121,8 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
         };
     }
 
+    @Provider(isDefault = true)
+    public JtiValidationStore inMemoryJtiValidationStore() {
+        return new InMemoryJtiValidationStore();
+    }
 }
