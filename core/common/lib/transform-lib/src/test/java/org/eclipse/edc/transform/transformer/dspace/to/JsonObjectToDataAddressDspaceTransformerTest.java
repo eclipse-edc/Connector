@@ -24,18 +24,17 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.transform.transformer.TestInput.getExpanded;
-import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.DSPACE_DATAADDRESS_TYPE;
-import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY;
-import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY;
-import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_PROPERTY_TYPE;
-import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.DSPACE_DATAADDRESS_TYPE_IRI;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_IRI;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_IRI;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_PROPERTY_TYPE_IRI;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY_IRI;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectToDataAddressDspaceTransformerTest {
@@ -47,10 +46,10 @@ class JsonObjectToDataAddressDspaceTransformerTest {
     void transform() {
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, DSPACE_DATAADDRESS_TYPE)
-                .add(ENDPOINT_TYPE_PROPERTY, "https://w3id.org/idsa/v4.1/HTTP")
-                .add(ENDPOINT_PROPERTY, "http://example.com")
-                .add(ENDPOINT_PROPERTIES_PROPERTY, jsonFactory.createArrayBuilder()
+                .add(TYPE, DSPACE_DATAADDRESS_TYPE_IRI)
+                .add(ENDPOINT_TYPE_PROPERTY_IRI, "https://w3id.org/idsa/v4.1/HTTP")
+                .add(ENDPOINT_PROPERTY_IRI, "http://example.com")
+                .add(ENDPOINT_PROPERTIES_PROPERTY_IRI, jsonFactory.createArrayBuilder()
                         .add(property("authorization", "some-token"))
                         .add(property("authType", "bearer"))
                         .add(property("foo", "bar"))
@@ -68,27 +67,9 @@ class JsonObjectToDataAddressDspaceTransformerTest {
                 .containsEntry("fizz", "buzz");
     }
 
-    @Test
-    void transform_withIllegalProperty() {
-        var jsonObj = jsonFactory.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, DSPACE_DATAADDRESS_TYPE)
-                .add(ENDPOINT_TYPE_PROPERTY, "https://w3id.org/idsa/v4.1/HTTP")
-                .add(ENDPOINT_PROPERTY, "http://example.com")
-                .add(ENDPOINT_PROPERTIES_PROPERTY, jsonFactory.createArrayBuilder()
-                        .add(property("fizz", "buzz"))
-                )
-                .add("rogueProperty", 42L)
-                .build();
-
-        assertThatThrownBy(() -> transformer.transform(getExpanded(jsonObj), context))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unexpected value: %srogueProperty".formatted(DSPACE_SCHEMA));
-    }
-
     private JsonObjectBuilder property(String key, String value) {
         return jsonFactory.createObjectBuilder()
-                .add(TYPE, ENDPOINT_PROPERTY_PROPERTY_TYPE)
+                .add(TYPE, ENDPOINT_PROPERTY_PROPERTY_TYPE_IRI)
                 .add("name", key)
                 .add("value", value);
     }

@@ -17,39 +17,41 @@ package org.eclipse.edc.transform.transformer.dspace.to;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY_TERM;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY_TERM;
+
 /**
  * Transforms a {@link JsonObject} into a DataAddress using the DSPACE-serialization format.
  */
-public class JsonObjectToDataAddressDspaceTransformer extends AbstractJsonLdTransformer<JsonObject, DataAddress> {
+public class JsonObjectToDataAddressDspaceTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, DataAddress> {
+
     public JsonObjectToDataAddressDspaceTransformer() {
-        super(JsonObject.class, DataAddress.class);
+        this(new JsonLdNamespace(DSPACE_SCHEMA));
+    }
+
+    public JsonObjectToDataAddressDspaceTransformer(JsonLdNamespace namespace) {
+        super(JsonObject.class, DataAddress.class, namespace);
     }
 
     @Override
     public @Nullable DataAddress transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var builder = DataAddress.Builder.newInstance();
-        visitProperties(jsonObject, (s, v) -> transformProperties(s, v, builder, context));
+        transformString(jsonObject.get(forNamespace(ENDPOINT_TYPE_PROPERTY_TERM)), builder::type, context);
+        transformEndpointProperties(jsonObject.get(forNamespace(ENDPOINT_PROPERTIES_PROPERTY_TERM)), ep -> builder.property(ep.name(), ep.value()), context);
         return builder.build();
-    }
-
-    private void transformProperties(String key, JsonValue jsonValue, DataAddress.Builder builder, TransformerContext context) {
-        switch (key) {
-            case DataAddressDspaceSerialization.ENDPOINT_PROPERTY -> { }
-            case DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY -> builder.type(transformString(jsonValue, context));
-            case DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY ->
-                    transformEndpointProperties(jsonValue, ep -> builder.property(ep.name(), ep.value()), context);
-            default -> throw new IllegalArgumentException("Unexpected value: " + key);
-        }
     }
 
     /**
@@ -62,8 +64,8 @@ public class JsonObjectToDataAddressDspaceTransformer extends AbstractJsonLdTran
      */
     private void transformEndpointProperties(JsonValue jsonValue, Consumer<DspaceEndpointProperty> consumer, TransformerContext context) {
         Function<JsonObject, DspaceEndpointProperty> converter = (jo) -> {
-            var name = transformString(jo.get(DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY), context);
-            var value = transformString(jo.get(DataAddressDspaceSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY), context);
+            var name = transformString(jo.get(forNamespace(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM)), context);
+            var value = transformString(jo.get(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM)), context);
             return new DspaceEndpointProperty(name, value);
         };
         if (jsonValue instanceof JsonObject object) {
