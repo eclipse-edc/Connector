@@ -23,11 +23,11 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY;
-import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY;
-import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY;
-import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY;
-import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_IRI;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_IRI;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY_IRI;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY_IRI;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY_IRI;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromDataAddressDspaceTransformerTest {
@@ -48,19 +48,19 @@ class JsonObjectFromDataAddressDspaceTransformerTest {
         var jsonObject = transformer.transform(dataAddress, context);
 
         assertThat(jsonObject).isNotNull();
-        assertThat(jsonObject.getString(ENDPOINT_TYPE_PROPERTY)).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-        assertThat(jsonObject.get(ENDPOINT_PROPERTY)).isEqualTo(null);
-        assertThat(jsonObject.getJsonArray(ENDPOINT_PROPERTIES_PROPERTY)).hasSize(3)
+        assertThat(jsonObject.getString(ENDPOINT_TYPE_PROPERTY_IRI)).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
+        assertThat(jsonObject.get(ENDPOINT_PROPERTY_IRI)).isEqualTo(null);
+        assertThat(jsonObject.getJsonArray(ENDPOINT_PROPERTIES_PROPERTY_IRI)).hasSize(3)
                 .anySatisfy(jv -> {
-                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY)).isEqualTo("authorization");
-                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_VALUE_PROPERTY)).isEqualTo("secret-token");
+                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY_IRI)).isEqualTo("authorization");
+                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_VALUE_PROPERTY_IRI)).isEqualTo("secret-token");
                 }).anySatisfy(jv -> {
-                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY)).isEqualTo("foo");
-                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_VALUE_PROPERTY)).isEqualTo("bar");
+                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY_IRI)).isEqualTo("foo");
+                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_VALUE_PROPERTY_IRI)).isEqualTo("bar");
                 })
                 .anySatisfy(jv -> {
-                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY)).isEqualTo("endpoint");
-                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_VALUE_PROPERTY)).isEqualTo("https://example.com");
+                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY_IRI)).isEqualTo("endpoint");
+                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_VALUE_PROPERTY_IRI)).isEqualTo("https://example.com");
                 });
     }
 
@@ -76,10 +76,10 @@ class JsonObjectFromDataAddressDspaceTransformerTest {
         var jsonObject = transformer.transform(dataAddress, context);
 
         assertThat(jsonObject).isNotNull();
-        assertThat(jsonObject.getJsonArray(ENDPOINT_PROPERTIES_PROPERTY))
+        assertThat(jsonObject.getJsonArray(ENDPOINT_PROPERTIES_PROPERTY_IRI))
                 .anySatisfy(jv -> {
-                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY)).isEqualTo("foo");
-                    assertThat(jv.asJsonObject().getJsonObject(ENDPOINT_PROPERTY_VALUE_PROPERTY))
+                    assertThat(jv.asJsonObject().getString(ENDPOINT_PROPERTY_NAME_PROPERTY_IRI)).isEqualTo("foo");
+                    assertThat(jv.asJsonObject().getJsonObject(ENDPOINT_PROPERTY_VALUE_PROPERTY_IRI))
                             .containsKey("complexObj");
                 });
     }
