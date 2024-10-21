@@ -44,13 +44,12 @@ public class JtiValidationRule implements TokenValidationRule {
         var jti = toVerify.getStringClaim(JwtRegisteredClaimNames.JWT_ID);
         if (jti != null) {
             var entry = jtiValidationStore.findById(jti);
-            if (entry != null) {
-                if (entry.isExpired()) {
-                    monitor.warning("JTI Validation entry with id " + jti + " is expired");
-                }
-                return Result.success();
+            if (entry == null) {
+                return Result.failure("The JWT id '%s' was not found".formatted(jti));
             }
-            return Result.failure("The JWT id '%s' was not found".formatted(jti));
+            if (entry.isExpired()) {
+                monitor.warning("JTI Validation entry with id " + jti + " is expired");
+            }
         }
         return Result.success();
     }
