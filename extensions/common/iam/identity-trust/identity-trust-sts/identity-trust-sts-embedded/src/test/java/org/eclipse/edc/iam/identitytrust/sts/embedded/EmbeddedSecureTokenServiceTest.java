@@ -95,11 +95,11 @@ public class EmbeddedSecureTokenServiceTest {
                 .satisfies(decorators -> {
                     assertThat(decorators.get(0))
                             .hasSize(2)
-                            .hasOnlyElementsOfTypes(KeyIdDecorator.class, SelfIssuedTokenDecorator.class);
+                            .hasOnlyElementsOfTypes(KeyIdDecorator.class, AccessTokenDecorator.class, SelfIssuedTokenDecorator.class);
 
                     assertThat(decorators.get(1))
                             .hasSize(2)
-                            .hasOnlyElementsOfTypes(KeyIdDecorator.class, SelfIssuedTokenDecorator.class);
+                            .hasOnlyElementsOfTypes(KeyIdDecorator.class, AccessTokenDecorator.class, SelfIssuedTokenDecorator.class);
                 });
 
     }
@@ -125,7 +125,7 @@ public class EmbeddedSecureTokenServiceTest {
 
         assertThat(captor.getValue())
                 .hasSize(2)
-                .hasOnlyElementsOfTypes(SelfIssuedTokenDecorator.class, KeyIdDecorator.class);
+                .hasOnlyElementsOfTypes(SelfIssuedTokenDecorator.class, AccessTokenDecorator.class, KeyIdDecorator.class);
 
     }
 

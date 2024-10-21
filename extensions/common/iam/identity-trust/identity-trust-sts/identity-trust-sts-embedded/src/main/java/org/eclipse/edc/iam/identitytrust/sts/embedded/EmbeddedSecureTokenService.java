@@ -15,7 +15,6 @@
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
-import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationEntry;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -28,6 +27,7 @@ import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -73,24 +73,17 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
         return ofNullable(bearerAccessScope)
                 .map(scope -> createAndAcceptAccessToken(claims, scope, selfIssuedClaims::put))
                 .orElse(success())
-                .compose(v -> recordToken(claims))
                 .compose(v -> {
                     var keyIdDecorator = new KeyIdDecorator(publicKeyIdSupplier.get());
                     return tokenGenerationService.generate(privateKeyIdSupplier.get(), keyIdDecorator, new SelfIssuedTokenDecorator(selfIssuedClaims, clock, validity));
                 });
     }
 
-    private Result<Void> recordToken(Map<String, String> claims) {
-        var jti = claims.get(JwtRegisteredClaimNames.JWT_ID);
-        if (jti != null) {
-            var exp = claims.get(JwtRegisteredClaimNames.EXPIRATION_TIME);
-            var expTime = ofNullable(exp).map(Long::parseLong).orElse(null);
-            var storeResult = jtiValidationStore.storeEntry(new JtiValidationEntry(jti, expTime));
-            return storeResult.succeeded()
-                    ? Result.success()
-                    : failure("error storing JTI for later validation: %s".formatted(storeResult.getFailureDetail()));
-        }
-        return Result.success();
+    private Result<Void> recordToken(String jti, Long exp) {
+        var storeResult = jtiValidationStore.storeEntry(new JtiValidationEntry(jti, exp));
+        return storeResult.succeeded()
+                ? Result.success()
+                : failure("error storing JTI for later validation: %s".formatted(storeResult.getFailureDetail()));
     }
 
     private Result<Void> createAndAcceptAccessToken(Map<String, String> claims, String scope, BiConsumer<String, String> consumer) {
@@ -102,13 +95,18 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
 
     private Result<TokenRepresentation> createAccessToken(Map<String, String> claims, String bearerAccessScope) {
         var accessTokenClaims = new HashMap<>(accessTokenInheritedClaims(claims));
+        var now = clock.instant();
+        var exp = now.plusSeconds(validity);
+        var jti = "accesstoken-%s".formatted(UUID.randomUUID());
+
         accessTokenClaims.put(SCOPE, bearerAccessScope);
+
         return addClaim(claims, ISSUER, withClaim(AUDIENCE, accessTokenClaims::put))
                 .compose(v -> addClaim(claims, AUDIENCE, withClaim(SUBJECT, accessTokenClaims::put)))
                 .compose(v -> {
                     var keyIdDecorator = new KeyIdDecorator(publicKeyIdSupplier.get());
-                    return tokenGenerationService.generate(privateKeyIdSupplier.get(), keyIdDecorator, new SelfIssuedTokenDecorator(accessTokenClaims, clock, validity));
-                });
+                    return tokenGenerationService.generate(privateKeyIdSupplier.get(), keyIdDecorator, new AccessTokenDecorator(jti, now, exp, accessTokenClaims));
+                }).compose(tr -> recordToken(jti, exp.toEpochMilli()).map(v -> tr));
 
     }
 
