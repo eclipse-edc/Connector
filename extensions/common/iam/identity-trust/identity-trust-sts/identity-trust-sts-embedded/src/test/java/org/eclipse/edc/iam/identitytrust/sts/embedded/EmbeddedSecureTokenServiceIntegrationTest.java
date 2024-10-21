@@ -20,7 +20,9 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.token.JwtGenerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,9 +53,13 @@ import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
 import static org.eclipse.edc.iam.identitytrust.spi.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class EmbeddedSecureTokenServiceIntegrationTest {
 
+    private final JtiValidationStore jtiValidationStore = mock();
     private KeyPair keyPair;
     private EmbeddedSecureTokenService secureTokenService;
 
@@ -66,7 +72,8 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
     void setup() throws NoSuchAlgorithmException {
         keyPair = generateKeyPair();
         var tokenGenerationService = new JwtGenerationService(s -> Result.success(new RSASSASigner(keyPair.getPrivate())));
-        secureTokenService = new EmbeddedSecureTokenService(tokenGenerationService, () -> "test-private-keyid", () -> "test-keyid", Clock.systemUTC(), 10 * 60);
+        when(jtiValidationStore.storeEntry(any())).thenReturn(StoreResult.success());
+        secureTokenService = new EmbeddedSecureTokenService(tokenGenerationService, () -> "test-private-keyid", () -> "test-keyid", Clock.systemUTC(), 10 * 60, jtiValidationStore);
     }
 
     @Test

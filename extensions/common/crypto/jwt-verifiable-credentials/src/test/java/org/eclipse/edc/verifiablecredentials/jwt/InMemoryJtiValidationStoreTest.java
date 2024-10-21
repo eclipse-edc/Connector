@@ -16,6 +16,7 @@ package org.eclipse.edc.verifiablecredentials.jwt;
 
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStoreTestBase;
+import org.eclipse.edc.token.InMemoryJtiValidationStore;
 
 class InMemoryJtiValidationStoreTest extends JtiValidationStoreTestBase {
 

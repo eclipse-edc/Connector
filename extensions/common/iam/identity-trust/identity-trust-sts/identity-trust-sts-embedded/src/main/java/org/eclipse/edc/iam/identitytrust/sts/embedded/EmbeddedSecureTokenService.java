@@ -15,6 +15,9 @@
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
+import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationEntry;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.KeyIdDecorator;
@@ -53,13 +56,15 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
     private final Supplier<String> publicKeyIdSupplier;
     private final Clock clock;
     private final long validity;
+    private final JtiValidationStore jtiValidationStore;
 
-    public EmbeddedSecureTokenService(TokenGenerationService tokenGenerationService, Supplier<String> privateKeyIdSupplier, Supplier<String> publicKeyIdSupplier, Clock clock, long validity) {
+    public EmbeddedSecureTokenService(TokenGenerationService tokenGenerationService, Supplier<String> privateKeyIdSupplier, Supplier<String> publicKeyIdSupplier, Clock clock, long validity, JtiValidationStore jtiValidationStore) {
         this.tokenGenerationService = tokenGenerationService;
         this.privateKeyIdSupplier = privateKeyIdSupplier;
         this.publicKeyIdSupplier = publicKeyIdSupplier;
         this.clock = clock;
         this.validity = validity;
+        this.jtiValidationStore = jtiValidationStore;
     }
 
     @Override
@@ -68,10 +73,24 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
         return ofNullable(bearerAccessScope)
                 .map(scope -> createAndAcceptAccessToken(claims, scope, selfIssuedClaims::put))
                 .orElse(success())
+                .compose(v -> recordToken(claims))
                 .compose(v -> {
                     var keyIdDecorator = new KeyIdDecorator(publicKeyIdSupplier.get());
                     return tokenGenerationService.generate(privateKeyIdSupplier.get(), keyIdDecorator, new SelfIssuedTokenDecorator(selfIssuedClaims, clock, validity));
                 });
+    }
+
+    private Result<Void> recordToken(Map<String, String> claims) {
+        var jti = claims.get(JwtRegisteredClaimNames.JWT_ID);
+        if (jti != null) {
+            var exp = claims.get(JwtRegisteredClaimNames.EXPIRATION_TIME);
+            var expTime = ofNullable(exp).map(Long::parseLong).orElse(null);
+            var storeResult = jtiValidationStore.storeEntry(new JtiValidationEntry(jti, expTime));
+            return storeResult.succeeded()
+                    ? Result.success()
+                    : failure("error storing JTI for later validation: %s".formatted(storeResult.getFailureDetail()));
+        }
+        return Result.success();
     }
 
     private Result<Void> createAndAcceptAccessToken(Map<String, String> claims, String scope, BiConsumer<String, String> consumer) {

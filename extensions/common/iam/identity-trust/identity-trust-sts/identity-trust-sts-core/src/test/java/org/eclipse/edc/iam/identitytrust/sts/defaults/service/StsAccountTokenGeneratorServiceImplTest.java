@@ -17,9 +17,11 @@ package org.eclipse.edc.iam.identitytrust.sts.defaults.service;
 
 import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccountTokenAdditionalParams;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsTokenGenerationProvider;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,11 +41,13 @@ public class StsAccountTokenGeneratorServiceImplTest {
     public static final long TOKEN_EXPIRATION = 60 * 5;
     private final StsTokenGenerationProvider tokenGenerationProvider = mock();
     private final TokenGenerationService tokenGenerator = mock();
+    private final JtiValidationStore jtiValidationStore = mock();
     private StsClientTokenGeneratorServiceImpl clientTokenService;
 
     @BeforeEach
     void setup() {
-        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, (client) -> "test-key-id", Clock.systemUTC(), TOKEN_EXPIRATION);
+        when(jtiValidationStore.storeEntry(any())).thenReturn(StoreResult.success());
+        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, (client) -> "test-key-id", Clock.systemUTC(), TOKEN_EXPIRATION, jtiValidationStore);
     }
 
     @Test

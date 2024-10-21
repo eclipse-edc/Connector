@@ -14,11 +14,14 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.token.spi.KeyIdDecorator;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -41,10 +44,16 @@ public class EmbeddedSecureTokenServiceTest {
     public static final String TEST_PRIVATEKEY_ID = "test-privatekey-id";
     private final TokenGenerationService tokenGenerationService = mock();
     private final Supplier<String> keySupplier = () -> TEST_PRIVATEKEY_ID;
+    private final JtiValidationStore jtiValidationStore = mock();
+
+    @BeforeEach
+    void setup() {
+        when(jtiValidationStore.storeEntry(any())).thenReturn(StoreResult.success());
+    }
 
     @Test
     void createToken_withoutBearerAccessScope() {
-        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
+        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60, jtiValidationStore);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
         when(tokenGenerationService.generate(eq(TEST_PRIVATEKEY_ID), any(TokenDecorator[].class))).thenReturn(Result.success(token));
@@ -67,7 +76,7 @@ public class EmbeddedSecureTokenServiceTest {
     void createToken_withBearerAccessScope() {
 
         var claims = Map.of(ISSUER, "testIssuer", AUDIENCE, "aud");
-        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
+        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60, jtiValidationStore);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
         when(tokenGenerationService.generate(eq(TEST_PRIVATEKEY_ID), any(TokenDecorator[].class)))
@@ -100,7 +109,7 @@ public class EmbeddedSecureTokenServiceTest {
 
         var claims = Map.of(ISSUER, "testIssuer", AUDIENCE, "aud");
 
-        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
+        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60, jtiValidationStore);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
         when(tokenGenerationService.generate(eq(TEST_PRIVATEKEY_ID), any(TokenDecorator[].class)))
@@ -124,7 +133,7 @@ public class EmbeddedSecureTokenServiceTest {
     void createToken_error_whenSelfTokenFails() {
         var claims = Map.of(ISSUER, "testIssuer", AUDIENCE, "aud");
 
-        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
+        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60, jtiValidationStore);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
         when(tokenGenerationService.generate(eq(TEST_PRIVATEKEY_ID), any(TokenDecorator[].class)))

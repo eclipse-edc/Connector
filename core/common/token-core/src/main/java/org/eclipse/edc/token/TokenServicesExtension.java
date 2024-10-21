@@ -15,6 +15,7 @@
 package org.eclipse.edc.token;
 
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -56,5 +57,10 @@ public class TokenServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public JwsSignerProvider defaultSignerProvider() {
         return new DefaultJwsSignerProvider(privateKeyResolver);
+    }
+
+    @Provider(isDefault = true)
+    public JtiValidationStore inMemoryJtiValidationStore() {
+        return new InMemoryJtiValidationStore();
     }
 }

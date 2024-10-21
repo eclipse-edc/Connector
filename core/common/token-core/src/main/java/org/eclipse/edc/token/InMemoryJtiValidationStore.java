@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.verifiablecredentials.jwt;
+package org.eclipse.edc.token;
 
 import org.eclipse.edc.jwt.validation.jti.JtiValidationEntry;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;

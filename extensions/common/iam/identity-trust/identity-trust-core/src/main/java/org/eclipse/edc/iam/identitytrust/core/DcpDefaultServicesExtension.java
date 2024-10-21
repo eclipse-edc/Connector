@@ -37,7 +37,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.verifiablecredentials.jwt.InMemoryJtiValidationStore;
 
 import java.time.Clock;
 import java.util.Map;
@@ -63,6 +62,8 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     private Clock clock;
     @Inject
     private JwsSignerProvider externalSigner;
+    @Inject
+    private JtiValidationStore jtiValidationStore;
 
     @Provider(isDefault = true)
     public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
@@ -79,7 +80,7 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
         var publicKeyId = context.getSetting(STS_PUBLIC_KEY_ID, null);
         var privateKeyAlias = context.getSetting(STS_PRIVATE_KEY_ALIAS, null);
 
-        return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
+        return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(tokenExpiration), jtiValidationStore);
     }
 
     @Provider(isDefault = true)
@@ -121,8 +122,4 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
         };
     }
 
-    @Provider(isDefault = true)
-    public JtiValidationStore inMemoryJtiValidationStore() {
-        return new InMemoryJtiValidationStore();
-    }
 }
