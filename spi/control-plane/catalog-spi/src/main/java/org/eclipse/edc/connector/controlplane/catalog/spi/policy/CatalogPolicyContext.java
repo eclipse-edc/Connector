@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.catalog.spi.policy;
 
+import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.eclipse.edc.spi.policy.ParticipantAgentPolicyContext;
 
 /**
  * Policy Context for "catalog" scope

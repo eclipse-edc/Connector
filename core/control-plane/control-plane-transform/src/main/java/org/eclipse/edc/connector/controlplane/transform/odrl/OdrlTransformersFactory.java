@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToOper
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPermissionTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToProhibitionTransformer;
-import org.eclipse.edc.spi.agent.ParticipantIdMapper;
+import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.transform.spi.TypeTransformer;
 
 import java.util.stream.Stream;

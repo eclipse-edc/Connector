@@ -15,10 +15,10 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.policy;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.eclipse.edc.spi.policy.ParticipantAgentPolicyContext;
 
 import java.time.Instant;
 

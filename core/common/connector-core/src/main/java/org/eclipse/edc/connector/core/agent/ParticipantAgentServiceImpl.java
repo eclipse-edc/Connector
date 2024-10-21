@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.core.agent;
 
-import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.eclipse.edc.spi.agent.ParticipantAgentService;
-import org.eclipse.edc.spi.agent.ParticipantAgentServiceExtension;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participant.spi.ParticipantAgentService;
+import org.eclipse.edc.participant.spi.ParticipantAgentServiceExtension;
 import org.eclipse.edc.spi.iam.ClaimToken;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
-import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
+import static org.eclipse.edc.participant.spi.ParticipantAgent.PARTICIPANT_IDENTITY;
 
 /**
  * Default implementation.

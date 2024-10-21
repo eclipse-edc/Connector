@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.agent;
+package org.eclipse.edc.participant.spi;
 
 import org.eclipse.edc.spi.iam.ClaimToken;
 

@@ -12,14 +12,14 @@
  *
  */
 
-package org.eclipse.edc.spi.policy;
+package org.eclipse.edc.participant.spi;
 
-import org.eclipse.edc.spi.agent.ParticipantAgent;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
 
 /**
  * Marker interface
  */
-public interface ParticipantAgentPolicyContext {
+public interface ParticipantAgentPolicyContext extends PolicyContext {
 
     /**
      * The participant agent.

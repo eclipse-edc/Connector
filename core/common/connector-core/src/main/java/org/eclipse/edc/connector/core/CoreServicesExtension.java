@@ -26,6 +26,7 @@ import org.eclipse.edc.http.client.ControlApiHttpClientImpl;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.json.JacksonTypeManager;
+import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
 import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
 import org.eclipse.edc.policy.engine.ScopeFilter;
@@ -39,7 +40,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -53,7 +53,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
-import static org.eclipse.edc.spi.agent.ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY;
+import static org.eclipse.edc.participant.spi.ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY;
 
 @BaseExtension
 @Extension(value = CoreServicesExtension.NAME)

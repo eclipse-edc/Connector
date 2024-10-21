@@ -6,9 +6,10 @@ plugins {
 dependencies {
     api(project(":spi:common:identity-trust-spi"))
     api(project(":spi:common:policy:request-policy-context-spi"))
-    implementation(project(":spi:common:keys-spi"))
-    implementation(project(":spi:common:http-spi"))
     implementation(project(":spi:common:json-ld-spi"))
+    implementation(project(":spi:common:http-spi"))
+    implementation(project(":spi:common:keys-spi"))
+    implementation(project(":spi:common:participant-spi"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:crypto-common-lib"))
     implementation(project(":core:common:token-core"))

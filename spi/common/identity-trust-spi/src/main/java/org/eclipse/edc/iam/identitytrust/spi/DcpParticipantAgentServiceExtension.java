@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.spi;
 
-import org.eclipse.edc.spi.agent.ParticipantAgentServiceExtension;
+import org.eclipse.edc.participant.spi.ParticipantAgentServiceExtension;
 
 /**
  * Marker class for a {@link ParticipantAgentServiceExtension} that will be registered for Identity And Trust

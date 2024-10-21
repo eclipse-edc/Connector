@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.controlplane.catalog.spi;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 
 /**
  * Returns {@link ContractDefinition} for a given participant agent.
