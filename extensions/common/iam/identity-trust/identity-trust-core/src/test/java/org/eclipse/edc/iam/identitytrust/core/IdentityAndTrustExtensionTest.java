@@ -18,6 +18,8 @@ import org.eclipse.edc.iam.identitytrust.service.IdentityAndTrustService;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -25,7 +27,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension.CLEANUP_PERIOD;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.atLeastOnce;
@@ -36,10 +43,14 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class IdentityAndTrustExtensionTest {
 
+    private final JtiValidationStore storeMock = mock();
+
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(SecureTokenService.class, mock());
         context.registerService(TypeManager.class, new JacksonTypeManager());
+        context.registerService(JtiValidationStore.class, storeMock);
+        context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
     }
 
     @Test
@@ -53,4 +64,16 @@ class IdentityAndTrustExtensionTest {
         assertThat(is).isInstanceOf(IdentityAndTrustService.class);
         verify(configMock, atLeastOnce()).getString(eq(IdentityAndTrustExtension.CONNECTOR_DID_PROPERTY), isNull());
     }
+
+    @Test
+    void assertReaperThreadRunning(IdentityAndTrustExtension extension, ServiceExtensionContext context) {
+        when(context.getSetting(eq(CLEANUP_PERIOD), anyLong())).thenReturn(1L);
+
+        extension.initialize(context);
+        extension.start();
+
+        await().atLeast(Duration.ofSeconds(1)) // that's the initial delay
+                .untilAsserted(() -> verify(storeMock, atLeastOnce()).deleteExpired());
+    }
+
 }

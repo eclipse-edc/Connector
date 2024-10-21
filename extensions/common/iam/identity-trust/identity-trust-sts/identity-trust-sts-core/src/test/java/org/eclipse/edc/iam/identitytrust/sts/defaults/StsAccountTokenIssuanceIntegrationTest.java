@@ -23,6 +23,7 @@ import org.eclipse.edc.iam.identitytrust.sts.defaults.store.InMemoryStsAccountSt
 import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
 import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccountTokenAdditionalParams;
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.keys.KeyParserRegistryImpl;
 import org.eclipse.edc.keys.VaultPrivateKeyResolver;
 import org.eclipse.edc.keys.keyparsers.JwkParser;
@@ -31,6 +32,7 @@ import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.security.token.jwt.DefaultJwsSignerProvider;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -52,7 +54,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.spi.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.iam.identitytrust.sts.spi.store.fixtures.TestFunctions.createClientBuilder;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ComponentTest
 public class StsAccountTokenIssuanceIntegrationTest {
@@ -60,6 +64,7 @@ public class StsAccountTokenIssuanceIntegrationTest {
     private final InMemoryStsAccountStore clientStore = new InMemoryStsAccountStore(CriterionOperatorRegistryImpl.ofDefaults());
     private final Vault vault = new InMemoryVault(mock());
     private final KeyParserRegistry keyParserRegistry = new KeyParserRegistryImpl();
+    private final JtiValidationStore jtiValidationStore = mock();
     private StsAccountServiceImpl clientService;
     private StsClientTokenGeneratorServiceImpl tokenGeneratorService;
     private PrivateKeyResolver privateKeyResolver;
@@ -72,10 +77,12 @@ public class StsAccountTokenIssuanceIntegrationTest {
         keyParserRegistry.register(new JwkParser(new ObjectMapper(), mock()));
         privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry, vault, mock(), mock());
 
+        when(jtiValidationStore.storeEntry(any())).thenReturn(StoreResult.success());
         tokenGeneratorService = new StsClientTokenGeneratorServiceImpl(
                 client -> new JwtGenerationService(new DefaultJwsSignerProvider(privateKeyResolver)),
                 StsAccount::getPrivateKeyAlias,
-                Clock.systemUTC(), 60 * 5);
+                Clock.systemUTC(), 60 * 5,
+                jtiValidationStore);
 
     }
 

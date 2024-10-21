@@ -15,10 +15,15 @@
 plugins {
     `java-library`
     `maven-publish`
+    `java-test-fixtures`
 }
 
 dependencies {
     implementation(libs.edc.runtime.metamodel)
+    api(project(":spi:common:core-spi"))
+    testFixturesImplementation(libs.bundles.jupiter)
+    testFixturesImplementation(libs.assertj)
+    testFixturesImplementation(project(":tests:junit-base"))
 }
 
 

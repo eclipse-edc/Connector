@@ -28,5 +28,6 @@ dependencies {
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.nimbus.jwt)
+    testImplementation(libs.awaitility)
 }
 

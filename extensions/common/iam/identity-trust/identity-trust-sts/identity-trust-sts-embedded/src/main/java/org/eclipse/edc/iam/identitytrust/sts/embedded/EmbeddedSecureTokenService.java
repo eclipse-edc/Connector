@@ -15,6 +15,8 @@
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationEntry;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.KeyIdDecorator;
@@ -25,6 +27,7 @@ import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -53,13 +56,15 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
     private final Supplier<String> publicKeyIdSupplier;
     private final Clock clock;
     private final long validity;
+    private final JtiValidationStore jtiValidationStore;
 
-    public EmbeddedSecureTokenService(TokenGenerationService tokenGenerationService, Supplier<String> privateKeyIdSupplier, Supplier<String> publicKeyIdSupplier, Clock clock, long validity) {
+    public EmbeddedSecureTokenService(TokenGenerationService tokenGenerationService, Supplier<String> privateKeyIdSupplier, Supplier<String> publicKeyIdSupplier, Clock clock, long validity, JtiValidationStore jtiValidationStore) {
         this.tokenGenerationService = tokenGenerationService;
         this.privateKeyIdSupplier = privateKeyIdSupplier;
         this.publicKeyIdSupplier = publicKeyIdSupplier;
         this.clock = clock;
         this.validity = validity;
+        this.jtiValidationStore = jtiValidationStore;
     }
 
     @Override
@@ -74,6 +79,13 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
                 });
     }
 
+    private Result<Void> recordToken(String jti, Long exp) {
+        var storeResult = jtiValidationStore.storeEntry(new JtiValidationEntry(jti, exp));
+        return storeResult.succeeded()
+                ? Result.success()
+                : failure("error storing JTI for later validation: %s".formatted(storeResult.getFailureDetail()));
+    }
+
     private Result<Void> createAndAcceptAccessToken(Map<String, String> claims, String scope, BiConsumer<String, String> consumer) {
         return createAccessToken(claims, scope)
                 .compose(tokenRepresentation -> success(tokenRepresentation.getToken()))
@@ -83,13 +95,18 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
 
     private Result<TokenRepresentation> createAccessToken(Map<String, String> claims, String bearerAccessScope) {
         var accessTokenClaims = new HashMap<>(accessTokenInheritedClaims(claims));
+        var now = clock.instant();
+        var exp = now.plusSeconds(validity);
+        var jti = "accesstoken-%s".formatted(UUID.randomUUID());
+
         accessTokenClaims.put(SCOPE, bearerAccessScope);
+
         return addClaim(claims, ISSUER, withClaim(AUDIENCE, accessTokenClaims::put))
                 .compose(v -> addClaim(claims, AUDIENCE, withClaim(SUBJECT, accessTokenClaims::put)))
                 .compose(v -> {
                     var keyIdDecorator = new KeyIdDecorator(publicKeyIdSupplier.get());
-                    return tokenGenerationService.generate(privateKeyIdSupplier.get(), keyIdDecorator, new SelfIssuedTokenDecorator(accessTokenClaims, clock, validity));
-                });
+                    return tokenGenerationService.generate(privateKeyIdSupplier.get(), keyIdDecorator, new AccessTokenDecorator(jti, now, exp, accessTokenClaims));
+                }).compose(tr -> recordToken(jti, exp.toEpochMilli()).map(v -> tr));
 
     }
 

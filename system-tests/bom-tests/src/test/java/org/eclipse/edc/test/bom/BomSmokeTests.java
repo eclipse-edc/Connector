@@ -70,6 +70,8 @@ public class BomSmokeTests {
                                 "edc.iam.sts.oauth.client.secret.alias", "test-alias",
                                 "web.http.port", DEFAULT_PORT,
                                 "web.http.path", DEFAULT_PATH,
+                                "web.http.version.port", String.valueOf(getFreePort()),
+                                "web.http.version.path", "/api/version",
                                 "web.http.management.port", "8081",
                                 "web.http.management.path", "/api/management"),
                         ":dist:bom:controlplane-dcp-bom"
@@ -81,21 +83,31 @@ public class BomSmokeTests {
     class ControlPlaneOauth2 extends SmokeTest {
 
         @RegisterExtension
-        protected static RuntimeExtension runtime =
-                new RuntimePerMethodExtension(new EmbeddedRuntime("control-plane-oauth2-bom",
-                        Map.of(
-                                "edc.oauth.token.url", "https://oauth2.com/token",
-                                "edc.oauth.certificate.alias", "test-alias",
-                                "edc.oauth.private.key.alias", "private-test-alias",
-                                "web.http.management.port", "8081",
-                                "web.http.management.path", "/api/management",
-                                "web.http.port", DEFAULT_PORT,
-                                "web.http.path", DEFAULT_PATH,
-                                "edc.oauth.provider.jwks.url", "http://localhost:9999/jwks",
-                                "edc.oauth.client.id", "test-client"),
-                        ":dist:bom:controlplane-oauth2-bom"
-                ));
+        protected static RuntimeExtension runtime;
         private static ClientAndServer jwksServer;
+
+        static {
+            var stringStringMap = new java.util.HashMap<String, String>() {
+                {
+                    put("edc.oauth.token.url", "https://oauth2.com/token");
+                    put("edc.oauth.certificate.alias", "test-alias");
+                    put("edc.oauth.private.key.alias", "private-test-alias");
+                    put("web.http.management.port", "8081");
+                    put("web.http.management.path", "/api/management");
+                    put("web.http.port", DEFAULT_PORT);
+                    put("web.http.path", DEFAULT_PATH);
+                    put("web.http.version.port", String.valueOf(getFreePort()));
+                    put("web.http.version.path", "/api/version");
+
+                    put("edc.oauth.provider.jwks.url", "http://localhost:9999/jwks");
+                    put("edc.oauth.client.id", "test-client");
+                }
+            };
+            runtime = new RuntimePerMethodExtension(new EmbeddedRuntime("control-plane-oauth2-bom",
+                    stringStringMap,
+                    ":dist:bom:controlplane-oauth2-bom"
+            ));
+        }
 
         @BeforeAll
         static void setup() {
@@ -129,6 +141,8 @@ public class BomSmokeTests {
                                 "edc.dpf.selector.url", "http://localhost:%s/selector".formatted(server.getPort()),
                                 "web.http.control.port", "8081",
                                 "web.http.control.path", "/api/control",
+                                "web.http.version.port", String.valueOf(getFreePort()),
+                                "web.http.version.path", "/api/version",
                                 "web.http.port", DEFAULT_PORT,
                                 "web.http.path", DEFAULT_PATH),
                         ":dist:bom:dataplane-base-bom"
@@ -153,10 +167,16 @@ public class BomSmokeTests {
 
         @RegisterExtension
         protected RuntimeExtension runtime =
-                new RuntimePerMethodExtension(new EmbeddedRuntime("data-plane-base-bom",
+                new RuntimePerMethodExtension(new EmbeddedRuntime("sts-feature-bom",
                         Map.of(
                                 "web.http.port", DEFAULT_PORT,
                                 "web.http.path", DEFAULT_PATH,
+                                "web.http.version.port", String.valueOf(getFreePort()),
+                                "web.http.version.path", "/api/version",
+                                "web.http.sts.port", String.valueOf(getFreePort()),
+                                "web.http.sts.path", "/api/sts",
+                                "web.http.accounts.port", String.valueOf(getFreePort()),
+                                "web.http.accounts.path", "/api/sts/accounts",
                                 "edc.api.accounts.key", "password"),
                         ":dist:bom:sts-feature-bom"
                 ));

@@ -19,6 +19,7 @@ import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccount;
 import org.eclipse.edc.iam.identitytrust.sts.spi.model.StsAccountTokenAdditionalParams;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsTokenGenerationProvider;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 
@@ -43,19 +44,21 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
     private final StsTokenGenerationProvider tokenGenerationProvider;
     private final Function<StsAccount, String> keyFunction;
     private final Clock clock;
+    private final JtiValidationStore jtiValidationStore;
 
-    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Function<StsAccount, String> keyFunction, Clock clock, long tokenExpiration) {
+    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Function<StsAccount, String> keyFunction, Clock clock, long tokenExpiration, JtiValidationStore jtiValidationStore) {
         this.tokenGenerationProvider = tokenGenerationProvider;
         this.keyFunction = keyFunction;
         this.clock = clock;
         this.tokenExpiration = tokenExpiration;
+        this.jtiValidationStore = jtiValidationStore;
     }
 
     @Override
     public ServiceResult<TokenRepresentation> tokenFor(StsAccount client, StsAccountTokenAdditionalParams additionalParams) {
 
         var embeddedTokenGenerator = new EmbeddedSecureTokenService(tokenGenerationProvider.tokenGeneratorFor(client), () -> keyFunction.apply(client), client::getPublicKeyReference,
-                clock, tokenExpiration);
+                clock, tokenExpiration, jtiValidationStore);
 
         var initialClaims = Map.of(
                 ISSUER, client.getDid(),

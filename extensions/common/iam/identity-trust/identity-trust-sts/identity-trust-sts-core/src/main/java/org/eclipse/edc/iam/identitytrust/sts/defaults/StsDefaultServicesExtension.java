@@ -22,6 +22,7 @@ import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientSecretGenerato
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.iam.identitytrust.sts.spi.store.StsAccountStore;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -64,6 +65,9 @@ public class StsDefaultServicesExtension implements ServiceExtension {
     @Inject(required = false)
     private StsClientSecretGenerator stsClientSecretGenerator;
 
+    @Inject
+    private JtiValidationStore jtiValidationStore;
+
     @Override
     public String name() {
         return NAME;
@@ -76,13 +80,15 @@ public class StsDefaultServicesExtension implements ServiceExtension {
                 (client) -> new JwtGenerationService(jwsSignerProvider),
                 StsAccount::getPrivateKeyAlias,
                 clock,
-                TimeUnit.MINUTES.toSeconds(tokenExpiration));
+                TimeUnit.MINUTES.toSeconds(tokenExpiration),
+                jtiValidationStore);
     }
 
     @Provider
     public StsAccountService clientService() {
         return new StsAccountServiceImpl(clientStore, vault, transactionContext, stsClientSecretGenerator());
     }
+
 
     private StsClientSecretGenerator stsClientSecretGenerator() {
         return ofNullable(stsClientSecretGenerator)

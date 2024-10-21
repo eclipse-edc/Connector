@@ -26,6 +26,7 @@ import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -61,6 +62,8 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     private Clock clock;
     @Inject
     private JwsSignerProvider externalSigner;
+    @Inject
+    private JtiValidationStore jtiValidationStore;
 
     @Provider(isDefault = true)
     public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
@@ -70,14 +73,14 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
 
         if (context.getSetting(OAUTH_TOKENURL_PROPERTY, null) != null) {
             context.getMonitor().warning("The property '%s' was configured, but no remote SecureTokenService was found on the classpath. ".formatted(OAUTH_TOKENURL_PROPERTY) +
-                    "This could be an indicator of a configuration problem.");
+                                         "This could be an indicator of a configuration problem.");
         }
 
 
         var publicKeyId = context.getSetting(STS_PUBLIC_KEY_ID, null);
         var privateKeyAlias = context.getSetting(STS_PRIVATE_KEY_ALIAS, null);
 
-        return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
+        return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(tokenExpiration), jtiValidationStore);
     }
 
     @Provider(isDefault = true)
