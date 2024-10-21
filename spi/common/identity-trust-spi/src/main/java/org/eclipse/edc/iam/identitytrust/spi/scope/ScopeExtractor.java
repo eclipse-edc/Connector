@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.spi.scope;
 
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Operator;
@@ -36,5 +36,5 @@ public interface ScopeExtractor {
      * @param rightValue the right-side expression for the constraint.
      * @param context    the policy context
      */
-    Set<String> extractScopes(Object leftValue, Operator operator, Object rightValue, PolicyContext context);
+    Set<String> extractScopes(Object leftValue, Operator operator, Object rightValue, RequestPolicyContext context);
 }
