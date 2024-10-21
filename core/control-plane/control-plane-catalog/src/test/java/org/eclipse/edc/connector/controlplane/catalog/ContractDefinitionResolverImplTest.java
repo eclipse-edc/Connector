@@ -68,7 +68,7 @@ class ContractDefinitionResolverImplTest {
         assertThat(result.policies()).hasSize(1);
         verify(policyEngine, atLeastOnce()).evaluate(
                 eq(def.getPolicy()),
-                and(isA(CatalogPolicyContext.class), argThat(c -> c.agent().equals(agent)))
+                and(isA(CatalogPolicyContext.class), argThat(c -> c.participantAgent().equals(agent)))
         );
         verify(definitionStore).findAll(any());
     }

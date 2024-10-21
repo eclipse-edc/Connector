@@ -115,11 +115,11 @@ class ContractValidationServiceImplTest {
         verify(assetIndex).findById("1");
         verify(policyEngine).evaluate(
                 eq(newPolicy),
-                and(isA(CatalogPolicyContext.class), argThat(c -> c.agent().equals(participantAgent)))
+                and(isA(CatalogPolicyContext.class), argThat(c -> c.participantAgent().equals(participantAgent)))
         );
         verify(policyEngine).evaluate(
                 eq(newPolicy),
-                and(isA(ContractNegotiationPolicyContext.class), argThat(c -> c.agent().equals(participantAgent)))
+                and(isA(ContractNegotiationPolicyContext.class), argThat(c -> c.participantAgent().equals(participantAgent)))
         );
     }
 
