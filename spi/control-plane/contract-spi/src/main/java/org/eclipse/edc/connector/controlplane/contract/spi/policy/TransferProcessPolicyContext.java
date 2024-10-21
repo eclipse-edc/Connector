@@ -15,16 +15,17 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.policy;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 
 import java.time.Instant;
 
 /**
  * Policy Context for "transfer.process" scope
  */
-public class TransferProcessPolicyContext extends PolicyContextImpl implements AgreementPolicyContext {
+public class TransferProcessPolicyContext extends PolicyContextImpl implements AgreementPolicyContext, ParticipantAgentPolicyContext {
 
     @PolicyScope
     public static final String TRANSFER_SCOPE = "transfer.process";
@@ -39,7 +40,8 @@ public class TransferProcessPolicyContext extends PolicyContextImpl implements A
         this.now = now;
     }
 
-    public ParticipantAgent agent() {
+    @Override
+    public ParticipantAgent participantAgent() {
         return agent;
     }
 

@@ -31,9 +31,8 @@ import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
+import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.agent.ParticipantIdMapper;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
@@ -52,7 +51,6 @@ public abstract class BaseContractNegotiationApiTest {
     protected final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new JsonLdExtension().createJsonLdService(testServiceExtensionContext());
-    private final Monitor monitor = mock();
 
     @BeforeEach
     void setUp() {

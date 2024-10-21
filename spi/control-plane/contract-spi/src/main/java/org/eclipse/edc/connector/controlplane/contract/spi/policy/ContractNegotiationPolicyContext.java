@@ -14,14 +14,15 @@
 
 package org.eclipse.edc.connector.controlplane.contract.spi.policy;
 
+import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 
 /**
  * Policy Context for "contract.negotiation" scope
  */
-public class ContractNegotiationPolicyContext extends PolicyContextImpl {
+public class ContractNegotiationPolicyContext extends PolicyContextImpl implements ParticipantAgentPolicyContext {
 
     @PolicyScope
     public static final String NEGOTIATION_SCOPE = "contract.negotiation";
@@ -32,7 +33,8 @@ public class ContractNegotiationPolicyContext extends PolicyContextImpl {
         this.agent = agent;
     }
 
-    public ParticipantAgent agent() {
+    @Override
+    public ParticipantAgent participantAgent() {
         return agent;
     }
 

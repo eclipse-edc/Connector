@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.catalog.spi;
 
-import org.eclipse.edc.spi.agent.ParticipantAgent;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 

@@ -30,11 +30,11 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractD
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatableConsumerOffer;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ import static java.time.Instant.MIN;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
+import static org.eclipse.edc.participant.spi.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -115,11 +115,11 @@ class ContractValidationServiceImplTest {
         verify(assetIndex).findById("1");
         verify(policyEngine).evaluate(
                 eq(newPolicy),
-                and(isA(CatalogPolicyContext.class), argThat(c -> c.agent().equals(participantAgent)))
+                and(isA(CatalogPolicyContext.class), argThat(c -> c.participantAgent().equals(participantAgent)))
         );
         verify(policyEngine).evaluate(
                 eq(newPolicy),
-                and(isA(ContractNegotiationPolicyContext.class), argThat(c -> c.agent().equals(participantAgent)))
+                and(isA(ContractNegotiationPolicyContext.class), argThat(c -> c.participantAgent().equals(participantAgent)))
         );
     }
 

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.core.defaults;
 
-import org.eclipse.edc.spi.agent.ParticipantAgent;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.junit.jupiter.api.Test;
 

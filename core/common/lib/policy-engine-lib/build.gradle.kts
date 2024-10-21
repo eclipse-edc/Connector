@@ -22,7 +22,8 @@ dependencies {
     api(project(":spi:common:policy-model"))
     implementation(project(":core:common:lib:policy-evaluator-lib"))
 
-    testImplementation(project(":tests:junit-base"));
+    testImplementation(project(":spi:common:participant-spi"))
+    testImplementation(project(":tests:junit-base"))
 }
 
 

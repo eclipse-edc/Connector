@@ -14,14 +14,15 @@
 
 package org.eclipse.edc.connector.controlplane.catalog.spi.policy;
 
+import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 
 /**
  * Policy Context for "catalog" scope
  */
-public class CatalogPolicyContext extends PolicyContextImpl {
+public class CatalogPolicyContext extends PolicyContextImpl implements ParticipantAgentPolicyContext {
 
     @PolicyScope
     public static final String CATALOG_SCOPE = "catalog";
@@ -32,7 +33,8 @@ public class CatalogPolicyContext extends PolicyContextImpl {
         this.agent = agent;
     }
 
-    public ParticipantAgent agent() {
+    @Override
+    public ParticipantAgent participantAgent() {
         return agent;
     }
 

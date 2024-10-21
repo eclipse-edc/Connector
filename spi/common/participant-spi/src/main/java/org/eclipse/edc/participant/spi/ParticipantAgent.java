@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.agent;
+package org.eclipse.edc.participant.spi;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

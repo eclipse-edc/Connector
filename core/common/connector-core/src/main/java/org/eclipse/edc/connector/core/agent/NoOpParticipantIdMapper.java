@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.core.agent;
 
-import org.eclipse.edc.spi.agent.ParticipantIdMapper;
+import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 
 /**
  * No-op implementation of the mapper, the ID is already its IRI representation.
