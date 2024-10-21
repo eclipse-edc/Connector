@@ -41,4 +41,13 @@ public interface WebService {
      */
     void registerResource(String contextAlias, Object resource);
 
+
+    /**
+     * Registers a dynamic resource (e.g. a filter) for a specific target class with the webservice, making it available for the default port mapping.
+     *
+     * @param target   the target class of the dynamic resource
+     * @param resource a resource
+     */
+    void registerDynamicResource(String contextAlias, Class<?> target, Object resource);
+
 }

@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
@@ -26,6 +27,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_CONTEXT_SEPARATOR;
 
 /**
  * Serializes {@link RemoteMessage}s to JSON-LD.
@@ -34,15 +36,17 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
 
     private final ObjectMapper mapper;
     private final JsonLd jsonLdService;
-    private final String scope;
+    private final String scopePrefix;
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry;
+    private final DspProtocolParser protocolParser;
 
     public JsonLdRemoteMessageSerializerImpl(DspProtocolTypeTransformerRegistry dspTransformerRegistry,
-                                             ObjectMapper mapper, JsonLd jsonLdService, String scope) {
+                                             ObjectMapper mapper, JsonLd jsonLdService, DspProtocolParser protocolParser, String scopePrefix) {
         this.dspTransformerRegistry = dspTransformerRegistry;
         this.mapper = mapper;
         this.jsonLdService = jsonLdService;
-        this.scope = scope;
+        this.scopePrefix = scopePrefix;
+        this.protocolParser = protocolParser;
     }
 
     /**
@@ -66,7 +70,8 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
             var transformResult = transformerRegistry.transform(message, JsonObject.class);
 
             if (transformResult.succeeded()) {
-                var compacted = jsonLdService.compact(transformResult.getContent(), scope);
+                var compacted = protocolParser.parse(message.getProtocol())
+                        .compose(protocol -> jsonLdService.compact(transformResult.getContent(), scopePrefix + DSP_CONTEXT_SEPARATOR + protocol.version()));
                 if (compacted.succeeded()) {
                     return mapper.writeValueAsString(compacted.getContent());
                 }

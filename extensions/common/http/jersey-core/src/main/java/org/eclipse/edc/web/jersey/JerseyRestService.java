@@ -18,6 +18,7 @@ package org.eclipse.edc.web.jersey;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.web.jersey.feature.DynamicResourceFeature;
 import org.eclipse.edc.web.jersey.mapper.EdcApiExceptionMapper;
 import org.eclipse.edc.web.jersey.mapper.UnexpectedExceptionMapper;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
@@ -45,6 +46,7 @@ public class JerseyRestService implements WebService {
     private final Monitor monitor;
 
     private final Map<String, List<Object>> controllers = new HashMap<>();
+    private final Map<String, Map<Class<?>, List<Object>>> dynamicResources = new HashMap<>();
     private final JerseyConfiguration configuration;
     private final List<Supplier<Object>> additionalInstances = new ArrayList<>();
 
@@ -67,6 +69,14 @@ public class JerseyRestService implements WebService {
                 .add(resource);
     }
 
+    @Override
+    public void registerDynamicResource(String contextAlias, Class<?> target, Object resource) {
+        dynamicResources
+                .computeIfAbsent(contextAlias, s -> new HashMap<>())
+                .computeIfAbsent(target, s -> new ArrayList<>())
+                .add(resource);
+    }
+
     void registerInstance(Supplier<Object> instance) {
         additionalInstances.add(instance);
     }
@@ -82,6 +92,8 @@ public class JerseyRestService implements WebService {
     private void registerContext(String contextAlias, List<Object> controllers) {
         var resourceConfig = new ResourceConfig();
 
+        var dynamicResourcesForContext = dynamicResources.computeIfAbsent(contextAlias, s -> new HashMap<>());
+
         // Disable WADL as it is not used and emits a warning message about JAXB (which is also not used)
         resourceConfig.property(WADL_FEATURE_DISABLE, Boolean.TRUE);
 
@@ -92,6 +104,7 @@ public class JerseyRestService implements WebService {
         resourceConfig.registerInstances(new ObjectMapperProvider(typeManager.getMapper()));
         resourceConfig.registerInstances(new EdcApiExceptionMapper());
         resourceConfig.registerInstances(new UnexpectedExceptionMapper(monitor));
+        resourceConfig.registerInstances(new DynamicResourceFeature(dynamicResourcesForContext));
 
         additionalInstances.forEach(supplier -> resourceConfig.registerInstances(supplier.get()));
 

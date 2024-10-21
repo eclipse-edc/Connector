@@ -23,7 +23,6 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
@@ -33,6 +32,8 @@ import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 
@@ -46,7 +47,8 @@ import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.DSP_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.SETTINGS;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
@@ -116,19 +118,19 @@ class DspApiConfigurationExtensionTest {
         extension.initialize(context);
 
         verify(webService).registerResource(eq(ApiContext.PROTOCOL), isA(ObjectMapperProvider.class));
-        verify(webService).registerResource(eq(ApiContext.PROTOCOL), isA(JerseyJsonLdInterceptor.class));
     }
 
-    @Test
-    void initialize_shouldRegisterNamespaces(DspApiConfigurationExtension extension, ServiceExtensionContext context) {
+    @ParameterizedTest
+    @ValueSource(strings = { DSP_SCOPE_V_08, DSP_SCOPE_V_2024_1 })
+    void initialize_shouldRegisterNamespaces(String scope, DspApiConfigurationExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(jsonLd).registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, DSP_SCOPE);
-        verify(jsonLd).registerNamespace(DCT_PREFIX, DCT_SCHEMA, DSP_SCOPE);
-        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE);
-        verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE, DSP_SCOPE);
-        verify(jsonLd).registerNamespace(EDC_PREFIX, EDC_NAMESPACE, DSP_SCOPE);
-        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE);
+        verify(jsonLd).registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, scope);
+        verify(jsonLd).registerNamespace(DCT_PREFIX, DCT_SCHEMA, scope);
+        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, scope);
+        verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE, scope);
+        verify(jsonLd).registerNamespace(EDC_PREFIX, EDC_NAMESPACE, scope);
+        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, scope);
     }
 
 }
