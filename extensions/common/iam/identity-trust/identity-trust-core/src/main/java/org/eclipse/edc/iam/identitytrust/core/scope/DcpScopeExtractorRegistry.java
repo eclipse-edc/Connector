@@ -16,7 +16,7 @@ package org.eclipse.edc.iam.identitytrust.core.scope;
 
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractor;
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Result;
 
@@ -34,7 +34,7 @@ public class DcpScopeExtractorRegistry implements ScopeExtractorRegistry {
     }
 
     @Override
-    public Result<Set<String>> extractScopes(Policy policy, PolicyContext policyContext) {
+    public Result<Set<String>> extractScopes(Policy policy, RequestPolicyContext policyContext) {
         var visitor = new DcpScopeExtractorVisitor(extractors, policyContext);
         var policies = policy.accept(visitor);
         if (policyContext.hasProblems()) {

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.spi.scope;
 
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
@@ -41,5 +41,5 @@ public interface ScopeExtractorRegistry {
      * @param policyContext The policy context
      * @return The set of scopes to use if succeeded, otherwise failure
      */
-    Result<Set<String>> extractScopes(Policy policy, PolicyContext policyContext);
+    Result<Set<String>> extractScopes(Policy policy, RequestPolicyContext policyContext);
 }

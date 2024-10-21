@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.core.scope;
 
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractor;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Policy;
@@ -50,14 +50,12 @@ import static org.mockito.Mockito.when;
 
 public class DcpScopeExtractorRegistryTest {
 
+    private final RequestPolicyContext ctx = mock();
+    private final ScopeExtractor extractor = mock();
     private final DcpScopeExtractorRegistry registry = new DcpScopeExtractorRegistry();
-    private ScopeExtractor extractor;
-    private PolicyContext ctx;
 
     @BeforeEach
     void setup() {
-        extractor = mock(ScopeExtractor.class);
-        ctx = mock(PolicyContext.class);
         registry.registerScopeExtractor(extractor);
     }
 

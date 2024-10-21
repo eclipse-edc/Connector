@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.core.scope;
 
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractor;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -42,9 +42,9 @@ import java.util.stream.Collectors;
 public class DcpScopeExtractorVisitor implements Policy.Visitor<Set<String>>, Rule.Visitor<Set<String>>, Constraint.Visitor<Set<String>>, Expression.Visitor<Object> {
 
     private final List<ScopeExtractor> mappers;
-    private final PolicyContext policyContext;
+    private final RequestPolicyContext policyContext;
 
-    public DcpScopeExtractorVisitor(List<ScopeExtractor> mappers, PolicyContext policyContext) {
+    public DcpScopeExtractorVisitor(List<ScopeExtractor> mappers, RequestPolicyContext policyContext) {
         this.mappers = mappers;
         this.policyContext = policyContext;
     }
