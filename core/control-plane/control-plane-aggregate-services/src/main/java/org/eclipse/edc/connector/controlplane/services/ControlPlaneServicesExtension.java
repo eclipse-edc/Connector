@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractVa
 import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitionObservableImpl;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.services.asset.AssetEventListener;
+import org.eclipse.edc.connector.controlplane.services.asset.AssetQueryValidator;
 import org.eclipse.edc.connector.controlplane.services.asset.AssetServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.catalog.CatalogProtocolServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.catalog.CatalogServiceImpl;
@@ -40,6 +41,7 @@ import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDe
 import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDefinitionServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.ProtocolTokenValidatorImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.VersionProtocolServiceImpl;
+import org.eclipse.edc.connector.controlplane.services.query.QueryValidators;
 import org.eclipse.edc.connector.controlplane.services.secret.SecretEventListener;
 import org.eclipse.edc.connector.controlplane.services.secret.SecretServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -199,7 +201,8 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     public AssetService assetService() {
         var assetObservable = new AssetObservableImpl();
         assetObservable.registerListener(new AssetEventListener(clock, eventRouter));
-        return new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable, dataAddressValidator);
+        return new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable,
+                dataAddressValidator, new AssetQueryValidator());
     }
 
     @Provider
@@ -222,19 +225,20 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public ContractAgreementService contractAgreementService() {
-        return new ContractAgreementServiceImpl(contractNegotiationStore, transactionContext);
+        return new ContractAgreementServiceImpl(contractNegotiationStore, transactionContext, QueryValidators.contractAgreement());
     }
 
     @Provider
     public ContractDefinitionService contractDefinitionService() {
         var contractDefinitionObservable = new ContractDefinitionObservableImpl();
         contractDefinitionObservable.registerListener(new ContractDefinitionEventListener(clock, eventRouter));
-        return new ContractDefinitionServiceImpl(contractDefinitionStore, transactionContext, contractDefinitionObservable);
+        return new ContractDefinitionServiceImpl(contractDefinitionStore, transactionContext, contractDefinitionObservable, QueryValidators.contractDefinition());
     }
 
     @Provider
     public ContractNegotiationService contractNegotiationService() {
-        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager, transactionContext, commandHandlerRegistry);
+        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager,
+                transactionContext, commandHandlerRegistry, QueryValidators.contractNegotiation());
     }
 
     @Provider
@@ -248,13 +252,15 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     public PolicyDefinitionService policyDefinitionService() {
         var policyDefinitionObservable = new PolicyDefinitionObservableImpl();
         policyDefinitionObservable.registerListener(new PolicyDefinitionEventListener(clock, eventRouter));
-        return new PolicyDefinitionServiceImpl(transactionContext, policyDefinitionStore, contractDefinitionStore, policyDefinitionObservable, policyEngine);
+        return new PolicyDefinitionServiceImpl(transactionContext, policyDefinitionStore, contractDefinitionStore,
+                policyDefinitionObservable, policyEngine, QueryValidators.policyDefinition());
     }
 
     @Provider
     public TransferProcessService transferProcessService() {
         return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext,
-                dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore);
+                dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore,
+                QueryValidators.transferProcess());
     }
 
     @Provider

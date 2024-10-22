@@ -43,13 +43,13 @@ public class AssetServiceImpl implements AssetService {
 
     public AssetServiceImpl(AssetIndex index, ContractNegotiationStore contractNegotiationStore,
                             TransactionContext transactionContext, AssetObservable observable,
-                            DataAddressValidatorRegistry dataAddressValidator) {
+                            DataAddressValidatorRegistry dataAddressValidator, QueryValidator queryValidator) {
         this.index = index;
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
         this.observable = observable;
         this.dataAddressValidator = dataAddressValidator;
-        queryValidator = new AssetQueryValidator();
+        this.queryValidator = queryValidator;
     }
 
     @Override

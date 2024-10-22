@@ -19,9 +19,9 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitionObservable;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -29,26 +29,22 @@ import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -59,8 +55,8 @@ class PolicyDefinitionServiceImplTest {
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
     private final PolicyDefinitionObservable observable = mock(PolicyDefinitionObservable.class);
     private final PolicyEngine policyEngine = mock();
-    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable, policyEngine);
-
+    private final QueryValidator queryValidator = mock();
+    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable, policyEngine, queryValidator);
 
     @Test
     void findById_shouldRelyOnPolicyStore() {
@@ -75,34 +71,21 @@ class PolicyDefinitionServiceImplTest {
     void search_shouldRelyOnPolicyStore() {
         var policy = createPolicy("policyId");
         when(policyStore.findAll(any(QuerySpec.class))).thenReturn(Stream.of(policy));
+        when(queryValidator.validate(any())).thenReturn(Result.success());
+
         var policies = policyServiceImpl.search(QuerySpec.none());
 
-        assertThat(policies.succeeded()).isTrue();
-        assertThat(policies.getContent()).containsExactly(policy);
+        assertThat(policies).isSucceeded().asInstanceOf(list(PolicyDefinition.class)).containsExactly(policy);
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(InvalidFilters.class)
-    void search_invalidExpression_raiseException(Criterion invalidFilter) {
-        var query = QuerySpec.Builder.newInstance()
-                .filter(invalidFilter)
-                .build();
+    @Test
+    void search_shouldFail_whenValidationFails() {
+        when(queryValidator.validate(any())).thenReturn(Result.failure("not valid"));
 
-        var result = policyServiceImpl.search(query);
+        var policies = policyServiceImpl.search(QuerySpec.none());
 
-        assertThat(result).isFailed();
-    }
-
-    @ParameterizedTest
-    @ArgumentsSource(ValidFilters.class)
-    void search_validExpression_privateProperties(Criterion validFilter) {
-        var query = QuerySpec.Builder.newInstance()
-                .filter(validFilter)
-                .build();
-
-        var result = policyServiceImpl.search(query);
-
-        assertThat(result).isSucceeded();
+        assertThat(policies).isFailed();
+        verifyNoInteractions(policyStore);
     }
 
     @Test
@@ -274,32 +257,4 @@ class PolicyDefinitionServiceImplTest {
         return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id(policyId).build();
     }
 
-    private static class InvalidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("policy.permissions.action.constraint.noexist", "=", "123455")), // wrong property
-                    arguments(criterion("permissions.action.constraint.leftExpression", "=", "123455")), // missing root
-                    arguments(criterion("policy.permissions.action.leftExpression", "=", "123455")) // skips path element
-            );
-        }
-    }
-
-    private static class ValidFilters implements ArgumentsProvider {
-        private static final String PRIVATE_PROPERTIES = "privateProperties";
-        private static final String EDC_NAMESPACE = "'https://w3id.org/edc/v0.0.1/ns/'";
-        private static final String KEY = "key";
-
-        private static final String VALUE = "123455";
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion(PRIVATE_PROPERTIES, "=", VALUE)), // path element with privateProperties
-                    arguments(criterion(PRIVATE_PROPERTIES + "." + KEY, "=", VALUE)), // path element with privateProperties and key
-                    arguments(criterion(PRIVATE_PROPERTIES + ".'" + KEY + "'", "=", VALUE)), // path element with privateProperties and 'key'
-                    arguments(criterion(PRIVATE_PROPERTIES + "." + EDC_NAMESPACE + KEY, "=", VALUE)) // path element with privateProperties and edc_namespace key
-            );
-        }
-    }
 }

@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyMap;
 
 /**
  * Validates that a particular query is valid, i.e. contains a left-hand operand, that conforms to the canonical
@@ -51,7 +51,7 @@ public class QueryValidator {
     }
 
     public QueryValidator(Class<?> canonicalType) {
-        this(canonicalType, null);
+        this(canonicalType, emptyMap());
     }
 
     /**
@@ -105,13 +105,12 @@ public class QueryValidator {
 
     private Field getFieldIncludingSubtypes(Class<?> type, String token) {
         var field = ReflectionUtil.getFieldRecursive(type, token);
-        if (field == null && subtypeMap != null) {
+        if (field == null) {
             var subTypes = subtypeMap.get(type);
             if (subTypes != null) {
-                var foundTypes = subTypes.stream().map(st -> getFieldIncludingSubtypes(st, token))
+                return subTypes.stream().map(st -> getFieldIncludingSubtypes(st, token))
                         .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-                return foundTypes.stream().findFirst().orElse(null);
+                        .findFirst().orElse(null);
             }
         }
         return field;

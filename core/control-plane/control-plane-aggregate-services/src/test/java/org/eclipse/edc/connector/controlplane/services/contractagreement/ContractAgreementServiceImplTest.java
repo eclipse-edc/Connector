@@ -17,9 +17,11 @@ package org.eclipse.edc.connector.controlplane.services.contractagreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -31,19 +33,23 @@ import java.util.stream.Stream;
 
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class ContractAgreementServiceImplTest {
 
     private final ContractNegotiationStore store = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final ContractAgreementService service = new ContractAgreementServiceImpl(store, transactionContext);
+    private final QueryValidator queryValidator = mock();
+    private final ContractAgreementService service = new ContractAgreementServiceImpl(store, transactionContext, queryValidator);
 
     @Test
     void findById_filtersById() {
@@ -68,11 +74,22 @@ class ContractAgreementServiceImplTest {
     void search_filtersBySpec() {
         var agreement = createContractAgreement("agreementId");
         when(store.queryAgreements(isA(QuerySpec.class))).thenReturn(Stream.of(agreement));
+        when(queryValidator.validate(any())).thenReturn(Result.success());
 
         var result = service.search(QuerySpec.none());
 
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).hasSize(1).first().matches(it -> it.getId().equals("agreementId"));
+        assertThat(result).isSucceeded().asInstanceOf(list(ContractAgreement.class))
+                .hasSize(1).first().matches(it -> it.getId().equals("agreementId"));
+    }
+
+    @Test
+    void search_shouldFail_whenQueryIsNotValid() {
+        when(queryValidator.validate(any())).thenReturn(Result.failure("not valid"));
+
+        var result = service.search(QuerySpec.none());
+
+        assertThat(result).isFailed();
+        verifyNoInteractions(store);
     }
 
     @Test

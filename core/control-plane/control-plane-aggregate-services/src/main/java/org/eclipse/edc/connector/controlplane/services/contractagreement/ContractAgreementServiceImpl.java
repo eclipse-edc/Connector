@@ -33,10 +33,10 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
     private final TransactionContext transactionContext;
     private final QueryValidator queryValidator;
 
-    public ContractAgreementServiceImpl(ContractNegotiationStore store, TransactionContext transactionContext) {
+    public ContractAgreementServiceImpl(ContractNegotiationStore store, TransactionContext transactionContext, QueryValidator queryValidator) {
         this.store = store;
         this.transactionContext = transactionContext;
-        queryValidator = new QueryValidator(ContractAgreement.class);
+        this.queryValidator = queryValidator;
     }
 
     @Override
