@@ -17,15 +17,16 @@ package org.eclipse.edc.test.e2e.protocol;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.util.io.Ports;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.Map;
 import java.util.UUID;
@@ -33,15 +34,20 @@ import java.util.UUID;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 
 @EndToEndTest
 public class DspNegotiationApiEndToEndTest {
@@ -65,8 +71,9 @@ public class DspNegotiationApiEndToEndTest {
             ":extensions:common:http"
     ));
 
-    @Test
-    void shouldExposeVersion2024_1() {
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void shouldExposeVersion(String basePath, JsonLdNamespace namespace) {
         var id = UUID.randomUUID().toString();
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(id).counterPartyId("any").counterPartyAddress("any").protocol("any").state(REQUESTED.code())
@@ -83,18 +90,21 @@ public class DspNegotiationApiEndToEndTest {
                 .basePath("/protocol")
                 .contentType(JSON)
                 .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
-                .get("/2024/1/negotiations/" + id)
+                .get(basePath + "/negotiations/" + id)
                 .then()
                 .log().ifError()
                 .statusCode(200)
-                .contentType(JSON);
-
-        assertThat(runtime.getService(ProtocolVersionRegistry.class).getAll().protocolVersions())
-                .contains(V_2024_1);
+                .contentType(JSON)
+                .body("'@type'", equalTo("dspace:ContractNegotiation"))
+                .body("'dspace:state'", notNullValue())
+                .body("'dspace:consumerPid'", notNullValue())
+                .body("'dspace:providerPid'", notNullValue())
+                .body("'@context'.dspace", equalTo(namespace.namespace()));
     }
 
-    @Test
-    void shouldReturnError_whenNotFound() {
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void shouldReturnError_whenNotFound(String basePath, JsonLdNamespace namespace) {
         var id = UUID.randomUUID().toString();
 
         given()
@@ -102,7 +112,7 @@ public class DspNegotiationApiEndToEndTest {
                 .basePath("/protocol")
                 .contentType(JSON)
                 .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
-                .get("/negotiations/" + id)
+                .get(basePath + "/negotiations/" + id)
                 .then()
                 .log().ifError()
                 .statusCode(404)
@@ -110,18 +120,51 @@ public class DspNegotiationApiEndToEndTest {
                 .body("'@type'", equalTo("dspace:ContractNegotiationError"))
                 .body("'dspace:code'", equalTo("404"))
                 .body("'dspace:reason'", equalTo("No negotiation with id %s found".formatted(id)))
-                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+                .body("'@context'.dspace", equalTo(namespace.namespace()));
     }
 
-    @Test
-    void terminate_ShouldReturnError_whenMissingToken() {
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void shouldReturnError_whenValidationFails(String basePath, JsonLdNamespace namespace) {
+
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .body(createObjectBuilder()
+                        .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                        .add(TYPE, "WrongType")
+                        .add(namespace.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "any")
+                        .add(namespace.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), "any")
+                        .add(namespace.toIri(DSPACE_PROPERTY_OFFER_TERM), createObjectBuilder()
+                                .add("@type", ODRL_POLICY_TYPE_OFFER)
+                                .add(ID, "offerId")
+                                .add(ODRL_TARGET_ATTRIBUTE, "target")
+                                .add(ODRL_ASSIGNER_ATTRIBUTE, "assigner")
+                                .build())
+                        .build())
+                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
+                .post(basePath + "/negotiations/request")
+                .then()
+                .log().ifError()
+                .statusCode(400)
+                .contentType(JSON)
+                .body("'@type'", equalTo("dspace:ContractNegotiationError"))
+                .body("'dspace:code'", equalTo("400"))
+                .body("'dspace:reason'", equalTo("Bad request."))
+                .body("'@context'.dspace", equalTo(namespace.namespace()));
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void terminate_ShouldReturnError_whenMissingToken(String basePath, JsonLdNamespace namespace) {
         var id = UUID.randomUUID().toString();
 
         given()
                 .port(PROTOCOL_PORT)
                 .basePath("/protocol")
                 .contentType(JSON)
-                .post("/negotiations/" + id + "/termination")
+                .post(basePath + "/negotiations/" + id + "/termination")
                 .then()
                 .log().ifError()
                 .statusCode(401)
@@ -129,11 +172,12 @@ public class DspNegotiationApiEndToEndTest {
                 .body("'@type'", equalTo("dspace:ContractNegotiationError"))
                 .body("'dspace:code'", equalTo("401"))
                 .body("'dspace:reason'", equalTo("Unauthorized."))
-                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+                .body("'@context'.dspace", equalTo(namespace.namespace()));
     }
 
-    @Test
-    void terminate_ShouldReturnError_whenValidationFails() {
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void terminate_ShouldReturnError_whenValidationFails(String basePath, JsonLdNamespace namespace) {
         var id = UUID.randomUUID().toString();
 
         given()
@@ -145,7 +189,7 @@ public class DspNegotiationApiEndToEndTest {
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                         .add(TYPE, "FakeType")
                         .build())
-                .post("/negotiations/" + id + "/termination")
+                .post(basePath + "/negotiations/" + id + "/termination")
 
                 .then()
                 .log().ifError()
@@ -154,7 +198,7 @@ public class DspNegotiationApiEndToEndTest {
                 .body("'@type'", equalTo("dspace:ContractNegotiationError"))
                 .body("'dspace:code'", equalTo("400"))
                 .body("'dspace:reason'", equalTo("Bad request."))
-                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+                .body("'@context'.dspace", equalTo(namespace.namespace()));
     }
 
 }

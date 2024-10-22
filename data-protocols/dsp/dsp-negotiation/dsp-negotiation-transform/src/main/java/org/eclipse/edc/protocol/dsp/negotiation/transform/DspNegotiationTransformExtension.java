@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.negotiation.transform;
 
 import jakarta.json.Json;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractAgreementMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractAgreementVerificationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationErrorTransformer;
@@ -38,6 +39,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2024_1;
 
@@ -59,29 +62,29 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08);
-        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1);
+        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08);
+        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1);
     }
 
-    private void registerTransformers(String version) {
+    private void registerTransformers(String version, JsonLdNamespace namespace) {
         var builderFactory = Json.createBuilderFactory(Map.of());
 
         var dspApiTransformerRegistry = registry.forContext(version);
-        dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementMessageTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementVerificationMessageTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationEventMessageTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTerminationMessageTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractRequestMessageTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractOfferMessageTransformer(builderFactory));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationErrorTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementMessageTransformer(builderFactory, namespace));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementVerificationMessageTransformer(builderFactory, namespace));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationEventMessageTransformer(builderFactory, namespace));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTerminationMessageTransformer(builderFactory, namespace));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(builderFactory, namespace));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractRequestMessageTransformer(builderFactory, namespace));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractOfferMessageTransformer(builderFactory, namespace));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationErrorTransformer(builderFactory, namespace));
 
-        dspApiTransformerRegistry.register(new JsonObjectToContractAgreementMessageTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToContractAgreementVerificationMessageTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationEventMessageTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToContractRequestMessageTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationTerminationMessageTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToContractOfferMessageTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationAckTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToContractAgreementMessageTransformer(namespace));
+        dspApiTransformerRegistry.register(new JsonObjectToContractAgreementVerificationMessageTransformer(namespace));
+        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationEventMessageTransformer(namespace));
+        dspApiTransformerRegistry.register(new JsonObjectToContractRequestMessageTransformer(namespace));
+        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationTerminationMessageTransformer(namespace));
+        dspApiTransformerRegistry.register(new JsonObjectToContractOfferMessageTransformer(namespace));
+        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationAckTransformer(namespace));
     }
 }
