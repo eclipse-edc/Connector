@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.spi;
 
+
 import org.eclipse.edc.participant.spi.ParticipantAgentServiceExtension;
 
 /**

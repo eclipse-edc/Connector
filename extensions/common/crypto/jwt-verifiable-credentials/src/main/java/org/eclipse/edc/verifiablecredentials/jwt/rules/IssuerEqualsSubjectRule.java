@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.verifiablecredentials.jwt.rules;
 
-import com.nimbusds.jwt.JWTClaimNames;
+import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationRule;
@@ -29,8 +29,8 @@ import static org.eclipse.edc.spi.result.Result.failure;
 public class IssuerEqualsSubjectRule implements TokenValidationRule {
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
-        var iss = toVerify.getStringClaim(JWTClaimNames.ISSUER);
-        var sub = toVerify.getStringClaim(JWTClaimNames.SUBJECT);
+        var iss = toVerify.getStringClaim(JwtRegisteredClaimNames.ISSUER);
+        var sub = toVerify.getStringClaim(JwtRegisteredClaimNames.SUBJECT);
 
         return iss != null && Objects.equals(iss, sub) ?
                 Result.success() :

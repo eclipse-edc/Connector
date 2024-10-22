@@ -23,7 +23,7 @@ dependencies {
     implementation(project(":spi:common:jwt-spi"))
     implementation(project(":spi:common:identity-trust-spi"))
     implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":core:common:token-core")) // for the token rules
+    implementation(project(":core:common:lib:token-lib"))
 
 
     testImplementation(project(":core:common:lib:json-ld-lib"))
