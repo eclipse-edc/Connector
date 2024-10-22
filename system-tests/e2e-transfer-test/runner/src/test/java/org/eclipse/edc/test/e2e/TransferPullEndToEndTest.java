@@ -168,7 +168,8 @@ class TransferPullEndToEndTest {
         }
 
         @Test
-        void suspendAndResume_httpPull_dataTransfer_withEdrCache() {
+        void
+        suspendAndResume_httpPull_dataTransfer_withEdrCache() {
             providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());

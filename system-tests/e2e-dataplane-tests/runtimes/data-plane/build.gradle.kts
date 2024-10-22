@@ -17,6 +17,7 @@ plugins {
 
 dependencies {
     implementation(project(":core:common:connector-core"))
+    implementation(project(":core:common:token-core"))
     implementation(project(":core:data-plane:data-plane-core"))
     implementation(project(":extensions:common:api:control-api-configuration"))
     implementation(project(":extensions:common:http"))
