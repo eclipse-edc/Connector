@@ -22,10 +22,10 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
-class AssetQueryValidator extends QueryValidator {
+public class AssetQueryValidator extends QueryValidator {
     private static final Pattern VALID_QUERY_PATH_REGEX = Pattern.compile("^[A-Za-z_']+.*$");
 
-    AssetQueryValidator() {
+    public AssetQueryValidator() {
         super(Asset.class);
     }
 

@@ -43,12 +43,13 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     private final QueryValidator queryValidator;
 
     public ContractNegotiationServiceImpl(ContractNegotiationStore store, ConsumerContractNegotiationManager consumerManager,
-                                          TransactionContext transactionContext, CommandHandlerRegistry commandHandlerRegistry) {
+                                          TransactionContext transactionContext, CommandHandlerRegistry commandHandlerRegistry,
+                                          QueryValidator queryValidator) {
         this.store = store;
         this.consumerManager = consumerManager;
         this.transactionContext = transactionContext;
         this.commandHandlerRegistry = commandHandlerRegistry;
-        queryValidator = new QueryValidator(ContractNegotiation.class);
+        this.queryValidator = queryValidator;
     }
 
     @Override

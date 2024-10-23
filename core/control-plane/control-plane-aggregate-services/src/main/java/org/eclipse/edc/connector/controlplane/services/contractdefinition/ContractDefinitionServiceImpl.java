@@ -33,11 +33,12 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     private final ContractDefinitionObservable observable;
     private final QueryValidator queryValidator;
 
-    public ContractDefinitionServiceImpl(ContractDefinitionStore store, TransactionContext transactionContext, ContractDefinitionObservable observable) {
+    public ContractDefinitionServiceImpl(ContractDefinitionStore store, TransactionContext transactionContext,
+                                         ContractDefinitionObservable observable, QueryValidator queryValidator) {
         this.store = store;
         this.transactionContext = transactionContext;
         this.observable = observable;
-        queryValidator = new QueryValidator(ContractDefinition.class);
+        this.queryValidator = queryValidator;
     }
 
     @Override
