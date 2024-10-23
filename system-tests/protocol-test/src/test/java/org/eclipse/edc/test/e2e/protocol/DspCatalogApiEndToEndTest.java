@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -29,8 +29,9 @@ import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.util.io.Ports;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.Map;
 import java.util.UUID;
@@ -40,14 +41,11 @@ import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Arrays.stream;
 import static java.util.stream.IntStream.range;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -75,9 +73,10 @@ public class DspCatalogApiEndToEndTest {
             ":core:control-plane:control-plane-core",
             ":extensions:common:http"
     ));
-
-    @Test
-    void shouldExposeVersion2024_1() {
+    
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void shouldExposeVersion(String basePath, JsonLdNamespace namespace) {
         given()
                 .port(PROTOCOL_PORT)
                 .basePath("/protocol")
@@ -85,22 +84,23 @@ public class DspCatalogApiEndToEndTest {
                 .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
                 .body(createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
+                        .add(TYPE, namespace.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM))
                         .build())
-                .post("/2024/1/catalog/request")
+                .post(basePath + "/catalog/request")
                 .then()
                 .log().ifValidationFails()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("'dspace:participantId'", notNullValue());
+                .body("'dspace:participantId'", notNullValue())
+                .body("'@context'.dspace", equalTo(namespace.namespace()));
 
-        assertThat(runtime.getService(ProtocolVersionRegistry.class).getAll().protocolVersions())
-                .contains(V_2024_1);
     }
 
-    @Test
-    void shouldPermitPaginationWithLinkHeader() {
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void shouldPermitPaginationWithLinkHeader(String basePath, JsonLdNamespace namespace) {
         var assetIndex = runtime.getService(AssetIndex.class);
+
         range(0, 8)
                 .mapToObj(i -> Asset.Builder.newInstance().id(i + "").dataAddress(DataAddress.Builder.newInstance().type("any").build()).build())
                 .forEach(assetIndex::create);
@@ -118,18 +118,19 @@ public class DspCatalogApiEndToEndTest {
                 .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
                 .body(createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
-                        .add(DSPACE_PROPERTY_FILTER_IRI, Json.createObjectBuilder()
+                        .add(TYPE, namespace.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM))
+                        .add(namespace.toIri(DSPACE_PROPERTY_FILTER_TERM), Json.createObjectBuilder()
                                 .add("offset", 0)
                                 .add("limit", 5))
                         .build())
-                .post("/2024/1/catalog/request")
+                .post(basePath + "/catalog/request")
                 .then()
                 .log().ifValidationFails()
                 .statusCode(200)
                 .contentType(JSON)
                 .body("'dcat:dataset'.size()", equalTo(5))
-                .header("Link", containsString("/2024/1/catalog/request"))
+                .body("'@context'.dspace", equalTo(namespace.namespace()))
+                .header("Link", containsString(basePath + "/catalog/request"))
                 .header("Link", containsString("next"))
                 .header("Link", not(containsString("prev")))
                 .extract().header("Link");
@@ -143,22 +144,24 @@ public class DspCatalogApiEndToEndTest {
                 .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
                 .body(createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
+                        .add(TYPE, namespace.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM))
                         .build()
                 )
                 .post(nextPageUrl)
                 .then()
                 .log().ifValidationFails()
                 .body("'dcat:dataset'.size()", equalTo(3))
+                .body("'@context'.dspace", equalTo(namespace.namespace()))
                 .statusCode(200)
                 .contentType(JSON)
-                .header("Link", containsString("/2024/1/catalog/request"))
+                .header("Link", containsString(basePath + "/catalog/request"))
                 .header("Link", containsString("prev"))
                 .header("Link", not(containsString("next")));
     }
 
-    @Test
-    void catalogRequest_shouldReturnError_whenNotAuthorized() {
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void catalogRequest_shouldReturnError_whenNotAuthorized(String basePath, JsonLdNamespace namespace) {
 
         var authorizationHeader = """
                 {"region": "any", "audience": "any", "clientId":"faultyClientId"}"
@@ -170,9 +173,9 @@ public class DspCatalogApiEndToEndTest {
                 .header("Authorization", authorizationHeader)
                 .body(createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
+                        .add(TYPE, namespace.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM))
                         .build())
-                .post("/catalog/request")
+                .post(basePath + "/catalog/request")
                 .then()
                 .log().ifValidationFails()
                 .statusCode(401)
@@ -180,12 +183,13 @@ public class DspCatalogApiEndToEndTest {
                 .body("'@type'", equalTo("dspace:CatalogError"))
                 .body("'dspace:code'", equalTo("401"))
                 .body("'dspace:reason'", equalTo("Unauthorized"))
-                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+                .body("'@context'.dspace", equalTo(namespace.namespace()));
 
     }
 
-    @Test
-    void catalogRequest_shouldReturnError_whenMissingToken() {
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void catalogRequest_shouldReturnError_whenMissingToken(String basePath, JsonLdNamespace namespace) {
 
         given()
                 .port(PROTOCOL_PORT)
@@ -193,9 +197,9 @@ public class DspCatalogApiEndToEndTest {
                 .contentType(JSON)
                 .body(createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                        .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
+                        .add(TYPE, namespace.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM))
                         .build())
-                .post("/catalog/request")
+                .post(basePath + "/catalog/request")
                 .then()
                 .log().ifValidationFails()
                 .statusCode(401)
@@ -203,12 +207,13 @@ public class DspCatalogApiEndToEndTest {
                 .body("'@type'", equalTo("dspace:CatalogError"))
                 .body("'dspace:code'", equalTo("401"))
                 .body("'dspace:reason'", equalTo("Unauthorized."))
-                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+                .body("'@context'.dspace", equalTo(namespace.namespace()));
 
     }
 
-    @Test
-    void catalogRequest_shouldReturnError_whenValidationFails() {
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void catalogRequest_shouldReturnError_whenValidationFails(String basePath, JsonLdNamespace namespace) {
         var authorizationHeader = """
                 {"region": "any", "audience": "any", "clientId":"any"}"
                 """;
@@ -221,7 +226,7 @@ public class DspCatalogApiEndToEndTest {
                         .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                         .add(TYPE, "FakeType")
                         .build())
-                .post("/catalog/request")
+                .post(basePath + "/catalog/request")
                 .then()
                 .log().ifValidationFails()
                 .statusCode(400)
@@ -229,12 +234,13 @@ public class DspCatalogApiEndToEndTest {
                 .body("'@type'", equalTo("dspace:CatalogError"))
                 .body("'dspace:code'", equalTo("400"))
                 .body("'dspace:reason'", equalTo("Bad request."))
-                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+                .body("'@context'.dspace", equalTo(namespace.namespace()));
 
     }
 
-    @Test
-    void shouldReturnError_whenDatasetNotFound() {
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionProvider.class)
+    void shouldReturnError_whenDatasetNotFound(String basePath, JsonLdNamespace namespace) {
 
         var id = UUID.randomUUID().toString();
         var authorizationHeader = """
@@ -245,7 +251,7 @@ public class DspCatalogApiEndToEndTest {
                 .basePath("/protocol")
                 .contentType(JSON)
                 .header("Authorization", authorizationHeader)
-                .get("/catalog/datasets/" + id)
+                .get(basePath + "/catalog/datasets/" + id)
                 .then()
                 .log().ifValidationFails()
                 .statusCode(404)
@@ -253,7 +259,7 @@ public class DspCatalogApiEndToEndTest {
                 .body("'@type'", equalTo("dspace:CatalogError"))
                 .body("'dspace:code'", equalTo("404"))
                 .body("'dspace:reason'", equalTo("Dataset %s does not exist".formatted(id)))
-                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+                .body("'@context'.dspace", equalTo(namespace.namespace()));
 
     }
 }

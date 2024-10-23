@@ -19,20 +19,23 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ResponseDecorator;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
 
 public class ContinuationTokenManagerImpl implements ContinuationTokenManager {
 
     private final Base64continuationTokenSerDes continuationTokenSerDes;
+    private final JsonLdNamespace namespace;
     private final Monitor monitor;
 
-    public ContinuationTokenManagerImpl(Base64continuationTokenSerDes continuationTokenSerDes, Monitor monitor) {
+    public ContinuationTokenManagerImpl(Base64continuationTokenSerDes continuationTokenSerDes, JsonLdNamespace namespace, Monitor monitor) {
         this.continuationTokenSerDes = continuationTokenSerDes;
+        this.namespace = namespace;
         this.monitor = monitor;
     }
 
@@ -40,7 +43,7 @@ public class ContinuationTokenManagerImpl implements ContinuationTokenManager {
     public Result<JsonObject> applyQueryFromToken(JsonObject requestMessage, String continuationToken) {
         return continuationTokenSerDes.deserialize(continuationToken)
                 .map(query -> Json.createArrayBuilder().add(query))
-                .map(filter -> Json.createObjectBuilder(requestMessage).add(DSPACE_PROPERTY_FILTER_IRI, filter))
+                .map(filter -> Json.createObjectBuilder(requestMessage).add(namespace.toIri(DSPACE_PROPERTY_FILTER_TERM), filter))
                 .map(JsonObjectBuilder::build);
     }
 

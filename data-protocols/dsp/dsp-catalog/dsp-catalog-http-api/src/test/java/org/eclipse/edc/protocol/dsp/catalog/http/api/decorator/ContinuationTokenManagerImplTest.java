@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.when;
 class ContinuationTokenManagerImplTest {
 
     private final Base64continuationTokenSerDes serDes = mock();
-    private final ContinuationTokenManagerImpl continuationTokenManager = new ContinuationTokenManagerImpl(serDes, mock());
+    private final ContinuationTokenManagerImpl continuationTokenManager = new ContinuationTokenManagerImpl(serDes, DSP_NAMESPACE_V_08, mock());
 
     @Test
     void apply_shouldReplaceQueryWithTheOnePassedInTheToken() {

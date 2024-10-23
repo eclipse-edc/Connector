@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiController;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiController20241;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.Base64continuationTokenSerDes;
@@ -40,7 +41,9 @@ import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
@@ -89,11 +92,12 @@ public class DspCatalogApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        validatorRegistry.register(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI, CatalogRequestMessageValidator.instance(criterionOperatorRegistry));
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
+        registerValidators(DSP_NAMESPACE_V_08);
+        registerValidators(DSP_NAMESPACE_V_2024_1);
 
-        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController(service, dspRequestHandler, continuationTokenManager(monitor, DSP_TRANSFORMER_CONTEXT_V_08)));
-        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController20241(service, dspRequestHandler, continuationTokenManager(monitor, DSP_TRANSFORMER_CONTEXT_V_2024_1)));
+        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController(service, dspRequestHandler, continuationTokenManager(monitor, DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08)));
+        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController20241(service, dspRequestHandler, continuationTokenManager(monitor, DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1)));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspCatalogApiController.class, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE_V_08));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspCatalogApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE_V_2024_1));
 
@@ -106,8 +110,12 @@ public class DspCatalogApiExtension implements ServiceExtension {
         versionRegistry.register(V_08);
     }
 
-    private ContinuationTokenManager continuationTokenManager(Monitor monitor, String version) {
+    private ContinuationTokenManager continuationTokenManager(Monitor monitor, String version, JsonLdNamespace namespace) {
         var continuationTokenSerDes = new Base64continuationTokenSerDes(transformerRegistry.forContext(version), jsonLd);
-        return new ContinuationTokenManagerImpl(continuationTokenSerDes, monitor);
+        return new ContinuationTokenManagerImpl(continuationTokenSerDes, namespace, monitor);
+    }
+
+    private void registerValidators(JsonLdNamespace namespace) {
+        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM), CatalogRequestMessageValidator.instance(criterionOperatorRegistry, namespace));
     }
 }
