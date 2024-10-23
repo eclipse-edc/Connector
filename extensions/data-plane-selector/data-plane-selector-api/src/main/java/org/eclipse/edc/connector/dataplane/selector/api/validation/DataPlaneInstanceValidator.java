@@ -21,7 +21,6 @@ import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 
@@ -35,7 +34,6 @@ public class DataPlaneInstanceValidator {
                 .verifyId(OptionalIdNotBlank::new)
                 .verify(URL, MandatoryValue::new)
                 .verify(ALLOWED_SOURCE_TYPES, MandatoryArray.min(1))
-                .verify(ALLOWED_DEST_TYPES, MandatoryArray.min(1))
                 .build();
     }
 

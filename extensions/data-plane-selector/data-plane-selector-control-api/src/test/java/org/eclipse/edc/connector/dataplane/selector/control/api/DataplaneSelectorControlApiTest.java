@@ -58,8 +58,6 @@ class DataplaneSelectorControlApiTest {
                         .satisfies(transformed -> {
                             assertThat(transformed.getId()).isNotBlank();
                             assertThat(transformed.getUrl()).isNotNull();
-                            assertThat(transformed.getAllowedDestTypes()).isNotEmpty();
-                            assertThat(transformed.getAllowedDestTypes()).isNotEmpty();
                             assertThat(transformed.getAllowedTransferTypes()).isNotEmpty();
                         }));
     }

@@ -97,10 +97,7 @@ public class DataPlaneHttpIntegrationTests {
     private static final String AUTH_HEADER_KEY = AUTHORIZATION.toString();
     private static final String SOURCE_AUTH_VALUE = "source-auth-key";
     private static final String SINK_AUTH_VALUE = "sink-auth-key";
-    private static ClientAndServer httpSourceMockServer;
-    private static ClientAndServer httpSinkMockServer;
-    private final Duration timeout = Duration.ofSeconds(30);
-
+    private static final DataPlaneAuthorizationService DATAPLANE_AUTH_SERVICE = mock();
     private static final EmbeddedRuntime RUNTIME = new EmbeddedRuntime(
             "data-plane-server",
             Map.of(
@@ -119,7 +116,10 @@ public class DataPlaneHttpIntegrationTests {
             ":extensions:data-plane:data-plane-http",
             ":extensions:data-plane:data-plane-public-api-v2",
             ":extensions:data-plane:data-plane-signaling:data-plane-signaling-api"
-    ).registerServiceMock(DataPlaneAuthorizationService.class, mock());
+    ).registerServiceMock(DataPlaneAuthorizationService.class, DATAPLANE_AUTH_SERVICE);
+    private static ClientAndServer httpSourceMockServer;
+    private static ClientAndServer httpSinkMockServer;
+    private final Duration timeout = Duration.ofSeconds(30);
 
     @BeforeAll
     public static void setUp() {
@@ -137,6 +137,60 @@ public class DataPlaneHttpIntegrationTests {
     public void resetMockServer() {
         httpSourceMockServer.reset();
         httpSinkMockServer.reset();
+    }
+
+    /**
+     * Mock HTTP GET request for source.
+     *
+     * @return see {@link HttpRequest}
+     */
+    private HttpRequest getRequest(String path) {
+        return getRequest(emptyMap(), path);
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link HttpRequest}
+     */
+    private HttpRequest getRequest(Map<String, String> queryParams, String path) {
+        var request = request();
+
+        var paramsList = queryParams.entrySet()
+                .stream()
+                .map(entry -> param(entry.getKey(), entry.getValue()))
+                .toList();
+
+        request.withQueryStringParameters(new Parameters(paramsList).withKeyMatchStyle(MATCHING_KEY));
+
+        return request
+                .withMethod(HttpMethod.GET.name())
+                .withHeader(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE)
+                .withPath("/" + path);
+    }
+
+    private HttpRequest postRequest(String responseBody, MediaType contentType) {
+        return request()
+                .withMethod(HttpMethod.POST.name())
+                .withHeader(AUTH_HEADER_KEY, SINK_AUTH_VALUE)
+                .withContentType(contentType)
+                .withBody(binary(responseBody.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    /**
+     * Mock http OK response from sink.
+     *
+     * @return see {@link HttpResponse}
+     */
+    private HttpResponse successfulResponse() {
+        return response()
+                .withStatusCode(HttpStatusCode.OK_200.code());
+    }
+
+    private HttpResponse successfulResponse(String responseBody, MediaType contentType) {
+        return successfulResponse()
+                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), contentType.toString())
+                .withBody(responseBody);
     }
 
     @Nested
@@ -379,59 +433,5 @@ public class DataPlaneHttpIntegrationTests {
                     .add("dspace:value", value);
         }
 
-    }
-
-    /**
-     * Mock HTTP GET request for source.
-     *
-     * @return see {@link HttpRequest}
-     */
-    private HttpRequest getRequest(String path) {
-        return getRequest(emptyMap(), path);
-    }
-
-    /**
-     * Mock HTTP GET request with query params for source.
-     *
-     * @return see {@link HttpRequest}
-     */
-    private HttpRequest getRequest(Map<String, String> queryParams, String path) {
-        var request = request();
-
-        var paramsList = queryParams.entrySet()
-                .stream()
-                .map(entry -> param(entry.getKey(), entry.getValue()))
-                .toList();
-
-        request.withQueryStringParameters(new Parameters(paramsList).withKeyMatchStyle(MATCHING_KEY));
-
-        return request
-                .withMethod(HttpMethod.GET.name())
-                .withHeader(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE)
-                .withPath("/" + path);
-    }
-
-    private HttpRequest postRequest(String responseBody, MediaType contentType) {
-        return request()
-                .withMethod(HttpMethod.POST.name())
-                .withHeader(AUTH_HEADER_KEY, SINK_AUTH_VALUE)
-                .withContentType(contentType)
-                .withBody(binary(responseBody.getBytes(StandardCharsets.UTF_8)));
-    }
-
-    /**
-     * Mock http OK response from sink.
-     *
-     * @return see {@link HttpResponse}
-     */
-    private HttpResponse successfulResponse() {
-        return response()
-                .withStatusCode(HttpStatusCode.OK_200.code());
-    }
-
-    private HttpResponse successfulResponse(String responseBody, MediaType contentType) {
-        return successfulResponse()
-                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), contentType.toString())
-                .withBody(responseBody);
     }
 }

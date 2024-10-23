@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 
 import java.util.Set;
 
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -39,7 +38,6 @@ public class TestFunctions {
         return createInstanceJsonBuilder(id)
                 .add(URL, "http://somewhere.com:1234/api/v1")
                 .add(ALLOWED_SOURCE_TYPES, Json.createArrayBuilder(Set.of("source1", "source2")))
-                .add(ALLOWED_DEST_TYPES, Json.createArrayBuilder(Set.of("dest1", "dest2")))
                 .build();
     }
 

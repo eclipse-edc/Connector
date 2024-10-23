@@ -140,7 +140,6 @@ public interface DataplaneSelectorControlApi {
                         "source-type1",
                         "source-type2"
                     ],
-                    "allowedDestTypes": ["your-dest-type"],
                     "allowedTransferTypes": ["transfer-type"]
                 }
                 """;

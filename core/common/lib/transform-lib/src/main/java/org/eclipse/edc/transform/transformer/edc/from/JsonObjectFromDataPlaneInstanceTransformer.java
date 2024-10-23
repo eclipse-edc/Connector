@@ -26,14 +26,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_TRANSFER_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_STATE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_STATE_TIMESTAMP;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.PROPERTIES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURN_COUNT;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -54,8 +52,7 @@ public class JsonObjectFromDataPlaneInstanceTransformer extends AbstractJsonLdTr
                 .add(ID, dataPlaneInstance.getId())
                 .add(TYPE, DataPlaneInstance.DATAPLANE_INSTANCE_TYPE)
                 .add(URL, dataPlaneInstance.getUrl().toString())
-                .add(LAST_ACTIVE, dataPlaneInstance.getLastActive())
-                .add(TURN_COUNT, dataPlaneInstance.getTurnCount());
+                .add(LAST_ACTIVE, dataPlaneInstance.getLastActive());
 
         //properties
         if (dataPlaneInstance.getProperties() != null && !dataPlaneInstance.getProperties().isEmpty()) {
@@ -66,9 +63,6 @@ public class JsonObjectFromDataPlaneInstanceTransformer extends AbstractJsonLdTr
 
         var srcBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedSourceTypes());
         builder.add(ALLOWED_SOURCE_TYPES, srcBldr);
-
-        var dstBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedDestTypes());
-        builder.add(ALLOWED_DEST_TYPES, dstBldr);
 
         var transferTypesBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedTransferTypes());
         builder.add(ALLOWED_TRANSFER_TYPES, transferTypesBldr);

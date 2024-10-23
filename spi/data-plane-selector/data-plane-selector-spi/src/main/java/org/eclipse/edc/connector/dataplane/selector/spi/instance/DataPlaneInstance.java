@@ -44,15 +44,11 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
     public static final String DATAPLANE_INSTANCE_TYPE = EDC_NAMESPACE + "DataPlaneInstance";
-    @Deprecated(since = "0.6.3")
-    public static final String TURN_COUNT = EDC_NAMESPACE + "turnCount";
     public static final String LAST_ACTIVE = EDC_NAMESPACE + "lastActive";
     public static final String URL = EDC_NAMESPACE + "url";
     public static final String PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String ALLOWED_TRANSFER_TYPES = EDC_NAMESPACE + "allowedTransferTypes";
     public static final String ALLOWED_SOURCE_TYPES = EDC_NAMESPACE + "allowedSourceTypes";
-    @Deprecated(since = "0.7.0")
-    public static final String ALLOWED_DEST_TYPES = EDC_NAMESPACE + "allowedDestTypes";
 
     public static final String DATAPLANE_INSTANCE_STATE = EDC_NAMESPACE + "state";
     public static final String DATAPLANE_INSTANCE_STATE_TIMESTAMP = EDC_NAMESPACE + "stateTimestamp";
@@ -61,10 +57,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
     private Map<String, Object> properties = new HashMap<>();
     private Set<String> allowedTransferTypes = new HashSet<>();
     private Set<String> allowedSourceTypes = new HashSet<>();
-    @Deprecated(since = "0.7.0")
-    private Set<String> allowedDestTypes = new HashSet<>();
-    @Deprecated(since = "0.6.3")
-    private int turnCount = 0;
     private long lastActive = Instant.now().toEpochMilli();
     private URL url;
 
@@ -76,8 +68,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
         var builder = Builder.newInstance()
                 .url(url)
                 .lastActive(lastActive)
-                .turnCount(turnCount)
-                .allowedDestTypes(allowedDestTypes)
                 .allowedSourceTypes(allowedSourceTypes)
                 .allowedTransferType(allowedTransferTypes)
                 .properties(properties);
@@ -108,10 +98,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
         return url;
     }
 
-    @Deprecated(since = "0.6.3")
-    public int getTurnCount() {
-        return turnCount;
-    }
 
     public long getLastActive() {
         return lastActive;
@@ -123,11 +109,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
     public Set<String> getAllowedSourceTypes() {
         return Collections.unmodifiableSet(allowedSourceTypes);
-    }
-
-    @Deprecated(since = "0.7.0")
-    public Set<String> getAllowedDestTypes() {
-        return Collections.unmodifiableSet(allowedDestTypes);
     }
 
     public Set<String> getAllowedTransferTypes() {
@@ -162,12 +143,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
             return new Builder(new DataPlaneInstance());
         }
 
-        @Deprecated(since = "0.6.3")
-        public Builder turnCount(int turnCount) {
-            entity.turnCount = turnCount;
-            return this;
-        }
-
         public Builder lastActive(long lastActive) {
             entity.lastActive = lastActive;
             return this;
@@ -175,11 +150,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
         public Builder allowedSourceType(String type) {
             entity.allowedSourceTypes.add(type);
-            return this;
-        }
-
-        public Builder allowedDestType(String type) {
-            entity.allowedDestTypes.add(type);
             return this;
         }
 
@@ -204,11 +174,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
         public Builder property(String key, Object value) {
             entity.properties.put(key, value);
-            return this;
-        }
-
-        public Builder allowedDestTypes(Set<String> types) {
-            entity.allowedDestTypes = types;
             return this;
         }
 

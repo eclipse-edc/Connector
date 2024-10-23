@@ -146,12 +146,10 @@ public class DataPlaneSelectorApiV2ControllerTest {
     void select(DataPlaneInstanceStore store) {
         var dpi = createInstanceBuilder("test-id1")
                 .allowedSourceType("test-src1")
-                .allowedDestType("test-dst1")
                 .allowedTransferType("transfer-type-1")
                 .build();
         var dpi2 = createInstanceBuilder("test-id2")
                 .allowedSourceType("test-src2")
-                .allowedDestType("test-dst2")
                 .allowedTransferType("transfer-type-2")
                 .build();
         Stream.of(dpi, dpi2).peek(DataPlaneInstance::transitionToAvailable).forEach(store::save);
@@ -172,11 +170,9 @@ public class DataPlaneSelectorApiV2ControllerTest {
     void select_noneCanHandle_shouldReturnEmpty(DataPlaneInstanceStore store) {
         var dpi = createInstanceBuilder("test-id")
                 .allowedSourceType("test-src1")
-                .allowedDestType("test-dst1")
                 .build();
         var dpi2 = createInstanceBuilder("test-id")
                 .allowedSourceType("test-src2")
-                .allowedDestType("test-dst2")
                 .build();
         List.of(dpi, dpi2).forEach(store::save);
 
@@ -195,11 +191,9 @@ public class DataPlaneSelectorApiV2ControllerTest {
     void select_selectionStrategyNotFound(DataPlaneInstanceStore store) {
         var dpi = createInstanceBuilder("test-id")
                 .allowedSourceType("test-src1")
-                .allowedDestType("test-dst1")
                 .build();
         var dpi2 = createInstanceBuilder("test-id")
                 .allowedSourceType("test-src2")
-                .allowedDestType("test-dst2")
                 .build();
         List.of(dpi, dpi2).forEach(store::save);
 
@@ -217,12 +211,10 @@ public class DataPlaneSelectorApiV2ControllerTest {
     void select_withCustomStrategy(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry) {
         var dpi = createInstanceBuilder("test-id1")
                 .allowedSourceType("test-src1")
-                .allowedDestType("test-dst1")
                 .allowedTransferType("transfer-type-1")
                 .build();
         var dpi2 = createInstanceBuilder("test-id2")
                 .allowedSourceType("test-src1")
-                .allowedDestType("test-dst1")
                 .allowedTransferType("transfer-type-2")
                 .build();
         Stream.of(dpi, dpi2).peek(DataPlaneInstance::transitionToAvailable).forEach(store::save);

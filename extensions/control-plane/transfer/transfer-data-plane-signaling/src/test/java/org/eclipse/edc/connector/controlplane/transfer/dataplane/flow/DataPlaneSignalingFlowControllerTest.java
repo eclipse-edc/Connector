@@ -66,6 +66,36 @@ public class DataPlaneSignalingFlowControllerTest {
             () -> URI.create("http://localhost"), selectorService, propertiesProvider, dataPlaneClientFactory,
             "random", transferTypeParser);
 
+    @NotNull
+    private DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
+        return DataPlaneInstance.Builder.newInstance().url("http://any");
+    }
+
+    private DataPlaneInstance createDataPlaneInstance() {
+        return dataPlaneInstanceBuilder().build();
+    }
+
+    private DataAddress testDataAddress() {
+        return DataAddress.Builder.newInstance().type("test-type").build();
+    }
+
+    private TransferProcess transferProcess(String destinationType, String transferType) {
+        return TransferProcess.Builder.newInstance()
+                .transferType(transferType)
+                .dataDestination(DataAddress.Builder.newInstance().type(destinationType).build())
+                .build();
+    }
+
+    private TransferProcess.Builder transferProcessBuilder() {
+        return TransferProcess.Builder.newInstance()
+                .correlationId(UUID.randomUUID().toString())
+                .protocol("test-protocol")
+                .contractId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .counterPartyAddress("test.connector.address")
+                .dataDestination(DataAddress.Builder.newInstance().type("test").build());
+    }
+
     @Nested
     class CanHandle {
         @Test
@@ -258,7 +288,8 @@ public class DataPlaneSignalingFlowControllerTest {
             assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
         }
 
-        @Test // a null dataPlaneId means that the flow has not been started so it can be considered as already terminated
+        @Test
+            // a null dataPlaneId means that the flow has not been started so it can be considered as already terminated
         void shouldReturnSuccess_whenDataPlaneIdIsNull() {
             var transferProcess = transferProcessBuilder()
                     .id("transferProcessId")
@@ -332,9 +363,9 @@ public class DataPlaneSignalingFlowControllerTest {
         @Test
         void transferTypes_shouldReturnTypesForSpecifiedAsset() {
             when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
-                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").allowedSourceType("TargetSrc").allowedDestType("TargetDest").build(),
-                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PULL").allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
-                    dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").allowedDestType("ThisWontBeListed").build()
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PULL").allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").build()
             )));
             var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
 
@@ -352,36 +383,6 @@ public class DataPlaneSignalingFlowControllerTest {
 
             assertThat(transferTypes).isEmpty();
         }
-    }
-
-    @NotNull
-    private DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
-        return DataPlaneInstance.Builder.newInstance().url("http://any");
-    }
-
-    private DataPlaneInstance createDataPlaneInstance() {
-        return dataPlaneInstanceBuilder().build();
-    }
-
-    private DataAddress testDataAddress() {
-        return DataAddress.Builder.newInstance().type("test-type").build();
-    }
-
-    private TransferProcess transferProcess(String destinationType, String transferType) {
-        return TransferProcess.Builder.newInstance()
-                .transferType(transferType)
-                .dataDestination(DataAddress.Builder.newInstance().type(destinationType).build())
-                .build();
-    }
-
-    private TransferProcess.Builder transferProcessBuilder() {
-        return TransferProcess.Builder.newInstance()
-                .correlationId(UUID.randomUUID().toString())
-                .protocol("test-protocol")
-                .contractId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
-                .counterPartyAddress("test.connector.address")
-                .dataDestination(DataAddress.Builder.newInstance().type("test").build());
     }
 
 }

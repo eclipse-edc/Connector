@@ -46,8 +46,8 @@ import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 @Extension(NAME)
 public class DataplaneSelfRegistrationExtension implements ServiceExtension {
 
-    private static final boolean DEFAULT_SELF_UNREGISTRATION = false;
     public static final String NAME = "Dataplane Self Registration";
+    public static final boolean DEFAULT_SELF_UNREGISTRATION = false;
     @Setting(value = "Enable data-plane un-registration at shutdown (not suggested for clustered environments)", type = "boolean", defaultValue = DEFAULT_SELF_UNREGISTRATION + "")
     static final String SELF_UNREGISTRATION = "edc.data.plane.self.unregistration";
     private final AtomicBoolean isRegistered = new AtomicBoolean(false);
@@ -86,7 +86,6 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
                 .id(context.getComponentId())
                 .url(controlApiUrl.get().toString() + "/v1/dataflows")
                 .allowedSourceTypes(pipelineService.supportedSourceTypes())
-                .allowedDestTypes(pipelineService.supportedSinkTypes())
                 .allowedTransferType(transferTypes.collect(toSet()))
                 .build();
 

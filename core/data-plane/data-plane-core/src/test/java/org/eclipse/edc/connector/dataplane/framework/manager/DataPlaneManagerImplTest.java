@@ -108,6 +108,8 @@ class DataPlaneManagerImplTest {
                 .flowType(FlowType.PUSH)
                 .build();
 
+        when(authorizationService.createEndpointDataReference(eq(request))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("type").build()));
+
         manager.start(request);
 
         var captor = ArgumentCaptor.forClass(DataFlow.class);
@@ -120,7 +122,7 @@ class DataPlaneManagerImplTest {
         assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
         assertThat(dataFlow.getState()).isEqualTo(RECEIVED.code());
 
-        verifyNoInteractions(authorizationService);
+        verify(authorizationService).createEndpointDataReference(eq(request));
     }
 
     @Test
@@ -290,6 +292,88 @@ class DataPlaneManagerImplTest {
         verify(store).save(argThat(f -> f.getProperties().containsKey(TERMINATION_REASON)));
     }
 
+    @Test
+    void completed_shouldNotifyResultToControlPlane() {
+        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(transferProcessApiClient.completed(any())).thenReturn(Result.success());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).completed(any());
+            verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
+        });
+    }
+
+    @Test
+    void completed_shouldNotTransitionToNotified() {
+        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(transferProcessApiClient.completed(any())).thenReturn(Result.failure(""));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).completed(any());
+            verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
+        });
+    }
+
+    @Test
+    void failed_shouldNotifyResultToControlPlane() {
+        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
+        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(store.findById(any())).thenReturn(dataFlow);
+
+        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(Result.success());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).failed(any(), eq("an error"));
+            verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
+        });
+    }
+
+    @Test
+    void failed_shouldNotTransitionToNotified() {
+        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
+        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(store.findById(any())).thenReturn(dataFlow);
+
+        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(Result.failure("an error"));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).failed(any(), eq("an error"));
+            verify(store).save(argThat(it -> it.getState() == FAILED.code()));
+        });
+    }
+
+    private DataFlow.Builder dataFlowBuilder() {
+        return DataFlow.Builder.newInstance()
+                .source(DataAddress.Builder.newInstance().type("source").build())
+                .destination(DataAddress.Builder.newInstance().type("destination").build())
+                .callbackAddress(URI.create("http://any"))
+                .transferType(new TransferType("DestinationType", FlowType.PUSH))
+                .properties(Map.of("key", "value"));
+    }
+
+    private Criterion[] stateIs(int state) {
+        return aryEq(new Criterion[]{ hasState(state) });
+    }
+
+    private DataFlowStartMessage createRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
+                .id("1")
+                .processId("1")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .build();
+    }
+
     @Nested
     class Received {
         @Test
@@ -410,88 +494,6 @@ class DataPlaneManagerImplTest {
                 verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code()));
             });
         }
-    }
-
-    @Test
-    void completed_shouldNotifyResultToControlPlane() {
-        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(transferProcessApiClient.completed(any())).thenReturn(Result.success());
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessApiClient).completed(any());
-            verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
-        });
-    }
-
-    @Test
-    void completed_shouldNotTransitionToNotified() {
-        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(transferProcessApiClient.completed(any())).thenReturn(Result.failure(""));
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessApiClient).completed(any());
-            verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
-        });
-    }
-
-    @Test
-    void failed_shouldNotifyResultToControlPlane() {
-        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
-        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(dataFlow);
-
-        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(Result.success());
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessApiClient).failed(any(), eq("an error"));
-            verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
-        });
-    }
-
-    @Test
-    void failed_shouldNotTransitionToNotified() {
-        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
-        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(dataFlow);
-
-        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(Result.failure("an error"));
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessApiClient).failed(any(), eq("an error"));
-            verify(store).save(argThat(it -> it.getState() == FAILED.code()));
-        });
-    }
-
-    private DataFlow.Builder dataFlowBuilder() {
-        return DataFlow.Builder.newInstance()
-                .source(DataAddress.Builder.newInstance().type("source").build())
-                .destination(DataAddress.Builder.newInstance().type("destination").build())
-                .callbackAddress(URI.create("http://any"))
-                .transferType(new TransferType("DestinationType", FlowType.PUSH))
-                .properties(Map.of("key", "value"));
-    }
-
-    private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state) });
-    }
-
-    private DataFlowStartMessage createRequest() {
-        return DataFlowStartMessage.Builder.newInstance()
-                .id("1")
-                .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .build();
     }
 
     @Nested

@@ -186,7 +186,7 @@ public class CatalogApiEndToEndTest {
         void getDataset_shouldReturnDataset(ManagementEndToEndTestContext context, AssetIndex assetIndex,
                                             DataPlaneInstanceStore dataPlaneInstanceStore) {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
-                    .allowedDestType("any").allowedSourceType("test-type").allowedTransferType("any").build();
+                    .allowedSourceType("test-type").allowedTransferType("any").build();
             dataPlaneInstanceStore.save(dataPlaneInstance);
 
             assetIndex.create(createAsset("asset-id", "test-type").build());
