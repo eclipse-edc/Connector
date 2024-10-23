@@ -78,6 +78,6 @@ public class JsonObjectToDataAddressDspaceTransformer extends AbstractNamespaceA
     }
 
     //container to hold endpoint property objects
-    private record DspaceEndpointProperty(String name, String value) {
+    private record DspaceEndpointProperty(String name, Object value) {
     }
 }

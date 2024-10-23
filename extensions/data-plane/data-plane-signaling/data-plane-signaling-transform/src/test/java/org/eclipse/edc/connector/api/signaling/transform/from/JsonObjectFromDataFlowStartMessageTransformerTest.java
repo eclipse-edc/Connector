@@ -37,6 +37,7 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,7 +63,7 @@ class JsonObjectFromDataFlowStartMessageTransformerTest {
                 .assetId("assetId")
                 .agreementId("agreementId")
                 .participantId("participantId")
-                .transferType(new TransferType("HttpData", FlowType.PUSH))
+                .transferType(new TransferType("HttpData", FlowType.PUSH, "Websocket"))
                 .callbackAddress(URI.create("http://localhost"))
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("sourceType").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("destType").build())
@@ -79,6 +80,7 @@ class JsonObjectFromDataFlowStartMessageTransformerTest {
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_DESTINATION_CALLBACK_ADDRESS).getString()).isEqualTo(message.getCallbackAddress().toString());
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION).getString()).isEqualTo("HttpData");
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE).getString()).isEqualTo(message.getFlowType().toString());
+        assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL).getString()).isEqualTo("Websocket");
         assertThat(jsonObject.get(EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS)).isNotNull();
         assertThat(jsonObject.get(EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS)).isNotNull();
     }

@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Determines the public endpoint at which the data for a particular data transfer is exposed.
@@ -30,11 +31,19 @@ public interface PublicEndpointGeneratorService {
     /**
      * Generates an endpoint for a destination type and a particular {@link DataAddress}
      *
-     * @param destinationType the destination type
+     * @param destinationType   the destination type
      * @param sourceDataAddress the source data address.
      * @return The public {@link Endpoint} where the data is made available, or a failure if the endpoint could not be generated.
      */
     Result<Endpoint> generateFor(String destinationType, DataAddress sourceDataAddress);
+
+    /**
+     * Generates an endpoint for a response channel
+     *
+     * @param responseChannelType the response channel type
+     * @return The public {@link Endpoint} where the data is made available, or a failure if the endpoint could not be generated.
+     */
+    Result<Endpoint> generateResponseFor(String responseChannelType);
 
     /**
      * Adds a function that can generate a {@link Endpoint} for particular source data address. Typically, the source data address
@@ -44,6 +53,14 @@ public interface PublicEndpointGeneratorService {
      * @param generatorFunction the generator function
      */
     void addGeneratorFunction(String destinationType, Function<DataAddress, Endpoint> generatorFunction);
+
+    /**
+     * Adds a function that can generate a response channel {@link Endpoint}.
+     *
+     * @param responseChannelType The type of the source {@link DataAddress}
+     * @param generatorFunction   the generator function
+     */
+    void addGeneratorFunction(String responseChannelType, Supplier<Endpoint> generatorFunction);
 
     /**
      * Return the supported destination types.

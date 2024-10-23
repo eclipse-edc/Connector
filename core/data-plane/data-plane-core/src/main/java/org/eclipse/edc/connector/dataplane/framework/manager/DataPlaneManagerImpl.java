@@ -88,7 +88,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         var response = switch (startMessage.getFlowType()) {
             case PULL -> handlePull(startMessage, dataFlowBuilder);
-            case PUSH -> handlePush(dataFlowBuilder);
+            case PUSH -> handlePush(startMessage, dataFlowBuilder);
         };
 
         return response.onSuccess(m -> update(dataFlowBuilder.build()));
@@ -174,11 +174,13 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                         .build());
     }
 
-    private Result<DataFlowResponseMessage> handlePush(DataFlow.Builder dataFlowBuilder) {
+    private Result<DataFlowResponseMessage> handlePush(DataFlowStartMessage startMessage, DataFlow.Builder dataFlowBuilder) {
         dataFlowBuilder.state(RECEIVED.code());
 
-        return Result.success(DataFlowResponseMessage.Builder.newInstance()
-                .dataAddress(null)
+        var result = authorizationService.createEndpointDataReference(startMessage);
+
+        return result.map(da -> DataFlowResponseMessage.Builder.newInstance()
+                .dataAddress(da)
                 .build());
     }
 

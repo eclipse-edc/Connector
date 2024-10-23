@@ -60,4 +60,10 @@ class TransferTypeParserImplTest {
         assertThat(result).isFailed();
     }
 
+    @Test
+    void shouldParseReturnChannel() {
+        var result = parser.parse("DestinationType-PUSH/BackChannelType");
+        assertThat(result).isSucceeded().satisfies(type -> assertThat(type.responseChannelType()).isEqualTo("BackChannelType"));
+    }
+
 }
