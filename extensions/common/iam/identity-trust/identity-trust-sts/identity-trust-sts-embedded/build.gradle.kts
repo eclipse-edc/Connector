@@ -11,7 +11,7 @@ dependencies {
     implementation(project(":core:common:lib:util-lib"))
     testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:token-core"))
+    testImplementation(project(":core:common:lib:token-lib"))
     testImplementation(libs.nimbus.jwt)
 }
 

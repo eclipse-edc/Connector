@@ -24,6 +24,7 @@ dependencies {
     // core dependencies
     api(project(":core:common:boot"))
     api(project(":core:common:connector-core"))
+    api(project(":core:common:token-core"))
 
 
     // extension dependencies

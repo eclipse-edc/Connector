@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":spi:common:participant-spi"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:crypto-common-lib"))
-    implementation(project(":core:common:token-core"))
+    implementation(project(":core:common:lib:token-lib"))
     implementation(project(":extensions:common:crypto:lib:jws2020-lib"))
     implementation(project(":extensions:common:crypto:jwt-verifiable-credentials"))
     implementation(project(":extensions:common:crypto:ldp-verifiable-credentials"))
