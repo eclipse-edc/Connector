@@ -108,8 +108,6 @@ class DataPlaneManagerImplTest {
                 .flowType(FlowType.PUSH)
                 .build();
 
-        when(authorizationService.createEndpointDataReference(eq(request))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("type").build()));
-
         manager.start(request);
 
         var captor = ArgumentCaptor.forClass(DataFlow.class);
@@ -122,7 +120,7 @@ class DataPlaneManagerImplTest {
         assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
         assertThat(dataFlow.getState()).isEqualTo(RECEIVED.code());
 
-        verify(authorizationService).createEndpointDataReference(eq(request));
+        verifyNoInteractions(authorizationService);
     }
 
     @Test

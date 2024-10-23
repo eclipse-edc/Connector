@@ -288,8 +288,8 @@ public class DataPlaneSignalingFlowControllerTest {
             assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
         }
 
+        // a null dataPlaneId means that the flow has not been started so it can be considered as already terminated
         @Test
-            // a null dataPlaneId means that the flow has not been started so it can be considered as already terminated
         void shouldReturnSuccess_whenDataPlaneIdIsNull() {
             var transferProcess = transferProcessBuilder()
                     .id("transferProcessId")
