@@ -65,9 +65,14 @@ public interface PublicEndpointGeneratorService {
     /**
      * Return the supported destination types.
      *
-     * @return the supported types;
+     * @return the supported types
      */
     Set<String> supportedDestinationTypes();
 
+    /**
+     * Return the types of return channels supported by this generator
+     *
+     * @return the supported types
+     */
     Set<String> supportedResponseTypes();
 }

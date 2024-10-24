@@ -353,28 +353,6 @@ class DataPlaneManagerImplTest {
         });
     }
 
-    private DataFlow.Builder dataFlowBuilder() {
-        return DataFlow.Builder.newInstance()
-                .source(DataAddress.Builder.newInstance().type("source").build())
-                .destination(DataAddress.Builder.newInstance().type("destination").build())
-                .callbackAddress(URI.create("http://any"))
-                .transferType(new TransferType("DestinationType", FlowType.PUSH))
-                .properties(Map.of("key", "value"));
-    }
-
-    private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state) });
-    }
-
-    private DataFlowStartMessage createRequest() {
-        return DataFlowStartMessage.Builder.newInstance()
-                .id("1")
-                .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .build();
-    }
-
     @Nested
     class Received {
         @Test
@@ -588,6 +566,28 @@ class DataPlaneManagerImplTest {
             assertThat(result).isSucceeded();
             verify(store).save(argThat(f -> f.getState() == SUSPENDED.code()));
         }
+    }
+
+    private DataFlow.Builder dataFlowBuilder() {
+        return DataFlow.Builder.newInstance()
+                .source(DataAddress.Builder.newInstance().type("source").build())
+                .destination(DataAddress.Builder.newInstance().type("destination").build())
+                .callbackAddress(URI.create("http://any"))
+                .transferType(new TransferType("DestinationType", FlowType.PUSH))
+                .properties(Map.of("key", "value"));
+    }
+
+    private Criterion[] stateIs(int state) {
+        return aryEq(new Criterion[]{ hasState(state) });
+    }
+
+    private DataFlowStartMessage createRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
+                .id("1")
+                .processId("1")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .build();
     }
 
 }

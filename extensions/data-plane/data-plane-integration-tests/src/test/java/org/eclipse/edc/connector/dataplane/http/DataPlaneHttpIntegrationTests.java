@@ -141,60 +141,6 @@ public class DataPlaneHttpIntegrationTests {
         httpSinkMockServer.reset();
     }
 
-    /**
-     * Mock HTTP GET request for source.
-     *
-     * @return see {@link HttpRequest}
-     */
-    private HttpRequest getRequest(String path) {
-        return getRequest(emptyMap(), path);
-    }
-
-    /**
-     * Mock HTTP GET request with query params for source.
-     *
-     * @return see {@link HttpRequest}
-     */
-    private HttpRequest getRequest(Map<String, String> queryParams, String path) {
-        var request = request();
-
-        var paramsList = queryParams.entrySet()
-                .stream()
-                .map(entry -> param(entry.getKey(), entry.getValue()))
-                .toList();
-
-        request.withQueryStringParameters(new Parameters(paramsList).withKeyMatchStyle(MATCHING_KEY));
-
-        return request
-                .withMethod(HttpMethod.GET.name())
-                .withHeader(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE)
-                .withPath("/" + path);
-    }
-
-    private HttpRequest postRequest(String responseBody, MediaType contentType) {
-        return request()
-                .withMethod(HttpMethod.POST.name())
-                .withHeader(AUTH_HEADER_KEY, SINK_AUTH_VALUE)
-                .withContentType(contentType)
-                .withBody(binary(responseBody.getBytes(StandardCharsets.UTF_8)));
-    }
-
-    /**
-     * Mock http OK response from sink.
-     *
-     * @return see {@link HttpResponse}
-     */
-    private HttpResponse successfulResponse() {
-        return response()
-                .withStatusCode(HttpStatusCode.OK_200.code());
-    }
-
-    private HttpResponse successfulResponse(String responseBody, MediaType contentType) {
-        return successfulResponse()
-                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), contentType.toString())
-                .withBody(responseBody);
-    }
-
     @Nested
     class Pull {
 
@@ -436,4 +382,60 @@ public class DataPlaneHttpIntegrationTests {
         }
 
     }
+
+    /**
+     * Mock HTTP GET request for source.
+     *
+     * @return see {@link HttpRequest}
+     */
+    private HttpRequest getRequest(String path) {
+        return getRequest(emptyMap(), path);
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link HttpRequest}
+     */
+    private HttpRequest getRequest(Map<String, String> queryParams, String path) {
+        var request = request();
+
+        var paramsList = queryParams.entrySet()
+                .stream()
+                .map(entry -> param(entry.getKey(), entry.getValue()))
+                .toList();
+
+        request.withQueryStringParameters(new Parameters(paramsList).withKeyMatchStyle(MATCHING_KEY));
+
+        return request
+                .withMethod(HttpMethod.GET.name())
+                .withHeader(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE)
+                .withPath("/" + path);
+    }
+
+    private HttpRequest postRequest(String responseBody, MediaType contentType) {
+        return request()
+                .withMethod(HttpMethod.POST.name())
+                .withHeader(AUTH_HEADER_KEY, SINK_AUTH_VALUE)
+                .withContentType(contentType)
+                .withBody(binary(responseBody.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    /**
+     * Mock http OK response from sink.
+     *
+     * @return see {@link HttpResponse}
+     */
+    private HttpResponse successfulResponse() {
+        return response()
+                .withStatusCode(HttpStatusCode.OK_200.code());
+    }
+
+    private HttpResponse successfulResponse(String responseBody, MediaType contentType) {
+        return successfulResponse()
+                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), contentType.toString())
+                .withBody(responseBody);
+    }
+
+
 }
