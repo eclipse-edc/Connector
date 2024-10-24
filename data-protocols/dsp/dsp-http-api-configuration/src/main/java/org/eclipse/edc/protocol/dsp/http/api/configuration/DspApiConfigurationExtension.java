@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
 import org.eclipse.edc.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
+import org.eclipse.edc.transform.transformer.dspace.v2024.from.JsonObjectFromDataAddressDspace2024Transformer;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
@@ -82,7 +83,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     @Setting(value = "Configures endpoint for reaching the Protocol API.", defaultValue = "<hostname:protocol.port/protocol.path>")
     public static final String DSP_CALLBACK_ADDRESS = "edc.dsp.callback.address";
-
+    
     @SettingContext("Protocol API context setting key")
     private static final String PROTOCOL_CONFIG_KEY = "web.http." + ApiContext.PROTOCOL;
 
@@ -134,6 +135,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var mapper = typeManager.getMapper(JSON_LD);
         mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
 
+        registerV08Transformers(mapper);
+        registerV2024Transformers(mapper);
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08, mapper);
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1, mapper);
     }
@@ -154,7 +157,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var dspApiTransformerRegistry = transformerRegistry.forContext(version);
         dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper));
         dspApiTransformerRegistry.register(new JsonObjectFromAssetTransformer(jsonBuilderFactory, mapper));
-        dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(jsonBuilderFactory, mapper, dspNamespace));
         dspApiTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromCriterionTransformer(jsonBuilderFactory, mapper));
 
@@ -169,4 +171,24 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer(dspNamespace));
     }
 
+
+    private void registerV08Transformers(ObjectMapper mapper) {
+        var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
+
+        // EDC model to JSON-LD transformers
+        var dspApiTransformerRegistry = transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_08);
+
+        dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(jsonBuilderFactory, mapper));
+
+    }
+
+    private void registerV2024Transformers(ObjectMapper mapper) {
+        var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
+
+        // EDC model to JSON-LD transformers
+        var dspApiTransformerRegistry = transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_2024_1);
+
+        dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspace2024Transformer(jsonBuilderFactory, mapper));
+
+    }
 }

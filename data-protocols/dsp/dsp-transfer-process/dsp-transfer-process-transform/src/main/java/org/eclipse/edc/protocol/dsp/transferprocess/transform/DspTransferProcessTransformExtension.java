@@ -30,6 +30,12 @@ import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObject
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferStartMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferSuspensionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferTerminationMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferCompletionMessageV2024Transformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferProcessV2024Transformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferRequestMessageV2024Transformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferStartMessageV2024Transformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferSuspensionMessageV2024Transformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferTerminationMessageV2024Transformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -68,21 +74,18 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var objectMapper = typeManager.getMapper(JSON_LD);
 
+        registerV08transformers();
+        registerV2024transformers();
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08, objectMapper);
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1, objectMapper);
     }
+
 
     private void registerTransformers(String version, JsonLdNamespace namespace, ObjectMapper objectMapper) {
         var builderFactory = Json.createBuilderFactory(Map.of());
 
         var dspRegistry = registry.forContext(version);
 
-        dspRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory, namespace));
-        dspRegistry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory, namespace));
-        dspRegistry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory, namespace));
-        dspRegistry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory, namespace));
-        dspRegistry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory, namespace));
-        dspRegistry.register(new JsonObjectFromTransferSuspensionMessageTransformer(builderFactory, namespace));
         dspRegistry.register(new JsonObjectFromTransferErrorTransformer(builderFactory, namespace));
 
         dspRegistry.register(new JsonObjectToTransferRequestMessageTransformer(namespace));
@@ -93,4 +96,28 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
         dspRegistry.register(new JsonObjectToTransferSuspensionMessageTransformer(objectMapper, namespace));
     }
 
+    private void registerV08transformers() {
+        var builderFactory = Json.createBuilderFactory(Map.of());
+        var dspRegistry = registry.forContext(DSP_TRANSFORMER_CONTEXT_V_08);
+        dspRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferSuspensionMessageTransformer(builderFactory));
+
+
+    }
+
+    private void registerV2024transformers() {
+        var builderFactory = Json.createBuilderFactory(Map.of());
+        var dspRegistry = registry.forContext(DSP_TRANSFORMER_CONTEXT_V_2024_1);
+        dspRegistry.register(new JsonObjectFromTransferProcessV2024Transformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferRequestMessageV2024Transformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferStartMessageV2024Transformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferCompletionMessageV2024Transformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferTerminationMessageV2024Transformer(builderFactory));
+        dspRegistry.register(new JsonObjectFromTransferSuspensionMessageV2024Transformer(builderFactory));
+
+    }
 }
