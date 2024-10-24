@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.api.auth.spi;
 
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
@@ -29,6 +31,7 @@ import static java.util.stream.Collectors.toMap;
  * to be able to handle CORS requests properly, OPTIONS requests are not validated as their headers usually don't
  * contain credentials.
  */
+@Priority(Priorities.AUTHENTICATION)
 public class AuthenticationRequestFilter implements ContainerRequestFilter {
 
     private final ApiAuthenticationRegistry authenticationRegistry;
