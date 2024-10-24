@@ -63,4 +63,9 @@ class PublicEndpointGeneratorServiceImpl implements PublicEndpointGeneratorServi
     public Set<String> supportedDestinationTypes() {
         return generatorFunctions.keySet();
     }
+
+    @Override
+    public Set<String> supportedResponseTypes() {
+        return responseChannelFunctions.keySet();
+    }
 }

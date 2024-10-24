@@ -68,4 +68,6 @@ public interface PublicEndpointGeneratorService {
      * @return the supported types;
      */
     Set<String> supportedDestinationTypes();
+
+    Set<String> supportedResponseTypes();
 }
