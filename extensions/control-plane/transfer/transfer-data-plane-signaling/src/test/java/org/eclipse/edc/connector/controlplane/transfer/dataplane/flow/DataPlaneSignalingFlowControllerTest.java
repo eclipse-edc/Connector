@@ -66,36 +66,6 @@ public class DataPlaneSignalingFlowControllerTest {
             () -> URI.create("http://localhost"), selectorService, propertiesProvider, dataPlaneClientFactory,
             "random", transferTypeParser);
 
-    @NotNull
-    private DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
-        return DataPlaneInstance.Builder.newInstance().url("http://any");
-    }
-
-    private DataPlaneInstance createDataPlaneInstance() {
-        return dataPlaneInstanceBuilder().build();
-    }
-
-    private DataAddress testDataAddress() {
-        return DataAddress.Builder.newInstance().type("test-type").build();
-    }
-
-    private TransferProcess transferProcess(String destinationType, String transferType) {
-        return TransferProcess.Builder.newInstance()
-                .transferType(transferType)
-                .dataDestination(DataAddress.Builder.newInstance().type(destinationType).build())
-                .build();
-    }
-
-    private TransferProcess.Builder transferProcessBuilder() {
-        return TransferProcess.Builder.newInstance()
-                .correlationId(UUID.randomUUID().toString())
-                .protocol("test-protocol")
-                .contractId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
-                .counterPartyAddress("test.connector.address")
-                .dataDestination(DataAddress.Builder.newInstance().type("test").build());
-    }
-
     @Nested
     class CanHandle {
         @Test
@@ -383,6 +353,36 @@ public class DataPlaneSignalingFlowControllerTest {
 
             assertThat(transferTypes).isEmpty();
         }
+    }
+
+    @NotNull
+    private DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
+        return DataPlaneInstance.Builder.newInstance().url("http://any");
+    }
+
+    private DataPlaneInstance createDataPlaneInstance() {
+        return dataPlaneInstanceBuilder().build();
+    }
+
+    private DataAddress testDataAddress() {
+        return DataAddress.Builder.newInstance().type("test-type").build();
+    }
+
+    private TransferProcess transferProcess(String destinationType, String transferType) {
+        return TransferProcess.Builder.newInstance()
+                .transferType(transferType)
+                .dataDestination(DataAddress.Builder.newInstance().type(destinationType).build())
+                .build();
+    }
+
+    private TransferProcess.Builder transferProcessBuilder() {
+        return TransferProcess.Builder.newInstance()
+                .correlationId(UUID.randomUUID().toString())
+                .protocol("test-protocol")
+                .contractId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .counterPartyAddress("test.connector.address")
+                .dataDestination(DataAddress.Builder.newInstance().type("test").build());
     }
 
 }
