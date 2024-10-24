@@ -14,10 +14,17 @@
 
 package org.eclipse.edc.spi.types.domain.transfer;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Represent the transfer type.
  *
- * @param destinationType the destination data address type.
- * @param flowType the flow type.
+ * @param destinationType     the destination data address type designation.
+ * @param responseChannelType an optional type designation for the response channel
+ * @param flowType            the flow type.
  */
-public record TransferType(String destinationType, FlowType flowType) { }
+public record TransferType(String destinationType, FlowType flowType, @Nullable String responseChannelType) {
+    public TransferType(String destinationType, FlowType flowType) {
+        this(destinationType, flowType, null);
+    }
+}

@@ -60,26 +60,40 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
 
     @Override
     public Result<DataAddress> createEndpointDataReference(DataFlowStartMessage message) {
-        return endpointGenerator.generateFor(message.getTransferType().destinationType(), message.getSourceDataAddress())
-                .compose(endpoint -> {
-                            var additionalProperties = new HashMap<String, Object>(message.getProperties());
-                            additionalProperties.put(PROPERTY_AGREEMENT_ID, message.getAgreementId());
-                            additionalProperties.put(PROPERTY_ASSET_ID, message.getAssetId());
-                            additionalProperties.put(PROPERTY_PROCESS_ID, message.getProcessId());
-                            additionalProperties.put(PROPERTY_FLOW_TYPE, message.getFlowType().toString());
-                            additionalProperties.put(PROPERTY_PARTICIPANT_ID, message.getParticipantId());
 
-                            return accessTokenService.obtainToken(createTokenParams(message), message.getSourceDataAddress(), additionalProperties)
-                                    .compose(tokenRepresentation -> createDataAddress(tokenRepresentation, endpoint));
-                        }
-                );
+        var additionalProperties = new HashMap<String, Object>(message.getProperties());
+        additionalProperties.put(PROPERTY_AGREEMENT_ID, message.getAgreementId());
+        additionalProperties.put(PROPERTY_ASSET_ID, message.getAssetId());
+        additionalProperties.put(PROPERTY_PROCESS_ID, message.getProcessId());
+        additionalProperties.put(PROPERTY_FLOW_TYPE, message.getFlowType().toString());
+        additionalProperties.put(PROPERTY_PARTICIPANT_ID, message.getParticipantId());
+        var tokenParams = createTokenParams(message);
+        var sourceDataAddress = message.getSourceDataAddress();
+
+
+        // create the "front-channel" data address
+        var dataAddressBuilder = endpointGenerator.generateFor(message.getTransferType().destinationType(), sourceDataAddress)
+                .compose(ep -> createSecureEndpoint(ep, tokenParams, additionalProperties, sourceDataAddress))
+                .compose(se -> createDataAddress(se.tokenRepresentation(), se.endpoint()));
+
+        // "decorate" the data address with response channel properties
+        var responseChannelType = message.getTransferType().responseChannelType();
+        if (responseChannelType != null) {
+            var responseChannelTokenParams = createTokenParams(message);
+            dataAddressBuilder = dataAddressBuilder.compose(builder -> endpointGenerator.generateResponseFor(responseChannelType)
+                    .compose(ep -> createSecureEndpoint(ep, responseChannelTokenParams, additionalProperties, sourceDataAddress))
+                    .compose(endpoint -> addResponseChannel(builder, endpoint.tokenRepresentation(), endpoint.endpoint())));
+        }
+
+
+        return dataAddressBuilder.map(DataAddress.Builder::build);
     }
 
     @Override
     public Result<DataAddress> authorize(String token, Map<String, Object> requestData) {
         return accessTokenService.resolve(token)
                 .compose(atd -> accessControlService.checkAccess(atd.claimToken(), atd.dataAddress(), requestData, atd.additionalProperties())
-                    .map(u -> atd.dataAddress())
+                        .map(u -> atd.dataAddress())
                 );
     }
 
@@ -88,16 +102,36 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
         return accessTokenService.revoke(transferProcessId, reason);
     }
 
-    private Result<DataAddress> createDataAddress(TokenRepresentation tokenRepresentation, Endpoint publicEndpoint) {
+    private Result<SecureEndpoint> createSecureEndpoint(Endpoint endpoint, TokenParameters tokenParameters, Map<String, Object> additionalProperties, DataAddress sourceDataAddress) {
+        return accessTokenService.obtainToken(tokenParameters, sourceDataAddress, additionalProperties)
+                .map(tr -> new SecureEndpoint(endpoint, tr));
+    }
+
+    private Result<DataAddress.Builder> createDataAddress(TokenRepresentation tokenRepresentation, Endpoint publicEndpoint) {
         var address = DataAddress.Builder.newInstance()
                 .type(publicEndpoint.endpointType())
                 .property(EDC_NAMESPACE + "endpoint", publicEndpoint.endpoint())
                 .property(EDC_NAMESPACE + "endpointType", publicEndpoint.endpointType()) //this is duplicated in the type() field, but will make serialization easier
-                .properties(tokenRepresentation.getAdditional()) // would contain the "authType = bearer" entry
                 .property(EDC_NAMESPACE + "authorization", tokenRepresentation.getToken())
-                .build();
+                .properties(tokenRepresentation.getAdditional()); // would contain the "authType = bearer" entry
 
         return success(address);
+    }
+
+    private Result<DataAddress.Builder> addResponseChannel(DataAddress.Builder builder, TokenRepresentation tokenRepresentation, Endpoint returnChannelEndpoint) {
+        var map = new HashMap<String, String>() {
+            {
+                put(EDC_NAMESPACE + "responseChannel/endpoint", returnChannelEndpoint.endpoint());
+                put(EDC_NAMESPACE + "responseChannel/endpointType", returnChannelEndpoint.endpointType());
+                put(EDC_NAMESPACE + "responseChannel/authorization", tokenRepresentation.getToken());
+            }
+        };
+        tokenRepresentation.getAdditional().forEach((k, v) -> map.put(k.replace(EDC_NAMESPACE, EDC_NAMESPACE + "responseChannel/"), v.toString()));
+
+        map.forEach(builder::property);
+
+        return Result.success(builder);
+
     }
 
     private TokenParameters createTokenParams(DataFlowStartMessage message) {
@@ -110,4 +144,6 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
                 .build();
     }
 
+    private record SecureEndpoint(Endpoint endpoint, TokenRepresentation tokenRepresentation) {
+    }
 }

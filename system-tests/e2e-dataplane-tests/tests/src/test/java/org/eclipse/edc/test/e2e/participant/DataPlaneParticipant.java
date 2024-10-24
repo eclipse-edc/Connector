@@ -31,6 +31,7 @@ public class DataPlaneParticipant extends Participant {
     private final URI dataPlaneDefault = URI.create("http://localhost:" + getFreePort());
     private final URI dataPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
+    private final URI dataplanePublicResponse = dataPlanePublic.resolve("/public/responseChannel");
 
     private DataPlaneParticipant() {
         super();
@@ -59,6 +60,7 @@ public class DataPlaneParticipant extends Participant {
                 put("edc.dataplane.http.sink.partition.size", "1");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
+                put("edc.dataplane.api.public.response.baseurl", dataplanePublicResponse.toString());
             }
         };
     }

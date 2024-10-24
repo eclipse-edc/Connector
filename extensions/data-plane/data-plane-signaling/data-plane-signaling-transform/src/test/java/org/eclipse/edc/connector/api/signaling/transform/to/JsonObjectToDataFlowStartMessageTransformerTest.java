@@ -66,6 +66,7 @@ class JsonObjectToDataFlowStartMessageTransformerTest {
                 .add("participantId", "participantId")
                 .add("transferTypeDestination", "transferTypeDestination")
                 .add("flowType", "PULL")
+                .add("responseChannel", "Websocket")
                 .add("sourceDataAddress", jsonFactory.createObjectBuilder().add("type", "address-type"))
                 .add("destinationDataAddress", jsonFactory.createObjectBuilder().add("type", "address-type"))
                 .add("properties", jsonFactory.createObjectBuilder().add("foo", "bar"))
@@ -80,7 +81,7 @@ class JsonObjectToDataFlowStartMessageTransformerTest {
         assertThat(message.getAssetId()).isEqualTo("datasetId");
         assertThat(message.getAgreementId()).isEqualTo("agreementId");
         assertThat(message.getParticipantId()).isEqualTo("participantId");
-        assertThat(message.getTransferType()).isEqualTo(new TransferType("transferTypeDestination", FlowType.PULL));
+        assertThat(message.getTransferType()).isEqualTo(new TransferType("transferTypeDestination", FlowType.PULL, "Websocket"));
         assertThat(message.getDestinationDataAddress()).extracting(DataAddress::getType).isEqualTo("address-type");
         assertThat(message.getSourceDataAddress()).extracting(DataAddress::getType).isEqualTo("address-type");
         assertThat(message.getProperties()).containsEntry(EDC_NAMESPACE + "foo", "bar");

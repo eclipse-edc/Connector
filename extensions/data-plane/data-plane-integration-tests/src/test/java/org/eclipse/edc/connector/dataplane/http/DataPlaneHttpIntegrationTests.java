@@ -31,6 +31,7 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -97,10 +98,7 @@ public class DataPlaneHttpIntegrationTests {
     private static final String AUTH_HEADER_KEY = AUTHORIZATION.toString();
     private static final String SOURCE_AUTH_VALUE = "source-auth-key";
     private static final String SINK_AUTH_VALUE = "sink-auth-key";
-    private static ClientAndServer httpSourceMockServer;
-    private static ClientAndServer httpSinkMockServer;
-    private final Duration timeout = Duration.ofSeconds(30);
-
+    private static final DataPlaneAuthorizationService DATA_PLANE_AUTHORIZATION_SERVICE = mock();
     private static final EmbeddedRuntime RUNTIME = new EmbeddedRuntime(
             "data-plane-server",
             Map.of(
@@ -119,12 +117,16 @@ public class DataPlaneHttpIntegrationTests {
             ":extensions:data-plane:data-plane-http",
             ":extensions:data-plane:data-plane-public-api-v2",
             ":extensions:data-plane:data-plane-signaling:data-plane-signaling-api"
-    ).registerServiceMock(DataPlaneAuthorizationService.class, mock());
+    ).registerServiceMock(DataPlaneAuthorizationService.class, DATA_PLANE_AUTHORIZATION_SERVICE);
+    private static ClientAndServer httpSourceMockServer;
+    private static ClientAndServer httpSinkMockServer;
+    private final Duration timeout = Duration.ofSeconds(30);
 
     @BeforeAll
     public static void setUp() {
         httpSourceMockServer = startClientAndServer(HTTP_SOURCE_API_PORT);
         httpSinkMockServer = startClientAndServer(HTTP_SINK_API_PORT);
+        when(DATA_PLANE_AUTHORIZATION_SERVICE.createEndpointDataReference(any())).thenReturn(Result.success(DataAddress.Builder.newInstance().type("type").build()));
     }
 
     @AfterAll
@@ -434,4 +436,6 @@ public class DataPlaneHttpIntegrationTests {
                 .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), contentType.toString())
                 .withBody(responseBody);
     }
+
+
 }

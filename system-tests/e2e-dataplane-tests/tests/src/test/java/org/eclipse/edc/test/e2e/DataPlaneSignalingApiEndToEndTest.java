@@ -73,9 +73,9 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         registry.register(new JsonObjectToDataFlowResponseMessageTransformer());
     }
 
-    @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR")
+    @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR (PULL)")
     @Test
-    void startTransfer() throws JsonProcessingException {
+    void startTransfer_pull() throws JsonProcessingException {
         seedVault();
         var jsonLd = runtime.getService(JsonLd.class);
 
@@ -114,6 +114,157 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         assertThat(dataAddress.getStringProperty("endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL);
         assertThat(dataAddress.getStringProperty("authorization")).isNotNull();
         assertThat(dataAddress.getStringProperty("authType")).isEqualTo("bearer");
+
+        // verify that the data flow was created
+        var store = runtime.getService(DataPlaneStore.class).findById(processId);
+        assertThat(store).isNotNull();
+    }
+
+    @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR (PUSH)")
+    @Test
+    void startTransfer_push() throws JsonProcessingException {
+        seedVault();
+        var jsonLd = runtime.getService(JsonLd.class);
+
+        var processId = UUID.randomUUID().toString();
+        var flowMessage = DataFlowStartMessage.Builder.newInstance()
+                .processId(processId)
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/").build())
+                .transferType(new TransferType("HttpData", FlowType.PUSH, "HttpData"))
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://bar.baz/").build())
+                .participantId("some-participantId")
+                .assetId("test-asset")
+                .callbackAddress(URI.create("https://foo.bar/callback"))
+                .agreementId("test-agreement")
+                .build();
+        var startMessage = registry.transform(flowMessage, JsonObject.class).orElseThrow(failTest());
+
+        var resultJson = DATAPLANE.getDataPlaneControlEndpoint()
+                .baseRequest()
+                .contentType(ContentType.JSON)
+                .body(startMessage)
+                .post("/v1/dataflows")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .body(notNullValue())
+                .extract().body().asString();
+
+        var dataFlowResponseMessage = jsonLd.expand(mapper.readValue(resultJson, JsonObject.class))
+                .compose(json -> registry.transform(json, DataFlowResponseMessage.class))
+                .orElseThrow(failTest());
+
+        var dataAddress = dataFlowResponseMessage.getDataAddress();
+
+        // verify basic shape of the DSPACE data address (=EDR token)
+        assertThat(dataAddress).isNotNull();
+        assertThat(dataAddress.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
+        assertThat(dataAddress.getStringProperty("endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL);
+        assertThat(dataAddress.getStringProperty("authorization")).isNotNull();
+        assertThat(dataAddress.getStringProperty("authType")).isEqualTo("bearer");
+
+        // verify that the data flow was created
+        var store = runtime.getService(DataPlaneStore.class).findById(processId);
+        assertThat(store).isNotNull();
+    }
+
+    @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR with a back-channel (PULL)")
+    @Test
+    void startTransfer_pull_withBidirectional() throws JsonProcessingException {
+        seedVault();
+        var jsonLd = runtime.getService(JsonLd.class);
+
+        var processId = UUID.randomUUID().toString();
+        var flowMessage = DataFlowStartMessage.Builder.newInstance()
+                .processId(processId)
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/").build())
+                .transferType(new TransferType("HttpData", FlowType.PULL, "HttpData"))
+                .participantId("some-participantId")
+                .assetId("test-asset")
+                .callbackAddress(URI.create("https://foo.bar/callback"))
+                .agreementId("test-agreement")
+                .build();
+        var startMessage = registry.transform(flowMessage, JsonObject.class).orElseThrow(failTest());
+
+        var resultJson = DATAPLANE.getDataPlaneControlEndpoint()
+                .baseRequest()
+                .contentType(ContentType.JSON)
+                .body(startMessage)
+                .post("/v1/dataflows")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .body(notNullValue())
+                .extract().body().asString();
+
+        var dataFlowResponseMessage = jsonLd.expand(mapper.readValue(resultJson, JsonObject.class))
+                .compose(json -> registry.transform(json, DataFlowResponseMessage.class))
+                .orElseThrow(failTest());
+
+        var dataAddress = dataFlowResponseMessage.getDataAddress();
+
+        // verify basic shape of the DSPACE data address (=EDR token)
+        assertThat(dataAddress).isNotNull();
+        assertThat(dataAddress.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
+        assertThat(dataAddress.getStringProperty("endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL);
+        assertThat(dataAddress.getStringProperty("authorization")).isNotNull();
+        assertThat(dataAddress.getStringProperty("authType")).isEqualTo("bearer");
+        assertThat(dataAddress.getStringProperty("responseChannel/endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel");
+        assertThat(dataAddress.getStringProperty("responseChannel/endpointType")).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
+        assertThat(dataAddress.getStringProperty("responseChannel/authType")).isEqualTo("bearer");
+        assertThat(dataAddress.getStringProperty("responseChannel/authorization")).isNotNull();
+
+        // verify that the data flow was created
+        var store = runtime.getService(DataPlaneStore.class).findById(processId);
+        assertThat(store).isNotNull();
+    }
+
+    @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR with a back-channel (PUSH)")
+    @Test
+    void startTransfer_push_withBidirectional() throws JsonProcessingException {
+        seedVault();
+        var jsonLd = runtime.getService(JsonLd.class);
+
+        var processId = UUID.randomUUID().toString();
+        var flowMessage = DataFlowStartMessage.Builder.newInstance()
+                .processId(processId)
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://bar.baz/").build())
+                .transferType(new TransferType("HttpData", FlowType.PUSH, "HttpData"))
+                .participantId("some-participantId")
+                .assetId("test-asset")
+                .callbackAddress(URI.create("https://foo.bar/callback"))
+                .agreementId("test-agreement")
+                .build();
+        var startMessage = registry.transform(flowMessage, JsonObject.class).orElseThrow(failTest());
+
+        var resultJson = DATAPLANE.getDataPlaneControlEndpoint()
+                .baseRequest()
+                .contentType(ContentType.JSON)
+                .body(startMessage)
+                .post("/v1/dataflows")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .body(notNullValue())
+                .extract().body().asString();
+
+        var dataFlowResponseMessage = jsonLd.expand(mapper.readValue(resultJson, JsonObject.class))
+                .compose(json -> registry.transform(json, DataFlowResponseMessage.class))
+                .orElseThrow(failTest());
+
+        var dataAddress = dataFlowResponseMessage.getDataAddress();
+
+        // verify basic shape of the DSPACE data address (=EDR token)
+        assertThat(dataAddress).isNotNull();
+        assertThat(dataAddress.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
+        assertThat(dataAddress.getStringProperty("endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL);
+        assertThat(dataAddress.getStringProperty("authorization")).isNotNull();
+        assertThat(dataAddress.getStringProperty("authType")).isEqualTo("bearer");
+        assertThat(dataAddress.getStringProperty("responseChannel/endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel");
+        assertThat(dataAddress.getStringProperty("responseChannel/endpointType")).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
+        assertThat(dataAddress.getStringProperty("responseChannel/authType")).isEqualTo("bearer");
+        assertThat(dataAddress.getStringProperty("responseChannel/authorization")).isNotNull();
 
         // verify that the data flow was created
         var store = runtime.getService(DataPlaneStore.class).findById(processId);

@@ -38,6 +38,7 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROPERTIES;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION;
 
 /**
@@ -58,8 +59,9 @@ public class JsonObjectToDataFlowStartMessageTransformer extends AbstractJsonLdT
         if (transferTypeDestination != null && flowType != null) {
             builder.transferType(new TransferType(
                     transformString(transferTypeDestination, context),
-                    FlowType.valueOf(transformString(flowType, context))
-            ));
+                    FlowType.valueOf(transformString(flowType, context)),
+                    transformString(object.get(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL), context))
+            );
         } else {
             context.problem().missingProperty().property("%s - %s".formatted(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION, EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE))
                     .report();

@@ -28,6 +28,15 @@ class PublicEndpointGeneratorServiceImplTest {
 
     private final PublicEndpointGeneratorService generatorService = new PublicEndpointGeneratorServiceImpl();
 
+    @Test
+    void supportedTypes() {
+        generatorService.addGeneratorFunction("type", dataAddress -> new Endpoint("any", "any"));
+
+        var result = generatorService.supportedDestinationTypes();
+
+        assertThat(result).containsOnly("type");
+    }
+
     @Nested
     class GenerateFor {
 
@@ -54,12 +63,25 @@ class PublicEndpointGeneratorServiceImplTest {
 
     }
 
-    @Test
-    void supportedTypes() {
-        generatorService.addGeneratorFunction("type", dataAddress -> new Endpoint("any", "any"));
+    @Nested
+    class GenerateResponseFor {
 
-        var result = generatorService.supportedDestinationTypes();
+        @Test
+        void shouldGenerateEndpointBasedOnDestinationType() {
+            var endpoint = new Endpoint("fizz", "bar-type");
 
-        assertThat(result).containsOnly("type");
+            generatorService.addGeneratorFunction("destinationType", () -> endpoint);
+
+            var result = generatorService.generateResponseFor("destinationType");
+
+            assertThat(result).isSucceeded().isEqualTo(endpoint);
+        }
+
+        @Test
+        void shouldFail_whenFunctionIsNotRegistered() {
+            var result = generatorService.generateResponseFor("any");
+            assertThat(result).isFailed();
+        }
+
     }
 }

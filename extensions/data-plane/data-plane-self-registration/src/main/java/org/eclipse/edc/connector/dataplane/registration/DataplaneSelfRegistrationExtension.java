@@ -46,7 +46,7 @@ import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 @Extension(NAME)
 public class DataplaneSelfRegistrationExtension implements ServiceExtension {
 
-    private static final boolean DEFAULT_SELF_UNREGISTRATION = false;
+    public static final boolean DEFAULT_SELF_UNREGISTRATION = false;
     public static final String NAME = "Dataplane Self Registration";
     @Setting(value = "Enable data-plane un-registration at shutdown (not suggested for clustered environments)", type = "boolean", defaultValue = DEFAULT_SELF_UNREGISTRATION + "")
     static final String SELF_UNREGISTRATION = "edc.data.plane.self.unregistration";
@@ -78,8 +78,8 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
     @Override
     public void start() {
         var transferTypes = Stream.concat(
-                toTransferTypes(PULL, publicEndpointGeneratorService.supportedDestinationTypes()),
-                toTransferTypes(PUSH, pipelineService.supportedSinkTypes())
+                toTransferTypes(PULL, publicEndpointGeneratorService.supportedDestinationTypes(), publicEndpointGeneratorService.supportedResponseTypes()),
+                toTransferTypes(PUSH, pipelineService.supportedSinkTypes(), publicEndpointGeneratorService.supportedResponseTypes())
         );
 
         var instance = DataPlaneInstance.Builder.newInstance()
@@ -116,8 +116,9 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
         }
     }
 
-    private @NotNull Stream<String> toTransferTypes(FlowType pull, Set<String> types) {
-        return types.stream().map(it -> "%s-%s".formatted(it, pull));
+    private @NotNull Stream<String> toTransferTypes(FlowType pull, Set<String> types, Set<String> responseTypes) {
+        Stream<String> transferTypes = types.stream().map(it -> "%s-%s".formatted(it, pull));
+        return Stream.concat(transferTypes, responseTypes.stream().flatMap(responseType -> types.stream().map(it -> "%s-%s/%s".formatted(it, pull, responseType))));
     }
 
     private class DataPlaneHealthCheck implements LivenessProvider, ReadinessProvider, StartupStatusProvider {
