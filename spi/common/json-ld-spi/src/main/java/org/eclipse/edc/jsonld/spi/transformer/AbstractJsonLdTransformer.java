@@ -16,6 +16,7 @@ package org.eclipse.edc.jsonld.spi.transformer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
+import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
@@ -43,6 +44,7 @@ import static jakarta.json.JsonValue.ValueType.TRUE;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 
 /**
  * Base JSON-LD transformer implementation.
@@ -258,7 +260,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             return ((JsonString) value).getString();
         } else if (value instanceof JsonObject) {
             var object = value.asJsonObject();
-            return Stream.of(JsonLdKeywords.VALUE, JsonLdKeywords.ID).map(object::get)
+            return Stream.of(JsonLdKeywords.VALUE, ID).map(object::get)
                     .filter(Objects::nonNull)
                     .findFirst().map(it -> transformString(it, context))
                     .orElseGet(() -> {
@@ -442,7 +444,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         if (object instanceof JsonArray) {
             return nodeId(object.asJsonArray().get(0));
         } else {
-            var id = object.asJsonObject().get(JsonLdKeywords.ID);
+            var id = object.asJsonObject().get(ID);
             return id instanceof JsonString ? ((JsonString) id).getString() : null;
         }
     }
@@ -479,13 +481,37 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     /**
      * Add a key-value pair to the builder only if the value is not null, to avoid NPE.
      *
-     * @param value the value.
-     * @param key the key.
+     * @param value   the value.
+     * @param key     the key.
      * @param builder the builder.
      */
     protected void addIfNotNull(String value, String key, JsonObjectBuilder builder) {
         if (value != null) {
             builder.add(key, value);
         }
+    }
+
+    /**
+     * Add JSON-LD ID object to the builder only if the id is not null, to avoid NPE.
+     *
+     * @param id      the value.
+     * @param key     the key.
+     * @param builder the builder.
+     */
+    protected void addIdIfNotNull(String id, String key, JsonBuilderFactory factory, JsonObjectBuilder builder) {
+        if (id != null) {
+            builder.add(key, createId(factory, id));
+        }
+    }
+
+
+    /**
+     * Create a JSON-LD ID object with the input string.
+     *
+     * @param factory The {@link JsonBuilderFactory} .
+     * @param id      The id.
+     */
+    protected JsonObject createId(JsonBuilderFactory factory, String id) {
+        return factory.createObjectBuilder().add(ID, id).build();
     }
 }

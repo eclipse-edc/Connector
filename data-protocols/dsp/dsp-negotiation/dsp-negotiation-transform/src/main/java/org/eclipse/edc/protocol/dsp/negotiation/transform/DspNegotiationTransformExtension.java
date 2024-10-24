@@ -31,6 +31,13 @@ import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContrac
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractNegotiationTerminationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractOfferMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractRequestMessageTransformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractAgreementMessageV2024Transformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractAgreementVerificationMessageV2024Transformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractNegotiationEventMessageV2024Transformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractNegotiationTerminationMessageV2024Transformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractNegotiationV2024Transformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractOfferMessageV2024Transformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractRequestMessageV2024Transformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -62,6 +69,9 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        registerV08transformers();
+        registerV2024transformers();
+
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08);
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1);
     }
@@ -70,13 +80,6 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
         var builderFactory = Json.createBuilderFactory(Map.of());
 
         var dspApiTransformerRegistry = registry.forContext(version);
-        dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementMessageTransformer(builderFactory, namespace));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementVerificationMessageTransformer(builderFactory, namespace));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationEventMessageTransformer(builderFactory, namespace));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTerminationMessageTransformer(builderFactory, namespace));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(builderFactory, namespace));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractRequestMessageTransformer(builderFactory, namespace));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractOfferMessageTransformer(builderFactory, namespace));
         dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationErrorTransformer(builderFactory, namespace));
 
         dspApiTransformerRegistry.register(new JsonObjectToContractAgreementMessageTransformer(namespace));
@@ -86,5 +89,34 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationTerminationMessageTransformer(namespace));
         dspApiTransformerRegistry.register(new JsonObjectToContractOfferMessageTransformer(namespace));
         dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationAckTransformer(namespace));
+    }
+
+
+    private void registerV08transformers() {
+        var builderFactory = Json.createBuilderFactory(Map.of());
+        var dspApiTransformerRegistry = registry.forContext(DSP_TRANSFORMER_CONTEXT_V_08);
+
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractRequestMessageTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractOfferMessageTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementMessageTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementVerificationMessageTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationEventMessageTransformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTerminationMessageTransformer(builderFactory));
+
+    }
+
+    private void registerV2024transformers() {
+        var builderFactory = Json.createBuilderFactory(Map.of());
+        var dspApiTransformerRegistry = registry.forContext(DSP_TRANSFORMER_CONTEXT_V_2024_1);
+
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationV2024Transformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractRequestMessageV2024Transformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractOfferMessageV2024Transformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementMessageV2024Transformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementVerificationMessageV2024Transformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationEventMessageV2024Transformer(builderFactory));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTerminationMessageV2024Transformer(builderFactory));
+
     }
 }
