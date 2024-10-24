@@ -109,7 +109,6 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
         generatorService.addGeneratorFunction("HttpData", dataAddress -> endpoint);
         var responseEndpoint = Endpoint.url(publicEndpoint + "/responseChannel");
         generatorService.addGeneratorFunction("HttpData", () -> responseEndpoint);
-        generatorService.addGeneratorFunction("gRPC", () -> new Endpoint("yomama", "gRPC"));
 
         var publicApiController = new DataPlanePublicApiV2Controller(pipelineService, executorService, authorizationService);
         webService.registerResource(ApiContext.PUBLIC, publicApiController);
