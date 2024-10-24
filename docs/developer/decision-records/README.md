@@ -65,4 +65,5 @@
 - [2024-10-02 Clustered data-plane](./2024-10-02-clustered-data-plane/)
 - [2024-10-06 Typed Policy Scopes through Contexts](./2024-10-05-typed-policy-context)
 - [2024-10-10 DAPS module deprecation](./2024-10-10-daps-deprecation)
+- [2024-10-24 bidirectional-data-transfers](./2024-10-24-bidirectional-data-transfers)
 

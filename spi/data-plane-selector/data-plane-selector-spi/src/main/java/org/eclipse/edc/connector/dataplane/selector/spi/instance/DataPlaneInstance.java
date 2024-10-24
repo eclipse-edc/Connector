@@ -102,7 +102,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
         Objects.requireNonNull(sourceAddress, "source cannot be null!");
         Objects.requireNonNull(transferType, "transferType cannot be null!");
         // startsWith: the allowed transferType could be HttpData-PULL/someResponseChannel, and we only need to match the HttpData-PULL
-        return allowedSourceTypes.contains(sourceAddress.getType()) && allowedTransferTypes.stream().anyMatch(s -> s.startsWith(transferType));
+        return allowedSourceTypes.contains(sourceAddress.getType()) && allowedTransferTypes.contains(transferType);
     }
 
     public URL getUrl() {
