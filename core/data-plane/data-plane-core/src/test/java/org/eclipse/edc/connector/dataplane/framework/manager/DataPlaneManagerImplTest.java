@@ -70,7 +70,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -99,7 +98,6 @@ class DataPlaneManagerImplTest {
 
     @Test
     void initiateDataFlow() {
-        when(authorizationService.createEndpointDataReference(any())).thenReturn(Result.success(DataAddress.Builder.newInstance().type("type").build()));
         var request = DataFlowStartMessage.Builder.newInstance()
                 .id("1")
                 .processId("1")
@@ -122,8 +120,7 @@ class DataPlaneManagerImplTest {
         assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
         assertThat(dataFlow.getState()).isEqualTo(RECEIVED.code());
 
-        verify(authorizationService).createEndpointDataReference(request);
-        verifyNoMoreInteractions(authorizationService);
+        verifyNoInteractions(authorizationService);
     }
 
     @Test
