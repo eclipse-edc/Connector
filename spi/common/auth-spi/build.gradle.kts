@@ -20,6 +20,7 @@ dependencies {
     api(project(":spi:common:web-spi"))
 
     implementation(libs.jakarta.rsApi)
+    implementation(libs.jakarta.annotation)
 }
 
 
