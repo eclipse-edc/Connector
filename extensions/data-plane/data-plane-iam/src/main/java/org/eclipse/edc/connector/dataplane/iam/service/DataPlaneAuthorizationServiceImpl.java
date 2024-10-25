@@ -121,12 +121,12 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
     private Result<DataAddress.Builder> addResponseChannel(DataAddress.Builder builder, TokenRepresentation tokenRepresentation, Endpoint returnChannelEndpoint) {
         var map = new HashMap<String, String>() {
             {
-                put(EDC_NAMESPACE + "responseChannel/endpoint", returnChannelEndpoint.endpoint());
-                put(EDC_NAMESPACE + "responseChannel/endpointType", returnChannelEndpoint.endpointType());
-                put(EDC_NAMESPACE + "responseChannel/authorization", tokenRepresentation.getToken());
+                put(EDC_NAMESPACE + "responseChannel-endpoint", returnChannelEndpoint.endpoint());
+                put(EDC_NAMESPACE + "responseChannel-endpointType", returnChannelEndpoint.endpointType());
+                put(EDC_NAMESPACE + "responseChannel-authorization", tokenRepresentation.getToken());
             }
         };
-        tokenRepresentation.getAdditional().forEach((k, v) -> map.put(k.replace(EDC_NAMESPACE, EDC_NAMESPACE + "responseChannel/"), v.toString()));
+        tokenRepresentation.getAdditional().forEach((k, v) -> map.put(k.replace(EDC_NAMESPACE, EDC_NAMESPACE + "responseChannel-"), v.toString()));
 
         map.forEach(builder::property);
 

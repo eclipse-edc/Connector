@@ -61,10 +61,10 @@ The required changes to the Data Plane Framework to support bidirectional data t
 
 The `DataAddress` in the `DataFlowResponseMessage` will contain properties symmetric to front channel HTTP endpoints:
 
-- `https://w3id.org/edc/v0.0.1/ns/responseChannel/endpoint`: the URL
-- `https://w3id.org/edc/v0.0.1/ns/responseChannel/endpoint`: the type of endpoint
-- `https://w3id.org/edc/v0.0.1/ns/responseChannel/authorization`: the authorization token [optional]
-- `https://w3id.org/edc/v0.0.1/ns/responseChannel/authType`: the type of auth token, e.g. `"bearer"` [optional]
+- `https://w3id.org/edc/v0.0.1/ns/responseChannel-endpoint`: the URL
+- `https://w3id.org/edc/v0.0.1/ns/responseChannel-endpoint`: the type of endpoint
+- `https://w3id.org/edc/v0.0.1/ns/responseChannel-authorization`: the authorization token [optional]
+- `https://w3id.org/edc/v0.0.1/ns/responseChannel-authType`: the type of auth token, e.g. `"bearer"` [optional]
 
 These properties will be flattened into the original `DataAddress`, since `dspace:endpointProperty` fields are defined
 as strings.
@@ -75,7 +75,7 @@ The `DataPlaneManagerImpl` and its collaborators will need to be refactored to g
 channel `DataAddresses`:
 
 - `DataPlaneManagerImpl` must be modified to return an EDR in the case of a provider PUSH. This EDR will only contain
-  `https://w3id.org/edc/v0.0.1/ns/responseChannel/*` entries. The manager will delegate to
+  `https://w3id.org/edc/v0.0.1/ns/responseChannel-*` entries. The manager will delegate to
   `DataPlaneAuthorizationService`
   to generate the response.
 - `DataPlaneAuthorizationServiceImpl` must be enhanced to support `responseChannel` generation. This should be keyed off

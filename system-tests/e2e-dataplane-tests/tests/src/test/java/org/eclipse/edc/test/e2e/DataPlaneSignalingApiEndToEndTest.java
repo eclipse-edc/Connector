@@ -209,10 +209,10 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         assertThat(dataAddress.getStringProperty("endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL);
         assertThat(dataAddress.getStringProperty("authorization")).isNotNull();
         assertThat(dataAddress.getStringProperty("authType")).isEqualTo("bearer");
-        assertThat(dataAddress.getStringProperty("responseChannel/endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel");
-        assertThat(dataAddress.getStringProperty("responseChannel/endpointType")).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-        assertThat(dataAddress.getStringProperty("responseChannel/authType")).isEqualTo("bearer");
-        assertThat(dataAddress.getStringProperty("responseChannel/authorization")).isNotNull();
+        assertThat(dataAddress.getStringProperty("responseChannel-endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel");
+        assertThat(dataAddress.getStringProperty("responseChannel-endpointType")).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
+        assertThat(dataAddress.getStringProperty("responseChannel-authType")).isEqualTo("bearer");
+        assertThat(dataAddress.getStringProperty("responseChannel-authorization")).isNotNull();
 
         // verify that the data flow was created
         var store = runtime.getService(DataPlaneStore.class).findById(processId);
@@ -261,10 +261,10 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         assertThat(dataAddress.getStringProperty("endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL);
         assertThat(dataAddress.getStringProperty("authorization")).isNotNull();
         assertThat(dataAddress.getStringProperty("authType")).isEqualTo("bearer");
-        assertThat(dataAddress.getStringProperty("responseChannel/endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel");
-        assertThat(dataAddress.getStringProperty("responseChannel/endpointType")).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-        assertThat(dataAddress.getStringProperty("responseChannel/authType")).isEqualTo("bearer");
-        assertThat(dataAddress.getStringProperty("responseChannel/authorization")).isNotNull();
+        assertThat(dataAddress.getStringProperty("responseChannel-endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel");
+        assertThat(dataAddress.getStringProperty("responseChannel-endpointType")).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
+        assertThat(dataAddress.getStringProperty("responseChannel-authType")).isEqualTo("bearer");
+        assertThat(dataAddress.getStringProperty("responseChannel-authorization")).isNotNull();
 
         // verify that the data flow was created
         var store = runtime.getService(DataPlaneStore.class).findById(processId);

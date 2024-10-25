@@ -25,7 +25,7 @@ public class TransferTypeParserImpl implements TransferTypeParser {
 
     /**
      * Parses a compose transfer type string into a {@link TransferType}:
-     * {@code DESTTYPE-{PUSH|PULL}(/RESPONSETYPE)}, for example {@code HttpData-PULL/Websocket}
+     * {@code DESTTYPE-{PUSH|PULL}(-RESPONSETYPE)}, for example {@code HttpData-PULL/Websocket}
      *
      * @param transferType the transfer type string representation.
      * @return a {@link TransferType}
@@ -33,7 +33,7 @@ public class TransferTypeParserImpl implements TransferTypeParser {
     @Override
     public Result<TransferType> parse(String transferType) {
         Optional<Result<TransferType>> parsed = Optional.ofNullable(transferType)
-                .map(type -> type.split("[-/]"))
+                .map(type -> type.split("-"))
                 .filter(tokens -> tokens.length >= 2)
                 .map(tokens -> parseFlowType(tokens[1]).map(flowType -> new TransferType(tokens[0], flowType, tokens.length > 2 ? tokens[2] : null)));
 
