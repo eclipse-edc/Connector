@@ -25,6 +25,7 @@ import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDataSer
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDatasetTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDistributionTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToCatalogRequestMessageTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.v2024.from.JsonObjectFromCatalogV2024Transformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -66,8 +67,13 @@ public class DspCatalogTransformExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var mapper = typeManager.getMapper(JSON_LD);
 
+        registerV08Transformers(mapper);
+        registerV2024Transformers(mapper);
+        
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08, mapper);
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1, mapper);
+
+
     }
 
     private void registerTransformers(String version, JsonLdNamespace namespace, ObjectMapper mapper) {
@@ -77,10 +83,22 @@ public class DspCatalogTransformExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, namespace));
         dspApiTransformerRegistry.register(new JsonObjectToCatalogRequestMessageTransformer(namespace));
 
-        dspApiTransformerRegistry.register(new JsonObjectFromCatalogTransformer(jsonFactory, mapper, participantIdMapper, namespace));
         dspApiTransformerRegistry.register(new JsonObjectFromDatasetTransformer(jsonFactory, mapper));
         dspApiTransformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromCatalogErrorTransformer(jsonFactory, namespace));
+    }
+
+    private void registerV08Transformers(ObjectMapper mapper) {
+        var jsonFactory = Json.createBuilderFactory(Map.of());
+        var dspApiTransformerRegistry = registry.forContext(DSP_TRANSFORMER_CONTEXT_V_08);
+        dspApiTransformerRegistry.register(new JsonObjectFromCatalogTransformer(jsonFactory, mapper, participantIdMapper, DSP_NAMESPACE_V_08));
+
+    }
+
+    private void registerV2024Transformers(ObjectMapper mapper) {
+        var jsonFactory = Json.createBuilderFactory(Map.of());
+        var dspApiTransformerRegistry = registry.forContext(DSP_TRANSFORMER_CONTEXT_V_2024_1);
+        dspApiTransformerRegistry.register(new JsonObjectFromCatalogV2024Transformer(jsonFactory, mapper, participantIdMapper, DSP_NAMESPACE_V_2024_1));
     }
 }
