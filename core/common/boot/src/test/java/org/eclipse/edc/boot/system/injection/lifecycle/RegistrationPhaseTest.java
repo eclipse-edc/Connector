@@ -19,7 +19,7 @@ import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -32,9 +32,10 @@ import static org.mockito.Mockito.when;
 
 class RegistrationPhaseTest extends PhaseTest {
 
+    private final ProviderMethodScanner scannerMock = mock();
+
     @Test
     void registerProviders_noProviderMethod() {
-        ProviderMethodScanner scannerMock = mock(ProviderMethodScanner.class);
         var rp = new RegistrationPhase(new Phase(injector, container, context, monitor) {
         }, scannerMock);
         when(container.getInjectionTarget()).thenReturn(mock(ServiceExtension.class));
@@ -53,7 +54,7 @@ class RegistrationPhaseTest extends PhaseTest {
         when(providerMethod.invoke(any(), any())).thenReturn(new TestService());
         when(providerMethod.getReturnType()).thenAnswer(a -> TestService.class);
         when(context.hasService(TestService.class)).thenReturn(false);
-        when(scannerMock.nonDefaultProviders()).thenReturn(Set.of(providerMethod));
+        when(scannerMock.nonDefaultProviders()).thenReturn(Stream.of(providerMethod));
 
         var rp = new RegistrationPhase(new Phase(injector, container, context, monitor) {
         }, scannerMock);
@@ -69,7 +70,7 @@ class RegistrationPhaseTest extends PhaseTest {
     @Test
     void registerProviders_withProvider_isDefault_notRegistered() {
         var scannerMock = mock(ProviderMethodScanner.class);
-        when(scannerMock.nonDefaultProviders()).thenReturn(Set.of());
+        when(scannerMock.nonDefaultProviders()).thenReturn(Stream.empty());
 
         var rp = new RegistrationPhase(new Phase(injector, container, context, monitor) {
         }, scannerMock);

@@ -12,11 +12,10 @@
  *
  */
 
-package org.eclipse.edc.boot.system;
+package org.eclipse.edc.junit.extensions;
 
 import org.eclipse.edc.boot.system.injection.InjectionPointScanner;
 import org.eclipse.edc.boot.system.injection.InjectorImpl;
-import org.eclipse.edc.boot.system.injection.ReflectiveObjectFactory;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
