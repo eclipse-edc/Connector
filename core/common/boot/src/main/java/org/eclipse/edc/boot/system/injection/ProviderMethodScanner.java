@@ -18,8 +18,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.reflect.Modifier.isPublic;
 
@@ -33,34 +32,38 @@ public class ProviderMethodScanner {
         this.target = target;
     }
 
+    /**
+     * Returns all methods annotated with {@link Provider}.
+     */
+    public Stream<ProviderMethod> allProviders() {
+        return getProviderMethods(target);
+    }
 
     /**
      * Returns all methods annotated with {@link Provider}, where {@link Provider#isDefault()} is {@code false}
      */
-    public Set<ProviderMethod> nonDefaultProviders() {
-        return getProviderMethods(target).stream().filter(pm -> !pm.isDefault()).collect(Collectors.toSet());
+    public Stream<ProviderMethod> nonDefaultProviders() {
+        return getProviderMethods(target).filter(pm -> !pm.isDefault());
     }
 
     /**
      * Returns all methods annotated with {@link Provider}, where {@link Provider#isDefault()} is {@code true}
      */
-    public Set<ProviderMethod> defaultProviders() {
-        return getProviderMethods(target).stream().filter(ProviderMethod::isDefault).collect(Collectors.toSet());
+    public Stream<ProviderMethod> defaultProviders() {
+        return getProviderMethods(target).filter(ProviderMethod::isDefault);
     }
 
-    private Set<ProviderMethod> getProviderMethods(Object extension) {
-        var methods = Arrays.stream(extension.getClass().getDeclaredMethods())
+    private Stream<ProviderMethod> getProviderMethods(Object extension) {
+        return Arrays.stream(extension.getClass().getDeclaredMethods())
                 .filter(m -> m.getAnnotation(Provider.class) != null)
                 .map(ProviderMethod::new)
-                .collect(Collectors.toSet());
-
-        if (methods.stream().anyMatch(m -> m.getReturnType().equals(Void.TYPE))) {
-            throw new EdcInjectionException("Methods annotated with @Provider must have a non-void return type!");
-        }
-        if (methods.stream().anyMatch(m -> !isPublic(m.getMethod().getModifiers()))) {
-            throw new EdcInjectionException("Methods annotated with @Provider must be public!");
-        }
-        return methods;
+                .peek(method -> {
+                    if (method.getReturnType().equals(Void.TYPE)) {
+                        throw new EdcInjectionException("Methods annotated with @Provider must have a non-void return type!");
+                    }
+                    if (!isPublic(method.getMethod().getModifiers())) {
+                        throw new EdcInjectionException("Methods annotated with @Provider must be public!");
+                    }
+                });
     }
-
 }

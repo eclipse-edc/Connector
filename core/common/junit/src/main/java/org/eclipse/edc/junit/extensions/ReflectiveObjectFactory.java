@@ -12,8 +12,12 @@
  *
  */
 
-package org.eclipse.edc.boot.system.injection;
+package org.eclipse.edc.junit.extensions;
 
+import org.eclipse.edc.boot.system.injection.InjectionContainer;
+import org.eclipse.edc.boot.system.injection.InjectionPointScanner;
+import org.eclipse.edc.boot.system.injection.Injector;
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * This is a {@link ObjectFactory} that uses reflection and dependency injection to construct object instances.
@@ -48,8 +53,7 @@ public class ReflectiveObjectFactory implements ObjectFactory {
     }
 
     private <T> @NotNull InjectionContainer<T> createInjectionContainer(T instance) {
-        var injectFields = injectionPointScanner.getInjectionPoints(instance);
-        return new InjectionContainer<>(instance, injectFields);
+        return new InjectionContainer<>(instance, injectionPointScanner.getInjectionPoints(instance).collect(toSet()));
     }
 
     @NotNull

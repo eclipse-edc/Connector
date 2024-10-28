@@ -18,14 +18,15 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 
 import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Scans a particular (partly constructed) object for fields that are annotated with {@link Inject} and returns them
  * in a {@link Set}
  */
 public class InjectionPointScanner {
-    public <T> Set<InjectionPoint<T>> getInjectionPoints(T instance) {
+
+    public <T> Stream<InjectionPoint<T>> getInjectionPoints(T instance) {
 
         var targetClass = instance.getClass();
 
@@ -34,7 +35,6 @@ public class InjectionPointScanner {
                 .map(f -> {
                     var isRequired = f.getAnnotation(Inject.class).required();
                     return new FieldInjectionPoint<>(instance, f, isRequired);
-                })
-                .collect(Collectors.toSet());
+                });
     }
 }
