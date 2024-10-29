@@ -48,7 +48,7 @@ capabilities a connector has) is defined by the `build.gradle.kts` file inside t
 where a Java class containing a `main` method should go. We will call that class a "runtime" and in order for the
 connector to become operational the `runtime` needs to perform several important tasks (="bootstrapping"). For an
 example take a look at
-[this runtime](https://github.com/eclipse-edc/Samples/blob/main/other/custom-runtime/src/main/java/org/eclipse/edc/sample/runtime/CustomRuntime.java)
+[this runtime](https://github.com/eclipse-edc/Samples/tree/main/basic/basic-01-basic-connector).
 
 ### `data-protocols`
 
