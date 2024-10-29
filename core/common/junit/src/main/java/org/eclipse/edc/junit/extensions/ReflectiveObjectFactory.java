@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -53,7 +54,7 @@ public class ReflectiveObjectFactory implements ObjectFactory {
     }
 
     private <T> @NotNull InjectionContainer<T> createInjectionContainer(T instance) {
-        return new InjectionContainer<>(instance, injectionPointScanner.getInjectionPoints(instance).collect(toSet()));
+        return new InjectionContainer<>(instance, injectionPointScanner.getInjectionPoints(instance).collect(toSet()), emptyList());
     }
 
     @NotNull

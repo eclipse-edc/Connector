@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.boot.system.injection;
 
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -30,5 +31,5 @@ public interface DefaultServiceSupplier {
      * @return a default service, null if not found
      */
     @Nullable
-    Object provideFor(Class<?> type);
+    Object provideFor(InjectionPoint<?> type, ServiceExtensionContext context);
 }

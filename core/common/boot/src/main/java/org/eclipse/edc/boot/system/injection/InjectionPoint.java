@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.boot.system.injection;
 
+import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
+
 /**
  * Represents an auto-injectable property. Possible implementors are field injection points, constructor injection points, etc.
  *
@@ -27,4 +29,8 @@ public interface InjectionPoint<T> {
     boolean isRequired();
 
     void setTargetValue(Object service) throws IllegalAccessException;
+
+    ServiceProvider getDefaultServiceProvider();
+
+    void setDefaultServiceProvider(ServiceProvider defaultServiceProvider);
 }

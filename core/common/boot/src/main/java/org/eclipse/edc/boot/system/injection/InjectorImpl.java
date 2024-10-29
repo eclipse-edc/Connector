@@ -17,24 +17,9 @@ package org.eclipse.edc.boot.system.injection;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-import java.util.Map;
-import java.util.function.Supplier;
-
-import static java.util.Optional.ofNullable;
-
 public final class InjectorImpl implements Injector {
 
     private final DefaultServiceSupplier defaultServiceSupplier;
-
-    /**
-     * Constructs a new Injector instance, which can either resolve services from the {@link ServiceExtensionContext}, or -
-     * if the required service is not present - use the default implementations provided in the map.
-     *
-     * @param defaultSuppliers A map that contains dependency types as key, and default service objects as value.
-     */
-    public InjectorImpl(Map<Class<?>, Supplier<Object>> defaultSuppliers) {
-        this(type -> ofNullable(defaultSuppliers.get(type)).map(Supplier::get).orElse(null));
-    }
 
     /**
      * Constructs a new Injector instance, which can either resolve services from the {@link ServiceExtensionContext}, or -
@@ -52,7 +37,7 @@ public final class InjectorImpl implements Injector {
 
         container.getInjectionPoints().forEach(ip -> {
             try {
-                Object service = resolveService(context, ip.getType(), ip.isRequired());
+                var service = resolveService(context, ip);
                 if (service != null) { //can only be if not required
                     ip.setTargetValue(service);
                 }
@@ -70,15 +55,13 @@ public final class InjectorImpl implements Injector {
         return container.getInjectionTarget();
     }
 
-    private Object resolveService(ServiceExtensionContext context, Class<?> serviceClass, boolean isRequired) {
+    private Object resolveService(ServiceExtensionContext context, InjectionPoint<?> injectionPoint) {
+        var serviceClass = injectionPoint.getType();
         if (context.hasService(serviceClass)) {
-            return context.getService(serviceClass, !isRequired);
+            return context.getService(serviceClass, !injectionPoint.isRequired());
         } else {
-            Object defaultService = defaultServiceSupplier.provideFor(serviceClass);
-            if (isRequired && defaultService == null) {
-                throw new EdcInjectionException("No default provider for required service " + serviceClass);
-            }
-            return defaultService;
+            return defaultServiceSupplier.provideFor(injectionPoint, context);
         }
     }
+
 }
