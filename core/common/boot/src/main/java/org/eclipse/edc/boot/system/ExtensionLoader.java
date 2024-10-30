@@ -19,10 +19,6 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.edc.boot.monitor.MultiplexingMonitor;
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
-import org.eclipse.edc.boot.system.injection.InjectorImpl;
-import org.eclipse.edc.boot.system.injection.ProviderMethod;
-import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
-import org.eclipse.edc.boot.system.injection.lifecycle.ExtensionLifecycleManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -33,11 +29,9 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,42 +41,6 @@ public class ExtensionLoader {
 
     public ExtensionLoader(ServiceLocator serviceLocator) {
         this.serviceLocator = serviceLocator;
-    }
-
-    /**
-     * Convenience method for loading service extensions.
-     */
-    public static void bootServiceExtensions(List<InjectionContainer<ServiceExtension>> containers, ServiceExtensionContext context) {
-        //construct a list of default providers, which are invoked, if a particular service is not present in the context
-        var defaultServices = new HashMap<Class<?>, Supplier<Object>>();
-        containers.forEach(se -> {
-            var pm = new ProviderMethodScanner(se.getInjectionTarget()).defaultProviders();
-            pm.forEach(p -> defaultServices.put(p.getReturnType(), getDefaultProviderInvoker(context, se, p)));
-        });
-
-        var injector = new InjectorImpl(defaultServices);
-
-        // go through the extension initialization lifecycle
-        var lifeCycles = containers.stream()
-                .map(c -> new ExtensionLifecycleManager(c, context, injector))
-                .map(ExtensionLifecycleManager::inject)
-                .map(ExtensionLifecycleManager::initialize)
-                .map(ExtensionLifecycleManager::provide)
-                .collect(Collectors.toList());
-
-        context.freeze();
-
-        var preparedExtensions = lifeCycles.stream().map(ExtensionLifecycleManager::prepare).collect(Collectors.toList());
-        preparedExtensions.forEach(ExtensionLifecycleManager::start);
-    }
-
-    @NotNull
-    private static Supplier<Object> getDefaultProviderInvoker(ServiceExtensionContext context, InjectionContainer<ServiceExtension> se, ProviderMethod p) {
-        return () -> {
-            var d = p.invoke(se.getInjectionTarget(), context);
-            context.registerService(p.getReturnType(), d);
-            return d;
-        };
     }
 
     public static @NotNull Monitor loadMonitor(String... programArgs) {

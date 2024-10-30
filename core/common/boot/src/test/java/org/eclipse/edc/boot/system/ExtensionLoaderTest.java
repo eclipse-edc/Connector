@@ -20,8 +20,6 @@ import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.edc.boot.monitor.MultiplexingMonitor;
 import org.eclipse.edc.boot.system.injection.EdcInjectionException;
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
-import org.eclipse.edc.boot.system.testextensions.ProviderDefaultServicesExtension;
-import org.eclipse.edc.boot.system.testextensions.ProviderExtension;
 import org.eclipse.edc.boot.util.CyclicDependencyException;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -33,7 +31,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.MonitorExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,7 +39,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,8 +53,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -309,101 +303,6 @@ class ExtensionLoaderTest {
 
         assertThatThrownBy(() -> loader.loadServiceExtensions(context)).isInstanceOf(CyclicDependencyException.class);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
-    }
-
-    @Test
-    @DisplayName("bootServiceExtensions - Should invoke default provider")
-    void bootServiceExtensions_withSingleDefaultProvider() {
-        var dependentExtension = TestFunctions.createDependentExtension(true);
-
-        var defaultProvider = (ProviderDefaultServicesExtension) Mockito.spy(TestFunctions.createProviderExtension(true));
-        when(defaultProvider.testObject()).thenCallRealMethod();
-
-
-        var context = new DefaultServiceExtensionContext(mock(Monitor.class), ConfigFactory.empty());
-
-        var list = TestFunctions.createInjectionContainers(TestFunctions.createList(defaultProvider, dependentExtension), context);
-
-        ExtensionLoader.bootServiceExtensions(list, context);
-
-        verify(defaultProvider, times(1)).testObject();
-    }
-
-    @Test
-    @DisplayName("bootServiceExtensions - Should only invoke non-default provider")
-    void bootServiceExtensions_withSingleDefaultProvider_andNonDefault() {
-        var dependentExtension = TestFunctions.createDependentExtension(true);
-
-        var defaultProvider = (ProviderDefaultServicesExtension) Mockito.spy(TestFunctions.createProviderExtension(true));
-
-        var nonDefaultProvider = (ProviderExtension) Mockito.spy(TestFunctions.createProviderExtension(false));
-        when(nonDefaultProvider.testObject()).thenCallRealMethod();
-
-        var context = new DefaultServiceExtensionContext(mock(Monitor.class), ConfigFactory.empty());
-
-        var list = TestFunctions.createInjectionContainers(TestFunctions.createList(defaultProvider, dependentExtension, nonDefaultProvider), context);
-
-        ExtensionLoader.bootServiceExtensions(list, context);
-
-        verify(defaultProvider, never()).testObject();
-        verify(nonDefaultProvider, times(1)).testObject();
-    }
-
-    @Test
-    @DisplayName("bootServiceExtensions - Should invoke non-default provider")
-    void bootServiceExtensions_withNonDefault() {
-        var dependentExtension = TestFunctions.createDependentExtension(true);
-
-        var nonDefaultProvider = (ProviderExtension) Mockito.spy(TestFunctions.createProviderExtension(false));
-        when(nonDefaultProvider.testObject()).thenCallRealMethod();
-
-        var context = new DefaultServiceExtensionContext(mock(Monitor.class), ConfigFactory.empty());
-
-        var list = TestFunctions.createInjectionContainers(TestFunctions.createList(dependentExtension, nonDefaultProvider), context);
-
-        ExtensionLoader.bootServiceExtensions(list, context);
-
-        verify(nonDefaultProvider, times(1)).testObject();
-    }
-
-    @Test
-    @DisplayName("bootServiceExtensions - Should invoke default provider for optional dependency")
-    void bootServiceExtensions_withOptionalDependency_onlyDefault() {
-        var dependentExtension = TestFunctions.createDependentExtension(false);
-
-        var defaultProvider = (ProviderDefaultServicesExtension) Mockito.spy(TestFunctions.createProviderExtension(true));
-        when(defaultProvider.testObject()).thenCallRealMethod();
-
-        var context = new DefaultServiceExtensionContext(mock(Monitor.class), ConfigFactory.empty());
-
-        var list = TestFunctions.createInjectionContainers(TestFunctions.createList(dependentExtension, defaultProvider), context);
-
-        ExtensionLoader.bootServiceExtensions(list, context);
-
-        verify(defaultProvider, times(1)).testObject();
-        assertThat(context.getService(TestObject.class)).isNotNull();
-    }
-
-    @Test
-    @DisplayName("bootServiceExtensions - Should invoke non-default provider with optional dependency")
-    void bootServiceExtensions_withOptionalDependency_defaultAndNonDefault() {
-        var dependentExtension = TestFunctions.createDependentExtension(false);
-
-        var defaultProvider = (ProviderDefaultServicesExtension) Mockito.spy(TestFunctions.createProviderExtension(true));
-        when(defaultProvider.testObject()).thenCallRealMethod();
-
-        var provider = (ProviderExtension) Mockito.spy(TestFunctions.createProviderExtension(false));
-        when(provider.testObject()).thenCallRealMethod();
-
-        var context = new DefaultServiceExtensionContext(mock(Monitor.class), ConfigFactory.empty());
-
-        var list = TestFunctions.createInjectionContainers(TestFunctions.createList(dependentExtension, defaultProvider, provider), context);
-
-        ExtensionLoader.bootServiceExtensions(list, context);
-
-        verify(defaultProvider, never()).testObject();
-        verify(provider, times(1)).testObject();
-        assertThat(context.getService(TestObject.class)).isNotNull();
     }
 
     @SafeVarargs

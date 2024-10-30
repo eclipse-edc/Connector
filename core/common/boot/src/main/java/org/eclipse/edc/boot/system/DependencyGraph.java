@@ -20,6 +20,7 @@ import org.eclipse.edc.boot.system.injection.InjectionPoint;
 import org.eclipse.edc.boot.system.injection.InjectionPointScanner;
 import org.eclipse.edc.boot.system.injection.ProviderMethod;
 import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
+import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
 import org.eclipse.edc.boot.util.CyclicDependencyException;
 import org.eclipse.edc.boot.util.TopologicalSort;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
@@ -74,7 +75,24 @@ public class DependencyGraph {
      */
     public List<InjectionContainer<ServiceExtension>> of(List<ServiceExtension> loadedExtensions) {
         var extensions = sortByType(loadedExtensions);
-        var dependencyMap = createDependencyMap(extensions);
+        Map<Class<?>, ServiceProvider> defaultServiceProviders = new HashMap<>();
+        Map<ServiceExtension, List<ServiceProvider>> serviceProviders = new HashMap<>();
+        Map<Class<?>, List<ServiceExtension>> dependencyMap = new HashMap<>();
+        extensions.forEach(extension -> {
+            getProvidedFeatures(extension).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(extension));
+            // check all @Provider methods
+            new ProviderMethodScanner(extension).allProviders()
+                    .peek(providerMethod -> {
+                        var serviceProvider = new ServiceProvider(providerMethod, extension);
+                        if (providerMethod.isDefault()) {
+                            defaultServiceProviders.put(providerMethod.getReturnType(), serviceProvider);
+                        } else {
+                            serviceProviders.computeIfAbsent(extension, k -> new ArrayList<>()).add(serviceProvider);
+                        }
+                    })
+                    .map(ProviderMethod::getReturnType)
+                    .forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(extension));
+        });
 
         var sort = new TopologicalSort<ServiceExtension>();
 
@@ -86,10 +104,10 @@ public class DependencyGraph {
                 .collect(toMap(identity(), ext -> {
 
                     //check that all the @Required features are there
-                    getRequiredFeatures(ext.getClass()).forEach(feature -> {
-                        var dependencies = dependencyMap.get(feature);
+                    getRequiredFeatures(ext.getClass()).forEach(serviceClass -> {
+                        var dependencies = dependencyMap.get(serviceClass);
                         if (dependencies == null) {
-                            unsatisfiedRequirements.add(feature.getName());
+                            unsatisfiedRequirements.add(serviceClass.getName());
                         } else {
                             dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
                         }
@@ -107,6 +125,11 @@ public class DependencyGraph {
                                             .ifPresent(l -> l.stream()
                                                     .filter(d -> !Objects.equals(d, ext)) // remove dependencies onto oneself
                                                     .forEach(provider -> sort.addDependency(ext, provider)));
+                                }
+
+                                var defaultServiceProvider = defaultServiceProviders.get(injectionPoint.getType());
+                                if (defaultServiceProvider != null) {
+                                    injectionPoint.setDefaultServiceProvider(defaultServiceProvider);
                                 }
                             })
                             .collect(toSet());
@@ -127,24 +150,18 @@ public class DependencyGraph {
 
         // convert the sorted list of extensions into an equally sorted list of InjectionContainers
         return extensions.stream()
-                .map(key -> new InjectionContainer<>(key, injectionPoints.get(key)))
+                .map(key -> new InjectionContainer<>(key, injectionPoints.get(key), serviceProviders.get(key)))
                 .toList();
     }
 
-    private boolean canResolve(Map<Class<?>, List<ServiceExtension>> dependencyMap, Class<?> featureName) {
-        var providers = dependencyMap.get(featureName);
+    private boolean canResolve(Map<Class<?>, List<ServiceExtension>> dependencyMap, Class<?> serviceClass) {
+        var providers = dependencyMap.get(serviceClass);
         if (providers != null) {
             return true;
         } else {
             // attempt to interpret the feature name as class name, instantiate it and see if the context has that service
-            return context.hasService(featureName);
+            return context.hasService(serviceClass);
         }
-    }
-
-    private Map<Class<?>, List<ServiceExtension>> createDependencyMap(List<ServiceExtension> extensions) {
-        Map<Class<?>, List<ServiceExtension>> dependencyMap = new HashMap<>();
-        extensions.forEach(ext -> getProvidedFeatures(ext).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
-        return dependencyMap;
     }
 
     private Stream<Class<?>> getRequiredFeatures(Class<?> clazz) {
@@ -168,8 +185,6 @@ public class DependencyGraph {
             allProvides.addAll(Arrays.asList(providesAnnotation.value()));
         }
 
-        // check all @Provider methods
-        new ProviderMethodScanner(ext).allProviders().map(ProviderMethod::getReturnType).forEach(allProvides::add);
         return allProvides;
     }
 

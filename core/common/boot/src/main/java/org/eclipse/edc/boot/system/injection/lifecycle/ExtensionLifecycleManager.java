@@ -15,12 +15,14 @@
 package org.eclipse.edc.boot.system.injection.lifecycle;
 
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
-import org.eclipse.edc.boot.system.injection.Injector;
+import org.eclipse.edc.boot.system.injection.InjectionPointDefaultServiceSupplier;
+import org.eclipse.edc.boot.system.injection.InjectorImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import java.util.List;
 
 /**
  * {@link ServiceExtension} implementors should not be constructed by just invoking their constructors, instead they need to go through
@@ -35,63 +37,42 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
  * <p>
  * It is advisable to put all {@link ServiceExtension} instances through their initialization lifecycle <em>before</em> invoking their
  * {@linkplain ServiceExtension#start()} method!
- *
- * @see InitializePhase
- * @see RegistrationPhase
- * @see StartPhase
  */
 public class ExtensionLifecycleManager {
-    private final InjectionContainer<ServiceExtension> container;
-    private final ServiceExtensionContext context;
-    private final Injector injector;
-    private final Monitor monitor;
-
-    public ExtensionLifecycleManager(InjectionContainer<ServiceExtension> container, ServiceExtensionContext context, Injector injector) {
-        monitor = context.getMonitor();
-        this.container = container;
-        this.context = context;
-        this.injector = injector;
-    }
 
     /**
-     * Invokes the {@link ServiceExtensionContext#initialize()} method and validates, that every type provided with @Provides
-     * is actually provided, logs a warning otherwise
+     * Convenience method for loading service extensions.
      */
-    public static RegistrationPhase initialize(InitializePhase phase) {
-        phase.initialize();
-        return new RegistrationPhase(phase);
+    public static void bootServiceExtensions(List<InjectionContainer<ServiceExtension>> containers, ServiceExtensionContext context) {
+        var injector = new InjectorImpl(new InjectionPointDefaultServiceSupplier());
+
+        for (var container : containers) {
+            var target = container.getInjectionTarget();
+            injector.inject(container, context);
+
+            target.initialize(context);
+            context.getMonitor().info("Initialized " + target.name());
+
+            var serviceProviders = container.getServiceProviders();
+            if (serviceProviders != null) {
+                serviceProviders.forEach(serviceProvider -> serviceProvider.register(context));
+            }
+        }
+
+        context.freeze();
+
+        for (var container : containers) {
+            var target = container.getInjectionTarget();
+            target.prepare();
+            context.getMonitor().info("Prepared " + target.name());
+        }
+
+        for (var container : containers) {
+            var target = container.getInjectionTarget();
+            target.start();
+            context.getMonitor().info("Started " + target.name());
+        }
+
     }
 
-    /**
-     * Scans the {@linkplain ServiceExtension} for methods annotated with {@linkplain Provider}
-     * with the {@link Provider#isDefault()} flag set to {@code false}, invokes them and registers the bean into the {@link ServiceExtensionContext} if necessary.
-     */
-    public static PreparePhase provide(RegistrationPhase phase) {
-        phase.invokeProviderMethods();
-        return new PreparePhase(phase);
-    }
-
-    /**
-     * invokes {@link ServiceExtension#start()}.
-     */
-    public static void start(StartPhase starter) {
-        starter.start();
-    }
-
-    /**
-     * invokes the {@link ServiceExtension#prepare()}.
-     */
-    public static StartPhase prepare(PreparePhase preparePhase) {
-        preparePhase.prepare();
-        return new StartPhase(preparePhase);
-    }
-
-    /**
-     * Injects all dependencies into a {@link ServiceExtension}: those dependencies must be class members annotated with @Inject.
-     * Kicks off the multi-phase initialization.
-     */
-    public InitializePhase inject() {
-        injector.inject(container, context);
-        return new InitializePhase(injector, container, context, monitor);
-    }
 }

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.boot.system.injection;
 
+import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 import java.lang.reflect.Field;
@@ -30,6 +31,7 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     private final T instance;
     private final Field injectedField;
     private final boolean isRequired;
+    private ServiceProvider defaultServiceProvider;
 
     public FieldInjectionPoint(T instance, Field injectedField) {
         this(instance, injectedField, true);
@@ -60,6 +62,17 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     @Override
     public void setTargetValue(Object service) throws IllegalAccessException {
         injectedField.set(instance, service);
+    }
+
+    @Override
+    public ServiceProvider getDefaultServiceProvider() {
+        return defaultServiceProvider;
+    }
+
+    @Override
+    public void setDefaultServiceProvider(ServiceProvider defaultServiceProvider) {
+        this.defaultServiceProvider = defaultServiceProvider;
+
     }
 
     @Override

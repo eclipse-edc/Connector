@@ -24,6 +24,7 @@ import org.eclipse.edc.boot.system.ExtensionLoader;
 import org.eclipse.edc.boot.system.ServiceLocator;
 import org.eclipse.edc.boot.system.ServiceLocatorImpl;
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
+import org.eclipse.edc.boot.system.injection.lifecycle.ExtensionLifecycleManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.MonitorExtension;
@@ -49,7 +50,7 @@ import static java.lang.String.format;
  *     <li>{@link BaseRuntime#createContext(Monitor, Config)}: creates a new {@link DefaultServiceExtensionContext} and invokes its {@link DefaultServiceExtensionContext#initialize()} method</li>
  *     <li>{@link BaseRuntime#createExtensions(ServiceExtensionContext)}: creates a list of {@code ServiceExtension} objects. By default, these are created through {@link ExtensionLoader#loadServiceExtensions(ServiceExtensionContext)}</li>
  *     <li>{@link BaseRuntime#bootExtensions(ServiceExtensionContext, List)}: initializes the service extensions by putting them through their lifecycle.
- *     By default this calls {@link ExtensionLoader#bootServiceExtensions(List, ServiceExtensionContext)} </li>
+ *     By default this calls {@link ExtensionLifecycleManager#bootServiceExtensions(List, ServiceExtensionContext)} </li>
  *     <li>{@link BaseRuntime#onError(Exception)}: receives any Exception that was raised during initialization</li>
  * </ul>
  */
@@ -144,13 +145,13 @@ public class BaseRuntime {
     }
 
     /**
-     * Starts all service extensions by invoking {@link ExtensionLoader#bootServiceExtensions(List, ServiceExtensionContext)}
+     * Starts all service extensions by invoking {@link ExtensionLifecycleManager#bootServiceExtensions(List, ServiceExtensionContext)}
      *
      * @param context           The {@code ServiceExtensionContext} that is used in this runtime.
      * @param serviceExtensions a list of extensions
      */
     protected void bootExtensions(ServiceExtensionContext context, List<InjectionContainer<ServiceExtension>> serviceExtensions) {
-        ExtensionLoader.bootServiceExtensions(serviceExtensions, context);
+        ExtensionLifecycleManager.bootServiceExtensions(serviceExtensions, context);
     }
 
     /**

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.boot.system;
 
-import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.boot.system.testextensions.BaseExtension;
 import org.eclipse.edc.boot.system.testextensions.CoreExtension;
 import org.eclipse.edc.boot.system.testextensions.DependentExtension;
@@ -22,7 +21,6 @@ import org.eclipse.edc.boot.system.testextensions.ProviderDefaultServicesExtensi
 import org.eclipse.edc.boot.system.testextensions.ProviderExtension;
 import org.eclipse.edc.boot.system.testextensions.RequiredDependentExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,12 +31,6 @@ public class TestFunctions {
         l.add(new CoreExtension());
         l.add(new BaseExtension());
         return l;
-    }
-
-    public static List<InjectionContainer<ServiceExtension>> createInjectionContainers(List<ServiceExtension> extensions, ServiceExtensionContext context) {
-        var dg = new DependencyGraph(context);
-        return dg.of(extensions);
-
     }
 
     public static ServiceExtension createProviderExtension(boolean isDefault) {
