@@ -18,7 +18,6 @@ import org.eclipse.edc.boot.apiversion.ApiVersionServiceImpl;
 import org.eclipse.edc.boot.health.HealthCheckServiceImpl;
 import org.eclipse.edc.boot.system.ExtensionLoader;
 import org.eclipse.edc.boot.vault.InMemoryVault;
-import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -33,7 +32,6 @@ import org.eclipse.edc.spi.telemetry.Telemetry;
 import java.time.Clock;
 
 
-@BaseExtension
 @Extension(value = BootServicesExtension.NAME)
 public class BootServicesExtension implements ServiceExtension {
 

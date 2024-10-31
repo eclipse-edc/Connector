@@ -16,7 +16,6 @@
 package org.eclipse.edc.boot.system.runtime;
 
 import org.eclipse.edc.boot.system.ServiceLocator;
-import org.eclipse.edc.boot.system.testextensions.BaseExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
@@ -26,9 +25,8 @@ import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.boot.system.TestFunctions.mutableListOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -47,19 +45,9 @@ public class BaseRuntimeTest {
     private final ServiceLocator serviceLocator = mock();
     private final BaseRuntime runtime = new BaseRuntimeFixture(monitor, serviceLocator);
 
-    @NotNull
-    private static ServiceExtension registerService(Class<HealthCheckService> serviceClass, HealthCheckService healthCheckService) {
-        return new ServiceExtension() {
-            @Override
-            public void initialize(ServiceExtensionContext context) {
-                context.registerService(serviceClass, healthCheckService);
-            }
-        };
-    }
-
     @Test
     void baseRuntime_shouldBoot() {
-        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(List.of(new BaseExtension()));
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf());
 
         runtime.boot(true);
 
@@ -68,10 +56,10 @@ public class BaseRuntimeTest {
 
     @Test
     void baseRuntime_shouldNotBootWithException() {
-        var extension = spy(new BaseExtension());
+        var extension = spy(extensionThatRegisters(Object.class, "any"));
 
         doThrow(new EdcException("Failed to start base extension")).when(extension).start();
-        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(List.of(extension));
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(extension));
 
         assertThatThrownBy(() -> runtime.boot(true)).isInstanceOf(EdcException.class);
         verify(monitor).severe(startsWith("Error booting runtime: Failed to start base extension"), any(EdcException.class));
@@ -80,8 +68,8 @@ public class BaseRuntimeTest {
     @Test
     void shouldSetStartupCheckProvider_whenHealthCheckServiceIsRegistered() {
         var healthCheckService = mock(HealthCheckService.class);
-        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(List.of(
-                new BaseExtension(), registerService(HealthCheckService.class, healthCheckService)));
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean()))
+                .thenReturn(mutableListOf(extensionThatRegisters(HealthCheckService.class, healthCheckService)));
 
         runtime.boot(true);
 
@@ -90,11 +78,21 @@ public class BaseRuntimeTest {
 
     @Test
     void shouldLoadConfiguration() {
-        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(List.of(new BaseExtension()));
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf());
 
         runtime.boot(true);
 
         verify(serviceLocator).loadImplementors(ConfigurationExtension.class, false);
+    }
+
+    @NotNull
+    private <T> ServiceExtension extensionThatRegisters(Class<T> serviceClass, T service) {
+        return new ServiceExtension() {
+            @Override
+            public void initialize(ServiceExtensionContext context) {
+                context.registerService(serviceClass, service);
+            }
+        };
     }
 
     private static class BaseRuntimeFixture extends BaseRuntime {

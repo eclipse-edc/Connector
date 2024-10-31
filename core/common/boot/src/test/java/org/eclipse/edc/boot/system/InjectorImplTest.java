@@ -29,9 +29,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.Set;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,7 +73,7 @@ class InjectorImplTest {
     @DisplayName("Testing ServiceExtension with no injection points")
     void templateWithNoInjectionPoints() {
         var serviceExtension = new EmptyTestExtension();
-        var template = new InjectionContainer<>(serviceExtension, Collections.emptySet(), Collections.emptyList());
+        var template = new InjectionContainer<>(serviceExtension, emptySet(), emptyList());
 
         injector.inject(template, context);
 
@@ -84,7 +85,7 @@ class InjectorImplTest {
     void allInjectionPointsSatisfied() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field)), Collections.emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field)), emptyList());
         when(context.hasService(eq(SomeObject.class))).thenReturn(true);
         when(context.getService(eq(SomeObject.class), anyBoolean())).thenReturn(new SomeObject());
 
@@ -100,7 +101,7 @@ class InjectorImplTest {
     void defaultInjectionPoint() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field)), Collections.emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field)), emptyList());
         when(context.hasService(SomeObject.class)).thenReturn(false);
         when(context.getService(SomeObject.class, false)).thenThrow(new EdcException("Service not found"));
         when(defaultServiceSupplier.provideFor(any(), any())).thenReturn(new SomeObject());
@@ -116,7 +117,7 @@ class InjectorImplTest {
     void notAllInjectionPointsSatisfied_shouldThrowException() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field)), Collections.emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field)), emptyList());
         var rootCauseException = new EdcInjectionException("Service not found");
         when(context.hasService(SomeObject.class)).thenReturn(false);
         when(defaultServiceSupplier.provideFor(any(), any())).thenThrow(rootCauseException);
@@ -135,7 +136,7 @@ class InjectorImplTest {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
         var injectionPoint = spy(new FieldInjectionPoint<>(serviceExtension, field));
-        var template = new InjectionContainer<>(serviceExtension, Set.of(injectionPoint), Collections.emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(injectionPoint), emptyList());
 
         var value = new SomeObject();
         when(context.hasService(eq(SomeObject.class))).thenReturn(true);
@@ -155,7 +156,7 @@ class InjectorImplTest {
     void optionalService_provided() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, false)), Collections.emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, false)), emptyList());
         when(context.hasService(eq(SomeObject.class))).thenReturn(true);
         when(context.getService(any(), anyBoolean())).thenReturn(new SomeObject());
 
@@ -172,7 +173,7 @@ class InjectorImplTest {
     void optionalService_defaultProvided() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, false)), Collections.emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, false)), emptyList());
         when(context.hasService(eq(SomeObject.class))).thenReturn(false);
         when(defaultServiceSupplier.provideFor(any(), any())).thenReturn(new SomeObject());
 
@@ -188,7 +189,7 @@ class InjectorImplTest {
     void optionalService_defaultNotProvided() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, false)), Collections.emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, false)), emptyList());
         when(context.hasService(eq(SomeObject.class))).thenReturn(false);
         when(defaultServiceSupplier.provideFor(any(), any())).thenReturn(null);
 

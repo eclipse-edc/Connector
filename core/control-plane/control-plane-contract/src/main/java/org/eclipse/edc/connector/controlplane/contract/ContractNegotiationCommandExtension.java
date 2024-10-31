@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.contract;
 
 import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.TerminateNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
@@ -29,7 +28,6 @@ import static org.eclipse.edc.connector.controlplane.contract.ContractNegotiatio
  * Adds a {@link CommandHandlerRegistry} to the context and registers the
  * handlers the core provides.
  */
-@CoreExtension
 @Extension(value = NAME)
 public class ContractNegotiationCommandExtension implements ServiceExtension {
 

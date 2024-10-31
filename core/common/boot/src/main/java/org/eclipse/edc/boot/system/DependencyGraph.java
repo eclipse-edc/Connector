@@ -23,8 +23,6 @@ import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
 import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
 import org.eclipse.edc.boot.util.CyclicDependencyException;
 import org.eclipse.edc.boot.util.TopologicalSort;
-import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
-import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.EdcException;
@@ -33,7 +31,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +42,6 @@ import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -67,14 +63,13 @@ public class DependencyGraph {
      * Depending Extensions (i.e. those who <em>express</em> a dependency) are sorted first, providing extensions (i.e. those
      * who provide a dependency) are sorted last.
      *
-     * @param loadedExtensions A list of {@link ServiceExtension} instances that were picked up by the {@link ServiceLocator}
+     * @param extensions A list of {@link ServiceExtension} instances that were picked up by the {@link ServiceLocator}
      * @return A list of {@link InjectionContainer}s that are sorted topologically according to their dependencies.
      * @throws CyclicDependencyException when there is a dependency cycle
      * @see TopologicalSort
      * @see InjectionContainer
      */
-    public List<InjectionContainer<ServiceExtension>> of(List<ServiceExtension> loadedExtensions) {
-        var extensions = sortByType(loadedExtensions);
+    public List<InjectionContainer<ServiceExtension>> of(List<ServiceExtension> extensions) {
         Map<Class<?>, ServiceProvider> defaultServiceProviders = new HashMap<>();
         Map<ServiceExtension, List<ServiceProvider>> serviceProviders = new HashMap<>();
         Map<Class<?>, List<ServiceExtension>> dependencyMap = new HashMap<>();
@@ -136,19 +131,18 @@ public class DependencyGraph {
                 }));
 
         if (!unsatisfiedInjectionPoints.isEmpty()) {
-            var string = "The following injected fields were not provided:\n";
-            string += unsatisfiedInjectionPoints.stream().map(InjectionPoint::toString).collect(Collectors.joining("\n"));
-            throw new EdcInjectionException(string);
+            var message = "The following injected fields were not provided:\n";
+            message += unsatisfiedInjectionPoints.stream().map(InjectionPoint::toString).collect(Collectors.joining("\n"));
+            throw new EdcInjectionException(message);
         }
 
         if (!unsatisfiedRequirements.isEmpty()) {
-            var string = String.format("The following @Require'd features were not provided: [%s]", String.join(", ", unsatisfiedRequirements));
-            throw new EdcException(string);
+            var message = String.format("The following @Require'd features were not provided: [%s]", String.join(", ", unsatisfiedRequirements));
+            throw new EdcException(message);
         }
 
         sort.sort(extensions);
 
-        // convert the sorted list of extensions into an equally sorted list of InjectionContainers
         return extensions.stream()
                 .map(key -> new InjectionContainer<>(key, injectionPoints.get(key), serviceProviders.get(key)))
                 .toList();
@@ -188,24 +182,4 @@ public class DependencyGraph {
         return allProvides;
     }
 
-    /**
-     * Handles core-, transfer- and contract-extensions and inserts them at the beginning of the list so that
-     * explicit @Requires annotations are not necessary
-     */
-    private List<ServiceExtension> sortByType(List<ServiceExtension> loadedExtensions) {
-        return loadedExtensions.stream().sorted(new SortByType()).collect(toList());
-    }
-
-    private static class SortByType implements Comparator<ServiceExtension> {
-        @Override
-        public int compare(ServiceExtension o1, ServiceExtension o2) {
-            return orderFor(o1.getClass()).compareTo(orderFor(o2.getClass()));
-        }
-
-        private Integer orderFor(Class<? extends ServiceExtension> class1) {
-            return class1.getAnnotation(BaseExtension.class) != null
-                    ? 0 : class1.getAnnotation(CoreExtension.class) != null
-                    ? 1 : 2;
-        }
-    }
 }
