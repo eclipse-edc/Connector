@@ -52,10 +52,9 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractNam
     public JsonObjectToContractAgreementMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractAgreementMessage.class, namespace);
         excludedPolicyKeywords = Set.of(forNamespace(DSPACE_PROPERTY_TIMESTAMP_TERM),
-                forNamespace(forNamespace(DSPACE_PROPERTY_CONSUMER_ID_TERM)),
+                forNamespace(DSPACE_PROPERTY_CONSUMER_ID_TERM),
                 forNamespace(DSPACE_PROPERTY_PROVIDER_ID_TERM));
     }
-
 
     @Override
     public @Nullable ContractAgreementMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
