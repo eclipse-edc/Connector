@@ -86,15 +86,15 @@ channel `DataAddresses`:
 
 ### On the Control Plane
 
-The `TransferType` object will be extended to contain another optional lproperty `responseChannelType`, which is encoded
+The `TransferType` object will be extended to contain another optional property `responseChannelType`, which is encoded
 as follows:
 
 ```
-DESTTYPE-FLOW/RESPONSETYPE, e.g. HttpData-PULL/gRpc
+DESTTYPE-FLOW-RESPONSETYPE, e.g. HttpData-PULL-gRpc
 ```
 
 In the catalog, every `DataSet` will be represented by `Distributions` both with and without the `responseChannelType`,
-e.g. `HttpData-PULL/gRpc` and `HttpData-PULL`. This keeps consistency with the current data plane selection mechanism.
+e.g. `HttpData-PULL-gRpc` and `HttpData-PULL`. This keeps consistency with the current data plane selection mechanism.
 
 ### Technical Considerations
 
