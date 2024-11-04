@@ -33,21 +33,9 @@ class ProviderMethodScannerTest {
     }
 
     @Test
-    void allProviders() {
-        assertThat(scanner.allProviders()).hasSize(3);
-    }
-
-    @Test
-    void providerMethods() {
-        assertThat(scanner
-                .nonDefaultProviders())
-                .hasSize(2);
-    }
-
-    @Test
-    void defaultProviderMethods() throws NoSuchMethodException {
-        assertThat(scanner
-                .defaultProviders())
+    void allProviders() throws NoSuchMethodException {
+        assertThat(scanner.allProviders()).hasSize(3)
+                .filteredOn(ProviderMethod::isDefault)
                 .hasSize(1)
                 .extracting(ProviderMethod::getMethod)
                 .containsOnly(TestExtension.class.getMethod("providerDefault"));
@@ -56,16 +44,14 @@ class ProviderMethodScannerTest {
     @Test
     void verifyInvalidReturnType() {
         var scanner = new ProviderMethodScanner(new InvalidTestExtension());
-        assertThatThrownBy(() -> scanner.nonDefaultProviders().toList()).isInstanceOf(EdcInjectionException.class);
-        assertThatThrownBy(() -> scanner.defaultProviders().toList()).isInstanceOf(EdcInjectionException.class);
+        assertThatThrownBy(() -> scanner.allProviders().toList()).isInstanceOf(EdcInjectionException.class);
     }
 
     @Test
     void verifyInvalidVisibility() {
         var scanner = new ProviderMethodScanner(new InvalidTestExtension2());
 
-        assertThatThrownBy(() -> scanner.nonDefaultProviders().toList()).isInstanceOf(EdcInjectionException.class);
-        assertThatThrownBy(() -> scanner.defaultProviders().toList()).isInstanceOf(EdcInjectionException.class);
+        assertThatThrownBy(() -> scanner.allProviders().toList()).isInstanceOf(EdcInjectionException.class);
     }
 
     private static class TestExtension implements ServiceExtension {
