@@ -519,6 +519,26 @@ _None_
 - `org.eclipse.edc.keys.spi.KeyParserRegistry` (required)
 - `org.eclipse.edc.spi.security.Vault` (required)
 
+#### Class: `org.eclipse.edc.connector.core.SecurityDefaultServicesExtension`
+**Name:** "Security Default Services Extension"
+
+**Overview:**  This extension provides default/standard implementations for the {@link PrivateKeyResolver} and the {@link CertificateResolver}
+ Those provider methods CANNOT be implemented in {@link CoreDefaultServicesExtension}, because that could potentially cause
+ a conflict with injecting/providing the {@link Vault}
+
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.keys.spi.PrivateKeyResolver`
+- `org.eclipse.edc.keys.spi.CertificateResolver`
+- `org.eclipse.edc.keys.spi.KeyParserRegistry`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
 #### Class: `org.eclipse.edc.connector.core.CoreServicesExtension`
 **Name:** "Core Services"
 
@@ -595,26 +615,6 @@ _None_
 
 #### Referenced (injected) services
 - `okhttp3.EventListener` (optional)
-
-#### Class: `org.eclipse.edc.connector.core.SecurityDefaultServicesExtension`
-**Name:** "Security Default Services Extension"
-
-**Overview:**  This extension provides default/standard implementations for the {@link PrivateKeyResolver} and the {@link CertificateResolver}
- Those provider methods CANNOT be implemented in {@link CoreDefaultServicesExtension}, because that could potentially cause
- a conflict with injecting/providing the {@link Vault}
-
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.keys.spi.PrivateKeyResolver`
-- `org.eclipse.edc.keys.spi.CertificateResolver`
-- `org.eclipse.edc.keys.spi.KeyParserRegistry`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.spi.security.Vault` (required)
-- `org.eclipse.edc.spi.types.TypeManager` (required)
 
 Module `contract-agreement-api`
 -------------------------------
@@ -1123,26 +1123,6 @@ Module `control-plane-transfer`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferProcessDefaultServicesExtension`
-**Name:** "Transfer Process Default Services"
-
-**Overview:**  Provides core data transfer services to the system.
-
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager`
-- `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator`
-- `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager`
-- `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable`
-- `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard`
-- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
-
 #### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferProcessCommandExtension`
 **Name:** "TransferProcessCommandExtension"
 
@@ -1197,6 +1177,26 @@ _None_
 - `org.eclipse.edc.spi.protocol.ProtocolWebhook` (required)
 - `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard` (required)
 - `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
+
+#### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferProcessDefaultServicesExtension`
+**Name:** "Transfer Process Default Services"
+
+**Overview:**  Provides core data transfer services to the system.
+
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
 
 Module `core-spi`
 -----------------
@@ -1346,6 +1346,23 @@ Module `data-plane-iam`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.iam.DataPlaneIamExtension`
+**Name:** "Data Plane IAM"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService`
+
+#### Referenced (injected) services
+- `java.time.Clock` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService` (required)
+
 #### Class: `org.eclipse.edc.connector.dataplane.iam.DataPlaneIamDefaultServicesExtension`
 **Name:** "Data Plane Default IAM Services"
 
@@ -1368,23 +1385,6 @@ _None_
 - `org.eclipse.edc.token.spi.TokenValidationService` (required)
 - `org.eclipse.edc.keys.spi.LocalPublicKeyService` (required)
 - `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider` (required)
-
-#### Class: `org.eclipse.edc.connector.dataplane.iam.DataPlaneIamExtension`
-**Name:** "Data Plane IAM"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService`
-
-#### Referenced (injected) services
-- `java.time.Clock` (required)
-- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService` (required)
-- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService` (required)
-- `org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService` (required)
 
 Module `data-plane-instance-store-sql`
 --------------------------------------
@@ -1472,9 +1472,10 @@ _None_
 
 ### Configuration
 
-| Key                                | Required | Type     | Default                            | Pattern | Min | Max | Description                                                                                                                                     |
-| ---------------------------------- | -------- | -------- | ---------------------------------- | ------- | --- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `edc.dataplane.api.public.baseurl` |          | `string` | `http://<HOST>:8185/api/v2/public` |         |     |     | Base url of the public API endpoint without the trailing slash. This should correspond to the values configured in '8185' and '/api/v2/public'. |
+| Key                                         | Required | Type     | Default                            | Pattern | Min | Max | Description                                                                                                                                     |
+| ------------------------------------------- | -------- | -------- | ---------------------------------- | ------- | --- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `edc.dataplane.api.public.baseurl`          |          | `string` | `http://<HOST>:8185/api/v2/public` |         |     |     | Base url of the public API endpoint without the trailing slash. This should correspond to the values configured in '8185' and '/api/v2/public'. |
+| `edc.dataplane.api.public.response.baseurl` |          | `string` | ``                                 |         |     |     | Optional base url of the response channel endpoint without the trailing slash. A common practice is to use <PUBLIC_ENDPOINT>/responseChannel    |
 
 #### Provided services
 _None_
@@ -2237,22 +2238,6 @@ Module `edr-store-core`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.edr.store.EndpointDataReferenceStoreExtension`
-**Name:** "Endpoint Data Reference Core Extension"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex` (required)
-- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceCache` (required)
-- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
-
 #### Class: `org.eclipse.edc.edr.store.EndpointDataReferenceStoreDefaultServicesExtension`
 **Name:** "Endpoint Data Reference Core Extension"
 
@@ -2273,6 +2258,22 @@ _None_
 - `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
 - `org.eclipse.edc.spi.security.Vault` (required)
 - `org.eclipse.edc.spi.types.TypeManager` (required)
+
+#### Class: `org.eclipse.edc.edr.store.EndpointDataReferenceStoreExtension`
+**Name:** "Endpoint Data Reference Core Extension"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceEntryIndex` (required)
+- `org.eclipse.edc.edr.spi.store.EndpointDataReferenceCache` (required)
+- `org.eclipse.edc.transaction.spi.TransactionContext` (required)
 
 Module `edr-store-receiver`
 ---------------------------
@@ -2588,6 +2589,23 @@ Module `identity-trust-sts-accounts-api`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.api.iam.identitytrust.sts.accounts.StsAccountsApiConfigurationExtension`
+**Name:** "Secure Token Service Accounts API configuration"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.web.spi.WebServer` (required)
+- `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.system.apiversion.ApiVersionService` (required)
+
 #### Class: `org.eclipse.edc.api.iam.identitytrust.sts.accounts.StsAccountsApiExtension`
 **Name:** "Secure Token Service Accounts API Extension"
 
@@ -2609,23 +2627,6 @@ _None_
 - `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry` (required)
 - `org.eclipse.edc.spi.security.Vault` (required)
 
-#### Class: `org.eclipse.edc.api.iam.identitytrust.sts.accounts.StsAccountsApiConfigurationExtension`
-**Name:** "Secure Token Service Accounts API configuration"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.web.spi.WebServer` (required)
-- `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer` (required)
-- `org.eclipse.edc.spi.types.TypeManager` (required)
-- `org.eclipse.edc.spi.system.apiversion.ApiVersionService` (required)
-
 Module `identity-trust-sts-api`
 -------------------------------
 **Artifact:** org.eclipse.edc:identity-trust-sts-api:0.11.0-SNAPSHOT
@@ -2636,6 +2637,22 @@ Module `identity-trust-sts-api`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.api.iam.identitytrust.sts.SecureTokenServiceApiExtension`
+**Name:** "Secure Token Service API"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService` (required)
+- `org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService` (required)
+- `org.eclipse.edc.web.spi.WebService` (required)
+
 #### Class: `org.eclipse.edc.api.iam.identitytrust.sts.StsApiConfigurationExtension`
 **Name:** "Secure Token Service API configuration"
 
@@ -2652,22 +2669,6 @@ _None_
 - `org.eclipse.edc.web.spi.configuration.WebServiceConfigurer` (required)
 - `org.eclipse.edc.spi.types.TypeManager` (required)
 - `org.eclipse.edc.spi.system.apiversion.ApiVersionService` (required)
-
-#### Class: `org.eclipse.edc.api.iam.identitytrust.sts.SecureTokenServiceApiExtension`
-**Name:** "Secure Token Service API"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService` (required)
-- `org.eclipse.edc.iam.identitytrust.sts.spi.service.StsClientTokenGeneratorService` (required)
-- `org.eclipse.edc.web.spi.WebService` (required)
 
 Module `identity-trust-sts-client-configuration`
 ------------------------------------------------
@@ -3134,21 +3135,6 @@ Module `oauth2-core`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.iam.oauth2.Oauth2ServiceDefaultServicesExtension`
-**Name:** "Oauth2ServiceDefaultServicesExtension"
-
-**Overview:**  Provides OAuth2 client credentials flow support.
-
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.spi.iam.AudienceResolver`
-
-#### Referenced (injected) services
-_None_
-
 #### Class: `org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension`
 **Name:** "OAuth2 Identity Service"
 
@@ -3186,6 +3172,21 @@ _None_
 - `org.eclipse.edc.token.spi.TokenValidationService` (required)
 - `org.eclipse.edc.token.spi.TokenDecoratorRegistry` (required)
 - `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider` (required)
+
+#### Class: `org.eclipse.edc.iam.oauth2.Oauth2ServiceDefaultServicesExtension`
+**Name:** "Oauth2ServiceDefaultServicesExtension"
+
+**Overview:**  Provides OAuth2 client credentials flow support.
+
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.spi.iam.AudienceResolver`
+
+#### Referenced (injected) services
+_None_
 
 Module `oauth2-daps`
 --------------------
