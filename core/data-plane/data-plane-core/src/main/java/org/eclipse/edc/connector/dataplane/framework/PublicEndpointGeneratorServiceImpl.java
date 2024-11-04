@@ -23,9 +23,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
+
+import static java.util.Optional.ofNullable;
 
 class PublicEndpointGeneratorServiceImpl implements PublicEndpointGeneratorService {
     private final Map<String, Function<DataAddress, Endpoint>> generatorFunctions = new ConcurrentHashMap<>();
+    private final Map<String, Supplier<Endpoint>> responseChannelFunctions = new ConcurrentHashMap<>();
 
     @Override
     public Result<Endpoint> generateFor(String destinationType, DataAddress sourceDataAddress) {
@@ -39,12 +43,29 @@ class PublicEndpointGeneratorServiceImpl implements PublicEndpointGeneratorServi
     }
 
     @Override
+    public Result<Endpoint> generateResponseFor(String responseChannelType) {
+        var function = responseChannelFunctions.get(responseChannelType);
+        return ofNullable(function).map(Supplier::get).map(Result::success)
+                .orElseGet(() -> Result.failure("No Response Channel Endpoint generator function registered for response channel type '%s'".formatted(responseChannelType)));
+    }
+
+    @Override
     public void addGeneratorFunction(String destinationType, Function<DataAddress, Endpoint> generatorFunction) {
         generatorFunctions.put(destinationType, generatorFunction);
     }
 
     @Override
+    public void addGeneratorFunction(String responseChannelType, Supplier<Endpoint> generatorFunction) {
+        responseChannelFunctions.put(responseChannelType, generatorFunction);
+    }
+
+    @Override
     public Set<String> supportedDestinationTypes() {
         return generatorFunctions.keySet();
+    }
+
+    @Override
+    public Set<String> supportedResponseTypes() {
+        return responseChannelFunctions.keySet();
     }
 }

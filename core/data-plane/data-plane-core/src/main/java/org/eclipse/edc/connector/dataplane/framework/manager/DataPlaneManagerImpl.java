@@ -46,6 +46,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.eclipse.edc.spi.result.Result.success;
 
 /**
  * Default data manager implementation.
@@ -65,7 +66,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         // TODO for now no validation for pull scenario, since the transfer service registry
         //  is not applicable here. Probably validation only on the source part required.
         if (FlowType.PULL.equals(dataRequest.getFlowType())) {
-            return Result.success(true);
+            return success(true);
         } else {
             var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
             return transferService != null ?
@@ -88,7 +89,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         var response = switch (startMessage.getFlowType()) {
             case PULL -> handlePull(startMessage, dataFlowBuilder);
-            case PUSH -> handlePush(dataFlowBuilder);
+            case PUSH -> handlePush(startMessage, dataFlowBuilder);
         };
 
         return response.onSuccess(m -> update(dataFlowBuilder.build()));
@@ -174,10 +175,19 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                         .build());
     }
 
-    private Result<DataFlowResponseMessage> handlePush(DataFlow.Builder dataFlowBuilder) {
+    private Result<DataFlowResponseMessage> handlePush(DataFlowStartMessage startMessage, DataFlow.Builder dataFlowBuilder) {
         dataFlowBuilder.state(RECEIVED.code());
 
-        return Result.success(DataFlowResponseMessage.Builder.newInstance()
+        var responseChannelType = startMessage.getTransferType().responseChannelType();
+        if (responseChannelType != null) {
+            monitor.debug("PUSH dataflow with responseChannel '%s' received. Will generate data address".formatted(responseChannelType));
+            var result = authorizationService.createEndpointDataReference(startMessage);
+
+            return result.map(da -> DataFlowResponseMessage.Builder.newInstance()
+                    .dataAddress(da)
+                    .build());
+        }
+        return success(DataFlowResponseMessage.Builder.newInstance()
                 .dataAddress(null)
                 .build());
     }
