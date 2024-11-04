@@ -18,29 +18,35 @@ maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.14.1, Apache
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.16.2, Apache-2.0, approved, #11606
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.17.2, Apache-2.0, approved, #13672
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.18.0, Apache-2.0, approved, #16364
+maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.18.1, Apache-2.0, approved, #16364
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.14.1, Apache-2.0 AND MIT, approved, #4303
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.16.2, Apache-2.0 AND MIT, approved, #11602
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.18.0, Apache-2.0 AND MIT, approved, #16371
+maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.18.1, Apache-2.0 AND MIT, approved, #16371
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.11.0, Apache-2.0, approved, CQ23093
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.14.0, Apache-2.0, approved, #4105
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.14.1, Apache-2.0, approved, #15232
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.16.2, Apache-2.0, approved, #11605
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.17.2, Apache-2.0, approved, #13671
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.18.0, Apache-2.0, approved, #16372
+maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.18.1, Apache-2.0, approved, #16372
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.14.0, Apache-2.0, approved, #5933
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.16.2, Apache-2.0, approved, #11855
-maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.18.0, Apache-2.0, approved, #16370
+maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.18.1, Apache-2.0, approved, #16370
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.18.0, Apache-2.0, approved, #16622
+maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.18.1, Apache-2.0, approved, #16622
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.14.0, Apache-2.0, approved, #4699
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.16.2, Apache-2.0, approved, #11853
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.18.0, Apache-2.0, approved, #16625
-maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-base/2.18.0, Apache-2.0, approved, #16626
+maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.18.1, Apache-2.0, approved, #16625
+maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-base/2.18.1, Apache-2.0, approved, #16626
 maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-json-provider/2.16.2, Apache-2.0, approved, #11858
-maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-json-provider/2.18.0, Apache-2.0, approved, #16623
+maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-json-provider/2.18.1, Apache-2.0, approved, #16623
 maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jakarta-xmlbind-annotations/2.17.2, Apache-2.0, approved, #13668
-maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jakarta-xmlbind-annotations/2.18.0, Apache-2.0, approved, #16368
+maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jakarta-xmlbind-annotations/2.18.1, Apache-2.0, approved, #16368
 maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.16.2, Apache-2.0, approved, #11852
 maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.18.0, Apache-2.0, approved, #16628
+maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.18.1, Apache-2.0, approved, #16628
 maven/mavencentral/com.fasterxml.uuid/java-uuid-generator/4.1.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.cliftonlabs/json-simple/3.0.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.docker-java/docker-java-api/3.4.0, Apache-2.0, approved, clearlydefined
@@ -83,7 +89,7 @@ maven/mavencentral/com.lmax/disruptor/3.4.4, Apache-2.0, approved, clearlydefine
 maven/mavencentral/com.networknt/json-schema-validator/1.0.76, Apache-2.0, approved, CQ22638
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/9.28, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/9.41.2, Apache-2.0, approved, clearlydefined
-maven/mavencentral/com.puppycrawl.tools/checkstyle/10.19.0, LGPL-2.1-or-later AND (Apache-2.0 AND LGPL-2.1-or-later) AND Apache-2.0, approved, #16922
+maven/mavencentral/com.puppycrawl.tools/checkstyle/10.20.0, , restricted, clearlydefined
 maven/mavencentral/com.samskivert/jmustache/1.15, BSD-2-Clause AND BSD-3-Clause, approved, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/4.12.0, Apache-2.0, approved, #11159
 maven/mavencentral/com.squareup.okhttp3/okhttp/4.12.0, Apache-2.0, approved, #15227
@@ -234,11 +240,11 @@ maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, 
 maven/mavencentral/org.assertj/assertj-core/3.26.3, Apache-2.0, approved, #14886
 maven/mavencentral/org.awaitility/awaitility/4.2.2, Apache-2.0, approved, #14178
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.72, MIT, approved, #3789
-maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.78.1, MIT, approved, #14434
+maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.79, MIT, approved, #16962
 maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.72, MIT AND CC0-1.0, approved, #3538
-maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.78.1, MIT AND CC0-1.0, approved, #14433
+maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.79, MIT AND CC0-1.0, approved, #16964
 maven/mavencentral/org.bouncycastle/bcutil-jdk18on/1.72, MIT, approved, #3790
-maven/mavencentral/org.bouncycastle/bcutil-jdk18on/1.78.1, MIT, approved, #14435
+maven/mavencentral/org.bouncycastle/bcutil-jdk18on/1.79, MIT, approved, #16965
 maven/mavencentral/org.ccil.cowan.tagsoup/tagsoup/1.2.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.checkerframework/checker-qual/3.12.0, MIT, approved, clearlydefined
 maven/mavencentral/org.checkerframework/checker-qual/3.42.0, MIT, approved, clearlydefined
@@ -353,3 +359,4 @@ maven/mavencentral/org.xmlunit/xmlunit-core/2.9.1, Apache-2.0, approved, #6272
 maven/mavencentral/org.xmlunit/xmlunit-placeholders/2.9.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.yaml/snakeyaml/1.33, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.yaml/snakeyaml/2.2, Apache-2.0 AND (Apache-2.0 OR BSD-3-Clause OR EPL-1.0 OR GPL-2.0-or-later OR LGPL-2.1-or-later), approved, #10232
+maven/mavencentral/org.yaml/snakeyaml/2.3, Apache-2.0 AND (Apache-2.0 OR BSD-3-Clause OR EPL-1.0 OR GPL-2.0-or-later OR LGPL-2.1-or-later), approved, #16046
