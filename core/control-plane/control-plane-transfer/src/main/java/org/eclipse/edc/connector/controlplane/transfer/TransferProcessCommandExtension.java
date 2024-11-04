@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.controlplane.transfer.command.handlers.ResumeTr
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.SuspendTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.TerminateTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -29,7 +28,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 /**
  * Registers command handlers that the core provides
  */
-@CoreExtension
 public class TransferProcessCommandExtension implements ServiceExtension {
 
     @Inject

@@ -37,7 +37,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStr
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedContentResource;
-import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -67,7 +66,6 @@ import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_SE
 /**
  * Provides core data transfer services to the system.
  */
-@CoreExtension
 @Provides({ TransferProcessManager.class, EndpointDataReferenceReceiverRegistry.class })
 @Extension(value = TransferCoreExtension.NAME)
 public class TransferCoreExtension implements ServiceExtension {

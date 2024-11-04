@@ -23,7 +23,6 @@ import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import okhttp3.EventListener;
-import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -31,7 +30,6 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-@BaseExtension
 @Provides({ EventListener.class, ExecutorInstrumentation.class, MeterRegistry.class })
 @Extension(value = MicrometerExtension.NAME)
 public class MicrometerExtension implements ServiceExtension {

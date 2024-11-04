@@ -39,7 +39,6 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -73,7 +72,6 @@ import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_SE
         ContractValidationService.class, ConsumerContractNegotiationManager.class,
         ProviderContractNegotiationManager.class
 })
-@CoreExtension
 @Extension(value = ContractCoreExtension.NAME)
 public class ContractCoreExtension implements ServiceExtension {
 

@@ -16,7 +16,6 @@ package org.eclipse.edc.boot.system.injection.lifecycle;
 
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.boot.system.DependencyGraph;
-import org.eclipse.edc.boot.system.TestFunctions;
 import org.eclipse.edc.boot.system.TestObject;
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.boot.system.testextensions.DependentExtension;
@@ -32,6 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.boot.system.TestFunctions.mutableListOf;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -119,7 +119,7 @@ class ExtensionLifecycleManagerTest {
     }
 
     public void boot(ServiceExtension... serviceExtensions) {
-        var injectionContainers = createInjectionContainers(TestFunctions.createList(serviceExtensions));
+        var injectionContainers = createInjectionContainers(mutableListOf(serviceExtensions));
         ExtensionLifecycleManager.bootServiceExtensions(injectionContainers, context);
     }
 

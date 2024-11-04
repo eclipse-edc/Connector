@@ -17,7 +17,6 @@ package org.eclipse.edc.jsonld;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformer;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -44,7 +43,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
  * for {@link JsonLdTransformer}s. The module also offers
  * functions for working with JSON-LD structures.
  */
-@BaseExtension
 @Extension(value = JsonLdExtension.NAME)
 public class JsonLdExtension implements ServiceExtension {
 

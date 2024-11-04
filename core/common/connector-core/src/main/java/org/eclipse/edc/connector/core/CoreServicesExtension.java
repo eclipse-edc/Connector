@@ -35,7 +35,6 @@ import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
-import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -55,7 +54,6 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 import static org.eclipse.edc.participant.spi.ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY;
 
-@BaseExtension
 @Extension(value = CoreServicesExtension.NAME)
 public class CoreServicesExtension implements ServiceExtension {
 

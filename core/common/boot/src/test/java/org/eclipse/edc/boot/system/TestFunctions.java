@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.boot.system;
 
-import org.eclipse.edc.boot.system.testextensions.BaseExtension;
-import org.eclipse.edc.boot.system.testextensions.CoreExtension;
 import org.eclipse.edc.boot.system.testextensions.DependentExtension;
 import org.eclipse.edc.boot.system.testextensions.ProviderDefaultServicesExtension;
 import org.eclipse.edc.boot.system.testextensions.ProviderExtension;
@@ -26,11 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestFunctions {
-    public static List<ServiceExtension> createList(ServiceExtension... extensions) {
-        var l = new ArrayList<>(List.of(extensions));
-        l.add(new CoreExtension());
-        l.add(new BaseExtension());
-        return l;
+    public static List<ServiceExtension> mutableListOf(ServiceExtension... extensions) {
+        return new ArrayList<>(List.of(extensions));
     }
 
     public static ServiceExtension createProviderExtension(boolean isDefault) {
