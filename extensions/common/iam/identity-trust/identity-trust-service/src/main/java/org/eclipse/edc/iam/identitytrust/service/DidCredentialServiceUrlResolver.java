@@ -43,7 +43,7 @@ public class DidCredentialServiceUrlResolver implements CredentialServiceUrlReso
     public Result<String> resolve(String issuer) {
         var didDocument = didResolverRegistry.resolve(issuer);
         if (didDocument.failed()) {
-            return didDocument.mapTo();
+            return didDocument.mapFailure();
         }
         return didDocument.getContent().getService().stream()
                 .filter(s -> s.getType().equals(CREDENTIAL_SERVICE_TYPE))

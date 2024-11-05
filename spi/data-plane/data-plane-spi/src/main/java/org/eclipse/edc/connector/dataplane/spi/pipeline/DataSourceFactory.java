@@ -31,16 +31,6 @@ public interface DataSourceFactory {
     String supportedType();
 
     /**
-     * Returns true if this factory can create a {@link DataSource} for the request.
-     *
-     * @deprecated please use {@link #supportedType()} instead.
-     */
-    @Deprecated(since = "0.6.2")
-    default boolean canHandle(DataFlowStartMessage request) {
-        return false;
-    }
-
-    /**
      * Creates a source to access data to be sent.
      */
     DataSource createSource(DataFlowStartMessage request);

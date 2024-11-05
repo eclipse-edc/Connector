@@ -437,60 +437,6 @@ public class Participant {
     }
 
     /**
-     * Request a provider asset:
-     * - retrieves the contract definition associated with the asset,
-     * - handles the contract negotiation,
-     * - initiate the data transfer.
-     *
-     * @param provider          data provider
-     * @param assetId           asset id
-     * @param privateProperties private properties of the data request
-     * @param destination       data destination
-     * @return transfer process id.
-     * @deprecated please use {@link #requestAssetFrom(String, Participant)} instead
-     */
-    @Deprecated(since = "0.6.1")
-    public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination) {
-        return requestAssetFrom(assetId, provider)
-                .withPrivateProperties(privateProperties)
-                .withDestination(destination)
-                .execute();
-    }
-
-    /**
-     * Request a provider asset:
-     * - retrieves the contract definition associated with the asset,
-     * - handles the contract negotiation,
-     * - initiate the data transfer.
-     *
-     * @param provider          data provider
-     * @param assetId           asset id
-     * @param privateProperties private properties of the data request
-     * @param destination       data destination
-     * @param transferType      transfer type
-     * @return transfer process id.
-     * @deprecated please use {@link #requestAssetFrom(String, Participant)} instead
-     */
-    @Deprecated(since = "0.6.1")
-    public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
-        return requestAssetFrom(assetId, provider)
-                .withPrivateProperties(privateProperties)
-                .withDestination(destination)
-                .withTransferType(transferType)
-                .execute();
-    }
-
-    @Deprecated(since = "0.6.1")
-    public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType, JsonArray callbacks) {
-        return requestAssetFrom(assetId, provider)
-                .withPrivateProperties(privateProperties)
-                .withDestination(destination)
-                .withTransferType(transferType)
-                .withCallbacks(callbacks)
-                .execute();
-    }
-
-    /**
      * Get current state of a transfer process.
      *
      * @param id transfer process id

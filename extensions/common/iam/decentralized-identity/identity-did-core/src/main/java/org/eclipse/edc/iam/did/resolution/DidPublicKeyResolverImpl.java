@@ -74,7 +74,7 @@ public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver implemen
     private Result<String> resolveDidPublicKey(String didUrl, String verificationMethodUrl, @Nullable String keyId) {
         var didResult = resolverRegistry.resolve(didUrl);
         if (didResult.failed()) {
-            return didResult.mapTo();
+            return didResult.mapFailure();
         }
 
         var didDocument = didResult.getContent();

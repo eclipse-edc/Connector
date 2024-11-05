@@ -54,11 +54,6 @@ public class KafkaDataSinkFactory implements DataSinkFactory {
     }
 
     @Override
-    public boolean canHandle(DataFlowStartMessage dataRequest) {
-        return KAFKA_TYPE.equalsIgnoreCase(dataRequest.getDestinationDataAddress().getType());
-    }
-
-    @Override
     public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
         var destination = request.getDestinationDataAddress();
         return validation.validate(destination).flatMap(ValidationResult::toResult);

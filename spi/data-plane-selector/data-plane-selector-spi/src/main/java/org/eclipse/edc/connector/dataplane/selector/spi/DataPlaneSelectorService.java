@@ -75,43 +75,4 @@ public interface DataPlaneSelectorService {
      */
     ServiceResult<DataPlaneInstance> findById(String id);
 
-    /**
-     * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the configured
-     * strategy.
-     *
-     * @deprecated please use the one that passes the transferType
-     */
-    @Deprecated(since = "0.6.3")
-    default DataPlaneInstance select(DataAddress source, DataAddress destination) {
-        return select(source, destination, "random");
-    }
-
-    /**
-     * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the passed
-     * strategy.
-     *
-     * @deprecated please use the one that passes the transferType
-     */
-    @Deprecated(since = "0.6.3")
-    default DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy) {
-        return select(source, destination, selectionStrategy, null);
-    }
-
-    /**
-     * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the passed
-     * strategy and the optional transferType.
-     *
-     * @deprecated please use {@link #select(DataAddress, String, String)}.
-     */
-    @Deprecated(since = "0.6.4")
-    default DataPlaneInstance select(DataAddress source, DataAddress destination, @Nullable String selectionStrategy, @Nullable String transferType) {
-        var selection = select(source, transferType, selectionStrategy);
-        if (selection.succeeded()) {
-            return selection.getContent();
-        } else {
-            return null;
-        }
-    }
-
-
 }

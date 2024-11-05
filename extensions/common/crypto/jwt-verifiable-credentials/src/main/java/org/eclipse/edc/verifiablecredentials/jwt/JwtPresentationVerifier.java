@@ -116,7 +116,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
                 var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(JWT_VC_TOKEN_CONTEXT));
                 rules.add(new IssuerKeyIdValidationRule(keyId));
                 return tokenValidationService.validate(serializedJwt, publicKeyResolver, rules)
-                        .mapTo();
+                        .mapEmpty();
             }
 
             if (!isPresentation(signedJwt)) {
@@ -146,7 +146,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-        return verificationResult.mapTo();
+        return verificationResult.mapEmpty();
     }
 
     private List<TokenValidationRule> vpValidationRules(String audience, String keyId) {

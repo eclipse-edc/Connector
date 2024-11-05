@@ -15,7 +15,6 @@
 package org.eclipse.edc.test.e2e;
 
 import io.restassured.common.mapper.TypeRef;
-import jakarta.json.Json;
 import org.assertj.core.api.ThrowingConsumer;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -24,20 +23,12 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static jakarta.json.Json.createArrayBuilder;
-import static jakarta.json.Json.createObjectBuilder;
 import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.boot.BootServicesExtension.PARTICIPANT_ID;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.defaultDatasourceConfiguration;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
@@ -56,46 +47,6 @@ public class TransferEndToEndParticipant extends Participant {
 
     public int getHttpProvisionerPort() {
         return httpProvisionerPort;
-    }
-
-    /**
-     * Register a data plane using with input transfer type using the data plane signaling API url
-     *
-     * @deprecated dataplane now can register itself.
-     */
-    @Deprecated(since = "0.6.3")
-    public void registerDataPlane(Set<String> transferTypes) {
-        registerDataPlane(dataPlaneControl + "/v1/dataflows", Set.of("HttpData", "HttpProvision", "Kafka"), Set.of("HttpData", "HttpProvision", "HttpProxy", "Kafka"), transferTypes);
-    }
-
-    /**
-     * Register a data plane
-     *
-     * @param url           The url of the data plane
-     * @param sources       The allowed source types
-     * @param destinations  The allowed destination types
-     * @param transferTypes The allowed transfer types
-     * @deprecated dataplane now can register itself.
-     */
-    @Deprecated(since = "0.6.3")
-    public void registerDataPlane(String url, Set<String> sources, Set<String> destinations, Set<String> transferTypes) {
-        var jsonObject = Json.createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(ID, UUID.randomUUID().toString())
-                .add(EDC_NAMESPACE + "url", url)
-                .add(EDC_NAMESPACE + "allowedSourceTypes", createArrayBuilder(sources))
-                .add(EDC_NAMESPACE + "allowedDestTypes", createArrayBuilder(destinations))
-                .add(EDC_NAMESPACE + "allowedTransferTypes", createArrayBuilder(transferTypes))
-                .add(EDC_NAMESPACE + "properties", createObjectBuilder().add("publicApiUrl", dataPlanePublic.toString()))
-                .build();
-
-        managementEndpoint.baseRequest()
-                .contentType(JSON)
-                .body(jsonObject.toString())
-                .when()
-                .post("/v2/dataplanes")
-                .then()
-                .statusCode(200);
     }
 
     public Map<String, String> controlPlaneConfiguration() {

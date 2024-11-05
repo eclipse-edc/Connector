@@ -95,11 +95,6 @@ public class PipelineServiceIntegrationTest {
         }
 
         @Override
-        public boolean canHandle(DataFlowStartMessage request) {
-            return true;
-        }
-
-        @Override
         public DataSink createSink(DataFlowStartMessage request) {
             return sink;
         }
@@ -124,11 +119,6 @@ public class PipelineServiceIntegrationTest {
         @Override
         public String supportedType() {
             return "any";
-        }
-
-        @Override
-        public boolean canHandle(DataFlowStartMessage request) {
-            return true;
         }
 
         @Override

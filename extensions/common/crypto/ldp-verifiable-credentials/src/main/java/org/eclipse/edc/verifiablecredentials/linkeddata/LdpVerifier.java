@@ -169,7 +169,7 @@ public class LdpVerifier implements CredentialVerifier {
             // verify presentation proofs
             var presentationValidation = verifyProofs(expanded, ldContext);
             if (!presentationValidation.succeeded()) {
-                return presentationValidation.mapTo();
+                return presentationValidation.mapFailure();
             }
 
             // verify embedded credentials

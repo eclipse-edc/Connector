@@ -52,11 +52,6 @@ public class HttpDataSourceFactory implements DataSourceFactory {
     }
 
     @Override
-    public boolean canHandle(DataFlowStartMessage request) {
-        return HTTP_DATA_TYPE.equals(request.getSourceDataAddress().getType());
-    }
-
-    @Override
     public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
         try {
             createSource(request);
