@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
@@ -64,16 +65,21 @@ public class BomSmokeTests {
         @RegisterExtension
         protected RuntimeExtension runtime =
                 new RuntimePerMethodExtension(new EmbeddedRuntime("control-plane-dcp-bom",
-                        Map.of(
-                                "edc.iam.sts.oauth.token.url", "https://sts.com/token",
-                                "edc.iam.sts.oauth.client.id", "test-client",
-                                "edc.iam.sts.oauth.client.secret.alias", "test-alias",
-                                "web.http.port", DEFAULT_PORT,
-                                "web.http.path", DEFAULT_PATH,
-                                "web.http.version.port", String.valueOf(getFreePort()),
-                                "web.http.version.path", "/api/version",
-                                "web.http.management.port", "8081",
-                                "web.http.management.path", "/api/management"),
+                        new HashMap<>() {
+                            {
+                                put("edc.iam.sts.oauth.token.url", "https://sts.com/token");
+                                put("edc.iam.sts.oauth.client.id", "test-client");
+                                put("edc.iam.sts.oauth.client.secret.alias", "test-alias");
+                                put("web.http.port", DEFAULT_PORT);
+                                put("web.http.path", DEFAULT_PATH);
+                                put("web.http.version.port", String.valueOf(getFreePort()));
+                                put("web.http.version.path", "/api/version");
+                                put("web.http.control.port", String.valueOf(getFreePort()));
+                                put("web.http.control.path", "/api/control");
+                                put("web.http.management.port", "8081");
+                                put("web.http.management.path", "/api/management");
+                            }
+                        },
                         ":dist:bom:controlplane-dcp-bom"
                 ));
     }
@@ -96,6 +102,8 @@ public class BomSmokeTests {
                     put("web.http.management.path", "/api/management");
                     put("web.http.port", DEFAULT_PORT);
                     put("web.http.path", DEFAULT_PATH);
+                    put("web.http.control.port", String.valueOf(getFreePort()));
+                    put("web.http.control.path", "/api/control");
                     put("web.http.version.port", String.valueOf(getFreePort()));
                     put("web.http.version.path", "/api/version");
 
