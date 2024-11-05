@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -89,45 +88,6 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
             messages.addAll(Optional.ofNullable(other.getFailure()).map(Failure::getMessages).orElse(Collections.emptyList()));
             return Result.failure(messages);
         }
-    }
-
-    /**
-     * Maps this {@link Result} into another, maintaining the basic semantics (failed vs success). If this
-     * {@link Result} is successful, the content is discarded. If this {@link Result} failed, the failures are carried
-     * over. This method is intended for use when the return type is implicit, for example:
-     * <pre>
-     *   public Result&lt;Void&gt; someMethod() {
-     *      Result&lt;String&gt; result = getStringResult();
-     *      return result.mapTo();
-     *   }
-     * </pre>
-     *
-     * @see Result#map(Function)
-     * @see Result#mapTo(Class)
-     * @deprecated please use {@link #mapEmpty()} or {@link #mapFailure()}.
-     */
-    @Deprecated(since = "0.6.4")
-    public <R> Result<R> mapTo() {
-        return mapEmpty();
-    }
-
-    /**
-     * Maps this {@link Result} into another, maintaining the basic semantics (failed vs success). If this
-     * {@link Result} is successful, the content is discarded. If this {@link Result} failed, the failures are carried
-     * over. This method is intended for use when an explicit return type is needed, for example when using var:
-     * <pre>
-     *      Result&lt;String&gt; result = getStringResult();
-     *      var voidResult = result.mapTo(Void.class);
-     * </pre>
-     *
-     * @param clazz type of the result, with which the resulting {@link Result} should be parameterized
-     * @see Result#map(Function)
-     * @see Result#mapTo()
-     * @deprecated please use {@link #mapEmpty()} or {@link #mapFailure()}.
-     */
-    @Deprecated(since = "0.6.4")
-    public <R> Result<R> mapTo(Class<R> clazz) {
-        return mapEmpty();
     }
 
     /**

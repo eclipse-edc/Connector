@@ -60,11 +60,6 @@ public class KafkaDataSourceFactory implements DataSourceFactory {
     }
 
     @Override
-    public boolean canHandle(DataFlowStartMessage dataRequest) {
-        return KAFKA_TYPE.equalsIgnoreCase(dataRequest.getSourceDataAddress().getType());
-    }
-
-    @Override
     public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
         var source = request.getSourceDataAddress();
         return validation.validate(source).flatMap(ValidationResult::toResult);

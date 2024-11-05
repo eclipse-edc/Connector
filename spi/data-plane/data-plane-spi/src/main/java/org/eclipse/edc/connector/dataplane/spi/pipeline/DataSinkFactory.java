@@ -31,16 +31,6 @@ public interface DataSinkFactory {
     String supportedType();
 
     /**
-     * Returns true if this factory can create a {@link DataSink} for the request.
-     *
-     * @deprecated please use {@link #supportedType()} instead.
-     */
-    @Deprecated(since = "0.6.2")
-    default boolean canHandle(DataFlowStartMessage request) {
-        return false;
-    }
-
-    /**
      * Creates a sink to send data to.
      */
     DataSink createSink(DataFlowStartMessage request);

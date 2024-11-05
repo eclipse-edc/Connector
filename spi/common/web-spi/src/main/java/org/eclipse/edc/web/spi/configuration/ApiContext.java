@@ -27,7 +27,4 @@ public interface ApiContext {
     String STS = "sts";
     String STS_ACCOUNTS = "accounts";
 
-    @Deprecated(since = "0.6.4")
-    String SIGNALING = "signaling";
-
 }

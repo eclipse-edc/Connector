@@ -142,7 +142,7 @@ public class IdentityAndTrustService implements IdentityService {
                 EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).toString());
         var siToken = secureTokenService.createToken(siTokenClaims, null);
         if (siToken.failed()) {
-            return siToken.mapTo();
+            return siToken.mapFailure();
         }
         var siTokenString = siToken.getContent().getToken();
 

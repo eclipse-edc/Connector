@@ -46,7 +46,6 @@ public interface DataplaneSelectorApiV2 {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
-    @Deprecated(since = "0.6.4")
     @POST
     JsonObject selectDataPlaneInstanceV2(JsonObject request);
 
@@ -61,7 +60,6 @@ public interface DataplaneSelectorApiV2 {
             deprecated = true
     )
     @POST
-    @Deprecated(since = "0.6.2")
     JsonObject addDataPlaneInstanceV2(JsonObject instance);
 
     @Operation(method = "GET",
