@@ -32,8 +32,8 @@ class InjectionPointDefaultServiceSupplierTest {
     void shouldRegisterDefaultService() {
         var injectionPoint = new ServiceInjectionPoint<>("any", mock());
         ServiceProvider serviceProvider = mock();
-        when(serviceProvider.register(any())).thenReturn("service");
-        injectionPoint.setDefaultServiceProvider(serviceProvider);
+        when(serviceProvider.apply(any())).thenReturn("service");
+        injectionPoint.setDefaultValueProvider(serviceProvider);
         ServiceExtensionContext context = mock();
 
         var service = supplier.provideFor(injectionPoint, context);

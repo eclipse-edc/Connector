@@ -18,14 +18,15 @@ import org.eclipse.edc.boot.system.injection.ProviderMethod;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.ValueProvider;
 
 /**
  * Represent a service provider, that's a method annotated with the {@link Provider}
  *
- * @param method the provider method.
+ * @param method    the provider method.
  * @param extension the extension in which the method is contained.
  */
-public record ServiceProvider(ProviderMethod method, ServiceExtension extension) {
+public record ServiceProvider(ProviderMethod method, ServiceExtension extension) implements ValueProvider {
 
     /**
      * Call the method and register the service.
@@ -33,11 +34,11 @@ public record ServiceProvider(ProviderMethod method, ServiceExtension extension)
      * @param context the service context.
      * @return the instantiated service.
      */
-    public Object register(ServiceExtensionContext context) {
+    @Override
+    public Object apply(ServiceExtensionContext context) {
         var type = method.getReturnType();
         var service = method.invoke(extension, context);
         context.registerService(type, service);
         return service;
     }
-
 }

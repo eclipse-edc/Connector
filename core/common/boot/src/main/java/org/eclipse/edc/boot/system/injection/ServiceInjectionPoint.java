@@ -14,10 +14,11 @@
 
 package org.eclipse.edc.boot.system.injection;
 
-import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.ValueProvider;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -36,7 +37,7 @@ public class ServiceInjectionPoint<T> implements InjectionPoint<T> {
     private final T instance;
     private final Field injectedField;
     private final boolean isRequired;
-    private ServiceProvider defaultServiceProvider;
+    private ValueProvider defaultServiceProvider;
 
     public ServiceInjectionPoint(T instance, Field injectedField) {
         this(instance, injectedField, true);
@@ -75,13 +76,13 @@ public class ServiceInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     @Override
-    public ServiceProvider getDefaultServiceProvider() {
+    public @Nullable ValueProvider getDefaultValueProvider() {
         return defaultServiceProvider;
     }
 
     @Override
-    public void setDefaultServiceProvider(ServiceProvider defaultServiceProvider) {
-        this.defaultServiceProvider = defaultServiceProvider;
+    public void setDefaultValueProvider(ValueProvider defaultValueProvider) {
+        this.defaultServiceProvider = defaultValueProvider;
 
     }
 

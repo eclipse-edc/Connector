@@ -17,6 +17,8 @@ package org.eclipse.edc.boot.system.injection;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.Nullable;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * Supplies the default {@link org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider} that has been stored in
  * the {@link InjectionPoint}
@@ -25,11 +27,11 @@ public class InjectionPointDefaultServiceSupplier implements DefaultServiceSuppl
 
     @Override
     public @Nullable Object provideFor(InjectionPoint<?> injectionPoint, ServiceExtensionContext context) {
-        var defaultService = injectionPoint.getDefaultServiceProvider();
+        var defaultService = injectionPoint.getDefaultValueProvider();
         if (injectionPoint.isRequired() && defaultService == null) {
             throw new EdcInjectionException("No default provider for required service " + injectionPoint.getType());
         }
-        return defaultService == null ? null : defaultService.register(context);
+        return ofNullable(defaultService).map(vp -> vp.apply(context)).orElse(null);
     }
 
 }

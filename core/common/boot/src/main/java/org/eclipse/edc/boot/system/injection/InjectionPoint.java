@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.boot.system.injection;
 
-import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.ValueProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -57,22 +57,23 @@ public interface InjectionPoint<T> {
      *
      * @return the default service provider if any, null otherwise
      */
-    @Nullable ServiceProvider getDefaultServiceProvider();
+    @Nullable ValueProvider getDefaultValueProvider();
 
     /**
      * Sets the default service provider.
      *
-     * @param defaultServiceProvider the default service provider
+     * @param defaultValueProvider the default service provider
      */
-    void setDefaultServiceProvider(ServiceProvider defaultServiceProvider);
+    void setDefaultValueProvider(ValueProvider defaultValueProvider);
 
     /**
      * Resolves the value for an injected field from either the context or a default service supplier. For some injection points,
      * this may also return a (statically declared) default value.
      *
      * @param context                The {@link ServiceExtensionContext} from which the value is resolved.
-     * @param defaultServiceSupplier Some service dynamically resolve a default value in case the actual value isn't found on the context.
-     * @return The resolved value, or null if the injected field is not required..
+     * @param defaultServiceSupplier Provider for default values that can be resolved statically (e.g. through an annotation attribute) or
+     *                               dynamically (e.g. by instantiating an object or resolving from context).
+     * @return The resolved value, or null if the injected field is not required.
      * @throws EdcInjectionException in case the value could not be resolved
      */
     Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier);

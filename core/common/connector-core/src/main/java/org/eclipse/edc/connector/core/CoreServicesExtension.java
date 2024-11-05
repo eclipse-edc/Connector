@@ -58,12 +58,17 @@ import static org.eclipse.edc.participant.spi.ParticipantAgentService.DEFAULT_ID
 public class CoreServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Core Services";
+
     @Setting(description = "The name of the claim key used to determine the participant identity", defaultValue = DEFAULT_IDENTITY_CLAIM_KEY)
     public static final String EDC_AGENT_IDENTITY_KEY = "edc.agent.identity.key";
+
     private static final String DEFAULT_EDC_HOSTNAME = "localhost";
+
     public static final String EDC_HOSTNAME = "edc.hostname";
+
     @Setting(description = "Connector hostname, which e.g. is used in referer urls", defaultValue = DEFAULT_EDC_HOSTNAME, key = EDC_HOSTNAME, warnOnMissingConfig = true)
     public static String hostname;
+
     @Inject
     private EventExecutorServiceContainer eventExecutorServiceContainer;
 
