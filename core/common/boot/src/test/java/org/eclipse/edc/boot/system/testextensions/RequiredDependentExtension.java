@@ -19,6 +19,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 public class RequiredDependentExtension implements ServiceExtension {
+    public TestObject getTestObject() {
+        return testObject;
+    }
+
     @Inject
     private TestObject testObject;
 }

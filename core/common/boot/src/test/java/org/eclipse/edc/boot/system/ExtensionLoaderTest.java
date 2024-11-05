@@ -221,7 +221,10 @@ class ExtensionLoaderTest {
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, someExtension));
 
-        assertThatThrownBy(() -> loader.loadServiceExtensions(context)).isInstanceOf(EdcException.class).hasMessageContaining("The following injected fields were not provided:\nField \"someService\" of type ");
+        assertThatThrownBy(() -> loader.loadServiceExtensions(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("The following injected fields or values were not provided or could not be resolved")
+                .hasMessageContaining("Service someService of type class org.eclipse.edc.boot.system.ExtensionLoaderTest$SomeObject");
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 

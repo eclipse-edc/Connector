@@ -14,10 +14,13 @@
 
 package org.eclipse.edc.boot.system.injection;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -30,11 +33,27 @@ public class InjectionPointScanner {
 
         var targetClass = instance.getClass();
 
-        return Arrays.stream(targetClass.getDeclaredFields())
+        // scan service injection points
+        var fields = Arrays.stream(targetClass.getDeclaredFields())
                 .filter(f -> f.getAnnotation(Inject.class) != null)
                 .map(f -> {
                     var isRequired = f.getAnnotation(Inject.class).required();
-                    return new FieldInjectionPoint<>(instance, f, isRequired);
+                    return new ServiceInjectionPoint<>(instance, f, isRequired);
                 });
+
+        // scan value injection points
+        var values = Arrays.stream(targetClass.getDeclaredFields())
+                .filter(f -> f.getAnnotation(Setting.class) != null && !Setting.NULL.equals(f.getAnnotation(Setting.class).key()))
+                .map(f -> {
+                    var annotation = f.getAnnotation(Setting.class);
+                    return new ValueInjectionPoint<>(instance, f, annotation, targetClass);
+                });
+
+        // scan configuration injection points
+        var configObjects = Arrays.stream(targetClass.getDeclaredFields())
+                .filter(f -> f.getAnnotation(Configuration.class) != null)
+                .map(f -> new ConfigurationInjectionPoint<>(instance, f));
+
+        return Stream.of(fields, values, configObjects).flatMap(Function.identity());
     }
 }

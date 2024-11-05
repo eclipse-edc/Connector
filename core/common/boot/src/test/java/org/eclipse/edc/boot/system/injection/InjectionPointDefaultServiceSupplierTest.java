@@ -30,7 +30,7 @@ class InjectionPointDefaultServiceSupplierTest {
 
     @Test
     void shouldRegisterDefaultService() {
-        var injectionPoint = new FieldInjectionPoint<>("any", mock());
+        var injectionPoint = new ServiceInjectionPoint<>("any", mock());
         ServiceProvider serviceProvider = mock();
         when(serviceProvider.register(any())).thenReturn("service");
         injectionPoint.setDefaultServiceProvider(serviceProvider);
@@ -43,7 +43,7 @@ class InjectionPointDefaultServiceSupplierTest {
 
     @Test
     void shouldReturnNull_whenNoDefaultServiceSet() {
-        var injectionPoint = new FieldInjectionPoint<>("any", mock(), false);
+        var injectionPoint = new ServiceInjectionPoint<>("any", mock(), false);
         ServiceExtensionContext context = mock();
 
         var service = supplier.provideFor(injectionPoint, context);
@@ -53,7 +53,7 @@ class InjectionPointDefaultServiceSupplierTest {
 
     @Test
     void shouldThrowException_whenNoDefaultServiceAndIsRequired() {
-        var injectionPoint = new FieldInjectionPoint<>("any", mock(), true);
+        var injectionPoint = new ServiceInjectionPoint<>("any", mock(), true);
         ServiceExtensionContext context = mock();
 
         assertThatThrownBy(() -> supplier.provideFor(injectionPoint, context)).isInstanceOf(EdcInjectionException.class);

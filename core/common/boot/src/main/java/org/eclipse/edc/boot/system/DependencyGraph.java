@@ -93,7 +93,8 @@ public class DependencyGraph {
 
         var sort = new TopologicalSort<InjectionContainer<ServiceExtension>>();
 
-        var unsatisfiedInjectionPoints = new ArrayList<InjectionPoint<ServiceExtension>>();
+        // check if all injected fields are satisfied, collect missing ones and throw exception otherwise
+        var unsatisfiedInjectionPoints = new HashMap<Class<? extends ServiceExtension>, List<InjectionFailure>>();
         var unsatisfiedRequirements = new ArrayList<String>();
 
         injectionContainers.forEach(container -> {
@@ -130,8 +131,9 @@ public class DependencyGraph {
         });
 
         if (!unsatisfiedInjectionPoints.isEmpty()) {
-            var message = "The following injected fields were not provided:\n";
-            message += unsatisfiedInjectionPoints.stream().map(InjectionPoint::toString).collect(Collectors.joining("\n"));
+            var message = "The following injected fields or values were not provided or could not be resolved:\n";
+            message += unsatisfiedInjectionPoints.entrySet().stream()
+                    .map(entry -> String.format("%s is missing \n  --> %s", entry.getKey(), String.join("\n  --> ", entry.getValue().stream().map(Object::toString).toList()))).collect(Collectors.joining("\n"));
             throw new EdcInjectionException(message);
         }
 
@@ -169,4 +171,10 @@ public class DependencyGraph {
         return allProvides;
     }
 
+    private record InjectionFailure(InjectionPoint<ServiceExtension> injectionPoint, String failureDetail) {
+        @Override
+        public String toString() {
+            return "%s %s".formatted(injectionPoint.getTypeString(), failureDetail);
+        }
+    }
 }

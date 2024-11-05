@@ -19,7 +19,9 @@ import org.eclipse.edc.boot.system.testextensions.ProviderDefaultServicesExtensi
 import org.eclipse.edc.boot.system.testextensions.ProviderExtension;
 import org.eclipse.edc.boot.system.testextensions.RequiredDependentExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,5 +38,13 @@ public class TestFunctions {
     public static ServiceExtension createDependentExtension(boolean isRequired) {
 
         return isRequired ? new RequiredDependentExtension() : new DependentExtension();
+    }
+
+    public static @NotNull Field getDeclaredField(Class<?> clazz, String name) {
+        try {
+            return clazz.getDeclaredField(name);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

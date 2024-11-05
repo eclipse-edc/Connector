@@ -15,9 +15,13 @@
 package org.eclipse.edc.boot.system.injection;
 
 import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -27,17 +31,17 @@ import static java.lang.String.format;
  * <p>
  * Each injectable field of a {@link ServiceExtension} is represented by one InjectionPoint
  */
-public class FieldInjectionPoint<T> implements InjectionPoint<T> {
+public class ServiceInjectionPoint<T> implements InjectionPoint<T> {
     private final T instance;
     private final Field injectedField;
     private final boolean isRequired;
     private ServiceProvider defaultServiceProvider;
 
-    public FieldInjectionPoint(T instance, Field injectedField) {
+    public ServiceInjectionPoint(T instance, Field injectedField) {
         this(instance, injectedField, true);
     }
 
-    public FieldInjectionPoint(T instance, Field injectedField, boolean isRequired) {
+    public ServiceInjectionPoint(T instance, Field injectedField, boolean isRequired) {
         this.instance = instance;
         this.injectedField = injectedField;
         this.injectedField.setAccessible(true);
@@ -45,7 +49,7 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     @Override
-    public T getInstance() {
+    public T getTargetInstance() {
         return instance;
     }
 
@@ -60,8 +64,9 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     @Override
-    public void setTargetValue(Object service) throws IllegalAccessException {
+    public Result<Void> setTargetValue(Object service) throws IllegalAccessException {
         injectedField.set(instance, service);
+        return Result.success();
     }
 
     @Override
@@ -73,6 +78,33 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     public void setDefaultServiceProvider(ServiceProvider defaultServiceProvider) {
         this.defaultServiceProvider = defaultServiceProvider;
 
+    }
+
+    @Override
+    public Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier) {
+        var serviceClass = getType();
+        if (context.hasService(serviceClass)) {
+            return context.getService(serviceClass, !isRequired());
+        } else {
+            return defaultServiceSupplier.provideFor(this, context);
+        }
+    }
+
+    @Override
+    public Result<Void> isSatisfiedBy(Map<Class<?>, List<ServiceExtension>> dependencyMap, ServiceExtensionContext context) {
+        var serviceClass = getType();
+        var providers = dependencyMap.get(serviceClass);
+        if (providers != null) {
+            return Result.success();
+        } else {
+            // attempt to interpret the feature name as class name and see if the context has that service
+            return context.hasService(serviceClass) ? Result.success() : Result.failure(injectedField.getName() + " of type " + serviceClass);
+        }
+    }
+
+    @Override
+    public String getTypeString() {
+        return "Service";
     }
 
     @Override

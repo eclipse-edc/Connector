@@ -72,7 +72,7 @@ class IdentityAndTrustExtensionTest {
         extension.initialize(context);
         extension.start();
 
-        await().atLeast(Duration.ofSeconds(1)) // that's the initial delay
+        await().atMost(Duration.ofSeconds(2))
                 .untilAsserted(() -> verify(storeMock, atLeastOnce()).deleteExpired());
     }
 
