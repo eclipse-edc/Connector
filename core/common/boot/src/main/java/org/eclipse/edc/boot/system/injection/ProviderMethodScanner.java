@@ -36,25 +36,7 @@ public class ProviderMethodScanner {
      * Returns all methods annotated with {@link Provider}.
      */
     public Stream<ProviderMethod> allProviders() {
-        return getProviderMethods(target);
-    }
-
-    /**
-     * Returns all methods annotated with {@link Provider}, where {@link Provider#isDefault()} is {@code false}
-     */
-    public Stream<ProviderMethod> nonDefaultProviders() {
-        return getProviderMethods(target).filter(pm -> !pm.isDefault());
-    }
-
-    /**
-     * Returns all methods annotated with {@link Provider}, where {@link Provider#isDefault()} is {@code true}
-     */
-    public Stream<ProviderMethod> defaultProviders() {
-        return getProviderMethods(target).filter(ProviderMethod::isDefault);
-    }
-
-    private Stream<ProviderMethod> getProviderMethods(Object extension) {
-        return Arrays.stream(extension.getClass().getDeclaredMethods())
+        return Arrays.stream(target.getClass().getDeclaredMethods())
                 .filter(m -> m.getAnnotation(Provider.class) != null)
                 .map(ProviderMethod::new)
                 .peek(method -> {
@@ -66,4 +48,5 @@ public class ProviderMethodScanner {
                     }
                 });
     }
+
 }

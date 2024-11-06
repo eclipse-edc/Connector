@@ -36,14 +36,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Optional.ofNullable;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 
 
 /**
@@ -71,64 +69,65 @@ public class DependencyGraph {
      */
     public List<InjectionContainer<ServiceExtension>> of(List<ServiceExtension> extensions) {
         Map<Class<?>, ServiceProvider> defaultServiceProviders = new HashMap<>();
-        Map<ServiceExtension, List<ServiceProvider>> serviceProviders = new HashMap<>();
-        Map<Class<?>, List<ServiceExtension>> dependencyMap = new HashMap<>();
-        extensions.forEach(extension -> {
-            getProvidedFeatures(extension).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(extension));
-            // check all @Provider methods
-            new ProviderMethodScanner(extension).allProviders()
-                    .peek(providerMethod -> {
-                        var serviceProvider = new ServiceProvider(providerMethod, extension);
-                        if (providerMethod.isDefault()) {
-                            defaultServiceProviders.put(providerMethod.getReturnType(), serviceProvider);
-                        } else {
-                            serviceProviders.computeIfAbsent(extension, k -> new ArrayList<>()).add(serviceProvider);
-                        }
-                    })
-                    .map(ProviderMethod::getReturnType)
-                    .forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(extension));
-        });
+        Map<Class<?>, List<InjectionContainer<ServiceExtension>>> dependencyMap = new HashMap<>();
+        var injectionContainers = extensions.stream()
+                .map(it -> new InjectionContainer<>(it, new HashSet<>(), new ArrayList<>()))
+                .peek(injectionContainer -> {
+                    getProvidedFeatures(injectionContainer.getInjectionTarget())
+                            .forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(injectionContainer));
 
-        var sort = new TopologicalSort<ServiceExtension>();
+                    // check all @Provider methods
+                    new ProviderMethodScanner(injectionContainer.getInjectionTarget()).allProviders()
+                            .peek(providerMethod -> {
+                                var serviceProvider = new ServiceProvider(providerMethod, injectionContainer.getInjectionTarget());
+                                if (providerMethod.isDefault()) {
+                                    defaultServiceProviders.put(providerMethod.getReturnType(), serviceProvider);
+                                } else {
+                                    injectionContainer.getServiceProviders().add(serviceProvider);
+                                }
+                            })
+                            .map(ProviderMethod::getReturnType)
+                            .forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(injectionContainer));
+                })
+                .collect(toList());
 
-        // check if all injected fields are satisfied, collect missing ones and throw exception otherwise
+        var sort = new TopologicalSort<InjectionContainer<ServiceExtension>>();
+
         var unsatisfiedInjectionPoints = new ArrayList<InjectionPoint<ServiceExtension>>();
         var unsatisfiedRequirements = new ArrayList<String>();
 
-        var injectionPoints = extensions.stream()
-                .collect(toMap(identity(), ext -> {
+        injectionContainers.forEach(container -> {
+            //check that all the @Required features are there
+            getRequiredFeatures(container.getInjectionTarget().getClass()).forEach(serviceClass -> {
+                var dependencies = dependencyMap.get(serviceClass);
+                if (dependencies == null) {
+                    unsatisfiedRequirements.add(serviceClass.getName());
+                } else {
+                    dependencies.forEach(dependency -> sort.addDependency(container, dependency));
+                }
+            });
 
-                    //check that all the @Required features are there
-                    getRequiredFeatures(ext.getClass()).forEach(serviceClass -> {
-                        var dependencies = dependencyMap.get(serviceClass);
-                        if (dependencies == null) {
-                            unsatisfiedRequirements.add(serviceClass.getName());
+            injectionPointScanner.getInjectionPoints(container.getInjectionTarget())
+                    .peek(injectionPoint -> {
+                        var maybeProviders = Optional.of(injectionPoint.getType()).map(dependencyMap::get);
+
+                        if (maybeProviders.isPresent() || context.hasService(injectionPoint.getType())) {
+                            maybeProviders.ifPresent(l -> l.stream()
+                                    .filter(d -> !Objects.equals(d, container)) // remove dependencies onto oneself
+                                    .forEach(provider -> sort.addDependency(container, provider)));
                         } else {
-                            dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
+                            if (injectionPoint.isRequired()) {
+                                unsatisfiedInjectionPoints.add(injectionPoint);
+                            }
                         }
-                    });
 
-                    return injectionPointScanner.getInjectionPoints(ext)
-                            .peek(injectionPoint -> {
-                                if (!canResolve(dependencyMap, injectionPoint.getType())) {
-                                    if (injectionPoint.isRequired()) {
-                                        unsatisfiedInjectionPoints.add(injectionPoint);
-                                    }
-                                } else {
-                                    // get() would return null, if the feature is already in the context's service list
-                                    ofNullable(dependencyMap.get(injectionPoint.getType()))
-                                            .ifPresent(l -> l.stream()
-                                                    .filter(d -> !Objects.equals(d, ext)) // remove dependencies onto oneself
-                                                    .forEach(provider -> sort.addDependency(ext, provider)));
-                                }
-
-                                var defaultServiceProvider = defaultServiceProviders.get(injectionPoint.getType());
-                                if (defaultServiceProvider != null) {
-                                    injectionPoint.setDefaultServiceProvider(defaultServiceProvider);
-                                }
-                            })
-                            .collect(toSet());
-                }));
+                        var defaultServiceProvider = defaultServiceProviders.get(injectionPoint.getType());
+                        if (defaultServiceProvider != null) {
+                            injectionPoint.setDefaultServiceProvider(defaultServiceProvider);
+                        }
+                    })
+                    .forEach(injectionPoint -> container.getInjectionPoints().add(injectionPoint));
+        });
 
         if (!unsatisfiedInjectionPoints.isEmpty()) {
             var message = "The following injected fields were not provided:\n";
@@ -141,21 +140,9 @@ public class DependencyGraph {
             throw new EdcException(message);
         }
 
-        sort.sort(extensions);
+        sort.sort(injectionContainers);
 
-        return extensions.stream()
-                .map(key -> new InjectionContainer<>(key, injectionPoints.get(key), serviceProviders.get(key)))
-                .toList();
-    }
-
-    private boolean canResolve(Map<Class<?>, List<ServiceExtension>> dependencyMap, Class<?> serviceClass) {
-        var providers = dependencyMap.get(serviceClass);
-        if (providers != null) {
-            return true;
-        } else {
-            // attempt to interpret the feature name as class name, instantiate it and see if the context has that service
-            return context.hasService(serviceClass);
-        }
+        return injectionContainers;
     }
 
     private Stream<Class<?>> getRequiredFeatures(Class<?> clazz) {
