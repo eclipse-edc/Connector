@@ -130,7 +130,7 @@ unresolved config values would be reported as one:
 ```
 Caused by: org.eclipse.edc.boot.system.injection.EdcInjectionException: The following injected fields were not provided or could not be resolved:
 Configuration value "fooBarBaz" of type class java.lang.Long (config key 'foo.bar.baz')
-Configuration object 'config' of type 'class org.eclipse.edc.some.FooBarExtension$FooBarConfig' in class class org.eclipse.edc.some.FooBarExtension
+Configuration object 'config' of type 'class org.eclipse.edc.some.FooBarExtension$FooBarConfig' in class org.eclipse.edc.some.FooBarExtension
 	at org.eclipse.edc.boot.system.DependencyGraph.of(DependencyGraph.java:136)
 	at org.eclipse.edc.boot.system.ExtensionLoader.loadServiceExtensions(ExtensionLoader.java:85)
 	at org.eclipse.edc.boot.system.runtime.BaseRuntime.createExtensions(BaseRuntime.java:164)
