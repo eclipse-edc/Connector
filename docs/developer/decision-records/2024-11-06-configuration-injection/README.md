@@ -87,7 +87,7 @@ public record KeyConfig(@Setting(key = "edc.iam.publickey.alias") String alias,
 }
 
 // alternatively:
-public class KeyConfig{
+public class KeyConfig {
 
     @Setting(key = "edc.iam.publickey.alias")
     private String alias;
@@ -124,16 +124,6 @@ changed so that the `key` becomes the default value, and `description` is anothe
 
 ### Error reporting
 
-By piggy-backing on the dependency injection mechanism, errors are automatically reported in a collated way. So multiple
-unresolved config values would be reported as one:
-
-```
-Caused by: org.eclipse.edc.boot.system.injection.EdcInjectionException: The following injected fields were not provided or could not be resolved:
-Configuration value "fooBarBaz" of type class java.lang.Long (config key 'foo.bar.baz')
-Configuration object 'config' of type 'class org.eclipse.edc.some.FooBarExtension$FooBarConfig' in class org.eclipse.edc.some.FooBarExtension
-	at org.eclipse.edc.boot.system.DependencyGraph.of(DependencyGraph.java:136)
-	at org.eclipse.edc.boot.system.ExtensionLoader.loadServiceExtensions(ExtensionLoader.java:85)
-	at org.eclipse.edc.boot.system.runtime.BaseRuntime.createExtensions(BaseRuntime.java:164)
-	at org.eclipse.edc.boot.system.runtime.BaseRuntime.boot(BaseRuntime.java:92)
-	... 1 more
-```
+By piggy-backing on the dependency injection mechanism, configuration injection errors are automatically reported in the
+same way as service injection errors.
+Reporting dependency errors will be improved in future development iterations.
