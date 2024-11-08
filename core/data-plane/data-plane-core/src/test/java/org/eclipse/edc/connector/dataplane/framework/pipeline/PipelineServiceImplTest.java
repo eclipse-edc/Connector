@@ -195,6 +195,25 @@ class PipelineServiceImplTest {
 
     }
 
+    @Nested
+    class CloseAll {
+
+        @Test
+        void shouldCloseAllTheOngoingDataFlows() throws Exception {
+            when(sourceFactory.supportedType()).thenReturn("source");
+            when(sourceFactory.createSource(any())).thenReturn(source);
+            when(sinkFactory.supportedType()).thenReturn("destination");
+            when(sinkFactory.createSink(any())).thenReturn(sink);
+            when(sink.transfer(any())).thenReturn(new CompletableFuture<>());
+
+            service.transfer(dataFlow("source", "destination").toRequest());
+
+            service.closeAll();
+
+            verify(source).close();
+        }
+    }
+
     private DataFlow dataFlow(String sourceType, String destinationType) {
         return DataFlow.Builder.newInstance()
                 .id("1")

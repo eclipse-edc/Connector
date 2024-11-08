@@ -356,7 +356,7 @@ class DataPlaneManagerImplTest {
         void shouldStartTransferTransitionAndTransitionToStarted() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
@@ -373,7 +373,7 @@ class DataPlaneManagerImplTest {
         void shouldStarTransitionToCompleted_whenTransferSucceeds() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
@@ -391,7 +391,7 @@ class DataPlaneManagerImplTest {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             var terminatedDataFlow = dataFlowBuilder().state(TERMINATED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(terminatedDataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(terminatedDataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
@@ -409,7 +409,7 @@ class DataPlaneManagerImplTest {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             var terminatedDataFlow = dataFlowBuilder().state(SUSPENDED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(terminatedDataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(terminatedDataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
@@ -426,7 +426,7 @@ class DataPlaneManagerImplTest {
         void shouldStartTransferAndTransitionToFailed_whenTransferFails() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.error("an error")));
@@ -443,7 +443,7 @@ class DataPlaneManagerImplTest {
         void shouldStartTransferAndTransitionToReceivedForRetrying_whenTransferFutureIsFailed() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(failedFuture(new RuntimeException("an error")));
@@ -460,7 +460,7 @@ class DataPlaneManagerImplTest {
         void shouldTransitToFailedIfNoTransferServiceCanHandleStarted() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
             when(registry.resolveTransferService(any())).thenReturn(null);
 
             manager.start();
@@ -562,6 +562,25 @@ class DataPlaneManagerImplTest {
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(f -> f.getState() == SUSPENDED.code()));
+        }
+    }
+
+    @Nested
+    class RestartFlowsAtStartup {
+        @Test
+        void shouldRestartFlowsAtStartup() {
+            var dataFlow = dataFlowBuilder().state(STARTED.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.canHandle(any())).thenReturn(true);
+            when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferService).transfer(isA(DataFlowStartMessage.class));
+                verify(store).save(argThat(it -> it.getState() == STARTED.code()));
+            });
         }
     }
 

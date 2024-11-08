@@ -151,6 +151,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         if (dataPlaneManager != null) {
             dataPlaneManager.stop();
         }
+        pipelineService.closeAll();
     }
 
     @Provider

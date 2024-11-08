@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework;
 
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceRegistryImpl;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -24,12 +25,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DataPlaneFrameworkExtensionTest {
 
+    private final PipelineService pipelineService = mock();
+
     @BeforeEach
     public void setUp(ServiceExtensionContext context) {
+        context.registerService(PipelineService.class, pipelineService);
         context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
     }
 
@@ -40,4 +46,10 @@ class DataPlaneFrameworkExtensionTest {
         assertThat(context.getService(TransferServiceRegistry.class)).isInstanceOf(TransferServiceRegistryImpl.class);
     }
 
+    @Test
+    void shouldClosePipelineService_whenShutdown(DataPlaneFrameworkExtension extension) {
+        extension.shutdown();
+
+        verify(pipelineService).closeAll();
+    }
 }

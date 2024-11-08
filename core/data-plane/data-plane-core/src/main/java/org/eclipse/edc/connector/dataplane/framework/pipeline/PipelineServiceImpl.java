@@ -121,6 +121,11 @@ public class PipelineServiceImpl implements PipelineService {
     }
 
     @Override
+    public void closeAll() {
+        sources.forEach((processId, source) -> terminate(processId));
+    }
+
+    @Override
     public void registerFactory(DataSourceFactory factory) {
         sourceFactories.add(factory);
     }

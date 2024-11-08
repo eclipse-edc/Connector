@@ -124,6 +124,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     @Override
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
         return builder
+                .startupProcessor(processDataFlowInState(STARTED, this::restartFlow))
                 .processor(processDataFlowInState(RECEIVED, this::processReceived))
                 .processor(processDataFlowInState(COMPLETED, this::processCompleted))
                 .processor(processDataFlowInState(FAILED, this::processFailed));
@@ -192,6 +193,11 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .build());
     }
 
+    private boolean restartFlow(DataFlow dataFlow) {
+        dataFlow.transitToReceived();
+        return processReceived(dataFlow);
+    }
+
     private boolean processReceived(DataFlow dataFlow) {
         var request = dataFlow.toRequest();
         var transferService = transferServiceRegistry.resolveTransferService(request);
@@ -206,7 +212,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         store.save(dataFlow);
 
         return entityRetryProcessFactory.doAsyncProcess(dataFlow, () -> transferService.transfer(request))
-                .entityRetrieve(id -> store.findById(id))
+                .entityRetrieve(id -> store.findByIdAndLease(id).orElse(f -> null))
                 .onSuccess((f, r) -> {
                     if (f.getState() != STARTED.code()) {
                         return;
@@ -297,6 +303,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             manager.authorizationService = authorizationService;
             return this;
         }
+
     }
 
 }
