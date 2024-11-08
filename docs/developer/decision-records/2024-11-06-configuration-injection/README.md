@@ -82,11 +82,13 @@ public class SomeExtension implements ServiceExtension {
     private KeyConfig keyConfig;
 }
 
+@Settings
 public record KeyConfig(@Setting(key = "edc.iam.publickey.alias") String alias,
                         @Setting(key = "edc.iam.key.algorithm") String algorithm) {
 }
 
 // alternatively:
+@Settings
 public class KeyConfig {
 
     @Setting(key = "edc.iam.publickey.alias")
@@ -99,9 +101,12 @@ public class KeyConfig {
 }
 ```
 
-These are Java POJOs that contain the actual config values. The same principle applies as before, but the
-`@Setting`-annotated fields are compounded in a class or a `record`. However, some limitations apply:
+These are Java POJOs that are annotated with the `@Settings` annotation and contain the actual config values. The same 
+principle applies as before, but the `@Setting`-annotated fields are compounded in a class or a `record`. However, 
+some limitations apply:
 
+- the field must be annotated with `@Configuration` and the class must be annotated with `@Settings`
+- they can only be declared inside an extension class
 - config record classes can only contain constructors where every parameter is annotated with `@Setting`
 - `@Configuration`-annotated fields are optional if and only if **all** `@Setting`-annotated fields within them have the
   `required = false` attribute. This optionality is _implicit_ and cannot be configured.
