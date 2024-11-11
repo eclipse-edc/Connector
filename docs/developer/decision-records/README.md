@@ -66,4 +66,5 @@
 - [2024-10-06 Typed Policy Scopes through Contexts](./2024-10-05-typed-policy-context)
 - [2024-10-10 DAPS module deprecation](./2024-10-10-daps-deprecation)
 - [2024-10-24 bidirectional-data-transfers](./2024-10-24-bidirectional-data-transfers)
+- [2024-11-06 configuration-injection](./2024-11-06-configuration-injection)
 
