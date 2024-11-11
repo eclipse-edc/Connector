@@ -17,7 +17,6 @@ package org.eclipse.edc.boot.system.injection;
 import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.lang.reflect.Field;
@@ -40,6 +39,7 @@ import java.util.Map;
  * @param <T> The type of the declaring class.
  */
 public class ValueInjectionPoint<T> implements InjectionPoint<T> {
+    public final List<InjectionContainer<T>> emptyProviderlist = List.of();
     private final T objectInstance;
     private final Field targetField;
     private final Setting annotationValue;
@@ -147,21 +147,21 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
      * @return success if found in the context, a failure otherwise.
      */
     @Override
-    public Result<Void> isSatisfiedBy(Map<Class<?>, List<ServiceExtension>> dependencyMap, ServiceExtensionContext context) {
+    public Result<List<InjectionContainer<T>>> getProviders(Map<Class<?>, List<InjectionContainer<T>>> dependencyMap, ServiceExtensionContext context) {
 
         if (!annotationValue.required()) {
-            return Result.success(); // optional configs are always satisfied
+            return Result.success(emptyProviderlist); // optional configs are always satisfied
         }
 
         var defaultVal = annotationValue.defaultValue();
 
         if (defaultVal != null && !defaultVal.trim().equals(Setting.NULL)) {
-            return Result.success(); // a default value means the value injection point can always be satisfied
+            return Result.success(emptyProviderlist); // a default value means the value injection point can always be satisfied
         }
 
         // no default value, the required value may be found in the config
         return context.getConfig().hasKey(annotationValue.key())
-                ? Result.success()
+                ? Result.success(emptyProviderlist)
                 : Result.failure("%s (property \"%s\")".formatted(targetField.getName(), annotationValue.key()));
     }
 

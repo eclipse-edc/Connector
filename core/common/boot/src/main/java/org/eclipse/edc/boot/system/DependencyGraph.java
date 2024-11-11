@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -110,15 +109,13 @@ public class DependencyGraph {
 
             injectionPointScanner.getInjectionPoints(container.getInjectionTarget())
                     .peek(injectionPoint -> {
-                        var maybeProviders = Optional.of(injectionPoint.getType()).map(dependencyMap::get);
-
-                        if (maybeProviders.isPresent() || context.hasService(injectionPoint.getType())) {
-                            maybeProviders.ifPresent(l -> l.stream()
-                                    .filter(d -> !Objects.equals(d, container)) // remove dependencies onto oneself
-                                    .forEach(provider -> sort.addDependency(container, provider)));
+                        var providersResult = injectionPoint.getProviders(dependencyMap, context);
+                        if (providersResult.succeeded()) {
+                            List<InjectionContainer<ServiceExtension>> providers = providersResult.getContent();
+                            providers.stream().filter(d -> !Objects.equals(d, container)).forEach(provider -> sort.addDependency(container, provider));
                         } else {
                             if (injectionPoint.isRequired()) {
-                                unsatisfiedInjectionPoints.add(injectionPoint);
+                                unsatisfiedInjectionPoints.computeIfAbsent(injectionPoint.getTargetInstance().getClass(), s -> new ArrayList<>()).add(new InjectionFailure(injectionPoint, providersResult.getFailureDetail()));
                             }
                         }
 

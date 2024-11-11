@@ -98,22 +98,22 @@ class ConfigurationInjectionPointTest {
     }
 
     @Test
-    void isSatisfiedBy() {
+    void getProviders() {
         var context = mock(ServiceExtensionContext.class);
         when(context.getMonitor()).thenReturn(mock());
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("foo.bar.baz", "asdf",
                 "test.key3", "42")));
 
-        assertThat(injectionPoint.isSatisfiedBy(Map.of(), context).succeeded()).isTrue();
+        assertThat(injectionPoint.getProviders(Map.of(), context).succeeded()).isTrue();
     }
 
     @Test
-    void isSatisfiedBy_hasViolations() {
+    void getProviders_hasViolations() {
         var context = mock(ServiceExtensionContext.class);
         when(context.getMonitor()).thenReturn(mock());
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of()));
 
-        var result = injectionPoint.isSatisfiedBy(Map.of(), context);
+        var result = injectionPoint.getProviders(Map.of(), context);
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureDetail()).isEqualTo("configurationObject (ConfigurationObject) --> [requiredVal (property \"foo.bar.baz\")]");
     }

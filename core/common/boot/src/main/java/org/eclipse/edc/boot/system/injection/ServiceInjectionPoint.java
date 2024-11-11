@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 
 /**
  * Represents one single auto-injectable field. More specific, it is a tuple consisting of a target, a field, the respective feature string and a flag whether the
@@ -91,15 +92,18 @@ public class ServiceInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     @Override
-    public Result<Void> isSatisfiedBy(Map<Class<?>, List<ServiceExtension>> dependencyMap, ServiceExtensionContext context) {
+    public Result<List<InjectionContainer<T>>> getProviders(Map<Class<?>, List<InjectionContainer<T>>> dependencyMap, ServiceExtensionContext context) {
         var serviceClass = getType();
-        var providers = dependencyMap.get(serviceClass);
-        if (providers != null) {
-            return Result.success();
+        var providers = ofNullable(dependencyMap.get(serviceClass));
+        if (providers.isPresent()) {
+            return Result.success(providers.get());
+        } else if (context.hasService(serviceClass)) {
+            return Result.success(List.of());
         } else {
             // attempt to interpret the feature name as class name and see if the context has that service
-            return context.hasService(serviceClass) ? Result.success() : Result.failure(injectedField.getName() + " of type " + serviceClass);
+            return Result.failure(injectedField.getName() + " of type " + serviceClass);
         }
+
     }
 
     @Override

@@ -18,7 +18,6 @@ import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -140,13 +139,13 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     @Override
-    public Result<Void> isSatisfiedBy(Map<Class<?>, List<ServiceExtension>> dependencyMap, ServiceExtensionContext context) {
+    public Result<List<InjectionContainer<T>>> getProviders(Map<Class<?>, List<InjectionContainer<T>>> dependencyMap, ServiceExtensionContext context) {
         var violators = injectionPointsFrom(configurationObject.getType().getDeclaredFields())
-                .map(ip -> ip.isSatisfiedBy(dependencyMap, context))
+                .map(ip -> ip.getProviders(dependencyMap, context))
                 .filter(Result::failed)
                 .map(AbstractResult::getFailureDetail)
                 .toList();
-        return violators.isEmpty() ? Result.success() : Result.failure("%s (%s) --> %s".formatted(configurationObject.getName(), configurationObject.getType().getSimpleName(), violators));
+        return violators.isEmpty() ? Result.success(List.of()) : Result.failure("%s (%s) --> %s".formatted(configurationObject.getName(), configurationObject.getType().getSimpleName(), violators));
     }
 
     @Override
@@ -177,7 +176,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 .toList();
     }
 
-    private @NotNull Stream<ValueInjectionPoint<Object>> injectionPointsFrom(Field[] fields) {
+    private @NotNull Stream<ValueInjectionPoint<T>> injectionPointsFrom(Field[] fields) {
         return Arrays.stream(fields)
                 .filter(f -> f.getAnnotation(Setting.class) != null)
                 .map(f -> new ValueInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass()));

@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -119,22 +120,24 @@ class ServiceInjectionPointTest {
     }
 
     @Test
-    void isSatisfiedBy_satisfiedByMap() {
+    void getProviders_fromMap() {
         var ip = new ServiceInjectionPoint<>(new RequiredDependentExtension(), TestFunctions.getDeclaredField(RequiredDependentExtension.class, "testObject"));
         var context = mock(ServiceExtensionContext.class);
 
-        var result = ip.isSatisfiedBy(Map.of(TestObject.class, List.of(new DependentExtension())), context);
+        var ic = new InjectionContainer<>(new RequiredDependentExtension(), Set.of(ip), List.of());
+
+        var result = ip.getProviders(Map.of(TestObject.class, List.of(ic)), context);
         assertThat(result.succeeded()).isTrue();
     }
 
     @Test
-    void isSatisfiedBy_satisfiedByContext() {
+    void getProviders_fromContext() {
         var ip = new ServiceInjectionPoint<>(new RequiredDependentExtension(), TestFunctions.getDeclaredField(RequiredDependentExtension.class, "testObject"));
         var context = mock(ServiceExtensionContext.class);
 
         when(context.hasService(eq(TestObject.class))).thenReturn(true);
 
-        var result = ip.isSatisfiedBy(Map.of(), context);
+        var result = ip.getProviders(Map.of(), context);
         assertThat(result.succeeded()).isTrue();
     }
 
@@ -145,7 +148,7 @@ class ServiceInjectionPointTest {
 
         when(context.hasService(eq(TestObject.class))).thenReturn(false);
 
-        var result = ip.isSatisfiedBy(Map.of(), context);
+        var result = ip.getProviders(Map.of(), context);
         assertThat(result.succeeded()).isFalse();
     }
 

@@ -122,7 +122,7 @@ class ValueInjectionPointTest {
             var contextMock = mock(ServiceExtensionContext.class);
             var config = ConfigFactory.fromMap(Map.of());
             when(contextMock.getConfig()).thenReturn(config);
-            assertThat(ip.isSatisfiedBy(Map.of(), contextMock).succeeded()).isTrue();
+            assertThat(ip.getProviders(Map.of(), contextMock).succeeded()).isTrue();
         }
 
         @Test
@@ -132,7 +132,7 @@ class ValueInjectionPointTest {
             var config = ConfigFactory.fromMap(Map.of());
             when(contextMock.getConfig()).thenReturn(config);
 
-            assertThat(ip.isSatisfiedBy(Map.of(), contextMock).succeeded()).isTrue();
+            assertThat(ip.getProviders(Map.of(), contextMock).succeeded()).isTrue();
         }
 
         @Test
@@ -142,7 +142,7 @@ class ValueInjectionPointTest {
             var config = ConfigFactory.fromMap(Map.of("test.key", "test.value"));
             when(contextMock.getConfig()).thenReturn(config);
 
-            assertThat(ip.isSatisfiedBy(Map.of(), contextMock).succeeded()).isTrue();
+            assertThat(ip.getProviders(Map.of(), contextMock).succeeded()).isTrue();
         }
 
         @Test
@@ -152,7 +152,7 @@ class ValueInjectionPointTest {
             var config = ConfigFactory.fromMap(Map.of());
             when(contextMock.getConfig()).thenReturn(config);
 
-            assertThat(ip.isSatisfiedBy(Map.of(), contextMock).succeeded()).isFalse();
+            assertThat(ip.getProviders(Map.of(), contextMock).succeeded()).isFalse();
         }
     }
 
