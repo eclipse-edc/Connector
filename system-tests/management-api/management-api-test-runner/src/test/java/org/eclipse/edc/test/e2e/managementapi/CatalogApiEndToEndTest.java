@@ -44,8 +44,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 public class CatalogApiEndToEndTest {
@@ -175,11 +174,11 @@ public class CatalogApiEndToEndTest {
                     .body(TYPE, is("dcat:Catalog"))
                     .body("'dcat:service'", notNullValue())
                     // findAll is the restAssured way to express JSON Path filters
-                    .body("'dcat:dataset'", hasSize(2))
-                    .body("'dcat:dataset'.findAll { it -> it.'@type' == 'dcat:Catalog' }.isCatalog", contains(true))
-                    .body("'dcat:dataset'.findAll { it -> it.'@type' == 'dcat:Catalog' }.'@id'", contains(catalogAssetId))
-                    .body("'dcat:dataset'.findAll { it -> it.'@type' == 'dcat:Catalog' }.'dcat:service'.'dcat:endpointUrl'", contains("http://quizzqua.zz/buzz"))
-                    .body("'dcat:dataset'.findAll { it -> it.'@type' == 'dcat:Catalog' }.'dcat:distribution'.'dcat:accessService'.'@id'", contains(Base64.getUrlEncoder().encodeToString(catalogAssetId.getBytes())));
+                    .body("'dcat:catalog'.'@type'", equalTo("dcat:Catalog"))
+                    .body("'dcat:catalog'.isCatalog", equalTo(true))
+                    .body("'dcat:catalog'.'@id'", equalTo(catalogAssetId))
+                    .body("'dcat:catalog'.'dcat:service'.'dcat:endpointUrl'", equalTo("http://quizzqua.zz/buzz"))
+                    .body("'dcat:catalog'.'dcat:distribution'.'dcat:accessService'.'@id'", equalTo(Base64.getUrlEncoder().encodeToString(catalogAssetId.getBytes())));
         }
 
         @Test
