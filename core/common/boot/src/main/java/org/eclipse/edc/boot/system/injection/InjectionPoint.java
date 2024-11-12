@@ -72,7 +72,7 @@ public interface InjectionPoint<T> {
      *
      * @param context                The {@link ServiceExtensionContext} from which the value is resolved.
      * @param defaultServiceSupplier Some service dynamically resolve a default value in case the actual value isn't found on the context.
-     * @return The resolved value, or null if the injected field is not required.
+     * @return The resolved value, or null if the injected field is not required..
      * @throws EdcInjectionException in case the value could not be resolved
      */
     Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier);

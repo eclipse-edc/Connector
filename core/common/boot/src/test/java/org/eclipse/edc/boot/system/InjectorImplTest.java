@@ -132,7 +132,7 @@ class InjectorImplTest {
 
     @Test
     @DisplayName("Cannot set value of the injected field")
-    void cannotSetInjectionPoint_shouldThrowException() throws NoSuchFieldException, IllegalAccessException {
+    void cannotSetInjectionPoint_shouldThrowException() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
         var injectionPoint = spy(new ServiceInjectionPoint<>(serviceExtension, field));
@@ -142,9 +142,9 @@ class InjectorImplTest {
         when(context.hasService(eq(SomeObject.class))).thenReturn(true);
         when(context.getService(eq(SomeObject.class), anyBoolean())).thenReturn(value);
 
-        doThrow(new IllegalAccessException("test")).when(injectionPoint).setTargetValue(value);
+        doThrow(new RuntimeException("test")).when(injectionPoint).setTargetValue(value);
 
-        assertThatThrownBy(() -> injector.inject(template, context)).isInstanceOf(EdcInjectionException.class).hasCauseInstanceOf(IllegalAccessException.class);
+        assertThatThrownBy(() -> injector.inject(template, context)).isInstanceOf(EdcInjectionException.class).hasCauseInstanceOf(RuntimeException.class);
         assertThat(serviceExtension.someObject).isNull();
         verify(context).hasService(eq(SomeObject.class));
         verify(context).getService(eq(SomeObject.class), anyBoolean());

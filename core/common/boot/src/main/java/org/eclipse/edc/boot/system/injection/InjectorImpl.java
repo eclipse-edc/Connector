@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.boot.system.injection;
 
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 public final class InjectorImpl implements Injector {
@@ -43,7 +42,7 @@ public final class InjectorImpl implements Injector {
                 }
             } catch (EdcInjectionException ex) {
                 throw ex; //simply rethrow, do not wrap in another one
-            } catch (EdcException ex) { //thrown e.g. if the service is not present and is not optional
+            } catch (Exception ex) { //thrown e.g. if the service is not present and is not optional
                 monitor.warning("Error during injection", ex);
                 throw new EdcInjectionException(ex);
             }
