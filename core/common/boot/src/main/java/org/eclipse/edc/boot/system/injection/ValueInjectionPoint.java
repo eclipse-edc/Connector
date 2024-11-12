@@ -81,9 +81,13 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     @Override
-    public Result<Void> setTargetValue(Object targetValue) throws IllegalAccessException {
+    public Result<Void> setTargetValue(Object value) {
         if (objectInstance != null) {
-            targetField.set(objectInstance, targetValue);
+            try {
+                targetField.set(objectInstance, value);
+            } catch (IllegalAccessException e) {
+                return Result.failure("Could not assign value '%s' to field '%s'. Reason: %s".formatted(value, targetField, e.getMessage()));
+            }
             return Result.success();
         }
         return Result.failure("Cannot set field, object instance is null");

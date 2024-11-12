@@ -46,9 +46,6 @@ public final class InjectorImpl implements Injector {
             } catch (EdcException ex) { //thrown e.g. if the service is not present and is not optional
                 monitor.warning("Error during injection", ex);
                 throw new EdcInjectionException(ex);
-            } catch (IllegalAccessException e) { //e.g. when the field is marked "final"
-                monitor.warning("Could not set injection target", e);
-                throw new EdcInjectionException(e);
             }
         });
 

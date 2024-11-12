@@ -40,6 +40,7 @@ import java.util.stream.Stream;
  *          private SomeConfig someConfig;
  *      }
  *
+ *      \@Settings
  *      public record SomeConfig(@Setting(key = "foo.bar.baz") String fooValue){ }
  * </pre>
  *
@@ -74,16 +75,26 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     @Override
-    public Result<Void> setTargetValue(Object configObject) throws IllegalAccessException {
-        configurationObject.set(targetInstance, configObject);
-        return Result.success();
+    public Result<Void> setTargetValue(Object value) {
+        try {
+            configurationObject.set(targetInstance, value);
+            return Result.success();
+        } catch (IllegalAccessException e) {
+            return Result.failure("Could not assign value '%s' to field '%s'. Reason: %s".formatted(value, configurationObject, e.getMessage()));
+        }
     }
 
+    /**
+     * Not used here, will always return null
+     */
     @Override
     public ServiceProvider getDefaultServiceProvider() {
         return null;
     }
 
+    /**
+     * Not used here
+     */
     @Override
     public void setDefaultServiceProvider(ServiceProvider defaultServiceProvider) {
 
@@ -92,22 +103,22 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
     @Override
     public Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier) {
 
-        // all fields annotated with the @Value annotation
-        var valueAnnotatedFields = resolveConfigValueFields(context, configurationObject.getType().getDeclaredFields());
+        // all fields annotated with the @Setting annotation
+        var settingsFields = resolveSettingsFields(context, configurationObject.getType().getDeclaredFields());
 
         // records are treated specially, because they only contain final fields, and must be constructed with a non-default CTOR
         // where every constructor arg MUST be named the same as the field value. We can't rely on this with normal classes
         if (configurationObject.getType().isRecord()) {
             // find matching constructor
             var constructor = Stream.of(configurationObject.getType().getDeclaredConstructors())
-                    .filter(constructorFilter(valueAnnotatedFields))
+                    .filter(constructorFilter(settingsFields))
                     .findFirst()
                     .orElseThrow(() -> new EdcInjectionException("No suitable constructor found on record class '%s'".formatted(configurationObject.getType())));
 
             try {
                 // invoke CTor with the previously resolved config values
                 constructor.setAccessible(true);
-                return constructor.newInstance(valueAnnotatedFields.stream().map(FieldValue::value).toArray());
+                return constructor.newInstance(settingsFields.stream().map(FieldValue::value).toArray());
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new EdcInjectionException(e);
             }
@@ -120,7 +131,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 var instance = defaultCtor.newInstance();
 
                 // set the field values on the newly-constructed object instance
-                valueAnnotatedFields.forEach(fe -> {
+                settingsFields.forEach(fe -> {
                     try {
                         var field = pojoClass.getDeclaredField(fe.fieldName());
                         field.setAccessible(true);
@@ -168,7 +179,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
 
     }
 
-    private @NotNull List<FieldValue> resolveConfigValueFields(ServiceExtensionContext context, Field[] fields) {
+    private @NotNull List<FieldValue> resolveSettingsFields(ServiceExtensionContext context, Field[] fields) {
         return injectionPointsFrom(fields)
                 .map(ip -> {
                     var val = ip.resolve(context, null /*the default supplier arg is not used anyway*/);

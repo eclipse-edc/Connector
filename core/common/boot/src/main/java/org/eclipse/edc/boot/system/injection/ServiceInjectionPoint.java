@@ -65,8 +65,12 @@ public class ServiceInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     @Override
-    public Result<Void> setTargetValue(Object service) throws IllegalAccessException {
-        injectedField.set(instance, service);
+    public Result<Void> setTargetValue(Object value) {
+        try {
+            injectedField.set(instance, value);
+        } catch (IllegalAccessException e) {
+            return Result.failure("Could not assign value '%s' to field '%s'. Reason: %s".formatted(value, injectedField, e.getMessage()));
+        }
         return Result.success();
     }
 
