@@ -31,6 +31,7 @@ public interface PropertyAndTypeNames {
     String DCAT_DATA_SERVICE_TYPE = DCAT_SCHEMA + "DataService";
     String DCAT_DATA_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "service";
     String DCAT_DATASET_ATTRIBUTE = DCAT_SCHEMA + "dataset";
+    String DCAT_CATALOG_ATTRIBUTE = DCAT_SCHEMA + "catalog";
     String DCAT_DISTRIBUTION_ATTRIBUTE = DCAT_SCHEMA + "distribution";
     String DCAT_ACCESS_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "accessService";
     @Deprecated(since = "0.10.0")

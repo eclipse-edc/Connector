@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
@@ -25,10 +26,14 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
@@ -57,7 +62,15 @@ public class JsonObjectFromCatalogV2024Transformer extends AbstractNamespaceAwar
 
     @Override
     public @Nullable JsonObject transform(@NotNull Catalog catalog, @NotNull TransformerContext context) {
-        var datasets = catalog.getDatasets().stream()
+        var partitions = catalog.getDatasets().stream().collect(Collectors.groupingBy(Dataset::getClass));
+
+        var datasets = ofNullable(partitions.get(Dataset.class)).orElseGet(ArrayList::new)
+                .stream()
+                .map(offer -> context.transform(offer, JsonObject.class))
+                .collect(toJsonArray());
+
+        var subCatalogs = ofNullable(partitions.get(Catalog.class)).orElseGet(ArrayList::new)
+                .stream()
                 .map(offer -> context.transform(offer, JsonObject.class))
                 .collect(toJsonArray());
 
@@ -73,6 +86,7 @@ public class JsonObjectFromCatalogV2024Transformer extends AbstractNamespaceAwar
                 .add(ID, catalog.getId())
                 .add(TYPE, DCAT_CATALOG_TYPE)
                 .add(DCAT_DATASET_ATTRIBUTE, datasets)
+                .add(DCAT_CATALOG_ATTRIBUTE, subCatalogs)
                 .add(DCAT_DISTRIBUTION_ATTRIBUTE, distributions)
                 .add(DCAT_DATA_SERVICE_ATTRIBUTE, dataServices);
 
@@ -82,4 +96,5 @@ public class JsonObjectFromCatalogV2024Transformer extends AbstractNamespaceAwar
 
         return objectBuilder.build();
     }
+    
 }
