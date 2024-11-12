@@ -126,12 +126,14 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                         field.setAccessible(true);
                         field.set(instance, fe.value());
                     } catch (IllegalAccessException | NoSuchFieldException e) {
-                        throw new RuntimeException(e);
+                        throw new EdcInjectionException(e);
                     }
                 });
 
                 return instance;
-            } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
+            } catch (NoSuchMethodException e) {
+                throw new EdcInjectionException("Configuration objects must declare a default constructor, but '%s' does not.".formatted(configurationObject.getType()));
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException |
                      InvocationTargetException e) {
                 throw new EdcInjectionException(e);
             }
