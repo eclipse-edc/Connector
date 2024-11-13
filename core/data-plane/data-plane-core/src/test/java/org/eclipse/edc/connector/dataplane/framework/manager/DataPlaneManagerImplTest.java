@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.framework.manager;
 import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
+import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
@@ -68,6 +69,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -81,7 +83,7 @@ class DataPlaneManagerImplTest {
     private final DataFlowStartMessage request = createRequest();
     private final TransferServiceRegistry registry = mock();
     private final DataPlaneAuthorizationService authorizationService = mock();
-    private DataPlaneManagerImpl manager;
+    private DataPlaneManager manager;
 
     @BeforeEach
     public void setUp() {
@@ -566,20 +568,24 @@ class DataPlaneManagerImplTest {
     }
 
     @Nested
-    class RestartFlowsAtStartup {
+    class RestartFlows {
+
         @Test
-        void shouldRestartFlowsAtStartup() {
+        void shouldRestartFlows() {
             var dataFlow = dataFlowBuilder().state(STARTED.code()).build();
-            when(store.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            var anotherDataFlow = dataFlowBuilder().state(STARTED.code()).build();
+            when(store.nextNotLeased(anyInt(), any(Criterion[].class)))
+                    .thenReturn(List.of(dataFlow)).thenReturn(List.of(anotherDataFlow)).thenReturn(emptyList());
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
 
-            manager.start();
+            var result = manager.restartFlows();
 
+            assertThat(result).isSucceeded();
             await().untilAsserted(() -> {
-                verify(transferService).transfer(isA(DataFlowStartMessage.class));
-                verify(store).save(argThat(it -> it.getState() == STARTED.code()));
+                verify(transferService, times(2)).transfer(isA(DataFlowStartMessage.class));
+                verify(store, times(2)).save(argThat(it -> it.getState() == STARTED.code()));
             });
         }
     }

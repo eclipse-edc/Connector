@@ -35,6 +35,7 @@ import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -122,9 +123,23 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
+    public StatusResult<Void> restartFlows() {
+        var now = clock.millis();
+        List<DataFlow> toBeRestarted;
+        do {
+            toBeRestarted = store.nextNotLeased(batchSize, hasState(STARTED.code()), new Criterion("stateTimestamp", "<", now));
+            toBeRestarted.forEach(dataFlow -> {
+                dataFlow.transitToReceived();
+                processReceived(dataFlow);
+            });
+        } while (!toBeRestarted.isEmpty());
+
+        return StatusResult.success();
+    }
+
+    @Override
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
         return builder
-                .startupProcessor(processDataFlowInState(STARTED, this::restartFlow))
                 .processor(processDataFlowInState(RECEIVED, this::processReceived))
                 .processor(processDataFlowInState(COMPLETED, this::processCompleted))
                 .processor(processDataFlowInState(FAILED, this::processFailed));
@@ -191,11 +206,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return success(DataFlowResponseMessage.Builder.newInstance()
                 .dataAddress(null)
                 .build());
-    }
-
-    private boolean restartFlow(DataFlow dataFlow) {
-        dataFlow.transitToReceived();
-        return processReceived(dataFlow);
     }
 
     private boolean processReceived(DataFlow dataFlow) {
@@ -285,6 +295,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         @Override
         public DataPlaneManagerImpl build() {
+            super.build();
             Objects.requireNonNull(manager.transferProcessClient);
             return manager;
         }

@@ -143,6 +143,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @Override
     public void start() {
+        dataPlaneManager.restartFlows();
         dataPlaneManager.start();
     }
 

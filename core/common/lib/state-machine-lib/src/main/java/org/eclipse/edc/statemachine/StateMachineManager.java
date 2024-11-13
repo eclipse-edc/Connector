@@ -39,7 +39,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class StateMachineManager {
 
     private final List<Processor> processors = new ArrayList<>();
-    private final List<Processor> startupProcessors = new ArrayList<>();
     private final ScheduledExecutorService executor;
     private final AtomicBoolean active = new AtomicBoolean();
     private final WaitStrategy waitStrategy;
@@ -66,7 +65,6 @@ public class StateMachineManager {
      */
     public Future<?> start() {
         active.set(true);
-        performStartupLogic();
         return scheduleNextIterationIn(0L);
     }
 
@@ -103,19 +101,6 @@ public class StateMachineManager {
                 performLogic();
             }
         };
-    }
-
-    private void performStartupLogic() {
-        for (var startupProcessor : startupProcessors) {
-            try {
-                long count;
-                do {
-                    count = startupProcessor.process();
-                } while (count > 0);
-            } catch (Throwable e) {
-                monitor.severe(format("StateMachineManager [%s] startup error caught", name), e);
-            }
-        }
     }
 
     private void performLogic() {
@@ -162,17 +147,6 @@ public class StateMachineManager {
 
         public Builder shutdownTimeout(int seconds) {
             loop.shutdownTimeout = seconds;
-            return this;
-        }
-
-        /**
-         * Register a processor that will run once at startup before the regular processors.
-         *
-         * @param startupProcessor the processor.
-         * @return the builder.
-         */
-        public Builder startupProcessor(Processor startupProcessor) {
-            loop.startupProcessors.add(startupProcessor);
             return this;
         }
 
