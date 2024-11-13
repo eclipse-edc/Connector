@@ -52,7 +52,7 @@ class ValueInjectionPointTest {
 
         @Test
         void getDefaultServiceProvider() {
-            assertThat(getInjectionPoint().getDefaultServiceProvider()).isNull();
+            assertThat(getInjectionPoint().getDefaultValueProvider()).isNull();
         }
 
         @Test
@@ -78,7 +78,7 @@ class ValueInjectionPointTest {
             when(contextMock.getConfig()).thenReturn(config);
             when(contextMock.getMonitor()).thenReturn(mock());
             var ip = createInjectionPoint(getInjectionPoint(), "requiredValWithDefault", ExtensionWithConfigValue.class);
-            assertThat(ip.resolve(contextMock, mock())).isEqualTo(ExtensionWithConfigValue.DEFAULT_VALUE);
+            assertThat(ip.resolve(contextMock, new InjectionPointDefaultServiceSupplier())).isEqualTo(ExtensionWithConfigValue.DEFAULT_VALUE);
         }
 
         @Test

@@ -57,12 +57,12 @@ class ConfigurationInjectionPointTest {
     }
 
     @Test
-    void getDefaultServiceProvider() {
-        assertThat(injectionPoint.getDefaultServiceProvider()).isNull();
+    void getDefaultValueProvider() {
+        assertThat(injectionPoint.getDefaultValueProvider()).isNull();
     }
 
     @Test
-    void setDefaultServiceProvider() {
+    void setDefaultValueProvider() {
         //noop
     }
 

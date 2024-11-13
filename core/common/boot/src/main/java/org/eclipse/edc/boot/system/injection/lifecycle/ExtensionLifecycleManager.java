@@ -55,7 +55,7 @@ public class ExtensionLifecycleManager {
 
             var serviceProviders = container.getServiceProviders();
             if (serviceProviders != null) {
-                serviceProviders.forEach(serviceProvider -> serviceProvider.register(context));
+                serviceProviders.forEach(serviceProvider -> serviceProvider.get(context));
             }
         }
 

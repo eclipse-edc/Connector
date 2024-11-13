@@ -37,7 +37,7 @@ class ServiceProviderTest {
         ServiceExtensionContext context = mock();
         var serviceProvider = new ServiceProvider(providerMethod, extension);
 
-        var registered = serviceProvider.register(context);
+        var registered = serviceProvider.get(context);
 
         assertThat(registered).isEqualTo(service);
         verify(context).registerService(TestService.class, service);
@@ -52,5 +52,6 @@ class ServiceProviderTest {
 
     }
 
-    private interface TestService {}
+    private interface TestService {
+    }
 }

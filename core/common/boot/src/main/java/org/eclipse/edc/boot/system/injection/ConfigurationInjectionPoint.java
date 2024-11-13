@@ -14,12 +14,13 @@
 
 package org.eclipse.edc.boot.system.injection;
 
-import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.ValueProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -88,7 +89,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
      * Not used here, will always return null
      */
     @Override
-    public ServiceProvider getDefaultServiceProvider() {
+    public @Nullable ValueProvider getDefaultValueProvider() {
         return null;
     }
 
@@ -96,7 +97,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
      * Not used here
      */
     @Override
-    public void setDefaultServiceProvider(ServiceProvider defaultServiceProvider) {
+    public void setDefaultValueProvider(ValueProvider defaultValueProvider) {
 
     }
 
@@ -182,7 +183,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
     private @NotNull List<FieldValue> resolveSettingsFields(ServiceExtensionContext context, Field[] fields) {
         return injectionPointsFrom(fields)
                 .map(ip -> {
-                    var val = ip.resolve(context, null /*the default supplier arg is not used anyway*/);
+                    var val = ip.resolve(context, new InjectionPointDefaultServiceSupplier());
                     var fieldName = ip.getTargetField().getName();
                     return new FieldValue(fieldName, val);
                 })

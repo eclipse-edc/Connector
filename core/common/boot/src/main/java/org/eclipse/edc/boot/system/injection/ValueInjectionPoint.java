@@ -14,14 +14,17 @@
 
 package org.eclipse.edc.boot.system.injection;
 
-import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.ValueProvider;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Injection point for configuration values ("settings"). Configuration values must be basic data types and be annotated
@@ -94,22 +97,25 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     /**
-     * Not used here, always returns null;
+     * Returns a {@link ValueProvider} that takes the annotation's {@link Setting#defaultValue()} attribute or null
      *
-     * @return always {@code null}
+     * @return a nullable default value provider
      */
     @Override
-    public ServiceProvider getDefaultServiceProvider() {
+    public @Nullable ValueProvider getDefaultValueProvider() {
+        if (!Setting.NULL.equals(annotationValue.defaultValue())) {
+            return context -> annotationValue.defaultValue();
+        }
         return null;
     }
 
     /**
      * Not used here
      *
-     * @param defaultServiceProvider Ignored
+     * @param defaultValueProvider Ignored
      */
     @Override
-    public void setDefaultServiceProvider(ServiceProvider defaultServiceProvider) {
+    public void setDefaultValueProvider(ValueProvider defaultValueProvider) {
 
     }
 
@@ -125,15 +131,20 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
         }
 
         // not found in config, but there is a default value
-        var def = annotationValue.defaultValue();
-        if (def != null && !def.trim().equals(Setting.NULL)) {
-            var msg = "Config value: no setting found for '%s', falling back to default value '%s'".formatted(key, def);
-            if (annotationValue.warnOnMissingConfig()) {
-                context.getMonitor().warning(msg);
-            } else {
-                context.getMonitor().debug(msg);
+        var def = ofNullable(defaultServiceSupplier)
+                .map(s -> s.provideFor(this, context))
+                .map(Object::toString);
+        if (def.isPresent()) {
+            var defaultValue = def.get();
+            if (!defaultValue.trim().equals(Setting.NULL)) {
+                var msg = "Config value: no setting found for '%s', falling back to default value '%s'".formatted(key, defaultValue);
+                if (annotationValue.warnOnMissingConfig()) {
+                    context.getMonitor().warning(msg);
+                } else {
+                    context.getMonitor().debug(msg);
+                }
+                return parseEntry(defaultValue, type);
             }
-            return parseEntry(def, type);
         }
 
         // neither in config, nor default val

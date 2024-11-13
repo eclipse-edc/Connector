@@ -27,6 +27,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.util.types.Cast.cast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -51,7 +52,7 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
         context = spy(super.createServiceExtensionContext(ConfigFactory.empty()));
         context.initialize();
         factory = new ReflectiveObjectFactory(
-                new InjectorImpl((ip, c) -> mock(ip.getType())),
+                new InjectorImpl((ip, c) -> ofNullable(ip.getDefaultValueProvider()).map(vp -> vp.get(c)).orElseGet(() -> mock(ip.getType()))),
                 new InjectionPointScanner(),
                 context
         );

@@ -121,7 +121,7 @@ public class DependencyGraph {
 
                         var defaultServiceProvider = defaultServiceProviders.get(injectionPoint.getType());
                         if (defaultServiceProvider != null) {
-                            injectionPoint.setDefaultServiceProvider(defaultServiceProvider);
+                            injectionPoint.setDefaultValueProvider(defaultServiceProvider);
                         }
                     })
                     .forEach(injectionPoint -> container.getInjectionPoints().add(injectionPoint));
