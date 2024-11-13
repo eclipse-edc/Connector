@@ -23,6 +23,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +46,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
 
 public class PolicyDefinitionApiEndToEndTest {
 
@@ -400,6 +402,108 @@ public class PolicyDefinitionApiEndToEndTest {
     @PostgresqlIntegrationTest
     @ExtendWith(ManagementEndToEndExtension.Postgres.class)
     class Postgres extends Tests {
+    }
+
+
+    @Nested
+    class ValidationTests {
+
+        @RegisterExtension
+        static ManagementEndToEndExtension.InMemory runtime = ManagementEndToEndExtension.InMemory.withConfig(Map.of(
+                "edc.policy.validation.enabled", "true"
+        ));
+
+        @Test
+        void shouldNotStorePolicyDefinition_whenValidationFails(ManagementEndToEndTestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder()
+                            .add(VOCAB, EDC_NAMESPACE)
+                            .build())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", sampleOdrlPolicy())
+                    .build();
+
+            context.baseRequest()
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .post("/v3/policydefinitions")
+                    .then()
+                    .log().ifError()
+                    .statusCode(400)
+                    .contentType(JSON)
+                    .body("size()", is(2))
+                    .body("[0].message", startsWith("leftOperand 'https://w3id.org/edc/v0.0.1/ns/left' is not bound to any scopes"))
+                    .body("[1].message", startsWith("leftOperand 'https://w3id.org/edc/v0.0.1/ns/left' is not bound to any functions"));
+        }
+
+        @Test
+        void shouldNotUpdatePolicyDefinition_whenValidationFails(ManagementEndToEndTestContext context) {
+            var validRequestBody = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder()
+                            .add(VOCAB, EDC_NAMESPACE)
+                            .build())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", emptyOdrlPolicy())
+                    .build();
+
+            var id = context.baseRequest()
+                    .body(validRequestBody)
+                    .contentType(JSON)
+                    .post("/v3/policydefinitions")
+                    .then()
+                    .contentType(JSON)
+                    .extract().jsonPath().getString(ID);
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .get("/v3/policydefinitions/" + id)
+                    .then()
+                    .statusCode(200);
+
+            var inValidRequestBody = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder()
+                            .add(VOCAB, EDC_NAMESPACE)
+                            .build())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", sampleOdrlPolicy())
+                    .build();
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .body(inValidRequestBody)
+                    .put("/v3/policydefinitions/" + id)
+                    .then()
+                    .statusCode(400)
+                    .contentType(JSON)
+                    .body("size()", is(2))
+                    .body("[0].message", startsWith("leftOperand 'https://w3id.org/edc/v0.0.1/ns/left' is not bound to any scopes"))
+                    .body("[1].message", startsWith("leftOperand 'https://w3id.org/edc/v0.0.1/ns/left' is not bound to any functions"));
+
+        }
+
+        private JsonObject emptyOdrlPolicy() {
+            return createObjectBuilder()
+                    .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
+                    .add(TYPE, "Set")
+                    .build();
+        }
+
+        private JsonObject sampleOdrlPolicy() {
+            return createObjectBuilder()
+                    .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
+                    .add(TYPE, "Set")
+                    .add("permission", createArrayBuilder()
+                            .add(createObjectBuilder()
+                                    .add("action", "use")
+                                    .add("constraint", createObjectBuilder()
+                                            .add("leftOperand", "left")
+                                            .add("operator", "eq")
+                                            .add("rightOperand", "value"))
+                                    .build())
+                            .build())
+                    .build();
+        }
+
     }
 
 }

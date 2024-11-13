@@ -87,7 +87,7 @@ class PolicyEngineImplValidationTest {
         // The foo key is not bound nor to function nor in the RuleBindingRegistry
         assertThat(result).isFailed().messages().hasSize(2)
                 .anyMatch(s -> s.startsWith("leftOperand 'foo' is not bound to any scopes"))
-                .anyMatch(s -> s.startsWith("left operand 'foo' is not bound to any functions"));
+                .anyMatch(s -> s.startsWith("leftOperand 'foo' is not bound to any functions"));
 
     }
 
@@ -143,7 +143,7 @@ class PolicyEngineImplValidationTest {
 
         assertThat(result).isFailed()
                 .messages()
-                .anyMatch(s -> s.startsWith("left operand '%s' is not bound to any functions".formatted(leftOperand)));
+                .anyMatch(s -> s.startsWith("leftOperand '%s' is not bound to any functions".formatted(leftOperand)));
 
     }
 
@@ -181,7 +181,7 @@ class PolicyEngineImplValidationTest {
 
         // The input key is not bound any functions , the dynamic one cannot handle the input key
         assertThat(result).isFailed().messages().hasSize(1)
-                .anyMatch(s -> s.startsWith("left operand '%s' is not bound to any functions".formatted(key)));
+                .anyMatch(s -> s.startsWith("leftOperand '%s' is not bound to any functions".formatted(key)));
 
     }
 
