@@ -48,7 +48,6 @@ public class StsRemoteClientConfigurationExtension implements ServiceExtension {
         return new StsRemoteClientConfiguration(clientConfig.tokenUrl(), clientConfig.clientId(), clientConfig.clientSecretAlias());
     }
 
-
     @Settings
     private record StsClientConfig(
             @Setting(key = "edc.iam.sts.oauth.token.url", description = "STS OAuth2 endpoint for requesting a token") String tokenUrl,

@@ -115,6 +115,7 @@ class ConfigurationInjectionPointTest {
 
         var result = injectionPoint.getProviders(Map.of(), context);
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailureDetail()).isEqualTo("configurationObject (ConfigurationObject) --> [requiredVal (property \"foo.bar.baz\")]");
+        assertThat(result.getFailureDetail()).isEqualTo("Configuration object \"configurationObject\" of type [class org.eclipse.edc.boot.system.testextensions.ConfigurationObject], " +
+                                                        "through nested settings [Configuration value \"requiredVal\" of type [class java.lang.String] (property 'foo.bar.baz')]");
     }
 }
