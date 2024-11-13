@@ -75,6 +75,7 @@ import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -98,6 +99,9 @@ import static org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyCon
 public class ControlPlaneServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Control Plane Services";
+
+    @Setting(key = "edc.policy.validation.enabled", description = "If true enables the policy validation when creating and updating policy definitions", defaultValue = "false")
+    private Boolean validatePolicy;
 
     @Inject
     private Clock clock;
@@ -253,7 +257,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
         var policyDefinitionObservable = new PolicyDefinitionObservableImpl();
         policyDefinitionObservable.registerListener(new PolicyDefinitionEventListener(clock, eventRouter));
         return new PolicyDefinitionServiceImpl(transactionContext, policyDefinitionStore, contractDefinitionStore,
-                policyDefinitionObservable, policyEngine, QueryValidators.policyDefinition());
+                policyDefinitionObservable, policyEngine, QueryValidators.policyDefinition(), validatePolicy);
     }
 
     @Provider

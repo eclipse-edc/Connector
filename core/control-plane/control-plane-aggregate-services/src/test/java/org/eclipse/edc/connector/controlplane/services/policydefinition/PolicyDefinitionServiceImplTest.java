@@ -56,7 +56,7 @@ class PolicyDefinitionServiceImplTest {
     private final PolicyDefinitionObservable observable = mock(PolicyDefinitionObservable.class);
     private final PolicyEngine policyEngine = mock();
     private final QueryValidator queryValidator = mock();
-    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable, policyEngine, queryValidator);
+    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable, policyEngine, queryValidator, false);
 
     @Test
     void findById_shouldRelyOnPolicyStore() {
@@ -110,6 +110,37 @@ class PolicyDefinitionServiceImplTest {
 
         assertThat(inserted.succeeded()).isFalse();
         verify(policyStore).create(policy);
+        verifyNoMoreInteractions(policyStore);
+    }
+
+    @Test
+    void createPolicy_shouldCreatePolicyIfValidationSucceed() {
+
+        var policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable, policyEngine, queryValidator, true);
+
+        var policy = createPolicy("policyId");
+        when(policyStore.create(policy)).thenReturn(StoreResult.success(policy));
+        when(policyEngine.validate(policy.getPolicy())).thenReturn(Result.success());
+
+        var inserted = policyServiceImpl.create(policy);
+
+        assertThat(inserted).isSucceeded();
+        verify(policyStore).create(policy);
+        verifyNoMoreInteractions(policyStore);
+    }
+
+    @Test
+    void createPolicy_shouldNotCreatePolicyIfValidationFails() {
+
+        var policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable, policyEngine, queryValidator, true);
+
+        var policy = createPolicy("policyId");
+        when(policyStore.create(policy)).thenReturn(StoreResult.success(policy));
+        when(policyEngine.validate(policy.getPolicy())).thenReturn(Result.failure("validation failure"));
+
+        var inserted = policyServiceImpl.create(policy);
+
+        assertThat(inserted).isFailed().messages().contains("validation failure");
         verifyNoMoreInteractions(policyStore);
     }
 

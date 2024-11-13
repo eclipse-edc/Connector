@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
@@ -56,10 +57,18 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
     static class InMemory extends ManagementEndToEndExtension {
 
         protected InMemory() {
-            super(context());
+            super(context(Map.of()));
         }
 
-        private static ManagementEndToEndTestContext context() {
+        protected InMemory(Map<String, String> config) {
+            super(context(config));
+        }
+
+        public static InMemory withConfig(Map<String, String> config) {
+            return new InMemory(config);
+        }
+
+        private static ManagementEndToEndTestContext context(Map<String, String> config) {
             var managementPort = getFreePort();
             var protocolPort = getFreePort();
 
@@ -75,6 +84,7 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
                             put("edc.dsp.callback.address", "http://localhost:" + protocolPort + "/protocol");
                             put("web.http.management.path", "/management");
                             put("web.http.management.port", String.valueOf(managementPort));
+                            putAll(config);
                         }
                     },
                     ":system-tests:management-api:management-api-test-runtime"

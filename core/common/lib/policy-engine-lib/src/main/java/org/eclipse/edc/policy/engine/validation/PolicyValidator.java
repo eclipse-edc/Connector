@@ -136,7 +136,7 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
     private Result<Void> validateConstraint(String leftOperand, Operator operator, Object rightOperand, Rule rule) {
         var functions = getValidations(leftOperand, rule.getClass());
         if (functions.isEmpty()) {
-            return Result.failure("left operand '%s' is not bound to any functions: Rule { %s }".formatted(leftOperand, rule));
+            return Result.failure("leftOperand '%s' is not bound to any functions: Rule { %s }".formatted(leftOperand, rule));
         } else {
             return functions.stream()
                     .map(f -> f.validate(leftOperand, operator, rightOperand, rule))
@@ -187,12 +187,12 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
         return functions;
     }
 
-    private interface PolicyValidation {
-        Result<Void> validate(String leftOperand, Operator operator, Object rightOperand, Rule rule);
-    }
-
     private Rule currentRule() {
         return ruleContext.peek();
+    }
+
+    private interface PolicyValidation {
+        Result<Void> validate(String leftOperand, Operator operator, Object rightOperand, Rule rule);
     }
 
     public static class Builder {

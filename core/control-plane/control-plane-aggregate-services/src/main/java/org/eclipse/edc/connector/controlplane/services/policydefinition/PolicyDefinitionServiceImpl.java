@@ -51,16 +51,19 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     private final QueryValidator queryValidator;
     private final PolicyEngine policyEngine;
 
+    private final boolean validatePolicy;
+
 
     public PolicyDefinitionServiceImpl(TransactionContext transactionContext, PolicyDefinitionStore policyStore,
                                        ContractDefinitionStore contractDefinitionStore, PolicyDefinitionObservable observable,
-                                       PolicyEngine policyEngine, QueryValidator queryValidator) {
+                                       PolicyEngine policyEngine, QueryValidator queryValidator, boolean validatePolicy) {
         this.transactionContext = transactionContext;
         this.policyStore = policyStore;
         this.contractDefinitionStore = contractDefinitionStore;
         this.observable = observable;
         this.policyEngine = policyEngine;
         this.queryValidator = queryValidator;
+        this.validatePolicy = validatePolicy;
     }
 
     @Override
@@ -107,21 +110,23 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
 
     @Override
     public @NotNull ServiceResult<PolicyDefinition> create(PolicyDefinition policyDefinition) {
-        return transactionContext.execute(() -> {
-            var saveResult = policyStore.create(policyDefinition);
-            saveResult.onSuccess(v -> observable.invokeForEach(l -> l.created(policyDefinition)));
-            return ServiceResult.from(saveResult);
-        });
+        return transactionContext.execute(() -> validatePolicyDefinition(policyDefinition)
+                .compose(s -> {
+                    var saveResult = policyStore.create(policyDefinition);
+                    saveResult.onSuccess(v -> observable.invokeForEach(l -> l.created(policyDefinition)));
+                    return ServiceResult.from(saveResult);
+                }));
     }
 
 
     @Override
     public ServiceResult<PolicyDefinition> update(PolicyDefinition policyDefinition) {
-        return transactionContext.execute(() -> {
-            var updateResult = policyStore.update(policyDefinition);
-            updateResult.onSuccess(p -> observable.invokeForEach(l -> l.updated(p)));
-            return ServiceResult.from(updateResult);
-        });
+        return transactionContext.execute(() -> validatePolicyDefinition(policyDefinition)
+                .compose(s -> {
+                    var updateResult = policyStore.update(policyDefinition);
+                    updateResult.onSuccess(p -> observable.invokeForEach(l -> l.updated(p)));
+                    return ServiceResult.from(updateResult);
+                }));
     }
 
     @Override
@@ -136,6 +141,13 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     @Override
     public ServiceResult<PolicyEvaluationPlan> createEvaluationPlan(String scope, Policy policy) {
         return ServiceResult.success(policyEngine.createEvaluationPlan(scope, policy));
+    }
+
+    private ServiceResult<Void> validatePolicyDefinition(PolicyDefinition policyDefinition) {
+        if (validatePolicy) {
+            return validate(policyDefinition.getPolicy());
+        }
+        return ServiceResult.success();
     }
 
     private List<PolicyDefinition> queryPolicyDefinitions(QuerySpec query) {
