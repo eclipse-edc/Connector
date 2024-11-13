@@ -52,7 +52,7 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
         context = spy(super.createServiceExtensionContext(ConfigFactory.empty()));
         context.initialize();
         factory = new ReflectiveObjectFactory(
-                new InjectorImpl((ip, c) -> ofNullable(ip.getDefaultValueProvider()).map(vp -> vp.apply(c)).orElseGet(() -> mock(ip.getType()))),
+                new InjectorImpl((ip, c) -> ofNullable(ip.getDefaultValueProvider()).map(vp -> vp.get(c)).orElseGet(() -> mock(ip.getType()))),
                 new InjectionPointScanner(),
                 context
         );

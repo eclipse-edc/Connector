@@ -31,7 +31,7 @@ public class InjectionPointDefaultServiceSupplier implements DefaultServiceSuppl
         if (injectionPoint.isRequired() && defaultService == null) {
             throw new EdcInjectionException("No default provider for required service " + injectionPoint.getType());
         }
-        return ofNullable(defaultService).map(vp -> vp.apply(context)).orElse(null);
+        return ofNullable(defaultService).map(vp -> vp.get(context)).orElse(null);
     }
 
 }

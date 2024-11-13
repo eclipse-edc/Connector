@@ -32,7 +32,7 @@ class InjectionPointDefaultServiceSupplierTest {
     void shouldRegisterDefaultService() {
         var injectionPoint = new ServiceInjectionPoint<>("any", mock());
         ServiceProvider serviceProvider = mock();
-        when(serviceProvider.apply(any())).thenReturn("service");
+        when(serviceProvider.get(any())).thenReturn("service");
         injectionPoint.setDefaultValueProvider(serviceProvider);
         ServiceExtensionContext context = mock();
 

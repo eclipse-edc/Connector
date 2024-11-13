@@ -14,7 +14,18 @@
 
 package org.eclipse.edc.spi.system;
 
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Functional interface to provide default values for injection points.
+ */
 @FunctionalInterface
 public interface ValueProvider {
-    Object apply(ServiceExtensionContext context);
+    /**
+     * Attempts to resolve the default value for a particular {@code InjectionPoint} from the context.
+     *
+     * @param context The DI container from which to resolve the default value
+     * @return the default value, or null if no default value was found
+     */
+    @Nullable Object get(ServiceExtensionContext context);
 }

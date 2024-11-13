@@ -35,7 +35,7 @@ public record ServiceProvider(ProviderMethod method, ServiceExtension extension)
      * @return the instantiated service.
      */
     @Override
-    public Object apply(ServiceExtensionContext context) {
+    public Object get(ServiceExtensionContext context) {
         var type = method.getReturnType();
         var service = method.invoke(extension, context);
         context.registerService(type, service);

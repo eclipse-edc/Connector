@@ -37,7 +37,7 @@ class ServiceProviderTest {
         ServiceExtensionContext context = mock();
         var serviceProvider = new ServiceProvider(providerMethod, extension);
 
-        var registered = serviceProvider.apply(context);
+        var registered = serviceProvider.get(context);
 
         assertThat(registered).isEqualTo(service);
         verify(context).registerService(TestService.class, service);
