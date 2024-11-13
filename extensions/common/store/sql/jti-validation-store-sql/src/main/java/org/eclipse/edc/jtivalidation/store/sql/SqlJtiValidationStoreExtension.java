@@ -12,11 +12,11 @@
  *
  */
 
-package org.eclipse.edc.edr.store.index;
+package org.eclipse.edc.jtivalidation.store.sql;
 
 
-import org.eclipse.edc.edr.store.index.sql.schema.JtiValidationStoreStatements;
-import org.eclipse.edc.edr.store.index.sql.schema.postgres.PostgresDialectStatements;
+import org.eclipse.edc.jtivalidation.store.sql.schema.JtiValidationStoreStatements;
+import org.eclipse.edc.jtivalidation.store.sql.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;

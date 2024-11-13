@@ -12,10 +12,8 @@
  *
  */
 
-package org.eclipse.edc.edr.store.index.sql;
+package org.eclipse.edc.jtivalidation.store.sql;
 
-import org.eclipse.edc.edr.store.index.SqlJtiValidationStore;
-import org.eclipse.edc.edr.store.index.SqlJtiValidationStoreExtension;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
@@ -27,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.edr.store.index.SqlJtiValidationStoreExtension.DATASOURCE_NAME;
+import static org.eclipse.edc.jtivalidation.store.sql.SqlJtiValidationStoreExtension.DATASOURCE_NAME;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
