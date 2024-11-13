@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,7 +92,8 @@ public class DependencyGraph {
 
         var sort = new TopologicalSort<InjectionContainer<ServiceExtension>>();
 
-        var unsatisfiedInjectionPoints = new ArrayList<InjectionPoint<ServiceExtension>>();
+        // check if all injected fields are satisfied, collect missing ones and throw exception otherwise
+        var unsatisfiedInjectionPoints = new HashMap<Class<? extends ServiceExtension>, List<InjectionFailure>>();
         var unsatisfiedRequirements = new ArrayList<String>();
 
         injectionContainers.forEach(container -> {
@@ -109,15 +109,13 @@ public class DependencyGraph {
 
             injectionPointScanner.getInjectionPoints(container.getInjectionTarget())
                     .peek(injectionPoint -> {
-                        var maybeProviders = Optional.of(injectionPoint.getType()).map(dependencyMap::get);
-
-                        if (maybeProviders.isPresent() || context.hasService(injectionPoint.getType())) {
-                            maybeProviders.ifPresent(l -> l.stream()
-                                    .filter(d -> !Objects.equals(d, container)) // remove dependencies onto oneself
-                                    .forEach(provider -> sort.addDependency(container, provider)));
+                        var providersResult = injectionPoint.getProviders(dependencyMap, context);
+                        if (providersResult.succeeded()) {
+                            List<InjectionContainer<ServiceExtension>> providers = providersResult.getContent();
+                            providers.stream().filter(d -> !Objects.equals(d, container)).forEach(provider -> sort.addDependency(container, provider));
                         } else {
                             if (injectionPoint.isRequired()) {
-                                unsatisfiedInjectionPoints.add(injectionPoint);
+                                unsatisfiedInjectionPoints.computeIfAbsent(injectionPoint.getTargetInstance().getClass(), s -> new ArrayList<>()).add(new InjectionFailure(injectionPoint, providersResult.getFailureDetail()));
                             }
                         }
 
@@ -130,8 +128,9 @@ public class DependencyGraph {
         });
 
         if (!unsatisfiedInjectionPoints.isEmpty()) {
-            var message = "The following injected fields were not provided:\n";
-            message += unsatisfiedInjectionPoints.stream().map(InjectionPoint::toString).collect(Collectors.joining("\n"));
+            var message = "The following injected fields or values were not provided or could not be resolved:\n";
+            message += unsatisfiedInjectionPoints.entrySet().stream()
+                    .map(entry -> String.format("%s is missing \n  --> %s", entry.getKey(), String.join("\n  --> ", entry.getValue().stream().map(Object::toString).toList()))).collect(Collectors.joining("\n"));
             throw new EdcInjectionException(message);
         }
 
@@ -169,4 +168,10 @@ public class DependencyGraph {
         return allProvides;
     }
 
+    private record InjectionFailure(InjectionPoint<ServiceExtension> injectionPoint, String failureDetail) {
+        @Override
+        public String toString() {
+            return "%s %s".formatted(injectionPoint.getTypeString(), failureDetail);
+        }
+    }
 }

@@ -25,31 +25,31 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientConfigurationExtension.CLIENT_ID;
-import static org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientConfigurationExtension.CLIENT_SECRET_ALIAS;
-import static org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientConfigurationExtension.TOKEN_URL;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class StsRemoteClientConfigurationExtensionTest {
 
+    private final String tokenUrl = "http://tokenUrl";
+    private final String clientId = "clientId";
+    private final String secretAlias = "secretAlias";
+
     @BeforeEach
     void setup(ServiceExtensionContext context) {
         context.registerService(Vault.class, mock());
+
+        var configMap = Map.of("edc.iam.sts.oauth.token.url", tokenUrl,
+                "edc.iam.sts.oauth.client.id", clientId,
+                "edc.iam.sts.oauth.client.secret.alias", secretAlias);
+        var config = ConfigFactory.fromMap(configMap);
+
+        when(context.getConfig()).thenReturn(config);
     }
 
     @Test
     void initialize(StsRemoteClientConfigurationExtension extension, ServiceExtensionContext context) {
 
-        var tokenUrl = "http://tokenUrl";
-        var clientId = "clientId";
-        var secretAlias = "secretAlias";
-
-        var configMap = Map.of(TOKEN_URL, tokenUrl, CLIENT_ID, clientId, CLIENT_SECRET_ALIAS, secretAlias);
-        var config = ConfigFactory.fromMap(configMap);
-
-        when(context.getConfig()).thenReturn(config);
 
         extension.initialize(context);
         assertThat(extension.clientConfiguration(context)).isNotNull()
@@ -59,5 +59,5 @@ public class StsRemoteClientConfigurationExtensionTest {
                     assertThat(configuration.clientSecretAlias()).isEqualTo(secretAlias);
                 });
     }
-    
+
 }

@@ -15,11 +15,16 @@
 package org.eclipse.edc.boot.system.injection;
 
 import org.eclipse.edc.boot.system.injection.lifecycle.ServiceProvider;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 
 /**
  * Represents one single auto-injectable field. More specific, it is a tuple consisting of a target, a field, the respective feature string and a flag whether the
@@ -27,17 +32,17 @@ import static java.lang.String.format;
  * <p>
  * Each injectable field of a {@link ServiceExtension} is represented by one InjectionPoint
  */
-public class FieldInjectionPoint<T> implements InjectionPoint<T> {
+public class ServiceInjectionPoint<T> implements InjectionPoint<T> {
     private final T instance;
     private final Field injectedField;
     private final boolean isRequired;
     private ServiceProvider defaultServiceProvider;
 
-    public FieldInjectionPoint(T instance, Field injectedField) {
+    public ServiceInjectionPoint(T instance, Field injectedField) {
         this(instance, injectedField, true);
     }
 
-    public FieldInjectionPoint(T instance, Field injectedField, boolean isRequired) {
+    public ServiceInjectionPoint(T instance, Field injectedField, boolean isRequired) {
         this.instance = instance;
         this.injectedField = injectedField;
         this.injectedField.setAccessible(true);
@@ -45,7 +50,7 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     @Override
-    public T getInstance() {
+    public T getTargetInstance() {
         return instance;
     }
 
@@ -60,8 +65,13 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     @Override
-    public void setTargetValue(Object service) throws IllegalAccessException {
-        injectedField.set(instance, service);
+    public Result<Void> setTargetValue(Object value) {
+        try {
+            injectedField.set(instance, value);
+        } catch (IllegalAccessException e) {
+            return Result.failure("Could not assign value '%s' to field '%s'. Reason: %s".formatted(value, injectedField, e.getMessage()));
+        }
+        return Result.success();
     }
 
     @Override
@@ -73,6 +83,36 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     public void setDefaultServiceProvider(ServiceProvider defaultServiceProvider) {
         this.defaultServiceProvider = defaultServiceProvider;
 
+    }
+
+    @Override
+    public Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier) {
+        var serviceClass = getType();
+        if (context.hasService(serviceClass)) {
+            return context.getService(serviceClass, !isRequired());
+        } else {
+            return defaultServiceSupplier.provideFor(this, context);
+        }
+    }
+
+    @Override
+    public Result<List<InjectionContainer<T>>> getProviders(Map<Class<?>, List<InjectionContainer<T>>> dependencyMap, ServiceExtensionContext context) {
+        var serviceClass = getType();
+        var providers = ofNullable(dependencyMap.get(serviceClass));
+        if (providers.isPresent()) {
+            return Result.success(providers.get());
+        } else if (context.hasService(serviceClass)) {
+            return Result.success(List.of());
+        } else {
+            // attempt to interpret the feature name as class name and see if the context has that service
+            return Result.failure(injectedField.getName() + " of type " + serviceClass);
+        }
+
+    }
+
+    @Override
+    public String getTypeString() {
+        return "Service";
     }
 
     @Override

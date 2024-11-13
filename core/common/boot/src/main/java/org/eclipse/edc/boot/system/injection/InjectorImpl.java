@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.boot.system.injection;
 
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 public final class InjectorImpl implements Injector {
@@ -37,31 +36,18 @@ public final class InjectorImpl implements Injector {
 
         container.getInjectionPoints().forEach(ip -> {
             try {
-                var service = resolveService(context, ip);
+                var service = ip.resolve(context, defaultServiceSupplier);
                 if (service != null) { //can only be if not required
                     ip.setTargetValue(service);
                 }
             } catch (EdcInjectionException ex) {
                 throw ex; //simply rethrow, do not wrap in another one
-            } catch (EdcException ex) { //thrown e.g. if the service is not present and is not optional
+            } catch (Exception ex) { //thrown e.g. if the service is not present and is not optional
                 monitor.warning("Error during injection", ex);
                 throw new EdcInjectionException(ex);
-            } catch (IllegalAccessException e) { //e.g. when the field is marked "final"
-                monitor.warning("Could not set injection target", e);
-                throw new EdcInjectionException(e);
             }
         });
 
         return container.getInjectionTarget();
     }
-
-    private Object resolveService(ServiceExtensionContext context, InjectionPoint<?> injectionPoint) {
-        var serviceClass = injectionPoint.getType();
-        if (context.hasService(serviceClass)) {
-            return context.getService(serviceClass, !injectionPoint.isRequired());
-        } else {
-            return defaultServiceSupplier.provideFor(injectionPoint, context);
-        }
-    }
-
 }

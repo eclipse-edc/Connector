@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  * Represents one {@link ServiceExtension} with a description of all its auto-injectable fields, which in turn are
- * represented by {@link FieldInjectionPoint}s.
+ * represented by {@link ServiceInjectionPoint}s.
  */
 public class InjectionContainer<T> {
     private final T injectionTarget;
@@ -50,8 +50,8 @@ public class InjectionContainer<T> {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "injectionTarget=" + injectionTarget +
-                '}';
+               "injectionTarget=" + injectionTarget +
+               '}';
     }
 
 }

@@ -58,11 +58,12 @@ import static org.eclipse.edc.participant.spi.ParticipantAgentService.DEFAULT_ID
 public class CoreServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Core Services";
-    private static final String DEFAULT_EDC_HOSTNAME = "localhost";
-    @Setting(value = "Connector hostname, which e.g. is used in referer urls", defaultValue = DEFAULT_EDC_HOSTNAME)
-    public static final String EDC_HOSTNAME = "edc.hostname";
-    @Setting(value = "The name of the claim key used to determine the participant identity", defaultValue = DEFAULT_IDENTITY_CLAIM_KEY)
+    @Setting(description = "The name of the claim key used to determine the participant identity", defaultValue = DEFAULT_IDENTITY_CLAIM_KEY)
     public static final String EDC_AGENT_IDENTITY_KEY = "edc.agent.identity.key";
+    private static final String DEFAULT_EDC_HOSTNAME = "localhost";
+    public static final String EDC_HOSTNAME = "edc.hostname";
+    @Setting(description = "Connector hostname, which e.g. is used in referer urls", defaultValue = DEFAULT_EDC_HOSTNAME, key = EDC_HOSTNAME, warnOnMissingConfig = true)
+    public static String hostname;
     @Inject
     private EventExecutorServiceContainer eventExecutorServiceContainer;
 
@@ -107,10 +108,6 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Provider
     public Hostname hostname(ServiceExtensionContext context) {
-        var hostname = context.getSetting(EDC_HOSTNAME, DEFAULT_EDC_HOSTNAME);
-        if (DEFAULT_EDC_HOSTNAME.equals(hostname)) {
-            context.getMonitor().warning(String.format("Settings: No setting found for key '%s'. Using default value '%s'", EDC_HOSTNAME, DEFAULT_EDC_HOSTNAME));
-        }
         return () -> hostname;
     }
 

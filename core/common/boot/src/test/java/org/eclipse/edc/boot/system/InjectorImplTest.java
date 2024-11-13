@@ -16,9 +16,9 @@ package org.eclipse.edc.boot.system;
 
 import org.eclipse.edc.boot.system.injection.DefaultServiceSupplier;
 import org.eclipse.edc.boot.system.injection.EdcInjectionException;
-import org.eclipse.edc.boot.system.injection.FieldInjectionPoint;
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.boot.system.injection.InjectorImpl;
+import org.eclipse.edc.boot.system.injection.ServiceInjectionPoint;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -85,7 +85,7 @@ class InjectorImplTest {
     void allInjectionPointsSatisfied() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field)), emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new ServiceInjectionPoint<>(serviceExtension, field)), emptyList());
         when(context.hasService(eq(SomeObject.class))).thenReturn(true);
         when(context.getService(eq(SomeObject.class), anyBoolean())).thenReturn(new SomeObject());
 
@@ -101,7 +101,7 @@ class InjectorImplTest {
     void defaultInjectionPoint() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field)), emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new ServiceInjectionPoint<>(serviceExtension, field)), emptyList());
         when(context.hasService(SomeObject.class)).thenReturn(false);
         when(context.getService(SomeObject.class, false)).thenThrow(new EdcException("Service not found"));
         when(defaultServiceSupplier.provideFor(any(), any())).thenReturn(new SomeObject());
@@ -117,7 +117,7 @@ class InjectorImplTest {
     void notAllInjectionPointsSatisfied_shouldThrowException() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field)), emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new ServiceInjectionPoint<>(serviceExtension, field)), emptyList());
         var rootCauseException = new EdcInjectionException("Service not found");
         when(context.hasService(SomeObject.class)).thenReturn(false);
         when(defaultServiceSupplier.provideFor(any(), any())).thenThrow(rootCauseException);
@@ -132,19 +132,19 @@ class InjectorImplTest {
 
     @Test
     @DisplayName("Cannot set value of the injected field")
-    void cannotSetInjectionPoint_shouldThrowException() throws NoSuchFieldException, IllegalAccessException {
+    void cannotSetInjectionPoint_shouldThrowException() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var injectionPoint = spy(new FieldInjectionPoint<>(serviceExtension, field));
+        var injectionPoint = spy(new ServiceInjectionPoint<>(serviceExtension, field));
         var template = new InjectionContainer<>(serviceExtension, Set.of(injectionPoint), emptyList());
 
         var value = new SomeObject();
         when(context.hasService(eq(SomeObject.class))).thenReturn(true);
         when(context.getService(eq(SomeObject.class), anyBoolean())).thenReturn(value);
 
-        doThrow(new IllegalAccessException("test")).when(injectionPoint).setTargetValue(value);
+        doThrow(new RuntimeException("test")).when(injectionPoint).setTargetValue(value);
 
-        assertThatThrownBy(() -> injector.inject(template, context)).isInstanceOf(EdcInjectionException.class).hasCauseInstanceOf(IllegalAccessException.class);
+        assertThatThrownBy(() -> injector.inject(template, context)).isInstanceOf(EdcInjectionException.class).hasCauseInstanceOf(RuntimeException.class);
         assertThat(serviceExtension.someObject).isNull();
         verify(context).hasService(eq(SomeObject.class));
         verify(context).getService(eq(SomeObject.class), anyBoolean());
@@ -156,7 +156,7 @@ class InjectorImplTest {
     void optionalService_provided() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, false)), emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new ServiceInjectionPoint<>(serviceExtension, field, false)), emptyList());
         when(context.hasService(eq(SomeObject.class))).thenReturn(true);
         when(context.getService(any(), anyBoolean())).thenReturn(new SomeObject());
 
@@ -173,7 +173,7 @@ class InjectorImplTest {
     void optionalService_defaultProvided() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, false)), emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new ServiceInjectionPoint<>(serviceExtension, field, false)), emptyList());
         when(context.hasService(eq(SomeObject.class))).thenReturn(false);
         when(defaultServiceSupplier.provideFor(any(), any())).thenReturn(new SomeObject());
 
@@ -189,7 +189,7 @@ class InjectorImplTest {
     void optionalService_defaultNotProvided() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, false)), emptyList());
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new ServiceInjectionPoint<>(serviceExtension, field, false)), emptyList());
         when(context.hasService(eq(SomeObject.class))).thenReturn(false);
         when(defaultServiceSupplier.provideFor(any(), any())).thenReturn(null);
 
