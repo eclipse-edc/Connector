@@ -12,12 +12,11 @@
  *
  */
 
-package org.eclipse.edc.edr.store.index.sql;
+package org.eclipse.edc.jtivalidation.store.sql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.edr.store.index.SqlJtiValidationStore;
-import org.eclipse.edc.edr.store.index.sql.schema.BaseSqlDialectStatements;
-import org.eclipse.edc.edr.store.index.sql.schema.postgres.PostgresDialectStatements;
+import org.eclipse.edc.jtivalidation.store.sql.schema.BaseSqlDialectStatements;
+import org.eclipse.edc.jtivalidation.store.sql.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;

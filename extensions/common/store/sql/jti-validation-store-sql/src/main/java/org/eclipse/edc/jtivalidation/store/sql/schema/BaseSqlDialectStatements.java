@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.edr.store.index.sql.schema;
+package org.eclipse.edc.jtivalidation.store.sql.schema;
 
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;

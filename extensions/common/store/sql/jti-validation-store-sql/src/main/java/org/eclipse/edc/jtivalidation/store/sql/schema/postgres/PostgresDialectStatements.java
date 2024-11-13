@@ -12,9 +12,9 @@
  *
  */
 
-package org.eclipse.edc.edr.store.index.sql.schema.postgres;
+package org.eclipse.edc.jtivalidation.store.sql.schema.postgres;
 
-import org.eclipse.edc.edr.store.index.sql.schema.BaseSqlDialectStatements;
+import org.eclipse.edc.jtivalidation.store.sql.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 

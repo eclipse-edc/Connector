@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.edr.store.index.SqlJtiValidationStoreExtension
+org.eclipse.edc.jtivalidation.store.sql.SqlJtiValidationStoreExtension

@@ -12,10 +12,10 @@
  *
  */
 
-package org.eclipse.edc.edr.store.index;
+package org.eclipse.edc.jtivalidation.store.sql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.edr.store.index.sql.schema.JtiValidationStoreStatements;
+import org.eclipse.edc.jtivalidation.store.sql.schema.JtiValidationStoreStatements;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationEntry;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.monitor.Monitor;
