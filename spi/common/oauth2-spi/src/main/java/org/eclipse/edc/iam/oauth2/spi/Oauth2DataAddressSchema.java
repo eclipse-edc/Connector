@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.oauth2.spi;
 public interface Oauth2DataAddressSchema {
     String CLIENT_ID = "oauth2:clientId";
     String CLIENT_SECRET_KEY = "oauth2:clientSecretKey";
+    String KEY_ID = "oauth2:kid";
     String TOKEN_URL = "oauth2:tokenUrl";
     String VALIDITY = "oauth2:validity";
     String PRIVATE_KEY_NAME = "oauth2:privateKeyName";
