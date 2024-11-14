@@ -82,7 +82,7 @@ public class HttpDataSource implements DataSource {
                     try {
                         response.close();
                     } catch (Exception e) {
-                        monitor.info("Error closing failed response", e);
+                        monitor.severe("Error closing failed response", e);
                     }
                 }
             }

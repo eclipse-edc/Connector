@@ -47,7 +47,7 @@ public class ConfigurationLoader {
         var config = serviceLocator.loadImplementors(ConfigurationExtension.class, false)
                 .stream().peek(extension -> {
                     extension.initialize(monitor);
-                    monitor.info("Initialized " + extension.name());
+                    monitor.debug("ConfigurationExtension Initialized: " + extension.name());
                 })
                 .map(ConfigurationExtension::getConfig)
                 .filter(Objects::nonNull)

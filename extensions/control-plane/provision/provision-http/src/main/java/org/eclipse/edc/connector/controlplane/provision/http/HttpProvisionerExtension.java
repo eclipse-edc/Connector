@@ -97,7 +97,7 @@ public class HttpProvisionerExtension implements ServiceExtension {
             if (configuration.getProvisionerType() == ProvisionerConfiguration.ProvisionerType.PROVIDER) {
                 var generator = new HttpProviderResourceDefinitionGenerator(configuration.getDataAddressType());
                 manifestGenerator.registerGenerator(generator);
-                monitor.info(format("Registering provider provisioner: %s [%s]", configuration.getName(), configuration.getEndpoint().toString()));
+                monitor.debug(format("Registering provider provisioner: %s [%s]", configuration.getName(), configuration.getEndpoint().toString()));
             } else {
                 monitor.warning(format("Client-side provisioning not yet supported by the %s. Skipping configuration for %s", name(), configuration.getName()));
             }

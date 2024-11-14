@@ -89,10 +89,10 @@ public class JettyService implements WebServer {
 
                 if (keyStore != null) {
                     connector = httpsServerConnector(mapping.getPort());
-                    monitor.info("HTTPS context '" + mapping.getName() + "' listening on port " + mapping.getPort());
+                    monitor.debug("HTTPS context '" + mapping.getName() + "' listening on port " + mapping.getPort());
                 } else {
                     connector = httpServerConnector();
-                    monitor.info("HTTP context '" + mapping.getName() + "' listening on port " + mapping.getPort());
+                    monitor.debug("HTTP context '" + mapping.getName() + "' listening on port " + mapping.getPort());
                 }
 
                 connector.setName(mapping.getName());

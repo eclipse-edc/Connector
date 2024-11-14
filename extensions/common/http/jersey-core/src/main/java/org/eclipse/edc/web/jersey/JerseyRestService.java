@@ -116,7 +116,7 @@ public class JerseyRestService implements WebService {
         var servletContainer = new ServletContainer(resourceConfig);
         webServer.registerServlet(contextAlias, servletContainer);
 
-        monitor.info("Registered Web API context alias: " + contextAlias);
+        monitor.debug("Registered Web API context alias: " + contextAlias);
     }
 
     /**

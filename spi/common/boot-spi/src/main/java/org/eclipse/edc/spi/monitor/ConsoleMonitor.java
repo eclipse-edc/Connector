@@ -119,7 +119,7 @@ public class ConsoleMonitor implements Monitor {
         }
 
         public static Level getDefaultLevel() {
-            return Level.DEBUG;
+            return Level.INFO;
         }
 
     }

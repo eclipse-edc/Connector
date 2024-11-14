@@ -51,7 +51,7 @@ public class WebServiceConfigurerImpl implements WebServiceConfigurer {
             }
         }
 
-        monitor.info(format("%s will be available under port=%s, path=%s", settings.getName(), port, path));
+        monitor.debug(format("%s will be available under port=%s, path=%s", settings.getName(), port, path));
 
         return WebServiceConfiguration.Builder.newInstance()
                 .path(path)

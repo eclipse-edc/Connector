@@ -45,13 +45,14 @@ public class ExtensionLifecycleManager {
      */
     public static void bootServiceExtensions(List<InjectionContainer<ServiceExtension>> containers, ServiceExtensionContext context) {
         var injector = new InjectorImpl(new InjectionPointDefaultServiceSupplier());
+        var monitor = context.getMonitor();
 
         for (var container : containers) {
             var target = container.getInjectionTarget();
             injector.inject(container, context);
 
             target.initialize(context);
-            context.getMonitor().info("Initialized " + target.name());
+            monitor.debug("Initialized " + target.name());
 
             var serviceProviders = container.getServiceProviders();
             if (serviceProviders != null) {
@@ -64,15 +65,16 @@ public class ExtensionLifecycleManager {
         for (var container : containers) {
             var target = container.getInjectionTarget();
             target.prepare();
-            context.getMonitor().info("Prepared " + target.name());
+            monitor.debug("Prepared " + target.name());
         }
 
         for (var container : containers) {
             var target = container.getInjectionTarget();
             target.start();
-            context.getMonitor().info("Started " + target.name());
+            monitor.debug("Started " + target.name());
         }
 
+        monitor.info(containers.size() + " service extensions started");
     }
 
 }
