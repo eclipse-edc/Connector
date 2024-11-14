@@ -34,14 +34,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.eclipse.edc.boot.system.ExtensionLoader.loadMonitor;
 
 /**
  * Embedded runtime that runs inside another runtime
  */
 public class EmbeddedRuntime extends BaseRuntime {
-
-    private static final Monitor MONITOR = loadMonitor();
 
     private final String name;
     private final Map<String, String> properties;
@@ -68,8 +65,9 @@ public class EmbeddedRuntime extends BaseRuntime {
 
     @Override
     public void boot(boolean addShutdownHook) {
+        var monitor = super.createMonitor();
         try {
-            MONITOR.info("Starting runtime %s".formatted(name));
+            monitor.info("Starting runtime %s".formatted(name));
 
             // Temporarily inject system properties.
             var savedProperties = (Properties) System.getProperties().clone();
@@ -97,7 +95,7 @@ public class EmbeddedRuntime extends BaseRuntime {
                 throw new EdcException("Failed to start EDC runtime", runtimeException.get());
             }
 
-            MONITOR.info("Runtime %s started".formatted(name));
+            monitor.info("Runtime %s started".formatted(name));
             // Restore system properties.
             System.setProperties(savedProperties);
         } catch (Exception e) {

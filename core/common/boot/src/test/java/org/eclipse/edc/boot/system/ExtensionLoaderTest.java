@@ -32,6 +32,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,8 +47,10 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.spi.monitor.ConsoleMonitor.LEVEL_PROG_ARG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -66,51 +69,57 @@ class ExtensionLoaderTest {
         GlobalOpenTelemetry.set(mock(OpenTelemetry.class));
     }
 
-    @Test
-    void loadMonitor_whenSingleMonitorExtension() {
-        var mockedMonitor = mock(Monitor.class);
-        var exts = new ArrayList<MonitorExtension>();
-        exts.add(() -> mockedMonitor);
+    @Nested
+    class LoadMonitor {
 
-        var monitor = ExtensionLoader.loadMonitor(exts);
+        @Test
+        void shouldLoadMonitor_whenSingleMonitorExtension() {
+            var mockedMonitor = mock(Monitor.class);
+            when(serviceLocator.loadImplementors(eq(MonitorExtension.class), anyBoolean()))
+                    .thenReturn(List.of(() -> mockedMonitor));
 
-        assertEquals(mockedMonitor, monitor);
-    }
+            var monitor = loader.loadMonitor();
 
-    @Test
-    void loadMonitor_whenMultipleMonitorExtensions() {
-        var exts = new ArrayList<MonitorExtension>();
-        exts.add(() -> mock(Monitor.class));
-        exts.add(ConsoleMonitor::new);
+            assertThat(monitor).isEqualTo(mockedMonitor);
+            verify(serviceLocator).loadImplementors(MonitorExtension.class, false);
+        }
 
-        var monitor = ExtensionLoader.loadMonitor(exts);
+        @Test
+        void shouldLoadMonitor_whenMultipleMonitorExtensions() {
+            when(serviceLocator.loadImplementors(eq(MonitorExtension.class), anyBoolean()))
+                    .thenReturn(List.of(() -> mock(Monitor.class), ConsoleMonitor::new));
 
-        assertThat(monitor).isInstanceOf(MultiplexingMonitor.class);
-    }
+            var monitor = loader.loadMonitor();
 
-    @Test
-    void loadMonitor_whenNoMonitorExtension() {
-        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>());
+            assertThat(monitor).isInstanceOf(MultiplexingMonitor.class);
+        }
 
-        assertThat(monitor).isInstanceOf(ConsoleMonitor.class);
-    }
+        @Test
+        void shouldLoadMonitor_whenNoMonitorExtension() {
+            when(serviceLocator.loadImplementors(eq(MonitorExtension.class), anyBoolean())).thenReturn(emptyList());
 
-    @ParameterizedTest
-    @ArgumentsSource(LogLevelVariantArgsProvider.class)
-    void loadMonitor_programArgsSetConsoleMonitorLogLevel(String programArgs, ConsoleMonitor.Level level) {
+            var monitor = loader.loadMonitor();
 
-        var monitor = ExtensionLoader.loadMonitor(new ArrayList<>(), programArgs);
+            assertThat(monitor).isInstanceOf(ConsoleMonitor.class);
+        }
 
-        assertThat(monitor).extracting("level").isEqualTo(level);
-    }
+        @ParameterizedTest
+        @ArgumentsSource(LogLevelVariantArgsProvider.class)
+        void shouldLoadMonitor_programArgsSetConsoleMonitorLogLevel(String programArgs, ConsoleMonitor.Level level) {
 
-    @ParameterizedTest
-    @ArgumentsSource(LogLevelWrongArgProvider.class)
-    void loadMonitor_consoleMonitorDefaultLogLevelWhenWrongArgs(String programArgs, String expectedMessage) {
-        assertThatThrownBy(() -> ExtensionLoader.loadMonitor(new ArrayList<>(), programArgs))
-                .isInstanceOf(EdcException.class)
-                .hasMessageContaining(expectedMessage);
+            var monitor = loader.loadMonitor(programArgs);
 
+            assertThat(monitor).extracting("level").isEqualTo(level);
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(LogLevelWrongArgProvider.class)
+        void shouldLoadMonitor_consoleMonitorDefaultLogLevelWhenWrongArgs(String programArgs, String expectedMessage) {
+            assertThatThrownBy(() -> loader.loadMonitor(programArgs))
+                    .isInstanceOf(EdcException.class)
+                    .hasMessageContaining(expectedMessage);
+
+        }
     }
 
     @Test
@@ -357,17 +366,14 @@ class ExtensionLoaderTest {
     private static class AnotherObject {
     }
 
-
     private static class LogLevelWrongArgProvider implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=INF", "Invalid value \"INF\" for the --log-level argument."),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=", "Value missing for the --log-level argument."),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "= INFO", "Invalid value \" INFO\" for the --log-level argument."),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + " INFO", "Value missing for the --log-level argument.")
-
-
+                    arguments(LEVEL_PROG_ARG + "=INF", "Invalid value \"INF\" for the --log-level argument."),
+                    arguments(LEVEL_PROG_ARG + "=", "Value missing for the --log-level argument."),
+                    arguments(LEVEL_PROG_ARG + "= INFO", "Invalid value \" INFO\" for the --log-level argument."),
+                    arguments(LEVEL_PROG_ARG + " INFO", "Value missing for the --log-level argument.")
             );
         }
     }
@@ -376,14 +382,12 @@ class ExtensionLoaderTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of("", ConsoleMonitor.Level.DEBUG), //default case
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=INFO", ConsoleMonitor.Level.INFO),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=DEBUG", ConsoleMonitor.Level.DEBUG),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=SEVERE", ConsoleMonitor.Level.SEVERE),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=WARNING", ConsoleMonitor.Level.WARNING),
-                    Arguments.of(ConsoleMonitor.LEVEL_PROG_ARG + "=warning", ConsoleMonitor.Level.WARNING)
-
-
+                    arguments("", ConsoleMonitor.Level.getDefaultLevel()),
+                    arguments(LEVEL_PROG_ARG + "=INFO", ConsoleMonitor.Level.INFO),
+                    arguments(LEVEL_PROG_ARG + "=DEBUG", ConsoleMonitor.Level.DEBUG),
+                    arguments(LEVEL_PROG_ARG + "=SEVERE", ConsoleMonitor.Level.SEVERE),
+                    arguments(LEVEL_PROG_ARG + "=WARNING", ConsoleMonitor.Level.WARNING),
+                    arguments(LEVEL_PROG_ARG + "=warning", ConsoleMonitor.Level.WARNING)
             );
         }
     }

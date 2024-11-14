@@ -85,6 +85,8 @@ public class BaseRuntime {
      */
     public void boot(boolean addShutdownHook) {
         monitor = createMonitor();
+        monitor.info("Booting EDC runtime");
+
         var config = configurationLoader.loadConfiguration(monitor);
         context = createServiceExtensionContext(config);
 
@@ -119,7 +121,7 @@ public class BaseRuntime {
         while (iter.hasPrevious()) {
             var extension = iter.previous();
             extension.shutdown();
-            monitor.info("Shutdown " + extension.name());
+            monitor.debug("Shutdown " + extension.name());
             iter.remove();
         }
         monitor.info("Shutdown complete");
@@ -178,14 +180,15 @@ public class BaseRuntime {
     }
 
     /**
-     * Hook point to instantiate a {@link Monitor}. By default, the runtime instantiates a {@code Monitor} using the Service Loader mechanism, i.e. by calling the {@link ExtensionLoader#loadMonitor(String...)} method.
+     * Hook point to instantiate a {@link Monitor}. By default, the runtime instantiates a {@code Monitor} using the 
+     * Service Loader mechanism, i.e. by calling the {@link ExtensionLoader#loadMonitor(String...)} method.
      * <p>
      * Please consider using the extension mechanism (i.e. {@link MonitorExtension}) rather than supplying a custom monitor by overriding this method.
      * However, for development/testing scenarios it might be an easy solution to just override this method.
      */
     @NotNull
     protected Monitor createMonitor() {
-        return ExtensionLoader.loadMonitor(programArgs);
+        return extensionLoader.loadMonitor(programArgs);
     }
 
 }

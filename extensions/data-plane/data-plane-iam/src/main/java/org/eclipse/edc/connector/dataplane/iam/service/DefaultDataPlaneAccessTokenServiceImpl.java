@@ -99,7 +99,7 @@ public class DefaultDataPlaneAccessTokenServiceImpl implements DataPlaneAccessTo
 
         // if there is no "jti" header on the token params, we'll assign a random one, and add it back to the decorators
         if (id == null) {
-            monitor.info("No '%s' claim found on TokenParameters. Will generate a random one.".formatted(TOKEN_ID));
+            monitor.debug("No '%s' claim found on TokenParameters. Will generate a random one.".formatted(TOKEN_ID));
             id = UUID.randomUUID().toString();
             var tokenIdDecorator = new TokenIdDecorator(id);
             allDecorators.add(tokenIdDecorator);

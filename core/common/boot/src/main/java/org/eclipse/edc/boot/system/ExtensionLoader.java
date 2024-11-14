@@ -35,33 +35,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.spi.monitor.ConsoleMonitor.COLOR_PROG_ARG;
+
 public class ExtensionLoader {
 
     private final ServiceLocator serviceLocator;
 
     public ExtensionLoader(ServiceLocator serviceLocator) {
         this.serviceLocator = serviceLocator;
-    }
-
-    public static @NotNull Monitor loadMonitor(String... programArgs) {
-        var loader = ServiceLoader.load(MonitorExtension.class);
-        return loadMonitor(loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()), programArgs);
-    }
-
-    static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors, String... programArgs) {
-        if (availableMonitors.isEmpty()) {
-            var parseResult = parseLogLevel(programArgs);
-            if (parseResult.failed()) {
-                throw new EdcException(parseResult.getFailureDetail());
-            }
-            return new ConsoleMonitor((ConsoleMonitor.Level) parseResult.getContent(), !Set.of(programArgs).contains(ConsoleMonitor.COLOR_PROG_ARG));
-        }
-
-        if (availableMonitors.size() > 1) {
-            return new MultiplexingMonitor(availableMonitors.stream().map(MonitorExtension::getMonitor).collect(Collectors.toList()));
-        }
-
-        return availableMonitors.get(0).getMonitor();
     }
 
     public static @NotNull Telemetry loadTelemetry() {
@@ -78,10 +59,32 @@ public class ExtensionLoader {
     }
 
     /**
+     * Load the monitor instance.
+     *
+     * @param programArgs program args.
+     * @return the monitor instance.
+     */
+    public Monitor loadMonitor(String... programArgs) {
+        var extensions = serviceLocator.loadImplementors(MonitorExtension.class, false);
+
+        return switch (extensions.size()) {
+            case 0 -> {
+                var parseResult = parseLogLevel(programArgs);
+                if (parseResult.failed()) {
+                    throw new EdcException(parseResult.getFailureDetail());
+                }
+                yield new ConsoleMonitor(parseResult.getContent(), !Set.of(programArgs).contains(COLOR_PROG_ARG));
+            }
+            case 1 -> extensions.get(0).getMonitor();
+            default -> new MultiplexingMonitor(extensions.stream().map(MonitorExtension::getMonitor).toList());
+        };
+    }
+
+    /**
      * Loads and orders the service extensions.
      */
     public List<InjectionContainer<ServiceExtension>> loadServiceExtensions(ServiceExtensionContext context) {
-        List<ServiceExtension> serviceExtensions = loadExtensions(ServiceExtension.class, true);
+        var serviceExtensions = loadExtensions(ServiceExtension.class, true);
         return new DependencyGraph(context).of(serviceExtensions);
     }
 
@@ -95,19 +98,19 @@ public class ExtensionLoader {
     /**
      * Parses the ConsoleMonitor log level from the program args. If no log level is provided, defaults to Level default.
      */
-    private static Result<?> parseLogLevel(String[] programArgs) {
+    private static Result<ConsoleMonitor.Level> parseLogLevel(String[] programArgs) {
         return Stream.of(programArgs)
                 .filter(arg -> arg.startsWith(ConsoleMonitor.LEVEL_PROG_ARG))
                 .map(arg -> {
                     var validValueMessage = String.format("Valid values for the console level are %s", Stream.of(ConsoleMonitor.Level.values()).toList());
                     var splitArgs = arg.split("=");
                     if (splitArgs.length != 2) {
-                        return Result.failure(String.format("Value missing for the --log-level argument. %s", validValueMessage));
+                        return Result.<ConsoleMonitor.Level>failure(String.format("Value missing for the --log-level argument. %s", validValueMessage));
                     }
                     try {
                         return Result.success(ConsoleMonitor.Level.valueOf(splitArgs[1].toUpperCase()));
                     } catch (IllegalArgumentException e) {
-                        return Result.failure(String.format("Invalid value \"%s\" for the --log-level argument. %s", splitArgs[1], validValueMessage));
+                        return Result.<ConsoleMonitor.Level>failure(String.format("Invalid value \"%s\" for the --log-level argument. %s", splitArgs[1], validValueMessage));
                     }
                 })
                 .findFirst()

@@ -99,7 +99,7 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
         monitor.debug("Initiate data plane registration.");
         dataPlaneSelectorService.addInstance(instance)
                 .onSuccess(it -> {
-                    monitor.info("data plane registered to control plane");
+                    monitor.debug("data plane registered to control plane");
                     isRegistered.set(true);
                 })
                 .onFailure(f -> registrationError.set(f.getFailureDetail()))
@@ -110,7 +110,7 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
     public void shutdown() {
         if (context.getConfig().getBoolean(SELF_UNREGISTRATION, DEFAULT_SELF_UNREGISTRATION)) {
             dataPlaneSelectorService.unregister(context.getComponentId())
-                    .onSuccess(it -> context.getMonitor().info("data plane successfully unregistered"))
+                    .onSuccess(it -> context.getMonitor().debug("data plane successfully unregistered"))
                     .onFailure(failure -> context.getMonitor().severe("error during data plane de-registration. %s: %s"
                             .formatted(failure.getReason(), failure.getFailureDetail())));
         }
