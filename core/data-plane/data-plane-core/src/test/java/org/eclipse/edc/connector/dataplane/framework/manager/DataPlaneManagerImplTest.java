@@ -65,6 +65,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -586,6 +587,9 @@ class DataPlaneManagerImplTest {
             await().untilAsserted(() -> {
                 verify(transferService, times(2)).transfer(isA(DataFlowStartMessage.class));
                 verify(store, times(2)).save(argThat(it -> it.getState() == STARTED.code()));
+                var captor = ArgumentCaptor.forClass(Criterion[].class);
+                verify(store, atLeast(1)).nextNotLeased(anyInt(), captor.capture());
+                assertThat(captor.getValue()).contains(new Criterion("transferType.flowType", "=", "PUSH"));
             });
         }
     }

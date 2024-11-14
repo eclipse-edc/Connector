@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.store.sql.schema;
 
-import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.DataPlaneMapping;
+import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.DataFlowMapping;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
@@ -74,7 +74,7 @@ public class BaseSqlDataPlaneStatements implements DataPlaneStatements {
 
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
-        return new SqlQueryStatement(getSelectTemplate(), querySpec, new DataPlaneMapping(this), operatorTranslator);
+        return new SqlQueryStatement(getSelectTemplate(), querySpec, new DataFlowMapping(this), operatorTranslator);
     }
 
     @Override
