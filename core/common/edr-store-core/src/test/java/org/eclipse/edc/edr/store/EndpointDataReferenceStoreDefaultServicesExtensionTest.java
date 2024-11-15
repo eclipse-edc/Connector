@@ -29,10 +29,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.edr.store.EndpointDataReferenceStoreDefaultServicesExtension.EDC_EDR_VAULT_PATH;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,39 +47,35 @@ public class EndpointDataReferenceStoreDefaultServicesExtensionTest {
     void setUp(ServiceExtensionContext context) {
         context.registerService(Vault.class, vault);
         context.registerService(TypeManager.class, typeManager);
-    }
 
-    @Test
-    void initializeTheCache(ServiceExtensionContext context, EndpointDataReferenceStoreDefaultServicesExtension extension) {
-
-        var cache = extension.endpointDataReferenceCache(context);
-
-        assertThat(cache).isInstanceOf(VaultEndpointDataReferenceCache.class);
-    }
-
-    @Test
-    void initializeTheCache_withPath(ServiceExtensionContext context, EndpointDataReferenceStoreDefaultServicesExtension extension) {
         var config = mock(Config.class);
         when(context.getConfig()).thenReturn(config);
-        when(config.getString(eq(EDC_EDR_VAULT_PATH), any())).thenReturn("path/");
-        when(typeManager.getMapper()).thenReturn(new ObjectMapper());
-
-        var cache = extension.endpointDataReferenceCache(context);
-
-        when(vault.storeSecret(any(), any())).thenReturn(Result.success());
-
-        assertThat(cache).isInstanceOf(VaultEndpointDataReferenceCache.class);
-
-        cache.put("id", DataAddress.Builder.newInstance().type("type").build());
-
-        verify(vault).storeSecret(argThat(s -> s.startsWith("path/")), any());
+        when(config.hasKey(eq("edc.edr.vault.path"))).thenReturn(true);
+        when(config.getString(eq("edc.edr.vault.path"))).thenReturn("path/");
     }
 
     @Test
-    void initializeTheStore(ServiceExtensionContext context, EndpointDataReferenceStoreDefaultServicesExtension extension) {
+    void initializeTheCache(EndpointDataReferenceStoreDefaultServicesExtension extension) {
 
+        var cache = extension.endpointDataReferenceCache();
+        assertThat(cache).isInstanceOf(VaultEndpointDataReferenceCache.class);
+    }
+
+    @Test
+    void createExtension_withPath(EndpointDataReferenceStoreDefaultServicesExtension extension) {
+
+        when(typeManager.getMapper()).thenReturn(new ObjectMapper());
+        when(vault.storeSecret(any(), any())).thenReturn(Result.success());
+
+        var cache = extension.endpointDataReferenceCache();
+
+        cache.put("id", DataAddress.Builder.newInstance().type("type").build());
+        verify(vault).storeSecret(startsWith("path/"), any());
+    }
+
+    @Test
+    void initializeTheStore(EndpointDataReferenceStoreDefaultServicesExtension extension) {
         var store = extension.endpointDataReferenceEntryStore();
-
         assertThat(store).isInstanceOf(InMemoryEndpointDataReferenceEntryIndex.class);
     }
 

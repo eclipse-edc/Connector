@@ -22,13 +22,15 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Map;
+
 import static org.eclipse.edc.api.iam.identitytrust.sts.accounts.StsAccountsApiExtension.STS_ACCOUNTS_API_CONTEXT;
-import static org.eclipse.edc.api.iam.identitytrust.sts.accounts.StsAccountsApiExtension.STS_ACCOUNTS_API_KEY;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.STS_ACCOUNTS;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -40,6 +42,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class StsAccountsApiExtensionTest {
 
+    private static final String STS_ACCOUNTS_API_KEY = "edc.api.accounts.key";
     private final ApiAuthenticationRegistry apiAuthenticationRegistry = mock();
     private final WebService webService = mock();
     private final Vault vault = mock();
@@ -49,6 +52,9 @@ class StsAccountsApiExtensionTest {
         context.registerService(ApiAuthenticationRegistry.class, apiAuthenticationRegistry);
         context.registerService(WebService.class, webService);
         context.registerService(Vault.class, vault);
+
+        var config = ConfigFactory.fromMap(Map.of(STS_ACCOUNTS_API_KEY, "test-api-key"));
+        when(context.getConfig()).thenReturn(config);
     }
 
     @Test
@@ -69,10 +75,7 @@ class StsAccountsApiExtensionTest {
 
     @Test
     void initialize_noAuthServicePresent_withApiKeyInConfig(StsAccountsApiExtension extension, ServiceExtensionContext context) {
-        var config = mock(Config.class);
-        when(config.getString(eq(STS_ACCOUNTS_API_KEY)))
-                .thenReturn("test-api-key");
-        when(context.getConfig()).thenReturn(config);
+
         when(apiAuthenticationRegistry.hasService(eq(STS_ACCOUNTS_API_CONTEXT))).thenReturn(false);
 
         extension.initialize(context);
@@ -85,10 +88,6 @@ class StsAccountsApiExtensionTest {
 
     @Test
     void initialize_otherAuthServicePresent_withApiKeyInConfig(StsAccountsApiExtension extension, ServiceExtensionContext context) {
-        var config = mock(Config.class);
-        when(config.getString(eq(STS_ACCOUNTS_API_KEY)))
-                .thenReturn("test-api-key");
-        when(context.getConfig()).thenReturn(config);
         when(apiAuthenticationRegistry.hasService(eq(STS_ACCOUNTS_API_CONTEXT))).thenReturn(true);
 
         extension.initialize(context);

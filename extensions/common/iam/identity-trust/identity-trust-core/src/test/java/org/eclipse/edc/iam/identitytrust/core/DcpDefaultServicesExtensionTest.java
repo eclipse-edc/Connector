@@ -26,17 +26,17 @@ import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.security.PrivateKey;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.STS_PRIVATE_KEY_ALIAS;
-import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.STS_PUBLIC_KEY_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -59,18 +59,20 @@ class DcpDefaultServicesExtensionTest {
 
     @BeforeEach
     void setup(ServiceExtensionContext context) throws JOSEException {
+        var publicKeyId = "did:web:" + UUID.randomUUID() + "#key-id";
+        var privateKeyAlias = "private";
+        var config = ConfigFactory.fromMap(Map.of("edc.iam.sts.publickey.id", publicKeyId, "edc.iam.sts.privatekey.alias", privateKeyAlias));
+        when(context.getConfig()).thenReturn(config);
         when(privateKeyResolver.resolvePrivateKey(any())).thenReturn(Result.success(privateKey()));
         context.registerService(PrivateKeyResolver.class, privateKeyResolver);
     }
 
     @Test
     void verify_defaultService(ServiceExtensionContext context, DcpDefaultServicesExtension ext) {
-        var publicKeyId = "did:web:" + UUID.randomUUID() + "#key-id";
-        var privateKeyAlias = "private";
+
         Monitor mockedMonitor = mock();
         context.registerService(Monitor.class, mockedMonitor);
-        when(context.getSetting(STS_PUBLIC_KEY_ID, null)).thenReturn(publicKeyId);
-        when(context.getSetting(STS_PRIVATE_KEY_ALIAS, null)).thenReturn(privateKeyAlias);
+
         var sts = ext.createDefaultTokenService(context);
 
         assertThat(sts).isInstanceOf(EmbeddedSecureTokenService.class);

@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
@@ -91,13 +92,14 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
             .useDefaultContext(true)
             .name(WEB_SERVICE_NAME)
             .build();
-    @Setting(value = "Configures endpoint for reaching the Management API.", defaultValue = "<hostname:management.port/management.path>")
-    private static final String MANAGEMENT_API_ENDPOINT = "edc.management.endpoint";
+    
+    @Setting(description = "Configures endpoint for reaching the Management API, in the format \"<hostname:management.port/management.path>\"", key = "edc.management.endpoint", required = false)
+    private String managementApiEndpoint;
 
     private static final boolean DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT = false;
 
-    @Setting(value = "If set enable the usage of management api JSON-LD context.", defaultValue = "" + DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT)
-    private static final String MANAGEMENT_API_ENABLE_CONTEXT = "edc.management.context.enabled";
+    @Setting(description = "If set enable the usage of management api JSON-LD context.", defaultValue = "" + DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT, key = "edc.management.context.enabled")
+    private boolean managementApiContextEnabled;
 
     @Inject
     private WebService webService;
@@ -136,9 +138,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, "management-api");
         webService.registerResource(ApiContext.MANAGEMENT, authenticationFilter);
 
-        var isManagementContextEnabled = context.getSetting(MANAGEMENT_API_ENABLE_CONTEXT, DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT);
-
-        if (isManagementContextEnabled) {
+        if (managementApiContextEnabled) {
             jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT, MANAGEMENT_SCOPE);
         } else {
             jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, MANAGEMENT_SCOPE);
@@ -185,7 +185,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     }
 
     private ManagementApiUrl managementApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {
-        var callbackAddress = context.getSetting(MANAGEMENT_API_ENDPOINT, format("http://%s:%s%s", hostname.get(), config.getPort(), config.getPath()));
+        var callbackAddress = ofNullable(managementApiEndpoint).orElseGet(() -> format("http://%s:%s%s", hostname.get(), config.getPort(), config.getPath()));
         try {
             var url = URI.create(callbackAddress);
             return () -> url;

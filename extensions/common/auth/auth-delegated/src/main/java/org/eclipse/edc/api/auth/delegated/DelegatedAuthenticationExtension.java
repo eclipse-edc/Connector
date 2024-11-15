@@ -47,21 +47,25 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
 
     public static final int DEFAULT_VALIDATION_TOLERANCE = 5_000;
     public static final String NAME = "Delegating Authentication Service Extension";
-    @Setting(value = "Duration (in ms) that the internal key cache is valid", type = "Long", defaultValue = "" + DEFAULT_CACHE_TIME_TO_LIVE)
+    private static final String KEY_URL_PROPERTY = "edc.api.auth.dac.key.url";
+
     @Deprecated(since = "0.7.1")
-    public static final String AUTH_SETTING_CACHE_VALIDITY_MS = "edc.api.auth.dac.cache.validity";
+    @Setting(description = "Duration (in ms) that the internal key cache is valid", defaultValue = "" + DEFAULT_CACHE_TIME_TO_LIVE, key = "edc.api.auth.dac.cache.validity", required = false)
+    private long cacheValidityMs;
+
     @Deprecated(since = "0.7.1")
-    @Setting(value = "URL where the third-party IdP's public key(s) can be resolved")
-    public static final String AUTH_SETTING_KEY_URL = "edc.api.auth.dac.key.url";
+    @Setting(description = "URL where the third-party IdP's public key(s) can be resolved", key = KEY_URL_PROPERTY, required = false, warnOnMissingConfig = true)
+    private String keyUrl;
+
     public static final String AUTH_KEY = "auth";
     public static final String CONFIG_ALIAS = WEB_HTTP_PREFIX + ".<context>." + AUTH_KEY + ".";
-    @Setting(context = CONFIG_ALIAS, value = "URL where the third-party IdP's public key(s) can be resolved for the configured <context>")
+    @Setting(context = CONFIG_ALIAS, description = "URL where the third-party IdP's public key(s) can be resolved for the configured <context>")
     public static final String AUTH_KEY_URL = "dac.key.url";
-    @Setting(context = CONFIG_ALIAS, value = "Duration (in ms) that the internal key cache is valid for the configured <context>", type = "Long", defaultValue = "" + DEFAULT_CACHE_TIME_TO_LIVE)
+    @Setting(context = CONFIG_ALIAS, description = "Duration (in ms) that the internal key cache is valid for the configured <context>", type = "Long", defaultValue = "" + DEFAULT_CACHE_TIME_TO_LIVE)
     public static final String AUTH_CACHE_VALIDITY_MS = "dac.cache.validity";
     public static final String DELEGATED_TYPE = "delegated";
-    @Setting(value = "Default token validation time tolerance (in ms), e.g. for nbf or exp claims", defaultValue = "" + DEFAULT_VALIDATION_TOLERANCE)
-    private static final String AUTH_SETTING_VALIDATION_TOLERANCE_MS = "edc.api.auth.dac.validation.tolerance";
+    @Setting(description = "Default token validation time tolerance (in ms), e.g. for nbf or exp claims", defaultValue = "" + DEFAULT_VALIDATION_TOLERANCE, key = "edc.api.auth.dac.validation.tolerance")
+    private int validationTolerance;
     @Inject
     private ApiAuthenticationRegistry authenticationRegistry;
     @Inject
@@ -84,19 +88,16 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor().withPrefix("Delegated API Authentication");
 
-        var keyUrl = context.getConfig().getString(AUTH_SETTING_KEY_URL, null);
         if (keyUrl == null) {
-            monitor.warning("The '%s' setting was not provided, so the DelegatedAuthenticationService will NOT be registered. In this case, the TokenBasedAuthenticationService usually acts as fallback.".formatted(AUTH_SETTING_KEY_URL));
+            monitor.warning("The '%s' setting was not provided, so the DelegatedAuthenticationService will NOT be registered. In this case, the TokenBasedAuthenticationService usually acts as fallback.".formatted(KEY_URL_PROPERTY));
             return;
         }
-        var cacheValidityMs = context.getConfig().getLong(AUTH_SETTING_CACHE_VALIDITY_MS, DEFAULT_CACHE_TIME_TO_LIVE);
-        var tolerance = context.getConfig().getInteger(AUTH_SETTING_VALIDATION_TOLERANCE_MS, DEFAULT_VALIDATION_TOLERANCE);
 
         //todo: currently, only JWKS urls are supported
         var resolver = JwksPublicKeyResolver.create(keyParserRegistry, keyUrl, monitor, cacheValidityMs);
 
-        tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new NotBeforeValidationRule(clock, tolerance, true));
-        tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new ExpirationIssuedAtValidationRule(clock, tolerance, true));
+        tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new NotBeforeValidationRule(clock, validationTolerance, true));
+        tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new ExpirationIssuedAtValidationRule(clock, validationTolerance, true));
 
         // always register - this would potentially overwrite other services
         authenticationRegistry.register("management-api", new DelegatedAuthenticationService(resolver, monitor, tokenValidationService, tokenValidationRulesRegistry));

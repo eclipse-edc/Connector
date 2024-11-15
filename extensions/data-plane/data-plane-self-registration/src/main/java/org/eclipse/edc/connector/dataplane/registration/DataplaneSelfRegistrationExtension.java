@@ -48,8 +48,9 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
 
     public static final boolean DEFAULT_SELF_UNREGISTRATION = false;
     public static final String NAME = "Dataplane Self Registration";
-    @Setting(value = "Enable data-plane un-registration at shutdown (not suggested for clustered environments)", type = "boolean", defaultValue = DEFAULT_SELF_UNREGISTRATION + "")
-    static final String SELF_UNREGISTRATION = "edc.data.plane.self.unregistration";
+    @Setting(description = "Enable data-plane un-registration at shutdown (not suggested for clustered environments)", defaultValue = DEFAULT_SELF_UNREGISTRATION + "", key = "edc.data.plane.self.unregistration")
+    private boolean selfUnregistration;
+
     private final AtomicBoolean isRegistered = new AtomicBoolean(false);
     private final AtomicReference<String> registrationError = new AtomicReference<>("Data plane self registration not complete");
     @Inject
@@ -108,7 +109,7 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
-        if (context.getConfig().getBoolean(SELF_UNREGISTRATION, DEFAULT_SELF_UNREGISTRATION)) {
+        if (selfUnregistration) {
             dataPlaneSelectorService.unregister(context.getComponentId())
                     .onSuccess(it -> context.getMonitor().debug("data plane successfully unregistered"))
                     .onFailure(failure -> context.getMonitor().severe("error during data plane de-registration. %s: %s"

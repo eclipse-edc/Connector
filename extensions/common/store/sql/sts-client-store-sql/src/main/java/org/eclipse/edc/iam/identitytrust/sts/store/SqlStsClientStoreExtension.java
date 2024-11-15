@@ -36,8 +36,8 @@ import static org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry.DEFA
 @Extension(value = "SQL sts accounts store")
 public class SqlStsClientStoreExtension implements ServiceExtension {
 
-    @Setting(value = "The datasource to be used", defaultValue = DEFAULT_DATASOURCE)
-    public static final String DATASOURCE_NAME = "edc.sql.store.stsclient.datasource";
+    @Setting(description = "The datasource to be used", defaultValue = DEFAULT_DATASOURCE, key = "edc.sql.store.stsclient.datasource")
+    private String dataSourceName;
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -59,7 +59,6 @@ public class SqlStsClientStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = context.getSetting(DATASOURCE_NAME, DEFAULT_DATASOURCE);
 
         var sqlStore = new SqlStsAccountStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(),
                 getStatementImpl(), queryExecutor);

@@ -54,6 +54,7 @@ import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import java.util.Map;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
@@ -81,9 +82,9 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
 
-    @Setting(value = "Configures endpoint for reaching the Protocol API.", defaultValue = "<hostname:protocol.port/protocol.path>")
-    public static final String DSP_CALLBACK_ADDRESS = "edc.dsp.callback.address";
-    
+    @Setting(description = "Configures endpoint for reaching the Protocol API in the form \"<hostname:protocol.port/protocol.path>\"", key = "edc.dsp.callback.address", required = false)
+    private String callbackAddress;
+
     @SettingContext("Protocol API context setting key")
     private static final String PROTOCOL_CONFIG_KEY = "web.http." + ApiContext.PROTOCOL;
 
@@ -121,7 +122,9 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var contextConfig = context.getConfig(PROTOCOL_CONFIG_KEY);
         var apiConfiguration = configurator.configure(contextConfig, webServer, SETTINGS);
-        var dspWebhookAddress = context.getSetting(DSP_CALLBACK_ADDRESS, format("http://%s:%s%s", hostname.get(), apiConfiguration.getPort(), apiConfiguration.getPath()));
+        var dspWebhookAddress = ofNullable(callbackAddress).orElseGet(() -> format("http://%s:%s%s", hostname.get(), apiConfiguration.getPort(), apiConfiguration.getPath()));
+
+
         context.registerService(ProtocolWebhook.class, () -> dspWebhookAddress);
 
         var jsonLdMapper = typeManager.getMapper(JSON_LD);

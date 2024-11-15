@@ -31,13 +31,14 @@ public class HttpDynamicEndpointDataReferenceReceiverExtension implements Servic
 
     public static final String NAME = "Http Dynamic Endpoint Data Reference Receiver";
 
-    @Setting(value = "Fallback endpoint when url is missing the the transfer process")
-    private static final String HTTP_RECEIVER_ENDPOINT = "edc.receiver.http.dynamic.endpoint";
+    @Setting(description = "Fallback endpoint when url is missing the the transfer process", key = "edc.receiver.http.dynamic.endpoint", required = false)
+    private String fallbackEndpoint;
 
-    @Setting(value = "Header name that will be sent with the EDR")
-    private static final String HTTP_RECEIVER_AUTH_KEY = "edc.receiver.http.dynamic.auth-key";
-    @Setting(value = "Header value that will be sent with the EDR")
-    private static final String HTTP_RECEIVER_AUTH_CODE = "edc.receiver.http.dynamic.auth-code";
+    @Setting(description = "Header name that will be sent with the EDR", key = "edc.receiver.http.dynamic.auth-key", required = false)
+    private String authKey;
+
+    @Setting(description = "Header value that will be sent with the EDR", key = "edc.receiver.http.dynamic.auth-code", required = false)
+    private String authCode;
 
     @Inject
     private EndpointDataReferenceReceiverRegistry receiverRegistry;
@@ -65,10 +66,6 @@ public class HttpDynamicEndpointDataReferenceReceiverExtension implements Servic
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var fallbackEndpoint = context.getSetting(HTTP_RECEIVER_ENDPOINT, null);
-        var authKey = context.getSetting(HTTP_RECEIVER_AUTH_KEY, null);
-        var authCode = context.getSetting(HTTP_RECEIVER_AUTH_CODE, null);
-
         var receiver = HttpDynamicEndpointDataReferenceReceiver.Builder.newInstance()
                 .httpClient(httpClient)
                 .typeManager(typeManager)

@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.iam.oauth2;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.keys.spi.CertificateResolver;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
@@ -53,7 +54,7 @@ class Oauth2ServiceExtensionTest {
     }
 
     @Test
-    void verifyExtensionWithCertificateAlias(Oauth2ServiceExtension extension, ServiceExtensionContext context) {
+    void verifyExtensionWithCertificateAlias(ServiceExtensionContext context, ObjectFactory objectFactory) {
         var config = spy(ConfigFactory.fromMap(Map.of(
                 "edc.oauth.client.id", "id",
                 "edc.oauth.token.url", "url",
@@ -63,14 +64,14 @@ class Oauth2ServiceExtensionTest {
         mockRsaPrivateKey("p_alias");
 
         when(context.getConfig(any())).thenReturn(config);
-        extension.initialize(context);
+        objectFactory.constructInstance(Oauth2ServiceExtension.class).initialize(context);
 
         verify(config, times(1)).getString("edc.oauth.certificate.alias");
         verify(config, never()).getString("edc.oauth.public.key.alias");
     }
 
     @Test
-    void leewayWarningLoggedWhenLeewayUnconfigured(Oauth2ServiceExtension extension, ServiceExtensionContext context) {
+    void leewayWarningLoggedWhenLeewayUnconfigured(ServiceExtensionContext context, ObjectFactory objectFactory) {
         var config = spy(ConfigFactory.fromMap(Map.of(
                 "edc.oauth.client.id", "id",
                 "edc.oauth.token.url", "url",
@@ -81,15 +82,15 @@ class Oauth2ServiceExtensionTest {
 
         var monitor = mock(Monitor.class);
         when(context.getMonitor()).thenReturn(monitor);
-        when(context.getConfig(any())).thenReturn(config);
-        extension.initialize(context);
+        when(context.getConfig()).thenReturn(config);
+        objectFactory.constructInstance(Oauth2ServiceExtension.class).initialize(context);
 
         var message = "No value was configured for 'edc.oauth.validation.issued.at.leeway'.";
         verify(monitor, times(1)).info(contains(message));
     }
 
     @Test
-    void leewayNoWarningWhenLeewayConfigured(Oauth2ServiceExtension extension, ServiceExtensionContext context) {
+    void leewayNoWarningWhenLeewayConfigured(ServiceExtensionContext context, ObjectFactory objectFactory) {
         var config = spy(ConfigFactory.fromMap(Map.of(
                 "edc.oauth.client.id", "id",
                 "edc.oauth.token.url", "url",
@@ -102,7 +103,7 @@ class Oauth2ServiceExtensionTest {
         var monitor = mock(Monitor.class);
         when(context.getMonitor()).thenReturn(monitor);
         when(context.getConfig(any())).thenReturn(config);
-        extension.initialize(context);
+        objectFactory.constructInstance(Oauth2ServiceExtension.class).initialize(context);
 
         var message = "No value was configured for 'edc.oauth.validation.issued.at.leeway'.";
         verify(monitor, never()).info(contains(message));

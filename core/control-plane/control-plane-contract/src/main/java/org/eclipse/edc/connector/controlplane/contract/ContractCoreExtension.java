@@ -77,26 +77,26 @@ public class ContractCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Contract Core";
 
-    @Setting(value = "the iteration wait time in milliseconds in the negotiation state machine. Default value " + DEFAULT_ITERATION_WAIT, type = "long")
-    private static final String NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.negotiation.state-machine.iteration-wait-millis";
+    @Setting(description = "the iteration wait time in milliseconds in the negotiation state machine. Default value " + DEFAULT_ITERATION_WAIT, key = "edc.negotiation.state-machine.iteration-wait-millis", defaultValue = DEFAULT_ITERATION_WAIT + "")
+    private long stateMachineIterationWaitMillis;
 
-    @Setting(value = "the batch size in the consumer negotiation state machine. Default value " + DEFAULT_BATCH_SIZE, type = "int")
-    private static final String NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.consumer.state-machine.batch-size";
+    @Setting(description = "the batch size in the consumer negotiation state machine. Default value " + DEFAULT_BATCH_SIZE, key = "edc.negotiation.consumer.state-machine.batch-size", defaultValue = DEFAULT_BATCH_SIZE + "")
+    private int consumerStateMachineBatchSize;
 
-    @Setting(value = "the batch size in the provider negotiation state machine. Default value " + DEFAULT_BATCH_SIZE, type = "int")
-    private static final String NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.provider.state-machine.batch-size";
+    @Setting(description = "the batch size in the provider negotiation state machine. Default value " + DEFAULT_BATCH_SIZE, key = "edc.negotiation.provider.state-machine.batch-size", defaultValue = DEFAULT_BATCH_SIZE + "")
+    private int providerStateMachineBatchSize;
 
-    @Setting(value = "how many times a specific operation must be tried before terminating the consumer negotiation with error", type = "int", defaultValue = DEFAULT_SEND_RETRY_LIMIT + "")
-    private static final String NEGOTIATION_CONSUMER_SEND_RETRY_LIMIT = "edc.negotiation.consumer.send.retry.limit";
+    @Setting(description = "how many times a specific operation must be tried before terminating the consumer negotiation with error", key = "edc.negotiation.consumer.send.retry.limit", defaultValue = DEFAULT_SEND_RETRY_LIMIT + "")
+    private int consumerSendRetryLimit;
 
-    @Setting(value = "how many times a specific operation must be tried before terminating the provider negotiation with error", type = "int", defaultValue = DEFAULT_SEND_RETRY_LIMIT + "")
-    private static final String NEGOTIATION_PROVIDER_SEND_RETRY_LIMIT = "edc.negotiation.provider.send.retry.limit";
+    @Setting(description = "how many times a specific operation must be tried before terminating the provider negotiation with error", key = "edc.negotiation.provider.send.retry.limit", defaultValue = DEFAULT_SEND_RETRY_LIMIT + "")
+    private int providerSendRetryLimit;
 
-    @Setting(value = "The base delay for the consumer negotiation retry mechanism in millisecond", type = "long", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
-    private static final String NEGOTIATION_CONSUMER_SEND_RETRY_BASE_DELAY_MS = "edc.negotiation.consumer.send.retry.base-delay.ms";
+    @Setting(description = "The base delay for the consumer negotiation retry mechanism in millisecond", key = "edc.negotiation.consumer.send.retry.base-delay.ms", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
+    private long consumerSendRetryBaseDelayMs;
 
-    @Setting(value = "The base delay for the provider negotiation retry mechanism in millisecond", type = "long", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
-    private static final String NEGOTIATION_PROVIDER_SEND_RETRY_BASE_DELAY_MS = "edc.negotiation.provider.send.retry.base-delay.ms";
+    @Setting(description = "The base delay for the provider negotiation retry mechanism in millisecond", key = "edc.negotiation.provider.send.retry.base-delay.ms", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
+    private long providerSendRetryBaseDelayMs;
 
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
 
@@ -192,8 +192,7 @@ public class ContractCoreExtension implements ServiceExtension {
         policyEngine.registerFunction(TransferProcessPolicyContext.class, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY,
                 new ContractExpiryCheckFunction<>());
 
-        var iterationWaitMillis = context.getSetting(NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
-        var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
+        var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(stateMachineIterationWaitMillis);
 
         observable.registerListener(new ContractNegotiationEventListener(eventRouter, clock));
 
@@ -208,8 +207,8 @@ public class ContractCoreExtension implements ServiceExtension {
                 .executorInstrumentation(executorInstrumentation)
                 .store(store)
                 .policyStore(policyStore)
-                .batchSize(context.getSetting(NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
-                .entityRetryProcessConfiguration(consumerEntityRetryProcessConfiguration(context))
+                .batchSize(consumerStateMachineBatchSize)
+                .entityRetryProcessConfiguration(consumerEntityRetryProcessConfiguration())
                 .protocolWebhook(protocolWebhook)
                 .pendingGuard(pendingGuard)
                 .build();
@@ -225,8 +224,8 @@ public class ContractCoreExtension implements ServiceExtension {
                 .executorInstrumentation(executorInstrumentation)
                 .store(store)
                 .policyStore(policyStore)
-                .batchSize(context.getSetting(NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
-                .entityRetryProcessConfiguration(providerEntityRetryProcessConfiguration(context))
+                .batchSize(providerStateMachineBatchSize)
+                .entityRetryProcessConfiguration(providerEntityRetryProcessConfiguration())
                 .protocolWebhook(protocolWebhook)
                 .pendingGuard(pendingGuard)
                 .build();
@@ -235,17 +234,13 @@ public class ContractCoreExtension implements ServiceExtension {
         context.registerService(ProviderContractNegotiationManager.class, providerNegotiationManager);
     }
 
-    private EntityRetryProcessConfiguration providerEntityRetryProcessConfiguration(ServiceExtensionContext context) {
-        var retryLimit = context.getSetting(NEGOTIATION_PROVIDER_SEND_RETRY_LIMIT, DEFAULT_SEND_RETRY_LIMIT);
-        var retryBaseDelay = context.getSetting(NEGOTIATION_PROVIDER_SEND_RETRY_BASE_DELAY_MS, DEFAULT_SEND_RETRY_BASE_DELAY);
-        return new EntityRetryProcessConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
+    private EntityRetryProcessConfiguration providerEntityRetryProcessConfiguration() {
+        return new EntityRetryProcessConfiguration(providerSendRetryLimit, () -> new ExponentialWaitStrategy(providerSendRetryBaseDelayMs));
     }
 
     @NotNull
-    private EntityRetryProcessConfiguration consumerEntityRetryProcessConfiguration(ServiceExtensionContext context) {
-        var retryLimit = context.getSetting(NEGOTIATION_CONSUMER_SEND_RETRY_LIMIT, DEFAULT_SEND_RETRY_LIMIT);
-        var retryBaseDelay = context.getSetting(NEGOTIATION_CONSUMER_SEND_RETRY_BASE_DELAY_MS, DEFAULT_SEND_RETRY_BASE_DELAY);
-        return new EntityRetryProcessConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
+    private EntityRetryProcessConfiguration consumerEntityRetryProcessConfiguration() {
+        return new EntityRetryProcessConfiguration(consumerSendRetryLimit, () -> new ExponentialWaitStrategy(consumerSendRetryBaseDelayMs));
     }
 
 }

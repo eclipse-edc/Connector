@@ -14,14 +14,13 @@
 
 package org.eclipse.edc.vault.hashicorp.client;
 
-import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN_TTL_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings.VAULT_TOKEN_TTL_DEFAULT;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -29,7 +28,6 @@ class HashicorpVaultSettingsTest {
 
     private static final String TOKEN = "token";
     private static final String URL = "https://test.com/vault";
-    private static final HttpUrl HTTP_URL = HttpUrl.parse(URL);
     private static final String HEALTH_CHECK_PATH = "/healthcheck/path";
     private static final String SECRET_PATH = "/secret/path";
 
@@ -40,7 +38,7 @@ class HashicorpVaultSettingsTest {
                 TOKEN,
                 HEALTH_CHECK_PATH, VAULT_TOKEN_TTL_DEFAULT,
                 VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
-        assertThat(settings.url()).isEqualTo(HTTP_URL);
+        assertThat(settings.url()).isEqualTo(URL);
         assertThat(settings.healthCheckEnabled()).isEqualTo(true);
         assertThat(settings.healthCheckPath()).isEqualTo(HEALTH_CHECK_PATH);
         assertThat(settings.healthStandbyOk()).isEqualTo(true);
@@ -59,17 +57,6 @@ class HashicorpVaultSettingsTest {
                 HEALTH_CHECK_PATH, VAULT_TOKEN_TTL_DEFAULT,
                 VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
         assertThat(throwable.getMessage()).isEqualTo("Vault url must not be null");
-    }
-
-    @Test
-    void createSettings_withVaultUrlInvalid_shouldThrowException() {
-        var throwable = assertThrows(Exception.class, () -> createSettings(
-                "this is not valid",
-                TOKEN,
-                HEALTH_CHECK_PATH,
-                VAULT_TOKEN_TTL_DEFAULT,
-                VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
-        assertThat(throwable.getMessage()).isEqualTo("Vault url must be valid");
     }
 
     @Test

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.registration;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
@@ -39,7 +40,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.dataplane.registration.DataplaneSelfRegistrationExtension.SELF_UNREGISTRATION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -117,13 +117,15 @@ class DataplaneSelfRegistrationExtensionTest {
     }
 
     @Test
-    void shouldUnregisterInstanceAtShutdown_whenConfigured(DataplaneSelfRegistrationExtension extension, ServiceExtensionContext context) {
+    void shouldUnregisterInstanceAtShutdown_whenConfigured(ServiceExtensionContext context, ObjectFactory objectFactory) {
         when(context.getComponentId()).thenReturn("componentId");
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(SELF_UNREGISTRATION, "true")));
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.data.plane.self.unregistration", "true")));
         when(dataPlaneSelectorService.unregister(any())).thenReturn(ServiceResult.success());
-        extension.initialize(context);
 
-        extension.shutdown();
+        var ext = objectFactory.constructInstance(DataplaneSelfRegistrationExtension.class);
+        ext.initialize(context);
+
+        ext.shutdown();
 
         verify(dataPlaneSelectorService).unregister("componentId");
     }

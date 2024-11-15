@@ -24,7 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +40,7 @@ class JsonLdExtensionTest {
     }
 
     @Test
-    void verifyCachedDocsFromConfig_oneValidEntry(ServiceExtensionContext context, JsonLdExtension extension) throws URISyntaxException {
+    void verifyCachedDocsFromConfig_oneValidEntry(ServiceExtensionContext context, JsonLdExtension extension) {
         var config = ConfigFactory.fromMap(Map.of(
                 "edc.jsonld.document.foo.url", "http://foo.org/doc.json",
                 "edc.jsonld.document.foo.path", "/tmp/foo/doc.json")
@@ -56,7 +55,7 @@ class JsonLdExtensionTest {
     }
 
     @Test
-    void verifyCachedDocsFromConfig_oneValidEntry_withSuperfluous(ServiceExtensionContext context, JsonLdExtension extension) throws URISyntaxException {
+    void verifyCachedDocsFromConfig_oneValidEntry_withSuperfluous(ServiceExtensionContext context, JsonLdExtension extension) {
         var config = ConfigFactory.fromMap(Map.of(
                 "edc.jsonld.document.foo.url", "http://foo.org/doc.json",
                 "edc.jsonld.document.foo.invalid", "should be ignored",
@@ -72,7 +71,7 @@ class JsonLdExtensionTest {
     }
 
     @Test
-    void verifyCachedDocsFromConfig_multipleValidEntries(ServiceExtensionContext context, JsonLdExtension extension) throws URISyntaxException {
+    void verifyCachedDocsFromConfig_multipleValidEntries(ServiceExtensionContext context, JsonLdExtension extension) {
         var config = ConfigFactory.fromMap(Map.of(
                 "edc.jsonld.document.foo.url", "http://foo.org/doc.json",
                 "edc.jsonld.document.foo.path", "/tmp/foo/doc.json",
@@ -90,7 +89,7 @@ class JsonLdExtensionTest {
     }
 
     @Test
-    void verifyCachedDocsFromConfig_multipleEntries_oneIncomplete(ServiceExtensionContext context, JsonLdExtension extension) throws URISyntaxException {
+    void verifyCachedDocsFromConfig_multipleEntries_oneIncomplete(ServiceExtensionContext context, JsonLdExtension extension) {
         var config = ConfigFactory.fromMap(Map.of(
                 "edc.jsonld.document.foo.url", "http://foo.org/doc.json",
                 "edc.jsonld.document.foo.path", "/tmp/foo/doc.json",
@@ -108,7 +107,7 @@ class JsonLdExtensionTest {
     }
 
     @Test
-    void verifyCachedDocsFromConfig_multipleEntries_oneInvalid(ServiceExtensionContext context, JsonLdExtension extension) throws URISyntaxException {
+    void verifyCachedDocsFromConfig_multipleEntries_oneInvalid(ServiceExtensionContext context, JsonLdExtension extension) {
         var config = ConfigFactory.fromMap(Map.of(
                 "edc.jsonld.document.foo.url", "http://foo.org/doc.json",
                 "edc.jsonld.document.foo.path", "/tmp/foo/doc.json",

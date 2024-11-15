@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.http.api.configuration;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -45,7 +46,6 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.DSP_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.SETTINGS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_2024_1;
@@ -99,13 +99,14 @@ class DspApiConfigurationExtensionTest {
     }
 
     @Test
-    void shouldUseConfiguredProtocolWebhook(DspApiConfigurationExtension extension, ServiceExtensionContext context) {
+    void shouldUseConfiguredProtocolWebhook(ServiceExtensionContext context, ObjectFactory factory) {
         var webhookAddress = "http://webhook";
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
                 "web.http.protocol.port", String.valueOf(1234),
-                "web.http.protocol.path", "/path"))
+                "web.http.protocol.path", "/path",
+                "edc.dsp.callback.address", webhookAddress))
         );
-        when(context.getSetting(eq(DSP_CALLBACK_ADDRESS), any())).thenReturn(webhookAddress);
+        var extension = factory.constructInstance(DspApiConfigurationExtension.class);
 
         extension.initialize(context);
 

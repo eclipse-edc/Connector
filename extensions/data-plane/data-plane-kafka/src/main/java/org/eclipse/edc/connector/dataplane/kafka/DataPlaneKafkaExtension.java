@@ -34,8 +34,8 @@ public class DataPlaneKafkaExtension implements ServiceExtension {
 
     private static final int DEFAULT_PARTITION_SIZE = 5;
 
-    @Setting(value = "The partitionSize used by the kafka data sink", type = "int", defaultValue = DEFAULT_PARTITION_SIZE + "", min = 1)
-    private static final String EDC_DATAPLANE_KAFKA_SINK_PARTITION_SIZE = "edc.dataplane.kafka.sink.partition.size";
+    @Setting(description = "The partitionSize used by the kafka data sink", defaultValue = DEFAULT_PARTITION_SIZE + "", min = 1, key = "edc.dataplane.kafka.sink.partition.size")
+    private int partitionSize;
 
     @Inject
     private DataTransferExecutorServiceContainer executorContainer;
@@ -56,9 +56,8 @@ public class DataPlaneKafkaExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var propertiesFactory = new KafkaPropertiesFactory();
 
-        var sinkPartitionSize = context.getSetting(EDC_DATAPLANE_KAFKA_SINK_PARTITION_SIZE, DEFAULT_PARTITION_SIZE);
 
         pipelineService.registerFactory(new KafkaDataSourceFactory(monitor, propertiesFactory, clock));
-        pipelineService.registerFactory(new KafkaDataSinkFactory(executorContainer.getExecutorService(), monitor, propertiesFactory, sinkPartitionSize));
+        pipelineService.registerFactory(new KafkaDataSinkFactory(executorContainer.getExecutorService(), monitor, propertiesFactory, partitionSize));
     }
 }

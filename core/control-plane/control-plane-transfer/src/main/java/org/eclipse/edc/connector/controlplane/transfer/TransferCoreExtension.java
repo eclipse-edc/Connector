@@ -72,17 +72,17 @@ public class TransferCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Core";
 
-    @Setting(value = "the iteration wait time in milliseconds in the transfer process state machine. Default value " + DEFAULT_ITERATION_WAIT, type = "long")
-    private static final String TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.transfer.state-machine.iteration-wait-millis";
+    @Setting(description = "the iteration wait time in milliseconds in the transfer process state machine. Default value " + DEFAULT_ITERATION_WAIT, key = "edc.transfer.state-machine.iteration-wait-millis", defaultValue = DEFAULT_ITERATION_WAIT + "")
+    private long stateMachineIterationWaitMillis;
 
-    @Setting(value = "the batch size in the transfer process state machine. Default value " + DEFAULT_BATCH_SIZE, type = "int")
-    private static final String TRANSFER_STATE_MACHINE_BATCH_SIZE = "edc.transfer.state-machine.batch-size";
+    @Setting(description = "the batch size in the transfer process state machine. Default value " + DEFAULT_BATCH_SIZE, key = "edc.transfer.state-machine.batch-size", defaultValue = DEFAULT_BATCH_SIZE + "")
+    private int stateMachineBatchSize;
 
-    @Setting(value = "how many times a specific operation must be tried before terminating the transfer with error", type = "int", defaultValue = DEFAULT_SEND_RETRY_LIMIT + "")
-    private static final String TRANSFER_SEND_RETRY_LIMIT = "edc.transfer.send.retry.limit";
+    @Setting(description = "how many times a specific operation must be tried before terminating the transfer with error", key = "edc.transfer.send.retry.limit", defaultValue = DEFAULT_SEND_RETRY_LIMIT + "")
+    private int sendRetryLimit;
 
-    @Setting(value = "The base delay for the transfer retry mechanism in millisecond", type = "long", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
-    private static final String TRANSFER_SEND_RETRY_BASE_DELAY_MS = "edc.transfer.send.retry.base-delay.ms";
+    @Setting(description = "The base delay for the transfer retry mechanism in millisecond", key = "edc.transfer.send.retry.base-delay.ms", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
+    private long sendRetryBaseDelay;
 
     @Inject
     private TransferProcessStore transferProcessStore;
@@ -151,8 +151,7 @@ public class TransferCoreExtension implements ServiceExtension {
 
         registerTypes(typeManager);
 
-        var iterationWaitMillis = context.getSetting(TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
-        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
+        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(stateMachineIterationWaitMillis);
 
         typeTransformerRegistry.register(new DataAddressToEndpointDataReferenceTransformer());
 
@@ -163,7 +162,7 @@ public class TransferCoreExtension implements ServiceExtension {
 
         observable.registerListener(new TransferProcessEventListener(eventRouter, clock));
 
-        var entityRetryProcessConfiguration = getEntityRetryProcessConfiguration(context);
+        var entityRetryProcessConfiguration = getEntityRetryProcessConfiguration();
         var provisionResponsesHandler = new ProvisionResponsesHandler(observable, monitor, vault, typeManager);
         var deprovisionResponsesHandler = new DeprovisionResponsesHandler(observable, monitor, vault);
 
@@ -181,7 +180,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .observable(observable)
                 .store(transferProcessStore)
                 .policyArchive(policyArchive)
-                .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
+                .batchSize(stateMachineBatchSize)
                 .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .protocolWebhook(protocolWebhook)
@@ -209,10 +208,8 @@ public class TransferCoreExtension implements ServiceExtension {
     }
 
     @NotNull
-    private EntityRetryProcessConfiguration getEntityRetryProcessConfiguration(ServiceExtensionContext context) {
-        var retryLimit = context.getSetting(TRANSFER_SEND_RETRY_LIMIT, DEFAULT_SEND_RETRY_LIMIT);
-        var retryBaseDelay = context.getSetting(TRANSFER_SEND_RETRY_BASE_DELAY_MS, DEFAULT_SEND_RETRY_BASE_DELAY);
-        return new EntityRetryProcessConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
+    private EntityRetryProcessConfiguration getEntityRetryProcessConfiguration() {
+        return new EntityRetryProcessConfiguration(sendRetryLimit, () -> new ExponentialWaitStrategy(sendRetryBaseDelay));
     }
 
     private void registerTypes(TypeManager typeManager) {

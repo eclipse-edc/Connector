@@ -39,8 +39,8 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
 
     private static final String DEFAULT_DATAPLANE_SELECTOR_STRATEGY = "random";
 
-    @Setting(value = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime", defaultValue = DEFAULT_DATAPLANE_SELECTOR_STRATEGY)
-    private static final String DPF_SELECTOR_STRATEGY = "edc.dataplane.client.selector.strategy";
+    @Setting(description = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime", defaultValue = DEFAULT_DATAPLANE_SELECTOR_STRATEGY, key = "edc.dataplane.client.selector.strategy")
+    private String selectionStrategy;
 
     @Inject
     private DataFlowManager dataFlowManager;
@@ -62,7 +62,6 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var selectionStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, DEFAULT_DATAPLANE_SELECTOR_STRATEGY);
         var controller = new DataPlaneSignalingFlowController(callbackUrl, selectorService, getPropertiesProvider(),
                 clientFactory, selectionStrategy, transferTypeParser);
         dataFlowManager.register(controller);

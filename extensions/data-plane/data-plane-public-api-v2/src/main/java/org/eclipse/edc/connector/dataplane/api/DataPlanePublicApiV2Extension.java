@@ -49,12 +49,14 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
     @SettingContext("Public API context setting key")
     private static final String PUBLIC_CONFIG_KEY = "web.http." + ApiContext.PUBLIC;
 
-    @Setting(value = "Base url of the public API endpoint without the trailing slash. This should correspond to the values configured " +
-                     "in '" + DEFAULT_PUBLIC_PORT + "' and '" + PUBLIC_CONTEXT_PATH + "'.", defaultValue = "http://<HOST>:" + DEFAULT_PUBLIC_PORT + PUBLIC_CONTEXT_PATH)
-    private static final String PUBLIC_ENDPOINT = "edc.dataplane.api.public.baseurl";
+    @Setting(description = "Base url of the public API endpoint without the trailing slash. This should correspond to the values configured " +
+                           "in '" + DEFAULT_PUBLIC_PORT + "' and '" + PUBLIC_CONTEXT_PATH + "'.",
+            defaultValue = "http://<HOST>:" + DEFAULT_PUBLIC_PORT + PUBLIC_CONTEXT_PATH,
+            key = "edc.dataplane.api.public.baseurl", warnOnMissingConfig = true)
+    private String publicBaseUrl;
 
-    @Setting(value = "Optional base url of the response channel endpoint without the trailing slash. A common practice is to use <PUBLIC_ENDPOINT>/responseChannel")
-    private static final String PUBLIC_RESPONSE_ENDPOINT = "edc.dataplane.api.public.response.baseurl";
+    @Setting(description = "Optional base url of the response channel endpoint without the trailing slash. A common practice is to use <PUBLIC_ENDPOINT>/responseChannel", key = "edc.dataplane.api.public.response.baseurl", required = false)
+    private String publicApiResponseUrl;
 
     private static final int DEFAULT_THREAD_POOL = 10;
     private static final WebServiceSettings PUBLIC_SETTINGS = WebServiceSettings.Builder.newInstance()
@@ -103,17 +105,11 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
                 "Data plane proxy transfers"
         );
 
-        var publicEndpoint = context.getSetting(PUBLIC_ENDPOINT, null);
-        if (publicEndpoint == null) {
-            publicEndpoint = "http://%s:%d%s".formatted(hostname.get(), configuration.getPort(), configuration.getPath());
-            context.getMonitor().warning("Config property '%s' was not specified, the default '%s' will be used.".formatted(PUBLIC_ENDPOINT, publicEndpoint));
-        }
-        var endpoint = Endpoint.url(publicEndpoint);
+        var endpoint = Endpoint.url(publicBaseUrl);
         generatorService.addGeneratorFunction("HttpData", dataAddress -> endpoint);
 
-        var responseEndpoint = context.getSetting(PUBLIC_RESPONSE_ENDPOINT, null);
-        if (responseEndpoint != null) {
-            generatorService.addGeneratorFunction("HttpData", () -> Endpoint.url(responseEndpoint));
+        if (publicApiResponseUrl != null) {
+            generatorService.addGeneratorFunction("HttpData", () -> Endpoint.url(publicApiResponseUrl));
         }
 
         var publicApiController = new DataPlanePublicApiV2Controller(pipelineService, executorService, authorizationService);

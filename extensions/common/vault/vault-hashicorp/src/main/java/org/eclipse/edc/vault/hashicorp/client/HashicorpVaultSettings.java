@@ -14,31 +14,51 @@
 
 package org.eclipse.edc.vault.hashicorp.client;
 
-import okhttp3.HttpUrl;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * Settings for the {@link HashicorpVaultClient}.
  */
+@Settings
 public class HashicorpVaultSettings {
+    public static final String VAULT_API_HEALTH_PATH_DEFAULT = "/v1/sys/health";
+    public static final String VAULT_API_SECRET_PATH_DEFAULT = "/v1/secret";
+    public static final boolean VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT = false;
+    public static final long VAULT_TOKEN_RENEW_BUFFER_DEFAULT = 30;
+    public static final long VAULT_TOKEN_TTL_DEFAULT = 300;
+    public static final boolean VAULT_HEALTH_CHECK_ENABLED_DEFAULT = true;
+    public static final boolean VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT = true;
 
-    private HttpUrl url;
+    @Setting(description = "The URL of the Hashicorp Vault", key = "edc.vault.hashicorp.url")
+    private String url;
+    @Setting(description = "Whether or not the vault health check is enabled", defaultValue = VAULT_HEALTH_CHECK_ENABLED_DEFAULT + "", key = "edc.vault.hashicorp.health.check.enabled")
     private boolean healthCheckEnabled;
+    @Setting(description = "The URL path of the vault's /health endpoint", defaultValue = VAULT_API_HEALTH_PATH_DEFAULT, key = "edc.vault.hashicorp.api.health.check.path")
     private String healthCheckPath;
+    @Setting(description = "Specifies if being a standby should still return the active status code instead of the standby status code", defaultValue = VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT + "", key = "edc.vault.hashicorp.health.check.standby.ok")
     private boolean healthStandbyOk;
+    @Setting(description = "The token used to access the Hashicorp Vault", key = "edc.vault.hashicorp.token")
     private String token;
+    @Setting(description = "Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes",
+            defaultValue = VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT + "", key = "edc.vault.hashicorp.token.scheduled-renew-enabled")
     private boolean scheduledTokenRenewEnabled;
+    @Setting(description = "The time-to-live (ttl) value of the Hashicorp Vault token in seconds", defaultValue = VAULT_TOKEN_TTL_DEFAULT + "", key = "edc.vault.hashicorp.token.ttl")
     private long ttl;
+    @Setting(description = "The renew buffer of the Hashicorp Vault token in seconds", defaultValue = VAULT_TOKEN_RENEW_BUFFER_DEFAULT + "", key = "edc.vault.hashicorp.token.renew-buffer")
     private long renewBuffer;
+    @Setting(description = "The URL path of the vault's /secret endpoint", defaultValue = VAULT_API_SECRET_PATH_DEFAULT, key = "edc.vault.hashicorp.api.secret.path")
     private String secretPath;
+    @Setting(description = "The path of the folder that the secret is stored in, relative to VAULT_FOLDER_PATH", required = false, key = "edc.vault.hashicorp.folder")
 
     private String folderPath;
 
     private HashicorpVaultSettings() {
     }
 
-    public HttpUrl url() {
+    public String url() {
         return url;
     }
 
@@ -91,7 +111,7 @@ public class HashicorpVaultSettings {
 
         public Builder url(String url) {
             requireNonNull(url, "Vault url must not be null");
-            values.url = HttpUrl.parse(url);
+            values.url = url;
             return this;
         }
 

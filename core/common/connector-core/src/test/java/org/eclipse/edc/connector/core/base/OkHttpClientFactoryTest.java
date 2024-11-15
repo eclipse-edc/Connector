@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class OkHttpClientFactoryTest {
 
@@ -47,7 +48,7 @@ class OkHttpClientFactoryTest {
 
     @Test
     void shouldPrintLogIfHttpsNotEnforced() {
-        var configuration = OkHttpClientConfiguration.Builder.newInstance().build();
+        var configuration = mock(OkHttpClientConfiguration.class);
 
         var okHttpClient = OkHttpClientFactory.create(configuration, eventListener, monitor)
                 .newBuilder().addInterceptor(dummySuccessfulResponse())
@@ -60,7 +61,8 @@ class OkHttpClientFactoryTest {
 
     @Test
     void shouldEnforceHttpsCalls() {
-        var configuration = OkHttpClientConfiguration.Builder.newInstance().enforceHttps(true).build();
+        var configuration = mock(OkHttpClientConfiguration.class);
+        when(configuration.isEnforceHttps()).thenReturn(true);
 
         var okHttpClient = OkHttpClientFactory.create(configuration, eventListener, monitor)
                 .newBuilder().addInterceptor(dummySuccessfulResponse())
@@ -73,10 +75,9 @@ class OkHttpClientFactoryTest {
 
     @Test
     void shouldCreateCustomSocketFactory_whenSendSocketBufferIsSet() {
-        var configuration = OkHttpClientConfiguration.Builder.newInstance()
-                .sendBufferSize(4096)
-                .receiveBufferSize(4096)
-                .build();
+        var configuration = mock(OkHttpClientConfiguration.class);
+        when(configuration.getSendBufferSize()).thenReturn(4096);
+        when(configuration.getReceiveBufferSize()).thenReturn(4096);
 
         var okHttpClient = OkHttpClientFactory.create(configuration, eventListener, monitor)
                 .newBuilder()

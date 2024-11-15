@@ -52,7 +52,6 @@ import org.mockito.ArgumentCaptor;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
-import java.util.Map;
 import java.util.UUID;
 
 import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
@@ -114,7 +113,7 @@ class Oauth2ServiceImplTest {
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(Clock.systemUTC(), configuration.getNotBeforeValidationLeeway()));
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(Clock.systemUTC(), configuration.getIssuedAtLeeway()));
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> TEST_PRIVATE_KEY_ID, client, jwtDecoratorRegistry, registry,
+        authService = new Oauth2ServiceImpl(configuration.getTokenUrl(), tokenGenerationService, () -> TEST_PRIVATE_KEY_ID, client, jwtDecoratorRegistry, registry,
                 tokenValidationService, publicKeyResolverMock);
 
     }
@@ -212,15 +211,6 @@ class Oauth2ServiceImplTest {
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getClaims()).hasSize(3).containsKeys(AUDIENCE, NOT_BEFORE, EXPIRATION_TIME);
-    }
-
-    private PrivateKeyOauth2CredentialsRequest createRequest(Map<String, String> additional) {
-        return PrivateKeyOauth2CredentialsRequest.Builder.newInstance()
-                .grantType("client_credentials")
-                .clientAssertion("assertion-token")
-                .scope("scope")
-                .params(additional)
-                .build();
     }
 
     private RSAKey testKey() throws JOSEException {

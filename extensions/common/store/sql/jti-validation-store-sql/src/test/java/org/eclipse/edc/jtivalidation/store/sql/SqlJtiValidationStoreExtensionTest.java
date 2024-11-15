@@ -25,11 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jtivalidation.store.sql.SqlJtiValidationStoreExtension.DATASOURCE_NAME;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -51,6 +48,5 @@ public class SqlJtiValidationStoreExtensionTest {
         var service = context.getService(JtiValidationStore.class);
         assertThat(service).isInstanceOf(SqlJtiValidationStore.class);
 
-        verify(config).getString(eq(DATASOURCE_NAME), any());
     }
 }

@@ -56,38 +56,38 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     private static final int DEFAULT_TRANSFER_THREADS = 20;
 
     @Setting(
-            value = "the iteration wait time in milliseconds in the data plane state machine.",
+            description = "the iteration wait time in milliseconds in the data plane state machine.",
             defaultValue = DEFAULT_ITERATION_WAIT + "",
-            type = "long")
-    private static final String DATAPLANE_MACHINE_ITERATION_WAIT_MILLIS = "edc.dataplane.state-machine.iteration-wait-millis";
+            key = "edc.dataplane.state-machine.iteration-wait-millis")
+    private long iterationWaitMillis;
 
     @Setting(
-            value = "the batch size in the data plane state machine.",
+            description = "the batch size in the data plane state machine.",
             defaultValue = DEFAULT_BATCH_SIZE + "",
-            type = "int"
+            key = "edc.dataplane.state-machine.batch-size"
     )
-    private static final String DATAPLANE_MACHINE_BATCH_SIZE = "edc.dataplane.state-machine.batch-size";
+    private int batchSize;
 
     @Setting(
-            value = "how many times a specific operation must be tried before terminating the dataplane with error",
+            description = "how many times a specific operation must be tried before terminating the dataplane with error",
             defaultValue = DEFAULT_SEND_RETRY_LIMIT + "",
-            type = "int"
+            key = "edc.dataplane.send.retry.limit"
     )
-    private static final String DATAPLANE_SEND_RETRY_LIMIT = "edc.dataplane.send.retry.limit";
+    private int sendRetryLimit;
 
     @Setting(
-            value = "The base delay for the dataplane retry mechanism in millisecond",
+            description = "The base delay for the dataplane retry mechanism in millisecond",
             defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "",
-            type = "long"
+            key = "edc.dataplane.send.retry.base-delay.ms"
     )
-    private static final String DATAPLANE_SEND_RETRY_BASE_DELAY_MS = "edc.dataplane.send.retry.base-delay.ms";
+    private long sendRetryBaseDelay;
 
     @Setting(
-            value = "Size of the transfer thread pool. It is advisable to set it bigger than the state machine batch size",
+            description = "Size of the transfer thread pool. It is advisable to set it bigger than the state machine batch size",
             defaultValue = DEFAULT_TRANSFER_THREADS + "",
-            type = "int"
+            key = "edc.dataplane.transfer.threads"
     )
-    private static final String TRANSFER_THREADS = "edc.dataplane.transfer.threads";
+    private int numThreads;
 
     private DataPlaneManagerImpl dataPlaneManager;
 
@@ -121,14 +121,13 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         transferServiceRegistry.registerTransferService(pipelineService);
         context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
-        var iterationWaitMillis = context.getSetting(DATAPLANE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = new ExponentialWaitStrategy(iterationWaitMillis);
 
         dataPlaneManager = DataPlaneManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
-                .batchSize(context.getSetting(DATAPLANE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
+                .batchSize(batchSize)
                 .clock(clock)
-                .entityRetryProcessConfiguration(getEntityRetryProcessConfiguration(context))
+                .entityRetryProcessConfiguration(getEntityRetryProcessConfiguration())
                 .executorInstrumentation(executorInstrumentation)
                 .authorizationService(authorizationService)
                 .transferServiceRegistry(transferServiceRegistry)
@@ -155,16 +154,13 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @Provider
     public DataTransferExecutorServiceContainer dataTransferExecutorServiceContainer(ServiceExtensionContext context) {
-        var numThreads = context.getSetting(TRANSFER_THREADS, DEFAULT_TRANSFER_THREADS);
         var executorService = Executors.newFixedThreadPool(numThreads);
         return new DataTransferExecutorServiceContainer(
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
     }
 
     @NotNull
-    private EntityRetryProcessConfiguration getEntityRetryProcessConfiguration(ServiceExtensionContext context) {
-        var retryLimit = context.getSetting(DATAPLANE_SEND_RETRY_LIMIT, DEFAULT_SEND_RETRY_LIMIT);
-        var retryBaseDelay = context.getSetting(DATAPLANE_SEND_RETRY_BASE_DELAY_MS, DEFAULT_SEND_RETRY_BASE_DELAY);
-        return new EntityRetryProcessConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
+    private EntityRetryProcessConfiguration getEntityRetryProcessConfiguration() {
+        return new EntityRetryProcessConfiguration(sendRetryLimit, () -> new ExponentialWaitStrategy(sendRetryBaseDelay));
     }
 }

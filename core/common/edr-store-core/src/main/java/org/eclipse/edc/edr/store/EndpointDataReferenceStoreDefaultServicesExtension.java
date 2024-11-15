@@ -25,15 +25,13 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
-@Extension(EndpointDataReferenceStoreExtension.NAME)
+@Extension(EndpointDataReferenceStoreDefaultServicesExtension.NAME)
 public class EndpointDataReferenceStoreDefaultServicesExtension implements ServiceExtension {
 
-    public static final String DEFAULT_EDR_VAULT_PATH = "";
-    @Setting(value = "Directory/Path where to store EDRs in the vault for vaults that supports hierarchical structuring.", defaultValue = DEFAULT_EDR_VAULT_PATH)
-    public static final String EDC_EDR_VAULT_PATH = "edc.edr.vault.path";
+    @Setting(description = "Directory/Path where to store EDRs in the vault for vaults that supports hierarchical structuring.", key = "edc.edr.vault.path", required = false)
+    private String vaultPath = "";
     protected static final String NAME = "Endpoint Data Reference Core Default Services Extension";
 
     @Inject
@@ -47,9 +45,13 @@ public class EndpointDataReferenceStoreDefaultServicesExtension implements Servi
 
 
     @Provider(isDefault = true)
-    public EndpointDataReferenceCache endpointDataReferenceCache(ServiceExtensionContext context) {
-        var vaultDirectory = context.getConfig().getString(EDC_EDR_VAULT_PATH, DEFAULT_EDR_VAULT_PATH);
-        return new VaultEndpointDataReferenceCache(vault, vaultDirectory, typeManager.getMapper());
+    public EndpointDataReferenceCache endpointDataReferenceCache() {
+        return new VaultEndpointDataReferenceCache(vault, vaultPath, typeManager.getMapper());
+    }
+
+    @Override
+    public String name() {
+        return NAME;
     }
 
     @Provider(isDefault = true)

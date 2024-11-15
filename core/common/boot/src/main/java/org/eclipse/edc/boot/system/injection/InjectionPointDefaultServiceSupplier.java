@@ -29,7 +29,7 @@ public class InjectionPointDefaultServiceSupplier implements DefaultServiceSuppl
     public @Nullable Object provideFor(InjectionPoint<?> injectionPoint, ServiceExtensionContext context) {
         var defaultService = injectionPoint.getDefaultValueProvider();
         if (injectionPoint.isRequired() && defaultService == null) {
-            throw new EdcInjectionException("No default provider for required service " + injectionPoint.getType());
+            throw new EdcInjectionException("No default provider for required injection point " + injectionPoint);
         }
         return ofNullable(defaultService).map(vp -> vp.get(context)).orElse(null);
     }
