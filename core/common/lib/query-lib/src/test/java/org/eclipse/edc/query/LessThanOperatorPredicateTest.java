@@ -32,8 +32,14 @@ class LessThanOperatorPredicateTest {
 
     @ParameterizedTest
     @ArgumentsSource(ValidValues.class)
-    void shouldReturnTrue_whenOperandAreNumbers(Object value, Object comparedTo) {
+    void shouldReturnTrue_whenValueLessThanComparedOne(Object value, Object comparedTo) {
         assertThat(predicate.test(value, comparedTo)).isTrue();
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(InvalidValues.class)
+    void shouldReturnFalse_whenValueNotLessThanComparedOne(Object value, Object comparedTo) {
+        assertThat(predicate.test(value, comparedTo)).isFalse();
     }
 
     private static class ValidValues implements ArgumentsProvider {
@@ -49,4 +55,19 @@ class LessThanOperatorPredicateTest {
             );
         }
     }
+
+    private static class InvalidValues implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(1, 1),
+                    arguments(1, 1L),
+                    arguments(1, 1.0f),
+                    arguments(1, 1.0d),
+                    arguments("a", "a")
+            );
+        }
+    }
+
 }
