@@ -53,7 +53,7 @@ import static java.lang.String.format;
 /**
  * Provides OAuth2 client credentials flow support.
  */
-@Provides({ IdentityService.class })
+@Provides({IdentityService.class})
 @Extension(value = Oauth2ServiceExtension.NAME)
 public class Oauth2ServiceExtension implements ServiceExtension {
 
@@ -125,7 +125,12 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
         var certificate = Optional.ofNullable(certificateResolver.resolveCertificate(configuration.getPublicCertificateAlias()))
                 .orElseThrow(() -> new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias()));
-        jwtDecoratorRegistry.register(OAUTH2_TOKEN_CONTEXT, new Oauth2AssertionDecorator(configuration.getProviderAudience(), configuration.getClientId(), clock, configuration.getTokenExpiration()));
+        jwtDecoratorRegistry.register(OAUTH2_TOKEN_CONTEXT, Oauth2AssertionDecorator.Builder.newInstance()
+                .audience(configuration.getProviderAudience())
+                .clientId(configuration.getClientId())
+                .clock(clock)
+                .validity(configuration.getTokenExpiration())
+                .build());
         jwtDecoratorRegistry.register(OAUTH2_TOKEN_CONTEXT, new X509CertificateDecorator(certificate));
 
         providerKeyResolver = identityProviderKeyResolver(context);

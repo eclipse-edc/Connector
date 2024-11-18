@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_ID;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.KEY_ID;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.SCOPE;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.TOKEN_URL;
@@ -104,7 +105,13 @@ public class Oauth2CredentialsRequestFactory {
         var validity = Optional.ofNullable(dataAddress.getStringProperty(VALIDITY))
                 .map(this::parseLong)
                 .orElse(DEFAULT_TOKEN_VALIDITY);
-        var decorator = new Oauth2AssertionDecorator(dataAddress.getStringProperty(TOKEN_URL), dataAddress.getStringProperty(CLIENT_ID), clock, validity);
+        var decorator = Oauth2AssertionDecorator.Builder.newInstance()
+                .audience(dataAddress.getStringProperty(TOKEN_URL))
+                .clientId(dataAddress.getStringProperty(CLIENT_ID))
+                .clock(clock)
+                .validity(validity)
+                .kid(dataAddress.getStringProperty(KEY_ID))
+                .build();
         var service = new JwtGenerationService(jwsSignerProvider);
 
         return service.generate(pkSecret, decorator);
