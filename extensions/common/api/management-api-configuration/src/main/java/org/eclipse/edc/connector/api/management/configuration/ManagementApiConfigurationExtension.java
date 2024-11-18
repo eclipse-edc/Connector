@@ -62,6 +62,8 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_CONTEXT;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_3_1_ALPHA;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
@@ -92,12 +94,9 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
             .useDefaultContext(true)
             .name(WEB_SERVICE_NAME)
             .build();
-    
+    private static final boolean DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT = false;
     @Setting(description = "Configures endpoint for reaching the Management API, in the format \"<hostname:management.port/management.path>\"", key = "edc.management.endpoint", required = false)
     private String managementApiEndpoint;
-
-    private static final boolean DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT = false;
-
     @Setting(description = "If set enable the usage of management api JSON-LD context.", defaultValue = "" + DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT, key = "edc.management.context.enabled")
     private boolean managementApiContextEnabled;
 
@@ -150,7 +149,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         webService.registerResource(ApiContext.MANAGEMENT, new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(ApiContext.MANAGEMENT, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, MANAGEMENT_SCOPE));
 
-        var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
+        var managementApiTransformerRegistry = transformerRegistry.forContext(MANAGEMENT_API_CONTEXT);
 
         var factory = Json.createBuilderFactory(Map.of());
         managementApiTransformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory));
@@ -166,6 +165,10 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
         managementApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(jsonLdMapper));
+
+        var managementApiTransformerRegistryV31Alpha = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_3_1_ALPHA);
+
+        managementApiTransformerRegistryV31Alpha.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper, true));
 
         registerVersionInfo(getClass().getClassLoader());
     }

@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v3.ContractAgreementApiV3Controller;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,14 +28,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class ContractAgreementApiExtensionTest {
     private final WebService webService = mock(WebService.class);
 
+    private final TypeTransformerRegistry transformerRegistry = mock();
+
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(WebService.class, webService);
+        context.registerService(TypeTransformerRegistry.class, transformerRegistry);
+
+        when(transformerRegistry.forContext(any())).thenReturn(mock());
     }
 
     @Test

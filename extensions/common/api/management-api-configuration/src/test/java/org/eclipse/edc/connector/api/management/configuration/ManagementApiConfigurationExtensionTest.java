@@ -67,7 +67,9 @@ class ManagementApiConfigurationExtensionTest {
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         TypeTransformerRegistry typeTransformerRegistry = mock();
-        when(typeTransformerRegistry.forContext(any())).thenReturn(mock());
+        TypeTransformerRegistry contextTypeTransformerRegistry = mock();
+        when(typeTransformerRegistry.forContext(any())).thenReturn(contextTypeTransformerRegistry);
+        when(contextTypeTransformerRegistry.forContext(any())).thenReturn(mock());
         context.registerService(WebService.class, webService);
         context.registerService(WebServiceConfigurer.class, configurer);
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
@@ -97,7 +99,7 @@ class ManagementApiConfigurationExtensionTest {
     @Test
     void initialize_withContextEnabled(ObjectFactory factory, ServiceExtensionContext context) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.management.context.enabled", "true")));
-        
+
         var configuration = WebServiceConfiguration.Builder.newInstance().path("/path").port(1234).build();
         when(configurer.configure(any(), any(), any())).thenReturn(configuration);
 

@@ -372,6 +372,23 @@ class JsonObjectFromPolicyTransformerTest {
         verify(context, never()).reportProblem(anyString());
     }
 
+    @Test
+    void transform_assigneeAndAssignerAsIds() {
+        var transformer = new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper, true);
+        var policy = Policy.Builder.newInstance()
+                .target("target")
+                .assignee("assignee")
+                .assigner("assigner")
+                .build();
+
+        var result = transformer.transform(policy, context);
+
+        assertThat(result.getJsonObject(ODRL_ASSIGNEE_ATTRIBUTE).getString(ID)).isEqualTo("assignee");
+        assertThat(result.getJsonObject(ODRL_ASSIGNER_ATTRIBUTE).getString(ID)).isEqualTo("assigner");
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
     @ParameterizedTest
     @ArgumentsSource(PolicyTypeToOdrl.class)
     void shouldMapPolicyTypeToOdrlType(PolicyType type, String expectedType) {
@@ -381,18 +398,6 @@ class JsonObjectFromPolicyTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getString(TYPE)).isEqualTo(expectedType);
-    }
-
-    private static class PolicyTypeToOdrl implements ArgumentsProvider {
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            return Stream.of(
-                    arguments(SET, ODRL_POLICY_TYPE_SET),
-                    arguments(OFFER, ODRL_POLICY_TYPE_OFFER),
-                    arguments(CONTRACT, ODRL_POLICY_TYPE_AGREEMENT)
-            );
-        }
     }
 
     private Action getAction() {
@@ -405,5 +410,17 @@ class JsonObjectFromPolicyTransformerTest {
                 .operator(Operator.EQ)
                 .rightExpression(new LiteralExpression("right"))
                 .build();
+    }
+
+    private static class PolicyTypeToOdrl implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            return Stream.of(
+                    arguments(SET, ODRL_POLICY_TYPE_SET),
+                    arguments(OFFER, ODRL_POLICY_TYPE_OFFER),
+                    arguments(CONTRACT, ODRL_POLICY_TYPE_AGREEMENT)
+            );
+        }
     }
 }

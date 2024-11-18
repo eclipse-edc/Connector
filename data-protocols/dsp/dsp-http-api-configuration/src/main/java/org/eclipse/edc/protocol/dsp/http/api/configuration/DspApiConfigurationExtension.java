@@ -81,13 +81,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class DspApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
-
-    @Setting(description = "Configures endpoint for reaching the Protocol API in the form \"<hostname:protocol.port/protocol.path>\"", key = "edc.dsp.callback.address", required = false)
-    private String callbackAddress;
-
     @SettingContext("Protocol API context setting key")
     private static final String PROTOCOL_CONFIG_KEY = "web.http." + ApiContext.PROTOCOL;
-
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(PROTOCOL_CONFIG_KEY)
             .contextAlias(ApiContext.PROTOCOL)
@@ -95,7 +90,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
             .defaultPort(8282)
             .name("Protocol API")
             .build();
-
+    @Setting(description = "Configures endpoint for reaching the Protocol API in the form \"<hostname:protocol.port/protocol.path>\"", key = "edc.dsp.callback.address", required = false)
+    private String callbackAddress;
     @Inject
     private TypeManager typeManager;
     @Inject
@@ -158,7 +154,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
         // EDC model to JSON-LD transformers
         var dspApiTransformerRegistry = transformerRegistry.forContext(version);
-        dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper));
         dspApiTransformerRegistry.register(new JsonObjectFromAssetTransformer(jsonBuilderFactory, mapper));
         dspApiTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromCriterionTransformer(jsonBuilderFactory, mapper));
@@ -181,6 +176,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         // EDC model to JSON-LD transformers
         var dspApiTransformerRegistry = transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_08);
 
+        dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper));
         dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(jsonBuilderFactory, mapper));
 
     }
@@ -191,6 +187,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         // EDC model to JSON-LD transformers
         var dspApiTransformerRegistry = transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_2024_1);
 
+        dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper, true));
         dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspace2024Transformer(jsonBuilderFactory, mapper));
 
     }
