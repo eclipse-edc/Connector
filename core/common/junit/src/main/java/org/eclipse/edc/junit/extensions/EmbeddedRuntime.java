@@ -31,6 +31,7 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -46,6 +47,7 @@ public class EmbeddedRuntime extends BaseRuntime {
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final MultiSourceServiceLocator serviceLocator;
     private final URL[] classPathEntries;
+    private Future<?> runtimeThread;
 
     public EmbeddedRuntime(String name, Map<String, String> properties, String... additionalModules) {
         this(new MultiSourceServiceLocator(), name, properties, ClasspathReader.classpathFor(additionalModules));
@@ -76,7 +78,7 @@ public class EmbeddedRuntime extends BaseRuntime {
             var runtimeException = new AtomicReference<Exception>();
             var latch = new CountDownLatch(1);
 
-            executorService.execute(() -> {
+            runtimeThread = executorService.submit(() -> {
                 try {
                     var classLoader = URLClassLoader.newInstance(classPathEntries);
 
@@ -108,6 +110,9 @@ public class EmbeddedRuntime extends BaseRuntime {
     public void shutdown() {
         serviceLocator.clearSystemExtensions();
         super.shutdown();
+        if (runtimeThread != null && !runtimeThread.isDone()) {
+            runtimeThread.cancel(true);
+        }
     }
 
     @Override

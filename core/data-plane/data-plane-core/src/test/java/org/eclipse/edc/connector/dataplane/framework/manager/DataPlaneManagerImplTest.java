@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.framework.manager;
 import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
+import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
@@ -64,10 +65,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -81,7 +84,7 @@ class DataPlaneManagerImplTest {
     private final DataFlowStartMessage request = createRequest();
     private final TransferServiceRegistry registry = mock();
     private final DataPlaneAuthorizationService authorizationService = mock();
-    private DataPlaneManagerImpl manager;
+    private DataPlaneManager manager;
 
     @BeforeEach
     public void setUp() {
@@ -356,7 +359,7 @@ class DataPlaneManagerImplTest {
         void shouldStartTransferTransitionAndTransitionToStarted() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
@@ -373,7 +376,7 @@ class DataPlaneManagerImplTest {
         void shouldStarTransitionToCompleted_whenTransferSucceeds() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
@@ -391,7 +394,7 @@ class DataPlaneManagerImplTest {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             var terminatedDataFlow = dataFlowBuilder().state(TERMINATED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(terminatedDataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(terminatedDataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
@@ -409,7 +412,7 @@ class DataPlaneManagerImplTest {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             var terminatedDataFlow = dataFlowBuilder().state(SUSPENDED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(terminatedDataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(terminatedDataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
@@ -426,7 +429,7 @@ class DataPlaneManagerImplTest {
         void shouldStartTransferAndTransitionToFailed_whenTransferFails() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.error("an error")));
@@ -443,7 +446,7 @@ class DataPlaneManagerImplTest {
         void shouldStartTransferAndTransitionToReceivedForRetrying_whenTransferFutureIsFailed() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
             when(registry.resolveTransferService(any())).thenReturn(transferService);
             when(transferService.canHandle(any())).thenReturn(true);
             when(transferService.transfer(any())).thenReturn(failedFuture(new RuntimeException("an error")));
@@ -460,7 +463,7 @@ class DataPlaneManagerImplTest {
         void shouldTransitToFailedIfNoTransferServiceCanHandleStarted() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
             when(registry.resolveTransferService(any())).thenReturn(null);
 
             manager.start();
@@ -562,6 +565,32 @@ class DataPlaneManagerImplTest {
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(f -> f.getState() == SUSPENDED.code()));
+        }
+    }
+
+    @Nested
+    class RestartFlows {
+
+        @Test
+        void shouldRestartFlows() {
+            var dataFlow = dataFlowBuilder().state(STARTED.code()).build();
+            var anotherDataFlow = dataFlowBuilder().state(STARTED.code()).build();
+            when(store.nextNotLeased(anyInt(), any(Criterion[].class)))
+                    .thenReturn(List.of(dataFlow)).thenReturn(List.of(anotherDataFlow)).thenReturn(emptyList());
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.canHandle(any())).thenReturn(true);
+            when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
+
+            var result = manager.restartFlows();
+
+            assertThat(result).isSucceeded();
+            await().untilAsserted(() -> {
+                verify(transferService, times(2)).transfer(isA(DataFlowStartMessage.class));
+                verify(store, times(2)).save(argThat(it -> it.getState() == STARTED.code()));
+                var captor = ArgumentCaptor.forClass(Criterion[].class);
+                verify(store, atLeast(1)).nextNotLeased(anyInt(), captor.capture());
+                assertThat(captor.getValue()).contains(new Criterion("transferType.flowType", "=", "PUSH"));
+            });
         }
     }
 

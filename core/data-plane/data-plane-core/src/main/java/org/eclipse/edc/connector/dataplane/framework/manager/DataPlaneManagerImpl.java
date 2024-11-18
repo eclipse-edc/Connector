@@ -35,6 +35,7 @@ import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -47,6 +48,8 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.result.Result.success;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 
 /**
  * Default data manager implementation.
@@ -65,7 +68,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     public Result<Boolean> validate(DataFlowStartMessage dataRequest) {
         // TODO for now no validation for pull scenario, since the transfer service registry
         //  is not applicable here. Probably validation only on the source part required.
-        if (FlowType.PULL.equals(dataRequest.getFlowType())) {
+        if (PULL.equals(dataRequest.getFlowType())) {
             return success(true);
         } else {
             var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
@@ -119,6 +122,26 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                     store.save(dataFlow);
                     return null;
                 });
+    }
+
+    @Override
+    public StatusResult<Void> restartFlows() {
+        var now = clock.millis();
+        List<DataFlow> toBeRestarted;
+        do {
+            toBeRestarted = store.nextNotLeased(batchSize,
+                    hasState(STARTED.code()),
+                    new Criterion("stateTimestamp", "<", now),
+                    new Criterion("transferType.flowType", "=", PUSH.toString())
+            );
+
+            toBeRestarted.forEach(dataFlow -> {
+                dataFlow.transitToReceived();
+                processReceived(dataFlow);
+            });
+        } while (!toBeRestarted.isEmpty());
+
+        return StatusResult.success();
     }
 
     @Override
@@ -206,7 +229,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         store.save(dataFlow);
 
         return entityRetryProcessFactory.doAsyncProcess(dataFlow, () -> transferService.transfer(request))
-                .entityRetrieve(id -> store.findById(id))
+                .entityRetrieve(id -> store.findByIdAndLease(id).orElse(f -> null))
                 .onSuccess((f, r) -> {
                     if (f.getState() != STARTED.code()) {
                         return;
@@ -279,6 +302,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         @Override
         public DataPlaneManagerImpl build() {
+            super.build();
             Objects.requireNonNull(manager.transferProcessClient);
             return manager;
         }
@@ -297,6 +321,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             manager.authorizationService = authorizationService;
             return this;
         }
+
     }
 
 }

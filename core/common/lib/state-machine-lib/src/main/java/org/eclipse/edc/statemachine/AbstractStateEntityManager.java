@@ -55,7 +55,6 @@ public abstract class AbstractStateEntityManager<E extends StatefulEntity<E>, S 
 
     @Override
     public void start() {
-        entityRetryProcessFactory = new EntityRetryProcessFactory(monitor, clock, entityRetryProcessConfiguration);
         var stateMachineManagerBuilder = StateMachineManager.Builder
                 .newInstance(getClass().getSimpleName(), monitor, executorInstrumentation, waitStrategy);
         stateMachineManager = configureStateMachineManager(stateMachineManagerBuilder).build();

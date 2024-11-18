@@ -60,4 +60,11 @@ public interface TransferService {
      */
     StreamResult<Void> terminate(DataFlow dataFlow);
 
+
+    /**
+     * Close all the ongoing DataFlows
+     */
+    void closeAll();
+
+
 }

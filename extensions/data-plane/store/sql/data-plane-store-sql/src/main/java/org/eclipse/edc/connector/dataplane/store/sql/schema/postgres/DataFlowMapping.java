@@ -17,14 +17,23 @@ package org.eclipse.edc.connector.dataplane.store.sql.schema.postgres;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
+import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
  * Maps fields of a {@link DataFlow} onto the
  * corresponding SQL schema (= column names) enabling access through Postgres JSON operators where applicable
  */
-public class DataPlaneMapping extends StatefulEntityMapping {
+public class DataFlowMapping extends StatefulEntityMapping {
 
-    public DataPlaneMapping(DataPlaneStatements statements) {
+    public DataFlowMapping(DataPlaneStatements statements) {
         super(statements);
+        add("transferType", new TransferTypeMapping(statements));
+    }
+
+    private static class TransferTypeMapping extends TranslationMapping {
+
+        TransferTypeMapping(DataPlaneStatements statements) {
+            add("flowType", statements.getFlowTypeColumn());
+        }
     }
 }

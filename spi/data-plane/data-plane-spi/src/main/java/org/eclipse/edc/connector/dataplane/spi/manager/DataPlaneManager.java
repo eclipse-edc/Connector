@@ -73,4 +73,11 @@ public interface DataPlaneManager extends StateEntityManager {
      * @return success if data flow is terminated, failed otherwise.
      */
     StatusResult<Void> terminate(String dataFlowId, @Nullable String reason);
+
+    /**
+     * Restart flows
+     *
+     * @return success if succeeded, failure otherwise.
+     */
+    StatusResult<Void> restartFlows();
 }

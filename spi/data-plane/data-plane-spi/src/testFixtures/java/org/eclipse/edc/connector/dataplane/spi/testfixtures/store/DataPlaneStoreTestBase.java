@@ -20,9 +20,9 @@ import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.entity.MutableEntity;
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -37,10 +37,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 import static org.hamcrest.Matchers.hasSize;
 
 public abstract class DataPlaneStoreTestBase {
@@ -63,17 +66,6 @@ public abstract class DataPlaneStoreTestBase {
      */
     protected Duration getTestTimeout() {
         return Duration.ofMillis(500);
-    }
-
-    private DataFlow createDataFlow(String id, DataFlowStates state) {
-        return DataFlow.Builder.newInstance()
-                .id(id)
-                .callbackAddress(URI.create("http://any"))
-                .source(DataAddress.Builder.newInstance().type("src-type").build())
-                .destination(DataAddress.Builder.newInstance().type("dest-type").build())
-                .state(state.code())
-                .transferType(new TransferType("transferType", FlowType.PUSH))
-                .build();
     }
 
     @Nested
@@ -197,6 +189,19 @@ public abstract class DataPlaneStoreTestBase {
             assertThat(elements).hasSize(10).extracting(DataFlow::getStateTimestamp).isSorted();
         }
 
+        @Test
+        void shouldFilterByFlowType() {
+            var pull = createDataFlowBuilder().transferType(new TransferType("Any", PULL)).build();
+            var push = createDataFlowBuilder().transferType(new TransferType("Any", PUSH)).build();
+            getStore().save(pull);
+            getStore().save(push);
+
+            var leased = getStore().nextNotLeased(2, new Criterion("transferType.flowType", "=", "PUSH"));
+
+            assertThat(leased).hasSize(1).first().extracting(DataFlow::getId)
+                    .isEqualTo(push.getId());
+        }
+
         private void delayByTenMillis(StatefulEntity<?> t) {
             try {
                 Thread.sleep(10);
@@ -238,4 +243,21 @@ public abstract class DataPlaneStoreTestBase {
             assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
         }
     }
+
+    private DataFlow createDataFlow(String id, DataFlowStates state) {
+        return createDataFlowBuilder()
+                .id(id).state(state.code())
+                .build();
+    }
+
+    private DataFlow.Builder createDataFlowBuilder() {
+        return DataFlow.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .callbackAddress(URI.create("http://any"))
+                .source(DataAddress.Builder.newInstance().type("src-type").build())
+                .destination(DataAddress.Builder.newInstance().type("dest-type").build())
+                .state(STARTED.code())
+                .transferType(new TransferType("transferType", PUSH));
+    }
+
 }

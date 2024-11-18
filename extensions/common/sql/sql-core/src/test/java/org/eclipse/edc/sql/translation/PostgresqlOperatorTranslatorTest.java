@@ -73,6 +73,14 @@ class PostgresqlOperatorTranslatorTest {
     }
 
     @Test
+    void shouldTranslate_lessThan() {
+        var operator = translator.translate("<");
+
+        assertThat(operator.representation()).isEqualTo("<");
+        assertThat(operator.rightOperandClass()).isEqualTo(Object.class);
+    }
+
+    @Test
     void shouldReturnNull_whenOperatorNotSupported() {
         var operator = translator.translate("not-supported");
 

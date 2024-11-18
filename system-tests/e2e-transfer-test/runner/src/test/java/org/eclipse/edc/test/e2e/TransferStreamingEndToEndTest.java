@@ -27,12 +27,16 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -59,6 +63,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
@@ -68,6 +73,8 @@ import static org.mockserver.verify.VerificationTimes.atLeast;
 import static org.mockserver.verify.VerificationTimes.never;
 
 public class TransferStreamingEndToEndTest {
+
+    private static final DockerImageName KAFKA_CONTAINER_VERSION = DockerImageName.parse("confluentinc/cp-kafka:7.7.1");
 
     @Nested
     @EndToEndTest
@@ -89,23 +96,77 @@ public class TransferStreamingEndToEndTest {
         protected Vault getDataplaneVault() {
             return PROVIDER_DATA_PLANE.getService(Vault.class);
         }
+
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class Postgres extends Tests {
+
+        @Order(0)
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASES = context -> {
+            createDatabase(CONSUMER.getName());
+            createDatabase(PROVIDER.getName());
+        };
+
+        @RegisterExtension
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration()));
+
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.POSTGRES_CONTROL_PLANE.create("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration()));
+
+        private static final EmbeddedRuntime PROVIDER_DATA_PLANE_RUNTIME = Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration());
+
+        @RegisterExtension
+        static final RuntimeExtension  PROVIDER_DATA_PLANE = new RuntimePerClassExtension(PROVIDER_DATA_PLANE_RUNTIME);
+
+        @Override
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
+        }
+
+        @Test
+        void shouldResumeTransfer_whenDataPlaneRestarts() {
+            try (var consumer = createKafkaConsumer()) {
+                consumer.subscribe(List.of(sinkTopic));
+
+                var assetId = UUID.randomUUID().toString();
+                createResourcesOnProvider(assetId, kafkaSourceProperty());
+
+                var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                        .withDestination(kafkaSink()).withTransferType("Kafka-PUSH").execute();
+                assertMessagesAreSentTo(consumer);
+
+                PROVIDER_DATA_PLANE_RUNTIME.shutdown();
+
+                assertNoMoreMessagesAreSentTo(consumer);
+
+                PROVIDER_DATA_PLANE_RUNTIME.boot(false);
+
+                awaitTransferToBeInState(transferProcessId, STARTED);
+                assertMessagesAreSentTo(consumer);
+            }
+        }
     }
 
     @Testcontainers
     abstract static class Tests extends TransferEndToEndTestBase {
 
         @Container
-        private static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.0"));
+        private static final KafkaContainer KAFKA = new KafkaContainer(KAFKA_CONTAINER_VERSION);
 
-        private static final String SOURCE_TOPIC = "source_topic";
-        private static final String SINK_TOPIC = "sink_topic";
+        private final String sourceTopic = "source_topic_" + UUID.randomUUID();
+        protected final String sinkTopic = "sink_topic_" + UUID.randomUUID();
 
         @BeforeEach
         void setUp() {
             var producer = createKafkaProducer();
 
             newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-                    () -> producer.send(new ProducerRecord<>(SOURCE_TOPIC, sampleMessage())),
+                    () -> producer.send(new ProducerRecord<>(sourceTopic, sampleMessage())),
                     0, 100, MILLISECONDS);
         }
 
@@ -148,7 +209,7 @@ public class TransferStreamingEndToEndTest {
         @Test
         void kafkaToKafkaTransfer() {
             try (var consumer = createKafkaConsumer()) {
-                consumer.subscribe(List.of(SINK_TOPIC));
+                consumer.subscribe(List.of(sinkTopic));
 
                 var assetId = UUID.randomUUID().toString();
                 createResourcesOnProvider(assetId, contractExpiresIn("10s"), kafkaSourceProperty());
@@ -165,7 +226,7 @@ public class TransferStreamingEndToEndTest {
         @Test
         void shouldSuspendAndResumeTransfer() {
             try (var consumer = createKafkaConsumer()) {
-                consumer.subscribe(List.of(SINK_TOPIC));
+                consumer.subscribe(List.of(sinkTopic));
 
                 var assetId = UUID.randomUUID().toString();
                 createResourcesOnProvider(assetId, kafkaSourceProperty());
@@ -184,18 +245,18 @@ public class TransferStreamingEndToEndTest {
             }
         }
 
-        private void assertMessagesAreSentTo(Consumer<String, String> consumer) {
+        protected void assertMessagesAreSentTo(Consumer<String, String> consumer) {
             await().atMost(timeout).untilAsserted(() -> {
                 var records = consumer.poll(ZERO);
                 assertThat(records.isEmpty()).isFalse();
-                records.records(SINK_TOPIC).forEach(record -> assertThat(record.value()).isEqualTo(sampleMessage()));
+                records.records(sinkTopic).forEach(record -> assertThat(record.value()).isEqualTo(sampleMessage()));
             });
         }
 
-        private void assertNoMoreMessagesAreSentTo(Consumer<String, String> consumer) {
+        protected void assertNoMoreMessagesAreSentTo(Consumer<String, String> consumer) {
             consumer.poll(ZERO);
             await().pollDelay(5, SECONDS).atMost(timeout).untilAsserted(() -> {
-                var recordsFound = consumer.poll(Duration.ofSeconds(1)).records(SINK_TOPIC);
+                var recordsFound = consumer.poll(Duration.ofSeconds(1)).records(sinkTopic);
                 assertThat(recordsFound).isEmpty();
             });
         }
@@ -213,29 +274,29 @@ public class TransferStreamingEndToEndTest {
         }
 
         @NotNull
-        private JsonObject kafkaSink() {
+        protected JsonObject kafkaSink() {
             return Json.createObjectBuilder()
                     .add(TYPE, EDC_NAMESPACE + "DataAddress")
                     .add(EDC_NAMESPACE + "type", "Kafka")
                     .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
-                            .add(EDC_NAMESPACE + "topic", SINK_TOPIC)
+                            .add(EDC_NAMESPACE + "topic", sinkTopic)
                             .add(EDC_NAMESPACE + kafkaProperty("bootstrap.servers"), KAFKA.getBootstrapServers())
                             .build())
                     .build();
         }
 
         @NotNull
-        private Map<String, Object> kafkaSourceProperty() {
+        protected Map<String, Object> kafkaSourceProperty() {
             return Map.of(
                     "name", "data",
                     "type", "Kafka",
-                    "topic", SOURCE_TOPIC,
+                    "topic", sourceTopic,
                     kafkaProperty("bootstrap.servers"), KAFKA.getBootstrapServers(),
                     kafkaProperty("max.poll.records"), "100"
             );
         }
 
-        private Consumer<String, String> createKafkaConsumer() {
+        protected Consumer<String, String> createKafkaConsumer() {
             var props = new Properties();
             props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA.getBootstrapServers());
             props.put(ConsumerConfig.GROUP_ID_CONFIG, "runner");
