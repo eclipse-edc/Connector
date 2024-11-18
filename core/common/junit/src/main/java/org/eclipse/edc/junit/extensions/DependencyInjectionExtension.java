@@ -58,7 +58,9 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
                         .orElseGet(() -> {
                             if (ip instanceof ServiceInjectionPoint<?>) {
                                 return mock(ip.getType());
-                            } else return ip.resolve(context, (t, ctx) -> null);
+                            } else {
+                                return ip.resolve(context, (t, ctx) -> null);
+                            }
                         })),
                 new InjectionPointScanner(),
                 context

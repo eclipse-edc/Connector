@@ -44,7 +44,7 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
     private static final int DEFAULT_CHECK_PERIOD = 60;
 
     @Setting(description = "the iteration wait time in milliseconds in the data plane selector state machine.", defaultValue = DEFAULT_ITERATION_WAIT + "", key = "edc.data.plane.selector.state-machine.iteration-wait-millis")
-    private Long stateMachineIterationWait;
+    private long stateMachineIterationWait;
 
     @Setting(description = "the batch size in the data plane selector state machine.", defaultValue = DEFAULT_BATCH_SIZE + "", key = "edc.data.plane.selector.state-machine.batch-size")
     private int stateMachineBatchSize;
