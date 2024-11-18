@@ -51,7 +51,7 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
 
     @Setting(description = "Base url of the public API endpoint without the trailing slash. This should correspond to the values configured " +
                            "in '" + DEFAULT_PUBLIC_PORT + "' and '" + PUBLIC_CONTEXT_PATH + "'.",
-            defaultValue = "http://<HOST>:" + DEFAULT_PUBLIC_PORT + PUBLIC_CONTEXT_PATH,
+            required = false,
             key = "edc.dataplane.api.public.baseurl", warnOnMissingConfig = true)
     private String publicBaseUrl;
 
@@ -105,6 +105,11 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
                 "Data plane proxy transfers"
         );
 
+
+        if (publicBaseUrl == null) {
+            publicBaseUrl = "http://%s:%d%s".formatted(hostname.get(), configuration.getPort(), configuration.getPath());
+            context.getMonitor().warning("The public API endpoint was not explicitly configured, the default '%s' will be used.".formatted(publicBaseUrl));
+        }
         var endpoint = Endpoint.url(publicBaseUrl);
         generatorService.addGeneratorFunction("HttpData", dataAddress -> endpoint);
 
