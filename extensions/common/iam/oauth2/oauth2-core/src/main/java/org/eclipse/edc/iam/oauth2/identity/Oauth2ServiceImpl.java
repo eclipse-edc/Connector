@@ -17,7 +17,6 @@
 
 package org.eclipse.edc.iam.oauth2.identity;
 
-import org.eclipse.edc.iam.oauth2.Oauth2ServiceConfiguration;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
@@ -47,7 +46,7 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     private static final String GRANT_TYPE = "client_credentials";
 
-    private final Oauth2ServiceConfiguration configuration;
+    private final String tokenUrl;
     private final Supplier<String> privateKeySupplier;
     private final Oauth2Client client;
     private final TokenDecoratorRegistry jwtDecoratorRegistry;
@@ -59,16 +58,16 @@ public class Oauth2ServiceImpl implements IdentityService {
     /**
      * Creates a new instance of the OAuth2 Service
      *
-     * @param configuration          The configuration
+     * @param tokenUrl               Token URL
      * @param tokenGenerationService Service used to generate the signed tokens
      * @param client                 client for Oauth2 server
      * @param jwtDecoratorRegistry   Registry containing the decorator for build the JWT
      * @param tokenValidationService Service used for token validation
      */
-    public Oauth2ServiceImpl(Oauth2ServiceConfiguration configuration, TokenGenerationService tokenGenerationService, Supplier<String> privateKeyIdSupplier,
+    public Oauth2ServiceImpl(String tokenUrl, TokenGenerationService tokenGenerationService, Supplier<String> privateKeyIdSupplier,
                              Oauth2Client client, TokenDecoratorRegistry jwtDecoratorRegistry, TokenValidationRulesRegistry tokenValidationRuleRegistry, TokenValidationService tokenValidationService,
                              PublicKeyResolver publicKeyResolver) {
-        this.configuration = configuration;
+        this.tokenUrl = tokenUrl;
         this.privateKeySupplier = privateKeyIdSupplier;
         this.client = client;
         this.jwtDecoratorRegistry = jwtDecoratorRegistry;
@@ -100,7 +99,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     @NotNull
     private Oauth2CredentialsRequest createRequest(TokenParameters parameters, String assertion) {
         return PrivateKeyOauth2CredentialsRequest.Builder.newInstance()
-                .url(configuration.getTokenUrl())
+                .url(tokenUrl)
                 .clientAssertion(assertion)
                 .scope(parameters.getStringClaim(JwtRegisteredClaimNames.SCOPE))
                 .grantType(GRANT_TYPE)

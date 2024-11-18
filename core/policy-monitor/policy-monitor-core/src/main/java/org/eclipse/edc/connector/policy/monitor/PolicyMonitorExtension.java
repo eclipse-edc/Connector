@@ -52,11 +52,12 @@ public class PolicyMonitorExtension implements ServiceExtension {
 
     public static final String NAME = "Policy Monitor";
 
-    @Setting(value = "the iteration wait time in milliseconds in the policy monitor state machine. Default value " + DEFAULT_ITERATION_WAIT, type = "long")
-    private static final String POLICY_MONITOR_ITERATION_WAIT_MILLIS = "edc.policy.monitor.state-machine.iteration-wait-millis";
+    @Setting(description = "the iteration wait time in milliseconds in the policy monitor state machine. Default value " + DEFAULT_ITERATION_WAIT,
+            key = "edc.policy.monitor.state-machine.iteration-wait-millis", defaultValue = DEFAULT_ITERATION_WAIT + "")
+    private long iterationWaitMillis;
 
-    @Setting(value = "the batch size in the policy monitor state machine. Default value " + DEFAULT_BATCH_SIZE, type = "int")
-    private static final String POLICY_MONITOR_BATCH_SIZE = "edc.policy.monitor.state-machine.batch-size";
+    @Setting(description = "the batch size in the policy monitor state machine. Default value " + DEFAULT_BATCH_SIZE, key = "edc.policy.monitor.state-machine.batch-size", defaultValue = DEFAULT_BATCH_SIZE + "")
+    private int batchSize;
 
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
@@ -89,7 +90,6 @@ public class PolicyMonitorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var iterationWaitMillis = context.getSetting(POLICY_MONITOR_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = new ExponentialWaitStrategy(iterationWaitMillis);
 
         policyEngine.registerScope(POLICY_MONITOR_SCOPE, PolicyMonitorContext.class);
@@ -99,7 +99,7 @@ public class PolicyMonitorExtension implements ServiceExtension {
 
         manager = PolicyMonitorManagerImpl.Builder.newInstance()
                 .clock(clock)
-                .batchSize(context.getSetting(POLICY_MONITOR_BATCH_SIZE, DEFAULT_BATCH_SIZE))
+                .batchSize(batchSize)
                 .waitStrategy(waitStrategy)
                 .executorInstrumentation(executorInstrumentation)
                 .monitor(context.getMonitor())

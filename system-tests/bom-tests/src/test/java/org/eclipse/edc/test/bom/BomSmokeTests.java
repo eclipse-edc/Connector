@@ -78,6 +78,9 @@ public class BomSmokeTests {
                                 put("web.http.control.path", "/api/control");
                                 put("web.http.management.port", "8081");
                                 put("web.http.management.path", "/api/management");
+                                put("edc.iam.sts.privatekey.alias", "privatekey");
+                                put("edc.iam.sts.publickey.id", "publickey");
+                                put("edc.iam.issuer.id", "did:web:someone");
                             }
                         },
                         ":dist:bom:controlplane-dcp-bom"

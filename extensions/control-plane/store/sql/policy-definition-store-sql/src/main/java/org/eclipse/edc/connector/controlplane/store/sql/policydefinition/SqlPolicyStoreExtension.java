@@ -27,7 +27,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
-import org.eclipse.edc.sql.configuration.DataSourceName;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -35,11 +34,8 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 @Extension("SQL policy store")
 public class SqlPolicyStoreExtension implements ServiceExtension {
 
-    @Deprecated(since = "0.8.1")
-    public static final String DATASOURCE_SETTING_NAME = "edc.datasource.policy.name";
-
-    @Setting(value = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
-    public static final String DATASOURCE_NAME = "edc.sql.store.policy.datasource";
+    @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.policy.datasource")
+    private String dataSourceName;
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -60,7 +56,6 @@ public class SqlPolicyStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = DataSourceName.getDataSourceName(DATASOURCE_NAME, DATASOURCE_SETTING_NAME, context.getConfig(), context.getMonitor());
 
         var sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext,
                 typeManager.getMapper(), getStatementImpl(), queryExecutor);
@@ -77,7 +72,4 @@ public class SqlPolicyStoreExtension implements ServiceExtension {
         return statements != null ? statements : new PostgresDialectStatements();
     }
 
-    private String getDataSourceName(ServiceExtensionContext context) {
-        return context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
-    }
 }

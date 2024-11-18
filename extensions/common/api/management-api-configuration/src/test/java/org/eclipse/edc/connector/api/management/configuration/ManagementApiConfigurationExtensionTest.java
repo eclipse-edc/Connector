@@ -95,12 +95,13 @@ class ManagementApiConfigurationExtensionTest {
     }
 
     @Test
-    void initialize_WithContextEnabled() {
-        var context = contextWithConfig(ConfigFactory.fromMap(Map.of("edc.management.context.enabled", "true")));
+    void initialize_withContextEnabled(ObjectFactory factory, ServiceExtensionContext context) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.management.context.enabled", "true")));
+        
         var configuration = WebServiceConfiguration.Builder.newInstance().path("/path").port(1234).build();
         when(configurer.configure(any(), any(), any())).thenReturn(configuration);
 
-        extension.initialize(context);
+        factory.constructInstance(ManagementApiConfigurationExtension.class).initialize(context);
 
         verify(jsonLd, times(0)).registerNamespace(any(), any(), any());
         verify(jsonLd).registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT, MANAGEMENT_SCOPE);

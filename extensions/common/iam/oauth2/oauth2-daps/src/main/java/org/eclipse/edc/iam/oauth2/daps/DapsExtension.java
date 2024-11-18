@@ -34,10 +34,11 @@ public class DapsExtension implements ServiceExtension {
 
     public static final String NAME = "DAPS";
     public static final String DEFAULT_TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
-    @Setting(value = "The value of the scope claim that is passed to DAPS to obtain a DAT", defaultValue = DEFAULT_TOKEN_SCOPE)
-    public static final String DAPS_TOKEN_SCOPE = "edc.iam.token.scope";
     public static final String OAUTH_2_DAPS_TOKEN_CONTEXT = "oauth2-daps";
 
+    @Setting(description = "The value of the scope claim that is passed to DAPS to obtain a DAT", defaultValue = DEFAULT_TOKEN_SCOPE, key = "edc.iam.token.scope")
+    private String scope;
+    
     @Inject
     private TokenDecoratorRegistry jwtDecoratorRegistry;
 
@@ -54,8 +55,6 @@ public class DapsExtension implements ServiceExtension {
 
     @Provider
     public TokenDecorator createDapsTokenDecorator(ServiceExtensionContext context) {
-        var scope = context.getConfig().getString(DAPS_TOKEN_SCOPE);
-
         return new DapsTokenDecorator(scope);
     }
 }

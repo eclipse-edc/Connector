@@ -17,6 +17,7 @@ package org.eclipse.edc.junit.extensions;
 import org.eclipse.edc.boot.system.injection.InjectionPointScanner;
 import org.eclipse.edc.boot.system.injection.InjectorImpl;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
+import org.eclipse.edc.boot.system.injection.ServiceInjectionPoint;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -52,7 +53,15 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
         context = spy(super.createServiceExtensionContext(ConfigFactory.empty()));
         context.initialize();
         factory = new ReflectiveObjectFactory(
-                new InjectorImpl((ip, c) -> ofNullable(ip.getDefaultValueProvider()).map(vp -> vp.get(c)).orElseGet(() -> mock(ip.getType()))),
+                new InjectorImpl((ip, c) -> ofNullable(ip.getDefaultValueProvider())
+                        .map(vp -> vp.get(c))
+                        .orElseGet(() -> {
+                            if (ip instanceof ServiceInjectionPoint<?>) {
+                                return mock(ip.getType());
+                            } else {
+                                return ip.resolve(context, (t, ctx) -> null);
+                            }
+                        })),
                 new InjectionPointScanner(),
                 context
         );

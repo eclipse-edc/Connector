@@ -41,8 +41,8 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     public static final String NAME = "Data Plane HTTP";
     private static final int DEFAULT_PARTITION_SIZE = 5;
 
-    @Setting(value = "Number of partitions for parallel message push in the HttpDataSink", type = "int", defaultValue = DEFAULT_PARTITION_SIZE + "")
-    private static final String EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE = "edc.dataplane.http.sink.partition.size";
+    @Setting(description = "Number of partitions for parallel message push in the HttpDataSink", defaultValue = DEFAULT_PARTITION_SIZE + "", key = "edc.dataplane.http.sink.partition.size")
+    private int partitionSize;
 
     @Inject
     private EdcHttpClient httpClient;
@@ -67,7 +67,6 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var sinkPartitionSize = context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PARTITION_SIZE);
 
         var paramsProvider = new HttpRequestParamsProviderImpl(vault, typeManager);
         context.registerService(HttpRequestParamsProvider.class, paramsProvider);
@@ -77,7 +76,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         var sourceFactory = new HttpDataSourceFactory(httpClient, paramsProvider, monitor, httpRequestFactory);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), sinkPartitionSize, monitor, paramsProvider, httpRequestFactory);
+        var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), partitionSize, monitor, paramsProvider, httpRequestFactory);
         pipelineService.registerFactory(sinkFactory);
     }
 

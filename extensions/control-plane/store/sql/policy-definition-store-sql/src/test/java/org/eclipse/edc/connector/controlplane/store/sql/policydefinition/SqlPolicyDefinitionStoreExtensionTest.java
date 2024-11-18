@@ -26,11 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.store.sql.policydefinition.SqlPolicyStoreExtension.DATASOURCE_NAME;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -53,6 +50,5 @@ public class SqlPolicyDefinitionStoreExtensionTest {
         var service = context.getService(PolicyDefinitionStore.class);
         assertThat(service).isInstanceOf(SqlPolicyDefinitionStore.class);
 
-        verify(config).getString(eq(DATASOURCE_NAME), any());
     }
 }

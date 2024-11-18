@@ -78,17 +78,19 @@ import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.
 public class IdentityAndTrustExtension implements ServiceExtension {
 
     public static final long DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS = 15 * 60 * 1000L;
-    @Setting(value = "Validity period of cached StatusList2021 credential entries in milliseconds.", defaultValue = DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS + "", type = "long")
-    public static final String REVOCATION_CACHE_VALIDITY = "edc.iam.credential.revocation.cache.validity";
-    @Setting(value = "DID of this connector", required = true)
-    public static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
+    @Setting(description = "Validity period of cached StatusList2021 credential entries in milliseconds.", defaultValue = DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS + "", key = "edc.iam.credential.revocation.cache.validity")
+    private long revocationCacheValidity;
+
+    @Setting(description = "DID of this connector", key = "edc.iam.issuer.id")
+    private String issuerId;
+
+    @Setting(description = "The period of the JTI entry reaper thread in seconds", defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "", key = "edc.sql.store.jti.cleanup.period")
+    private long reaperCleanupPeriod;
+
     public static final String DCP_SELF_ISSUED_TOKEN_CONTEXT = "dcp-si";
-
     public static final String JSON_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
-
     public static final long DEFAULT_CLEANUP_PERIOD_SECONDS = 60;
-    @Setting(value = "The period of the JTI entry reaper thread in seconds", defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "")
-    public static final String CLEANUP_PERIOD = "edc.sql.store.jti.cleanup.period";
+
 
     @Inject
     private SecureTokenService secureTokenService;
@@ -142,7 +144,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private ExecutorInstrumentation executorInstrumentation;
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
-    private long reaperThreadPeriod;
     private ScheduledFuture<?> jtiEntryReaperThread;
 
     @Override
@@ -151,7 +152,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         // add all rules for self-issued ID tokens
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new SubJwkIsNullRule());
-        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(getOwnDid(context)));
+        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(issuerId));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new TokenNotNullRule());
 
@@ -161,7 +162,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         // TODO move in a separated extension?
         signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD)));
 
-        reaperThreadPeriod = context.getSetting(CLEANUP_PERIOD, DEFAULT_CLEANUP_PERIOD_SECONDS);
 
         try {
             jsonLd.registerCachedDocument(STATUSLIST_2021_URL, getClass().getClassLoader().getResource("statuslist2021.json").toURI());
@@ -172,15 +172,14 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         participantAgentService.register(participantAgentServiceExtension);
 
         // register revocation services
-        var validity = context.getConfig().getLong(REVOCATION_CACHE_VALIDITY, DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS);
-        revocationServiceRegistry.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(), validity));
-        revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(), validity));
+        revocationServiceRegistry.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(), revocationCacheValidity));
+        revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(), revocationCacheValidity));
     }
 
     @Override
     public void start() {
         jtiEntryReaperThread = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), "JTI Validation Entry Reaper Thread")
-                .scheduleAtFixedRate(jtiValidationStore::deleteExpired, reaperThreadPeriod, reaperThreadPeriod, TimeUnit.SECONDS);
+                .scheduleAtFixedRate(jtiValidationStore::deleteExpired, reaperCleanupPeriod, reaperCleanupPeriod, TimeUnit.SECONDS);
     }
 
     @Override
@@ -196,7 +195,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context),
                 trustedIssuerRegistry, revocationServiceRegistry, clock);
 
-        return new IdentityAndTrustService(secureTokenService, getOwnDid(context),
+        return new IdentityAndTrustService(secureTokenService, issuerId,
                 getCredentialServiceClient(context), validationAction, credentialServiceUrlResolver, claimTokenFunction,
                 credentialValidationService);
     }
@@ -223,7 +222,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
                     .methodResolver(new DidMethodResolver(didResolverRegistry))
                     .build();
 
-            presentationVerifier = new MultiFormatPresentationVerifier(getOwnDid(context), jwtVerifier, ldpVerifier);
+            presentationVerifier = new MultiFormatPresentationVerifier(issuerId, jwtVerifier, ldpVerifier);
         }
         return presentationVerifier;
     }
@@ -237,12 +236,5 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         };
     }
 
-    private String getOwnDid(ServiceExtensionContext context) {
-        var ownDid = context.getConfig().getString(CONNECTOR_DID_PROPERTY, null);
-        if (ownDid == null) {
-            context.getMonitor().severe("Mandatory config value missing: '%s'. This runtime will not be fully operational!".formatted(CONNECTOR_DID_PROPERTY));
-        }
-        return ownDid;
-    }
 
 }

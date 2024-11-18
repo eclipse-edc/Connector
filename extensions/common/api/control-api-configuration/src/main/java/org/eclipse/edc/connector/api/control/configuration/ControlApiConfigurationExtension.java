@@ -45,6 +45,7 @@ import java.net.URI;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
@@ -64,8 +65,8 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Control API configuration";
 
-    @Setting(value = "Configures endpoint for reaching the Control API. If it's missing it defaults to the hostname configuration.")
-    public static final String CONTROL_API_ENDPOINT = "edc.control.endpoint";
+    @Setting(description = "Configures endpoint for reaching the Control API. If it's missing it defaults to the hostname configuration.", key = "edc.control.endpoint", required = false)
+    private String controlEndpoint;
     public static final String CONTROL_SCOPE = "CONTROL_API";
     private static final String WEB_SERVICE_NAME = "Control API";
     @SettingContext("Control API context setting key")
@@ -138,7 +139,8 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
     }
 
     private ControlApiUrl controlApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {
-        var callbackAddress = context.getSetting(CONTROL_API_ENDPOINT, format("http://%s:%s%s", hostname.get(), config.getPort(), config.getPath()));
+        var callbackAddress = ofNullable(controlEndpoint).orElseGet(() -> format("http://%s:%s%s", hostname.get(), config.getPort(), config.getPath()));
+        
         try {
             var url = URI.create(callbackAddress);
             return () -> url;

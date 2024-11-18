@@ -20,18 +20,16 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_URL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -44,6 +42,9 @@ class HashicorpVaultExtensionTest {
 
     private static final String URL = "https://test.com/vault";
     private static final String TOKEN = "some-token";
+    private static final String VAULT_URL = "edc.vault.hashicorp.url";
+    private static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
+    private static final String VAULT_TOKEN_SCHEDULED_RENEW_ENABLED = "edc.vault.hashicorp.token.scheduled-renew-enabled";
 
     private HashicorpVaultExtension extension;
     private final ExecutorInstrumentation executorInstrumentation = mock();
@@ -55,8 +56,12 @@ class HashicorpVaultExtensionTest {
         context.registerService(EdcHttpClient.class, httpClient);
         context.registerService(TypeManager.class, mock(TypeManager.class));
         context.registerService(ExecutorInstrumentation.class, executorInstrumentation);
-        when(context.getSetting(VAULT_URL, null)).thenReturn(URL);
-        when(context.getSetting(VAULT_TOKEN, null)).thenReturn(TOKEN);
+
+        var config = ConfigFactory.fromMap(Map.of(
+                VAULT_URL, URL,
+                VAULT_TOKEN, TOKEN
+        ));
+        when(context.getConfig()).thenReturn(config);
         when(executorInstrumentation.instrument(any(), anyString())).thenReturn(scheduledExecutorService);
         extension = factory.constructInstance(HashicorpVaultExtension.class);
     }
@@ -76,10 +81,17 @@ class HashicorpVaultExtensionTest {
     }
 
     @Test
-    void start_withTokenRenewDisabled_shouldNotStartTokenRenewTask(ServiceExtensionContext context) {
-        when(context.getSetting(VAULT_TOKEN_SCHEDULED_RENEW_ENABLED, VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT)).thenReturn(false);
-        extension.initialize(context);
-        extension.start();
+    void start_withTokenRenewDisabled_shouldNotStartTokenRenewTask(ServiceExtensionContext context, ObjectFactory factory) {
+
+        var config = ConfigFactory.fromMap(Map.of(
+                VAULT_URL, URL,
+                VAULT_TOKEN, TOKEN,
+                VAULT_TOKEN_SCHEDULED_RENEW_ENABLED, "false"
+        ));
+        when(context.getConfig()).thenReturn(config);
+        var ext = factory.constructInstance(HashicorpVaultExtension.class);
+        ext.initialize(context);
+        ext.start();
         verify(executorInstrumentation, never()).instrument(any(), anyString());
         verify(scheduledExecutorService, never()).execute(any());
     }

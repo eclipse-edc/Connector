@@ -56,16 +56,19 @@ public class JsonLdExtension implements ServiceExtension {
     public static final String CONFIG_VALUE_URL = "url";
 
     private static final boolean DEFAULT_HTTP_HTTPS_RESOLUTION = false;
-    @Setting(value = "If set enable http json-ld document resolution", type = "boolean", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "")
-    private static final String HTTP_ENABLE_SETTING = "edc.jsonld.http.enabled";
-    @Setting(value = "If set enable https json-ld document resolution", type = "boolean", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "")
-    private static final String HTTPS_ENABLE_SETTING = "edc.jsonld.https.enabled";
+    @Setting(description = "If set enable http json-ld document resolution", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "", key = "edc.jsonld.http.enabled")
+    private boolean httpResolutionEnabled;
+
+    @Setting(description = "If set enable https json-ld document resolution", type = "boolean", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "", key = "edc.jsonld.https.enabled")
+    private boolean httpsResolutionEnabled;
+
     private static final boolean DEFAULT_AVOID_VOCAB_CONTEXT = false;
-    @Setting(value = "If true disable the @vocab context definition. This could be used to avoid api breaking changes", type = "boolean", defaultValue = DEFAULT_AVOID_VOCAB_CONTEXT + "")
-    private static final String AVOID_VOCAB_CONTEXT = "edc.jsonld.vocab.disable";
+    @Setting(description = "If true disable the @vocab context definition. This could be used to avoid api breaking changes", defaultValue = DEFAULT_AVOID_VOCAB_CONTEXT + "", key = "edc.jsonld.vocab.disable")
+    private boolean avoidVocab;
+
     private static final boolean DEFAULT_CHECK_PREFIXES = true;
-    @Setting(value = "If true a validation on expended object will be made against configured prefixes", type = "boolean", defaultValue = DEFAULT_CHECK_PREFIXES + "")
-    private static final String CHECK_PREFIXES = "edc.jsonld.prefixes.check";
+    @Setting(description = "If true a validation on expended object will be made against configured prefixes", type = "boolean", defaultValue = DEFAULT_CHECK_PREFIXES + "", key = "edc.jsonld.prefixes.check")
+    private boolean checkPrefixes;
 
     @Inject
     private TypeManager typeManager;
@@ -82,12 +85,11 @@ public class JsonLdExtension implements ServiceExtension {
 
     @Provider
     public JsonLd createJsonLdService(ServiceExtensionContext context) {
-        var config = context.getConfig();
         var configuration = JsonLdConfiguration.Builder.newInstance()
-                .httpEnabled(config.getBoolean(HTTP_ENABLE_SETTING, DEFAULT_HTTP_HTTPS_RESOLUTION))
-                .httpsEnabled(config.getBoolean(HTTPS_ENABLE_SETTING, DEFAULT_HTTP_HTTPS_RESOLUTION))
-                .avoidVocab(config.getBoolean(AVOID_VOCAB_CONTEXT, DEFAULT_AVOID_VOCAB_CONTEXT))
-                .checkPrefixes(config.getBoolean(CHECK_PREFIXES, DEFAULT_CHECK_PREFIXES))
+                .httpEnabled(httpResolutionEnabled)
+                .httpsEnabled(httpsResolutionEnabled)
+                .avoidVocab(avoidVocab)
+                .checkPrefixes(checkPrefixes)
                 .build();
         var monitor = context.getMonitor();
         var service = new TitaniumJsonLd(monitor, configuration);

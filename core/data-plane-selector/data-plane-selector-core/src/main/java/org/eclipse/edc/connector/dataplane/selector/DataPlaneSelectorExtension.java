@@ -43,14 +43,14 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
 
     private static final int DEFAULT_CHECK_PERIOD = 60;
 
-    @Setting(value = "the iteration wait time in milliseconds in the data plane selector state machine.", defaultValue = DEFAULT_ITERATION_WAIT + "", type = "long")
-    private static final String DATA_PLANE_SELECTOR_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.data.plane.selector.state-machine.iteration-wait-millis";
+    @Setting(description = "the iteration wait time in milliseconds in the data plane selector state machine.", defaultValue = DEFAULT_ITERATION_WAIT + "", key = "edc.data.plane.selector.state-machine.iteration-wait-millis")
+    private long stateMachineIterationWait;
 
-    @Setting(value = "the batch size in the data plane selector state machine.", defaultValue = DEFAULT_BATCH_SIZE + "", type = "int")
-    private static final String DATA_PLANE_SELECTOR_STATE_MACHINE_BATCH_SIZE = "edc.data.plane.selector.state-machine.batch-size";
+    @Setting(description = "the batch size in the data plane selector state machine.", defaultValue = DEFAULT_BATCH_SIZE + "", key = "edc.data.plane.selector.state-machine.batch-size")
+    private int stateMachineBatchSize;
 
-    @Setting(value = "the check period for data plane availability, in seconds", defaultValue = DEFAULT_CHECK_PERIOD + "", type = "int")
-    private static final String DATA_PLANE_SELECTOR_CHECK_PERIOD = "edc.data.plane.selector.state-machine.check.period";
+    @Setting(description = "the check period for data plane availability, in seconds", defaultValue = DEFAULT_CHECK_PERIOD + "", key = "edc.data.plane.selector.state-machine.check.period")
+    private int selectorCheckPeriod;
 
     @Inject
     private DataPlaneInstanceStore instanceStore;
@@ -70,14 +70,11 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = context.getConfig();
-        var iterationWait = config.getLong(DATA_PLANE_SELECTOR_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
-        var checkPeriod = config.getInteger(DATA_PLANE_SELECTOR_CHECK_PERIOD, DEFAULT_CHECK_PERIOD);
 
         var configuration = new DataPlaneSelectorManagerConfiguration(
-                new ExponentialWaitStrategy(iterationWait),
-                config.getInteger(DATA_PLANE_SELECTOR_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE),
-                Duration.ofSeconds(checkPeriod)
+                new ExponentialWaitStrategy(stateMachineIterationWait),
+                stateMachineBatchSize,
+                Duration.ofSeconds(selectorCheckPeriod)
         );
 
         manager = DataPlaneSelectorManagerImpl.Builder.newInstance()

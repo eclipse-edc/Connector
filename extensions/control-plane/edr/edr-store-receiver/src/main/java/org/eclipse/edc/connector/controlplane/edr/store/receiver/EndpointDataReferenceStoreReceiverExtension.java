@@ -34,8 +34,9 @@ public class EndpointDataReferenceStoreReceiverExtension implements ServiceExten
 
     public static final String NAME = "Endpoint Data Reference Store Receiver Extension";
     private static final String DEFAULT_SYNC_LISTENER = "false";
-    @Setting(value = "If true the EDR receiver will be registered as synchronous listener", defaultValue = DEFAULT_SYNC_LISTENER)
-    private static final String EDC_EDR_RECEIVER_SYNC = "edc.edr.receiver.sync";
+    @Setting(description = "If true the EDR receiver will be registered as synchronous listener", defaultValue = DEFAULT_SYNC_LISTENER, key = "edc.edr.receiver.sync")
+    private boolean isSyncMode;
+
     @Inject
     private EventRouter router;
 
@@ -61,7 +62,6 @@ public class EndpointDataReferenceStoreReceiverExtension implements ServiceExten
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var isSyncMode = context.getSetting(EDC_EDR_RECEIVER_SYNC, Boolean.parseBoolean(EDC_EDR_RECEIVER_SYNC));
         var receiver = new EndpointDataReferenceStoreReceiver(dataReferenceStore, policyArchive, agreementService, transactionContext, monitor.withPrefix("EDR Receiver"));
         if (isSyncMode) {
             router.registerSync(TransferProcessEvent.class, receiver);

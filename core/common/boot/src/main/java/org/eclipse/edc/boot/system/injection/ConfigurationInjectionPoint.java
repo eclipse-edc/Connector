@@ -126,7 +126,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
 
         } else { // all other classes MUST have a default constructor.
             try {
-                var pojoClass = Class.forName(configurationObject.getType().getName());
+                var pojoClass = configurationObject.getType();
                 var defaultCtor = pojoClass.getDeclaredConstructor();
                 defaultCtor.setAccessible(true);
                 var instance = defaultCtor.newInstance();
@@ -145,8 +145,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 return instance;
             } catch (NoSuchMethodException e) {
                 throw new EdcInjectionException("Configuration objects must declare a default constructor, but '%s' does not.".formatted(configurationObject.getType()));
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException |
-                     InvocationTargetException e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new EdcInjectionException(e);
             }
         }

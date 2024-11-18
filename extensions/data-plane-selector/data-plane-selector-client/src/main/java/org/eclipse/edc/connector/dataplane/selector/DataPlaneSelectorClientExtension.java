@@ -40,11 +40,11 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
 
     public static final String NAME = "DataPlane Selector client";
 
-    @Setting(value = "DataPlane selector api URL", required = true)
-    static final String DPF_SELECTOR_URL_SETTING = "edc.dpf.selector.url";
+    @Setting(description = "DataPlane selector api URL", key = "edc.dpf.selector.url")
+    private String selectorApiUrl;
 
-    @Setting(value = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime", defaultValue = DataPlaneSelectorService.DEFAULT_STRATEGY)
-    private static final String DPF_SELECTOR_STRATEGY = "edc.dataplane.client.selector.strategy";
+    @Setting(description = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime", defaultValue = DataPlaneSelectorService.DEFAULT_STRATEGY, key = "edc.dataplane.client.selector.strategy")
+    private String selectionStrategy;
 
     @Inject
     private ControlApiHttpClient httpClient;
@@ -76,10 +76,7 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneSelectorService dataPlaneSelectorService(ServiceExtensionContext context) {
-        var config = context.getConfig();
-        var url = config.getString(DPF_SELECTOR_URL_SETTING);
-        var selectionStrategy = config.getString(DPF_SELECTOR_STRATEGY, DataPlaneSelectorService.DEFAULT_STRATEGY);
-        return new RemoteDataPlaneSelectorService(httpClient, url, typeManager.getMapper(JSON_LD), typeTransformerRegistry,
+        return new RemoteDataPlaneSelectorService(httpClient, selectorApiUrl, typeManager.getMapper(JSON_LD), typeTransformerRegistry,
                 selectionStrategy, jsonLd);
     }
 }

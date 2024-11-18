@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.api.control.configuration;
 
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
@@ -31,9 +32,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.CONTROL_API_ENDPOINT;
 import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.CONTROL_SCOPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
@@ -43,7 +45,6 @@ import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -83,22 +84,22 @@ public class ControlApiConfigurationExtensionTest {
     }
 
     @Test
-    void shouldUseConfiguredControlApiUrl(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
+    void shouldUseConfiguredControlApiUrl(ServiceExtensionContext context, ObjectFactory objectFactory) {
         var configuredEndpoint = "http://localhost:8080/test";
-        when(context.getConfig()).thenReturn(ConfigFactory.empty());
-        when(context.getSetting(eq(CONTROL_API_ENDPOINT), any())).thenReturn(configuredEndpoint);
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.control.endpoint", configuredEndpoint)));
 
-        extension.initialize(context);
+        objectFactory.constructInstance(ControlApiConfigurationExtension.class).initialize(context);
 
         var url = context.getService(ControlApiUrl.class);
         assertThat(url.get().toString()).isEqualTo(configuredEndpoint);
     }
 
     @Test
-    void shouldThrowError_whenUrlIsNotValid(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
+    void shouldThrowError_whenUrlIsNotValid(ServiceExtensionContext context, ObjectFactory objectFactory) {
         var endpoint = "http:// invalid";
-        when(context.getConfig()).thenReturn(ConfigFactory.empty());
-        when(context.getSetting(eq(CONTROL_API_ENDPOINT), any())).thenReturn(endpoint);
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.control.endpoint", endpoint)));
+
+        var extension = objectFactory.constructInstance(ControlApiConfigurationExtension.class);
 
         assertThatThrownBy(() -> extension.initialize(context)).isInstanceOf(EdcException.class);
     }

@@ -25,12 +25,13 @@ import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.keys.spi.CertificateResolver;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -44,45 +45,22 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 
 /**
  * Provides OAuth2 client credentials flow support.
  */
-@Provides({IdentityService.class})
+@Provides({ IdentityService.class })
 @Extension(value = Oauth2ServiceExtension.NAME)
 public class Oauth2ServiceExtension implements ServiceExtension {
 
     public static final String NAME = "OAuth2 Identity Service";
     public static final String OAUTH2_TOKEN_CONTEXT = "oauth2";
-    private static final int DEFAULT_TOKEN_EXPIRATION = 5;
-    @Setting
-    private static final String PROVIDER_JWKS_URL = "edc.oauth.provider.jwks.url";
-    @Setting(value = "outgoing tokens 'aud' claim value, by default it's the connector id")
-    private static final String PROVIDER_AUDIENCE = "edc.oauth.provider.audience";
-    @Setting(value = "incoming tokens 'aud' claim required value, by default it's the provider audience value")
-    private static final String ENDPOINT_AUDIENCE = "edc.oauth.endpoint.audience";
 
-    @Setting
-    private static final String PUBLIC_CERTIFICATE_ALIAS = "edc.oauth.certificate.alias";
-    @Setting
-    private static final String PRIVATE_KEY_ALIAS = "edc.oauth.private.key.alias";
-    @Setting
-    private static final String PROVIDER_JWKS_REFRESH = "edc.oauth.provider.jwks.refresh"; // in minutes
-    @Setting
-    private static final String TOKEN_URL = "edc.oauth.token.url";
-    @Setting(value = "Token expiration in minutes. By default is 5 minutes")
-    private static final String TOKEN_EXPIRATION = "edc.oauth.token.expiration"; // in minutes
-    @Setting
-    private static final String CLIENT_ID = "edc.oauth.client.id";
-    @Setting(value = "Leeway in seconds for validating the not before (nbf) claim in the token.", defaultValue = "10", type = "int")
-    private static final String NOT_BEFORE_LEEWAY = "edc.oauth.validation.nbf.leeway";
-    @Setting(value = "Leeway in seconds for validating the issuedAt claim in the token. By default it is 0 seconds.", defaultValue = "0", type = "int")
-    private static final String ISSUED_AT_LEEWAY = "edc.oauth.validation.issued.at.leeway";
+    @Configuration
+    private Oauth2ServiceConfiguration config;
     private IdentityProviderKeyResolver providerKeyResolver;
 
     @Inject
@@ -121,27 +99,36 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
 
-        var configuration = createConfig(context);
+        config = withDefaults(config, context);
+        warnIfNoLeeway(config, context.getMonitor());
 
-        var certificate = Optional.ofNullable(certificateResolver.resolveCertificate(configuration.getPublicCertificateAlias()))
-                .orElseThrow(() -> new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias()));
+        var certificate = ofNullable(certificateResolver.resolveCertificate(config.getPublicCertificateAlias()))
+                .orElseThrow(() -> new EdcException("Public certificate not found: " + config.getPublicCertificateAlias()));
         jwtDecoratorRegistry.register(OAUTH2_TOKEN_CONTEXT, Oauth2AssertionDecorator.Builder.newInstance()
-                .audience(configuration.getProviderAudience())
-                .clientId(configuration.getClientId())
+                .audience(config.getProviderAudience())
+                .clientId(config.getClientId())
                 .clock(clock)
-                .validity(configuration.getTokenExpiration())
+                .validity(config.getTokenExpiration())
                 .build());
         jwtDecoratorRegistry.register(OAUTH2_TOKEN_CONTEXT, new X509CertificateDecorator(certificate));
 
         providerKeyResolver = identityProviderKeyResolver(context);
 
-        var oauth2Service = createOauth2Service(configuration, jwtDecoratorRegistry, providerKeyResolver);
+        var oauth2Service = createOauth2Service(config, jwtDecoratorRegistry, providerKeyResolver);
         context.registerService(IdentityService.class, oauth2Service);
 
         // add oauth2-specific validation rules
-        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new AudienceValidationRule(configuration.getEndpointAudience()));
-        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, configuration.getNotBeforeValidationLeeway()));
-        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, configuration.getIssuedAtLeeway()));
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new AudienceValidationRule(config.getEndpointAudience()));
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, config.getNotBeforeValidationLeeway()));
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, config.getIssuedAtLeeway()));
+    }
+
+    private Oauth2ServiceConfiguration withDefaults(Oauth2ServiceConfiguration config, ServiceExtensionContext context) {
+        var providerAudience = ofNullable(config.getProviderAudience()).orElseGet(context::getComponentId);
+        return config.toBuilder()
+                .providerAudience(providerAudience)
+                .endpointAudience(ofNullable(config.getEndpointAudience()).orElse(providerAudience))
+                .build();
     }
 
     @Override
@@ -155,9 +142,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     }
 
     private IdentityProviderKeyResolver identityProviderKeyResolver(ServiceExtensionContext context) {
-        var jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
-        var keyRefreshInterval = context.getSetting(PROVIDER_JWKS_REFRESH, 5);
-        return new IdentityProviderKeyResolver(context.getMonitor(), httpClient, typeManager, jwksUrl, keyRefreshInterval);
+        return new IdentityProviderKeyResolver(context.getMonitor(), httpClient, typeManager, config.getJwksUrl(), config.getProviderJwksRefresh());
     }
 
     @NotNull
@@ -167,7 +152,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         Supplier<String> privateKeySupplier = configuration::getPrivateKeyAlias;
 
         return new Oauth2ServiceImpl(
-                configuration,
+                configuration.getTokenUrl(),
                 new JwtGenerationService(jwsSignerProvider),
                 privateKeySupplier,
                 oauth2Client,
@@ -178,37 +163,11 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         );
     }
 
-    private Oauth2ServiceConfiguration createConfig(ServiceExtensionContext context) {
-        var providerAudience = context.getSetting(PROVIDER_AUDIENCE, context.getComponentId());
-        var endpointAudience = context.getSetting(ENDPOINT_AUDIENCE, providerAudience);
-        var tokenUrl = context.getConfig().getString(TOKEN_URL);
-        var publicCertificateAlias = context.getConfig().getString(PUBLIC_CERTIFICATE_ALIAS);
-        var privateKeyAlias = context.getConfig().getString(PRIVATE_KEY_ALIAS);
-        var clientId = context.getConfig().getString(CLIENT_ID);
-        var tokenExpiration = context.getSetting(TOKEN_EXPIRATION, DEFAULT_TOKEN_EXPIRATION);
-        return Oauth2ServiceConfiguration.Builder.newInstance()
-                .tokenUrl(tokenUrl)
-                .providerAudience(providerAudience)
-                .endpointAudience(endpointAudience)
-                .publicCertificateAlias(publicCertificateAlias)
-                .privateKeyAlias(privateKeyAlias)
-                .clientId(clientId)
-                .notBeforeValidationLeeway(context.getSetting(NOT_BEFORE_LEEWAY, 10))
-                .issuedAtLeeway(getIssuedAtLeeway(context))
-                .tokenExpiration(TimeUnit.MINUTES.toSeconds(tokenExpiration))
-                .build();
-    }
-
-    private int getIssuedAtLeeway(ServiceExtensionContext context) {
-        if (!context.getConfig().hasKey(ISSUED_AT_LEEWAY)) {
-            var message = format(
-                    "No value was configured for '%s'. Consider setting a leeway of 2-5s in production to avoid problems with clock skew.",
-                    ISSUED_AT_LEEWAY
-            );
-            context.getMonitor().info(message);
+    private void warnIfNoLeeway(Oauth2ServiceConfiguration configuration, Monitor monitor) {
+        if (configuration.getIssuedAtLeeway() == 0) {
+            var message = "No value was configured for '%s'. Consider setting a leeway of 2-5s in production to avoid problems with clock skew.".formatted(Oauth2ServiceConfiguration.ISSUED_AT_LEEWAY);
+            monitor.info(message);
         }
-
-        return context.getSetting(ISSUED_AT_LEEWAY, 0);
     }
 
 }

@@ -36,8 +36,8 @@ public class StsAccountsApiExtension implements ServiceExtension {
     public static final String NAME = "Secure Token Service Accounts API Extension";
     public static final String STS_ACCOUNTS_API_CONTEXT = "sts-accounts-api";
 
-    @Setting(value = "API key (or Vault alias) for the STS Accounts API's default authentication mechanism (token-based).")
-    public static final String STS_ACCOUNTS_API_KEY = "edc.api.accounts.key";
+    @Setting(description = "API key (or Vault alias) for the STS Accounts API's default authentication mechanism (token-based).", key = "edc.api.accounts.key")
+    private String accountsApiKeyOrAlias;
 
     @Inject
     private StsAccountService clientService;
@@ -68,8 +68,7 @@ public class StsAccountsApiExtension implements ServiceExtension {
     }
 
     private String resolveApiKey(ServiceExtensionContext context) {
-        var keyOrAlias = context.getConfig().getString(STS_ACCOUNTS_API_KEY);
-        return ofNullable(vault.resolveSecret(keyOrAlias))
-                .orElse(keyOrAlias);
+        return ofNullable(vault.resolveSecret(accountsApiKeyOrAlias))
+                .orElse(accountsApiKeyOrAlias);
     }
 }

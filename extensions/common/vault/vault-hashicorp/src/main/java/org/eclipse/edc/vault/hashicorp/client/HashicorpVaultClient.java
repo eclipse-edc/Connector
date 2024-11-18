@@ -40,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * This is a client implementation for interacting with Hashicorp Vault.
@@ -119,7 +120,7 @@ public class HashicorpVaultClient {
      * @return boolean indicating if the token is renewable
      */
     public Result<Boolean> isTokenRenewable() {
-        var uri = settings.url()
+        var uri = baseUrl(settings)
                 .newBuilder()
                 .addPathSegments(TOKEN_LOOK_UP_SELF_PATH)
                 .build();
@@ -156,7 +157,7 @@ public class HashicorpVaultClient {
      * @return long representing the remaining ttl of the token in seconds
      */
     public Result<Long> renewToken() {
-        var uri = settings.url()
+        var uri = baseUrl(settings)
                 .newBuilder()
                 .addPathSegments(TOKEN_RENEW_SELF_PATH)
                 .build();
@@ -261,7 +262,7 @@ public class HashicorpVaultClient {
         // status
         // code instead of the standby status codes
 
-        return settings.url()
+        return baseUrl(settings)
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultHealthPath))
                 .addQueryParameter("standbyok", isVaultHealthStandbyOk ? "true" : "false")
@@ -278,7 +279,7 @@ public class HashicorpVaultClient {
         var vaultApiPath = settings.secretPath();
         var folderPath = settings.getFolderPath();
 
-        var builder = settings.url()
+        var builder = baseUrl(settings)
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
                 .addPathSegment(entryType);
@@ -308,6 +309,12 @@ public class HashicorpVaultClient {
                 .headers(headers)
                 .post(createRequestBody(requestBody))
                 .build();
+    }
+
+    @NotNull
+    private HttpUrl baseUrl(HashicorpVaultSettings settings) {
+        var url = settings.url();
+        return Objects.requireNonNull(HttpUrl.parse(url));
     }
 
     @NotNull

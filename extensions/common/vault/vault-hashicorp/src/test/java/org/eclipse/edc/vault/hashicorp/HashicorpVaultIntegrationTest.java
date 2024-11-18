@@ -16,14 +16,16 @@
 package org.eclipse.edc.vault.hashicorp;
 
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.security.Vault;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.vault.VaultContainer;
@@ -34,12 +36,9 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.VAULT_URL;
 
 @ComponentTest
 @Testcontainers
-@ExtendWith(EdcExtension.class)
 class HashicorpVaultIntegrationTest {
     static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
     static final String VAULT_ENTRY_KEY = "testing";
@@ -48,14 +47,16 @@ class HashicorpVaultIntegrationTest {
     static final String TOKEN = UUID.randomUUID().toString();
 
     @Container
-    public static final VaultContainer<?> VAULTCONTAINER = new VaultContainer<>(DOCKER_IMAGE_NAME)
+    private static final VaultContainer<?> VAULTCONTAINER = new VaultContainer<>(DOCKER_IMAGE_NAME)
             .withVaultToken(TOKEN)
             .withSecretInVault("secret/" + VAULT_ENTRY_KEY, format("%s=%s", VAULT_DATA_ENTRY_NAME, VAULT_ENTRY_VALUE));
+    private static final String VAULT_URL = "edc.vault.hashicorp.url";
+    private static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
 
-    @BeforeEach
-    void beforeEach(EdcExtension extension) {
-        extension.setConfiguration(getConfig());
-    }
+
+    @RegisterExtension
+    protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("vault-runtime", getConfig(), "extensions:common:vault:vault-hashicorp"));
+
 
     @Test
     @DisplayName("Resolve a secret that exists")
@@ -136,10 +137,15 @@ class HashicorpVaultIntegrationTest {
         assertThat(vault.resolveSecret(key)).isNull();
     }
 
-    private Map<String, String> getConfig() {
+    private static Map<String, String> getConfig() {
+        // container might not be started, lazily start and wait for it to come up
+        if (!VAULTCONTAINER.isRunning()) {
+            VAULTCONTAINER.start();
+            VAULTCONTAINER.waitingFor(Wait.forHealthcheck());
+        }
         return new HashMap<>() {
             {
-                put(VAULT_URL, format("http://%s:%s", VAULTCONTAINER.getHost(), VAULTCONTAINER.getFirstMappedPort()));
+                put(VAULT_URL, "http://%s:%d".formatted(VAULTCONTAINER.getHost(), VAULTCONTAINER.getFirstMappedPort()));
                 put(VAULT_TOKEN, TOKEN);
             }
         };

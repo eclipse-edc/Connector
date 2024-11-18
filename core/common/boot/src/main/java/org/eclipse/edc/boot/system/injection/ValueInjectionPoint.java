@@ -192,19 +192,19 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
 
     private Object parseEntry(String string, Class<?> valueType) {
         try {
-            if (valueType == Long.class) {
+            if (valueType == Long.class || valueType == long.class) {
                 return Long.parseLong(string);
             }
-            if (valueType == Integer.class) {
+            if (valueType == Integer.class || valueType == int.class) {
                 return Integer.parseInt(string);
             }
-            if (valueType == Double.class) {
+            if (valueType == Double.class || valueType == double.class) {
                 return Double.parseDouble(string);
             }
         } catch (NumberFormatException e) {
             throw new EdcInjectionException("Config field '%s' is of type '%s', but the value resolved from key '%s' is \"%s\" which cannot be interpreted as %s.".formatted(targetField.getName(), valueType, annotationValue.key(), string, valueType));
         }
-        if (valueType == Boolean.class) {
+        if (valueType == Boolean.class || valueType == boolean.class) {
             return Boolean.parseBoolean(string);
         }
 

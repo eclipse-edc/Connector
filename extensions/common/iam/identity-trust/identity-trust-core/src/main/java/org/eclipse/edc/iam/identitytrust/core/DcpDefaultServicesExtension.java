@@ -48,16 +48,22 @@ import static org.eclipse.edc.spi.result.Result.success;
 @Extension("Identity And Trust Extension to register default services")
 public class DcpDefaultServicesExtension implements ServiceExtension {
 
-    @Setting(value = "Alias of private key used for signing tokens, retrieved from private key resolver", defaultValue = "A random EC private key")
-    public static final String STS_PRIVATE_KEY_ALIAS = "edc.iam.sts.privatekey.alias";
-    @Setting(value = "Id used by the counterparty to resolve the public key for token validation, e.g. did:example:123#public-key-0", defaultValue = "A random EC public key")
-    public static final String STS_PUBLIC_KEY_ID = "edc.iam.sts.publickey.id";
+    @Setting(description = "Alias of private key used for signing tokens, retrieved from private key resolver.", key = "edc.iam.sts.privatekey.alias")
+    private String privateKeyAlias;
+
+    @Setting(description = "Key Identifier used by the counterparty to resolve the public key for token validation, e.g. did:example:123#public-key-1.", key = "edc.iam.sts.publickey.id")
+    private String publicKeyId;
+
+    @Setting(description = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + DEFAULT_STS_TOKEN_EXPIRATION_MIN, key = "edc.iam.sts.token.expiration")
+    private long stsTokenExpirationMin;
+
+
     public static final String CLAIMTOKEN_VC_KEY = "vc";
     // not a setting, it's defined in Oauth2ServiceExtension
     private static final String OAUTH_TOKENURL_PROPERTY = "edc.oauth.token.url";
-    @Setting(value = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + DcpDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION_MIN)
-    private static final String STS_TOKEN_EXPIRATION = "edc.iam.sts.token.expiration"; // in minutes
+
     private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
+    
     @Inject
     private Clock clock;
     @Inject
@@ -68,7 +74,6 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
         context.getMonitor().info("Using the Embedded STS client, as no other implementation was provided.");
-        var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION_MIN);
 
 
         if (context.getSetting(OAUTH_TOKENURL_PROPERTY, null) != null) {
@@ -77,10 +82,7 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
         }
 
 
-        var publicKeyId = context.getSetting(STS_PUBLIC_KEY_ID, null);
-        var privateKeyAlias = context.getSetting(STS_PRIVATE_KEY_ALIAS, null);
-
-        return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(tokenExpiration), jtiValidationStore);
+        return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(stsTokenExpirationMin), jtiValidationStore);
     }
 
     @Provider(isDefault = true)

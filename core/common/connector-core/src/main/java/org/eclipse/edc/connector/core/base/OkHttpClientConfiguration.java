@@ -14,15 +14,30 @@
 
 package org.eclipse.edc.connector.core.base;
 
-public class OkHttpClientConfiguration {
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 
+@Settings
+public class OkHttpClientConfiguration {
+    public static final boolean DEFAULT_OK_HTTP_CLIENT_HTTPS_ENFORCE = false;
+    public static final int DEFAULT_OK_HTTP_CLIENT_TIMEOUT_CONNECT = 30;
+    public static final int DEFAULT_OK_HTTP_CLIENT_TIMEOUT_READ = 30;
+    public static final int DEFAULT_OK_HTTP_CLIENT_SEND_BUFFER_SIZE = 0;
+    public static final int DEFAULT_OK_HTTP_CLIENT_RECEIVE_BUFFER_SIZE = 0;
+
+    @Setting(description = "OkHttpClient: If true, enable HTTPS call enforcement", defaultValue = DEFAULT_OK_HTTP_CLIENT_HTTPS_ENFORCE + "", key = "edc.http.client.https.enforce")
     private boolean enforceHttps;
+
+    @Setting(description = "OkHttpClient: connect timeout, in seconds", defaultValue = DEFAULT_OK_HTTP_CLIENT_TIMEOUT_CONNECT + "", key = "edc.http.client.timeout.connect")
     private int connectTimeout;
+    @Setting(description = "OkHttpClient: read timeout, in seconds", defaultValue = DEFAULT_OK_HTTP_CLIENT_TIMEOUT_READ + "", key = "edc.http.client.timeout.read")
     private int readTimeout;
+    @Setting(description = "OkHttpClient: send buffer size, in bytes", defaultValue = DEFAULT_OK_HTTP_CLIENT_SEND_BUFFER_SIZE + "", key = "edc.http.client.send.buffer.size", min = 1)
     private int sendBufferSize;
+    @Setting(description = "OkHttpClient: receive buffer size, in bytes", defaultValue = DEFAULT_OK_HTTP_CLIENT_RECEIVE_BUFFER_SIZE + "", key = "edc.http.client.receive.buffer.size", min = 1)
     private int receiveBufferSize;
 
-    private OkHttpClientConfiguration() {
+    public OkHttpClientConfiguration() {
     }
 
     public boolean isEnforceHttps() {
@@ -45,15 +60,20 @@ public class OkHttpClientConfiguration {
         return receiveBufferSize;
     }
 
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     public static class Builder {
 
-        private final OkHttpClientConfiguration instance = new OkHttpClientConfiguration();
+        private final OkHttpClientConfiguration instance;
 
-        public static Builder newInstance() {
-            return new Builder();
+        private Builder(OkHttpClientConfiguration okHttpClientConfiguration) {
+            this.instance = okHttpClientConfiguration;
         }
 
-        private Builder() {
+        public static Builder newInstance() {
+            return new Builder(new OkHttpClientConfiguration());
         }
 
         public Builder enforceHttps(boolean enforceHttps) {
@@ -85,4 +105,5 @@ public class OkHttpClientConfiguration {
             return instance;
         }
     }
+
 }

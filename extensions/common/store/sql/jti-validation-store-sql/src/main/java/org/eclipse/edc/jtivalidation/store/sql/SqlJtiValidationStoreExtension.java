@@ -34,10 +34,8 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 @Extension(value = "SQL JTI Validation store")
 public class SqlJtiValidationStoreExtension implements ServiceExtension {
 
-
-    @Setting(value = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
-    public static final String DATASOURCE_NAME = "edc.sql.store.jti.datasource";
-
+    @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.jti.datasource")
+    private String dataSourceName;
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -60,8 +58,6 @@ public class SqlJtiValidationStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = context.getConfig().getString(DATASOURCE_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
-
         var sqlStore = new SqlJtiValidationStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(),
                 getStatementImpl(), queryExecutor, context.getMonitor());
 

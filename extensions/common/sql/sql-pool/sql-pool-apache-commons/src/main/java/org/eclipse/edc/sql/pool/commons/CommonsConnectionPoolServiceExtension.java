@@ -46,28 +46,28 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     public static final String EDC_DATASOURCE_PREFIX = "edc.datasource";
     private static final String EDC_DATASOURCE_CONFIG_CONTEXT = EDC_DATASOURCE_PREFIX + ".<name>";
 
-    @Setting(value = "JDBC url", required = true, context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "JDBC url", required = true, context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String URL = "url";
-    @Setting(value = "Username to be used for the JDBC connection. Can be omitted if not required, or if the user is encoded in the JDBC url.", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Username to be used for the JDBC connection. Can be omitted if not required, or if the user is encoded in the JDBC url.", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String USER = "user";
-    @Setting(value = "Username to be used for the JDBC connection. Can be omitted if not required, or if the password is encoded in the JDBC url.", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Username to be used for the JDBC connection. Can be omitted if not required, or if the password is encoded in the JDBC url.", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String PASSWORD = "password";
 
-    @Setting(value = "Pool max idle connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool max idle connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTIONS_MAX_IDLE = "pool.connections.max-idle";
-    @Setting(value = "Pool max total connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool max total connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTIONS_MAX_TOTAL = "pool.connections.max-total";
-    @Setting(value = "Pool min idle connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool min idle connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTIONS_MIN_IDLE = "pool.connections.min-idle";
-    @Setting(value = "Pool test on borrow", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool test on borrow", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_ON_BORROW = "pool.connection.test.on-borrow";
-    @Setting(value = "Pool test on create", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool test on create", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_ON_CREATE = "pool.connection.test.on-create";
-    @Setting(value = "Pool test on return", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool test on return", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_ON_RETURN = "pool.connection.test.on-return";
-    @Setting(value = "Pool test while idle", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool test while idle", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_WHILE_IDLE = "pool.connection.test.while-idle";
-    @Setting(value = "Pool test query", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool test query", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_QUERY = "pool.connection.test.query";
 
     @Inject

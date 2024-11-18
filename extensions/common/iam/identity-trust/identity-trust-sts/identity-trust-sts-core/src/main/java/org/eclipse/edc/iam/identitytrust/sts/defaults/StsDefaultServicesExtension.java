@@ -43,8 +43,8 @@ public class StsDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Secure Token Service Default Services";
 
-    @Setting(value = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + StsDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION_MIN)
-    private static final String STS_TOKEN_EXPIRATION = "edc.iam.sts.token.expiration"; // in minutes
+    @Setting(description = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + StsDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION_MIN, key = "edc.iam.sts.token.expiration")
+    private int tokenExpirationMinutes;
 
     private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
 
@@ -75,12 +75,11 @@ public class StsDefaultServicesExtension implements ServiceExtension {
 
     @Provider
     public StsClientTokenGeneratorService clientTokenService(ServiceExtensionContext context) {
-        var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION_MIN);
         return new StsClientTokenGeneratorServiceImpl(
                 (client) -> new JwtGenerationService(jwsSignerProvider),
                 StsAccount::getPrivateKeyAlias,
                 clock,
-                TimeUnit.MINUTES.toSeconds(tokenExpiration),
+                TimeUnit.MINUTES.toSeconds(tokenExpirationMinutes),
                 jtiValidationStore);
     }
 

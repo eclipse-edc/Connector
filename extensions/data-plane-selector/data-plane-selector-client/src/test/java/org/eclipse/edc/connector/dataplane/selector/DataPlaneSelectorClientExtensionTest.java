@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -29,7 +30,6 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorClientExtension.DPF_SELECTOR_URL_SETTING;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -43,11 +43,14 @@ class DataPlaneSelectorClientExtensionTest {
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.dataplane.client.selector.strategy", "http://any",
+                "edc.dpf.selector.url", "http://any")));
+
     }
 
     @Test
     void dataPlaneSelectorService_shouldReturnRemoteService(DataPlaneSelectorClientExtension extension, ServiceExtensionContext context) {
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(DPF_SELECTOR_URL_SETTING, "http://any")));
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of()));
 
         var client = extension.dataPlaneSelectorService(context);
 
@@ -55,11 +58,11 @@ class DataPlaneSelectorClientExtensionTest {
     }
 
     @Test
-    void dataPlaneSelectorService_shouldThrowException_whenUrlNotConfigured(DataPlaneSelectorClientExtension extension, ServiceExtensionContext context) {
+    void dataPlaneSelectorService_shouldThrowException_whenUrlNotConfigured(ServiceExtensionContext context, ObjectFactory objectFactory) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(emptyMap()));
 
-        assertThatThrownBy(() -> extension.dataPlaneSelectorService(context)).isInstanceOf(EdcException.class)
-                .hasMessageContaining("No setting found");
+        assertThatThrownBy(() -> objectFactory.constructInstance(DataPlaneSelectorClientExtension.class).dataPlaneSelectorService(context)).isInstanceOf(EdcException.class)
+                .hasMessageContaining("No config value and no default value found for injected field");
     }
 
     @Test

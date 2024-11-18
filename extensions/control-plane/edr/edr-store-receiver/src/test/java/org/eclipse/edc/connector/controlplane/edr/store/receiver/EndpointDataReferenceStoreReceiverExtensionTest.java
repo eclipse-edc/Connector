@@ -14,13 +14,17 @@
 
 package org.eclipse.edc.connector.controlplane.edr.store.receiver;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,9 +52,11 @@ public class EndpointDataReferenceStoreReceiverExtensionTest {
     }
 
     @Test
-    void initialize_withSyncConfig(ServiceExtensionContext context, EndpointDataReferenceStoreReceiverExtension extension) {
-        when(context.getSetting("edc.edr.receiver.sync", false)).thenReturn(true);
-        extension.initialize(context);
+    void initialize_withSyncConfig(ServiceExtensionContext context, ObjectFactory objectFactory) {
+
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.edr.receiver.sync", "true")));
+
+        objectFactory.constructInstance(EndpointDataReferenceStoreReceiverExtension.class).initialize(context);
         verify(eventRouter).registerSync(eq(TransferProcessEvent.class), isA(EndpointDataReferenceStoreReceiver.class));
         verify(eventRouter, never()).register(any(), any());
     }

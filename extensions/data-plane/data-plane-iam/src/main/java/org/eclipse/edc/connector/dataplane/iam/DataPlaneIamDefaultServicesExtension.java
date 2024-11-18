@@ -35,10 +35,11 @@ public class DataPlaneIamDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Default IAM Services";
 
-    @Setting(value = "Alias of private key used for signing tokens, retrieved from private key resolver")
-    public static final String TOKEN_SIGNER_PRIVATE_KEY_ALIAS = "edc.transfer.proxy.token.signer.privatekey.alias";
-    @Setting(value = "Alias of public key used for verifying the tokens, retrieved from the vault")
-    public static final String TOKEN_VERIFIER_PUBLIC_KEY_ALIAS = "edc.transfer.proxy.token.verifier.publickey.alias";
+    @Setting(description = "Alias of private key used for signing tokens, retrieved from private key resolver", key = "edc.transfer.proxy.token.signer.privatekey.alias")
+    private String tokenSignerPrivateKeyAlias;
+
+    @Setting(description = "Alias of public key used for verifying the tokens, retrieved from the vault", key = "edc.transfer.proxy.token.verifier.publickey.alias")
+    private String tokenVerifierPublicKeyAlias;
 
     @Inject
     private AccessTokenDataStore accessTokenDataStore;
@@ -62,8 +63,6 @@ public class DataPlaneIamDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DataPlaneAccessTokenService defaultAccessTokenService(ServiceExtensionContext context) {
-        var tokenVerifierPublicKeyAlias = context.getConfig().getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS);
-        var tokenSignerPrivateKeyAlias = context.getConfig().getString(TOKEN_SIGNER_PRIVATE_KEY_ALIAS);
         var monitor = context.getMonitor().withPrefix("DataPlane IAM");
         return new DefaultDataPlaneAccessTokenServiceImpl(new JwtGenerationService(jwsSignerProvider),
                 accessTokenDataStore, monitor,
