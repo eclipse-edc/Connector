@@ -39,7 +39,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ComponentTest
 @Testcontainers
-//@ExtendWith(RuntimePerClassExtension.class)
 class HashicorpVaultIntegrationTest {
     static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
     static final String VAULT_ENTRY_KEY = "testing";
@@ -54,10 +53,6 @@ class HashicorpVaultIntegrationTest {
     private static final String VAULT_URL = "edc.vault.hashicorp.url";
     private static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
 
-//    @BeforeEach
-//    void beforeEach(RuntimeExtension extension) {
-//        extension.setConfiguration(getConfig());
-//    }
 
     @RegisterExtension
     protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("vault-runtime", getConfig(), "extensions:common:vault:vault-hashicorp"));

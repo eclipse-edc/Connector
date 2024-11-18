@@ -52,7 +52,8 @@ public class PolicyMonitorExtension implements ServiceExtension {
 
     public static final String NAME = "Policy Monitor";
 
-    @Setting(description = "the iteration wait time in milliseconds in the policy monitor state machine. Default value " + DEFAULT_ITERATION_WAIT, key = "edc.policy.monitor.state-machine.iteration-wait-millis", defaultValue = DEFAULT_ITERATION_WAIT + "")
+    @Setting(description = "the iteration wait time in milliseconds in the policy monitor state machine. Default value " + DEFAULT_ITERATION_WAIT,
+            key = "edc.policy.monitor.state-machine.iteration-wait-millis", defaultValue = DEFAULT_ITERATION_WAIT + "")
     private long iterationWaitMillis;
 
     @Setting(description = "the batch size in the policy monitor state machine. Default value " + DEFAULT_BATCH_SIZE, key = "edc.policy.monitor.state-machine.batch-size", defaultValue = DEFAULT_BATCH_SIZE + "")
