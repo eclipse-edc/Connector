@@ -288,7 +288,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public boolean canBeStartedConsumer() {
-        return currentStateIsOneOf(STARTED, REQUESTED, STARTING, RESUMED);
+        return currentStateIsOneOf(STARTED, REQUESTED, STARTING, RESUMED, SUSPENDED);
     }
 
     public void transitionStarted(String dataPlaneId) {
