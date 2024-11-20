@@ -24,7 +24,7 @@ while preserving the existing fields and their shape in others.
 
 ## Approach
 
-By removing the exception when calling `TypeTransformerRegistry#forContext` on a nested, it will be possible to
+By removing the exception when calling `TypeTransformerRegistry#forContext` on a nested context, it will be possible to
 create specific versioned context containing only the override transformers.
 
 ```java
