@@ -17,10 +17,10 @@ package org.eclipse.edc.sql.bootstrapper;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -33,6 +33,12 @@ public class SqlSchemaBootstrapperExtension implements ServiceExtension {
     public static final String SCHEMA_AUTOCREATE_PROPERTY = "edc.sql.schema.autocreate";
     public static final boolean SCHEMA_AUTOCREATE_DEFAULT = false;
 
+    @Setting(
+            description = "When true, the schema for the sql stores will be created automatically on the configured datasource",
+            key = "edc.sql.schema.autocreate", defaultValue = SCHEMA_AUTOCREATE_DEFAULT + "", required = false
+    )
+    private boolean shouldAutoCreate;
+
     @Inject
     private TransactionContext transactionContext;
     @Inject
@@ -43,12 +49,6 @@ public class SqlSchemaBootstrapperExtension implements ServiceExtension {
     private Monitor monitor;
 
     private SqlSchemaBootstrapperImpl bootstrapper;
-    private Boolean shouldAutoCreate;
-
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        shouldAutoCreate = context.getConfig().getBoolean(SCHEMA_AUTOCREATE_PROPERTY, SCHEMA_AUTOCREATE_DEFAULT);
-    }
 
     @Override
     public void prepare() {

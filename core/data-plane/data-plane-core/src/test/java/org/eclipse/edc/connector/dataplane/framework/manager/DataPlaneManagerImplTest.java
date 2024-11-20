@@ -40,6 +40,7 @@ import org.mockito.ArgumentCaptor;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Collections.emptyList;
@@ -56,6 +57,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.junit.matchers.ArrayContainsMatcher.arrayContains;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
@@ -84,6 +86,7 @@ class DataPlaneManagerImplTest {
     private final DataFlowStartMessage request = createRequest();
     private final TransferServiceRegistry registry = mock();
     private final DataPlaneAuthorizationService authorizationService = mock();
+    private final String runtimeId = UUID.randomUUID().toString();
     private DataPlaneManager manager;
 
     @BeforeEach
@@ -96,6 +99,7 @@ class DataPlaneManagerImplTest {
                 .transferProcessClient(transferProcessApiClient)
                 .authorizationService(authorizationService)
                 .monitor(mock())
+                .runtimeId(runtimeId)
                 .build();
     }
 
@@ -368,7 +372,11 @@ class DataPlaneManagerImplTest {
 
             await().untilAsserted(() -> {
                 verify(transferService).transfer(isA(DataFlowStartMessage.class));
-                verify(store).save(argThat(it -> it.getState() == STARTED.code()));
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.getState()).isEqualTo(STARTED.code());
+                assertThat(storedDataFlow.getRuntimeId()).isEqualTo(runtimeId);
             });
         }
 
@@ -594,6 +602,52 @@ class DataPlaneManagerImplTest {
         }
     }
 
+    @Nested
+    class UpdateFlowLease {
+
+        @Test
+        void shouldUpdateFlow_whenFlowStartedAfterFlowLease() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.nextNotLeased(anyInt(), startedFlowOwnedByThisRuntime()))
+                    .thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.getState()).isEqualTo(STARTED.code());
+                assertThat(storedDataFlow.getRuntimeId()).isEqualTo(runtimeId);
+                assertThat(storedDataFlow.getStateCount()).isEqualTo(1);
+            });
+        }
+    }
+
+    @Nested
+    class RestartFlowOwnedByAnotherRuntime {
+        @Test
+        void shouldRestartFlow_whenAnotherRuntimeAbandonedIt() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.nextNotLeased(anyInt(), startedFlowOwnedByAnotherRuntime()))
+                    .thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.canHandle(any())).thenReturn(true);
+            when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferService).transfer(isA(DataFlowStartMessage.class));
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.getState()).isEqualTo(STARTED.code());
+                assertThat(storedDataFlow.getRuntimeId()).isEqualTo(runtimeId);
+            });
+        }
+    }
+
     private DataFlow.Builder dataFlowBuilder() {
         return DataFlow.Builder.newInstance()
                 .source(DataAddress.Builder.newInstance().type("source").build())
@@ -604,7 +658,15 @@ class DataPlaneManagerImplTest {
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state) });
+        return aryEq(new Criterion[]{hasState(state)});
+    }
+
+    private Criterion[] startedFlowOwnedByThisRuntime() {
+        return arrayContains(new Criterion[] { hasState(STARTED.code()), new Criterion("runtimeId", "=", runtimeId) });
+    }
+
+    private Criterion[] startedFlowOwnedByAnotherRuntime() {
+        return arrayContains(new Criterion[] { hasState(STARTED.code()), new Criterion("runtimeId", "!=", runtimeId) });
     }
 
     private DataFlowStartMessage createRequest() {

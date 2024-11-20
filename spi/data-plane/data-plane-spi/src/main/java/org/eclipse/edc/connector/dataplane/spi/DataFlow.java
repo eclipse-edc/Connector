@@ -47,8 +47,8 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     private DataAddress destination;
     private URI callbackAddress;
     private Map<String, String> properties = new HashMap<>();
-
     private TransferType transferType;
+    private String runtimeId;
 
     @Override
     public DataFlow copy() {
@@ -57,7 +57,8 @@ public class DataFlow extends StatefulEntity<DataFlow> {
                 .destination(destination)
                 .callbackAddress(callbackAddress)
                 .properties(properties)
-                .transferType(getTransferType());
+                .transferType(getTransferType())
+                .runtimeId(runtimeId);
 
         return copy(builder);
     }
@@ -85,6 +86,10 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
     public TransferType getTransferType() {
         return transferType;
+    }
+
+    public String getRuntimeId() {
+        return runtimeId;
     }
 
     public DataFlowStartMessage toRequest() {
@@ -124,7 +129,8 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         }
     }
 
-    public void transitionToStarted() {
+    public void transitionToStarted(String runtimeId) {
+        this.runtimeId = runtimeId;
         transitionTo(STARTED.code());
     }
 
@@ -185,5 +191,9 @@ public class DataFlow extends StatefulEntity<DataFlow> {
             return this;
         }
 
+        public Builder runtimeId(String runtimeId) {
+            entity.runtimeId = runtimeId;
+            return this;
+        }
     }
 }

@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.store.sql.schema.postgres;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
-import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
+import org.eclipse.edc.connector.dataplane.store.sql.schema.DataFlowStatements;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
@@ -25,14 +25,15 @@ import org.eclipse.edc.sql.translation.TranslationMapping;
  */
 public class DataFlowMapping extends StatefulEntityMapping {
 
-    public DataFlowMapping(DataPlaneStatements statements) {
+    public DataFlowMapping(DataFlowStatements statements) {
         super(statements);
         add("transferType", new TransferTypeMapping(statements));
+        add("runtimeId", statements.getRuntimeIdColumn());
     }
 
     private static class TransferTypeMapping extends TranslationMapping {
 
-        TransferTypeMapping(DataPlaneStatements statements) {
+        TransferTypeMapping(DataFlowStatements statements) {
             add("flowType", statements.getFlowTypeColumn());
         }
     }

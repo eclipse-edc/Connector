@@ -18,6 +18,7 @@ import org.mockito.ArgumentMatcher;
 
 import java.util.function.Predicate;
 
+@Deprecated(since = "0.11.0") // as not used anywhere
 public class PredicateMatcher<T> implements ArgumentMatcher<T> {
 
     private final Predicate<T> predicate;

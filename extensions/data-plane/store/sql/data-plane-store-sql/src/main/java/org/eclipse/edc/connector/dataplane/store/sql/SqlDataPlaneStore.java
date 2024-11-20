@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.dataplane.store.sql;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
-import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
+import org.eclipse.edc.connector.dataplane.store.sql.schema.DataFlowStatements;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -52,13 +52,13 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
  */
 public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStore {
 
-    private final DataPlaneStatements statements;
+    private final DataFlowStatements statements;
     private final SqlLeaseContextBuilder leaseContext;
     private final Clock clock;
     private final String leaseHolderName;
 
     public SqlDataPlaneStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                             DataPlaneStatements statements, ObjectMapper objectMapper, Clock clock, QueryExecutor queryExecutor,
+                             DataFlowStatements statements, ObjectMapper objectMapper, Clock clock, QueryExecutor queryExecutor,
                              String leaseHolderName) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
@@ -151,7 +151,8 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                 toJson(dataFlow.getDestination()),
                 toJson(dataFlow.getProperties()),
                 dataFlow.getTransferType().flowType().toString(),
-                dataFlow.getTransferType().destinationType()
+                dataFlow.getTransferType().destinationType(),
+                dataFlow.getRuntimeId()
         );
     }
 
@@ -170,6 +171,7 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                 toJson(dataFlow.getProperties()),
                 dataFlow.getTransferType().flowType().toString(),
                 dataFlow.getTransferType().destinationType(),
+                dataFlow.getRuntimeId(),
                 dataFlow.getId());
     }
 
@@ -191,6 +193,7 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                         resultSet.getString(statements.getTransferTypeDestinationColumn()),
                         FlowType.valueOf(resultSet.getString(statements.getFlowTypeColumn()))
                 ))
+                .runtimeId(resultSet.getString(statements.getRuntimeIdColumn()))
                 .build();
     }
 

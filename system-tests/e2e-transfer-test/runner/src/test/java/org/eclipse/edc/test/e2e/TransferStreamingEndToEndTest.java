@@ -38,9 +38,9 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
@@ -156,7 +156,7 @@ public class TransferStreamingEndToEndTest {
     abstract static class Tests extends TransferEndToEndTestBase {
 
         @Container
-        private static final KafkaContainer KAFKA = new KafkaContainer(KAFKA_CONTAINER_VERSION);
+        private static final ConfluentKafkaContainer KAFKA = new ConfluentKafkaContainer(KAFKA_CONTAINER_VERSION);
 
         private final String sourceTopic = "source_topic_" + UUID.randomUUID();
         protected final String sinkTopic = "sink_topic_" + UUID.randomUUID();

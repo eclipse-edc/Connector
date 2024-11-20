@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.dataplane.store.sql;
 
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
-import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
-import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.PostgresDataPlaneStatements;
+import org.eclipse.edc.connector.dataplane.store.sql.schema.DataFlowStatements;
+import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.PostgresDataFlowStatements;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -49,7 +49,7 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
     private TransactionContext transactionContext;
 
     @Inject(required = false)
-    private DataPlaneStatements statements;
+    private DataFlowStatements statements;
 
     @Inject
     private Clock clock;
@@ -77,7 +77,7 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
     /**
      * returns an externally-provided sql statement dialect, or postgres as a default
      */
-    private DataPlaneStatements getStatementImpl() {
-        return statements != null ? statements : new PostgresDataPlaneStatements();
+    private DataFlowStatements getStatementImpl() {
+        return statements != null ? statements : new PostgresDataFlowStatements();
     }
 }

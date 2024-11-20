@@ -18,12 +18,10 @@ package org.eclipse.edc.sql.lease;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.sql.ResultSetMapper;
 import org.eclipse.edc.sql.SqlQueryExecutor;
-import org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,11 +51,6 @@ class PostgresLeaseContextTest {
     private final SqlQueryExecutor queryExecutor = new SqlQueryExecutor();
     private SqlLeaseContextBuilder builder;
     private SqlLeaseContext leaseContext;
-
-    @BeforeAll
-    static void prepare(PostgresqlLocalInstance postgres) {
-        postgres.createDatabase();
-    }
 
     @BeforeEach
     void setup(PostgresqlStoreSetupExtension setupExtension, Connection connection) throws IOException {

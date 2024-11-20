@@ -29,6 +29,7 @@ public class StatefulEntityMapping extends TranslationMapping {
         add("stateCount", statements.getStateCountColumn());
         add("stateTimestamp", statements.getStateTimestampColumn());
         add("createdAt", statements.getCreatedAtColumn());
+        add("updatedAt", statements.getUpdatedAtColumn());
         add("traceContext", new JsonFieldTranslator(statements.getTraceContextColumn()));
         add("errorDetail", statements.getErrorDetailColumn());
     }

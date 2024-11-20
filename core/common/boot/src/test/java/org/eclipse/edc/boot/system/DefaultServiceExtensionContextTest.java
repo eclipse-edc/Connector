@@ -85,25 +85,24 @@ class DefaultServiceExtensionContextTest {
     @Nested
     class GetRuntimeId {
         @Test
-        void shouldReturnRandomUuid_whenNotConfigured_andComponentIdNull() {
+        void shouldReturnRandomUuid_whenNotConfigured() {
             when(config.getConfig(any())).thenReturn(ConfigFactory.empty());
             context.initialize();
 
             var runtimeId = context.getRuntimeId();
             assertThat(UUID.fromString(runtimeId)).isNotNull();
 
-            verify(monitor, times(2)).warning(and(isA(String.class), argThat(message -> !message.contains(RUNTIME_ID))));
+            verify(monitor, times(1)).warning(and(isA(String.class), argThat(message -> !message.contains(RUNTIME_ID))));
         }
 
-
         @Test
-        void shouldReturnRandomId_whenComponentIdNotConfigured() {
+        void shouldReturnConfiguredRuntimeId() {
             when(config.getConfig(any())).thenReturn(ConfigFactory.fromMap(Map.of(RUNTIME_ID, "runtime-id")));
             context.initialize();
 
             var runtimeId = context.getRuntimeId();
 
-            assertThat(UUID.fromString(runtimeId)).isNotNull();
+            assertThat(runtimeId).isEqualTo("runtime-id");
         }
     }
 
@@ -125,7 +124,9 @@ class DefaultServiceExtensionContextTest {
         void shouldUseRuntimeId_whenComponentIdNotConfigured() {
             when(config.getConfig(any())).thenReturn(ConfigFactory.fromMap(Map.of(RUNTIME_ID, "runtime-id")));
             context.initialize();
+
             var componentId = context.getComponentId();
+
             assertThat(componentId).isEqualTo("runtime-id");
         }
 
@@ -138,7 +139,7 @@ class DefaultServiceExtensionContextTest {
             var componentId = context.getComponentId();
             var runtimeId = context.getRuntimeId();
 
-            assertThat(UUID.fromString(runtimeId)).isNotNull();
+            assertThat(runtimeId).isEqualTo("runtime-id");
             assertThat(componentId).isEqualTo("component-id");
             verify(monitor).warning(and(isA(String.class), argThat(message -> !message.contains(RUNTIME_ID))));
         }

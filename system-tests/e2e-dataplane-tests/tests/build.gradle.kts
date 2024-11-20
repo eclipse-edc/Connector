@@ -17,14 +17,15 @@ plugins {
 }
 
 dependencies {
-
     testImplementation(project(":spi:data-plane:data-plane-spi"))
-    testImplementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
-
-    testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:keys-lib"))
+    testImplementation(project(":core:common:lib:transform-lib")) // for the transformer registry impl
+    testImplementation(project(":core:common:lib:crypto-common-lib"))
     testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
+    testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
 
     testImplementation(libs.restAssured)
     testImplementation(libs.assertj)
@@ -32,8 +33,7 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
-    testImplementation(project(":core:common:lib:transform-lib")) // for the transformer registry impl
-    testImplementation(project(":core:common:lib:crypto-common-lib"))
+    testImplementation(libs.testcontainers.postgres)
 
     testCompileOnly(project(":system-tests:e2e-dataplane-tests:runtimes:data-plane"))
 }

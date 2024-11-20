@@ -117,6 +117,9 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         runtimeId = getSetting(RUNTIME_ID, null);
         if (runtimeId != null) {
             getMonitor().warning("A configuration value for '%s' was found. Explicitly configuring this is not supported anymore and may get removed in the future. A random value will be assigned.".formatted(RUNTIME_ID));
+        } else {
+            // runtime-id should always be randomized to guarantee a working lease mechanism
+            runtimeId = UUID.randomUUID().toString();
         }
 
         componentId = getSetting(COMPONENT_ID, null);
@@ -128,8 +131,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
                     });
         }
 
-        // runtime-id should always be randomized to guarantee a working lease mechanism
-        runtimeId = UUID.randomUUID().toString();
     }
 
 }

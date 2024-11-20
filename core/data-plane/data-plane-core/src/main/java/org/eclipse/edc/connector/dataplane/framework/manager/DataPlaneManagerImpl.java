@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework.manager;
 
 import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
+import org.eclipse.edc.connector.dataplane.framework.DataPlaneFrameworkExtension.FlowLeaseConfiguration;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
@@ -35,10 +36,14 @@ import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
@@ -59,6 +64,8 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     private DataPlaneAuthorizationService authorizationService;
     private TransferServiceRegistry transferServiceRegistry;
     private TransferProcessApiClient transferProcessClient;
+    private String runtimeId;
+    private FlowLeaseConfiguration flowLeaseConfiguration = new FlowLeaseConfiguration();
 
     private DataPlaneManagerImpl() {
 
@@ -88,7 +95,8 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .callbackAddress(startMessage.getCallbackAddress())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .properties(startMessage.getProperties())
-                .transferType(startMessage.getTransferType());
+                .transferType(startMessage.getTransferType())
+                .runtimeId(runtimeId);
 
         var response = switch (startMessage.getFlowType()) {
             case PULL -> handlePull(startMessage, dataFlowBuilder);
@@ -135,21 +143,39 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                     new Criterion("transferType.flowType", "=", PUSH.toString())
             );
 
-            toBeRestarted.forEach(dataFlow -> {
-                dataFlow.transitToReceived();
-                processReceived(dataFlow);
-            });
+            toBeRestarted.forEach(this::restartFlow);
         } while (!toBeRestarted.isEmpty());
 
         return StatusResult.success();
     }
-
+    
     @Override
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
+        Supplier<Criterion> ownedByThisRuntime = () -> new Criterion("runtimeId", "=", runtimeId);
+        Supplier<Criterion> ownedByAnotherRuntime = () -> new Criterion("runtimeId", "!=", runtimeId);
+        Supplier<Criterion> flowLeaseNeedsToBeUpdated = () -> new Criterion("updatedAt", "<", clock.millis() - flowLeaseConfiguration.time());
+        Supplier<Criterion> danglingTransfer = () -> new Criterion("updatedAt", "<", clock.millis() - flowLeaseConfiguration.abandonTime());
+
         return builder
+                .processor(processDataFlowInState(STARTED, this::updateFlowLease, ownedByThisRuntime, flowLeaseNeedsToBeUpdated))
+                .processor(processDataFlowInState(STARTED, this::restartFlow, ownedByAnotherRuntime, danglingTransfer))
                 .processor(processDataFlowInState(RECEIVED, this::processReceived))
                 .processor(processDataFlowInState(COMPLETED, this::processCompleted))
                 .processor(processDataFlowInState(FAILED, this::processFailed));
+    }
+
+    private boolean updateFlowLease(DataFlow dataFlow) {
+        dataFlow.transitToReceived();
+        dataFlow.transitionToStarted(runtimeId);
+        store.save(dataFlow);
+        return true;
+    }
+
+    private boolean restartFlow(DataFlow dataFlow) {
+        monitor.debug("Restarting interrupted flow %s, it was owned by runtime %s".formatted(dataFlow.getId(), dataFlow.getRuntimeId()));
+        dataFlow.transitToReceived();
+        processReceived(dataFlow);
+        return true;
     }
 
     private StatusResult<DataFlow> stop(String dataFlowId) {
@@ -225,8 +251,9 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             return true;
         }
 
-        dataFlow.transitionToStarted();
-        store.save(dataFlow);
+        dataFlow.transitionToStarted(runtimeId);
+        monitor.info("UPDATE dataflow %s. RuntimeId %s, UpdatedAt %s".formatted(dataFlow.getId(), dataFlow.getRuntimeId(), dataFlow.getUpdatedAt()));
+        update(dataFlow);
 
         return entityRetryProcessFactory.doAsyncProcess(dataFlow, () -> transferService.transfer(request))
                 .entityRetrieve(id -> store.findByIdAndLease(id).orElse(f -> null))
@@ -277,9 +304,16 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return true;
     }
 
-    private Processor processDataFlowInState(DataFlowStates state, Function<DataFlow, Boolean> function) {
-        var filter = new Criterion[]{ hasState(state.code()) };
-        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
+    @SafeVarargs
+    private Processor processDataFlowInState(DataFlowStates state, Function<DataFlow, Boolean> function, Supplier<Criterion>... additionalCriteria) {
+        Supplier<Collection<DataFlow>> entitiesSupplier = () -> {
+            var additional = Arrays.stream(additionalCriteria).map(Supplier::get);
+            var filter = Stream.concat(Stream.of(new Criterion[]{ hasState(state.code()) }), additional)
+                    .toArray(Criterion[]::new);
+            return store.nextNotLeased(batchSize, filter);
+        };
+
+        return ProcessorImpl.Builder.newInstance(entitiesSupplier)
                 .process(telemetry.contextPropagationMiddleware(function))
                 .onNotProcessed(this::breakLease)
                 .build();
@@ -322,6 +356,15 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             return this;
         }
 
+        public Builder runtimeId(String runtimeId) {
+            manager.runtimeId = runtimeId;
+            return this;
+        }
+
+        public Builder flowLeaseConfiguration(FlowLeaseConfiguration flowLeaseConfiguration) {
+            manager.flowLeaseConfiguration = flowLeaseConfiguration;
+            return this;
+        }
     }
 
 }
