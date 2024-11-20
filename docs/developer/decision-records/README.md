@@ -67,4 +67,5 @@
 - [2024-10-10 DAPS module deprecation](./2024-10-10-daps-deprecation)
 - [2024-10-24 bidirectional-data-transfers](./2024-10-24-bidirectional-data-transfers)
 - [2024-11-06 configuration-injection](./2024-11-06-configuration-injection)
+- [2024-11-19 transformer-version-scheme](./2024-11-19-transformer-version-scheme)
 
