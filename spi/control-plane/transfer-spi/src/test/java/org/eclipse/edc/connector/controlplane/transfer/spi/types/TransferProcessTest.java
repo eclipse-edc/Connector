@@ -101,6 +101,13 @@ class TransferProcessTest {
         // should not set the data plane id
         assertThat(process.getDataPlaneId()).isNull();
 
+        process.transitionSuspending("suspension");
+        process.transitionSuspended();
+
+        process.transitionStarted("dataPlaneId");
+        // should not set the data plane id
+        assertThat(process.getDataPlaneId()).isNull();
+
         process.transitionCompleting();
         process.transitionCompleted();
 

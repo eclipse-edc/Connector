@@ -71,9 +71,9 @@ public abstract class TransferEndToEndTestBase {
         PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
     }
 
-    protected void awaitTransferToBeInState(String transferProcessId, TransferProcessStates state) {
+    protected void awaitTransferToBeInState(TransferEndToEndParticipant participant, String transferProcessId, TransferProcessStates state) {
         await().atMost(timeout).until(
-                () -> CONSUMER.getTransferProcessState(transferProcessId),
+                () -> participant.getTransferProcessState(transferProcessId),
                 it -> Objects.equals(it, state.name())
         );
     }
