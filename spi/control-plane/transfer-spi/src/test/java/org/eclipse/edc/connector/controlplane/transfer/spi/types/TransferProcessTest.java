@@ -20,6 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -86,8 +87,9 @@ class TransferProcessTest {
         assertThat(process).usingRecursiveComparison().isEqualTo(copy);
     }
 
-    @Test
-    void verifyConsumerTransitions() {
+    @ParameterizedTest
+    @ValueSource(strings = { "STARTED", "SUSPENDED"})
+    void verifyConsumerTransitions(String state) {
         var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(CONSUMER).build();
 
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
@@ -101,18 +103,21 @@ class TransferProcessTest {
         // should not set the data plane id
         assertThat(process.getDataPlaneId()).isNull();
 
-        process.transitionSuspending("suspension");
-        process.transitionSuspended();
+        switch (state) {
+            case "STARTED":
+                process.transitionCompleting();
+                process.transitionCompleted();
 
-        process.transitionStarted("dataPlaneId");
-        // should not set the data plane id
-        assertThat(process.getDataPlaneId()).isNull();
-
-        process.transitionCompleting();
-        process.transitionCompleted();
-
-        process.transitionDeprovisioning();
-        process.transitionDeprovisioned();
+                process.transitionDeprovisioning();
+                process.transitionDeprovisioned();
+                break;
+            case "SUSPENDED":
+                process.transitionSuspending("suspension");
+                process.transitionSuspended();
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported state: " + state);
+        }
     }
 
     @Test

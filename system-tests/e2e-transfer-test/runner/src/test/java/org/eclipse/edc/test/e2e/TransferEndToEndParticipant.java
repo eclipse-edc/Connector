@@ -17,17 +17,20 @@ package org.eclipse.edc.test.e2e;
 import io.restassured.common.mapper.TypeRef;
 import org.assertj.core.api.ThrowingConsumer;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.boot.BootServicesExtension.PARTICIPANT_ID;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.defaultDatasourceConfiguration;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
@@ -170,6 +173,10 @@ public class TransferEndToEndParticipant extends Participant {
                 .extract().body().asString();
 
         assertThat(data).satisfies(bodyAssertion);
+    }
+
+    protected void awaitTransferToBeInState(String transferProcessId, TransferProcessStates state) {
+        await().atMost(timeout).until(() -> getTransferProcessState(transferProcessId), it -> Objects.equals(it, state.name()));
     }
 
     @NotNull

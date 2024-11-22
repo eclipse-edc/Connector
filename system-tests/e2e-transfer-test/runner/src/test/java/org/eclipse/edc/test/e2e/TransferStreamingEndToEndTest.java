@@ -189,7 +189,7 @@ public class TransferStreamingEndToEndTest {
                 destinationServer.verify(request, atLeast(1));
             });
 
-            awaitTransferToBeInState(CONSUMER, transferProcessId, TERMINATED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, TERMINATED);
 
             destinationServer.clear(request)
                     .when(request).respond(response());
@@ -218,7 +218,7 @@ public class TransferStreamingEndToEndTest {
                         .withDestination(kafkaSink()).withTransferType("Kafka-PUSH").execute();
                 assertMessagesAreSentTo(consumer);
 
-                awaitTransferToBeInState(CONSUMER, transferProcessId, TERMINATED);
+                CONSUMER.awaitTransferToBeInState(transferProcessId, TERMINATED);
                 assertNoMoreMessagesAreSentTo(consumer);
             }
         }
@@ -236,11 +236,11 @@ public class TransferStreamingEndToEndTest {
                 assertMessagesAreSentTo(consumer);
 
                 CONSUMER.suspendTransfer(transferProcessId, "any kind of reason");
-                awaitTransferToBeInState(CONSUMER, transferProcessId, SUSPENDED);
+                CONSUMER.awaitTransferToBeInState(transferProcessId, SUSPENDED);
                 assertNoMoreMessagesAreSentTo(consumer);
 
                 CONSUMER.resumeTransfer(transferProcessId);
-                awaitTransferToBeInState(CONSUMER, transferProcessId, STARTED);
+                CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
                 assertMessagesAreSentTo(consumer);
             }
         }
