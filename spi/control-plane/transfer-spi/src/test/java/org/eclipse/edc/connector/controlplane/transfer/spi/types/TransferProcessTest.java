@@ -20,7 +20,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -32,6 +31,7 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -87,9 +87,8 @@ class TransferProcessTest {
         assertThat(process).usingRecursiveComparison().isEqualTo(copy);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = { "STARTED", "SUSPENDED"})
-    void verifyConsumerTransitions(String state) {
+    @Test
+    void verifyConsumerTransitions() {
         var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(CONSUMER).build();
 
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
@@ -100,24 +99,31 @@ class TransferProcessTest {
 
         assertThrows(IllegalStateException.class, process::transitionStarting, "STARTING is not a valid state for consumer");
         process.transitionStarted("dataPlaneId");
-        // should not set the data plane id
+
+        process.transitionSuspending("suspension");
+        process.transitionSuspended();
+
+        process.transitionStarted("dataPlaneId");
+
+        process.transitionCompleting();
+        process.transitionCompleted();
+
+        process.transitionDeprovisioning();
+        process.transitionDeprovisioned();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "STARTING", "SUSPENDED" })
+    void shouldNotSetDataPlaneIdOnStart_whenTransferIsConsumer(TransferProcessStates fromState) {
+        var process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).type(CONSUMER)
+                .state(fromState.code())
+                .build();
+
+        process.transitionStarted("dataPlaneId");
+
+        assertThat(process.stateAsString()).isEqualTo(STARTED.name());
         assertThat(process.getDataPlaneId()).isNull();
-
-        switch (state) {
-            case "STARTED":
-                process.transitionCompleting();
-                process.transitionCompleted();
-
-                process.transitionDeprovisioning();
-                process.transitionDeprovisioned();
-                break;
-            case "SUSPENDED":
-                process.transitionSuspending("suspension");
-                process.transitionSuspended();
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported state: " + state);
-        }
     }
 
     @Test

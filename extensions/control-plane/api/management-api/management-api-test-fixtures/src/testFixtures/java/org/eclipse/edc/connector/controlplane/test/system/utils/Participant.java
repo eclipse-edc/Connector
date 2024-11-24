@@ -23,6 +23,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -496,6 +497,10 @@ public class Participant {
      */
     public String getContractNegotiationState(String id) {
         return getContractNegotiationField(id, "state");
+    }
+
+    public void awaitTransferToBeInState(String transferProcessId, TransferProcessStates state) {
+        await().atMost(timeout).until(() -> getTransferProcessState(transferProcessId), it -> Objects.equals(it, state.name()));
     }
 
     protected String getContractNegotiationField(String negotiationId, String fieldName) {
