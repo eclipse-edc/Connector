@@ -340,13 +340,13 @@ maven/mavencentral/org.slf4j/slf4j-api/1.7.35, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/1.7.36, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/2.0.6, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
-maven/mavencentral/org.testcontainers/database-commons/1.20.3, Apache-2.0, approved, #16630
-maven/mavencentral/org.testcontainers/jdbc/1.20.3, Apache-2.0, approved, #16621
-maven/mavencentral/org.testcontainers/junit-jupiter/1.20.3, MIT, approved, #16552
-maven/mavencentral/org.testcontainers/kafka/1.20.3, MIT, approved, #16687
-maven/mavencentral/org.testcontainers/postgresql/1.20.3, MIT, approved, #16627
-maven/mavencentral/org.testcontainers/testcontainers/1.20.3, MIT, approved, #15747
-maven/mavencentral/org.testcontainers/vault/1.20.3, MIT, approved, #16686
+maven/mavencentral/org.testcontainers/database-commons/1.20.4, Apache-2.0, approved, #16630
+maven/mavencentral/org.testcontainers/jdbc/1.20.4, Apache-2.0, approved, #16621
+maven/mavencentral/org.testcontainers/junit-jupiter/1.20.4, MIT, approved, #16552
+maven/mavencentral/org.testcontainers/kafka/1.20.4, MIT, approved, #16687
+maven/mavencentral/org.testcontainers/postgresql/1.20.4, MIT, approved, #16627
+maven/mavencentral/org.testcontainers/testcontainers/1.20.4, MIT, approved, #15747
+maven/mavencentral/org.testcontainers/vault/1.20.4, MIT, approved, #16686
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.5, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
 maven/mavencentral/org.xmlresolver/xmlresolver/5.2.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.xmlunit/xmlunit-core/2.9.1, Apache-2.0, approved, #6272
