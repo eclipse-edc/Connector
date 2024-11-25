@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -147,51 +146,6 @@ public class DependencyGraph {
         sort.sort(injectionContainers);
 
         return new DependencyGraph(injectionContainers, unsatisfiedInjectionPoints, unsatisfiedRequirements);
-    }
-
-    /**
-     * Returns all {@link InjectionPoint}s for a particular extension class. These include all types of injection points.
-     *
-     * @param serviceClass The extension class
-     * @return A (potentially empty) list of injection points.
-     */
-    public List<InjectionPoint<ServiceExtension>> getDependenciesOf(Class<? extends ServiceExtension> serviceClass) {
-        return injectionContainers.stream().filter(ic -> ic.getInjectionTarget().getClass().equals(serviceClass))
-                .flatMap(ic -> ic.getInjectionPoints().stream())
-                .toList();
-    }
-
-    /**
-     * Obtains all extension classes that declare a dependency on an object of the given point. For example, declaring a
-     * field {@code @Inject FooService fooService} in an extension would constitute such a dependency, and in that case
-     * {@code FooService.class} has to be passed into this method.
-     * <p>
-     * This can also be invoked if the dependency graph is invalid, i.e. if dependency injection is not possible.
-     *
-     * @param dependencyType The type of the injection point, for example the type of service that is injected.
-     * @return a list of extension classes that declare a dependency onto the given injection point
-     */
-    public List<Class<? extends ServiceExtension>> getDependentExtensions(Class<?> dependencyType) {
-
-        return injectionContainers.stream()
-                .filter(ic -> ic.getInjectionPoints().stream().anyMatch(ip -> ip.getType().equals(dependencyType)))
-                .map(InjectionContainer::getInjectionTarget)
-                .map((Function<ServiceExtension, Class<? extends ServiceExtension>>) ServiceExtension::getClass) // yes, it's nasty, but keeps the compiler happy
-                .toList();
-    }
-
-    /**
-     * Obtains a list of injection points, where the injection target is of the given type. For example, passing in {@code FooService.class}
-     * would return a list that contains injection points across all {@link ServiceExtension}s that declare a {@code @Inject FooService fooService} field.
-     * This is similar to {@link DependencyGraph#getDependenciesOf(Class)}, but the result values are {@link InjectionPoint}s rather than extension classes.
-     *
-     * @param dependencyType The type of the injection point, for example the type of service that is injected.
-     * @return a list of {@link InjectionPoint} instances that represent the concrete dependency
-     */
-    public List<InjectionPoint<ServiceExtension>> getDependenciesFor(Class<?> dependencyType) {
-        return injectionContainers.stream()
-                .flatMap(ic -> ic.getInjectionPoints().stream().filter(ip -> ip.getType().equals(dependencyType)))
-                .toList();
     }
 
     public List<InjectionContainer<ServiceExtension>> getInjectionContainers() {
