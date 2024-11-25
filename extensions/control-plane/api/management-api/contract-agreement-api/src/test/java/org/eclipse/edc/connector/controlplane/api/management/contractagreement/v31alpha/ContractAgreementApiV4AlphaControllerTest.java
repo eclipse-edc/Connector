@@ -16,18 +16,19 @@ package org.eclipse.edc.connector.controlplane.api.management.contractagreement.
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.BaseContractAgreementApiControllerTest;
+import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4alpha.ContractAgreementApiV4AlphaController;
 
 import static io.restassured.RestAssured.given;
 
-class ContractAgreementApiV31AlphaControllerTest extends BaseContractAgreementApiControllerTest {
+class ContractAgreementApiV4AlphaControllerTest extends BaseContractAgreementApiControllerTest {
     @Override
     protected Object controller() {
-        return new ContractAgreementApiV31AlphaController(service, transformerRegistry, monitor, validatorRegistry);
+        return new ContractAgreementApiV4AlphaController(service, transformerRegistry, monitor, validatorRegistry);
     }
 
     protected RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port + "/v3.1alpha/contractagreements")
+                .baseUri("http://localhost:" + port + "/v4alpha/contractagreements")
                 .when();
     }
 }

@@ -63,7 +63,7 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_CONTEXT;
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_3_1_ALPHA;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4_ALPHA;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
@@ -166,9 +166,9 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
         managementApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(jsonLdMapper));
 
-        var managementApiTransformerRegistryV31Alpha = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_3_1_ALPHA);
+        var managementApiTransformerRegistryV4Alpha = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4_ALPHA);
 
-        managementApiTransformerRegistryV31Alpha.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper, true));
+        managementApiTransformerRegistryV4Alpha.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper, true));
 
         registerVersionInfo(getClass().getClassLoader());
     }

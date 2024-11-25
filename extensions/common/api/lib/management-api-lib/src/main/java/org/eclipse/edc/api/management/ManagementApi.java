@@ -18,5 +18,5 @@ public interface ManagementApi {
 
     String MANAGEMENT_API_CONTEXT = "management-api";
 
-    String MANAGEMENT_API_V_3_1_ALPHA = "v3.1-alpha";
+    String MANAGEMENT_API_V_4_ALPHA = "v4alpha";
 }

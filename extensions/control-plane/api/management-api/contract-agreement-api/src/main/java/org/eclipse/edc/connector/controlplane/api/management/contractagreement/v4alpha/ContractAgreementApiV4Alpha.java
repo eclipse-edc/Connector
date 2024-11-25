@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractagreement.v31alpha;
+package org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4alpha;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,9 +28,9 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiSchema;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v3.1-alpha"))
-@Tag(name = "Contract Agreement v3.1-alpha")
-public interface ContractAgreementApiV3Alpha {
+@OpenAPIDefinition(info = @Info(version = "v4alpha"))
+@Tag(name = "Contract Agreement v4alpha")
+public interface ContractAgreementApiV4Alpha {
 
     @Operation(description = "Gets all contract agreements according to a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
@@ -41,7 +41,7 @@ public interface ContractAgreementApiV3Alpha {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonArray queryAgreementsV31Alpha(JsonObject querySpecJson);
+    JsonArray queryAgreementsV4Alpha(JsonObject querySpecJson);
 
     @Operation(description = "Gets an contract agreement with the given ID",
             responses = {
@@ -53,7 +53,7 @@ public interface ContractAgreementApiV3Alpha {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonObject getAgreementByIdV31Alpha(String id);
+    JsonObject getAgreementByIdV4Alpha(String id);
 
 
     @Operation(description = "Gets a contract negotiation with the given contract agreement ID",
@@ -66,6 +66,6 @@ public interface ContractAgreementApiV3Alpha {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    JsonObject getNegotiationByAgreementIdV31Alpha(String id);
+    JsonObject getNegotiationByAgreementIdV4Alpha(String id);
 
 }

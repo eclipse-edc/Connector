@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractagreement.v31alpha;
+package org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4alpha;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -32,30 +32,30 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v3.1alpha/contractagreements")
-public class ContractAgreementApiV31AlphaController extends BaseContractAgreementApiController implements ContractAgreementApiV3Alpha {
-    public ContractAgreementApiV31AlphaController(ContractAgreementService service, TypeTransformerRegistry transformerRegistry, Monitor monitor, JsonObjectValidatorRegistry validatorRegistry) {
+@Path("/v4alpha/contractagreements")
+public class ContractAgreementApiV4AlphaController extends BaseContractAgreementApiController implements ContractAgreementApiV4Alpha {
+    public ContractAgreementApiV4AlphaController(ContractAgreementService service, TypeTransformerRegistry transformerRegistry, Monitor monitor, JsonObjectValidatorRegistry validatorRegistry) {
         super(service, transformerRegistry, monitor, validatorRegistry);
     }
 
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryAgreementsV31Alpha(JsonObject querySpecJson) {
+    public JsonArray queryAgreementsV4Alpha(JsonObject querySpecJson) {
         return queryAgreements(querySpecJson);
     }
 
     @GET
     @Path("{id}")
     @Override
-    public JsonObject getAgreementByIdV31Alpha(@PathParam("id") String id) {
+    public JsonObject getAgreementByIdV4Alpha(@PathParam("id") String id) {
         return getAgreementById(id);
     }
 
     @GET
     @Path("{id}/negotiation")
     @Override
-    public JsonObject getNegotiationByAgreementIdV31Alpha(@PathParam("id") String id) {
+    public JsonObject getNegotiationByAgreementIdV4Alpha(@PathParam("id") String id) {
         return getNegotiationByAgreementId(id);
     }
 }

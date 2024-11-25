@@ -67,7 +67,7 @@ public class ContractAgreementApiEndToEndTest {
             var agreement = createContractAgreement("cn1");
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
-            var json = context.baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
                     .get("/v3/contractagreements/cn1")
                     .then()
@@ -81,13 +81,13 @@ public class ContractAgreementApiEndToEndTest {
         }
 
         @Test
-        void getByIdV31Alpha(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+        void getByIdV4Alpha(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             var agreement = createContractAgreement("cn1");
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v3.1alpha/contractagreements/cn1")
+                    .get("/v4alpha/contractagreements/cn1")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
