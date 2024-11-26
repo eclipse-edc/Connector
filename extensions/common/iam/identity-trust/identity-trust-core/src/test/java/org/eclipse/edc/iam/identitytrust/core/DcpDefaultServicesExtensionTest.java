@@ -23,6 +23,7 @@ import org.eclipse.edc.iam.identitytrust.core.scope.DcpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -37,6 +38,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.STS_PRIVATE_KEY_ALIAS;
+import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.STS_PUBLIC_KEY_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -90,6 +94,17 @@ class DcpDefaultServicesExtensionTest {
 
         verify(mockedMonitor).info(anyString());
         verify(mockedMonitor).warning(anyString());
+    }
+
+    @Test
+    void verify_defaultServiceWithMissingConfig(ServiceExtensionContext context) {
+        var ext = new DcpDefaultServicesExtension();
+        
+        assertThatThrownBy(() -> ext.createDefaultTokenService(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(STS_PUBLIC_KEY_ID)
+                .hasMessageContaining(STS_PRIVATE_KEY_ALIAS);
+
     }
 
     @Test
