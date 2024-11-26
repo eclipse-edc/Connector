@@ -18,7 +18,6 @@ package org.eclipse.edc.boot.system;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.edc.boot.monitor.MultiplexingMonitor;
-import org.eclipse.edc.boot.system.injection.EdcInjectionException;
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.boot.util.CyclicDependencyException;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -150,13 +149,13 @@ class ExtensionLoaderTest {
 
     @Test
     @DisplayName("No dependencies between service extensions")
-    void loadServiceExtensions_noDependencies() {
+    void buildDependencyGraph_noDependencies() {
 
         var service1 = new ServiceExtension() {
         };
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(service1));
 
-        var list = loader.loadServiceExtensions(context);
+        var list = loader.buildDependencyGraph(context).getInjectionContainers();
 
         assertThat(list).hasSize(1).extracting(InjectionContainer::getInjectionTarget).containsExactly(service1);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
@@ -164,7 +163,7 @@ class ExtensionLoaderTest {
 
     @Test
     @DisplayName("Locating two service extensions for the same service class ")
-    void loadServiceExtensions_whenMultipleServices() {
+    void buildDependencyGraph_whenMultipleServices() {
         var service1 = new ServiceExtension() {
         };
         var service2 = new ServiceExtension() {
@@ -172,7 +171,7 @@ class ExtensionLoaderTest {
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(service1, service2));
 
-        var list = loader.loadServiceExtensions(context);
+        var list = loader.buildDependencyGraph(context).getInjectionContainers();
 
         assertThat(list).hasSize(2).extracting(InjectionContainer::getInjectionTarget).containsExactly(service1, service2);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
@@ -180,21 +179,21 @@ class ExtensionLoaderTest {
 
     @Test
     @DisplayName("A DEFAULT service extension depends on a PRIMORDIAL one")
-    void loadServiceExtensions_withBackwardsDependency() {
+    void buildDependencyGraph_withBackwardsDependency() {
         var depending = new DependingExtension();
         var someExtension = new SomeExtension();
         var providing = new ProvidingExtension();
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(providing, depending, someExtension));
 
-        var services = loader.loadServiceExtensions(context);
+        var services = loader.buildDependencyGraph(context).getInjectionContainers();
         assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactly(providing, depending, someExtension);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("A service extension has a dependency on another one of the same loading stage")
-    void loadServiceExtensions_withEqualDependency() {
+    void buildDependencyGraph_withEqualDependency() {
         var depending = new DependingExtension() {
         };
         var coreService = new SomeExtension() {
@@ -205,71 +204,70 @@ class ExtensionLoaderTest {
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, thirdService, coreService));
 
-        var services = loader.loadServiceExtensions(context);
+        var services = loader.buildDependencyGraph(context).getInjectionContainers();
         assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactlyInAnyOrder(coreService, depending, thirdService);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("Two service extensions have a circular dependency")
-    void loadServiceExtensions_withCircularDependency() {
+    void buildDependencyGraph_withCircularDependency() {
         var s1 = new TestProvidingExtension2();
         var s2 = new TestProvidingExtension();
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(s1, s2));
 
-        assertThatThrownBy(() -> loader.loadServiceExtensions(context)).isInstanceOf(CyclicDependencyException.class);
+        assertThatThrownBy(() -> loader.buildDependencyGraph(context)).isInstanceOf(CyclicDependencyException.class);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("A service extension has an unsatisfied dependency")
-    void loadServiceExtensions_dependencyNotSatisfied() {
+    void buildDependencyGraph_dependencyNotSatisfied() {
         var depending = new DependingExtension();
         var someExtension = new SomeExtension();
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, someExtension));
 
-        assertThatThrownBy(() -> loader.loadServiceExtensions(context))
-                .isInstanceOf(EdcException.class)
-                .hasMessageContaining("The following injected fields or values were not provided or could not be resolved")
-                .hasMessageContaining("Service someService of type class org.eclipse.edc.boot.system.ExtensionLoaderTest$SomeObject");
+        var graph = loader.buildDependencyGraph(context);
+        assertThat(graph.isValid()).isFalse();
+        assertThat(graph.getProblems()).hasSize(1);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("Services extensions are sorted by dependency order")
-    void loadServiceExtensions_dependenciesAreSorted() {
+    void buildDependencyGraph_dependenciesAreSorted() {
         var depending = new DependingExtension();
         var providingExtension = new ProvidingExtension();
 
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, providingExtension));
 
-        var services = loader.loadServiceExtensions(context);
+        var services = loader.buildDependencyGraph(context).getInjectionContainers();
         assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactly(providingExtension, depending);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("Should throw exception when no core dependency found")
-    void loadServiceExtensions_noCoreDependencyShouldThrowException() {
+    void buildDependencyGraph_noCoreDependency_shouldBeInvalid() {
         var depending = new DependingExtension();
         var coreService = new SomeExtension();
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, coreService));
 
-        assertThatThrownBy(() -> loader.loadServiceExtensions(context)).isInstanceOf(EdcException.class);
+        assertThat(loader.buildDependencyGraph(context).isValid()).isFalse();
     }
 
     @Test
     @DisplayName("Requires annotation influences ordering")
-    void loadServiceExtensions_withAnnotation() {
+    void buildDependencyGraph_withAnnotation() {
         var depending = new DependingExtension();
         var providingExtension = new ProvidingExtension();
         var annotatedExtension = new AnnotatedExtension();
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, annotatedExtension, providingExtension));
 
-        var services = loader.loadServiceExtensions(context);
+        var services = loader.buildDependencyGraph(context).getInjectionContainers();
 
         assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactly(providingExtension, depending, annotatedExtension);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
@@ -277,38 +275,38 @@ class ExtensionLoaderTest {
 
     @Test
     @DisplayName("Requires annotation not satisfied")
-    void loadServiceExtensions_withAnnotation_notSatisfied() {
+    void buildDependencyGraph_withAnnotation_notSatisfied() {
         var annotatedExtension = new AnnotatedExtension();
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(annotatedExtension));
 
-        assertThatThrownBy(() -> loader.loadServiceExtensions(context)).isNotInstanceOf(EdcInjectionException.class).isInstanceOf(EdcException.class);
+        assertThat(loader.buildDependencyGraph(context).isValid()).isFalse();
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("Mixed requirement features work")
-    void loadServiceExtensions_withMixedInjectAndAnnotation() {
+    void buildDependencyGraph_withMixedInjectAndAnnotation() {
         var providingExtension = new ProvidingExtension(); // provides SomeObject
         var anotherProvidingExt = new AnotherProvidingExtension(); //provides AnotherObject
         var mixedAnnotation = new MixedAnnotation();
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(mixedAnnotation, providingExtension, anotherProvidingExt));
 
-        var services = loader.loadServiceExtensions(context);
+        var services = loader.buildDependencyGraph(context).getInjectionContainers();
         assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactly(providingExtension, anotherProvidingExt, mixedAnnotation);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("Mixed requirement features introducing circular dependency")
-    void loadServiceExtensions_withMixedInjectAndAnnotation_withCircDependency() {
+    void buildDependencyGraph_withMixedInjectAndAnnotation_withCircDependency() {
         var s1 = new TestProvidingExtension3();
         var s2 = new TestProvidingExtension();
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(s1, s2));
 
-        assertThatThrownBy(() -> loader.loadServiceExtensions(context)).isInstanceOf(CyclicDependencyException.class);
+        assertThatThrownBy(() -> loader.buildDependencyGraph(context)).isInstanceOf(CyclicDependencyException.class);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 

@@ -14,57 +14,56 @@
 
 package org.eclipse.edc.boot.system;
 
-import org.eclipse.edc.boot.system.injection.EdcInjectionException;
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.boot.system.TestFunctions.createDependentExtension;
+import static org.eclipse.edc.boot.system.TestFunctions.createProviderExtension;
 import static org.eclipse.edc.boot.system.TestFunctions.mutableListOf;
 import static org.mockito.Mockito.mock;
 
 class DependencyGraphTest {
 
-    private final DependencyGraph graph = new DependencyGraph(mock());
 
     @Test
-    void sortExtensions_withDefaultProvider() {
-        var providerExtension = TestFunctions.createProviderExtension(true);
-        var dependentExtension = TestFunctions.createDependentExtension(true);
+    void getExtensions_withDefaultProvider() {
+        var providerExtension = createProviderExtension(true);
+        var dependentExtension = createDependentExtension(true);
 
-        var list = graph.of(mutableListOf(dependentExtension, providerExtension));
+        var list = DependencyGraph.of(mock(), mutableListOf(dependentExtension, providerExtension)).getInjectionContainers();
 
         assertThat(list).extracting(InjectionContainer::getInjectionTarget)
                 .containsExactly(providerExtension, dependentExtension);
     }
 
     @Test
-    void sortExtensions_withNoDefaultProvider() {
-        var defaultProvider = TestFunctions.createProviderExtension(false);
-        var provider = TestFunctions.createProviderExtension(true);
-        var dependentExtension = TestFunctions.createDependentExtension(true);
+    void getExtensions_withNoDefaultProvider() {
+        var defaultProvider = createProviderExtension(false);
+        var provider = createProviderExtension(true);
+        var dependentExtension = createDependentExtension(true);
 
-        var list = graph.of(mutableListOf(dependentExtension, provider, defaultProvider));
+        var list = DependencyGraph.of(mock(), mutableListOf(dependentExtension, provider, defaultProvider)).getInjectionContainers();
 
         assertThat(list).extracting(InjectionContainer::getInjectionTarget)
                 .containsExactly(provider, defaultProvider, dependentExtension);
     }
 
     @Test
-    void sortExtensions_missingDependency() {
-        var dependentExtension = TestFunctions.createDependentExtension(true);
+    void getExtensions_missingDependency() {
+        var dependentExtension = createDependentExtension(true);
 
-        assertThatThrownBy(() -> graph.of(mutableListOf(dependentExtension)))
-                .isInstanceOf(EdcInjectionException.class);
+        assertThat(DependencyGraph.of(mock(), mutableListOf(dependentExtension)).isValid()).isFalse();
     }
 
     @Test
-    void sortExtensions_missingOptionalDependency() {
-        var dependentExtension = TestFunctions.createDependentExtension(false);
+    void getExtensions_missingOptionalDependency() {
+        var dependentExtension = createDependentExtension(false);
 
-        var injectionContainers = graph.of(mutableListOf(dependentExtension));
+        var dependencyGraph = DependencyGraph.of(mock(), mutableListOf(dependentExtension));
 
-        assertThat(injectionContainers).hasSize(1)
+        assertThat(dependencyGraph.isValid()).isTrue();
+        assertThat(dependencyGraph.getInjectionContainers()).hasSize(1)
                 .extracting(InjectionContainer::getInjectionTarget)
                 .containsExactly(dependentExtension);
     }

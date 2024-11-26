@@ -124,7 +124,7 @@ class ExtensionLifecycleManagerTest {
     }
 
     public List<InjectionContainer<ServiceExtension>> createInjectionContainers(List<ServiceExtension> extensions) {
-        return new DependencyGraph(context).of(extensions);
+        return DependencyGraph.of(context, extensions).getInjectionContainers();
     }
 
 }

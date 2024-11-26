@@ -158,18 +158,18 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 .filter(Result::failed)
                 .map(AbstractResult::getFailureDetail)
                 .toList();
-        return violators.isEmpty() ? Result.success(List.of()) : Result.failure("%s (%s) --> %s".formatted(configurationObject.getName(), configurationObject.getType().getSimpleName(), violators));
+        return violators.isEmpty() ? Result.success(List.of()) : Result.failure("%s, through nested settings %s".formatted(toString(), violators));
     }
 
     @Override
     public String getTypeString() {
-        return "Config object";
+        return "Configuration object";
     }
 
     @Override
     public String toString() {
-        return "Configuration object '%s' of type '%s' in %s"
-                .formatted(configurationObject.getName(), configurationObject.getType(), targetInstance.getClass());
+        return "Configuration object \"%s\" of type [%s]"
+                .formatted(configurationObject.getName(), configurationObject.getType());
     }
 
     private Predicate<Constructor<?>> constructorFilter(List<FieldValue> args) {

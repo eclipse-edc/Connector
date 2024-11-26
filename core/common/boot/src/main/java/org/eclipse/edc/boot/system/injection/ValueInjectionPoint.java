@@ -157,12 +157,12 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
     /**
      * Determines whether a configuration value is "satisfied by" the given {@link ServiceExtensionContext} (the dependency map is ignored).
      *
-     * @param dependencyMap Ignored
-     * @param context       the {@link ServiceExtensionContext} in which the config is expected to be found.
+     * @param ignoredMap Ignored
+     * @param context    the {@link ServiceExtensionContext} in which the config is expected to be found.
      * @return success if found in the context, a failure otherwise.
      */
     @Override
-    public Result<List<InjectionContainer<T>>> getProviders(Map<Class<?>, List<InjectionContainer<T>>> dependencyMap, ServiceExtensionContext context) {
+    public Result<List<InjectionContainer<T>>> getProviders(Map<Class<?>, List<InjectionContainer<T>>> ignoredMap, ServiceExtensionContext context) {
 
         if (!annotationValue.required()) {
             return Result.success(emptyProviderlist); // optional configs are always satisfied
@@ -177,17 +177,17 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
         // no default value, the required value may be found in the config
         return context.getConfig().hasKey(annotationValue.key())
                 ? Result.success(emptyProviderlist)
-                : Result.failure("%s (property \"%s\")".formatted(targetField.getName(), annotationValue.key()));
+                : Result.failure(toString());
     }
 
     @Override
     public String getTypeString() {
-        return "Config value";
+        return "Configuration value";
     }
 
     @Override
     public String toString() {
-        return "Configuration value \"%s\" of type %s (config key '%s') in %s".formatted(targetField.getName(), getType(), annotationValue.key(), declaringClass);
+        return "Configuration value \"%s\" of type [%s] (property '%s')".formatted(targetField.getName(), getType(), annotationValue.key());
     }
 
     private Object parseEntry(String string, Class<?> valueType) {

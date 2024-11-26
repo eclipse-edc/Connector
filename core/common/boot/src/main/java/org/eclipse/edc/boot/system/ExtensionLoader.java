@@ -18,7 +18,6 @@ package org.eclipse.edc.boot.system;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.edc.boot.monitor.MultiplexingMonitor;
-import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -83,9 +82,9 @@ public class ExtensionLoader {
     /**
      * Loads and orders the service extensions.
      */
-    public List<InjectionContainer<ServiceExtension>> loadServiceExtensions(ServiceExtensionContext context) {
+    public DependencyGraph buildDependencyGraph(ServiceExtensionContext context) {
         var serviceExtensions = loadExtensions(ServiceExtension.class, true);
-        return new DependencyGraph(context).of(serviceExtensions);
+        return DependencyGraph.of(context, serviceExtensions);
     }
 
     /**
