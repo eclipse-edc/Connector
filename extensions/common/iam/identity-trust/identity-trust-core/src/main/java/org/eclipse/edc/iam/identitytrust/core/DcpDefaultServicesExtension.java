@@ -87,7 +87,7 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
 
         if (context.getSetting(OAUTH_TOKENURL_PROPERTY, null) != null) {
             context.getMonitor().warning("The property '%s' was configured, but no remote SecureTokenService was found on the classpath. ".formatted(OAUTH_TOKENURL_PROPERTY) +
-                    "This could be an indicator of a configuration problem.");
+                    "This could be an indication of a configuration problem.");
         }
 
         return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(stsTokenExpirationMin), jtiValidationStore);
