@@ -31,6 +31,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
@@ -39,8 +40,10 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.JwtGenerationService;
 
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -48,22 +51,19 @@ import static org.eclipse.edc.spi.result.Result.success;
 @Extension("Identity And Trust Extension to register default services")
 public class DcpDefaultServicesExtension implements ServiceExtension {
 
-    @Setting(description = "Alias of private key used for signing tokens, retrieved from private key resolver.", key = "edc.iam.sts.privatekey.alias")
-    private String privateKeyAlias;
-
-    @Setting(description = "Key Identifier used by the counterparty to resolve the public key for token validation, e.g. did:example:123#public-key-1.", key = "edc.iam.sts.publickey.id")
-    private String publicKeyId;
-
-    @Setting(description = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + DEFAULT_STS_TOKEN_EXPIRATION_MIN, key = "edc.iam.sts.token.expiration")
-    private long stsTokenExpirationMin;
-
+    public static final String STS_PUBLIC_KEY_ID = "edc.iam.sts.publickey.id";
+    public static final String STS_PRIVATE_KEY_ALIAS = "edc.iam.sts.privatekey.alias";
 
     public static final String CLAIMTOKEN_VC_KEY = "vc";
     // not a setting, it's defined in Oauth2ServiceExtension
     private static final String OAUTH_TOKENURL_PROPERTY = "edc.oauth.token.url";
-
     private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
-    
+    @Setting(description = "Alias of private key used for signing tokens, retrieved from private key resolver. Required when using EmbeddedSTS", key = STS_PRIVATE_KEY_ALIAS, required = false)
+    private String privateKeyAlias;
+    @Setting(description = "Key Identifier used by the counterparty to resolve the public key for token validation, e.g. did:example:123#public-key-1. Required when using EmbeddedSTS", key = STS_PUBLIC_KEY_ID, required = false)
+    private String publicKeyId;
+    @Setting(description = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + DEFAULT_STS_TOKEN_EXPIRATION_MIN, key = "edc.iam.sts.token.expiration")
+    private long stsTokenExpirationMin;
     @Inject
     private Clock clock;
     @Inject
@@ -75,12 +75,20 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
         context.getMonitor().info("Using the Embedded STS client, as no other implementation was provided.");
 
+        var errors = new ArrayList<String>();
+
+        checkProperty(STS_PRIVATE_KEY_ALIAS, privateKeyAlias, errors::add);
+        checkProperty(STS_PUBLIC_KEY_ID, publicKeyId, errors::add);
+
+        if (!errors.isEmpty()) {
+            var msg = String.join(", ", errors);
+            throw new EdcException("The following errors were found in the configuration of the Embedded STS: [%s]".formatted(msg));
+        }
 
         if (context.getSetting(OAUTH_TOKENURL_PROPERTY, null) != null) {
             context.getMonitor().warning("The property '%s' was configured, but no remote SecureTokenService was found on the classpath. ".formatted(OAUTH_TOKENURL_PROPERTY) +
-                                         "This could be an indicator of a configuration problem.");
+                    "This could be an indicator of a configuration problem.");
         }
-
 
         return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(stsTokenExpirationMin), jtiValidationStore);
     }
@@ -122,6 +130,12 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
                     .claims(Map.of(CLAIMTOKEN_VC_KEY, credentials));
             return success(b.build());
         };
+    }
+
+    private void checkProperty(String key, String value, Consumer<String> onMissing) {
+        if (value == null) {
+            onMissing.accept("No setting found for key '%s'.".formatted(key));
+        }
     }
 
 }
