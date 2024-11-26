@@ -146,7 +146,7 @@ public class TransferStreamingEndToEndTest {
 
                 PROVIDER_DATA_PLANE_RUNTIME.boot(false);
 
-                awaitTransferToBeInState(transferProcessId, STARTED);
+                CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
                 assertMessagesAreSentTo(consumer);
             }
         }
