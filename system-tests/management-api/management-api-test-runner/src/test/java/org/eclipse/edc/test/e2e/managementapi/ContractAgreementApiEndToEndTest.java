@@ -33,7 +33,9 @@ import java.util.UUID;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 public class ContractAgreementApiEndToEndTest {
 
@@ -62,18 +64,37 @@ public class ContractAgreementApiEndToEndTest {
 
         @Test
         void getById(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
+            var agreement = createContractAgreement("cn1");
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
-            var json = context.baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
                     .get("/v3/contractagreements/cn1")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
-                    .extract().jsonPath();
+                    .body(ID, is(agreement.getId()))
+                    .body("assetId", notNullValue())
+                    .body("policy.'odrl:assignee'", is(agreement.getPolicy().getAssignee()))
+                    .body("policy.'odrl:assigner'", is(agreement.getPolicy().getAssigner()));
 
-            assertThat(json.getString("@id")).isEqualTo("cn1");
-            assertThat(json.getString("assetId")).isNotNull();
+        }
+
+        @Test
+        void getByIdV4Alpha(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+            var agreement = createContractAgreement("cn1");
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .get("/v4alpha/contractagreements/cn1")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body(ID, is(agreement.getId()))
+                    .body("assetId", notNullValue())
+                    .body("policy.'odrl:assignee'.'@id'", is(agreement.getPolicy().getAssignee()))
+                    .body("policy.'odrl:assigner'.'@id'", is(agreement.getPolicy().getAssigner()));
         }
 
         @Test
@@ -120,7 +141,7 @@ public class ContractAgreementApiEndToEndTest {
                     .assetId(UUID.randomUUID().toString())
                     .consumerId(UUID.randomUUID() + "-consumer")
                     .providerId(UUID.randomUUID() + "-provider")
-                    .policy(Policy.Builder.newInstance().build())
+                    .policy(Policy.Builder.newInstance().assignee("assignee").assigner("assigner").build())
                     .build();
         }
     }
@@ -128,10 +149,12 @@ public class ContractAgreementApiEndToEndTest {
     @Nested
     @EndToEndTest
     @ExtendWith(ManagementEndToEndExtension.InMemory.class)
-    class InMemory extends Tests { }
+    class InMemory extends Tests {
+    }
 
     @Nested
     @PostgresqlIntegrationTest
     @ExtendWith(ManagementEndToEndExtension.Postgres.class)
-    class Postgres extends Tests { }
+    class Postgres extends Tests {
+    }
 }

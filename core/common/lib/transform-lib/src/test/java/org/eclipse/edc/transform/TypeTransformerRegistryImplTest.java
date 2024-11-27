@@ -15,6 +15,7 @@
 package org.eclipse.edc.transform;
 
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -23,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class TypeTransformerRegistryImplTest {
 
@@ -75,9 +78,31 @@ public class TypeTransformerRegistryImplTest {
         }
 
         @Test
-        void shouldThrowException_whenForContextIsCalled() {
-            assertThatThrownBy(() -> contextRegistry.forContext("any")).isInstanceOf(EdcException.class);
+        void shouldReturnRegistryForSpecificNestedContext() {
+            var nestedContextRegistry = contextRegistry.forContext("nestedContext");
+            nestedContextRegistry.register(new IntegerStringTypeTransformer());
+
+            assertThat(nestedContextRegistry.transform(5, String.class))
+                    .isSucceeded().isEqualTo("5");
+            assertThatThrownBy(() -> contextRegistry.transform(5, String.class)).isInstanceOf(EdcException.class);
+            assertThatThrownBy(() -> registry.transform(5, String.class)).isInstanceOf(EdcException.class);
         }
+
+        @Test
+        void shouldTransformUsingNestedContext() {
+            var nestedContextRegistry = contextRegistry.forContext("nestedContext");
+            nestedContextRegistry.register(new IntegerStringTypeTransformer());
+
+            TypeTransformer<Integer, String> typeTransformer = mock();
+            contextRegistry.register(typeTransformer);
+            registry.register(typeTransformer);
+
+            assertThat(nestedContextRegistry.transform(5, String.class))
+                    .isSucceeded().isEqualTo("5");
+
+            verifyNoInteractions(typeTransformer);
+        }
+
     }
 
     @Nested

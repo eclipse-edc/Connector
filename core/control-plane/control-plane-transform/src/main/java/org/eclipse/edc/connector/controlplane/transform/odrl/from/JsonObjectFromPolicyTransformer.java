@@ -19,6 +19,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Action;
@@ -76,16 +77,22 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
 public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<Policy, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final ParticipantIdMapper participantIdMapper;
+    private final boolean participantsAsId;
 
     public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper) {
+        this(jsonFactory, participantIdMapper, false);
+    }
+
+    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, boolean participantsAsId) {
         super(Policy.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.participantIdMapper = participantIdMapper;
+        this.participantsAsId = participantsAsId;
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull Policy policy, @NotNull TransformerContext context) {
-        return policy.accept(new Visitor(jsonFactory, participantIdMapper));
+        return policy.accept(new Visitor(jsonFactory, participantIdMapper, participantsAsId));
     }
 
     /**
@@ -94,10 +101,12 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
     private static class Visitor implements Policy.Visitor<JsonObject>, Rule.Visitor<JsonObject>, Constraint.Visitor<JsonObject>, Expression.Visitor<JsonObject> {
         private final JsonBuilderFactory jsonFactory;
         private final ParticipantIdMapper participantIdMapper;
+        private final boolean participantsAsId;
 
-        Visitor(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper) {
+        Visitor(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, boolean participantsAsId) {
             this.jsonFactory = jsonFactory;
             this.participantIdMapper = participantIdMapper;
+            this.participantsAsId = participantsAsId;
         }
 
         @Override
@@ -113,19 +122,6 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         @Override
         public JsonObject visitXoneConstraint(XoneConstraint xoneConstraint) {
             return visitMultiplicityConstraint(ODRL_XONE_CONSTRAINT_ATTRIBUTE, xoneConstraint);
-        }
-
-        private JsonObject visitMultiplicityConstraint(String operandType, MultiplicityConstraint multiplicityConstraint) {
-            var constraintsBuilder = jsonFactory.createArrayBuilder();
-            for (var constraint : multiplicityConstraint.getConstraints()) {
-                Optional.of(constraint)
-                        .map(c -> c.accept(this))
-                        .ifPresent(constraintsBuilder::add);
-            }
-
-            return jsonFactory.createObjectBuilder()
-                    .add(operandType, constraintsBuilder.build())
-                    .build();
         }
 
         @Override
@@ -166,8 +162,8 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
                     .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder)
                     .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
 
-            Optional.ofNullable(policy.getAssignee()).map(participantIdMapper::toIri).ifPresent(it -> builder.add(ODRL_ASSIGNEE_ATTRIBUTE, it));
-            Optional.ofNullable(policy.getAssigner()).map(participantIdMapper::toIri).ifPresent(it -> builder.add(ODRL_ASSIGNER_ATTRIBUTE, it));
+            Optional.ofNullable(policy.getAssignee()).map(participantIdMapper::toIri).ifPresent(it -> builder.add(ODRL_ASSIGNEE_ATTRIBUTE, visitParticipantId(it)));
+            Optional.ofNullable(policy.getAssigner()).map(participantIdMapper::toIri).ifPresent(it -> builder.add(ODRL_ASSIGNER_ATTRIBUTE, visitParticipantId(it)));
 
             Optional.ofNullable(policy.getTarget())
                     .ifPresent(target -> builder.add(
@@ -217,6 +213,27 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             }
 
             return obligationBuilder.build();
+        }
+
+        private JsonValue visitParticipantId(String participantId) {
+            if (participantsAsId) {
+                return jsonFactory.createObjectBuilder().add(ID, participantId).build();
+            } else {
+                return Json.createValue(participantId);
+            }
+        }
+
+        private JsonObject visitMultiplicityConstraint(String operandType, MultiplicityConstraint multiplicityConstraint) {
+            var constraintsBuilder = jsonFactory.createArrayBuilder();
+            for (var constraint : multiplicityConstraint.getConstraints()) {
+                Optional.of(constraint)
+                        .map(c -> c.accept(this))
+                        .ifPresent(constraintsBuilder::add);
+            }
+
+            return jsonFactory.createObjectBuilder()
+                    .add(operandType, constraintsBuilder.build())
+                    .build();
         }
 
         private JsonObjectBuilder visitRule(Rule rule) {
