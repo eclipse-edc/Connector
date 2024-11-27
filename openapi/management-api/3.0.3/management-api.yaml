@@ -3138,6 +3138,108 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/contractagreements/request:
+    post:
+      tags:
+      - Contract Agreement v4alpha
+      description: Gets all contract agreements according to a particular query
+      operationId: queryAgreementsV4Alpha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The contract agreements matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContractAgreement"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/contractagreements/{id}:
+    get:
+      tags:
+      - Contract Agreement v4alpha
+      description: Gets an contract agreement with the given ID
+      operationId: getAgreementByIdV4Alpha
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract agreement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractAgreement"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An contract agreement with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/contractagreements/{id}/negotiation:
+    get:
+      tags:
+      - Contract Agreement v4alpha
+      description: Gets a contract negotiation with the given contract agreement ID
+      operationId: getNegotiationByAgreementIdV4Alpha
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract negotiation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractNegotiation"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An contract agreement with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
 components:
   schemas:
     ApiErrorDetail:
