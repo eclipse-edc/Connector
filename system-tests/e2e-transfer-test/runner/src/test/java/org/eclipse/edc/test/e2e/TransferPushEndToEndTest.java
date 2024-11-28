@@ -82,7 +82,7 @@ class TransferPushEndToEndTest {
                     .withDestination(httpDataAddress("http://localhost:" + consumerDataDestination.getPort() + "/destination"))
                     .withTransferType("HttpData-PUSH").execute();
 
-            awaitTransferToBeInState(transferProcessId, COMPLETED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, COMPLETED);
 
             providerDataSource.verify(HttpRequest.request("/source").withMethod("GET"));
             consumerDataDestination.verify(HttpRequest.request("/destination").withBody(BinaryBody.binary("data".getBytes())));
@@ -109,7 +109,7 @@ class TransferPushEndToEndTest {
                     .withDestination(httpDataAddress("http://localhost:" + consumerDataDestination.getPort() + "/destination"))
                     .withTransferType("HttpData-PUSH").execute();
 
-            awaitTransferToBeInState(transferProcessId, COMPLETED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, COMPLETED);
 
             oauth2server.verify(HttpRequest.request("/token").withBody("grant_type=client_credentials&client_secret=supersecret&client_id=clientId"));
             providerDataSource.verify(HttpRequest.request("/source").withMethod("GET").withHeader("Authorization", "Bearer token"));

@@ -127,7 +127,7 @@ class TransferPullEndToEndTest {
                     .withCallbacks(callbacks)
                     .execute();
 
-            awaitTransferToBeInState(transferProcessId, STARTED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
 
             await().atMost(timeout).untilAsserted(() -> assertThat(events.get(transferProcessId)).isNotNull());
 
@@ -150,7 +150,7 @@ class TransferPullEndToEndTest {
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            awaitTransferToBeInState(transferProcessId, STARTED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
 
             var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
 
@@ -168,7 +168,7 @@ class TransferPullEndToEndTest {
         }
 
         @Test
-        void suspendAndResume_httpPull_dataTransfer_withEdrCache() {
+        void suspendAndResumeByConsumer_httpPull_dataTransfer_withEdrCache() {
             providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());
@@ -177,7 +177,7 @@ class TransferPullEndToEndTest {
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            awaitTransferToBeInState(transferProcessId, STARTED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
 
             var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
 
@@ -186,7 +186,7 @@ class TransferPullEndToEndTest {
 
             CONSUMER.suspendTransfer(transferProcessId, "supension");
 
-            awaitTransferToBeInState(transferProcessId, SUSPENDED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, SUSPENDED);
 
             // checks that the EDR is gone once the transfer has been suspended
             await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(transferProcessId)));
@@ -196,8 +196,49 @@ class TransferPullEndToEndTest {
             CONSUMER.resumeTransfer(transferProcessId);
 
             // check that transfer is available again
-            awaitTransferToBeInState(transferProcessId, STARTED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
             var secondEdr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
+            var secondMessage = UUID.randomUUID().toString();
+            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(secondEdr, Map.of("message", secondMessage), body -> assertThat(body).isEqualTo("data")));
+
+            providerDataSource.verify(HttpRequest.request("/source").withMethod("GET"));
+        }
+
+        @Test
+        void suspendAndResumeByProvider_httpPull_dataTransfer_withEdrCache() {
+            providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
+            var assetId = UUID.randomUUID().toString();
+            createResourcesOnProvider(assetId, httpSourceDataAddress());
+
+            var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withTransferType("HttpData-PULL")
+                    .execute();
+
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+
+            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
+
+            var msg = UUID.randomUUID().toString();
+            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
+
+            var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
+                    .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
+                    .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+
+            PROVIDER.suspendTransfer(providerTransferProcessId, "supension");
+
+            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
+
+            // checks that the EDR is gone once the transfer has been suspended
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(consumerTransferProcessId)));
+            // checks that transfer fails
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data"))));
+
+            PROVIDER.resumeTransfer(providerTransferProcessId);
+
+            // check that transfer is available again
+            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, STARTED);
+            var secondEdr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
             var secondMessage = UUID.randomUUID().toString();
             await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(secondEdr, Map.of("message", secondMessage), body -> assertThat(body).isEqualTo("data")));
 
@@ -222,7 +263,7 @@ class TransferPullEndToEndTest {
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            awaitTransferToBeInState(transferProcessId, STARTED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
 
             await().atMost(timeout).untilAsserted(() -> {
                 var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
@@ -246,7 +287,7 @@ class TransferPullEndToEndTest {
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            awaitTransferToBeInState(transferProcessId, TERMINATED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, TERMINATED);
         }
 
         @Test
@@ -261,7 +302,7 @@ class TransferPullEndToEndTest {
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            awaitTransferToBeInState(transferProcessId, TERMINATED);
+            CONSUMER.awaitTransferToBeInState(transferProcessId, TERMINATED);
         }
 
         public JsonObject createCallback(String url, boolean transactional, Set<String> events) {

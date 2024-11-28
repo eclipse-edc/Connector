@@ -15,17 +15,14 @@
 package org.eclipse.edc.test.e2e;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
-import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 
@@ -70,12 +67,4 @@ public abstract class TransferEndToEndTestBase {
         PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
         PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
     }
-
-    protected void awaitTransferToBeInState(String transferProcessId, TransferProcessStates state) {
-        await().atMost(timeout).until(
-                () -> CONSUMER.getTransferProcessState(transferProcessId),
-                it -> Objects.equals(it, state.name())
-        );
-    }
-
 }
