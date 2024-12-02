@@ -22,16 +22,15 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":spi:common:transaction-datasource-spi"))
-    implementation(project(":extensions:common:sql:sql-core"))
+    implementation(project(":core:common:lib:sql-lib"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
-    testImplementation(testFixtures(project(":extensions:common:sql:sql-lease")))
-    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(libs.postgres)
     testImplementation(libs.assertj)
 
-    testFixturesImplementation(project(":extensions:common:sql:sql-core"))
+    testFixturesImplementation(project(":core:common:lib:sql-lib")) // TODO: these fixtures could finish in sql-testfixtures module
 }
 
 

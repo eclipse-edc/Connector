@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.sql;
 
-import static org.eclipse.edc.sql.SqlCoreExtension.DEFAULT_EDC_SQL_FETCH_SIZE;
-
 /**
  * Configuration class for {@link SqlQueryExecutor}
  */
 public record SqlQueryExecutorConfiguration(int fetchSize) {
+
+    public static final String DEFAULT_EDC_SQL_FETCH_SIZE = "5000";
 
     public static SqlQueryExecutorConfiguration ofDefaults() {
         return new SqlQueryExecutorConfiguration(Integer.parseInt(DEFAULT_EDC_SQL_FETCH_SIZE));

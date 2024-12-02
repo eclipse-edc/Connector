@@ -26,7 +26,7 @@ dependencies {
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
-    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
     testImplementation(project(":extensions:common:json-ld"))
 

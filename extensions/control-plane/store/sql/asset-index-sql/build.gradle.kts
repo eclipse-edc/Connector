@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:control-plane:asset-spi"))
 
     implementation(project(":spi:common:transaction-datasource-spi"))
-    implementation(project(":extensions:common:sql:sql-core"))
+    implementation(project(":core:common:lib:sql-lib"))
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
     implementation(project(":core:common:lib:util-lib"))
 
@@ -32,7 +32,7 @@ dependencies {
     testImplementation(project(":spi:common:policy-model"))
     testImplementation(libs.assertj)
     testImplementation(testFixtures(project(":spi:control-plane:asset-spi")))
-    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(libs.postgres)
 
     testImplementation(libs.testcontainers.junit)

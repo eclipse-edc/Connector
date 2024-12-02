@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":spi:common:transaction-datasource-spi"))
-    implementation(project(":extensions:common:sql:sql-core"))
+    implementation(project(":core:common:lib:sql-lib"))
     implementation(project(":extensions:common:sql:sql-lease"))
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
 
@@ -32,8 +32,7 @@ dependencies {
     testImplementation(libs.awaitility)
     testImplementation(libs.postgres)
     testImplementation(testFixtures(project(":spi:control-plane:transfer-spi")))
-    testImplementation(testFixtures(project(":extensions:common:sql:sql-lease")))
-    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
 
 }
 

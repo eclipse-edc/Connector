@@ -22,20 +22,12 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transaction-spi"))
+    api(project(":spi:common:transaction-datasource-spi"))
+    implementation(project(":core:common:lib:sql-lib"))
     implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":spi:common:transaction-datasource-spi"))
-
 
     testImplementation(project(":core:common:junit"))
-    testFixturesImplementation(project(":spi:common:transaction-datasource-spi"))
-    testFixturesImplementation(project(":core:common:junit"))
-    testFixturesImplementation(libs.junit.jupiter.api)
-    testFixturesImplementation(libs.mockito.core)
-    testFixturesImplementation(libs.postgres)
-
-    testFixturesImplementation(libs.testcontainers.junit)
-    testFixturesImplementation(libs.testcontainers.postgres)
-
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
 }
 
 

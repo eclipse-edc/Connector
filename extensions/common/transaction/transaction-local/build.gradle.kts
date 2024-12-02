@@ -24,7 +24,7 @@ dependencies {
 
     testImplementation(project(":tests:junit-base"));
 
-    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
 }
 
 
