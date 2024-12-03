@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.protocol.dsp.version.http.api.transformer;
 
-import jakarta.json.Json;
+import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
+import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,21 +30,33 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNam
 /**
  * Transform {@link ProtocolVersions} into {@link JsonObject}
  */
-public class JsonObjectFromProtocolVersionsTransformer extends AbstractJsonLdTransformer<ProtocolVersions, JsonObject> {
+public class JsonObjectFromProtocolVersionsTransformer implements TypeTransformer<ProtocolVersions, JsonObject> {
 
-    public JsonObjectFromProtocolVersionsTransformer() {
-        super(ProtocolVersions.class, JsonObject.class);
+    private final JsonBuilderFactory jsonFactory;
+
+    public JsonObjectFromProtocolVersionsTransformer(JsonBuilderFactory jsonFactory) {
+        this.jsonFactory = jsonFactory;
+    }
+
+    @Override
+    public Class<ProtocolVersions> getInputType() {
+        return ProtocolVersions.class;
+    }
+
+    @Override
+    public Class<JsonObject> getOutputType() {
+        return JsonObject.class;
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull ProtocolVersions protocolVersions, @NotNull TransformerContext context) {
         var versions = protocolVersions.protocolVersions().stream()
-                .map(version -> Json.createObjectBuilder()
+                .map(version -> jsonFactory.createObjectBuilder()
                         .add(DSPACE_PROPERTY_VERSION, version.version())
                         .add(DSPACE_PROPERTY_PATH, version.path())
                         .build())
                 .collect(toJsonArray());
 
-        return Json.createObjectBuilder().add(DSPACE_PROPERTY_PROTOCOL_VERSIONS, versions).build();
+        return jsonFactory.createObjectBuilder().add(DSPACE_PROPERTY_PROTOCOL_VERSIONS, versions).build();
     }
 }

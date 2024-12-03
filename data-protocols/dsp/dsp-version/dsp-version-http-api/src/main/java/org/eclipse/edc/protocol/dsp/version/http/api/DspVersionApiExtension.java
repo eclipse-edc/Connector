@@ -26,15 +26,12 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.util.Map;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
 import static org.eclipse.edc.protocol.dsp.version.http.api.DspVersionApiExtension.NAME;
-import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
  * Provide API for the protocol versions.
@@ -69,13 +66,13 @@ public class DspVersionApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var jsonLdMapper = typeManager.getMapper(JSON_LD);
 
-        transformerRegistry.register(new JsonObjectFromProtocolVersionsTransformer());
-        transformerRegistry.register(new JsonObjectFromVersionsError(Json.createBuilderFactory(Map.of())));
+        var jsonFactory = Json.createBuilderFactory(Map.of());
+        
+        transformerRegistry.register(new JsonObjectFromProtocolVersionsTransformer(jsonFactory));
+        transformerRegistry.register(new JsonObjectFromVersionsError(jsonFactory));
 
         webService.registerResource(ApiContext.PROTOCOL, new DspVersionApiController(requestHandler, service));
-        webService.registerDynamicResource(ApiContext.PROTOCOL, DspVersionApiController.class, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE_V_08));
     }
 
 }
