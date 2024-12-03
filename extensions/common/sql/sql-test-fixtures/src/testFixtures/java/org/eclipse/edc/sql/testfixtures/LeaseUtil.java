@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.sql.lease.testfixtures;
+package org.eclipse.edc.sql.testfixtures;
 
 import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.sql.lease.LeaseStatements;

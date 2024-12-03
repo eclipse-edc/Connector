@@ -14,20 +14,21 @@
 
 package org.eclipse.edc.sql.bootstrapper;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension.SCHEMA_AUTOCREATE_PROPERTY;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -46,20 +47,20 @@ class SqlSchemaBootstrapperExtensionTest {
     }
 
     @Test
-    void prepare_autocreateDisabled(SqlSchemaBootstrapperExtension extension, ServiceExtensionContext context) {
-        var config = mock(Config.class);
-        when(config.getBoolean(eq("edc.sql.schema.autocreate"), anyBoolean())).thenReturn(false);
-        when(context.getConfig()).thenReturn(config);
+    void shouldNotCreateSchema_whenSettingIsDisabled(ObjectFactory objectFactory, ServiceExtensionContext context) {
+        var extension = objectFactory.constructInstance(SqlSchemaBootstrapperExtension.class);
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(SCHEMA_AUTOCREATE_PROPERTY, "false")));
+
         extension.initialize(context);
         extension.prepare();
+
         verifyNoInteractions(transactionContext);
     }
 
     @Test
-    void prepare(SqlSchemaBootstrapperExtension extension, ServiceExtensionContext context) {
-        var config = mock(Config.class);
-        when(config.getBoolean(eq(SCHEMA_AUTOCREATE_PROPERTY), anyBoolean())).thenReturn(true);
-        when(context.getConfig()).thenReturn(config);
+    void shouldCreateSchema_whenSettingIsEnabled(ServiceExtensionContext context, ObjectFactory objectFactory) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(SCHEMA_AUTOCREATE_PROPERTY, "true")));
+        var extension = objectFactory.constructInstance(SqlSchemaBootstrapperExtension.class);
         when(transactionContext.execute(isA(TransactionContext.ResultTransactionBlock.class)))
                 .thenReturn(Result.success("foobar"));
 

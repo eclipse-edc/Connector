@@ -20,11 +20,11 @@ dependencies {
     api(project(":spi:common:jwt-spi"))
     api(project(":spi:common:transaction-spi"))
 
-    implementation(project(":extensions:common:sql:sql-core"))
+    implementation(project(":core:common:lib:sql-lib"))
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
     implementation(project(":spi:common:transaction-datasource-spi"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(testFixtures(project(":spi:common:jwt-spi")))
 
 }

@@ -223,7 +223,6 @@ public class StsApiEndToEndTest {
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
 
-
         @RegisterExtension
         static RuntimePerClassExtension sts = new RuntimePerClassExtension(new EmbeddedRuntime(
                 "sts",
@@ -240,6 +239,7 @@ public class StsApiEndToEndTest {
                     }
                 },
                 ":system-tests:sts-api:sts-api-test-runtime",
+                ":extensions:common:sql:sql-core",
                 ":extensions:common:store:sql:sts-client-store-sql",
                 ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
                 ":extensions:common:transaction:transaction-local"

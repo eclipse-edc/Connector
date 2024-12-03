@@ -21,7 +21,8 @@ plugins {
 
 dependencies {
     api(project(":spi:common:transaction-datasource-spi"))
-    api(project(":extensions:common:sql:sql-core"))
+
+    implementation(project(":core:common:lib:sql-lib"))
 
     implementation(libs.apache.commons.pool)
 

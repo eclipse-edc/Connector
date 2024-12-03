@@ -22,7 +22,7 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":spi:common:transaction-datasource-spi"))
-    implementation(project(":extensions:common:sql:sql-core")) // SqlQueryExecutor
+    implementation(project(":core:common:lib:sql-lib"))
 //
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.assertj)

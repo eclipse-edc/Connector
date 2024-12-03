@@ -24,12 +24,13 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import static org.eclipse.edc.sql.SqlQueryExecutorConfiguration.DEFAULT_EDC_SQL_FETCH_SIZE;
+
 @Extension(value = SqlCoreExtension.NAME)
 public class SqlCoreExtension implements ServiceExtension {
 
     public static final String NAME = "SQL Core";
 
-    public static final String DEFAULT_EDC_SQL_FETCH_SIZE = "5000";
     @Setting(description = "Fetch size value used in SQL queries", defaultValue = DEFAULT_EDC_SQL_FETCH_SIZE, key = "edc.sql.fetch.size")
     private int fetchSize;
 
