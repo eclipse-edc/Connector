@@ -19,13 +19,10 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -34,13 +31,11 @@ import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_VERSION;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
 
 @EndToEndTest
 public class DspVersionApiEndToEndTest {
@@ -61,14 +56,13 @@ public class DspVersionApiEndToEndTest {
             ":core:control-plane:control-plane-core",
             ":extensions:common:http"
     ));
-    private final JsonLd jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
 
     @Test
-    void shouldReturnValidJsonLd() {
+    void shouldReturnValidJson() {
         runtime.getService(ProtocolVersionRegistry.class)
                 .register(new ProtocolVersion("1.0", "/v1/path"));
 
-        var compacted = given()
+        var response = given()
                 .port(PROTOCOL_PORT)
                 .basePath("/protocol")
                 .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
@@ -77,14 +71,15 @@ public class DspVersionApiEndToEndTest {
                 .log().ifError()
                 .statusCode(200)
                 .contentType(ContentType.JSON)
+                .body("'@context'", nullValue())
                 .extract().body().as(JsonObject.class);
 
-        var expansion = jsonLd.expand(compacted);
 
-        assertThat(expansion).isSucceeded().satisfies(expanded -> {
-            assertThat(expanded.getJsonArray(DSPACE_PROPERTY_PROTOCOL_VERSIONS)).hasSize(1).extracting(JsonValue::asJsonObject)
-                    .first().satisfies(protocolVersion -> versionIs(protocolVersion, "1.0", "/v1/path"));
-        });
+        assertThat(response.getJsonArray(DSPACE_PROPERTY_PROTOCOL_VERSIONS))
+                .hasSize(1)
+                .extracting(JsonValue::asJsonObject)
+                .first().satisfies(protocolVersion -> versionIs(protocolVersion, "1.0", "/v1/path"));
+
     }
 
     @Test
@@ -103,16 +98,13 @@ public class DspVersionApiEndToEndTest {
                 .log().ifError()
                 .statusCode(401)
                 .contentType(ContentType.JSON)
-                .body("'@type'", equalTo("dspace:VersionsError"))
-                .body("'dspace:code'", equalTo("401"))
-                .body("'dspace:reason'", equalTo("Unauthorized"))
-                .body("'@context'.dspace", equalTo(DSPACE_SCHEMA));
+                .body("code", equalTo("401"))
+                .body("reason[0]", equalTo("Unauthorized"))
+                .body("'@context'", nullValue());
     }
 
     private void versionIs(JsonObject protocolVersion, String version, String path) {
-        assertThat(protocolVersion.getJsonArray(DSPACE_PROPERTY_VERSION)).hasSize(1).first()
-                .extracting(JsonValue::asJsonObject).extracting(it -> it.getString(VALUE)).isEqualTo(version);
-        assertThat(protocolVersion.getJsonArray(DSPACE_PROPERTY_PATH)).hasSize(1).first()
-                .extracting(JsonValue::asJsonObject).extracting(it -> it.getString(VALUE)).isEqualTo(path);
+        assertThat(protocolVersion.getString(DSPACE_PROPERTY_VERSION)).isEqualTo(version);
+        assertThat(protocolVersion.getString(DSPACE_PROPERTY_PATH)).isEqualTo(path);
     }
 }

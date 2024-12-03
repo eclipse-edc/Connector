@@ -14,17 +14,14 @@
 
 package org.eclipse.edc.protocol.dsp.spi.type;
 
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-
 /**
  * Dataspace protocol types and attributes for version request.
  */
 public interface DspVersionPropertyAndTypeNames {
 
-    String DSPACE_PROPERTY_PROTOCOL_VERSIONS = DSPACE_SCHEMA + "protocolVersions";
+    String DSPACE_PROPERTY_PROTOCOL_VERSIONS = "protocolVersions";
 
-    String DSPACE_TYPE_VERSIONS_ERROR = DSPACE_SCHEMA + "VersionsError";
-    String DSPACE_PROPERTY_VERSION = DSPACE_SCHEMA + "version";
-    String DSPACE_PROPERTY_PATH = DSPACE_SCHEMA + "path";
+    String DSPACE_PROPERTY_VERSION = "version";
+    String DSPACE_PROPERTY_PATH = "path";
 
 }

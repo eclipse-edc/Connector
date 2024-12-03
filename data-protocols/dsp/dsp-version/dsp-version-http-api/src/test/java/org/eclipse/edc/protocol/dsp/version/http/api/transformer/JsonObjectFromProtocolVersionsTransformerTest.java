@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.version.http.api.transformer;
 
+import jakarta.json.Json;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
@@ -21,6 +22,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
@@ -32,7 +34,7 @@ class JsonObjectFromProtocolVersionsTransformerTest {
 
     private final TransformerContext context = mock();
     private final JsonObjectFromProtocolVersionsTransformer transformer =
-            new JsonObjectFromProtocolVersionsTransformer();
+            new JsonObjectFromProtocolVersionsTransformer(Json.createBuilderFactory(Map.of()));
 
     @Test
     void shouldTransform() {
