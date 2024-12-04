@@ -221,6 +221,7 @@ include(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql
 
 include(":extensions:policy-monitor:store:sql:policy-monitor-store-sql")
 
+include(":extensions:tck-extension")
 
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:dpf-selector")
@@ -291,6 +292,8 @@ include(":system-tests:sts-api:sts-api-test-runtime")
 include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 include(":system-tests:bom-tests")
+include(":system-tests:dsp-compatibility-tests:connector-under-test")
+include(":system-tests:dsp-compatibility-tests:compatibility-test-runner")
 
 // BOM modules ----------------------------------------------------------------
 include(":dist:bom:controlplane-base-bom")
