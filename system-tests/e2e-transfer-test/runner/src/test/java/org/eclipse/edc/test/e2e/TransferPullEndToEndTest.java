@@ -63,6 +63,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePolicy;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -87,6 +88,7 @@ class TransferPullEndToEndTest {
         @BeforeAll
         static void beforeAll() {
             providerDataSource = startClientAndServer(getFreePort());
+            providerDataSource.when(request()).respond(HttpResponse.response().withBody("data"));
         }
 
         @AfterAll
@@ -105,7 +107,6 @@ class TransferPullEndToEndTest {
 
         @Test
         void httpPull_dataTransfer_withCallbacks() {
-            providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
             var callbacksEndpoint = startClientAndServer(getFreePort());
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());
@@ -135,13 +136,12 @@ class TransferPullEndToEndTest {
             var msg = UUID.randomUUID().toString();
             await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(event.getDataAddress(), Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
 
-            providerDataSource.verify(HttpRequest.request("/source").withMethod("GET"));
+            providerDataSource.verify(request("/source").withMethod("GET"));
             stopQuietly(callbacksEndpoint);
         }
 
         @Test
         void httpPull_dataTransfer_withEdrCache() {
-            providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
             var assetId = UUID.randomUUID().toString();
             var sourceDataAddress = httpSourceDataAddress();
             createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("10s"), sourceDataAddress);
@@ -164,12 +164,11 @@ class TransferPullEndToEndTest {
             // checks that transfer fails
             await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data"))));
 
-            providerDataSource.verify(HttpRequest.request("/source").withMethod("GET"));
+            providerDataSource.verify(request("/source").withMethod("GET"));
         }
 
         @Test
         void suspendAndResumeByConsumer_httpPull_dataTransfer_withEdrCache() {
-            providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());
 
@@ -201,12 +200,11 @@ class TransferPullEndToEndTest {
             var secondMessage = UUID.randomUUID().toString();
             await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(secondEdr, Map.of("message", secondMessage), body -> assertThat(body).isEqualTo("data")));
 
-            providerDataSource.verify(HttpRequest.request("/source").withMethod("GET"));
+            providerDataSource.verify(request("/source").withMethod("GET"));
         }
 
         @Test
         void suspendAndResumeByProvider_httpPull_dataTransfer_withEdrCache() {
-            providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());
 
@@ -242,14 +240,13 @@ class TransferPullEndToEndTest {
             var secondMessage = UUID.randomUUID().toString();
             await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(secondEdr, Map.of("message", secondMessage), body -> assertThat(body).isEqualTo("data")));
 
-            providerDataSource.verify(HttpRequest.request("/source").withMethod("GET"));
+            providerDataSource.verify(request("/source").withMethod("GET"));
         }
 
         @Test
         void pullFromHttp_httpProvision() {
-            providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
             var provisionServer = startClientAndServer(PROVIDER.getHttpProvisionerPort());
-            provisionServer.when(HttpRequest.request()).respond(new HttpProvisionerCallback());
+            provisionServer.when(request("/provision")).respond(new HttpProvisionerCallback());
 
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, Map.of(
@@ -259,18 +256,28 @@ class TransferPullEndToEndTest {
                     "proxyQueryParams", "true"
             ));
 
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
 
             await().atMost(timeout).untilAsserted(() -> {
-                var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
+                var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
                 CONSUMER.pullData(edr, Map.of("message", "some information"), body -> assertThat(body).isEqualTo("data"));
             });
 
-            provisionServer.verify(HttpRequest.request("/provision"));
+            provisionServer.verify(request("/provision"));
+            provisionServer.clear(request("provision"));
+
+            var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
+                    .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
+                    .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+
+            PROVIDER.terminateTransfer(providerTransferProcessId);
+            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
+
+            provisionServer.verify(request("/provision"));
 
             stopQuietly(provisionServer);
         }
@@ -342,28 +349,30 @@ class TransferPullEndToEndTest {
             public HttpResponse handle(HttpRequest httpRequest) throws Exception {
                 var requestBody = MAPPER.readValue(httpRequest.getBodyAsString(), Map.class);
 
-                var callbackRequestBody = Map.of(
-                        "edctype", "dataspaceconnector:provisioner-callback-request",
-                        "resourceDefinitionId", requestBody.get("resourceDefinitionId"),
-                        "assetId", requestBody.get("assetId"),
-                        "resourceName", "aName",
-                        "contentDataAddress", Map.of("properties", httpSourceDataAddress()),
-                        "apiKeyJwt", "unused",
-                        "hasToken", false
-                );
+                if ("provision".equals(requestBody.get("type"))) {
+                    var callbackRequestBody = Map.of(
+                            "edctype", "dataspaceconnector:provisioner-callback-request",
+                            "resourceDefinitionId", requestBody.get("resourceDefinitionId"),
+                            "assetId", requestBody.get("assetId"),
+                            "resourceName", "aName",
+                            "contentDataAddress", Map.of("properties", httpSourceDataAddress()),
+                            "apiKeyJwt", "unused",
+                            "hasToken", false
+                    );
 
-                Executors.newScheduledThreadPool(1).schedule(() -> {
-                    try {
-                        var request = new Request.Builder()
-                                .url("%s/%s/provision".formatted(requestBody.get("callbackAddress"), requestBody.get("transferProcessId")))
-                                .post(RequestBody.create(MAPPER.writeValueAsString(callbackRequestBody), get("application/json")))
-                                .build();
+                    Executors.newScheduledThreadPool(1).schedule(() -> {
+                        try {
+                            var request = new Request.Builder()
+                                    .url("%s/%s/provision".formatted(requestBody.get("callbackAddress"), requestBody.get("transferProcessId")))
+                                    .post(RequestBody.create(MAPPER.writeValueAsString(callbackRequestBody), get("application/json")))
+                                    .build();
 
-                        testHttpClient().execute(request).close();
-                    } catch (Exception e) {
-                        throw new EdcException(e);
-                    }
-                }, 1, SECONDS);
+                            testHttpClient().execute(request).close();
+                        } catch (Exception e) {
+                            throw new EdcException(e);
+                        }
+                    }, 1, SECONDS);
+                }
 
                 return response();
             }
