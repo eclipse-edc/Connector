@@ -41,6 +41,7 @@ import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDe
 import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDefinitionServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.ProtocolTokenValidatorImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.VersionProtocolServiceImpl;
+import org.eclipse.edc.connector.controlplane.services.protocol.VersionServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidators;
 import org.eclipse.edc.connector.controlplane.services.secret.SecretEventListener;
 import org.eclipse.edc.connector.controlplane.services.secret.SecretServiceImpl;
@@ -55,6 +56,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.Poli
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProtocolServiceImpl;
@@ -285,6 +287,11 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public VersionProtocolService versionProtocolService() {
         return new VersionProtocolServiceImpl(protocolVersionRegistry, protocolTokenValidator());
+    }
+
+    @Provider
+    public VersionService versionService() {
+        return new VersionServiceImpl(dispatcher);
     }
 
 }

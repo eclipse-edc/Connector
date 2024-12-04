@@ -16,9 +16,9 @@ package org.eclipse.edc.protocol.dsp.catalog.http.dispatcher;
 
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
-import org.eclipse.edc.protocol.dsp.catalog.http.dispatcher.delegate.ByteArrayBodyExtractor;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.GetDspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.PostDspHttpRequestFactory;
+import org.eclipse.edc.protocol.dsp.http.serialization.ByteArrayBodyExtractor;
 import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;

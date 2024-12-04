@@ -104,6 +104,7 @@ include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform
 include(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-validation-lib")
 include(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-transform-lib")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-api")
+include(":data-protocols:dsp:dsp-version:dsp-version-http-dispatcher")
 
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
@@ -184,6 +185,7 @@ include(":extensions:control-plane:api:management-api:management-api-test-fixtur
 include(":extensions:control-plane:api:management-api:policy-definition-api")
 include(":extensions:control-plane:api:management-api:transfer-process-api")
 include(":extensions:control-plane:api:management-api:edr-cache-api")
+include(":extensions:control-plane:api:management-api:protocol-version-api")
 include(":extensions:control-plane:transfer:transfer-data-plane-signaling")
 include(":extensions:control-plane:transfer:transfer-pull-http-receiver")
 include(":extensions:control-plane:transfer:transfer-pull-http-dynamic-receiver")
@@ -266,6 +268,8 @@ include(":spi:control-plane:policy-spi")
 include(":spi:control-plane:transfer-spi")
 include(":spi:control-plane:secrets-spi")
 include(":spi:control-plane:control-plane-api-client-spi")
+include(":spi:control-plane:protocol-version-spi")
+
 
 include(":spi:data-plane:data-plane-spi")
 include(":spi:data-plane:data-plane-http-spi")
