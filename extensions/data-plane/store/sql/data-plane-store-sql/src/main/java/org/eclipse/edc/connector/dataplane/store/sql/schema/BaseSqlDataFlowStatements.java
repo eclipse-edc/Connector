@@ -21,11 +21,11 @@ import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
 
-public class BaseSqlDataPlaneStatements implements DataPlaneStatements {
+public class BaseSqlDataFlowStatements implements DataFlowStatements {
 
     protected final SqlOperatorTranslator operatorTranslator;
 
-    public BaseSqlDataPlaneStatements(SqlOperatorTranslator operatorTranslator) {
+    public BaseSqlDataFlowStatements(SqlOperatorTranslator operatorTranslator) {
         this.operatorTranslator = operatorTranslator;
     }
 
@@ -46,6 +46,7 @@ public class BaseSqlDataPlaneStatements implements DataPlaneStatements {
                 .jsonColumn(getPropertiesColumn())
                 .column(getFlowTypeColumn())
                 .column(getTransferTypeDestinationColumn())
+                .column(getRuntimeIdColumn())
                 .insertInto(getDataPlaneTable());
     }
 
@@ -64,6 +65,7 @@ public class BaseSqlDataPlaneStatements implements DataPlaneStatements {
                 .jsonColumn(getPropertiesColumn())
                 .column(getFlowTypeColumn())
                 .column(getTransferTypeDestinationColumn())
+                .column(getRuntimeIdColumn())
                 .update(getDataPlaneTable(), getIdColumn());
     }
 

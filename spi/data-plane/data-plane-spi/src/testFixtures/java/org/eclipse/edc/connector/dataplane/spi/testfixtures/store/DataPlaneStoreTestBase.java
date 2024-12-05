@@ -202,6 +202,19 @@ public abstract class DataPlaneStoreTestBase {
                     .isEqualTo(push.getId());
         }
 
+        @Test
+        void shouldFilterByRuntimeId() {
+            var runtime1 = createDataFlowBuilder().runtimeId("runtime1").build();
+            var runtime2 = createDataFlowBuilder().runtimeId("runtime2").build();
+            getStore().save(runtime1);
+            getStore().save(runtime2);
+
+            var leased = getStore().nextNotLeased(2, new Criterion("runtimeId", "=", "runtime2"));
+
+            assertThat(leased).hasSize(1).first().extracting(DataFlow::getId)
+                    .isEqualTo(runtime2.getId());
+        }
+
         private void delayByTenMillis(StatefulEntity<?> t) {
             try {
                 Thread.sleep(10);
@@ -257,7 +270,8 @@ public abstract class DataPlaneStoreTestBase {
                 .source(DataAddress.Builder.newInstance().type("src-type").build())
                 .destination(DataAddress.Builder.newInstance().type("dest-type").build())
                 .state(STARTED.code())
-                .transferType(new TransferType("transferType", PUSH));
+                .transferType(new TransferType("transferType", PUSH))
+                .runtimeId("runtimeId");
     }
 
 }

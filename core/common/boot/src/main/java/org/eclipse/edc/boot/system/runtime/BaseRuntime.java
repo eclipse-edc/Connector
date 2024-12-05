@@ -112,7 +112,7 @@ public class BaseRuntime {
                 healthCheckService.addStartupStatusProvider(startupStatusRef::get);
             }
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
             onError(e);
         }
 
@@ -147,7 +147,7 @@ public class BaseRuntime {
     /**
      * Callback for any error that happened during runtime initialization
      */
-    protected void onError(Exception e) {
+    protected void onError(Throwable e) {
         monitor.severe(String.format("Error booting runtime: %s", e.getMessage()), e);
         throw new EdcException(e);
     }

@@ -29,6 +29,9 @@ import org.jetbrains.annotations.Nullable;
 @ExtensionPoint
 public interface DataPlaneManager extends StateEntityManager {
 
+    long DEFAULT_FLOW_LEASE_TIME = 500;
+    int DEFAULT_FLOW_LEASE_FACTOR = 5;
+
     /**
      * Determines if the data flow request is valid and can be processed by this runtime.
      */

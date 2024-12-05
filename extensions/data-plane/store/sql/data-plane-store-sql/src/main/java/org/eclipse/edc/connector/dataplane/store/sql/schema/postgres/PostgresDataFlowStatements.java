@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.connector.dataplane.store.sql.schema.postgres;
 
-import org.eclipse.edc.connector.dataplane.store.sql.schema.BaseSqlDataPlaneStatements;
+import org.eclipse.edc.connector.dataplane.store.sql.schema.BaseSqlDataFlowStatements;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 
-public class PostgresDataPlaneStatements extends BaseSqlDataPlaneStatements {
+public class PostgresDataFlowStatements extends BaseSqlDataFlowStatements {
 
-    public PostgresDataPlaneStatements() {
+    public PostgresDataFlowStatements() {
         super(new PostgresqlOperatorTranslator());
     }
 

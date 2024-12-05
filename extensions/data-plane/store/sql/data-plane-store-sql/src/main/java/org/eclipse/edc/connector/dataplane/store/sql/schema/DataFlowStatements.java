@@ -22,7 +22,7 @@ import org.eclipse.edc.sql.translation.SqlQueryStatement;
 /**
  * Sql Statements for DataPlane Store
  */
-public interface DataPlaneStatements extends StatefulEntityStatements, LeaseStatements {
+public interface DataFlowStatements extends StatefulEntityStatements, LeaseStatements {
 
     default String getIdColumn() {
         return "process_id";
@@ -56,6 +56,10 @@ public interface DataPlaneStatements extends StatefulEntityStatements, LeaseStat
         return "transfer_type_destination";
     }
 
+    default String getRuntimeIdColumn() {
+        return "runtime_id";
+    }
+
     String getInsertTemplate();
 
     String getUpdateTemplate();
@@ -63,6 +67,5 @@ public interface DataPlaneStatements extends StatefulEntityStatements, LeaseStat
     String getSelectTemplate();
 
     SqlQueryStatement createQuery(QuerySpec querySpec);
-
 }
 

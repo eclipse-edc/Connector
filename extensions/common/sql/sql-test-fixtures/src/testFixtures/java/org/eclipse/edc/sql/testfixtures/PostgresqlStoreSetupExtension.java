@@ -34,10 +34,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 /**
  * Extension for running PG SQL store implementation. It automatically creates a test database and provided all the base data structure
@@ -46,17 +48,24 @@ import static java.lang.String.format;
 public class PostgresqlStoreSetupExtension implements BeforeEachCallback, BeforeAllCallback, AfterAllCallback, ParameterResolver {
 
     public static final String POSTGRES_IMAGE_NAME = "postgres:16.1";
-    public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(POSTGRES_IMAGE_NAME)
+    private final PostgreSQLContainer<?> postgreSqlContainer = new PostgreSQLContainer<>(POSTGRES_IMAGE_NAME)
             .withExposedPorts(5432)
             .withUsername("postgres")
             .withPassword("password")
             .withDatabaseName("itest");
-    private static PostgresqlLocalInstance postgres;
+    private final PostgresqlLocalInstance postgres;
     private final QueryExecutor queryExecutor = new SqlQueryExecutor();
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final DataSourceRegistry dataSourceRegistry = new DefaultDataSourceRegistry();
     private final String datasourceName = UUID.randomUUID().toString();
-    private String jdbcUrlPrefix;
+    private final String jdbcUrlPrefix;
+
+    public PostgresqlStoreSetupExtension() {
+        var exposedPort = getFreePort();
+        postgreSqlContainer.setPortBindings(List.of("%s:5432".formatted(exposedPort)));
+        jdbcUrlPrefix = format("jdbc:postgresql://%s:%s/", postgreSqlContainer.getHost(), exposedPort);
+        postgres = new PostgresqlLocalInstance(postgreSqlContainer.getUsername(), postgreSqlContainer.getPassword(), jdbcUrlPrefix);
+    }
 
     public String getDatasourceName() {
         return datasourceName;
@@ -84,27 +93,25 @@ public class PostgresqlStoreSetupExtension implements BeforeEachCallback, Before
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        postgreSQLContainer.start();
-        jdbcUrlPrefix = format("jdbc:postgresql://%s:%s/", postgreSQLContainer.getHost(), postgreSQLContainer.getFirstMappedPort());
-        postgres = new PostgresqlLocalInstance(postgreSQLContainer.getUsername(), postgreSQLContainer.getPassword(), jdbcUrlPrefix, postgreSQLContainer.getDatabaseName());
-        postgres.createDatabase();
+        postgreSqlContainer.start();
+        postgres.createDatabase(postgreSqlContainer.getDatabaseName());
     }
 
     @Override
     public void beforeEach(ExtensionContext context) {
         var properties = new Properties();
-        properties.put("user", postgreSQLContainer.getUsername());
-        properties.put("password", postgreSQLContainer.getPassword());
+        properties.put("user", postgreSqlContainer.getUsername());
+        properties.put("password", postgreSqlContainer.getPassword());
         var connectionFactory = new DriverManagerConnectionFactory();
-        var jdbcUrl = jdbcUrlPrefix + postgreSQLContainer.getDatabaseName();
+        var jdbcUrl = jdbcUrlPrefix + postgreSqlContainer.getDatabaseName();
         var dataSource = new ConnectionFactoryDataSource(connectionFactory, jdbcUrl, properties);
         dataSourceRegistry.register(datasourceName, dataSource);
     }
 
     @Override
     public void afterAll(ExtensionContext context) {
-        postgreSQLContainer.stop();
-        postgreSQLContainer.close();
+        postgreSqlContainer.stop();
+        postgreSqlContainer.close();
     }
 
     @Override
@@ -128,4 +135,7 @@ public class PostgresqlStoreSetupExtension implements BeforeEachCallback, Before
         return null;
     }
 
+    public Map<String, String> getDatasourceConfiguration() {
+        return postgres.createDefaultDatasourceConfiguration(postgreSqlContainer.getDatabaseName());
+    }
 }

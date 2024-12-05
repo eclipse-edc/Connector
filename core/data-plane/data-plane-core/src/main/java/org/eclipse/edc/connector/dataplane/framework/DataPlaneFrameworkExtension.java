@@ -24,11 +24,13 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServ
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -40,6 +42,8 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 import java.util.concurrent.Executors;
 
+import static org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager.DEFAULT_FLOW_LEASE_FACTOR;
+import static org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager.DEFAULT_FLOW_LEASE_TIME;
 import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_BATCH_SIZE;
 import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_ITERATION_WAIT;
 import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_SEND_RETRY_BASE_DELAY;
@@ -89,6 +93,9 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     )
     private int numThreads;
 
+    @Configuration
+    private FlowLeaseConfiguration flowLeaseConfiguration;
+
     private DataPlaneManagerImpl dataPlaneManager;
 
     @Inject
@@ -135,6 +142,8 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .transferProcessClient(transferProcessApiClient)
                 .monitor(monitor)
                 .telemetry(telemetry)
+                .runtimeId(context.getRuntimeId())
+                .flowLeaseConfiguration(flowLeaseConfiguration)
                 .build();
 
         context.registerService(DataPlaneManager.class, dataPlaneManager);
@@ -164,5 +173,33 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @NotNull
     private EntityRetryProcessConfiguration getEntityRetryProcessConfiguration() {
         return new EntityRetryProcessConfiguration(sendRetryLimit, () -> new ExponentialWaitStrategy(sendRetryBaseDelay));
+    }
+
+    @Settings
+    public record FlowLeaseConfiguration(
+            @Setting(
+                    key = "edc.dataplane.state-machine.flow.lease.time",
+                    description = "The time in milliseconds after which a runtime renews its ownership on a started data flow.",
+                    defaultValue = DEFAULT_FLOW_LEASE_TIME + "")
+            long time,
+            @Setting(
+                    key = "edc.dataplane.state-machine.flow.lease.factor",
+                    description = "After flow lease time * factor a started data flow will be considered abandoned by the owner and so another runtime can caught it up and start it again.",
+                    defaultValue = DEFAULT_FLOW_LEASE_FACTOR + "")
+            int factor
+    ) {
+
+        public FlowLeaseConfiguration() {
+            this(DEFAULT_FLOW_LEASE_TIME, DEFAULT_FLOW_LEASE_FACTOR);
+        }
+
+        /**
+         * After this time has passed, a DataFlow can be considered "abandoned" and it can be picked up by another runtime.
+         *
+         * @return the abandoned time.
+         */
+        public long abandonTime() {
+            return time * factor;
+        }
     }
 }

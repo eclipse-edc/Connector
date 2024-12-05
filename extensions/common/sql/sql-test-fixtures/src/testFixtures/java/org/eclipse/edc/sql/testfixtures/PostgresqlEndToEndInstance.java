@@ -32,8 +32,8 @@ public interface PostgresqlEndToEndInstance {
             throw new EdcPersistenceException(e);
         }
 
-        var postgres = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX, participantName);
-        postgres.createDatabase();
+        var postgres = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX);
+        postgres.createDatabase(participantName);
     }
 
     static Map<String, String> defaultDatasourceConfiguration(String name) {

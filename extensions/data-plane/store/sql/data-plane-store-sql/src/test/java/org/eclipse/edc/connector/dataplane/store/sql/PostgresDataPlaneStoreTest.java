@@ -16,8 +16,8 @@ package org.eclipse.edc.connector.dataplane.store.sql;
 
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.spi.testfixtures.store.DataPlaneStoreTestBase;
-import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
-import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.PostgresDataPlaneStatements;
+import org.eclipse.edc.connector.dataplane.store.sql.schema.DataFlowStatements;
+import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.PostgresDataFlowStatements;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
@@ -37,7 +37,7 @@ import java.time.Duration;
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
 
-    private final DataPlaneStatements statements = new PostgresDataPlaneStatements();
+    private final DataFlowStatements statements = new PostgresDataFlowStatements();
     private LeaseUtil leaseUtil;
     private SqlDataPlaneStore store;
 
