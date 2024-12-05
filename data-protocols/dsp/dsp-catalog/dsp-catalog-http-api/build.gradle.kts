@@ -25,17 +25,18 @@ dependencies {
     api(project(":spi:common:json-ld-spi"))
 
     api(project(":spi:control-plane:control-plane-spi"))
-    
+
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
     implementation(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-validation-lib"))
+    implementation(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-http-api-lib"))
 
     implementation(libs.jakarta.rsApi)
 
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:transform-lib"))
-    testImplementation(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
     testImplementation(libs.restAssured)
+    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-http-api-lib")))
+
 }
 
 edcBuild {
