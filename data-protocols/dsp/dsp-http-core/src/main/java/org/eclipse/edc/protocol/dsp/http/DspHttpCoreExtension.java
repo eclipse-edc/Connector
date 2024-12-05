@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
+import org.eclipse.edc.connector.controlplane.protocolversion.spi.ProtocolVersionRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
@@ -136,6 +137,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
         registerNegotiationPolicyScopes(dispatcher);
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);
+        registerVersionPolicyScopes(dispatcher);
         dispatcherRegistry.register(DATASPACE_PROTOCOL_HTTP, dispatcher);
         dispatcherRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2024_1, dispatcher);
         return dispatcher;
@@ -186,5 +188,9 @@ public class DspHttpCoreExtension implements ServiceExtension {
     private void registerCatalogPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
         dispatcher.registerPolicyScope(CatalogRequestMessage.class, CatalogRequestMessage::getPolicy, RequestCatalogPolicyContext::new);
         dispatcher.registerPolicyScope(DatasetRequestMessage.class, DatasetRequestMessage::getPolicy, RequestCatalogPolicyContext::new);
+    }
+
+    private void registerVersionPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
+        dispatcher.registerPolicyScope(ProtocolVersionRequestMessage.class, ProtocolVersionRequestMessage::getPolicy, RequestVersionPolicyContext::new);
     }
 }
