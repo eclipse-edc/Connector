@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.controlplane.protocolversion.spi.ProtocolVersio
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +33,7 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.edc.connector.controlplane.api.management.protocolversion.v4alpha.ProtocolVersionApiV4alpha.ProtocolVersionRequestSchema.PROTOCOL_VERSION_REQUEST_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.api.management.protocolversion.v4alpha.ProtocolVersionApiV4alpha.ProtocolVersionSchema.PROTOCOL_VERSION_EXAMPLE;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
 
 class ProtocolVersionApiTest {
@@ -55,10 +55,10 @@ class ProtocolVersionApiTest {
         assertThat(jsonObject).isNotNull();
 
         var expanded = jsonLd.expand(jsonObject);
-        AbstractResultAssert.assertThat(expanded).isSucceeded()
-                .satisfies(exp -> AbstractResultAssert.assertThat(validator.validate(exp)).isSucceeded())
+        assertThat(expanded).isSucceeded()
+                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
                 .extracting(e -> transformer.transform(e, ProtocolVersionRequest.class))
-                .satisfies(transformResult -> AbstractResultAssert.assertThat(transformResult).isSucceeded()
+                .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
                         .satisfies(transformed -> {
                             assertThat(transformed.getProtocol()).isNotBlank();
                             assertThat(transformed.getCounterPartyAddress()).isNotBlank();
