@@ -3240,6 +3240,23 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/protocol-versions/request:
+    post:
+      tags:
+      - Protocol Version v4alpha
+      operationId: requestProtocolVersionV4alpha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogRequest"
+      responses:
+        default:
+          description: Gets supported protocol versions of a single connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Protocol Version"
 components:
   schemas:
     ApiErrorDetail:
@@ -4013,6 +4030,15 @@ components:
         - error2
     Properties:
       type: object
+    Protocol Version:
+      type: object
+      description: Protocol Version
+      example:
+        protocolVersions:
+        - version: 2024/1
+          path: /2024/1
+        - version: v0.8
+          path: /
     ProvisionerWebhookRequest:
       type: object
       properties:
