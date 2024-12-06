@@ -28,12 +28,12 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProc
 
 
 /**
- * Versioned Transfer endpoint, same as {@link DspTransferProcessApiController} but exposed on the /2024/1 path
+ * Versioned Transfer endpoint for 2024/1 protocol version
  */
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path(DspVersions.V_2024_1_PATH + BASE_PATH)
-public class DspTransferProcessApiController20241 extends DspTransferProcessApiController {
+public class DspTransferProcessApiController20241 extends BaseDspTransferProcessApiController {
 
     public DspTransferProcessApiController20241(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler) {
         super(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP_V_2024_1, DSP_NAMESPACE_V_2024_1);

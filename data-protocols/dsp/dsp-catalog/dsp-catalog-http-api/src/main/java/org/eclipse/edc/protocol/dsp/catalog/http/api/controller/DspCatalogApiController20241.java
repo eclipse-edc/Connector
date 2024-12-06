@@ -28,12 +28,12 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_PATH;
 
 /**
- * Versioned Catalog endpoint, same as {@link DspCatalogApiController} but exposed on the /2024/1 path
+ * Versioned Catalog endpoint for 2024/1 protocol version
  */
 @Consumes({ APPLICATION_JSON })
 @Produces({ APPLICATION_JSON })
 @Path(V_2024_1_PATH + BASE_PATH)
-public class DspCatalogApiController20241 extends DspCatalogApiController {
+public class DspCatalogApiController20241 extends BaseDspCatalogApiController {
 
     public DspCatalogApiController20241(CatalogProtocolService service, DspRequestHandler dspRequestHandler,
                                         ContinuationTokenManager responseDecorator) {
