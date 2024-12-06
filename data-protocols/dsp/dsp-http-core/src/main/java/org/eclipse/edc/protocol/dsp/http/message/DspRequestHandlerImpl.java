@@ -95,7 +95,6 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
         var token = request.getToken();
         if (token == null) {
-            monitor.severe("DSP: No auth token provided - returning 401");
             return unauthorized(request);
         }
 

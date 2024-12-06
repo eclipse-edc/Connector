@@ -12,13 +12,14 @@
  *
  */
 
-package org.eclipse.edc.tck.dsp.guard;
+package org.eclipse.edc.tck.dsp;
 
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import org.testcontainers.containers.GenericContainer;
 
-/**
- * An action that is triggered when the predicate matches a condition.
- */
-public record Trigger<T>(Predicate<Object> predicate, Consumer<T> action) {
+public class TckContainer<SELF extends TckContainer<SELF>> extends GenericContainer<SELF> {
+    public TckContainer(String imageName) {
+        super(imageName);
+        addFixedExposedPort(8083, 8083); // TCK will use this as callback address - must be fixed!
+    }
+
 }

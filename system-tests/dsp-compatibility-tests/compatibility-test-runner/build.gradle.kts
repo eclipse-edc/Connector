@@ -20,6 +20,8 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
+    testImplementation(libs.testcontainers.junit)
+    runtimeOnly(libs.parsson)
 }
 
 edcBuild {

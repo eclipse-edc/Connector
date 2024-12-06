@@ -19,4 +19,5 @@ plugins {
 dependencies {
     api(project(":dist:bom:controlplane-base-bom"))
     runtimeOnly(project(":extensions:tck-extension"))
+    runtimeOnly(libs.parsson)
 }
