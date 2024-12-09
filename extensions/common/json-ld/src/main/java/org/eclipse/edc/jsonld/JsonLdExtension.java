@@ -34,6 +34,9 @@ import java.net.URISyntaxException;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_ODRL_PROFILE_2025_1;
+import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_DSPACE_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
@@ -56,17 +59,14 @@ public class JsonLdExtension implements ServiceExtension {
     public static final String CONFIG_VALUE_URL = "url";
 
     private static final boolean DEFAULT_HTTP_HTTPS_RESOLUTION = false;
+    private static final boolean DEFAULT_AVOID_VOCAB_CONTEXT = false;
+    private static final boolean DEFAULT_CHECK_PREFIXES = true;
     @Setting(description = "If set enable http json-ld document resolution", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "", key = "edc.jsonld.http.enabled")
     private boolean httpResolutionEnabled;
-
     @Setting(description = "If set enable https json-ld document resolution", type = "boolean", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "", key = "edc.jsonld.https.enabled")
     private boolean httpsResolutionEnabled;
-
-    private static final boolean DEFAULT_AVOID_VOCAB_CONTEXT = false;
     @Setting(description = "If true disable the @vocab context definition. This could be used to avoid api breaking changes", defaultValue = DEFAULT_AVOID_VOCAB_CONTEXT + "", key = "edc.jsonld.vocab.disable")
     private boolean avoidVocab;
-
-    private static final boolean DEFAULT_CHECK_PREFIXES = true;
     @Setting(description = "If true a validation on expended object will be made against configured prefixes", type = "boolean", defaultValue = DEFAULT_CHECK_PREFIXES + "", key = "edc.jsonld.prefixes.check")
     private boolean checkPrefixes;
 
@@ -97,7 +97,10 @@ public class JsonLdExtension implements ServiceExtension {
         Stream.of(
                 new JsonLdContext("odrl.jsonld", "http://www.w3.org/ns/odrl.jsonld"),
                 new JsonLdContext("dspace.jsonld", "https://w3id.org/dspace/2024/1/context.json"),
-                new JsonLdContext("management-context-v1.jsonld", EDC_CONNECTOR_MANAGEMENT_CONTEXT)
+                new JsonLdContext("management-context-v1.jsonld", EDC_CONNECTOR_MANAGEMENT_CONTEXT),
+                new JsonLdContext("dspace-edc-context-v1.jsonld", EDC_DSPACE_CONTEXT),
+                new JsonLdContext("dspace-v2025-1.jsonld", DSPACE_CONTEXT_2025_1),
+                new JsonLdContext("dspace-v2025-1-odrl.jsonld", DSPACE_ODRL_PROFILE_2025_1)
         ).forEach(jsonLdContext -> getResourceUri("document/" + jsonLdContext.fileName())
                 .onSuccess(uri -> service.registerCachedDocument(jsonLdContext.url(), uri))
                 .onFailure(failure -> monitor.warning("Failed to register cached json-ld document: " + failure.getFailureDetail()))

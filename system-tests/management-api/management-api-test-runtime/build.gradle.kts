@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":core:common:token-core"))
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":data-protocols:dsp"))
+    implementation(project(":data-protocols:dsp:dsp-2025"))
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:iam:iam-mock"))
     implementation(project(":extensions:common:json-ld"))

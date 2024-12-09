@@ -1,0 +1,452 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@protected": true,
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dct": "http://purl.org/dc/terms/",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "dspace": "https://w3id.org/dspace/2025/1/",
+    "DatasetRequestMessage": {
+      "@id": "dspace:DatasetRequestMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "dataset": "dspace:dataset"
+      }
+    },
+    "CatalogRequestMessage": {
+      "@id": "dspace:CatalogRequestMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "filter": {
+          "@id": "dspace:filter",
+          "@container": "@set"
+        }
+      }
+    },
+    "CatalogError": {
+      "@id": "dspace:CatalogError",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "code": "dspace:code",
+        "reason": {
+          "@id": "dspace:reason",
+          "@container": "@set"
+        }
+      }
+    },
+    "ContractRequestMessage": {
+      "@id": "dspace:ContractRequestMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "@import": "https://w3id.org/dspace/2025/1/odrl-profile.jsonld",
+        "@propagate": true,
+        "callbackAddress": "dspace:callbackAddress",
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        },
+        "offer": {
+          "@type": "@id",
+          "@id": "dspace:offer"
+        }
+      }
+    },
+    "ContractOfferMessage": {
+      "@id": "dspace:ContractOfferMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "@import": "https://w3id.org/dspace/2025/1/odrl-profile.jsonld",
+        "@propagate": true,
+        "callbackAddress": "dspace:callbackAddress",
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        },
+        "offer": {
+          "@type": "@id",
+          "@id": "dspace:offer"
+        }
+      }
+    },
+    "ContractAgreementMessage": {
+      "@id": "dspace:ContractAgreementMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "@import": "https://w3id.org/dspace/2025/1/odrl-profile.jsonld",
+        "@propagate": true,
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        },
+        "agreement": {
+          "@id": "dspace:agreement",
+          "@type": "@id"
+        },
+        "callbackAddress": "dspace:callbackAddress",
+        "timestamp": "dspace:timestamp"
+      }
+    },
+    "ContractAgreementVerificationMessage": {
+      "@id": "dspace:ContractAgreementVerificationMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        }
+      }
+    },
+    "ContractNegotiationEventMessage": {
+      "@id": "dspace:ContractNegotiationEventMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        },
+        "eventType": {
+          "@type": "@vocab",
+          "@id": "dspace:eventType"
+        }
+      }
+    },
+    "ContractNegotiationTerminationMessage": {
+      "@id": "dspace:ContractNegotiationTerminationMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "code": "dspace:code",
+        "reason": {
+          "@id": "dspace:reason",
+          "@container": "@set"
+        },
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        }
+      }
+    },
+    "ContractNegotiation": {
+      "@id": "dspace:ContractNegotiation",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        },
+        "state": {
+          "@type": "@vocab",
+          "@id": "dspace:state"
+        }
+      }
+    },
+    "ContractNegotiationError": {
+      "@id": "dspace:ContractNegotiationError",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        },
+        "code": "dspace:code",
+        "reason": {
+          "@id": "dspace:reason",
+          "@container": "@set"
+        }
+      }
+    },
+    "TransferRequestMessage": {
+      "@id": "dspace:TransferRequestMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "callbackAddress": "dspace:callbackAddress",
+        "dataAddress": "dspace:dataAddress",
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        },
+        "format": {
+          "@type": "@vocab",
+          "@id": "dct:format"
+        },
+        "agreementId": {
+          "@type": "@id",
+          "@id": "dspace:agreementId"
+        }
+      }
+    },
+    "TransferStartMessage": {
+      "@id": "dspace:TransferStartMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        },
+        "dataAddress": "dspace:dataAddress"
+      }
+    },
+    "TransferCompletionMessage": {
+      "@id": "dspace:TransferCompletionMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        }
+      }
+    },
+    "TransferTerminationMessage": {
+      "@id": "dspace:TransferTerminationMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "code": "dspace:code",
+        "reason": {
+          "@id": "dspace:reason",
+          "@container": "@set"
+        },
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        }
+      }
+    },
+    "TransferSuspensionMessage": {
+      "@id": "dspace:TransferSuspensionMessage",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "code": "dspace:code",
+        "reason": {
+          "@id": "dspace:reason",
+          "@container": "@set"
+        },
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        }
+      }
+    },
+    "TransferError": {
+      "@id": "dspace:TransferError",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "code": "dspace:code",
+        "consumerPid": "dspace:consumerPid",
+        "providerPid": "dspace:providerPid",
+        "reason": {
+          "@id": "dspace:reason",
+          "@container": "@set"
+        }
+      }
+    },
+    "DataAddress": {
+      "@id": "dspace:DataAddress",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "endpointType": {
+          "@type": "@vocab",
+          "@id": "dspace:endpointType"
+        },
+        "endpointProperties": {
+          "@id": "dspace:endpointProperties",
+          "@container": "@set"
+        },
+        "endpoint": "dspace:endpoint"
+      }
+    },
+    "EndpointProperty": {
+      "@id": "dspace:EndpointProperty",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "name": "dspace:name",
+        "value": "dspace:value"
+      }
+    },
+    "TransferProcess": {
+      "@id": "dspace:TransferProcess",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "providerPid": {
+          "@type": "@id",
+          "@id": "dspace:providerPid"
+        },
+        "consumerPid": {
+          "@type": "@id",
+          "@id": "dspace:consumerPid"
+        },
+        "state": {
+          "@type": "@vocab",
+          "@id": "dspace:state"
+        }
+      }
+    },
+    "VersionsError": {
+      "@id": "dspace:VersionsError",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "code": "dspace:code",
+        "reason": {
+          "@id": "dspace:reason",
+          "@container": "@set"
+        }
+      }
+    },
+    "Catalog": {
+      "@id": "dcat:Catalog",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "service": {
+          "@id": "dcat:service",
+          "@container": "@set"
+        },
+        "participantId": {
+          "@type": "@id",
+          "@id": "dspace:participantId"
+        },
+        "catalog": {
+          "@id": "dcat:catalog",
+          "@container": "@set"
+        },
+        "dataset": {
+          "@id": "dcat:dataset",
+          "@container": "@set"
+        },
+        "distribution": {
+          "@id": "dcat:distribution",
+          "@container": "@set"
+        }
+      }
+    },
+    "Dataset": {
+      "@id": "dcat:Dataset",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "@import": "https://w3id.org/dspace/2025/1/odrl-profile.jsonld",
+        "@propagate": true,
+        "distribution": {
+          "@id": "dcat:distribution",
+          "@container": "@set"
+        },
+        "hasPolicy": {
+          "@id": "odrl:hasPolicy",
+          "@container": "@set"
+        }
+      }
+    },
+    "DataService": {
+      "@id": "dcat:DataService",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "endpointDescription": "dcat:endpointDescription",
+        "endpointURL": "dcat:endpointURL"
+      }
+    },
+    "Distribution": {
+      "@id": "dcat:Distribution",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "format": {
+          "@type": "@vocab",
+          "@id": "dct:format"
+        },
+        "accessService": {
+          "@id": "dcat:accessService"
+        }
+      }
+    },
+    "CatalogService": {
+      "@id": "dspace:CatalogService",
+      "@context": {
+        "id": "@id",
+        "type": "@type",
+        "serviceEndpoint": {
+          "@id": "https://www.w3.org/ns/did#serviceEndpoint",
+          "@type": "@id"
+        }
+      }
+    },
+    "ACCEPTED": "dspace:ACCEPTED",
+    "FINALIZED": "dspace:FINALIZED",
+    "REQUESTED": "dspace:REQUESTED",
+    "STARTED": "dspace:STARTED",
+    "COMPLETED": "dspace:COMPLETED",
+    "SUSPENDED": "dspace:SUSPENDED",
+    "TERMINATED": "dspace:TERMINATED",
+    "OFFERED": "dspace:OFFERED",
+    "AGREED": "dspace:AGREED",
+    "VERIFIED": "dspace:VERIFIED"
+  }
+}
