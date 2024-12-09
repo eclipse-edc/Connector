@@ -117,6 +117,14 @@ public class Participant {
         return id;
     }
 
+    public JsonLd getJsonLd() {
+        return jsonLd;
+    }
+
+    public void setJsonLd(JsonLd jsonLd) {
+        this.jsonLd = jsonLd;
+    }
+
     /**
      * Get the protocol URL of the participant which is the protocol base path + protocol version path (empty by default).
      *
