@@ -75,13 +75,12 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
 
     @Override
     public boolean canProvision(ResourceDefinition resourceDefinition) {
-        return resourceDefinition instanceof HttpProviderResourceDefinition && dataAddressType.equals(((HttpProviderResourceDefinition) resourceDefinition).getDataAddressType());
+        return resourceDefinition instanceof HttpProviderResourceDefinition definition && dataAddressType.equals(definition.getDataAddressType());
     }
 
     @Override
     public boolean canDeprovision(ProvisionedResource provisionedResource) {
-        return provisionedResource instanceof HttpProvisionedContentResource &&
-                dataAddressType.equals(((HttpProvisionedContentResource) provisionedResource).getDataAddress().getType());
+        return provisionedResource instanceof HttpProvisionedContentResource;
     }
 
     @Override
@@ -100,10 +99,8 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
             if (response.isSuccessful()) {
                 return completedFuture(StatusResult.success(ProvisionResponse.Builder.newInstance().inProcess(true).build()));
             } else if (response.code() >= 500 && response.code() <= 504) {
-                // retry
                 return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "HttpProviderProvisioner: received error code: " + response.code()));
             } else {
-                // fatal error
                 return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "HttpProviderProvisioner: received fatal error code: " + response.code()));
             }
         } catch (IOException e) {
@@ -128,15 +125,13 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
         try (var response = httpClient.execute(request)) {
             if (response.code() == 200) {
                 var deprovisionedResource = DeprovisionedResource.Builder.newInstance()
-                        .provisionedResourceId(provisionedResource.getTransferProcessId())
+                        .provisionedResourceId(provisionedResource.getId())
                         .inProcess(true)
                         .build();
                 return completedFuture(StatusResult.success(deprovisionedResource));
             } else if (response.code() >= 500 && response.code() <= 504) {
-                // retry
                 return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "Received error code: " + response.code()));
             } else {
-                // fatal error
                 return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Received fatal error code: " + response.code()));
             }
         } catch (IOException e) {

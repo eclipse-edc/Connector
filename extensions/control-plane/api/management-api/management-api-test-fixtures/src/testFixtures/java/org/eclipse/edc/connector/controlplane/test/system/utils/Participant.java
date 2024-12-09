@@ -489,6 +489,22 @@ public class Participant {
                 .statusCode(204);
     }
 
+    public void terminateTransfer(String id) {
+        var requestBodyBuilder = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(TYPE, "TerminateTransfer")
+                .add("reason", "any reason");
+
+        managementEndpoint.baseRequest()
+                .contentType(JSON)
+                .body(requestBodyBuilder.build())
+                .when()
+                .post("/v3/transferprocesses/{id}/terminate", id)
+                .then()
+                .log().ifError()
+                .statusCode(204);
+    }
+
     /**
      * Get current state of a contract negotiation.
      *
