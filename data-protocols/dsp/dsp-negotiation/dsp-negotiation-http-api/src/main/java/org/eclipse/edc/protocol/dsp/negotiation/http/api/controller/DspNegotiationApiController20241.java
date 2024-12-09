@@ -27,12 +27,12 @@ import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPa
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 
 /**
- * Versioned Negotiation endpoint, same as {@link DspNegotiationApiController} but exposed on the /2024/1 path
+ * Versioned Negotiation endpoint for 2024/1 protocol version
  */
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path(DspVersions.V_2024_1_PATH + BASE_PATH)
-public class DspNegotiationApiController20241 extends DspNegotiationApiController {
+public class DspNegotiationApiController20241 extends BaseDspNegotiationApiController {
 
     public DspNegotiationApiController20241(ContractNegotiationProtocolService protocolService, DspRequestHandler dspRequestHandler) {
         super(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP_V_2024_1, DSP_NAMESPACE_V_2024_1);
