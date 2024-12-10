@@ -58,6 +58,10 @@ public class HttpProvisionerRequest {
         return resourceDefinitionId;
     }
 
+    public Type getType() {
+        return type;
+    }
+
     public enum Type {
         @JsonProperty("provision")
         PROVISION,

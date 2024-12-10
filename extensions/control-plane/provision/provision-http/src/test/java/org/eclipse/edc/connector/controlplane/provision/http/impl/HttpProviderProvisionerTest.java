@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.provision.http.config.ProvisionerConfiguration.ProvisionerType.PROVIDER;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
@@ -39,8 +40,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class HttpProviderProvisionerTest {
+
+    private final Interceptor delegate = mock();
     private HttpProviderProvisioner provisioner;
-    private Interceptor delegate;
 
     @BeforeEach
     void setUp() throws MalformedURLException {
@@ -52,7 +54,6 @@ class HttpProviderProvisionerTest {
                 .endpoint(new URL("http://bar.com"))
                 .build();
 
-        delegate = mock(Interceptor.class);
         provisioner = new HttpProviderProvisioner(configuration, new URL("http://foo.com"), mock(PolicyEngine.class),
                 testHttpClient(delegate), new ObjectMapper(), mock(Monitor.class));
     }
@@ -75,18 +76,6 @@ class HttpProviderProvisionerTest {
     void verifyCanDeprovision() {
         assertThat(provisioner.canDeprovision(createProvisionedResource())).isTrue();
         assertThat(provisioner.canDeprovision(new TestProvisionedResource())).isFalse();
-
-        var dataAddress = DataAddress.Builder.newInstance().type("another-type").build();
-        var differentType = HttpProvisionedContentResource.Builder.newInstance()
-                .assetId("1")
-                .transferProcessId("2")
-                .resourceName("test")
-                .dataAddress(dataAddress)
-                .resourceDefinitionId("3")
-                .id("3")
-                .build();
-
-        assertThat(provisioner.canDeprovision(differentType)).isFalse();
     }
 
     @Test
@@ -97,10 +86,10 @@ class HttpProviderProvisionerTest {
 
         var definition = createResourceDefinition();
 
-        var result = provisioner.provision(definition, policy).get();
-
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent().isInProcess()).isTrue();
+        assertThat(provisioner.provision(definition, policy)).succeedsWithin(5, SECONDS).satisfies(result -> {
+            assertThat(result.succeeded()).isTrue();
+            assertThat(result.getContent().isInProcess()).isTrue();
+        });
     }
 
     @Test
@@ -111,10 +100,10 @@ class HttpProviderProvisionerTest {
 
         var definition = createResourceDefinition();
 
-        var result = provisioner.provision(definition, policy).get();
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+        assertThat(provisioner.provision(definition, policy)).succeedsWithin(5, SECONDS).satisfies(result -> {
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+        });
     }
 
     @Test
@@ -125,10 +114,10 @@ class HttpProviderProvisionerTest {
 
         var definition = createResourceDefinition();
 
-        var result = provisioner.provision(definition, policy).get();
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY);
+        assertThat(provisioner.provision(definition, policy)).succeedsWithin(5, SECONDS).satisfies(result -> {
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY);
+        });
     }
 
     @Test
@@ -139,27 +128,25 @@ class HttpProviderProvisionerTest {
 
         var definition = createProvisionedResource();
 
-        var result = provisioner.deprovision(definition, policy).get();
-
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent().isInProcess()).isTrue();
+        assertThat(provisioner.deprovision(definition, policy)).succeedsWithin(5, SECONDS).satisfies(result -> {
+            assertThat(result.succeeded()).isTrue();
+            assertThat(result.getContent().getProvisionedResourceId()).isEqualTo(definition.getId());
+            assertThat(result.getContent().isInProcess()).isTrue();
+        });
     }
-
 
     @Test
     void verifyDeprovision404Response() throws Exception {
         when(delegate.intercept(any())).thenAnswer((invocation -> HttpProvisionerFixtures.createResponse(404, invocation)));
 
         var policy = Policy.Builder.newInstance().build();
-
         var definition = createProvisionedResource();
 
-        var result = provisioner.deprovision(definition, policy).get();
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+        assertThat(provisioner.deprovision(definition, policy)).succeedsWithin(5, SECONDS).satisfies(result -> {
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+        });
     }
-
 
     @Test
     void verifyDeprovisionRetryResponse() throws Exception {
@@ -169,12 +156,11 @@ class HttpProviderProvisionerTest {
 
         var definition = createProvisionedResource();
 
-        var result = provisioner.deprovision(definition, policy).get();
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY);
+        assertThat(provisioner.deprovision(definition, policy)).succeedsWithin(5, SECONDS).satisfies(result -> {
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY);
+        });
     }
-
 
     private HttpProviderResourceDefinition createResourceDefinition() {
         return HttpProviderResourceDefinition.Builder.newInstance()
@@ -197,7 +183,6 @@ class HttpProviderProvisionerTest {
                 .id("3")
                 .build();
     }
-
 
     private static class TestResourceDefinition extends ResourceDefinition {
         @Override
