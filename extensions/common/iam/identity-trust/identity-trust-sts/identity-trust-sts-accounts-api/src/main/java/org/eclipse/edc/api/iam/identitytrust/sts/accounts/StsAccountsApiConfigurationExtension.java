@@ -36,9 +36,7 @@ import java.util.stream.Stream;
 public class StsAccountsApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Secure Token Service Accounts API configuration";
-    private static final String WEB_SERVICE_NAME = "STS Accounts API";
-    private static final int DEFAULT_STS_API_PORT = 9393;
-    private static final String DEFAULT_STS_API_CONTEXT_PATH = "/api/sts";
+    private static final int DEFAULT_STS_ACCOUNTS_API_PORT = 9393;
 
     @SettingContext("Sts API context setting key")
     private static final String STS_ACCOUNTS_CONFIG_KEY = "web.http." + ApiContext.STS_ACCOUNTS;
@@ -46,10 +44,7 @@ public class StsAccountsApiConfigurationExtension implements ServiceExtension {
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(STS_ACCOUNTS_CONFIG_KEY)
             .contextAlias(ApiContext.STS_ACCOUNTS)
-            .defaultPath(DEFAULT_STS_API_CONTEXT_PATH)
-            .defaultPort(DEFAULT_STS_API_PORT)
-            .useDefaultContext(false)
-            .name(WEB_SERVICE_NAME)
+            .defaultPort(DEFAULT_STS_ACCOUNTS_API_PORT)
             .build();
     private static final String API_VERSION_JSON_FILE = "sts-accounts-api-version.json";
 

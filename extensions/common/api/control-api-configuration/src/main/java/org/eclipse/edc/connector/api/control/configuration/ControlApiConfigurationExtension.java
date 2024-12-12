@@ -68,16 +68,12 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
     @Setting(description = "Configures endpoint for reaching the Control API. If it's missing it defaults to the hostname configuration.", key = "edc.control.endpoint", required = false)
     private String controlEndpoint;
     public static final String CONTROL_SCOPE = "CONTROL_API";
-    private static final String WEB_SERVICE_NAME = "Control API";
     @SettingContext("Control API context setting key")
     private static final String CONTROL_CONFIG_KEY = "web.http." + ApiContext.CONTROL;
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(CONTROL_CONFIG_KEY)
             .contextAlias(ApiContext.CONTROL)
-            .defaultPath("/api/v1/control")
             .defaultPort(9191)
-            .useDefaultContext(true)
-            .name(WEB_SERVICE_NAME)
             .build();
     private static final String API_VERSION_JSON_FILE = "control-api-version.json";
 

@@ -44,13 +44,11 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
     public static final String NAME = "Data Plane Public API";
 
     private static final int DEFAULT_PUBLIC_PORT = 8185;
-    private static final String PUBLIC_CONTEXT_PATH = "/api/v2/public";
 
     @SettingContext("Public API context setting key")
     private static final String PUBLIC_CONFIG_KEY = "web.http." + ApiContext.PUBLIC;
 
-    @Setting(description = "Base url of the public API endpoint without the trailing slash. This should correspond to the values configured " +
-                           "in '" + DEFAULT_PUBLIC_PORT + "' and '" + PUBLIC_CONTEXT_PATH + "'.",
+    @Setting(description = "Base url of the public API endpoint without the trailing slash. This should point to the public endpoint configured.",
             required = false,
             key = "edc.dataplane.api.public.baseurl", warnOnMissingConfig = true)
     private String publicBaseUrl;
@@ -62,9 +60,7 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
     private static final WebServiceSettings PUBLIC_SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(PUBLIC_CONFIG_KEY)
             .contextAlias(ApiContext.PUBLIC)
-            .defaultPath(PUBLIC_CONTEXT_PATH)
             .defaultPort(DEFAULT_PUBLIC_PORT)
-            .name(NAME)
             .build();
 
     @Inject

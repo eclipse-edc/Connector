@@ -38,7 +38,6 @@ import java.util.stream.Stream;
 public class VersionApiExtension implements ServiceExtension {
 
     public static final String NAME = "Management API: Version Information";
-    private static final String WEB_SERVICE_NAME = "Version Information API";
 
     @SettingContext("Version API context setting key")
     private static final String VERSION_CONFIG_KEY = "web.http." + ApiContext.VERSION;
@@ -48,15 +47,11 @@ public class VersionApiExtension implements ServiceExtension {
             .contextAlias(ApiContext.VERSION)
             .defaultPath("/.well-known/api")
             .defaultPort(7171)
-            .useDefaultContext(false)
-            .name(WEB_SERVICE_NAME)
             .build();
 
     private static final String API_VERSION_JSON_FILE = "version-api-version.json";
     @Inject
     private WebService webService;
-
-
     @Inject
     private TypeManager typeManager;
     @Inject

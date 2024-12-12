@@ -43,15 +43,13 @@ public class WebServiceConfigurerImpl implements WebServiceConfigurer {
             port = config.getInteger("port", port);
             path = config.getString("path", path);
         } else {
-            monitor.warning(format("Settings for [%s] and/or [%s] were not provided. Using default" +
-                    " value(s) instead.", apiConfig + ".path", apiConfig + ".path"));
+            monitor.warning("Settings for [%s] and/or [%s] were not provided. Using default value(s) instead."
+                    .formatted(apiConfig + ".path", apiConfig + ".path"));
 
-            if (!settings.useDefaultContext()) {
-                webServer.addPortMapping(contextAlias, port, path);
-            }
+            webServer.addPortMapping(contextAlias, port, path);
         }
 
-        monitor.debug(format("%s will be available under port=%s, path=%s", settings.getName(), port, path));
+        monitor.debug(format("%s API will be available under port=%s, path=%s", contextAlias, port, path));
 
         return WebServiceConfiguration.Builder.newInstance()
                 .path(path)

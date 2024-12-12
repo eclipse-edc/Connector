@@ -81,7 +81,6 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
     public static final String API_VERSION_JSON_FILE = "management-api-version.json";
     public static final String NAME = "Management API configuration";
-    public static final String WEB_SERVICE_NAME = "Management API";
     public static final String MANAGEMENT_SCOPE = "MANAGEMENT_API";
 
     @SettingContext("Management API context setting key")
@@ -89,10 +88,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(MANAGEMENT_CONFIG_KEY)
             .contextAlias(ApiContext.MANAGEMENT)
-            .defaultPath("/api/v1/management")
             .defaultPort(8181)
-            .useDefaultContext(true)
-            .name(WEB_SERVICE_NAME)
             .build();
     private static final boolean DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT = false;
     @Setting(description = "Configures endpoint for reaching the Management API, in the format \"<hostname:management.port/management.path>\"", key = "edc.management.endpoint", required = false)
