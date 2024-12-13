@@ -36,9 +36,7 @@ import java.util.stream.Stream;
 public class StsApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Secure Token Service API configuration";
-    private static final String WEB_SERVICE_NAME = "STS API";
     private static final int DEFAULT_STS_API_PORT = 9292;
-    private static final String DEFAULT_STS_API_CONTEXT_PATH = "/api/v1/sts";
 
     @SettingContext("Sts API context setting key")
     private static final String STS_CONFIG_KEY = "web.http." + ApiContext.STS;
@@ -46,10 +44,7 @@ public class StsApiConfigurationExtension implements ServiceExtension {
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(STS_CONFIG_KEY)
             .contextAlias(ApiContext.STS)
-            .defaultPath(DEFAULT_STS_API_CONTEXT_PATH)
             .defaultPort(DEFAULT_STS_API_PORT)
-            .useDefaultContext(false)
-            .name(WEB_SERVICE_NAME)
             .build();
     private static final String API_VERSION_JSON_FILE = "sts-api-version.json";
 

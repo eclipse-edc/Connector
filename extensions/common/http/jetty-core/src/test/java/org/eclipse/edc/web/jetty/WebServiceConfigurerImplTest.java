@@ -27,7 +27,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 public class WebServiceConfigurerImplTest {
 
@@ -48,8 +47,6 @@ public class WebServiceConfigurerImplTest {
                 .contextAlias(ALIAS)
                 .defaultPath(PATH)
                 .defaultPort(PORT)
-                .useDefaultContext(false)
-                .name("TEST")
                 .build();
 
         var actualConfig = configurator.configure(config, server, settings);
@@ -59,31 +56,6 @@ public class WebServiceConfigurerImplTest {
 
         assertThat(actualConfig.getPort()).isEqualTo(PORT);
         assertThat(actualConfig.getPath()).isEqualTo(PATH);
-
-    }
-
-    @Test
-    void verifyConfigure_whenDefaultAlias() {
-
-        var config = ConfigFactory.fromMap(new HashMap<>());
-        var defValue = "default";
-        when(server.getDefaultContextName()).thenReturn(defValue);
-
-        var settings = WebServiceSettings.Builder.newInstance()
-                .apiConfigKey(CONFIG)
-                .contextAlias(ALIAS)
-                .defaultPath(PATH)
-                .defaultPort(PORT)
-                .useDefaultContext(true)
-                .name("TEST")
-                .build();
-
-        var actualConfig = configurator.configure(config, server, settings);
-
-        verifyNoInteractions(server);
-        assertThat(actualConfig.getPort()).isEqualTo(PORT);
-        assertThat(actualConfig.getPath()).isEqualTo(PATH);
-
     }
 
     @Test
@@ -102,8 +74,6 @@ public class WebServiceConfigurerImplTest {
                 .contextAlias(ALIAS)
                 .defaultPath(PATH)
                 .defaultPort(PORT)
-                .useDefaultContext(false)
-                .name("TEST")
                 .build();
 
         var actualConfig = configurator.configure(config, server, settings);

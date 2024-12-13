@@ -18,12 +18,10 @@ import java.util.Objects;
 
 public class WebServiceSettings {
 
-    private boolean useDefaultContext = false;
     private String apiConfigKey;
     private Integer defaultPort;
     private String defaultPath;
     private String contextAlias;
-    private String name;
 
     private WebServiceSettings() {
 
@@ -46,7 +44,6 @@ public class WebServiceSettings {
     /**
      * The default path if the config {@link WebServiceSettings#apiConfigKey()} is not found in {@link org.eclipse.edc.spi.system.ServiceExtensionContext#getConfig}
      */
-
     public String getDefaultPath() {
         return defaultPath;
     }
@@ -54,30 +51,13 @@ public class WebServiceSettings {
     /**
      * The name of the API context
      */
-
     public String getContextAlias() {
         return contextAlias;
     }
 
-    /**
-     * Returns true if the default context should be taken into consideration if there's not one context-specific
-     * configured
-     */
-    public boolean useDefaultContext() {
-        return useDefaultContext;
-    }
-
-    /**
-     * The name of the API settings. It's intended only for displaying the name of the Web Extension that
-     * will be configured by {@link WebServiceConfigurer}.
-     */
-    public String getName() {
-        return name;
-    }
-
     @Override
     public int hashCode() {
-        return Objects.hash(useDefaultContext, apiConfigKey, defaultPort, defaultPath, contextAlias, name);
+        return Objects.hash(apiConfigKey, defaultPort, defaultPath, contextAlias);
     }
 
     @Override
@@ -88,10 +68,10 @@ public class WebServiceSettings {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        WebServiceSettings that = (WebServiceSettings) o;
-        return useDefaultContext == that.useDefaultContext && apiConfigKey.equals(that.apiConfigKey) &&
+        var that = (WebServiceSettings) o;
+        return apiConfigKey.equals(that.apiConfigKey) &&
                 defaultPort.equals(that.defaultPort) && defaultPath.equals(that.defaultPath) &&
-                Objects.equals(contextAlias, that.contextAlias) && name.equals(that.name);
+                Objects.equals(contextAlias, that.contextAlias);
     }
 
     public static class Builder {
@@ -121,26 +101,19 @@ public class WebServiceSettings {
             return this;
         }
 
-        public Builder name(String name) {
-            settings.name = name;
-            return this;
-        }
-
         public Builder defaultPort(int defaultPort) {
             settings.defaultPort = defaultPort;
             return this;
         }
 
-        public Builder useDefaultContext(boolean useDefaultContext) {
-            settings.useDefaultContext = useDefaultContext;
-            return this;
-        }
-
         public WebServiceSettings build() {
             Objects.requireNonNull(settings.apiConfigKey);
-            Objects.requireNonNull(settings.defaultPath);
+            Objects.requireNonNull(settings.contextAlias);
             Objects.requireNonNull(settings.defaultPort);
-            Objects.requireNonNull(settings.name);
+
+            if (settings.defaultPath == null) {
+                settings.defaultPath = "/api/" + settings.contextAlias;
+            }
 
             return settings;
         }

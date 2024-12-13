@@ -86,9 +86,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(PROTOCOL_CONFIG_KEY)
             .contextAlias(ApiContext.PROTOCOL)
-            .defaultPath("/api/v1/dsp")
+            .defaultPath("/api/dsp")
             .defaultPort(8282)
-            .name("Protocol API")
             .build();
     @Setting(description = "Configures endpoint for reaching the Protocol API in the form \"<hostname:protocol.port/protocol.path>\"", key = "edc.dsp.callback.address", required = false)
     private String callbackAddress;
