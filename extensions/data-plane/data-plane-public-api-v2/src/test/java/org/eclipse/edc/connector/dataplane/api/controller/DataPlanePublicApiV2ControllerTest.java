@@ -34,6 +34,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -45,7 +46,6 @@ import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.GENERAL_ERROR;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
@@ -117,7 +117,24 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
                 .contentType(JSON)
-                .body("errors[0]", is(GENERAL_ERROR + ": " + errorMsg));
+                .body("errors[0]", is(errorMsg));
+    }
+    @Test
+    void should_returnListOfErrorsAsAResponse_if_anythingFails() {
+        var token = UUID.randomUUID().toString();
+        var errorMsg = UUID.randomUUID().toString();
+        when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
+        when(pipelineService.transfer(any(), any()))
+                .thenReturn(completedFuture(StreamResult.error(errorMsg)));
+
+        baseRequest()
+                .header(AUTHORIZATION, token)
+                .when()
+                .post("/any")
+                .then()
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .contentType(JSON)
+                .body("errors", is(List.class));
     }
 
     @Test
