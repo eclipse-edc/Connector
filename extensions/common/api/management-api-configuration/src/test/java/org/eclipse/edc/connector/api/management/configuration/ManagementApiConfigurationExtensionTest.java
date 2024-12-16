@@ -31,7 +31,7 @@ import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class ManagementApiConfigurationExtensionTest {
 
-    private final PortMappings portMappings = mock();
+    private final PortMappingRegistry portMappingRegistry = mock();
     private final Monitor monitor = mock();
     private final WebService webService = mock();
     private final JsonLd jsonLd = mock();
@@ -72,7 +72,7 @@ class ManagementApiConfigurationExtensionTest {
         when(typeTransformerRegistry.forContext(any())).thenReturn(contextTypeTransformerRegistry);
         when(contextTypeTransformerRegistry.forContext(any())).thenReturn(mock());
         context.registerService(WebService.class, webService);
-        context.registerService(PortMappings.class, portMappings);
+        context.registerService(PortMappingRegistry.class, portMappingRegistry);
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
         context.registerService(TypeManager.class, new JacksonTypeManager());
         context.registerService(JsonLd.class, jsonLd);
@@ -85,7 +85,7 @@ class ManagementApiConfigurationExtensionTest {
 
         extension.initialize(context);
 
-        verify(portMappings).register(new PortMapping(ApiContext.MANAGEMENT, DEFAULT_MANAGEMENT_PORT, DEFAULT_MANAGEMENT_PATH));
+        verify(portMappingRegistry).register(new PortMapping(ApiContext.MANAGEMENT, DEFAULT_MANAGEMENT_PORT, DEFAULT_MANAGEMENT_PATH));
         verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(AuthenticationRequestFilter.class));
         verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(JerseyJsonLdInterceptor.class));
         verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(ObjectMapperProvider.class));

@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * PortMapping registry.
  */
-public interface PortMappings {
+public interface PortMappingRegistry {
 
     /**
      * Register a PortMapping.

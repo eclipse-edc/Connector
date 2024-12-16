@@ -30,7 +30,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -53,7 +53,7 @@ public class VersionApiExtension implements ServiceExtension {
     @Inject
     private ApiVersionService apiVersionService;
     @Inject
-    private PortMappings portMappings;
+    private PortMappingRegistry portMappingRegistry;
 
     @Override
     public String name() {
@@ -63,7 +63,7 @@ public class VersionApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var portMapping = new PortMapping(ApiContext.VERSION, apiConfiguration.port(), apiConfiguration.path());
-        portMappings.register(portMapping);
+        portMappingRegistry.register(portMapping);
 
         webService.registerResource(ApiContext.VERSION, new VersionApiController(apiVersionService));
         registerVersionInfo(getClass().getClassLoader());

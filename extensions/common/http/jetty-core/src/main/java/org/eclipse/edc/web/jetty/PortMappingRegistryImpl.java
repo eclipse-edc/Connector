@@ -15,13 +15,13 @@
 package org.eclipse.edc.web.jetty;
 
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PortMappingsImpl implements PortMappings {
+public class PortMappingRegistryImpl implements PortMappingRegistry {
 
     private final Map<Integer, PortMapping> portMappings = new HashMap<>();
 

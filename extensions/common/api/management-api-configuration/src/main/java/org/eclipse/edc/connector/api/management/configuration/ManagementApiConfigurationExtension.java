@@ -51,7 +51,7 @@ import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl;
 
 import java.io.IOException;
@@ -97,7 +97,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     @Inject
     private ApiAuthenticationRegistry authenticationRegistry;
     @Inject
-    private PortMappings portMappings;
+    private PortMappingRegistry portMappingRegistry;
     @Inject
     private TypeManager typeManager;
     @Inject
@@ -120,7 +120,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var portMapping = new PortMapping(ApiContext.MANAGEMENT, apiConfiguration.port(), apiConfiguration.path());
-        portMappings.register(portMapping);
+        portMappingRegistry.register(portMapping);
 
         context.registerService(ManagementApiUrl.class, managementApiUrl(context, portMapping));
 

@@ -27,7 +27,7 @@ import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,12 +63,12 @@ class DspApiConfigurationExtensionTest {
     private final WebService webService = mock();
     private final TypeManager typeManager = mock();
     private final JsonLd jsonLd = mock();
-    private final PortMappings portMappings = mock();
+    private final PortMappingRegistry portMappingRegistry = mock();
 
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(PortMappings.class, portMappings);
+        context.registerService(PortMappingRegistry.class, portMappingRegistry);
         context.registerService(WebService.class, webService);
         context.registerService(TypeManager.class, typeManager);
         context.registerService(Hostname.class, () -> "hostname");
@@ -86,7 +86,7 @@ class DspApiConfigurationExtensionTest {
 
         extension.initialize(context);
 
-        verify(portMappings).register(new PortMapping(ApiContext.PROTOCOL, DEFAULT_PROTOCOL_PORT, DEFAULT_PROTOCOL_PATH));
+        verify(portMappingRegistry).register(new PortMapping(ApiContext.PROTOCOL, DEFAULT_PROTOCOL_PORT, DEFAULT_PROTOCOL_PATH));
         assertThat(context.getService(ProtocolWebhook.class).url()).isEqualTo("http://hostname:%s%s".formatted(DEFAULT_PROTOCOL_PORT, DEFAULT_PROTOCOL_PATH));
     }
 
@@ -102,7 +102,7 @@ class DspApiConfigurationExtensionTest {
 
         extension.initialize(context);
 
-        verify(portMappings).register(new PortMapping(ApiContext.PROTOCOL, 1234, "/path"));
+        verify(portMappingRegistry).register(new PortMapping(ApiContext.PROTOCOL, 1234, "/path"));
         assertThat(context.getService(ProtocolWebhook.class).url()).isEqualTo("http://webhook");
     }
 

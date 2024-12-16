@@ -22,7 +22,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -59,18 +59,18 @@ public class JettyService implements WebServer {
     private final KeyStore keyStore;
     private final Map<String, ServletContextHandler> handlers = new HashMap<>();
     private final List<Consumer<ServerConnector>> connectorConfigurationCallbacks = new ArrayList<>();
-    private final PortMappings portMappings;
+    private final PortMappingRegistry portMappingRegistry;
     private Server server;
 
-    public JettyService(JettyConfiguration configuration, Monitor monitor, PortMappings portMappings) {
-        this(configuration, null, monitor, portMappings);
+    public JettyService(JettyConfiguration configuration, Monitor monitor, PortMappingRegistry portMappingRegistry) {
+        this(configuration, null, monitor, portMappingRegistry);
     }
 
-    public JettyService(JettyConfiguration configuration, KeyStore keyStore, Monitor monitor, PortMappings portMappings) {
+    public JettyService(JettyConfiguration configuration, KeyStore keyStore, Monitor monitor, PortMappingRegistry portMappingRegistry) {
         this.configuration = configuration;
         this.keyStore = keyStore;
         this.monitor = monitor;
-        this.portMappings = portMappings;
+        this.portMappingRegistry = portMappingRegistry;
         System.setProperty(LOG_ANNOUNCE, "false");
         // for websocket endpoints
         handlers.put("/", new ServletContextHandler(null, "/", NO_SESSIONS));
@@ -79,7 +79,7 @@ public class JettyService implements WebServer {
     public void start() {
         try {
             server = new Server();
-            var portMappingsDescription = portMappings.getAll().stream()
+            var portMappingsDescription = portMappingRegistry.getAll().stream()
                     .peek(mapping -> {
                         server.addConnector(createConnector(mapping));
                         handlers.put(mapping.path(), createHandler(mapping));
@@ -113,7 +113,7 @@ public class JettyService implements WebServer {
         servletHolder.setServlet(servlet);
         servletHolder.setInitOrder(1);
 
-        var actualPath = portMappings.getAll().stream()
+        var actualPath = portMappingRegistry.getAll().stream()
                 .filter(pm -> Objects.equals(contextName, pm.name()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No PortMapping for contextName '" + contextName + "' found"))

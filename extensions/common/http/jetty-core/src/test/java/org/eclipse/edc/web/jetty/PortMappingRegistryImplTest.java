@@ -20,9 +20,9 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class PortMappingsImplTest {
+class PortMappingRegistryImplTest {
 
-    private final PortMappingsImpl portMappings = new PortMappingsImpl();
+    private final PortMappingRegistryImpl portMappings = new PortMappingRegistryImpl();
 
     @Test
     void shouldReturnNoMappings_whenNoRegistration() {

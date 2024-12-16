@@ -31,7 +31,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.util.concurrent.Executors;
 
@@ -59,7 +59,7 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
     @Configuration
     private PublicApiConfiguration apiConfiguration;
     @Inject
-    private PortMappings portMappings;
+    private PortMappingRegistry portMappingRegistry;
     @Inject
     private PipelineService pipelineService;
     @Inject
@@ -81,7 +81,7 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var portMapping = new PortMapping(ApiContext.PUBLIC, apiConfiguration.port(), apiConfiguration.path());
-        portMappings.register(portMapping);
+        portMappingRegistry.register(portMapping);
         var executorService = executorInstrumentation.instrument(
                 Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
                 "Data plane proxy transfers"

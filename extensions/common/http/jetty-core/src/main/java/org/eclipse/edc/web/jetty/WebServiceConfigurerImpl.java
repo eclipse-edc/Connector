@@ -18,7 +18,7 @@ package org.eclipse.edc.web.jetty;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
@@ -29,11 +29,11 @@ import static java.lang.String.format;
 public class WebServiceConfigurerImpl implements WebServiceConfigurer {
 
     private final Monitor monitor;
-    private final PortMappings portMappings;
+    private final PortMappingRegistry portMappingRegistry;
 
-    public WebServiceConfigurerImpl(Monitor monitor, PortMappings portMappings) {
+    public WebServiceConfigurerImpl(Monitor monitor, PortMappingRegistry portMappingRegistry) {
         this.monitor = monitor;
-        this.portMappings = portMappings;
+        this.portMappingRegistry = portMappingRegistry;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class WebServiceConfigurerImpl implements WebServiceConfigurer {
             path = config.getString("path", path);
         }
 
-        portMappings.register(new PortMapping(contextAlias, port, path));
+        portMappingRegistry.register(new PortMapping(contextAlias, port, path));
 
         monitor.debug(format("%s API will be available under port=%s, path=%s", contextAlias, port, path));
 

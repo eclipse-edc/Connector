@@ -28,7 +28,7 @@ import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -45,7 +45,7 @@ public class StsApiConfigurationExtension implements ServiceExtension {
     @Configuration
     private StsApiConfiguration apiConfiguration;
     @Inject
-    private PortMappings portMappings;
+    private PortMappingRegistry portMappingRegistry;
     @Inject
     private TypeManager typeManager;
     @Inject
@@ -58,7 +58,7 @@ public class StsApiConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        portMappings.register(new PortMapping(ApiContext.STS, apiConfiguration.port(), apiConfiguration.path()));
+        portMappingRegistry.register(new PortMapping(ApiContext.STS, apiConfiguration.port(), apiConfiguration.path()));
         registerVersionInfo(getClass().getClassLoader());
     }
 

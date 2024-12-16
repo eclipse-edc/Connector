@@ -21,7 +21,7 @@ import org.eclipse.edc.spi.system.configuration.Config;
 /**
  * Configure an API extension
  *
- * @deprecated please use {@link PortMappings} service.
+ * @deprecated please use {@link PortMappingRegistry} service.
  */
 @ExtensionPoint
 @Deprecated(since = "0.11.0")
@@ -35,7 +35,7 @@ public interface WebServiceConfigurer {
      * @param config    The context configuration
      * @param settings  WebService settings
      * @return The final webservice configuration
-     * @deprecated please use {@link PortMappings}
+     * @deprecated please use {@link PortMappingRegistry}
      */
     @Deprecated(since = "0.11.0")
     WebServiceConfiguration configure(Config config, WebServiceSettings settings);

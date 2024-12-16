@@ -24,7 +24,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 
 import java.io.FileInputStream;
@@ -47,7 +47,7 @@ public class JettyExtension implements ServiceExtension {
     private static final String KEYSTORE_TYPE_SETTING = "edc.web.https.keystore.type";
 
     private JettyService jettyService;
-    private final PortMappingsImpl portMappings = new PortMappingsImpl();
+    private final PortMappingRegistryImpl portMappings = new PortMappingRegistryImpl();
 
     @Configuration
     private JettyConfiguration jettyConfiguration;
@@ -106,7 +106,7 @@ public class JettyExtension implements ServiceExtension {
     }
 
     @Provider
-    public PortMappings portMappings() {
+    public PortMappingRegistry portMappings() {
         return portMappings;
     }
 

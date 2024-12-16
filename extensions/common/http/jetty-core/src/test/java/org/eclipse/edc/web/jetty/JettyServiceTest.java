@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.jetty.io.Connection;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.junit.jupiter.api.AfterEach;
@@ -37,9 +37,9 @@ import static org.mockito.Mockito.when;
 class JettyServiceTest {
 
     private final Monitor monitor = mock();
-    private final PortMappings portMappings = mock();
+    private final PortMappingRegistry portMappingRegistry = mock();
     private final JettyConfiguration configuration = new JettyConfiguration(null, null);
-    private final JettyService jettyService = new JettyService(configuration, monitor, portMappings);
+    private final JettyService jettyService = new JettyService(configuration, monitor, portMappingRegistry);
 
     @AfterEach
     void teardown() {
@@ -49,7 +49,7 @@ class JettyServiceTest {
     @Test
     void shouldRegisterServletOnConfiguredPortMapping() {
         var portMapping = new PortMapping("context", 9191, "/path");
-        when(portMappings.getAll()).thenReturn(List.of(portMapping));
+        when(portMappingRegistry.getAll()).thenReturn(List.of(portMapping));
 
         jettyService.start();
         jettyService.registerServlet("context", new TestServlet());
@@ -64,7 +64,7 @@ class JettyServiceTest {
     void shouldConfigureMultipleApiContexts() {
         var portMapping = new PortMapping("context", 9191, "/path");
         var anotherPortMapping = new PortMapping("another", 9292, "/another/path");
-        when(portMappings.getAll()).thenReturn(List.of(portMapping, anotherPortMapping));
+        when(portMappingRegistry.getAll()).thenReturn(List.of(portMapping, anotherPortMapping));
 
         jettyService.start();
         jettyService.registerServlet("context", new TestServlet());
@@ -85,7 +85,7 @@ class JettyServiceTest {
     void verifyConnectorConfigurationCallback() {
         var listener = new JettyListener();
 
-        when(portMappings.getAll()).thenReturn(List.of(new PortMapping("default", 7171, "/api")));
+        when(portMappingRegistry.getAll()).thenReturn(List.of(new PortMapping("default", 7171, "/api")));
         jettyService.addConnectorConfigurationCallback((c) -> c.addBean(listener));
 
         jettyService.start();
@@ -101,7 +101,7 @@ class JettyServiceTest {
 
     @Test
     void verifyCustomPathRoot() {
-        when(portMappings.getAll()).thenReturn(List.of(new PortMapping("default", 7171, "/")));
+        when(portMappingRegistry.getAll()).thenReturn(List.of(new PortMapping("default", 7171, "/")));
 
         jettyService.start();
         jettyService.registerServlet("default", new TestServlet());

@@ -24,7 +24,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,12 +38,12 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(DependencyInjectionExtension.class)
 public class StsApiConfigurationExtensionTest {
 
-    private final PortMappings portMappings = mock();
+    private final PortMappingRegistry portMappingRegistry = mock();
     private final Monitor monitor = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(PortMappings.class, portMappings);
+        context.registerService(PortMappingRegistry.class, portMappingRegistry);
         context.registerService(TypeManager.class, new JacksonTypeManager());
     }
 
@@ -53,7 +53,7 @@ public class StsApiConfigurationExtensionTest {
 
         extension.initialize(context);
 
-        verify(portMappings).register(new PortMapping(ApiContext.STS, DEFAULT_STS_PORT, DEFAULT_STS_PATH));
+        verify(portMappingRegistry).register(new PortMapping(ApiContext.STS, DEFAULT_STS_PORT, DEFAULT_STS_PATH));
     }
 
     @NotNull

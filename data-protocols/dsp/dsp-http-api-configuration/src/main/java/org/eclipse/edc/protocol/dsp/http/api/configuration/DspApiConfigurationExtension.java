@@ -49,7 +49,7 @@ import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.util.Map;
 
@@ -103,7 +103,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     @Inject
     private Hostname hostname;
     @Inject
-    private PortMappings portMappings;
+    private PortMappingRegistry portMappingRegistry;
 
     @Override
     public String name() {
@@ -113,7 +113,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var portMapping = new PortMapping(ApiContext.PROTOCOL, apiConfiguration.port(), apiConfiguration.path());
-        portMappings.register(portMapping);
+        portMappingRegistry.register(portMapping);
 
         var dspWebhookAddress = ofNullable(callbackAddress).orElseGet(() -> format("http://%s:%s%s", hostname.get(), portMapping.port(), portMapping.path()));
         context.registerService(ProtocolWebhook.class, () -> dspWebhookAddress);

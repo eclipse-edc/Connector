@@ -27,7 +27,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,13 +56,13 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 public class ControlApiConfigurationExtensionTest {
 
-    private final PortMappings portMappings = mock();
+    private final PortMappingRegistry portMappingRegistry = mock();
     private final WebService webService = mock();
     private final JsonLd jsonLd = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(PortMappings.class, portMappings);
+        context.registerService(PortMappingRegistry.class, portMappingRegistry);
         context.registerService(Hostname.class, () -> "hostname");
         context.registerService(WebService.class, webService);
         context.registerService(TypeManager.class, new JacksonTypeManager());
@@ -75,7 +75,7 @@ public class ControlApiConfigurationExtensionTest {
 
         extension.initialize(context);
 
-        verify(portMappings).register(new PortMapping(ApiContext.CONTROL, DEFAULT_CONTROL_PORT, DEFAULT_CONTROL_PATH));
+        verify(portMappingRegistry).register(new PortMapping(ApiContext.CONTROL, DEFAULT_CONTROL_PORT, DEFAULT_CONTROL_PATH));
         var url = context.getService(ControlApiUrl.class);
         assertThat(url.get().toString()).isEqualTo("http://hostname:%s%s".formatted(DEFAULT_CONTROL_PORT, DEFAULT_CONTROL_PATH));
     }

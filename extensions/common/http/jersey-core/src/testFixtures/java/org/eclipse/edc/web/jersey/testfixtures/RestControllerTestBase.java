@@ -23,7 +23,7 @@ import org.eclipse.edc.web.jersey.JerseyRestService;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
 import org.eclipse.edc.web.jetty.JettyService;
-import org.eclipse.edc.web.jetty.PortMappingsImpl;
+import org.eclipse.edc.web.jetty.PortMappingRegistryImpl;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +45,7 @@ public abstract class RestControllerTestBase {
     @BeforeEach
     final void startJetty() {
         var config = new JettyConfiguration(null, null);
-        var portMappings = new PortMappingsImpl();
+        var portMappings = new PortMappingRegistryImpl();
         portMappings.register(new PortMapping("test", port, "/"));
         jetty = new JettyService(config, monitor, portMappings);
         var jerseyService = new JerseyRestService(jetty, new JacksonTypeManager(), mock(JerseyConfiguration.class), monitor);

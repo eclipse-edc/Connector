@@ -25,7 +25,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
 import org.eclipse.edc.web.jetty.JettyService;
-import org.eclipse.edc.web.jetty.PortMappingsImpl;
+import org.eclipse.edc.web.jetty.PortMappingRegistryImpl;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -271,7 +271,7 @@ public class JerseyRestServiceTest {
 
     private void startJetty(PortMapping... mapping) {
         var config = new JettyConfiguration(null, null);
-        var portMappings = new PortMappingsImpl();
+        var portMappings = new PortMappingRegistryImpl();
         Arrays.stream(mapping).forEach(portMappings::register);
         jettyService = new JettyService(config, monitor, portMappings);
         jerseyRestService = new JerseyRestService(jettyService, new JacksonTypeManager(), JerseyConfiguration.Builder.newInstance().build(), monitor);

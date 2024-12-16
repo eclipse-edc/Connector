@@ -16,7 +16,7 @@ package org.eclipse.edc.web.jetty;
 
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappings;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import org.junit.jupiter.api.Test;
@@ -34,9 +34,9 @@ public class WebServiceConfigurerImplTest {
     private static final String PATH = "/api";
     private static final String ALIAS = "test";
     private static final int PORT = 8080;
-    private final PortMappings portMappings = mock();
+    private final PortMappingRegistry portMappingRegistry = mock();
 
-    private final WebServiceConfigurer configurator = new WebServiceConfigurerImpl(mock(), portMappings);
+    private final WebServiceConfigurer configurator = new WebServiceConfigurerImpl(mock(), portMappingRegistry);
 
     @Test
     void verifyConfigure_whenDefaultConfig() {
@@ -51,7 +51,7 @@ public class WebServiceConfigurerImplTest {
 
         var actualConfig = configurator.configure(config, settings);
 
-        verify(portMappings).register(new PortMapping(ALIAS, PORT, PATH));
+        verify(portMappingRegistry).register(new PortMapping(ALIAS, PORT, PATH));
         assertThat(actualConfig.getPort()).isEqualTo(PORT);
         assertThat(actualConfig.getPath()).isEqualTo(PATH);
     }
@@ -76,7 +76,7 @@ public class WebServiceConfigurerImplTest {
 
         var actualConfig = configurator.configure(config, settings);
 
-        verify(portMappings).register(new PortMapping(ALIAS, port, path));
+        verify(portMappingRegistry).register(new PortMapping(ALIAS, port, path));
         assertThat(actualConfig.getPort()).isEqualTo(port);
         assertThat(actualConfig.getPath()).isEqualTo(path);
     }
