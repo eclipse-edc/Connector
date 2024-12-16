@@ -20,6 +20,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
@@ -49,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.CoreMatchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -123,19 +125,26 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
     @Test
     void should_returnListOfErrorsAsAResponse_if_anythingFails() {
         var token = UUID.randomUUID().toString();
-        var errorMsg = UUID.randomUUID().toString();
+        var firstErrorMsg = UUID.randomUUID().toString();
+        var secondErrorMsg = UUID.randomUUID().toString();
+
         when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
         when(pipelineService.transfer(any(), any()))
-                .thenReturn(completedFuture(StreamResult.error(errorMsg)));
+                .thenReturn(completedFuture(StreamResult.failure(new StreamFailure(List.of(firstErrorMsg, secondErrorMsg), StreamFailure.Reason.GENERAL_ERROR))));
 
-        baseRequest()
+        var jsonPath = baseRequest()
                 .header(AUTHORIZATION, token)
                 .when()
                 .post("/any")
                 .then()
                 .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
                 .contentType(JSON)
-                .body("errors", isA(List.class));
+                .body("errors", isA(List.class))
+                .extract()
+                .jsonPath();
+        var errors = jsonPath.getList("errors", String.class);
+        assertEquals(firstErrorMsg, errors.get(0));
+        assertEquals(secondErrorMsg, errors.get(1));
     }
 
     @Test
