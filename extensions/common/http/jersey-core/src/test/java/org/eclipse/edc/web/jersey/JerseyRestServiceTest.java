@@ -25,7 +25,8 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
 import org.eclipse.edc.web.jetty.JettyService;
-import org.eclipse.edc.web.jetty.PortMapping;
+import org.eclipse.edc.web.jetty.PortMappingsImpl;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class JerseyRestServiceTest {
     private final int httpPort = getFreePort();
-    private final Monitor monitor = mock(Monitor.class);
+    private final Monitor monitor = mock();
     private JerseyRestService jerseyRestService;
     private JettyService jettyService;
 
@@ -60,7 +61,7 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that a resource is available under the default path")
     void verifyDefaultContextPath() {
-        startJetty(PortMapping.getDefault(httpPort));
+        startJetty(new PortMapping("default", httpPort, "/api"));
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.start();
 
@@ -76,7 +77,7 @@ public class JerseyRestServiceTest {
     void verifyAnotherContextPath() {
         var anotherPort = getFreePort();
         startJetty(
-                PortMapping.getDefault(httpPort),
+                new PortMapping("default", httpPort, "/api"),
                 new PortMapping("path", anotherPort, "/path")
         );
         var pathController = spy(new TestController());
@@ -125,7 +126,7 @@ public class JerseyRestServiceTest {
         var anotherPort = getFreePort();
         var filterMock = mock(ContainerRequestFilter.class);
         startJetty(
-                PortMapping.getDefault(httpPort),
+                new PortMapping("default", httpPort, "/api"),
                 new PortMapping("path", anotherPort, "/path")
         );
 
@@ -158,7 +159,7 @@ public class JerseyRestServiceTest {
         var port1 = getFreePort();
         var port2 = getFreePort();
         startJetty(
-                PortMapping.getDefault(httpPort),
+                new PortMapping("default", httpPort, "/api"),
                 new PortMapping("foo", port1, "/foo"),
                 new PortMapping("bar", port2, "/bar")
         );
@@ -199,7 +200,7 @@ public class JerseyRestServiceTest {
     void verifySeparateFiltersForDifferentControllers() {
         var port1 = getFreePort();
         startJetty(
-                PortMapping.getDefault(httpPort),
+                new PortMapping("default", httpPort, "/api"),
                 new PortMapping("foo", port1, "/foo")
         );
         // mocking the ContextRequestFilter doesn't work here, Mockito apparently re-uses mocks for the same target class
@@ -241,7 +242,7 @@ public class JerseyRestServiceTest {
         var port1 = getFreePort();
         var port2 = getFreePort();
         startJetty(
-                PortMapping.getDefault(httpPort),
+                new PortMapping("default", httpPort, "/api"),
                 new PortMapping("another", port1, "/foo"),
                 new PortMapping("yet-another", port2, "/foo")
         );
@@ -258,7 +259,7 @@ public class JerseyRestServiceTest {
     void verifyInvalidContextAlias_shouldThrowException() {
         var anotherPort = getFreePort();
         startJetty(
-                PortMapping.getDefault(httpPort),
+                new PortMapping("default", httpPort, "/api"),
                 new PortMapping("another", anotherPort, "/foo")
         );
 
@@ -270,8 +271,9 @@ public class JerseyRestServiceTest {
 
     private void startJetty(PortMapping... mapping) {
         var config = new JettyConfiguration(null, null);
-        Arrays.stream(mapping).forEach(config::portMapping);
-        jettyService = new JettyService(config, monitor);
+        var portMappings = new PortMappingsImpl();
+        Arrays.stream(mapping).forEach(portMappings::register);
+        jettyService = new JettyService(config, monitor, portMappings);
         jerseyRestService = new JerseyRestService(jettyService, new JacksonTypeManager(), JerseyConfiguration.Builder.newInstance().build(), monitor);
         jettyService.start();
     }

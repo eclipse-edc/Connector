@@ -30,8 +30,8 @@ import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappings;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,8 +39,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 
+import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.DEFAULT_MANAGEMENT_PATH;
+import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.DEFAULT_MANAGEMENT_PORT;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.MANAGEMENT_SCOPE;
-import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.SETTINGS;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
@@ -58,7 +59,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class ManagementApiConfigurationExtensionTest {
 
-    private final WebServiceConfigurer configurer = mock();
+    private final PortMappings portMappings = mock();
     private final Monitor monitor = mock();
     private final WebService webService = mock();
     private final JsonLd jsonLd = mock();
@@ -71,7 +72,7 @@ class ManagementApiConfigurationExtensionTest {
         when(typeTransformerRegistry.forContext(any())).thenReturn(contextTypeTransformerRegistry);
         when(contextTypeTransformerRegistry.forContext(any())).thenReturn(mock());
         context.registerService(WebService.class, webService);
-        context.registerService(WebServiceConfigurer.class, configurer);
+        context.registerService(PortMappings.class, portMappings);
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
         context.registerService(TypeManager.class, new JacksonTypeManager());
         context.registerService(JsonLd.class, jsonLd);
@@ -81,12 +82,10 @@ class ManagementApiConfigurationExtensionTest {
     @Test
     void initialize_shouldConfigureAndRegisterResource() {
         var context = contextWithConfig(ConfigFactory.empty());
-        var configuration = WebServiceConfiguration.Builder.newInstance().path("/path").port(1234).build();
-        when(configurer.configure(any(), any(), any())).thenReturn(configuration);
 
         extension.initialize(context);
 
-        verify(configurer).configure(any(), any(), eq(SETTINGS));
+        verify(portMappings).register(new PortMapping(ApiContext.MANAGEMENT, DEFAULT_MANAGEMENT_PORT, DEFAULT_MANAGEMENT_PATH));
         verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(AuthenticationRequestFilter.class));
         verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(JerseyJsonLdInterceptor.class));
         verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(ObjectMapperProvider.class));
@@ -99,9 +98,6 @@ class ManagementApiConfigurationExtensionTest {
     @Test
     void initialize_withContextEnabled(ObjectFactory factory, ServiceExtensionContext context) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.management.context.enabled", "true")));
-
-        var configuration = WebServiceConfiguration.Builder.newInstance().path("/path").port(1234).build();
-        when(configurer.configure(any(), any(), any())).thenReturn(configuration);
 
         factory.constructInstance(ManagementApiConfigurationExtension.class).initialize(context);
 

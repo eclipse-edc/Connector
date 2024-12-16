@@ -17,88 +17,66 @@ package org.eclipse.edc.web.jetty;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappings;
 import org.eclipse.jetty.io.Connection;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.util.Map;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class JettyServiceTest {
 
-    private JettyService jettyService;
     private final Monitor monitor = mock();
+    private final PortMappings portMappings = mock();
+    private final JettyConfiguration configuration = new JettyConfiguration(null, null);
+    private final JettyService jettyService = new JettyService(configuration, monitor, portMappings);
+
+    @AfterEach
+    void teardown() {
+        jettyService.shutdown();
+    }
 
     @Test
-    void verifyDefaultPortMapping() {
-        var config = ConfigFactory.fromMap(Map.of("web.http.port", "7171")); //default port mapping
-        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
+    void shouldRegisterServletOnConfiguredPortMapping() {
+        var portMapping = new PortMapping("context", 9191, "/path");
+        when(portMappings.getAll()).thenReturn(List.of(portMapping));
 
         jettyService.start();
-
-        jettyService.registerServlet("default", new TestServlet());
+        jettyService.registerServlet("context", new TestServlet());
 
         given()
-                .get("http://localhost:7171/api/test/resource")
+                .get("http://localhost:9191/path/test/resource")
                 .then()
                 .statusCode(200);
     }
 
     @Test
-    @DisplayName("Verifies a custom port mapping")
-    void verifyCustomPortMapping() {
-        var config = ConfigFactory.fromMap(Map.of(
-                "web.http.another.port", "9191",
-                "web.http.another.path", "/another")); //default port mapping
-        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
+    void shouldConfigureMultipleApiContexts() {
+        var portMapping = new PortMapping("context", 9191, "/path");
+        var anotherPortMapping = new PortMapping("another", 9292, "/another/path");
+        when(portMappings.getAll()).thenReturn(List.of(portMapping, anotherPortMapping));
 
         jettyService.start();
-
+        jettyService.registerServlet("context", new TestServlet());
         jettyService.registerServlet("another", new TestServlet());
 
         given()
-                .get("http://localhost:9191/another/test/resource")
-                .then()
-                .statusCode(200);
-
-        //verify that there is no default port mapping anymore
-        assertThatThrownBy(() -> given().get("http://localhost:8872/api/test/resource").then())
-                .isInstanceOf(ConnectException.class);
-    }
-
-    @Test
-    @DisplayName("Verifies that a custom port mapping and the implicit default mapping is possible")
-    void verifyDefaultAndCustomPortMapping() {
-        var config = ConfigFactory.fromMap(Map.of(
-                "web.http.port", "7171",
-                "web.http.another.port", "9191",
-                "web.http.another.path", "/another")); //default port mapping
-        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
-
-        jettyService.start();
-
-        jettyService.registerServlet("another", new TestServlet());
-        jettyService.registerServlet("default", new TestServlet());
-
-        given()
-                .get("http://localhost:9191/another/test/resource")
+                .get("http://localhost:9191/path/test/resource")
                 .then()
                 .statusCode(200);
 
         given()
-                .get("http://localhost:7171/api/test/resource")
+                .get("http://localhost:9292/another/path/test/resource")
                 .then()
                 .statusCode(200);
     }
@@ -107,12 +85,10 @@ class JettyServiceTest {
     void verifyConnectorConfigurationCallback() {
         var listener = new JettyListener();
 
-        var config = ConfigFactory.fromMap(Map.of("web.http.port", "7171"));
-        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
+        when(portMappings.getAll()).thenReturn(List.of(new PortMapping("default", 7171, "/api")));
         jettyService.addConnectorConfigurationCallback((c) -> c.addBean(listener));
 
         jettyService.start();
-
         jettyService.registerServlet("default", new TestServlet());
 
         assertThat(listener.getConnectionsOpened()).isEqualTo(0);
@@ -125,53 +101,15 @@ class JettyServiceTest {
 
     @Test
     void verifyCustomPathRoot() {
-        var config = ConfigFactory.fromMap(Map.of(
-                "web.http.port", "7171",
-                "web.http.path", "/"));
-        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
+        when(portMappings.getAll()).thenReturn(List.of(new PortMapping("default", 7171, "/")));
 
         jettyService.start();
-
         jettyService.registerServlet("default", new TestServlet());
 
         given()
                 .get("http://localhost:7171/test/resource")
                 .then()
                 .statusCode(200);
-    }
-
-    @Test
-    void verifyInvalidPathSpecThrowsException() {
-        var config = ConfigFactory.fromMap(Map.of(
-                "web.http.port", "7171",
-                "web.http.another.port", "9191",
-                "web.http.another.path", "another")); //misses leading slash
-        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
-
-        assertThatThrownBy(() -> jettyService.start()).isInstanceOf(EdcException.class)
-                .hasMessage("Error starting Jetty service")
-                .hasRootCauseInstanceOf(IllegalArgumentException.class)
-                .hasRootCauseMessage("A context path must start with /: another");
-    }
-
-    @Test
-    void verifyIdenticalPorts_shouldThrowException() {
-        var config = ConfigFactory.fromMap(Map.of(
-                "web.http.first.port", "7171",
-                "web.http.first.path", "/first",
-                "web.http.another.port", "7171",
-                "web.http.another.path", "/another"));
-        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
-
-        assertThatThrownBy(() -> jettyService.start()).isInstanceOf(EdcException.class)
-                .hasMessage("Error starting Jetty service")
-                .hasRootCauseInstanceOf(IllegalArgumentException.class)
-                .hasRootCauseMessage("A binding for port 7171 already exists");
-    }
-
-    @AfterEach
-    void teardown() {
-        jettyService.shutdown();
     }
 
     private static class JettyListener extends AbstractLifeCycle implements Connection.Listener {

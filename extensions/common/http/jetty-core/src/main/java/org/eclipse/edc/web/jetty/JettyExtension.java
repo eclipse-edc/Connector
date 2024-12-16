@@ -14,13 +14,17 @@
 
 package org.eclipse.edc.web.jetty;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappings;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 
 import java.io.FileInputStream;
@@ -34,16 +38,25 @@ import java.security.cert.CertificateException;
 public class JettyExtension implements ServiceExtension {
 
 
-    @Setting
-    private static final String KEYSTORE_PASSWORD = "edc.web.https.keystore.password";
-    @Setting
-    private static final String KEYMANAGER_PASSWORD = "edc.web.https.keymanager.password";
+    private static final String DEFAULT_PATH = "/api";
+    private static final String DEFAULT_CONTEXT_NAME = "default";
+    private static final int DEFAULT_PORT = 8181;
     @Setting
     private static final String KEYSTORE_PATH_SETTING = "edc.web.https.keystore.path";
     @Setting
     private static final String KEYSTORE_TYPE_SETTING = "edc.web.https.keystore.type";
 
     private JettyService jettyService;
+    private final PortMappingsImpl portMappings = new PortMappingsImpl();
+
+    @Configuration
+    private JettyConfiguration jettyConfiguration;
+    @Configuration
+    private DefaultApiConfiguration apiConfiguration;
+    @Setting(key = KEYSTORE_PATH_SETTING, description = "Keystore path", required = false)
+    private String keystorePath;
+    @Setting(key = KEYSTORE_TYPE_SETTING, description = "Keystore type", defaultValue = "PKCS12")
+    private String keystoreType;
 
     @Override
     public String name() {
@@ -52,24 +65,24 @@ public class JettyExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var defaultPortMapping = new PortMapping(DEFAULT_CONTEXT_NAME, apiConfiguration.port(), apiConfiguration.path());
+        portMappings.register(defaultPortMapping);
+
         var monitor = context.getMonitor();
         KeyStore ks = null;
-        var keystorePath = context.getConfig().getString(KEYSTORE_PATH_SETTING, null);
-        var configuration = JettyConfiguration.createFromConfig(context.getSetting(KEYSTORE_PASSWORD, "password"), context.getSetting(KEYMANAGER_PASSWORD, "password"), context.getConfig());
 
         if (keystorePath != null) {
             try {
-                ks = KeyStore.getInstance(context.getSetting(KEYSTORE_TYPE_SETTING, "PKCS12"));
+                ks = KeyStore.getInstance(keystoreType);
                 try (var stream = new FileInputStream(keystorePath)) {
-                    ks.load(stream, configuration.getKeystorePassword().toCharArray());
+                    ks.load(stream, jettyConfiguration.keystorePassword().toCharArray());
                 }
             } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
                 throw new EdcException(e);
             }
         }
 
-
-        jettyService = new JettyService(configuration, ks, monitor);
+        jettyService = new JettyService(jettyConfiguration, ks, monitor, portMappings);
         context.registerService(JettyService.class, jettyService);
         context.registerService(WebServer.class, jettyService);
     }
@@ -87,8 +100,24 @@ public class JettyExtension implements ServiceExtension {
     }
 
     @Provider
+    @Deprecated(since = "0.11.0")
     public WebServiceConfigurer webServiceContextConfigurator(ServiceExtensionContext context) {
-        return new WebServiceConfigurerImpl(context.getMonitor());
+        return new WebServiceConfigurerImpl(context.getMonitor(), portMappings);
+    }
+
+    @Provider
+    public PortMappings portMappings() {
+        return portMappings;
+    }
+
+    @Settings
+    record DefaultApiConfiguration(
+            @Setting(key = "web.http.port", description = "Port for default api context", defaultValue = DEFAULT_PORT + "")
+            int port,
+            @Setting(key = "web.http.path", description = "Path for default api context", defaultValue = DEFAULT_PATH)
+            String path
+    ) {
+
     }
 
 }

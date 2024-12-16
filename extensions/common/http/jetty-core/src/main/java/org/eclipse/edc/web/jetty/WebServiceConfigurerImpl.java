@@ -17,37 +17,41 @@ package org.eclipse.edc.web.jetty;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.web.spi.WebServer;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappings;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
 import static java.lang.String.format;
 
+@Deprecated(since = "0.11.0")
 public class WebServiceConfigurerImpl implements WebServiceConfigurer {
 
     private final Monitor monitor;
+    private final PortMappings portMappings;
 
-    public WebServiceConfigurerImpl(Monitor monitor) {
+    public WebServiceConfigurerImpl(Monitor monitor, PortMappings portMappings) {
         this.monitor = monitor;
+        this.portMappings = portMappings;
     }
 
     @Override
-    public WebServiceConfiguration configure(Config config, WebServer webServer, WebServiceSettings settings) {
+    public WebServiceConfiguration configure(Config config, WebServiceSettings settings) {
         var apiConfig = settings.apiConfigKey();
+        var contextAlias = settings.getContextAlias();
         var port = settings.getDefaultPort();
         var path = settings.getDefaultPath();
-        var contextAlias = settings.getContextAlias();
 
-        if (!config.getEntries().isEmpty()) {
-            port = config.getInteger("port", port);
-            path = config.getString("path", path);
-        } else {
+        if (config.getEntries().isEmpty()) {
             monitor.warning("Settings for [%s] and/or [%s] were not provided. Using default value(s) instead."
                     .formatted(apiConfig + ".path", apiConfig + ".path"));
-
-            webServer.addPortMapping(contextAlias, port, path);
+        } else {
+            port = config.getInteger("port", port);
+            path = config.getString("path", path);
         }
+
+        portMappings.register(new PortMapping(contextAlias, port, path));
 
         monitor.debug(format("%s API will be available under port=%s, path=%s", contextAlias, port, path));
 
