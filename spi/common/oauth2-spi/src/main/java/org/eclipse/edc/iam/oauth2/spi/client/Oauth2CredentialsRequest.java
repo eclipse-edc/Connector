@@ -25,6 +25,7 @@ public abstract class Oauth2CredentialsRequest {
 
     private static final String GRANT_TYPE = "grant_type";
     private static final String SCOPE = "scope";
+    private static final String RESOURCE = "resource";
 
     protected String url;
     protected final Map<String, String> params = new HashMap<>();
@@ -42,6 +43,16 @@ public abstract class Oauth2CredentialsRequest {
     @NotNull
     public String getGrantType() {
         return params.get(GRANT_TYPE);
+    }
+
+    /**
+     * The audience for which an access token will be requested.
+     *
+     * @return The value of the resource form parameter.
+     */
+    @Nullable
+    public String getResource() {
+        return this.params.get(RESOURCE);
     }
 
     public Map<String, String> getParams() {
@@ -80,6 +91,17 @@ public abstract class Oauth2CredentialsRequest {
             return self();
         }
 
+        /**
+         * Adds the resource form parameter to the request.
+         *
+         * @param targetedAudience The audience for which an access token will be requested.
+         * @see <a href="https://www.rfc-editor.org/rfc/rfc8707.html">RFC-8707</a>
+         * @return this builder
+         */
+        public B resource(String targetedAudience) {
+            return param(RESOURCE, targetedAudience);
+        }
+
         public abstract B self();
 
         protected T build() {
@@ -87,5 +109,6 @@ public abstract class Oauth2CredentialsRequest {
             Objects.requireNonNull(request.params.get(GRANT_TYPE), GRANT_TYPE);
             return request;
         }
+
     }
 }

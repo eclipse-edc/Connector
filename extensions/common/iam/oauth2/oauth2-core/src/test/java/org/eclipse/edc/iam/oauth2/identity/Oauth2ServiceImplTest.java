@@ -101,6 +101,7 @@ class Oauth2ServiceImplTest {
                 .publicCertificateAlias(PUBLIC_CERTIFICATE_ALIAS)
                 .providerAudience(PROVIDER_AUDIENCE)
                 .endpointAudience(ENDPOINT_AUDIENCE)
+                .tokenResourceEnabled(true)
                 .build();
 
         var tokenValidationService = new TokenValidationServiceImpl();
@@ -114,7 +115,7 @@ class Oauth2ServiceImplTest {
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(Clock.systemUTC(), configuration.getIssuedAtLeeway()));
 
         authService = new Oauth2ServiceImpl(configuration.getTokenUrl(), tokenGenerationService, () -> TEST_PRIVATE_KEY_ID, client, jwtDecoratorRegistry, registry,
-                tokenValidationService, publicKeyResolverMock);
+                tokenValidationService, publicKeyResolverMock, configuration.isTokenResourceEnabled());
 
     }
 
@@ -143,6 +144,7 @@ class Oauth2ServiceImplTest {
         assertThat(capturedRequest.getScope()).isEqualTo("scope");
         assertThat(capturedRequest.getClientAssertion()).isEqualTo("assertionToken");
         assertThat(capturedRequest.getClientAssertionType()).isEqualTo("urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+        assertThat(capturedRequest.getResource()).isEqualTo("audience");
     }
 
 
