@@ -122,8 +122,9 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
                 .contentType(JSON)
                 .body("errors[0]", is(errorMsg));
     }
+    
     @Test
-    void should_returnListOfErrorsAsAResponse_if_anythingFails() {
+    void should_returnListOfErrorsAsResponse_if_anythingFails() {
         var token = UUID.randomUUID().toString();
         var firstErrorMsg = UUID.randomUUID().toString();
         var secondErrorMsg = UUID.randomUUID().toString();
@@ -132,7 +133,7 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
         when(pipelineService.transfer(any(), any()))
                 .thenReturn(completedFuture(StreamResult.failure(new StreamFailure(List.of(firstErrorMsg, secondErrorMsg), StreamFailure.Reason.GENERAL_ERROR))));
 
-        var jsonPath = baseRequest()
+        var response = baseRequest()
                 .header(AUTHORIZATION, token)
                 .when()
                 .post("/any")
@@ -142,7 +143,8 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
                 .body("errors", isA(List.class))
                 .extract()
                 .jsonPath();
-        var errors = jsonPath.getList("errors", String.class);
+        
+        var errors = response.getList("errors", String.class);
         assertEquals(firstErrorMsg, errors.get(0));
         assertEquals(secondErrorMsg, errors.get(1));
     }
