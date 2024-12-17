@@ -52,6 +52,9 @@ public class Oauth2ServiceConfiguration {
     @Setting(description = "Token expiration in minutes. By default is 5 minutes", key = "edc.oauth.token.expiration", defaultValue = DEFAULT_TOKEN_EXPIRATION + "")
     private Long tokenExpiration;
 
+    @Setting(description = "Enable the connector to request a token with a specific audience as defined in the RFC-8707.", key = "edc.oauth.token.resource.enabled", defaultValue = "false")
+    private boolean tokenResourceEnabled;
+
     private Oauth2ServiceConfiguration() {
 
     }
@@ -90,6 +93,10 @@ public class Oauth2ServiceConfiguration {
 
     public Long getTokenExpiration() {
         return tokenExpiration;
+    }
+
+    public boolean isTokenResourceEnabled() {
+        return tokenResourceEnabled;
     }
 
     public int getProviderJwksRefresh() {
@@ -158,6 +165,11 @@ public class Oauth2ServiceConfiguration {
 
         public Builder tokenExpiration(long tokenExpiration) {
             configuration.tokenExpiration = tokenExpiration;
+            return this;
+        }
+
+        public Builder tokenResourceEnabled(boolean tokenResourceEnabled) {
+            configuration.tokenResourceEnabled = tokenResourceEnabled;
             return this;
         }
 

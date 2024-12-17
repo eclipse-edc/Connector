@@ -19,7 +19,7 @@ package org.eclipse.edc.iam.oauth2.identity;
 
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
-import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
+import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest.Builder;
 import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -54,6 +54,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     private final TokenValidationService tokenValidationService;
     private final PublicKeyResolver publicKeyResolver;
     private final TokenValidationRulesRegistry tokenValidationRuleRegistry;
+    private final boolean tokenResourceEnabled;
 
     /**
      * Creates a new instance of the OAuth2 Service
@@ -63,10 +64,11 @@ public class Oauth2ServiceImpl implements IdentityService {
      * @param client                 client for Oauth2 server
      * @param jwtDecoratorRegistry   Registry containing the decorator for build the JWT
      * @param tokenValidationService Service used for token validation
+     * @param tokenResourceEnabled   Add support for generating access token request with resource parameter
      */
     public Oauth2ServiceImpl(String tokenUrl, TokenGenerationService tokenGenerationService, Supplier<String> privateKeyIdSupplier,
                              Oauth2Client client, TokenDecoratorRegistry jwtDecoratorRegistry, TokenValidationRulesRegistry tokenValidationRuleRegistry, TokenValidationService tokenValidationService,
-                             PublicKeyResolver publicKeyResolver) {
+                             PublicKeyResolver publicKeyResolver, boolean tokenResourceEnabled) {
         this.tokenUrl = tokenUrl;
         this.privateKeySupplier = privateKeyIdSupplier;
         this.client = client;
@@ -75,6 +77,7 @@ public class Oauth2ServiceImpl implements IdentityService {
         this.tokenGenerationService = tokenGenerationService;
         this.tokenValidationService = tokenValidationService;
         this.publicKeyResolver = publicKeyResolver;
+        this.tokenResourceEnabled = tokenResourceEnabled;
     }
 
     @Override
@@ -98,12 +101,16 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     @NotNull
     private Oauth2CredentialsRequest createRequest(TokenParameters parameters, String assertion) {
-        return PrivateKeyOauth2CredentialsRequest.Builder.newInstance()
+        var builder = Builder.newInstance()
                 .url(tokenUrl)
                 .clientAssertion(assertion)
                 .scope(parameters.getStringClaim(JwtRegisteredClaimNames.SCOPE))
-                .grantType(GRANT_TYPE)
-                .build();
+                .grantType(GRANT_TYPE);
+
+        if (tokenResourceEnabled) {
+            builder.resource(parameters.getStringClaim(JwtRegisteredClaimNames.AUDIENCE));
+        }
+        return builder.build();
     }
 
 }

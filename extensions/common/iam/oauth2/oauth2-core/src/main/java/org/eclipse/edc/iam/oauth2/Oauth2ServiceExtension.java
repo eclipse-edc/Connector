@@ -159,7 +159,8 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 jwtDecoratorRegistry,
                 tokenValidationRulesRegistry,
                 tokenValidationService,
-                providerKeyResolver
+                providerKeyResolver,
+                configuration.isTokenResourceEnabled()
         );
     }
 
