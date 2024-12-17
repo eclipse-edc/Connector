@@ -24,6 +24,7 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -41,6 +42,8 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.mock.action.ExpectationResponseCallback;
 import org.mockserver.model.HttpRequest;
@@ -55,6 +58,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 import static java.time.Duration.ofDays;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -167,44 +171,13 @@ class TransferPullEndToEndTest {
             providerDataSource.verify(request("/source").withMethod("GET"));
         }
 
-        @Test
-        void suspendAndResumeByConsumer_httpPull_dataTransfer_withEdrCache() {
-            var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, httpSourceDataAddress());
-
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
-                    .withTransferType("HttpData-PULL")
-                    .execute();
-
-            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
-
-            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
-
-            var msg = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
-
-            CONSUMER.suspendTransfer(transferProcessId, "supension");
-
-            CONSUMER.awaitTransferToBeInState(transferProcessId, SUSPENDED);
-
-            // checks that the EDR is gone once the transfer has been suspended
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(transferProcessId)));
-            // checks that transfer fails
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data"))));
-
-            CONSUMER.resumeTransfer(transferProcessId);
-
-            // check that transfer is available again
-            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
-            var secondEdr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
-            var secondMessage = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(secondEdr, Map.of("message", secondMessage), body -> assertThat(body).isEqualTo("data")));
-
-            providerDataSource.verify(request("/source").withMethod("GET"));
+        private static Stream<Participant> participants() {
+            return Stream.of(CONSUMER, PROVIDER);
         }
 
-        @Test
-        void suspendAndResumeByProvider_httpPull_dataTransfer_withEdrCache() {
+        @ParameterizedTest(name = "Suspend and resume httpPull dataTransfer with Edr cache by {0}")
+        @MethodSource("participants")
+        void suspendAndResume_httpPull_dataTransfer_withEdrCache(Participant participant) {
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());
 
@@ -223,8 +196,10 @@ class TransferPullEndToEndTest {
                     .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
                     .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
 
-            PROVIDER.suspendTransfer(providerTransferProcessId, "supension");
+            participant.suspendTransfer(Participant.PROVIDER.equals(participant.getName()) ? providerTransferProcessId : consumerTransferProcessId, "supension");
 
+
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, SUSPENDED);
             PROVIDER.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
 
             // checks that the EDR is gone once the transfer has been suspended
@@ -232,14 +207,44 @@ class TransferPullEndToEndTest {
             // checks that transfer fails
             await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data"))));
 
-            PROVIDER.resumeTransfer(providerTransferProcessId);
+            participant.resumeTransfer(Participant.PROVIDER.equals(participant.getName()) ? providerTransferProcessId : consumerTransferProcessId);
 
             // check that transfer is available again
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
             PROVIDER.awaitTransferToBeInState(providerTransferProcessId, STARTED);
             var secondEdr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
             var secondMessage = UUID.randomUUID().toString();
             await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(secondEdr, Map.of("message", secondMessage), body -> assertThat(body).isEqualTo("data")));
 
+            providerDataSource.verify(request("/source").withMethod("GET"));
+        }
+
+        @ParameterizedTest(name = "Terminate httpPull dataTransfer by {0}")
+        @MethodSource("participants")
+        void terminate_httpPull_dataTransfer(Participant participant) {
+            var assetId = UUID.randomUUID().toString();
+            createResourcesOnProvider(assetId, httpSourceDataAddress());
+            var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withTransferType("HttpData-PULL")
+                    .execute();
+
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+
+            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
+
+            // Do the transfer
+            var msg = UUID.randomUUID().toString();
+            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
+
+            var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
+                    .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
+                    .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+
+            participant.terminateTransfer(Participant.PROVIDER.equals(participant.getName()) ? providerTransferProcessId : consumerTransferProcessId);
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
+            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
+
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data"))));
             providerDataSource.verify(request("/source").withMethod("GET"));
         }
 

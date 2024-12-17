@@ -232,12 +232,22 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @NotNull
     private ServiceResult<TransferProcess> terminatedAction(TransferTerminationMessage message, TransferProcess transferProcess) {
+        if (transferProcess.getType() == PROVIDER) {
+            var termination = dataFlowManager.terminate(transferProcess);
+            if (termination.failed()) {
+                return ServiceResult.conflict("Cannot terminate transfer process %s: %s".formatted(transferProcess.getId(), termination.getFailureDetail()));
+            }
+        }
         if (transferProcess.canBeTerminated()) {
             observable.invokeForEach(l -> l.preTerminated(transferProcess));
             transferProcess.transitionTerminated();
             transferProcess.protocolMessageReceived(message.getId());
             update(transferProcess);
             observable.invokeForEach(l -> l.terminated(transferProcess));
+            if (transferProcess.getType() == PROVIDER) {
+                transferProcess.transitionDeprovisioning();
+                this.update(transferProcess);
+            }
             return ServiceResult.success(transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be terminated"));

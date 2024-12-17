@@ -58,6 +58,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 public class Participant {
 
+    public static final String CONSUMER = "consumer";
+    public static final String PROVIDER = "provider";
     protected String id;
     protected String name;
     protected Endpoint managementEndpoint;
@@ -517,6 +519,11 @@ public class Participant {
 
     public void awaitTransferToBeInState(String transferProcessId, TransferProcessStates state) {
         await().atMost(timeout).until(() -> getTransferProcessState(transferProcessId), it -> Objects.equals(it, state.name()));
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     protected String getContractNegotiationField(String negotiationId, String fieldName) {
