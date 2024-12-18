@@ -37,12 +37,12 @@ public interface ProtocolVersionApiV4alpha {
 
     @Operation(
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ProtocolVersionRequestSchema.class))),
-            responses = { @ApiResponse(
+            responses = {@ApiResponse(
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ProtocolVersionSchema.class)
                     ),
-                    description = "Gets supported protocol versions of a single connector") }
+                    description = "Gets supported protocol versions of a single connector")}
     )
     void requestProtocolVersionV4alpha(JsonObject request, @Suspended AsyncResponse response);
 
@@ -70,7 +70,7 @@ public interface ProtocolVersionApiV4alpha {
                 """;
     }
 
-    @Schema(name = "Protocol Version", description = "Protocol Version", example = ProtocolVersionSchema.PROTOCOL_VERSION_EXAMPLE)
+    @Schema(name = "ProtocolVersion", description = "Protocol Version", example = ProtocolVersionSchema.PROTOCOL_VERSION_EXAMPLE)
     record ProtocolVersionSchema(
     ) {
         public static final String PROTOCOL_VERSION_EXAMPLE = """
