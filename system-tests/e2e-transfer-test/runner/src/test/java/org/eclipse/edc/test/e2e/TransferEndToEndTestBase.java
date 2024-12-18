@@ -15,7 +15,6 @@
 package org.eclipse.edc.test.e2e;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,11 +29,11 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileConten
 public abstract class TransferEndToEndTestBase {
 
     protected static final TransferEndToEndParticipant CONSUMER = TransferEndToEndParticipant.Builder.newInstance()
-            .name(Participant.CONSUMER)
+            .name("consumer")
             .id("urn:connector:consumer")
             .build();
     protected static final TransferEndToEndParticipant PROVIDER = TransferEndToEndParticipant.Builder.newInstance()
-            .name(Participant.PROVIDER)
+            .name("provider")
             .id("urn:connector:provider")
             .build();
 

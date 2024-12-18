@@ -822,7 +822,7 @@ class TransferProcessProtocolServiceImplTest {
         }
 
         @Test
-        void provider_shouldTerminateDataFlowAndTransitionToTerminated() {
+        void provider_shouldTerminateDataFlowAndTransitionToDeprovisioning() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
             var message = TransferTerminationMessage.Builder.newInstance()

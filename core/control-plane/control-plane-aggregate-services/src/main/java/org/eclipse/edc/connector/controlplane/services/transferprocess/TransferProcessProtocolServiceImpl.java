@@ -212,13 +212,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @NotNull
     private ServiceResult<TransferProcess> suspendedAction(TransferSuspensionMessage message, TransferProcess transferProcess) {
-        if (transferProcess.getType() == PROVIDER) {
-            var suspension = dataFlowManager.suspend(transferProcess);
-            if (suspension.failed()) {
-                return ServiceResult.conflict("Cannot suspend transfer process %s: %s".formatted(transferProcess.getId(), suspension.getFailureDetail()));
-            }
-        }
         if (transferProcess.canBeTerminated()) {
+            if (transferProcess.getType() == PROVIDER) {
+                var suspension = dataFlowManager.suspend(transferProcess);
+                if (suspension.failed()) {
+                    return ServiceResult.conflict("Cannot suspend transfer process %s: %s".formatted(transferProcess.getId(), suspension.getFailureDetail()));
+                }
+            }
             var reason = message.getReason().stream().map(Object::toString).collect(joining(", "));
             transferProcess.transitionSuspended(reason);
             transferProcess.protocolMessageReceived(message.getId());
@@ -232,13 +232,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @NotNull
     private ServiceResult<TransferProcess> terminatedAction(TransferTerminationMessage message, TransferProcess transferProcess) {
-        if (transferProcess.getType() == PROVIDER) {
-            var termination = dataFlowManager.terminate(transferProcess);
-            if (termination.failed()) {
-                return ServiceResult.conflict("Cannot terminate transfer process %s: %s".formatted(transferProcess.getId(), termination.getFailureDetail()));
-            }
-        }
         if (transferProcess.canBeTerminated()) {
+			if (transferProcess.getType() == PROVIDER) {
+				var termination = dataFlowManager.terminate(transferProcess);
+				if (termination.failed()) {
+					return ServiceResult.conflict("Cannot terminate transfer process %s: %s".formatted(transferProcess.getId(), termination.getFailureDetail()));
+				}
+			}
             observable.invokeForEach(l -> l.preTerminated(transferProcess));
             transferProcess.transitionTerminated();
             transferProcess.protocolMessageReceived(message.getId());
@@ -246,7 +246,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             observable.invokeForEach(l -> l.terminated(transferProcess));
             if (transferProcess.getType() == PROVIDER) {
                 transferProcess.transitionDeprovisioning();
-                this.update(transferProcess);
+                update(transferProcess);
             }
             return ServiceResult.success(transferProcess);
         } else {
