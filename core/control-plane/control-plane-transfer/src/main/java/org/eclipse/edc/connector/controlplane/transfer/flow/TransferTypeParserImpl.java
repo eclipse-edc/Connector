@@ -25,7 +25,7 @@ public class TransferTypeParserImpl implements TransferTypeParser {
 
     /**
      * Parses a compose transfer type string into a {@link TransferType}:
-     * {@code DESTTYPE-{PUSH|PULL}(-RESPONSETYPE)}, for example {@code HttpData-PULL/Websocket}
+     * {@code DESTTYPE-{PUSH|PULL}(-RESPONSETYPE)}, for example {@code HttpData-PULL-Websocket}
      *
      * @param transferType the transfer type string representation.
      * @return a {@link TransferType}
