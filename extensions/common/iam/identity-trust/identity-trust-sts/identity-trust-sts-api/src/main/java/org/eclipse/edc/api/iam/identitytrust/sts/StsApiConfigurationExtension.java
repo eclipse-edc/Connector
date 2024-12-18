@@ -15,19 +15,20 @@
 package org.eclipse.edc.api.iam.identitytrust.sts;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
 import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
-import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -36,22 +37,15 @@ import java.util.stream.Stream;
 public class StsApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Secure Token Service API configuration";
-    private static final int DEFAULT_STS_API_PORT = 9292;
+    static final int DEFAULT_STS_PORT = 9292;
+    static final String DEFAULT_STS_PATH = "/api/sts";
 
-    @SettingContext("Sts API context setting key")
-    private static final String STS_CONFIG_KEY = "web.http." + ApiContext.STS;
-
-    public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey(STS_CONFIG_KEY)
-            .contextAlias(ApiContext.STS)
-            .defaultPort(DEFAULT_STS_API_PORT)
-            .build();
     private static final String API_VERSION_JSON_FILE = "sts-api-version.json";
 
+    @Configuration
+    private StsApiConfiguration apiConfiguration;
     @Inject
-    private WebServer webServer;
-    @Inject
-    private WebServiceConfigurer configurator;
+    private PortMappingRegistry portMappingRegistry;
     @Inject
     private TypeManager typeManager;
     @Inject
@@ -64,8 +58,7 @@ public class StsApiConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = context.getConfig(STS_CONFIG_KEY);
-        configurator.configure(config, webServer, SETTINGS);
+        portMappingRegistry.register(new PortMapping(ApiContext.STS, apiConfiguration.port(), apiConfiguration.path()));
         registerVersionInfo(getClass().getClassLoader());
     }
 
@@ -81,5 +74,15 @@ public class StsApiConfigurationExtension implements ServiceExtension {
         } catch (IOException e) {
             throw new EdcException(e);
         }
+    }
+
+    @Settings
+    record StsApiConfiguration(
+            @Setting(key = "web.http." + ApiContext.STS + ".port", description = "Port for " + ApiContext.STS + " api context", defaultValue = DEFAULT_STS_PORT + "")
+            int port,
+            @Setting(key = "web.http." + ApiContext.STS + ".path", description = "Path for " + ApiContext.STS + " api context", defaultValue = DEFAULT_STS_PATH)
+            String path
+    ) {
+
     }
 }

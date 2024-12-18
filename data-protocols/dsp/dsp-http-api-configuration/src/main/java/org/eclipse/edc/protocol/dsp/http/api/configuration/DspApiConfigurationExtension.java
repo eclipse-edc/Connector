@@ -25,11 +25,12 @@ import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -45,11 +46,10 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransfo
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
-import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.util.Map;
 
@@ -81,24 +81,19 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class DspApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
-    @SettingContext("Protocol API context setting key")
-    private static final String PROTOCOL_CONFIG_KEY = "web.http." + ApiContext.PROTOCOL;
-    public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey(PROTOCOL_CONFIG_KEY)
-            .contextAlias(ApiContext.PROTOCOL)
-            .defaultPath("/api/dsp")
-            .defaultPort(8282)
-            .build();
+
+    static final String DEFAULT_PROTOCOL_PATH = "/api/protocol";
+    static final int DEFAULT_PROTOCOL_PORT = 8282;
+
     @Setting(description = "Configures endpoint for reaching the Protocol API in the form \"<hostname:protocol.port/protocol.path>\"", key = "edc.dsp.callback.address", required = false)
     private String callbackAddress;
+    @Configuration
+    private DspApiConfiguration apiConfiguration;
+
     @Inject
     private TypeManager typeManager;
     @Inject
     private WebService webService;
-    @Inject
-    private WebServer webServer;
-    @Inject
-    private WebServiceConfigurer configurator;
     @Inject
     private JsonLd jsonLd;
     @Inject
@@ -107,6 +102,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     private ParticipantIdMapper participantIdMapper;
     @Inject
     private Hostname hostname;
+    @Inject
+    private PortMappingRegistry portMappingRegistry;
 
     @Override
     public String name() {
@@ -115,11 +112,10 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var contextConfig = context.getConfig(PROTOCOL_CONFIG_KEY);
-        var apiConfiguration = configurator.configure(contextConfig, webServer, SETTINGS);
-        var dspWebhookAddress = ofNullable(callbackAddress).orElseGet(() -> format("http://%s:%s%s", hostname.get(), apiConfiguration.getPort(), apiConfiguration.getPath()));
+        var portMapping = new PortMapping(ApiContext.PROTOCOL, apiConfiguration.port(), apiConfiguration.path());
+        portMappingRegistry.register(portMapping);
 
-
+        var dspWebhookAddress = ofNullable(callbackAddress).orElseGet(() -> format("http://%s:%s%s", hostname.get(), portMapping.port(), portMapping.path()));
         context.registerService(ProtocolWebhook.class, () -> dspWebhookAddress);
 
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
@@ -177,7 +173,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
         dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper));
         dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(jsonBuilderFactory, mapper));
-
     }
 
     private void registerV2024Transformers(ObjectMapper mapper) {
@@ -188,6 +183,15 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
         dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper, true));
         dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspace2024Transformer(jsonBuilderFactory, mapper));
+    }
+
+    @Settings
+    record DspApiConfiguration(
+            @Setting(key = "web.http." + ApiContext.PROTOCOL + ".port", description = "Port for " + ApiContext.PROTOCOL + " api context", defaultValue = DEFAULT_PROTOCOL_PORT + "")
+            int port,
+            @Setting(key = "web.http." + ApiContext.PROTOCOL + ".path", description = "Path for " + ApiContext.PROTOCOL + " api context", defaultValue = DEFAULT_PROTOCOL_PATH)
+            String path
+    ) {
 
     }
 }

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Deprecated(since = "0.11.0")
 class WebServiceSettingsTest {
 
     @Test
