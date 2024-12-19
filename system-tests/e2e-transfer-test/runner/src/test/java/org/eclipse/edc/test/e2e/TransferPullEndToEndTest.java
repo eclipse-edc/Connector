@@ -328,12 +328,11 @@ class TransferPullEndToEndTest {
             var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                     .withTransferType("HttpData-PULL")
                     .execute();
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
 
             var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
                     .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
                     .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
-
-            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
             PROVIDER.awaitTransferToBeInState(providerTransferProcessId, STARTED);
 
             var edrMessage = assertDataIsAccessible(consumerTransferProcessId);
