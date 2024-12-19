@@ -377,7 +377,7 @@ class TransferPullEndToEndTest {
             await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(startedTransferContext.edr, Map.of("message", startedTransferContext.msg), body -> assertThat(body).isEqualTo("data"))));
         }
 
-        private record StartedTransferContext (String providerTransferProcessId, String consumerTransferProcessId, DataAddress edr, String msg) { }
+        private record StartedTransferContext (String consumerTransferProcessId, String providerTransferProcessId, DataAddress edr, String msg) { }
 
         /**
          * Mocked http provisioner
