@@ -212,13 +212,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @NotNull
     private ServiceResult<TransferProcess> suspendedAction(TransferSuspensionMessage message, TransferProcess transferProcess) {
-        if (transferProcess.canBeTerminated()) {
-            if (transferProcess.getType() == PROVIDER) {
-                var suspension = dataFlowManager.suspend(transferProcess);
-                if (suspension.failed()) {
-                    return ServiceResult.conflict("Cannot suspend transfer process %s: %s".formatted(transferProcess.getId(), suspension.getFailureDetail()));
-                }
+        if (transferProcess.getType() == PROVIDER) {
+            var suspension = dataFlowManager.suspend(transferProcess);
+            if (suspension.failed()) {
+                return ServiceResult.conflict("Cannot suspend transfer process %s: %s".formatted(transferProcess.getId(), suspension.getFailureDetail()));
             }
+        }
+        if (transferProcess.canBeTerminated()) {
             var reason = message.getReason().stream().map(Object::toString).collect(joining(", "));
             transferProcess.transitionSuspended(reason);
             transferProcess.protocolMessageReceived(message.getId());

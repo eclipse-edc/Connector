@@ -235,7 +235,7 @@ public class TransferStreamingEndToEndTest {
                         .withDestination(kafkaSink()).withTransferType("Kafka-PUSH").execute();
                 assertMessagesAreSentTo(consumer);
 
-                CONSUMER.suspendTransfer(transferProcessId);
+                CONSUMER.suspendTransfer(transferProcessId, "any reason");
                 CONSUMER.awaitTransferToBeInState(transferProcessId, SUSPENDED);
                 assertNoMoreMessagesAreSentTo(consumer);
 

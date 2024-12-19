@@ -457,11 +457,11 @@ public class Participant {
      *
      * @param id transfer process id.
      */
-    public void suspendTransfer(String id) {
+    public void suspendTransfer(String id, String reason) {
         var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "SuspendTransfer")
-                .add("reason", "any reason");
+                .add("reason", reason);
 
         managementEndpoint.baseRequest()
                 .contentType(JSON)
