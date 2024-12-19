@@ -18,16 +18,17 @@ import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.SystemExtension;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,54 +71,51 @@ public class EmbeddedRuntime extends BaseRuntime {
     @Override
     public void boot(boolean addShutdownHook) {
         var monitor = super.createMonitor();
-        try {
-            monitor.info("Starting runtime %s".formatted(name));
 
-            // Temporarily inject system properties.
-            var savedProperties = (Properties) System.getProperties().clone();
-            properties.forEach(System::setProperty);
+        monitor.info("Starting runtime %s".formatted(name));
 
-            var runtimeException = new AtomicReference<Exception>();
-            var latch = new CountDownLatch(1);
+        serviceLocator.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(properties));
 
-            runtimeThread = executorService.submit(() -> {
-                try {
-                    var classLoader = URLClassLoader.newInstance(classPathEntries);
+        var runtimeThrowable = new AtomicReference<Throwable>();
+        var latch = new CountDownLatch(1);
 
-                    Thread.currentThread().setContextClassLoader(classLoader);
+        runtimeThread = executorService.submit(() -> {
+            try {
+                var classLoader = URLClassLoader.newInstance(classPathEntries);
 
-                    super.boot(false);
+                Thread.currentThread().setContextClassLoader(classLoader);
 
-                    latch.countDown();
+                super.boot(false);
 
-                    isRunning.set(true);
-                } catch (Exception e) {
-                    runtimeException.set(e);
-                    throw new EdcException(e);
-                }
-            });
+                latch.countDown();
 
-            if (!latch.await(20, SECONDS)) {
-                throw new EdcException("Failed to start EDC runtime", runtimeException.get());
+                isRunning.set(true);
+            } catch (Throwable e) {
+                runtimeThrowable.set(e);
             }
+        });
 
-            monitor.info("Runtime %s started".formatted(name));
-            // Restore system properties.
-            System.setProperties(savedProperties);
-        } catch (Exception e) {
-            throw new EdcException(e);
+        try {
+            if (!latch.await(20, SECONDS)) {
+                throw new EdcException("Failed to start EDC runtime", runtimeThrowable.get());
+            }
+        } catch (InterruptedException e) {
+            throw new EdcException("Failed to start EDC runtime", runtimeThrowable.get());
         }
 
+        monitor.info("Runtime %s started".formatted(name));
     }
 
     @Override
     public void shutdown() {
         serviceLocator.clearSystemExtensions();
-        super.shutdown();
+        if (isRunning()) {
+            super.shutdown();
+            isRunning.set(false);
+        }
         if (runtimeThread != null && !runtimeThread.isDone()) {
             runtimeThread.cancel(true);
         }
-        isRunning.set(false);
     }
 
     @Override
