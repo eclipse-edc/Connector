@@ -171,50 +171,67 @@ class TransferPullEndToEndTest {
 
         @Test
         void suspendAndResumeByConsumer_httpPull_dataTransfer_withEdrCache() {
-            var assetId = start_httpPull_dataTransfer();
-            var startedTransferContext = checkStarted_httpPull_dataTransfer(assetId);
+            var assetId = createResources();
+            var startedTransferContext = assertTransferProcessIsStarted(assetId);
+            var edrMessage = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             CONSUMER.suspendTransfer(startedTransferContext.consumerTransferProcessId, "any reason");
-            checkSuspended_httpPull_dataTransfer(startedTransferContext);
+            PROVIDER.awaitTransferToBeInState(startedTransferContext.providerTransferProcessId, SUSPENDED);
+            CONSUMER.awaitTransferToBeInState(startedTransferContext.consumerTransferProcessId, SUSPENDED);
+            assertDataIsNotAccessible(startedTransferContext.consumerTransferProcessId, edrMessage.getKey(), edrMessage.getValue());
 
             CONSUMER.resumeTransfer(startedTransferContext.consumerTransferProcessId);
-            checkResumed_httpPull_dataTransfer(startedTransferContext);
+            PROVIDER.awaitTransferToBeInState(startedTransferContext.providerTransferProcessId, STARTED);
+            CONSUMER.awaitTransferToBeInState(startedTransferContext.consumerTransferProcessId, STARTED);
+            assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             providerDataSource.verify(request("/source").withMethod("GET"));
         }
 
         @Test
         void suspendAndResumeByProvider_httpPull_dataTransfer_withEdrCache() {
-            var assetId = start_httpPull_dataTransfer();
-            var startedTransferContext = checkStarted_httpPull_dataTransfer(assetId);
+            var assetId = createResources();
+            var startedTransferContext = assertTransferProcessIsStarted(assetId);
+            var edrMessage = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             PROVIDER.suspendTransfer(startedTransferContext.providerTransferProcessId, "any reason");
-            checkSuspended_httpPull_dataTransfer(startedTransferContext);
+            PROVIDER.awaitTransferToBeInState(startedTransferContext.providerTransferProcessId, SUSPENDED);
+            CONSUMER.awaitTransferToBeInState(startedTransferContext.consumerTransferProcessId, SUSPENDED);
+            assertDataIsNotAccessible(startedTransferContext.consumerTransferProcessId, edrMessage.getKey(), edrMessage.getValue());
 
             PROVIDER.resumeTransfer(startedTransferContext.providerTransferProcessId);
-            checkResumed_httpPull_dataTransfer(startedTransferContext);
+            PROVIDER.awaitTransferToBeInState(startedTransferContext.providerTransferProcessId, STARTED);
+            CONSUMER.awaitTransferToBeInState(startedTransferContext.consumerTransferProcessId, STARTED);
+            assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
+
 
             providerDataSource.verify(request("/source").withMethod("GET"));
         }
 
         @Test
         void terminateByProvider_httpPull_dataTransfer() {
-            var assetId = start_httpPull_dataTransfer();
-            var startedTransferContext = checkStarted_httpPull_dataTransfer(assetId);
+            var assetId = createResources();
+            var startedTransferContext = assertTransferProcessIsStarted(assetId);
+            var edrMessage = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             PROVIDER.terminateTransfer(startedTransferContext.providerTransferProcessId);
-            checkTerminated_httpPull_dataTransfer(startedTransferContext);
+            CONSUMER.awaitTransferToBeInState(startedTransferContext.consumerTransferProcessId, TERMINATED);
+            PROVIDER.awaitTransferToBeInState(startedTransferContext.providerTransferProcessId, DEPROVISIONED);
+            assertDataIsNotAccessible(startedTransferContext.consumerTransferProcessId, edrMessage.getKey(), edrMessage.getValue());
 
             providerDataSource.verify(request("/source").withMethod("GET"));
         }
 
         @Test
         void terminateByConsumer_httpPull_dataTransfer() {
-            var assetId = start_httpPull_dataTransfer();
-            var startedTransferContext = checkStarted_httpPull_dataTransfer(assetId);
+            var assetId = createResources();
+            var startedTransferContext = assertTransferProcessIsStarted(assetId);
+            var edrMessage = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             CONSUMER.terminateTransfer(startedTransferContext.consumerTransferProcessId);
-            checkTerminated_httpPull_dataTransfer(startedTransferContext);
+            CONSUMER.awaitTransferToBeInState(startedTransferContext.consumerTransferProcessId, TERMINATED);
+            PROVIDER.awaitTransferToBeInState(startedTransferContext.providerTransferProcessId, DEPROVISIONED);
+            assertDataIsNotAccessible(startedTransferContext.consumerTransferProcessId, edrMessage.getKey(), edrMessage.getValue());
 
             providerDataSource.verify(request("/source").withMethod("GET"));
         }
@@ -317,14 +334,14 @@ class TransferPullEndToEndTest {
         }
 
 
-        private String start_httpPull_dataTransfer(){
+        private String createResources(){
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());
 
             return assetId;
         }
 
-        private StartedTransferContext checkStarted_httpPull_dataTransfer(String assetId){
+        private StartedTransferContext assertTransferProcessIsStarted(String assetId){
             var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                     .withTransferType("HttpData-PULL")
                     .execute();
@@ -335,30 +352,7 @@ class TransferPullEndToEndTest {
                     .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
             PROVIDER.awaitTransferToBeInState(providerTransferProcessId, STARTED);
 
-            var edrMessage = assertDataIsAccessible(consumerTransferProcessId);
-
-            return new StartedTransferContext(consumerTransferProcessId, providerTransferProcessId, edrMessage.getKey(), edrMessage.getValue());
-        }
-
-        private void checkSuspended_httpPull_dataTransfer(StartedTransferContext startedTransferContext){
-            PROVIDER.awaitTransferToBeInState(startedTransferContext.providerTransferProcessId, SUSPENDED);
-            CONSUMER.awaitTransferToBeInState(startedTransferContext.consumerTransferProcessId, SUSPENDED);
-
-            assertDataIsNotAccessible(startedTransferContext);
-        }
-
-        private void checkResumed_httpPull_dataTransfer(StartedTransferContext startedTransferContext){
-            PROVIDER.awaitTransferToBeInState(startedTransferContext.providerTransferProcessId, STARTED);
-            CONSUMER.awaitTransferToBeInState(startedTransferContext.consumerTransferProcessId, STARTED);
-
-            assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
-        }
-
-        private void checkTerminated_httpPull_dataTransfer(StartedTransferContext startedTransferContext){
-            CONSUMER.awaitTransferToBeInState(startedTransferContext.consumerTransferProcessId, TERMINATED);
-            PROVIDER.awaitTransferToBeInState(startedTransferContext.providerTransferProcessId, DEPROVISIONED);
-
-            assertDataIsNotAccessible(startedTransferContext);
+            return new StartedTransferContext(consumerTransferProcessId, providerTransferProcessId);
         }
 
         private Map.Entry<DataAddress, String> assertDataIsAccessible(String consumerTransferProcessId) {
@@ -369,14 +363,14 @@ class TransferPullEndToEndTest {
             return new AbstractMap.SimpleEntry<>(edr, msg);
         }
 
-        private void assertDataIsNotAccessible(StartedTransferContext startedTransferContext) {
+        private void assertDataIsNotAccessible(String consumerTransferProcessId, DataAddress edr, String msg) {
             // checks that the EDR is gone once the transfer has been suspended
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(startedTransferContext.consumerTransferProcessId)));
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(consumerTransferProcessId)));
             // checks that transfer fails
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(startedTransferContext.edr, Map.of("message", startedTransferContext.msg), body -> assertThat(body).isEqualTo("data"))));
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data"))));
         }
 
-        private record StartedTransferContext (String consumerTransferProcessId, String providerTransferProcessId, DataAddress edr, String msg) { }
+        private record StartedTransferContext(String consumerTransferProcessId, String providerTransferProcessId) { }
 
         /**
          * Mocked http provisioner
