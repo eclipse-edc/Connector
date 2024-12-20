@@ -50,10 +50,10 @@ import org.mockserver.model.HttpStatusCode;
 import org.mockserver.model.MediaType;
 
 import java.time.Instant;
+import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.AbstractMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -332,7 +332,6 @@ class TransferPullEndToEndTest {
                 throw new RuntimeException(e);
             }
         }
-
 
         private String createResources(){
             var assetId = UUID.randomUUID().toString();
