@@ -404,6 +404,39 @@ class TransferProcessProtocolServiceImplTest {
     }
 
     @Test
+    void notifyTerminated_providerTransfer_shouldTerminateDataFlowAndTransitionToDeprovisioning() {
+        var participantAgent = participantAgent();
+        var tokenRepresentation = tokenRepresentation();
+        var message = TransferTerminationMessage.Builder.newInstance()
+                .protocol("protocol")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
+                .counterPartyAddress("http://any")
+                .processId("correlationId")
+                .code("TestCode")
+                .reason("TestReason")
+                .build();
+        var agreement = contractAgreement();
+        var transferProcess = transferProcessBuilder().state(STARTED.code()).type(PROVIDER).build();
+
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+        when(store.findById("correlationId")).thenReturn(transferProcess);
+        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+        when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+        when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
+        var result = service.notifyTerminated(message, tokenRepresentation);
+
+
+        assertThat(result).isSucceeded();
+        verify(listener).preTerminated(any());
+        verify(store, atLeastOnce()).save(argThat(t -> t.getState() == DEPROVISIONING.code()));
+        verify(listener).terminated(any());
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        verify(dataFlowManager).terminate(any());
+    }
+
+    @Test
     void findById_shouldReturnTransferProcess_whenValidCounterParty() {
         var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
@@ -897,12 +930,13 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
             when(validationService.validateRequest(any(ParticipantAgent.class), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
             var result = methodCall.call(service, message, tokenRepresentation());
 
             assertThat(result).isSucceeded();
             var captor = ArgumentCaptor.forClass(TransferProcess.class);
-            verify(store).save(captor.capture());
+            verify(store, atLeastOnce()).save(captor.capture());
             var storedTransferProcess = captor.getValue();
             assertThat(storedTransferProcess.getProtocolMessages().isAlreadyReceived(message.getId())).isTrue();
         }

@@ -57,7 +57,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * Essentially a wrapper around the management API enabling to test interactions with other participants, eg. catalog, transfer...
  */
 public class Participant {
-
     protected String id;
     protected String name;
     protected Endpoint managementEndpoint;
