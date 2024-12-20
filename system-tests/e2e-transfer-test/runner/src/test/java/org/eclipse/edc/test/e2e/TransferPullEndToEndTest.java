@@ -333,14 +333,14 @@ class TransferPullEndToEndTest {
             }
         }
 
-        private String createResources(){
+        private String createResources() {
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());
 
             return assetId;
         }
 
-        private StartedTransferContext startTransferProcess(String assetId){
+        private StartedTransferContext startTransferProcess(String assetId) {
             var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                     .withTransferType("HttpData-PULL")
                     .execute();
