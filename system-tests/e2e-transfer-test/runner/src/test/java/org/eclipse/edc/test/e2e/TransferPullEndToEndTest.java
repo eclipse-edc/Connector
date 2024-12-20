@@ -172,7 +172,7 @@ class TransferPullEndToEndTest {
         @Test
         void suspendAndResumeByConsumer_httpPull_dataTransfer_withEdrCache() {
             var assetId = createResources();
-            var startedTransferContext = assertTransferProcessIsStarted(assetId);
+            var startedTransferContext = startTransferProcess(assetId);
             var edrMessage = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             CONSUMER.suspendTransfer(startedTransferContext.consumerTransferProcessId, "any reason");
@@ -191,7 +191,7 @@ class TransferPullEndToEndTest {
         @Test
         void suspendAndResumeByProvider_httpPull_dataTransfer_withEdrCache() {
             var assetId = createResources();
-            var startedTransferContext = assertTransferProcessIsStarted(assetId);
+            var startedTransferContext = startTransferProcess(assetId);
             var edrMessage = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             PROVIDER.suspendTransfer(startedTransferContext.providerTransferProcessId, "any reason");
@@ -211,7 +211,7 @@ class TransferPullEndToEndTest {
         @Test
         void terminateByProvider_httpPull_dataTransfer() {
             var assetId = createResources();
-            var startedTransferContext = assertTransferProcessIsStarted(assetId);
+            var startedTransferContext = startTransferProcess(assetId);
             var edrMessage = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             PROVIDER.terminateTransfer(startedTransferContext.providerTransferProcessId);
@@ -225,7 +225,7 @@ class TransferPullEndToEndTest {
         @Test
         void terminateByConsumer_httpPull_dataTransfer() {
             var assetId = createResources();
-            var startedTransferContext = assertTransferProcessIsStarted(assetId);
+            var startedTransferContext = startTransferProcess(assetId);
             var edrMessage = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             CONSUMER.terminateTransfer(startedTransferContext.consumerTransferProcessId);
@@ -341,7 +341,7 @@ class TransferPullEndToEndTest {
             return assetId;
         }
 
-        private StartedTransferContext assertTransferProcessIsStarted(String assetId){
+        private StartedTransferContext startTransferProcess(String assetId){
             var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                     .withTransferType("HttpData-PULL")
                     .execute();
