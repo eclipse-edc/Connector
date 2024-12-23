@@ -37,7 +37,7 @@ swagger = "2.2.27"
 titanium = "1.4.1"
 kafkaClients = "3.9.0"
 testcontainers = "1.20.4"
-tink = "1.15.0"
+tink = "1.16.0"
 
 
 [libraries]
