@@ -14,21 +14,21 @@
       "MembershipCredential"
     ],
     "issuer": "did:web:localhost:member0123456789",
-    "expirationDate": "2024-12-31T23:00:00Z",
+    "expirationDate": "2099-12-31T23:00:00Z",
     "proof": {
-      "type": "JsonWebSignature2020",
-      "created": "2022-12-31T23:00:00Z",
+      "created": "2025-01-07T07:58:57.889159Z",
+      "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..MUNffcmHBrGjhQ_oMU8p-HveHXITPrE4op_HdgVyoHr25Ara51AMYZrhoX6fn6CPzCxcELhw3Spzp0P1b1fpeCKeEREjWXbGSXz4TL0eqSnHNxVW4sS2j02ElLsV1wHO",
       "proofPurpose": "assertionMethod",
-      "verificationMethod": "https://org.eclipse.edc/verification-method",
-      "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..SwEkR4duA97jHy_WSVKIHLJqd8i2IidedmlMpUKyeV0YlPNz0pjPEKM9p7PqBb7oRIKG3-5qCxpzNhbsIEZZMzEMjWE1adckJ9SMiNr_G1wiAh3Op0cZHDgZBevIPElG"
+      "type": "JsonWebSignature2020",
+      "verificationMethod": "https://org.eclipse.edc/verification-method"
     }
   },
   "proof": {
-    "verificationMethod": "https://org.eclipse.edc/verification-method",
-    "type": "JsonWebSignature2020",
+    "created": "2025-01-07T07:59:46.273602Z",
+    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..R37HBNsRTuHj1kL2pr5EF3BajeeZkZe9r8i6bWYdU5MnwWr7PP5j845-czUJdfQOYTXZ-pKI8KraVcz88G2F5uaDD9NgDWvOb25QFjVoSAjo5oB1EIedUfQC3hkQId-j",
     "proofPurpose": "assertionMethod",
-    "created": "2022-12-31T23:00:00Z",
-    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..vo8x80Jm5h_qubTcDvrF3VXy6RRXcX0OdWQ8XLg_cXP_3-1-xXqT--dLMpQUfaPsOV-Y5Gu27gsukI73yKiBs63ebQ3Llc8gQB_BrZ5Ianfy4IcLh7dviW1KqtJ3e2y-"
+    "type": "JsonWebSignature2020",
+    "verificationMethod": "https://org.eclipse.edc/verification-method"
   },
   "@context": [
     "https://www.w3.org/ns/did/v1",

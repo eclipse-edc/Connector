@@ -11,7 +11,7 @@
     "MembershipCredential"
   ],
   "issuer": "did:web:localhost:member0123456789",
-  "expirationDate": "2024-12-31T23:00:00Z",
+  "expirationDate": "2099-12-31T23:00:00Z",
   "@context": [
     "https://org.eclipse.edc/linkedCredentialData",
     "https://www.w3.org/ns/did/v1",
