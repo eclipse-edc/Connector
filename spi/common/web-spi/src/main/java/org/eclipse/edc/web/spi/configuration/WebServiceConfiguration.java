@@ -18,7 +18,10 @@ import java.util.Objects;
 
 /**
  * WebService configuration returned from {@link WebServiceConfigurer}
+ *
+ * @deprecated please use {@link PortMapping}.
  */
+@Deprecated(since = "0.11.0")
 public class WebServiceConfiguration {
 
     private Integer port;

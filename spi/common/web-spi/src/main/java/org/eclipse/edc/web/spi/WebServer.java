@@ -23,18 +23,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 @ExtensionPoint
 public interface WebServer {
 
-    String DEFAULT_CONTEXT_NAME = "default";
-
-
-    /**
-     * Adds a new port mapping and thus a new API context to this web server.
-     *
-     * @param contextName the name of the API context.
-     * @param port        the port of the API context.
-     * @param path        the path of the API context.
-     */
-    void addPortMapping(String contextName, int port, String path);
-
     /**
      * Adds a new servlet to the specified context name..
      *
@@ -42,12 +30,5 @@ public interface WebServer {
      * @param servlet     servlet implementation to add.
      */
     void registerServlet(String contextName, Servlet servlet);
-
-    /**
-     * Returns the default context name
-     */
-    default String getDefaultContextName() {
-        return DEFAULT_CONTEXT_NAME;
-    }
 
 }

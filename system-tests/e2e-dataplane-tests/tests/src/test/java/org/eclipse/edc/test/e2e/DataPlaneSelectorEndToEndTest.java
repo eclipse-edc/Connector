@@ -48,6 +48,7 @@ public class DataPlaneSelectorEndToEndTest {
     private final RuntimeExtension controlPlane = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "control-plane",
             Map.of(
+                    "web.http.port", String.valueOf(getFreePort()),
                     "web.http.control.port", String.valueOf(getFreePort()),
                     "web.http.control.path", "/control",
                     "edc.dataplane.client.selector.strategy", SELECT_FIRST,
@@ -70,6 +71,7 @@ public class DataPlaneSelectorEndToEndTest {
     private final RuntimeExtension dataPlane = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "data-plane",
             Map.of(
+                    "web.http.port", String.valueOf(getFreePort()),
                     "web.http.control.port", String.valueOf(dataPlaneControlPort),
                     "web.http.control.path", "/control"
             ),

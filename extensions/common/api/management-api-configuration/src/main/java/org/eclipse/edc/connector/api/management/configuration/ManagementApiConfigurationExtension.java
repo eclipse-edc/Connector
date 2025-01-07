@@ -25,11 +25,12 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFac
 import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -47,12 +48,10 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransfo
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
-import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl;
 
 import java.io.IOException;
@@ -79,31 +78,26 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 @Extension(ManagementApiConfigurationExtension.NAME)
 public class ManagementApiConfigurationExtension implements ServiceExtension {
 
-    public static final String API_VERSION_JSON_FILE = "management-api-version.json";
     public static final String NAME = "Management API configuration";
-    public static final String MANAGEMENT_SCOPE = "MANAGEMENT_API";
-
-    @SettingContext("Management API context setting key")
-    private static final String MANAGEMENT_CONFIG_KEY = "web.http." + ApiContext.MANAGEMENT;
-    public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey(MANAGEMENT_CONFIG_KEY)
-            .contextAlias(ApiContext.MANAGEMENT)
-            .defaultPort(8181)
-            .build();
+    static final String MANAGEMENT_SCOPE = "MANAGEMENT_API";
+    static final int DEFAULT_MANAGEMENT_PORT = 8181;
+    static final String DEFAULT_MANAGEMENT_PATH = "/api/management";
+    private static final String API_VERSION_JSON_FILE = "management-api-version.json";
     private static final boolean DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT = false;
+
     @Setting(description = "Configures endpoint for reaching the Management API, in the format \"<hostname:management.port/management.path>\"", key = "edc.management.endpoint", required = false)
     private String managementApiEndpoint;
     @Setting(description = "If set enable the usage of management api JSON-LD context.", defaultValue = "" + DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT, key = "edc.management.context.enabled")
     private boolean managementApiContextEnabled;
+    @Configuration
+    private ManagementApiConfiguration apiConfiguration;
 
     @Inject
     private WebService webService;
     @Inject
-    private WebServer webServer;
-    @Inject
     private ApiAuthenticationRegistry authenticationRegistry;
     @Inject
-    private WebServiceConfigurer configurator;
+    private PortMappingRegistry portMappingRegistry;
     @Inject
     private TypeManager typeManager;
     @Inject
@@ -125,10 +119,10 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = context.getConfig(MANAGEMENT_CONFIG_KEY);
-        var webServiceConfiguration = configurator.configure(config, webServer, SETTINGS);
+        var portMapping = new PortMapping(ApiContext.MANAGEMENT, apiConfiguration.port(), apiConfiguration.path());
+        portMappingRegistry.register(portMapping);
 
-        context.registerService(ManagementApiUrl.class, managementApiUrl(context, webServiceConfiguration));
+        context.registerService(ManagementApiUrl.class, managementApiUrl(context, portMapping));
 
         var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, "management-api");
         webService.registerResource(ApiContext.MANAGEMENT, authenticationFilter);
@@ -183,8 +177,8 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         }
     }
 
-    private ManagementApiUrl managementApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {
-        var callbackAddress = ofNullable(managementApiEndpoint).orElseGet(() -> format("http://%s:%s%s", hostname.get(), config.getPort(), config.getPath()));
+    private ManagementApiUrl managementApiUrl(ServiceExtensionContext context, PortMapping config) {
+        var callbackAddress = ofNullable(managementApiEndpoint).orElseGet(() -> format("http://%s:%s%s", hostname.get(), config.port(), config.path()));
         try {
             var url = URI.create(callbackAddress);
             return () -> url;
@@ -192,5 +186,15 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
             context.getMonitor().severe("Error creating management plane endpoint url", e);
             throw new EdcException(e);
         }
+    }
+
+    @Settings
+    record ManagementApiConfiguration(
+            @Setting(key = "web.http." + ApiContext.MANAGEMENT + ".port", description = "Port for " + ApiContext.MANAGEMENT + " api context", defaultValue = DEFAULT_MANAGEMENT_PORT + "")
+            int port,
+            @Setting(key = "web.http." + ApiContext.MANAGEMENT + ".path", description = "Path for " + ApiContext.MANAGEMENT + " api context", defaultValue = DEFAULT_MANAGEMENT_PATH)
+            String path
+    ) {
+
     }
 }

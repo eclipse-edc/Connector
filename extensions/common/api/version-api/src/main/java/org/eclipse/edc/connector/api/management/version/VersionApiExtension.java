@@ -16,20 +16,21 @@ package org.eclipse.edc.connector.api.management.version;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.eclipse.edc.connector.api.management.version.v1.VersionApiController;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
 import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
-import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -39,17 +40,12 @@ public class VersionApiExtension implements ServiceExtension {
 
     public static final String NAME = "Management API: Version Information";
 
-    @SettingContext("Version API context setting key")
-    private static final String VERSION_CONFIG_KEY = "web.http." + ApiContext.VERSION;
-
-    public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey(VERSION_CONFIG_KEY)
-            .contextAlias(ApiContext.VERSION)
-            .defaultPath("/.well-known/api")
-            .defaultPort(7171)
-            .build();
+    private static final String DEFAULT_VERSION_PATH = "/.well-known/api";
+    private static final int DEFAULT_VERSION_PORT = 7171;
 
     private static final String API_VERSION_JSON_FILE = "version-api-version.json";
+    @Configuration
+    private VersionApiConfiguration apiConfiguration;
     @Inject
     private WebService webService;
     @Inject
@@ -57,9 +53,7 @@ public class VersionApiExtension implements ServiceExtension {
     @Inject
     private ApiVersionService apiVersionService;
     @Inject
-    private WebServiceConfigurer configurator;
-    @Inject
-    private WebServer webServer;
+    private PortMappingRegistry portMappingRegistry;
 
     @Override
     public String name() {
@@ -68,8 +62,8 @@ public class VersionApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = context.getConfig(VERSION_CONFIG_KEY);
-        configurator.configure(config, webServer, SETTINGS);
+        var portMapping = new PortMapping(ApiContext.VERSION, apiConfiguration.port(), apiConfiguration.path());
+        portMappingRegistry.register(portMapping);
 
         webService.registerResource(ApiContext.VERSION, new VersionApiController(apiVersionService));
         registerVersionInfo(getClass().getClassLoader());
@@ -87,5 +81,15 @@ public class VersionApiExtension implements ServiceExtension {
         } catch (IOException e) {
             throw new EdcException(e);
         }
+    }
+
+    @Settings
+    record VersionApiConfiguration(
+            @Setting(key = "web.http." + ApiContext.VERSION + ".port", description = "Port for " + ApiContext.VERSION + " api context", defaultValue = DEFAULT_VERSION_PORT + "")
+            int port,
+            @Setting(key = "web.http." + ApiContext.VERSION + ".path", description = "Path for " + ApiContext.VERSION + " api context", defaultValue = DEFAULT_VERSION_PATH)
+            String path
+    ) {
+
     }
 }

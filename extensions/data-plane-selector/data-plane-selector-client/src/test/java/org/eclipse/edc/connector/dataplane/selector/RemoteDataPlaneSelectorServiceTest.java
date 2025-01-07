@@ -54,6 +54,7 @@ class RemoteDataPlaneSelectorServiceTest {
     public final RuntimeExtension client = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "client",
             Map.of(
+                    "web.http.port", String.valueOf(getFreePort()),
                     "edc.dpf.selector.url", "http://localhost:%d/control/v1/dataplanes".formatted(port),
                     "edc.core.retry.retries.max", "0"
             ),
@@ -65,6 +66,7 @@ class RemoteDataPlaneSelectorServiceTest {
     public final RuntimeExtension server = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "server",
             Map.of(
+                    "web.http.port", String.valueOf(getFreePort()),
                     "edc.dpf.selector.url", "http://not-used-but-mandatory",
                     "web.http.control.port", port + "",
                     "web.http.control.path", "/control"

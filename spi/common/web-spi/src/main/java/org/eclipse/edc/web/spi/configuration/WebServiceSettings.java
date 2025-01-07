@@ -16,6 +16,7 @@ package org.eclipse.edc.web.spi.configuration;
 
 import java.util.Objects;
 
+@Deprecated(since = "0.11.0")
 public class WebServiceSettings {
 
     private String apiConfigKey;

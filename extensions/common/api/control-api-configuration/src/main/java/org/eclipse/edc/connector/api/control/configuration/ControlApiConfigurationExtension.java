@@ -18,11 +18,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -32,12 +33,10 @@ import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
-import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 
 import java.io.IOException;
@@ -64,23 +63,18 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class ControlApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Control API configuration";
+    static final String CONTROL_SCOPE = "CONTROL_API";
+    static final int DEFAULT_CONTROL_PORT = 9191;
+    static final String DEFAULT_CONTROL_PATH = "/api/control";
+    private static final String API_VERSION_JSON_FILE = "control-api-version.json";
 
     @Setting(description = "Configures endpoint for reaching the Control API. If it's missing it defaults to the hostname configuration.", key = "edc.control.endpoint", required = false)
     private String controlEndpoint;
-    public static final String CONTROL_SCOPE = "CONTROL_API";
-    @SettingContext("Control API context setting key")
-    private static final String CONTROL_CONFIG_KEY = "web.http." + ApiContext.CONTROL;
-    public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey(CONTROL_CONFIG_KEY)
-            .contextAlias(ApiContext.CONTROL)
-            .defaultPort(9191)
-            .build();
-    private static final String API_VERSION_JSON_FILE = "control-api-version.json";
+    @Configuration
+    private ControlApiConfiguration apiConfiguration;
 
     @Inject
-    private WebServer webServer;
-    @Inject
-    private WebServiceConfigurer configurator;
+    private PortMappingRegistry portMappingRegistry;
     @Inject
     private WebService webService;
     @Inject
@@ -91,7 +85,6 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
     private TypeManager typeManager;
     @Inject
     private ApiAuthenticationRegistry authenticationRegistry;
-
     @Inject
     private ApiVersionService apiVersionService;
 
@@ -102,10 +95,10 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = context.getConfig(CONTROL_CONFIG_KEY);
-        var controlApiConfiguration = configurator.configure(config, webServer, SETTINGS);
+        var portMapping = new PortMapping(ApiContext.CONTROL, apiConfiguration.port(), apiConfiguration.path());
+        portMappingRegistry.register(portMapping);
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
-        context.registerService(ControlApiUrl.class, controlApiUrl(context, controlApiConfiguration));
+        context.registerService(ControlApiUrl.class, controlApiUrl(context, portMapping));
 
         jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, CONTROL_SCOPE);
         jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_SCOPE);
@@ -134,8 +127,8 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
         }
     }
 
-    private ControlApiUrl controlApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {
-        var callbackAddress = ofNullable(controlEndpoint).orElseGet(() -> format("http://%s:%s%s", hostname.get(), config.getPort(), config.getPath()));
+    private ControlApiUrl controlApiUrl(ServiceExtensionContext context, PortMapping config) {
+        var callbackAddress = ofNullable(controlEndpoint).orElseGet(() -> format("http://%s:%s%s", hostname.get(), config.port(), config.path()));
         
         try {
             var url = URI.create(callbackAddress);
@@ -144,5 +137,15 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
             context.getMonitor().severe("Error creating control plane endpoint url", e);
             throw new EdcException(e);
         }
+    }
+
+    @Settings
+    record ControlApiConfiguration(
+            @Setting(key = "web.http." + ApiContext.CONTROL + ".port", description = "Port for " + ApiContext.CONTROL + " api context", defaultValue = DEFAULT_CONTROL_PORT + "")
+            int port,
+            @Setting(key = "web.http." + ApiContext.CONTROL + ".path", description = "Path for " + ApiContext.CONTROL + " api context", defaultValue = DEFAULT_CONTROL_PATH)
+            String path
+    ) {
+
     }
 }
