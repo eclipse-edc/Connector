@@ -17,12 +17,14 @@ package org.eclipse.edc.web.spi.configuration;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.web.spi.WebServer;
 
 /**
  * Configure an API extension
+ *
+ * @deprecated please use {@link PortMappingRegistry} service.
  */
 @ExtensionPoint
+@Deprecated(since = "0.11.0")
 public interface WebServiceConfigurer {
 
     String WEB_HTTP_PREFIX = "web.http";
@@ -31,9 +33,10 @@ public interface WebServiceConfigurer {
      * Build the configuration for an API
      *
      * @param config    The context configuration
-     * @param webServer The WebServer
      * @param settings  WebService settings
      * @return The final webservice configuration
+     * @deprecated please use {@link PortMappingRegistry}
      */
-    WebServiceConfiguration configure(Config config, WebServer webServer, WebServiceSettings settings);
+    @Deprecated(since = "0.11.0")
+    WebServiceConfiguration configure(Config config, WebServiceSettings settings);
 }

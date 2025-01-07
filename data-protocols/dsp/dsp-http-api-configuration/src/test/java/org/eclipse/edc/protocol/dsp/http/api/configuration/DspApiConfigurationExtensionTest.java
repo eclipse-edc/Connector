@@ -20,16 +20,14 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +44,8 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.SETTINGS;
+import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.DEFAULT_PROTOCOL_PATH;
+import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.DEFAULT_PROTOCOL_PORT;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -61,18 +60,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class DspApiConfigurationExtensionTest {
 
-    private final WebServiceConfigurer configurer = mock();
-    private final WebServer webServer = mock();
     private final WebService webService = mock();
     private final TypeManager typeManager = mock();
     private final JsonLd jsonLd = mock();
+    private final PortMappingRegistry portMappingRegistry = mock();
 
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(WebServer.class, webServer);
+        context.registerService(PortMappingRegistry.class, portMappingRegistry);
         context.registerService(WebService.class, webService);
-        context.registerService(WebServiceConfigurer.class, configurer);
         context.registerService(TypeManager.class, typeManager);
         context.registerService(Hostname.class, () -> "hostname");
         context.registerService(JsonLd.class, jsonLd);
@@ -80,11 +77,6 @@ class DspApiConfigurationExtensionTest {
         when(typeTransformerRegistry.forContext(any())).thenReturn(mock());
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
 
-        var webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
-                .path("/path")
-                .port(1234)
-                .build();
-        when(configurer.configure(any(Config.class), any(), any())).thenReturn(webServiceConfiguration);
         when(typeManager.getMapper(any())).thenReturn(mock());
     }
 
@@ -94,8 +86,8 @@ class DspApiConfigurationExtensionTest {
 
         extension.initialize(context);
 
-        verify(configurer).configure(any(Config.class), eq(webServer), eq(SETTINGS));
-        assertThat(context.getService(ProtocolWebhook.class).url()).isEqualTo("http://hostname:1234/path");
+        verify(portMappingRegistry).register(new PortMapping(ApiContext.PROTOCOL, DEFAULT_PROTOCOL_PORT, DEFAULT_PROTOCOL_PATH));
+        assertThat(context.getService(ProtocolWebhook.class).url()).isEqualTo("http://hostname:%s%s".formatted(DEFAULT_PROTOCOL_PORT, DEFAULT_PROTOCOL_PATH));
     }
 
     @Test
@@ -110,7 +102,7 @@ class DspApiConfigurationExtensionTest {
 
         extension.initialize(context);
 
-        verify(configurer).configure(any(Config.class), eq(webServer), eq(SETTINGS));
+        verify(portMappingRegistry).register(new PortMapping(ApiContext.PROTOCOL, 1234, "/path"));
         assertThat(context.getService(ProtocolWebhook.class).url()).isEqualTo("http://webhook");
     }
 

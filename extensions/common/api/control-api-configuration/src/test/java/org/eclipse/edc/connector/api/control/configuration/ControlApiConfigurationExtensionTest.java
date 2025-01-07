@@ -25,8 +25,9 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,8 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.CONTROL_SCOPE;
+import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.DEFAULT_CONTROL_PATH;
+import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.DEFAULT_CONTROL_PORT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
@@ -53,24 +56,17 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 public class ControlApiConfigurationExtensionTest {
 
-    private final WebServiceConfigurer configurator = mock();
+    private final PortMappingRegistry portMappingRegistry = mock();
     private final WebService webService = mock();
     private final JsonLd jsonLd = mock();
 
-    private final WebServiceConfiguration webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
-            .path("/path")
-            .port(1234)
-            .build();
-
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(WebServiceConfigurer.class, configurator);
+        context.registerService(PortMappingRegistry.class, portMappingRegistry);
         context.registerService(Hostname.class, () -> "hostname");
         context.registerService(WebService.class, webService);
         context.registerService(TypeManager.class, new JacksonTypeManager());
         context.registerService(JsonLd.class, jsonLd);
-
-        when(configurator.configure(any(), any(), any())).thenReturn(webServiceConfiguration);
     }
 
     @Test
@@ -79,8 +75,9 @@ public class ControlApiConfigurationExtensionTest {
 
         extension.initialize(context);
 
+        verify(portMappingRegistry).register(new PortMapping(ApiContext.CONTROL, DEFAULT_CONTROL_PORT, DEFAULT_CONTROL_PATH));
         var url = context.getService(ControlApiUrl.class);
-        assertThat(url.get().toString()).isEqualTo("http://hostname:1234/path");
+        assertThat(url.get().toString()).isEqualTo("http://hostname:%s%s".formatted(DEFAULT_CONTROL_PORT, DEFAULT_CONTROL_PATH));
     }
 
     @Test
