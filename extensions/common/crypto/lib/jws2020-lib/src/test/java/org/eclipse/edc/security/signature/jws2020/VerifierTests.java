@@ -44,7 +44,7 @@ class VerifierTests {
 
     @DisplayName("t0002: forged credentials subject")
     @Test
-    void verify_forgedSubject() throws VerificationError, DocumentError {
+    void verify_forgedSubject() {
         var vc = readResourceAsJson("jws2020/verifying/0002_vc_forged.json");
         assertThatThrownBy(() -> verifier.verify(vc)).isInstanceOf(VerificationError.class);
     }
@@ -67,7 +67,7 @@ class VerifierTests {
 
     @DisplayName("t0005: proof set having one forged proof")
     @Test
-    void verify_oneForgedProof() throws VerificationError, DocumentError {
+    void verify_oneForgedProof() {
         var vc = readResourceAsJson("jws2020/verifying/0005_vc_one_forged_proof.json");
         assertThatThrownBy(() -> verifier.verify(vc)).isInstanceOf(VerificationError.class);
     }
@@ -82,7 +82,7 @@ class VerifierTests {
     @Disabled("did:key is not supported")
     @DisplayName("t0006: DID key as verification method (not yet supported)")
     @Test
-    void verify_didKeyAsVerificationMethod() throws VerificationError, DocumentError {
+    void verify_didKeyAsVerificationMethod() {
         var vc = readResourceAsJson("jws2020/verifying/0006_vc_did_key.json");
         assertThatThrownBy(() -> verifier.verify(vc)).isInstanceOf(UnsupportedOperationException.class)
                 .hasMessage("Cannot deserialize public key, expected JWK format");
@@ -98,7 +98,7 @@ class VerifierTests {
 
     @DisplayName("t0008: forged signed VP")
     @Test
-    void verify_forgedSignedVp() throws VerificationError, DocumentError {
+    void verify_forgedSignedVp() {
         var vc = readResourceAsJson("jws2020/verifying/0007_vp_compacted_forged.json");
         assertThatThrownBy(() -> verifier.verify(vc)).isInstanceOf(VerificationError.class);
     }

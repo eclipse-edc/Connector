@@ -11,31 +11,31 @@
     "MembershipCredential"
   ],
   "issuer": "did:web:localhost:member0123456789",
-  "expirationDate": "2024-12-31T23:00:00Z",
+  "expirationDate": "2099-12-31T23:00:00Z",
   "proof": [
     {
-      "type": "JsonWebSignature2020",
-      "created": "2022-12-31T23:00:00Z",
+      "created": "2025-01-07T07:58:57.889159Z",
+      "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..MUNffcmHBrGjhQ_oMU8p-HveHXITPrE4op_HdgVyoHr25Ara51AMYZrhoX6fn6CPzCxcELhw3Spzp0P1b1fpeCKeEREjWXbGSXz4TL0eqSnHNxVW4sS2j02ElLsV1wHO",
       "proofPurpose": "assertionMethod",
-      "verificationMethod": {
-        "type": "JsonWebKey2020",
-        "publicKeyJwk": {
-          "kty": "OKP",
-          "use": "sig",
-          "crv": "Ed25519",
-          "kid": "5887dc79-c009-407a-8c37-70fcd924a01d",
-          "x": "xNg3NR6296VQs_knTHXFhk3XDbPq281onF4E7O-B7E8"
-        },
-        "id": "https://org.eclipse.edc/keys/bb5331ac-e114-42c3-8b39-75b3a67ecde1"
-      },
-      "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFZERTQSJ9..h0ArjC72Tfd5C4AgmK8rtLNpsm2OLN8X8QY9omubagVEE1aBaBAKbuxm4VEWYkHSnMXcsH5kESGZ4E1cSLDoDg"
+      "type": "JsonWebSignature2020",
+      "verificationMethod": "https://org.eclipse.edc/verification-method"
     },
     {
-      "type": "JsonWebSignature2020",
-      "created": "2022-12-31T23:00:00Z",
+      "created": "2025-01-07T08:15:28.929673Z",
+      "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..TJCK_b4oJNaq7xAybTObJgKXci2Ax7yYYQXF3duCoFPpNulyrcnlRRdFIcl3yQ-Beq9qdQi00Gw3XObUawoIGoiCqgA12pAxa8dgUB4mOctFpTv1ix_nLERRoSSsc_yu",
       "proofPurpose": "assertionMethod",
-      "verificationMethod": "https://org.eclipse.edc/verification-method",
-      "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..ITV0pAeQEyB2621UivBNAPKL7tEGoQ79huZFKV64i3TOxKfOGYCZJfUp0GMWDmyFI-WkSXd0aqxF62CyFt5_AZrhlPFhefwHIOb9WIbUUaa96xN5-_wzfL3qa2MuADCh"
+      "type": "JsonWebSignature2020",
+      "verificationMethod": {
+        "controller": "did:key:zQ3shP2mWsZYWgvgM11nenXRTx9L1yiJKmkf9dfX7NaMKb1pX",
+        "id": "https://org.eclipse.edc/keys/3f00670d-8910-45eb-9153-1a00ad0f72f1",
+        "publicKeyJwk": {
+          "crv": "P-384",
+          "kty": "EC",
+          "x": "AqMfyYAh2SMf8bMoLbE6mOCbVyz8hukpBqrVheAFP4Anz2_cfzLEKKROD5EaAxSo",
+          "y": "P4KceKXv31JasLqvBPZWA9t1S2cMiHIQQ8ttAl5cFX3xBuzIPlgTRWPOVaNPWNFl"
+        },
+        "type": "JsonWebKey2020"
+      }
     }
   ],
   "@context": [
