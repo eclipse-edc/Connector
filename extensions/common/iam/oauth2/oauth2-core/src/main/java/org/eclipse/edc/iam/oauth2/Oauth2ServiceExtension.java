@@ -51,9 +51,12 @@ import static java.util.Optional.ofNullable;
 
 /**
  * Provides OAuth2 client credentials flow support.
+ *
+ * @deprecated please switch to DCP.
  */
 @Provides({ IdentityService.class })
 @Extension(value = Oauth2ServiceExtension.NAME)
+@Deprecated(since = "0.10.0")
 public class Oauth2ServiceExtension implements ServiceExtension {
 
     public static final String NAME = "OAuth2 Identity Service";

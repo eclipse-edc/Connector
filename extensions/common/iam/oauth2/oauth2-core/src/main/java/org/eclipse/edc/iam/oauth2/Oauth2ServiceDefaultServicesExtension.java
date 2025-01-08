@@ -22,7 +22,10 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 /**
  * Provides default service implementations for fallback
  * Omitted {@link org.eclipse.edc.runtime.metamodel.annotation.Extension} since this module already contains {@link Oauth2ServiceExtension}
+ *
+ * @deprecated please switch to DCP.
  */
+@Deprecated(since = "0.10.0")
 public class Oauth2ServiceDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "OAuth2 Core Default Services";
