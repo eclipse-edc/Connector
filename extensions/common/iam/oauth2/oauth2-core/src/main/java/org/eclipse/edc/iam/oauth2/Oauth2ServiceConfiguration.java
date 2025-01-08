@@ -21,7 +21,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 
 /**
  * Configuration values and dependencies for {@link Oauth2ServiceImpl}.
+ *
+ * @deprecated please switch to DCP.
  */
+@Deprecated(since = "0.10.0")
 @Settings
 public class Oauth2ServiceConfiguration {
     static final String ISSUED_AT_LEEWAY = "edc.oauth.validation.issued.at.leeway";

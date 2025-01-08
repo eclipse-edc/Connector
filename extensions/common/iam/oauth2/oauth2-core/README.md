@@ -1,5 +1,7 @@
 # OAuth 2 Identity Service
 
+**DEPRECATED**: this repo has been deprecated in version 0.10.0 and it will be deleted in the upcoming versions.
+
 This extension provides an `IdentityService` implementation based on the OAuth2 protocol for authorization.
 
 ## Configuration
