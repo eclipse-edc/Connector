@@ -179,6 +179,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
             return this;
         }
 
+        @Deprecated(since = "0.7.0")
         public Builder allowedDestType(String type) {
             entity.allowedDestTypes.add(type);
             return this;
@@ -208,6 +209,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
             return this;
         }
 
+        @Deprecated(since = "0.7.0")
         public Builder allowedDestTypes(Set<String> types) {
             entity.allowedDestTypes = types;
             return this;
