@@ -12,12 +12,11 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.api;
+package org.eclipse.edc.connector.dataplane.selector.api.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.dataplane.selector.api.model.SelectionRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
@@ -33,11 +32,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.api.schemas.DataPlaneInstanceSchema.DATAPLANE_INSTANCE_EXAMPLE;
-import static org.eclipse.edc.connector.dataplane.selector.api.schemas.SelectionRequestSchema.SELECTION_REQUEST_INPUT_EXAMPLE;
+import static org.eclipse.edc.connector.dataplane.selector.api.v3.DataPlaneInstanceSchemaV3.DATAPLANE_INSTANCE_EXAMPLE;
 import static org.mockito.Mockito.mock;
 
-public class DataPlaneApiSelectorTest {
+public class DataPlaneApiSelectorV3Test {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());
@@ -67,24 +65,6 @@ public class DataPlaneApiSelectorTest {
                     assertThat(transformed.getAllowedDestTypes()).containsExactlyInAnyOrder("your-dest-type");
                     assertThat(transformed.getAllowedSourceTypes()).containsExactlyInAnyOrder("source-type1", "source-type2");
                     assertThat(transformed.getAllowedTransferTypes()).containsExactlyInAnyOrder("transfer-type");
-                });
-    }
-
-    @Test
-    void selectionRequestInputExample() throws JsonProcessingException {
-
-        var jsonObject = objectMapper.readValue(SELECTION_REQUEST_INPUT_EXAMPLE, JsonObject.class);
-        assertThat(jsonObject).isNotNull();
-
-        var expanded = jsonLd.expand(jsonObject);
-        AbstractResultAssert.assertThat(expanded).isSucceeded()
-                .extracting(e -> transformer.transform(e, SelectionRequest.class).getContent())
-                .isNotNull()
-                .satisfies(transformed -> {
-                    assertThat(transformed.getStrategy()).isNotBlank();
-                    assertThat(transformed.getDestination()).isNotNull();
-                    assertThat(transformed.getSource()).isNotNull();
-                    assertThat(transformed.getTransferType()).isNotNull();
                 });
     }
 

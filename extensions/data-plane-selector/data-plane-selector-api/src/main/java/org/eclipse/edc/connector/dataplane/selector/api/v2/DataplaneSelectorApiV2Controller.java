@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.dataplane.selector.api.model.SelectionRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -36,6 +37,7 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import java.time.Clock;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
+import static org.eclipse.edc.api.ApiWarnings.deprecationWarning;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -50,18 +52,22 @@ public class DataplaneSelectorApiV2Controller implements DataplaneSelectorApiV2 
     private final JsonObjectValidatorRegistry validatorRegistry;
 
     private final Clock clock;
+    private final Monitor monitor;
 
-    public DataplaneSelectorApiV2Controller(DataPlaneSelectorService selectionService, TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validatorRegistry, Clock clock) {
+    public DataplaneSelectorApiV2Controller(DataPlaneSelectorService selectionService, TypeTransformerRegistry transformerRegistry,
+                                            JsonObjectValidatorRegistry validatorRegistry, Clock clock, Monitor monitor) {
         this.selectionService = selectionService;
         this.transformerRegistry = transformerRegistry;
         this.validatorRegistry = validatorRegistry;
         this.clock = clock;
+        this.monitor = monitor;
     }
 
     @Override
     @POST
     @Path("select")
     public JsonObject selectDataPlaneInstanceV2(JsonObject requestObject) {
+        monitor.warning(deprecationWarning("/v2", "/v3"));
         var request = transformerRegistry.transform(requestObject, SelectionRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
@@ -77,6 +83,7 @@ public class DataplaneSelectorApiV2Controller implements DataplaneSelectorApiV2 
     @Override
     @POST
     public JsonObject addDataPlaneInstanceV2(JsonObject jsonObject) {
+        monitor.warning(deprecationWarning("/v2", "/v3"));
         validatorRegistry.validate(DATAPLANE_INSTANCE_TYPE, jsonObject).orElseThrow(ValidationFailureException::new);
 
         var instance = transformerRegistry.transform(jsonObject, DataPlaneInstance.class)
@@ -97,6 +104,7 @@ public class DataplaneSelectorApiV2Controller implements DataplaneSelectorApiV2 
     @Override
     @GET
     public JsonArray getAllDataPlaneInstancesV2() {
+        monitor.warning(deprecationWarning("/v2", "/v3"));
         var instances = selectionService.getAll().orElseThrow(exceptionMapper(DataPlaneInstance.class));
         return instances.stream()
                 .map(i -> transformerRegistry.transform(i, JsonObject.class))

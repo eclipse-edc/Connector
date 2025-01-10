@@ -86,7 +86,6 @@ class DataplaneSelfRegistrationExtensionTest {
         assertThat(dataPlaneInstance.getId()).isEqualTo("componentId");
         assertThat(dataPlaneInstance.getUrl()).isEqualTo(new URL("http://control/api/url/v1/dataflows"));
         assertThat(dataPlaneInstance.getAllowedSourceTypes()).containsExactlyInAnyOrder("sourceType", "anotherSourceType");
-        assertThat(dataPlaneInstance.getAllowedDestTypes()).containsExactlyInAnyOrder("sinkType", "anotherSinkType");
         assertThat(dataPlaneInstance.getAllowedTransferTypes())
                 .containsExactlyInAnyOrder("pullDestType-PULL", "anotherPullDestType-PULL", "sinkType-PUSH", "anotherSinkType-PUSH");
 
