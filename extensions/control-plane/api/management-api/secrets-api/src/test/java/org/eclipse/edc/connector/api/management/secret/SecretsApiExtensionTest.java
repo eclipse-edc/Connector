@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.management.secret;
 
 import org.eclipse.edc.connector.api.management.secret.transform.JsonObjectFromSecretTransformer;
 import org.eclipse.edc.connector.api.management.secret.transform.JsonObjectToSecretTransformer;
-import org.eclipse.edc.connector.api.management.secret.v1.SecretsApiV1Controller;
 import org.eclipse.edc.connector.api.management.secret.v3.SecretsApiV3Controller;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -55,7 +54,6 @@ class SecretsApiExtensionTest {
     void initialize_shouldRegisterControllers(SecretsApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(SecretsApiV1Controller.class));
         verify(webService).registerResource(any(), isA(SecretsApiV3Controller.class));
     }
 

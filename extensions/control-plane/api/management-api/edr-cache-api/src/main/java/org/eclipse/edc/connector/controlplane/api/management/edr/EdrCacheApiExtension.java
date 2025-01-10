@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.edr;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.api.management.edr.transform.JsonObjectFromEndpointDataReferenceEntryTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.edr.v1.EdrCacheApiV1Controller;
 import org.eclipse.edc.connector.controlplane.api.management.edr.v3.EdrCacheApiV3Controller;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -61,7 +60,6 @@ public class EdrCacheApiExtension implements ServiceExtension {
 
         managementTypeTransformerRegistry.register(new JsonObjectFromEndpointDataReferenceEntryTransformer(jsonFactory));
 
-        webService.registerResource(ApiContext.MANAGEMENT, new EdrCacheApiV1Controller(edrStore, managementTypeTransformerRegistry, validator, monitor));
         webService.registerResource(ApiContext.MANAGEMENT, new EdrCacheApiV3Controller(edrStore, managementTypeTransformerRegistry, validator, monitor));
     }
 }

@@ -18,7 +18,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -44,7 +43,6 @@ public class DataPlaneApiSelectorV4Test {
     @BeforeEach
     void setUp() {
         transformer.register(new JsonObjectToDataPlaneInstanceTransformer());
-        transformer.register(new JsonObjectToSelectionRequestTransformer());
         transformer.register(new JsonObjectToDataAddressTransformer());
         transformer.register(new JsonValueToGenericTypeTransformer(objectMapper));
     }

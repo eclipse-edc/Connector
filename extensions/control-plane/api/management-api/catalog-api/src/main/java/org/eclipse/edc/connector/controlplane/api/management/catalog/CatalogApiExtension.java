@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.catalog;
 
 import org.eclipse.edc.connector.controlplane.api.management.catalog.transform.JsonObjectToCatalogRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.transform.JsonObjectToDatasetRequestTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.catalog.v2.CatalogApiV2Controller;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.v31alpha.CatalogApiV31AlphaController;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.CatalogRequestValidator;
@@ -66,7 +65,6 @@ public class CatalogApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToDatasetRequestTransformer());
 
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
-        webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV2Controller(service, managementApiTransformerRegistry, validatorRegistry, context.getMonitor()));
         webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV3Controller(service, managementApiTransformerRegistry, validatorRegistry));
         webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV31AlphaController(service, managementApiTransformerRegistry, validatorRegistry));
 

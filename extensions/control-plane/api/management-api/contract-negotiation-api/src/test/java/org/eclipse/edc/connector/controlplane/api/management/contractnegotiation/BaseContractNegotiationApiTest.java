@@ -21,7 +21,7 @@ import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v2.ContractNegotiationApiV2;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation.ContractRequestValidator;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
@@ -82,7 +82,7 @@ public abstract class BaseContractNegotiationApiTest {
     void offerExample() throws JsonProcessingException {
         var validator = ContractRequestValidator.offerValidator(JsonObjectValidator.newValidator()).build();
 
-        var jsonObject = objectMapper.readValue(ContractNegotiationApiV2.OfferSchema.OFFER_EXAMPLE, JsonObject.class);
+        var jsonObject = objectMapper.readValue(ContractNegotiationApiV3.OfferSchema.OFFER_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
 
         var expanded = jsonLd.expand(jsonObject);

@@ -26,7 +26,7 @@ import jakarta.json.JsonArray;
 import jakarta.ws.rs.GET;
 
 @OpenAPIDefinition(info = @Info(version = "v4"))
-@Tag(name = "Dataplane Selector V4")
+@Tag(name = "Dataplane Selector v4alpha")
 public interface DataplaneSelectorApiV4 {
 
     @Operation(method = "GET",

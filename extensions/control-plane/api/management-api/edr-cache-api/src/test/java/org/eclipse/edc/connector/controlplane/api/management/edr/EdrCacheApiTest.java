@@ -23,7 +23,7 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.edr.v1.EdrCacheApiV1.EndpointDataReferenceEntrySchema.EDR_ENTRY_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.edr.v3.EdrCacheApiV3.EndpointDataReferenceEntrySchema.EDR_ENTRY_OUTPUT_EXAMPLE;
 import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY_AGREEMENT_ID;
 import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY_ASSET_ID;
 import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY_CONTRACT_NEGOTIATION_ID;
