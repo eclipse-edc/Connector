@@ -18,7 +18,6 @@ import org.eclipse.edc.junit.extensions.ClasspathReader;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 
 import java.net.URL;
-import java.util.Map;
 
 /**
  * Runtimes for E2E transfer test.
@@ -66,10 +65,11 @@ public enum Runtimes {
         this.modules = modules;
     }
 
-    public EmbeddedRuntime create(String name, Map<String, String> configuration) {
+    public EmbeddedRuntime create(String name) {
         if (classpathEntries == null) {
             classpathEntries = ClasspathReader.classpathFor(modules);
         }
-        return new EmbeddedRuntime(name, configuration, classpathEntries);
+        return new EmbeddedRuntime(name, classpathEntries);
     }
+
 }
