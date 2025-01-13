@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
@@ -30,6 +31,7 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.DataModelVersion;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
@@ -39,6 +41,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -76,7 +79,7 @@ class DefaultCredentialServiceClientTest {
     void setup() {
         transformerRegistry = mock(TypeTransformerRegistry.class);
         when(transformerRegistry.transform(any(), eq(VerifiablePresentation.class)))
-                .thenReturn(success(createPresentation()));
+                .thenReturn(success(createPresentation().build()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(PresentationResponseMessage.class))).thenAnswer(this::presentationResponse);
 
         var jsonLdMock = mock(JsonLd.class);
@@ -95,97 +98,163 @@ class DefaultCredentialServiceClientTest {
         var scopes = List.of("customScope");
         var result = client.requestPresentation(CS_URL, "foo", scopes);
         assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JSON_LD);
+        assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.VC1_0_LD);
         verify(httpClientMock).execute(argThat((r) -> containsScope(r, scopes)));
     }
 
-    @Test
-    @DisplayName("CS returns a single LDP-VP")
-    void requestPresentation_singleLdpVp() throws IOException {
+    @Nested
+    class VcDataModel11 {
+        @Test
+        @DisplayName("CS returns a single LDP-VP")
+        void requestPresentation_singleLdpVp() throws IOException {
 
-        when(httpClientMock.execute(any()))
-                .thenReturn(response(200, getResourceFileContentAsString("single_ldp-vp.json")));
+            when(httpClientMock.execute(any()))
+                    .thenReturn(response(200, getResourceFileContentAsString("single_ldp-vp.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JSON_LD);
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+            var result = client.requestPresentation(CS_URL, "foo", List.of());
+            assertThat(result.succeeded()).isTrue();
+            assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.VC1_0_LD);
+            verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+        }
+
+        @Test
+        @DisplayName("CS returns a single JWT-VP")
+        void requestPresentation_singleJwtVp() throws IOException {
+            when(httpClientMock.execute(any()))
+                    .thenReturn(response(200, getResourceFileContentAsString("single_jwt-vp.json")));
+
+            var result = client.requestPresentation(CS_URL, "foo", List.of());
+            assertThat(result.succeeded()).isTrue();
+            assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.VC1_0_JWT);
+            verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+        }
+
+        @Test
+        @DisplayName("CS returns multiple VPs, one LDP-VP and a JWT-VP")
+        void requestPresentationLdp_multipleVp_mixed() throws IOException {
+            when(httpClientMock.execute(any()))
+                    .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_mixed.json")));
+
+            var result = client.requestPresentation(CS_URL, "foo", List.of());
+            assertThat(result.succeeded()).isTrue();
+            assertThat(result.getContent()).hasSize(2)
+                    .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.VC1_0_LD))
+                    .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.VC1_0_JWT));
+            verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+        }
+
+        @Test
+        @DisplayName("CS returns multiple LDP-VPs")
+        void requestPresentation_multipleVp_onlyLdp() throws IOException {
+            when(httpClientMock.execute(any()))
+                    .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_ldp.json")));
+
+            var result = client.requestPresentation(CS_URL, "foo", List.of());
+            assertThat(result.succeeded()).isTrue();
+            assertThat(result.getContent()).hasSize(2)
+                    .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.VC1_0_LD));
+            verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+        }
+
+        @Test
+        @DisplayName("CS returns multiple JWT-VPs")
+        void requestPresentation_multipleVp_onlyJwt() throws IOException {
+            when(httpClientMock.execute(any()))
+                    .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_jwt.json")));
+
+            var result = client.requestPresentation(CS_URL, "foo", List.of());
+            assertThat(result.succeeded()).isTrue();
+            assertThat(result.getContent()).hasSize(2)
+                    .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.VC1_0_JWT));
+            verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+        }
+
+        @ParameterizedTest(name = "CS returns HTTP error code {0}")
+        @ValueSource(ints = { 400, 401, 403, 503, 501 })
+        void requestPresentation_csReturnsError(int httpCode) throws IOException {
+            when(httpClientMock.execute(any()))
+                    .thenReturn(response(httpCode, "Test failure"));
+
+            var res = client.requestPresentation(CS_URL, "foo", List.of());
+            assertThat(res.failed()).isTrue();
+            assertThat(res.getFailureDetail()).isEqualTo("Presentation Query failed: HTTP %s, message: Test failure".formatted(httpCode));
+            verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+        }
+
+        @DisplayName("CS returns an empty array, because no VC was found")
+        @Test
+        void requestPresentation_emptyArray() throws IOException {
+            when(httpClientMock.execute(any()))
+                    .thenReturn(response(200, "{\"presentation\":[],\"presentationSubmission\":null}"));
+
+            var res = client.requestPresentation(CS_URL, "foo", List.of());
+            assertThat(res.succeeded()).isTrue();
+            assertThat(res.getContent()).isNotNull().doesNotContainNull().isEmpty();
+            verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+        }
     }
 
-    @Test
-    @DisplayName("CS returns a single JWT-VP")
-    void requestPresentation_singleJwtVp() throws IOException {
-        when(httpClientMock.execute(any()))
-                .thenReturn(response(200, getResourceFileContentAsString("single_jwt-vp.json")));
+    @Nested
+    class VcDataModel20 {
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JWT);
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
-    }
+        @Test
+        @DisplayName("CS returns a single Enveloped Credential")
+        void requestPresentation_singleEnvelopedCredential() throws IOException {
+            when(transformerRegistry.transform(any(), eq(VerifiablePresentation.class)))
+                    .thenReturn(success(createPresentation()
+                            .credentials(List.of(createCredential().dataModelVersion(DataModelVersion.V_2_0).build()))
+                            .dataModelVersion(DataModelVersion.V_2_0)
+                            .build()));
 
-    @Test
-    @DisplayName("CS returns multiple VPs, one LDP-VP and a JWT-VP")
-    void requestPresentationLdp_multipleVp_mixed() throws IOException {
-        when(httpClientMock.execute(any()))
-                .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_mixed.json")));
+            when(httpClientMock.execute(any()))
+                    .thenReturn(response(200, getResourceFileContentAsString("vcdm20_pres_with_single_cred.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).hasSize(2)
-                .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JSON_LD))
-                .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JWT));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
-    }
+            var result = client.requestPresentation(CS_URL, "foo", List.of());
+            assertThat(result.succeeded()).isTrue();
+            var containers = result.getContent();
+            assertThat(containers).hasSize(1);
+            assertThat(containers.get(0).presentation().getCredentials()).hasSize(1).allMatch(cred -> cred.getDataModelVersion() == DataModelVersion.V_2_0);
+            assertThat(containers.get(0).format()).isEqualTo(CredentialFormat.VC2_0_JOSE);
+        }
 
-    @Test
-    @DisplayName("CS returns multiple LDP-VPs")
-    void requestPresentation_mulipleVp_onlyLdp() throws IOException {
-        when(httpClientMock.execute(any()))
-                .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_ldp.json")));
+        @Test
+        @DisplayName("CS returns multiple Enveloped Credentials")
+        void requestPresentation_multipleEnvelopedCredentials() throws IOException {
+            when(transformerRegistry.transform(any(), eq(VerifiablePresentation.class)))
+                    .thenReturn(success(createPresentation()
+                            .credentials(List.of(createCredential().dataModelVersion(DataModelVersion.V_2_0).build(),
+                                    createCredential().dataModelVersion(DataModelVersion.V_2_0).build()))
+                            .dataModelVersion(DataModelVersion.V_2_0)
+                            .build()));
+            when(httpClientMock.execute(any()))
+                    .thenReturn(response(200, getResourceFileContentAsString("vcdm20_pres_with_multiple_cred.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).hasSize(2)
-                .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JSON_LD));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
-    }
+            var result = client.requestPresentation(CS_URL, "foo", List.of());
+            assertThat(result.succeeded()).isTrue();
+            var containers = result.getContent();
+            assertThat(containers).hasSize(1);
+            assertThat(containers.get(0).presentation().getCredentials()).hasSize(2).allMatch(cred -> cred.getDataModelVersion() == DataModelVersion.V_2_0);
+            assertThat(containers.get(0).format()).isEqualTo(CredentialFormat.VC2_0_JOSE);
+        }
 
-    @Test
-    @DisplayName("CS returns multiple JWT-VPs")
-    void requestPresentation_mulipleVp_onlyJwt() throws IOException {
-        when(httpClientMock.execute(any()))
-                .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_jwt.json")));
+        @Test
+        @DisplayName("Enveloped Presentation with no credentials")
+        void requestPresentation_noCredentials() throws IOException {
+            when(transformerRegistry.transform(any(), eq(VerifiablePresentation.class)))
+                    .thenReturn(success(createPresentation()
+                            .credentials(List.of())
+                            .dataModelVersion(DataModelVersion.V_2_0)
+                            .build()));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).hasSize(2)
-                .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JWT));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
-    }
+            when(httpClientMock.execute(any()))
+                    .thenReturn(response(200, getResourceFileContentAsString("vcdm20_pres_with_single_cred.json")));
 
-    @ParameterizedTest(name = "CS returns HTTP error code {0}")
-    @ValueSource(ints = { 400, 401, 403, 503, 501 })
-    void requestPresentation_csReturnsError(int httpCode) throws IOException {
-        when(httpClientMock.execute(any()))
-                .thenReturn(response(httpCode, "Test failure"));
-
-        var res = client.requestPresentation(CS_URL, "foo", List.of());
-        assertThat(res.failed()).isTrue();
-        assertThat(res.getFailureDetail()).isEqualTo("Presentation Query failed: HTTP %s, message: Test failure".formatted(httpCode));
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
-    }
-
-    @DisplayName("CS returns an empty array, because no VC was found")
-    @Test
-    void requestPresentation_emptyArray() throws IOException {
-        when(httpClientMock.execute(any()))
-                .thenReturn(response(200, "{\"presentation\":[],\"presentationSubmission\":null}"));
-
-        var res = client.requestPresentation(CS_URL, "foo", List.of());
-        assertThat(res.succeeded()).isTrue();
-        assertThat(res.getContent()).isNotNull().doesNotContainNull().isEmpty();
-        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+            var result = client.requestPresentation(CS_URL, "foo", List.of());
+            assertThat(result.succeeded()).isTrue();
+            var containers = result.getContent();
+            assertThat(containers).hasSize(1);
+            assertThat(containers.get(0).presentation().getCredentials()).isEmpty();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -205,29 +274,21 @@ class DefaultCredentialServiceClientTest {
         }
     }
 
-    private VerifiablePresentation createPresentation() {
+    private VerifiablePresentation.Builder createPresentation() {
         return VerifiablePresentation.Builder.newInstance()
                 .type("VerifiablePresentation")
-                .credential(VerifiableCredential.Builder.newInstance()
-                        .issuer(new Issuer("test-issuer", Map.of()))
-                        .type("VerifiableCredential")
-                        .issuanceDate(Instant.now())
-                        .credentialSubject(CredentialSubject.Builder.newInstance()
-                                .id("test-subject")
-                                .claim("foo", "bar")
-                                .build())
-                        .build())
-                .build();
+                .credential(createCredential().build());
     }
 
-    private Result<PresentationResponseMessage> presentationResponseResult(String path) {
-        var content = getResourceFileContentAsString(path);
-        try {
-            var response = mapper.readValue(content, PresentationResponseMessage.class);
-            return Result.success(response);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    private static VerifiableCredential.Builder createCredential() {
+        return VerifiableCredential.Builder.newInstance()
+                .issuer(new Issuer("test-issuer", Map.of()))
+                .type("VerifiableCredential")
+                .issuanceDate(Instant.now())
+                .credentialSubject(CredentialSubject.Builder.newInstance()
+                        .id("test-subject")
+                        .claim("foo", "bar")
+                        .build());
     }
 
     private Result<PresentationResponseMessage> presentationResponse(InvocationOnMock args) {

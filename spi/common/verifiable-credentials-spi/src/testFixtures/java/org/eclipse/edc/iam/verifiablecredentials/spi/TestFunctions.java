@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
@@ -18,7 +19,6 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredentialContainer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 
@@ -53,10 +53,6 @@ public class TestFunctions {
     }
 
     public static VerifiablePresentationContainer createPresentationContainer() {
-        return new VerifiablePresentationContainer("RAW_VP", CredentialFormat.JSON_LD, createPresentationBuilder().type("VerifiableCredential").build());
-    }
-
-    public static VerifiableCredentialContainer createCredentialContainer() {
-        return new VerifiableCredentialContainer("RAW_VC", CredentialFormat.JSON_LD, createCredentialBuilder().type("VerifiableCredential").build());
+        return new VerifiablePresentationContainer("RAW_VP", CredentialFormat.VC1_0_LD, createPresentationBuilder().type("VerifiableCredential").build());
     }
 }

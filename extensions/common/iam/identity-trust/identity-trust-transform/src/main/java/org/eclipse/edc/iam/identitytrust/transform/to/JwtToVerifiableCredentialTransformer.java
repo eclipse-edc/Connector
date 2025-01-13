@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
@@ -17,6 +18,7 @@ package org.eclipse.edc.iam.identitytrust.transform.to;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.DataModelVersion;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -41,6 +43,8 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
     private static final String CREDENTIAL_STATUS_PROPERTY = "credentialStatus";
     private static final String EXPIRATION_DATE_PROPERTY = "expirationDate";
     private static final String ISSUANCE_DATE_PROPERTY = "issuanceDate";
+    private static final String VALID_FROM_PROPERTY = "validFrom";
+    private static final String VALID_UNTIL_PROPERTY = "validUntil";
 
     private final Monitor monitor;
 
@@ -56,10 +60,22 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
             var jwt = SignedJWT.parse(serializedJwt);
             var claims = jwt.getJWTClaimsSet();
 
-            var vcObject = claims.getClaim(VC_CLAIM);
+            Object vcObject;
+            var builder = VerifiableCredential.Builder.newInstance();
 
-            if (vcObject instanceof Map vc) {
-                var builder = VerifiableCredential.Builder.newInstance();
+            if (isVcDataModel2_0(claims)) {
+                vcObject = claims.getClaims(); //in VCDM2.0 the credential is directly stored in the payload
+                builder.dataModelVersion(DataModelVersion.V_2_0);
+            } else {
+                vcObject = claims.getClaim(VC_CLAIM);
+            }
+
+
+            if (vcObject instanceof Map<?, ?> vc) {
+
+                ofNullable(claims.getJWTID())
+                        .or(() -> ofNullable(vc.get("id")).map(Object::toString))
+                        .ifPresent(builder::id);
 
                 // types
                 listOrReturn(vc.get(TYPE_PROPERTY), Object::toString).forEach(builder::type);
@@ -71,12 +87,14 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
                 listOrReturn(vc.get(CREDENTIAL_STATUS_PROPERTY), o -> extractStatus((Map<String, Object>) o)).forEach(builder::credentialStatus);
 
                 // expiration date
-                extractDate(vc.get(EXPIRATION_DATE_PROPERTY), claims.getExpirationTime()).ifPresent(builder::expirationDate);
+                extractDate(vc.get(EXPIRATION_DATE_PROPERTY), claims.getExpirationTime()).or(() -> extractDate(vc.get(VALID_UNTIL_PROPERTY), claims.getExpirationTime())).ifPresent(builder::expirationDate);
 
                 // issuance date
-                extractDate(vc.get(ISSUANCE_DATE_PROPERTY), claims.getIssueTime()).ifPresent(builder::issuanceDate);
+                extractDate(vc.get(ISSUANCE_DATE_PROPERTY), claims.getIssueTime()).or(() -> extractDate(vc.get(VALID_FROM_PROPERTY), claims.getIssueTime())).ifPresent(builder::issuanceDate);
 
-                builder.issuer(new Issuer(claims.getIssuer(), Map.of()));
+                // take issuer from JWT claim of from VC object
+                var issuer = ofNullable(claims.getIssuer()).or(() -> ofNullable(vc.get("issuer")).map(Object::toString)).orElse(null);
+                builder.issuer(new Issuer(issuer, Map.of()));
                 builder.name(claims.getSubject()); // todo: is this correct?
                 return builder.build();
             }

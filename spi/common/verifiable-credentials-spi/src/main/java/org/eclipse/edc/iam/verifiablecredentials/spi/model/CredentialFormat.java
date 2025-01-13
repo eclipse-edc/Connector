@@ -9,12 +9,49 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model;
 
 public enum CredentialFormat {
+    /**
+     * VerifiableCredentials DataModel 1.1, embedded proof (= LD proofs)
+     *
+     * @deprecated use {@link CredentialFormat#VC1_0_LD} instead
+     */
+    @Deprecated(since = "0.11.0")
     JSON_LD,
-    JWT
+    /**
+     * VerifiableCredentials DataModel 1.1, external proofs via JWS (= JWT representation)
+     *
+     * @deprecated use {@link CredentialFormat#VC1_0_JWT} instead
+     */
+    @Deprecated(since = "0.11.0")
+    JWT,
+    /**
+     * VerifiableCredentials DataModel 1.1, embedded proof (= LD proofs)
+     */
+    VC1_0_LD,
+    /**
+     * VerifiableCredentials DataModel 1.1, external proofs via JWS (= JWT representation)
+     */
+    VC1_0_JWT,
+    /**
+     * VerifiableCredentials DataModel 2.0, enveloping proof using JOSE (= JWT representation)
+     */
+    VC2_0_JOSE,
+    /**
+     * VerifiableCredentials DataModel 2.0, enveloping proof using SD-JWT
+     * <p>
+     * Currently not implemented in EDC.
+     */
+    VC2_0_SD_JWT,
+    /**
+     * VerifiableCredentials DataModel 2.0, enveloping proof using COSE (= CBOR representation)
+     * <p>
+     * Currently not implemented in EDC
+     */
+    VC2_0_COSE,
 }

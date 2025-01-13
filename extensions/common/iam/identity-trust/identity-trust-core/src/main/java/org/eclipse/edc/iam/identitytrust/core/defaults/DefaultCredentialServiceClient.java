@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
@@ -28,6 +29,7 @@ import org.eclipse.edc.iam.identitytrust.spi.model.PresentationQueryMessage;
 import org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.DataModelVersion;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -133,12 +135,15 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
 
         return jsonLd.expand(jsonObj)
                 .compose(expanded -> transformerRegistry.transform(expanded, VerifiablePresentation.class))
-                .map(vp -> new VerifiablePresentationContainer(rawStr, CredentialFormat.JSON_LD, vp));
+                .map(vp -> new VerifiablePresentationContainer(rawStr, CredentialFormat.VC1_0_LD, vp));
     }
 
     private Result<VerifiablePresentationContainer> parseJwtVp(String rawJwt) {
         return transformerRegistry.transform(rawJwt, VerifiablePresentation.class)
-                .map(pres -> new VerifiablePresentationContainer(rawJwt, CredentialFormat.JWT, pres));
+                .map(pres -> {
+                    var format = pres.getDataModelVersion() == DataModelVersion.V_2_0 ? CredentialFormat.VC2_0_JOSE : CredentialFormat.VC1_0_JWT;
+                    return new VerifiablePresentationContainer(rawJwt, format, pres);
+                });
 
     }
 

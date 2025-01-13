@@ -9,11 +9,15 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.transform.spi.TypeTransformer;
 
 import java.util.Collection;
@@ -27,7 +31,7 @@ abstract class AbstractJwtTransformer<OUTPUT> implements TypeTransformer<String,
 
 
     protected static final String TYPE_PROPERTY = "type";
-    
+
 
     private final Class<OUTPUT> output;
 
@@ -61,6 +65,18 @@ abstract class AbstractJwtTransformer<OUTPUT> implements TypeTransformer<String,
                     .toList();
         }
         return List.of(mapping.apply(o));
+    }
+
+    protected boolean isVcDataModel2_0(JWTClaimsSet claimsSet) {
+        var context = claimsSet.getClaim(JsonLdKeywords.CONTEXT);
+
+        if (context instanceof List<?> contexts) {
+            return contexts.contains(VcConstants.VC_PREFIX_V2);
+        }
+        if (context instanceof String) {
+            return VcConstants.VC_PREFIX_V2.equals(context.toString());
+        }
+        return false;
     }
 
 }

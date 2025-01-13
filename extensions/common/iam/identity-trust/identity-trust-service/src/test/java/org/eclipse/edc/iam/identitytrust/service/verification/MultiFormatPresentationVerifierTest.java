@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
@@ -356,7 +357,7 @@ class MultiFormatPresentationVerifierTest {
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"");
             var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.JSON_LD, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null)))
                     .isFailed().detail().contains("InvalidSignature");
         }
 
@@ -369,7 +370,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = VP_CONTENT_TEMPLATE.formatted(signedNameCredential);
 
             var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.JSON_LD, null))).isSucceeded();
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null))).isSucceeded();
         }
 
         @DisplayName("contains only LDP-VCs (multiple)")
@@ -386,7 +387,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s".formatted(signedMemberCredential, signedNameCredential));
             var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.JSON_LD, null))).isSucceeded();
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null))).isSucceeded();
         }
 
         @DisplayName("containing both LDP-VC and JWT-VC, JWT gets stripped out during expansion")
@@ -403,7 +404,7 @@ class MultiFormatPresentationVerifierTest {
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1));
             var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.JSON_LD, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null)))
                     .isFailed().detail().contains("InvalidSignature");
             verifyNoInteractions(spy);
         }
@@ -418,7 +419,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s".formatted(signedNameCredential, signedNameCredential));
             var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.JSON_LD, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null)))
                     .isFailed().detail().contains("InvalidSignature");
         }
 
@@ -436,7 +437,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s".formatted(signedMemberCredential, signedNameCredential));
             var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.JSON_LD, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null)))
                     .isFailed().detail().contains("InvalidSignature");
         }
 
@@ -455,7 +456,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = "%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1);
             var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.JSON_LD, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null)))
                     .isFailed().detail().contains("InvalidSignature");
         }
 
@@ -475,7 +476,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1));
             var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.JSON_LD, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null)))
                     .isFailed().detail().contains("InvalidSignature");
         }
 
@@ -487,7 +488,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = VP_CONTENT_TEMPLATE.formatted("");
             var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.JSON_LD, null))).isSucceeded();
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null))).isSucceeded();
         }
 
     }
