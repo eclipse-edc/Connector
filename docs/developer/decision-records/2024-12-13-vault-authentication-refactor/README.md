@@ -116,7 +116,7 @@ The respective tests covering the moved functionality are also moved accordingly
 ### HashiCorp Vault Health Extension
 
 The `get()` method of `HashicorpVaultHealthCheck` is currently using a merge of the response from the Hashicorp Vault Health API and the ability to renew the given token.
-After the refactor, the token renewal is no longer a part of the base `HashicorpVaultExtension`.
+After the refactor, the token renewal lookup functionality  is no longer guaranteed to exist inside the `HashicorpVaultExtension`.
 As such the `get()` method is adjusted and will only return the response from the Hashicorp Vault Health API.
 
 ## Further Considerations
