@@ -118,7 +118,7 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
 
     private @NotNull Stream<String> toTransferTypes(FlowType pull, Set<String> types, Set<String> responseTypes) {
         var transferTypes = types.stream().map(it -> "%s-%s".formatted(it, pull));
-        return Stream.concat(transferTypes, responseTypes.stream().flatMap(responseType -> types.stream().map(it -> "%s-%s/%s".formatted(it, pull, responseType))));
+        return Stream.concat(transferTypes, responseTypes.stream().flatMap(responseType -> types.stream().map(it -> "%s-%s-%s".formatted(it, pull, responseType))));
     }
 
     private class DataPlaneHealthCheck implements LivenessProvider, ReadinessProvider, StartupStatusProvider {
