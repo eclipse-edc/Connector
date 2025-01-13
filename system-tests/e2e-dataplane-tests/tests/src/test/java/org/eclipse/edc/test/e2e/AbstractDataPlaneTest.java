@@ -33,9 +33,8 @@ public abstract class AbstractDataPlaneTest {
     protected static RuntimeExtension runtime =
             new RuntimePerClassExtension(new EmbeddedRuntime(
                     "data-plane",
-                    DATAPLANE.dataPlaneConfiguration(),
                     ":system-tests:e2e-dataplane-tests:runtimes:data-plane"
-            ));
+            ).configurationProvider(DATAPLANE::dataPlaneConfig));
 
     protected void seedVault() {
         var vault = runtime.getService(Vault.class);
