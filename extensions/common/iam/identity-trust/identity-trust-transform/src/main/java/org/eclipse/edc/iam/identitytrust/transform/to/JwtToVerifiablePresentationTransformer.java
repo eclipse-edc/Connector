@@ -38,8 +38,8 @@ public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransform
     private static final String VERIFIABLE_CREDENTIAL_PROPERTY = "verifiableCredential";
     private static final String VERIFIABLE_CREDENTIAL_PROPERTY_ID = "id";
     private static final String VP_CLAIM = "vp";
-    public static final String DATA_URL_VP_JWT = "data:application/vp+jwt,";
-    public static final String DATA_URL_VC_JWT = "data:application/vc+jwt,";
+    private static final String DATA_URL_VP_JWT = "data:application/vp+jwt,";
+    private static final String DATA_URL_VC_JWT = "data:application/vc+jwt,";
 
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
