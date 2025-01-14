@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.contractagreement;
 
-import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v2.ContractAgreementApiV2Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v3.ContractAgreementApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4alpha.ContractAgreementApiV4AlphaController;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
@@ -57,11 +56,9 @@ public class ContractAgreementApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         var managementApiTransformerRegistry = transformerRegistry.forContext(MANAGEMENT_API_CONTEXT);
-        var managementApiTransformerRegistryV31Alpha = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4_ALPHA);
+        var managementApiTransformerRegistryV4Alpha = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4_ALPHA);
 
-
-        webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV2Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
         webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV3Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
-        webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV4AlphaController(service, managementApiTransformerRegistryV31Alpha, monitor, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV4AlphaController(service, managementApiTransformerRegistryV4Alpha, monitor, validatorRegistry));
     }
 }

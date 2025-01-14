@@ -30,8 +30,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.eclipse.edc.connector.api.management.secret.v1.SecretsApiV1.SecretInputSchema.SECRET_INPUT_EXAMPLE;
-import static org.eclipse.edc.connector.api.management.secret.v1.SecretsApiV1.SecretOutputSchema.SECRET_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.api.management.secret.v3.SecretsApiV3.SecretInputSchema.SECRET_INPUT_EXAMPLE;
+import static org.eclipse.edc.connector.api.management.secret.v3.SecretsApiV3.SecretOutputSchema.SECRET_OUTPUT_EXAMPLE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
