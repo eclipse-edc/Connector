@@ -125,11 +125,11 @@ public class EmbeddedRuntime extends BaseRuntime {
         });
 
         try {
-            if (!latch.await(20, SECONDS)) {
+            if (!latch.await(30, SECONDS)) {
                 throw new EdcException("Failed to start EDC runtime", runtimeThrowable.get());
             }
         } catch (InterruptedException e) {
-            throw new EdcException("Failed to start EDC runtime", runtimeThrowable.get());
+            throw new EdcException("Failed to start EDC runtime: interrupted", runtimeThrowable.get());
         }
 
         monitor.info("Runtime %s started".formatted(name));
