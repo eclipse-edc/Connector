@@ -30,4 +30,5 @@ dependencies {
     testFixturesImplementation(libs.assertj)
     testFixturesImplementation(libs.restAssured)
     testFixturesImplementation(libs.awaitility)
+    testFixturesImplementation(libs.mockito.core)
 }

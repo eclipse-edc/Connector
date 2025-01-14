@@ -53,13 +53,13 @@ public class TransferEndToEndParticipant extends Participant {
                 put(PARTICIPANT_ID, id);
                 put("web.http.port", String.valueOf(getFreePort()));
                 put("web.http.path", "/api");
-                put("web.http.protocol.port", String.valueOf(protocolEndpoint.getUrl().getPort()));
-                put("web.http.protocol.path", protocolEndpoint.getUrl().getPath());
-                put("web.http.management.port", String.valueOf(managementEndpoint.getUrl().getPort()));
-                put("web.http.management.path", managementEndpoint.getUrl().getPath());
+                put("web.http.protocol.port", String.valueOf(controlPlaneProtocol.get().getPort()));
+                put("web.http.protocol.path", controlPlaneProtocol.get().getPath());
+                put("web.http.management.port", String.valueOf(controlPlaneManagement.get().getPort()));
+                put("web.http.management.path", controlPlaneManagement.get().getPath());
                 put("web.http.control.port", String.valueOf(controlPlaneControl.get().getPort()));
                 put("web.http.control.path", controlPlaneControl.get().getPath());
-                put("edc.dsp.callback.address", protocolEndpoint.getUrl().toString());
+                put("edc.dsp.callback.address", controlPlaneProtocol.get().toString());
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
                 put("edc.transfer.proxy.endpoint", dataPlanePublic.get().toString());
@@ -128,7 +128,7 @@ public class TransferEndToEndParticipant extends Participant {
      * @return The cached {@link DataAddress}
      */
     public DataAddress getEdr(String transferProcessId) {
-        var dataAddressRaw = managementEndpoint.baseRequest()
+        var dataAddressRaw = baseManagementRequest()
                 .contentType(JSON)
                 .when()
                 .get("/v3/edrs/{id}/dataaddress", transferProcessId)
@@ -189,13 +189,6 @@ public class TransferEndToEndParticipant extends Participant {
             return new Builder();
         }
 
-        @Override
-        public TransferEndToEndParticipant build() {
-            super.managementEndpoint(new Endpoint(URI.create("http://localhost:" + getFreePort() + "/api/management")));
-            super.protocolEndpoint(new Endpoint(URI.create("http://localhost:" + getFreePort() + "/protocol")));
-            super.build();
-            return participant;
-        }
     }
 
 }
