@@ -66,8 +66,8 @@ public class DataPlanePublicApiV2Controller implements DataPlanePublicApiV2 {
         this.executorService = executorService;
     }
 
-    private static Response error(Response.Status status, String error) {
-        return status(status).type(APPLICATION_JSON).entity(new TransferErrorResponse(List.of(error))).build();
+    private static Response error(Response.Status status, List<String> errors) {
+        return status(status).type(APPLICATION_JSON).entity(new TransferErrorResponse(errors)).build();
     }
 
     @GET
@@ -135,13 +135,13 @@ public class DataPlanePublicApiV2Controller implements DataPlanePublicApiV2 {
 
         var token = contextApi.headers().get(HttpHeaders.AUTHORIZATION);
         if (token == null) {
-            response.resume(error(UNAUTHORIZED, "Missing Authorization Header"));
+            response.resume(error(UNAUTHORIZED, List.of("Missing Authorization Header")));
             return;
         }
 
         var sourceDataAddress = authorizationService.authorize(token, buildRequestData(requestContext));
         if (sourceDataAddress.failed()) {
-            response.resume(error(FORBIDDEN, sourceDataAddress.getFailureDetail()));
+            response.resume(error(FORBIDDEN, sourceDataAddress.getFailureMessages()));
             return;
         }
 
@@ -173,11 +173,11 @@ public class DataPlanePublicApiV2Controller implements DataPlanePublicApiV2 {
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
                         if (result.failed()) {
-                            response.resume(error(INTERNAL_SERVER_ERROR, result.getFailureDetail()));
+                            response.resume(error(INTERNAL_SERVER_ERROR, result.getFailureMessages()));
                         }
                     } else {
                         var error = "Unhandled exception occurred during data transfer: " + throwable.getMessage();
-                        response.resume(error(INTERNAL_SERVER_ERROR, error));
+                        response.resume(error(INTERNAL_SERVER_ERROR, List.of(error)));
                     }
                 });
     }

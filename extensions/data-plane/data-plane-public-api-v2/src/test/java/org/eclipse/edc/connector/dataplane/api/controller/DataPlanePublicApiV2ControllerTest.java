@@ -20,6 +20,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
@@ -34,6 +35,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -45,8 +47,8 @@ import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.GENERAL_ERROR;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -117,7 +119,29 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
                 .contentType(JSON)
-                .body("errors[0]", is(GENERAL_ERROR + ": " + errorMsg));
+                .body("errors[0]", is(errorMsg));
+    }
+    
+    @Test
+    void should_returnListOfErrorsAsResponse_if_anythingFails() {
+        var token = UUID.randomUUID().toString();
+        var firstErrorMsg = UUID.randomUUID().toString();
+        var secondErrorMsg = UUID.randomUUID().toString();
+
+        when(dataAddressResolver.resolve(any())).thenReturn(Result.success(testDestAddress()));
+        when(pipelineService.transfer(any(), any()))
+                .thenReturn(completedFuture(StreamResult.failure(new StreamFailure(List.of(firstErrorMsg, secondErrorMsg), StreamFailure.Reason.GENERAL_ERROR))));
+
+        baseRequest()
+                .header(AUTHORIZATION, token)
+                .when()
+                .post("/any")
+                .then()
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .contentType(JSON)
+                .body("errors", isA(List.class))
+                .body("errors[0]", is(firstErrorMsg))
+                .body("errors[1]", is(secondErrorMsg));
     }
 
     @Test
