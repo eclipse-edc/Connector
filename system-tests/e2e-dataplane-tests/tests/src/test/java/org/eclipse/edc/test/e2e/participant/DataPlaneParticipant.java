@@ -87,13 +87,6 @@ public class DataPlaneParticipant extends Participant {
             return new Builder();
         }
 
-        @Override
-        public DataPlaneParticipant build() {
-            super.managementEndpoint(new Endpoint(URI.create("http://localhost:" + getFreePort() + "/api/management")));
-            super.protocolEndpoint(new Endpoint(URI.create("http://localhost:" + getFreePort() + "/protocol")));
-            super.build();
-            return participant;
-        }
     }
 
 }

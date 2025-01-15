@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.UnaryOperator;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -52,6 +53,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTR
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 /**
  * Essentially a wrapper around the management API enabling to test interactions with other participants, eg. catalog, transfer...
@@ -60,13 +62,16 @@ public class Participant {
 
     protected String id;
     protected String name;
+    protected LazySupplier<URI> controlPlaneManagement = new LazySupplier<>(() ->  URI.create("http://localhost:" + getFreePort() + "/management"));
+    protected LazySupplier<URI> controlPlaneProtocol = new LazySupplier<>(() ->  URI.create("http://localhost:" + getFreePort() + "/protocol"));
+    protected UnaryOperator<RequestSpecification> enrichManagementRequest = r -> r;
+    @Deprecated(since = "0.11.0")
     protected Endpoint managementEndpoint;
+    @Deprecated(since = "0.11.0")
     protected Endpoint protocolEndpoint;
     protected JsonLd jsonLd;
     protected ObjectMapper objectMapper;
-
     protected Duration timeout = Duration.ofSeconds(30);
-
     protected String protocol = "dataspace-protocol-http";
 
     protected Participant() {
@@ -88,10 +93,7 @@ public class Participant {
         this.protocol = protocol;
     }
 
-    public Endpoint getProtocolEndpoint() {
-        return protocolEndpoint;
-    }
-
+    @Deprecated(since = "0.11.0")
     public Endpoint getManagementEndpoint() {
         return managementEndpoint;
     }
@@ -116,7 +118,7 @@ public class Participant {
                 .add("dataAddress", createObjectBuilder(dataAddressProperties))
                 .build();
 
-        return managementEndpoint.baseRequest()
+        return baseManagementRequest()
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
@@ -141,13 +143,13 @@ public class Participant {
                 .add("policy", policy)
                 .build();
 
-        return managementEndpoint.baseRequest()
+        return baseManagementRequest()
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
                 .post("/v3/policydefinitions")
                 .then()
-                .log().ifError()
+                .log().ifValidationFails()
                 .statusCode(200)
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);
@@ -178,7 +180,7 @@ public class Participant {
                         .build())
                 .build();
 
-        return managementEndpoint.baseRequest()
+        return baseManagementRequest()
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
@@ -210,7 +212,7 @@ public class Participant {
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "CatalogRequest")
                 .add("counterPartyId", provider.id)
-                .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
+                .add("counterPartyAddress", provider.controlPlaneProtocol.get().toString())
                 .add("protocol", protocol);
 
         if (querySpec != null) {
@@ -218,7 +220,7 @@ public class Participant {
         }
 
         await().atMost(timeout).untilAsserted(() -> {
-            var response = managementEndpoint.baseRequest()
+            var response = baseManagementRequest()
                     .contentType(JSON)
                     .when()
                     .body(requestBodyBuilder.build())
@@ -254,11 +256,11 @@ public class Participant {
                 .add(TYPE, "DatasetRequest")
                 .add(ID, assetId)
                 .add("counterPartyId", provider.id)
-                .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
+                .add("counterPartyAddress", provider.controlPlaneProtocol.get().toString())
                 .add("protocol", protocol)
                 .build();
 
-        var response = managementEndpoint.baseRequest()
+        var response = baseManagementRequest()
                 .contentType(JSON)
                 .when()
                 .body(requestBody)
@@ -303,12 +305,12 @@ public class Participant {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "ContractRequest")
-                .add("counterPartyAddress", provider.protocolEndpoint.getUrl().toString())
+                .add("counterPartyAddress", provider.controlPlaneProtocol.get().toString())
                 .add("protocol", protocol)
                 .add("policy", jsonLd.compact(policy).getContent())
                 .build();
 
-        return managementEndpoint.baseRequest()
+        return baseManagementRequest()
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
@@ -370,7 +372,7 @@ public class Participant {
                 .add("protocol", protocol)
                 .add("contractId", contractAgreementId)
                 .add("connectorId", provider.id)
-                .add("counterPartyAddress", provider.protocolEndpoint.url.toString());
+                .add("counterPartyAddress", provider.controlPlaneProtocol.get().toString());
 
         if (privateProperties != null) {
             requestBodyBuilder.add("privateProperties", privateProperties);
@@ -390,7 +392,7 @@ public class Participant {
 
         var requestBody = requestBodyBuilder.build();
 
-        return managementEndpoint.baseRequest()
+        return baseManagementRequest()
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
@@ -421,7 +423,7 @@ public class Participant {
      * @return The transfer processes
      */
     public JsonArray getTransferProcesses(JsonObject query) {
-        return managementEndpoint.baseRequest()
+        return baseManagementRequest()
                 .contentType(JSON)
                 .body(query)
                 .when()
@@ -444,7 +446,7 @@ public class Participant {
      * @return state of the transfer process.
      */
     public String getTransferProcessState(String id) {
-        return managementEndpoint.baseRequest()
+        return baseManagementRequest()
                 .contentType(JSON)
                 .when()
                 .get("/v3/transferprocesses/{id}/state", id)
@@ -464,7 +466,7 @@ public class Participant {
                 .add(TYPE, "SuspendTransfer")
                 .add("reason", reason);
 
-        managementEndpoint.baseRequest()
+        baseManagementRequest()
                 .contentType(JSON)
                 .body(requestBodyBuilder.build())
                 .when()
@@ -480,7 +482,7 @@ public class Participant {
      * @param id transfer process id.
      */
     public void resumeTransfer(String id) {
-        managementEndpoint.baseRequest()
+        baseManagementRequest()
                 .contentType(JSON)
                 .when()
                 .post("/v3/transferprocesses/{id}/resume", id)
@@ -495,7 +497,7 @@ public class Participant {
                 .add(TYPE, "TerminateTransfer")
                 .add("reason", "any reason");
 
-        managementEndpoint.baseRequest()
+        baseManagementRequest()
                 .contentType(JSON)
                 .body(requestBodyBuilder.build())
                 .when()
@@ -520,7 +522,7 @@ public class Participant {
     }
 
     protected String getContractNegotiationField(String negotiationId, String fieldName) {
-        return managementEndpoint.baseRequest()
+        return baseManagementRequest()
                 .contentType(JSON)
                 .when()
                 .get("/v3/contractnegotiations/{id}", negotiationId)
@@ -554,9 +556,17 @@ public class Participant {
         return contractAgreementId;
     }
 
+    public RequestSpecification baseManagementRequest() {
+        var request = given().baseUri(controlPlaneManagement.get().toString());
+        return enrichManagementRequest.apply(request);
+    }
+
     /**
      * Represent an endpoint exposed by a {@link Participant}.
+     *
+     * @deprecated it will be removed in the upcoming versions.
      */
+    @Deprecated(since = "0.11.0")
     public static class Endpoint {
         private final URI url;
         private final Map<String, String> headers;
@@ -578,6 +588,7 @@ public class Participant {
         public URI getUrl() {
             return url;
         }
+
     }
 
     public static class Builder<P extends Participant, B extends Participant.Builder<P, B>> {
@@ -611,11 +622,13 @@ public class Participant {
             return self();
         }
 
+        @Deprecated(since = "0.11.0")
         public B managementEndpoint(Endpoint managementEndpoint) {
             participant.managementEndpoint = managementEndpoint;
             return self();
         }
 
+        @Deprecated(since = "0.11.0")
         public B protocolEndpoint(Endpoint protocolEndpoint) {
             participant.protocolEndpoint = protocolEndpoint;
             return self();
@@ -631,11 +644,10 @@ public class Participant {
             return self();
         }
 
-        public Participant build() {
+        public P build() {
             Objects.requireNonNull(participant.id, "id");
             Objects.requireNonNull(participant.name, "name");
-            Objects.requireNonNull(participant.managementEndpoint, "managementEndpoint");
-            Objects.requireNonNull(participant.protocolEndpoint, "protocolEndpoint");
+
             if (participant.jsonLd == null) {
                 participant.jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
             }

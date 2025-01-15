@@ -18,15 +18,13 @@ import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import static java.util.Collections.emptyMap;
-
 /**
  * Spin up a static runtime to be used for multiple tests
  */
 public class RuntimePerClassExtension extends RuntimeExtension implements BeforeAllCallback, AfterAllCallback {
 
     public RuntimePerClassExtension() {
-        this(new EmbeddedRuntime("runtime", emptyMap()));
+        this(new EmbeddedRuntime("runtime"));
     }
 
     public RuntimePerClassExtension(EmbeddedRuntime runtime) {
