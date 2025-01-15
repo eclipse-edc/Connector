@@ -133,7 +133,7 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
         when(pipelineService.transfer(any(), any()))
                 .thenReturn(completedFuture(StreamResult.failure(new StreamFailure(List.of(firstErrorMsg, secondErrorMsg), StreamFailure.Reason.GENERAL_ERROR))));
 
-        var response = baseRequest()
+        baseRequest()
                 .header(AUTHORIZATION, token)
                 .when()
                 .post("/any")
@@ -141,12 +141,8 @@ class DataPlanePublicApiV2ControllerTest extends RestControllerTestBase {
                 .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
                 .contentType(JSON)
                 .body("errors", isA(List.class))
-                .extract()
-                .jsonPath();
-        
-        var errors = response.getList("errors", String.class);
-        assertEquals(firstErrorMsg, errors.get(0));
-        assertEquals(secondErrorMsg, errors.get(1));
+                .body("errors[0]", is(firstErrorMsg))
+                .body("errors[1]", is(secondErrorMsg));
     }
 
     @Test
