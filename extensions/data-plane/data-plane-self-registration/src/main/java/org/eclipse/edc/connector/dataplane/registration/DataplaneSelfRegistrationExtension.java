@@ -87,7 +87,6 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
                 .id(context.getComponentId())
                 .url(controlApiUrl.get().toString() + "/v1/dataflows")
                 .allowedSourceTypes(pipelineService.supportedSourceTypes())
-                .allowedDestTypes(pipelineService.supportedSinkTypes())
                 .allowedTransferType(transferTypes.collect(toSet()))
                 .build();
 
@@ -118,8 +117,8 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
     }
 
     private @NotNull Stream<String> toTransferTypes(FlowType pull, Set<String> types, Set<String> responseTypes) {
-        Stream<String> transferTypes = types.stream().map(it -> "%s-%s".formatted(it, pull));
-        return Stream.concat(transferTypes, responseTypes.stream().flatMap(responseType -> types.stream().map(it -> "%s-%s/%s".formatted(it, pull, responseType))));
+        var transferTypes = types.stream().map(it -> "%s-%s".formatted(it, pull));
+        return Stream.concat(transferTypes, responseTypes.stream().flatMap(responseType -> types.stream().map(it -> "%s-%s-%s".formatted(it, pull, responseType))));
     }
 
     private class DataPlaneHealthCheck implements LivenessProvider, ReadinessProvider, StartupStatusProvider {

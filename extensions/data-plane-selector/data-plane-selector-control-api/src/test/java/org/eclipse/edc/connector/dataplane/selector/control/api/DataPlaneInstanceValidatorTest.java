@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_TRANSFER_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
@@ -43,7 +42,6 @@ class DataPlaneInstanceValidatorTest {
                 .add(ID, "id")
                 .add(URL, value("url"))
                 .add(ALLOWED_SOURCE_TYPES, createArrayBuilder().add(value("src")))
-                .add(ALLOWED_DEST_TYPES, createArrayBuilder().add(value("dest")))
                 .add(ALLOWED_TRANSFER_TYPES, createArrayBuilder().add(value("transfer")))
                 .build();
 
@@ -63,7 +61,6 @@ class DataPlaneInstanceValidatorTest {
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(ID))
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(URL))
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(ALLOWED_SOURCE_TYPES))
-                .anySatisfy(v -> assertThat(v.path()).isEqualTo(ALLOWED_DEST_TYPES))
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(ALLOWED_TRANSFER_TYPES));
     }
 
@@ -71,7 +68,6 @@ class DataPlaneInstanceValidatorTest {
     void shouldFail_whenAllowedTypesAreEmpty() {
         var json = createObjectBuilder()
                 .add(ALLOWED_SOURCE_TYPES, createArrayBuilder())
-                .add(ALLOWED_DEST_TYPES, createArrayBuilder())
                 .add(ALLOWED_TRANSFER_TYPES, createArrayBuilder())
                 .build();
 
@@ -80,7 +76,6 @@ class DataPlaneInstanceValidatorTest {
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations, InstanceOfAssertFactories.list(Violation.class))
                 .isNotEmpty()
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(ALLOWED_SOURCE_TYPES))
-                .anySatisfy(v -> assertThat(v.path()).isEqualTo(ALLOWED_DEST_TYPES))
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(ALLOWED_TRANSFER_TYPES));
     }
 

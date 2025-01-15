@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2025 Cofinity-X
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - initial API and implementation
  *
  */
 
@@ -26,21 +26,23 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_TRANSFER_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_STATE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_STATE_TIMESTAMP;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.PROPERTIES;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURN_COUNT;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-public class JsonObjectFromDataPlaneInstanceTransformer extends AbstractJsonLdTransformer<DataPlaneInstance, JsonObject> {
+public class JsonObjectFromDataPlaneInstanceV3Transformer extends AbstractJsonLdTransformer<DataPlaneInstance, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper mapper;
 
-    public JsonObjectFromDataPlaneInstanceTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromDataPlaneInstanceV3Transformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
         super(DataPlaneInstance.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.mapper = mapper;
@@ -52,7 +54,8 @@ public class JsonObjectFromDataPlaneInstanceTransformer extends AbstractJsonLdTr
                 .add(ID, dataPlaneInstance.getId())
                 .add(TYPE, DataPlaneInstance.DATAPLANE_INSTANCE_TYPE)
                 .add(URL, dataPlaneInstance.getUrl().toString())
-                .add(LAST_ACTIVE, dataPlaneInstance.getLastActive());
+                .add(LAST_ACTIVE, dataPlaneInstance.getLastActive())
+                .add(TURN_COUNT, dataPlaneInstance.getTurnCount());
 
         if (dataPlaneInstance.getProperties() != null && !dataPlaneInstance.getProperties().isEmpty()) {
             var propBuilder = jsonFactory.createObjectBuilder();
@@ -62,6 +65,9 @@ public class JsonObjectFromDataPlaneInstanceTransformer extends AbstractJsonLdTr
 
         var srcBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedSourceTypes());
         builder.add(ALLOWED_SOURCE_TYPES, srcBldr);
+
+        var dstBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedDestTypes());
+        builder.add(ALLOWED_DEST_TYPES, dstBldr);
 
         var transferTypesBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedTransferTypes());
         builder.add(ALLOWED_TRANSFER_TYPES, transferTypesBldr);

@@ -50,6 +50,7 @@ dependencies {
     testImplementation(project(":extensions:control-plane:api:management-api:transfer-process-api"))
     testImplementation(project(":extensions:control-plane:api:management-api:secrets-api"))
     testImplementation(project(":extensions:control-plane:api:management-api:edr-cache-api"))
+    testImplementation(project(":extensions:data-plane-selector:data-plane-selector-api"))
 }
 
 edcBuild {

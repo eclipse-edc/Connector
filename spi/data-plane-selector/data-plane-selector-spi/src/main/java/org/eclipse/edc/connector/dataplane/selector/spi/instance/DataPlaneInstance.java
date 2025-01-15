@@ -101,7 +101,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
     public boolean canHandle(DataAddress sourceAddress, @Nullable String transferType) {
         Objects.requireNonNull(sourceAddress, "source cannot be null!");
         Objects.requireNonNull(transferType, "transferType cannot be null!");
-        // startsWith: the allowed transferType could be HttpData-PULL/someResponseChannel, and we only need to match the HttpData-PULL
+        // startsWith: the allowed transferType could be HttpData-PULL-someResponseChannel, and we only need to match the HttpData-PULL
         return allowedSourceTypes.contains(sourceAddress.getType()) && allowedTransferTypes.contains(transferType);
     }
 
@@ -179,6 +179,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
             return this;
         }
 
+        @Deprecated(since = "0.7.0")
         public Builder allowedDestType(String type) {
             entity.allowedDestTypes.add(type);
             return this;
@@ -208,6 +209,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
             return this;
         }
 
+        @Deprecated(since = "0.7.0")
         public Builder allowedDestTypes(Set<String> types) {
             entity.allowedDestTypes = types;
             return this;

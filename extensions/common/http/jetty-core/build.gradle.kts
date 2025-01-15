@@ -17,16 +17,13 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
-    implementation(libs.jetty.websocket)
-
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
 
+    implementation(libs.jetty.websocket)
+
     testImplementation(libs.restAssured)
-    testImplementation(project(":tests:junit-base"));
+    testImplementation(project(":core:common:junit"));
 
 }
-
-

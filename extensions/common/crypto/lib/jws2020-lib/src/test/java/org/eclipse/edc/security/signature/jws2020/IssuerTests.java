@@ -17,12 +17,10 @@ package org.eclipse.edc.security.signature.jws2020;
 import com.apicatalog.jsonld.loader.SchemeRouter;
 import com.apicatalog.ld.DocumentError;
 import com.apicatalog.ld.signature.SigningError;
-import com.apicatalog.ld.signature.VerificationError;
 import com.apicatalog.vc.verifier.Verifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
@@ -195,7 +193,7 @@ class IssuerTests {
     @Test
     void signVerificationDidKey() throws SigningError, DocumentError {
         var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
-        var eckey = (JWK) CryptoConverter.create("""
+        var eckey = CryptoConverter.create("""
                 {
                     "kty": "EC",
                     "d": "UEUJVbKZC3vR-y65gXx8NZVnE0QD5xe6qOk4eiObj-qVOg5zqt9zc0d6fdu4mUuu",
@@ -257,7 +255,7 @@ class IssuerTests {
     }
 
     @Test
-    void signAndVerify() throws JOSEException, SigningError, DocumentError, VerificationError {
+    void signAndVerify() throws JOSEException, SigningError, DocumentError {
         var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
 
         var ecKey = new ECKeyGenerator(Curve.P_256).keyID("test-foo").generate();

@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.contractdefinition;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v2.ContractDefinitionApiV2Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3Controller;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -58,7 +57,6 @@ class ContractDefinitionApiExtensionTest {
     void verifyControllersRegistered(ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(ContractDefinitionApiV2Controller.class));
         verify(webService).registerResource(any(), isA(ContractDefinitionApiV3Controller.class));
     }
 

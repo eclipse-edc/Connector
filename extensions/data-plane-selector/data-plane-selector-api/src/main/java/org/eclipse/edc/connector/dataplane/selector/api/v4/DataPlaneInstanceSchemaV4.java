@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2025 Cofinity-X
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.api.schemas;
+package org.eclipse.edc.connector.dataplane.selector.api.v4;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -25,8 +25,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-@Schema(example = DataPlaneInstanceSchema.DATAPLANE_INSTANCE_EXAMPLE)
-public record DataPlaneInstanceSchema(
+@Schema(example = DataPlaneInstanceSchemaV4.DATAPLANE_INSTANCE_EXAMPLE)
+public record DataPlaneInstanceSchemaV4(
         @Schema(name = CONTEXT, requiredMode = REQUIRED)
         Object context,
         @Schema(name = TYPE, example = DATAPLANE_INSTANCE_TYPE)
@@ -37,9 +37,6 @@ public record DataPlaneInstanceSchema(
         URL url,
         @Schema(requiredMode = REQUIRED)
         Set<String> allowedSourceTypes,
-        @Schema(requiredMode = REQUIRED)
-        Set<String> allowedDestTypes,
-        Integer turnCount,
         Long lastActive,
         String state,
         Long stateTimestamp) {
@@ -54,7 +51,6 @@ public record DataPlaneInstanceSchema(
                     "source-type1",
                     "source-type2"
                 ],
-                "allowedDestTypes": ["your-dest-type"],
                 "allowedTransferTypes": ["transfer-type"],
                 "state": "AVAILABLE",
                 "stateTimestamp": 1688465655

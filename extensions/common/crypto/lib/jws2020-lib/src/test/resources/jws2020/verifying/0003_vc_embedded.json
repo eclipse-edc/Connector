@@ -11,22 +11,23 @@
     "https://org.eclipse.edc/linkedCredentialData#MembershipCredential"
   ],
   "issuer": "did:web:localhost:member0123456789",
-  "expirationDate": "2024-12-31T23:00:00Z",
+  "expirationDate": "2099-12-31T23:00:00Z",
   "proof": {
-    "type": "JsonWebSignature2020",
-    "created": "2022-12-31T23:00:00Z",
+    "created": "2025-01-07T08:03:46.647007Z",
+    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..dcNZ7xhRkdd_OgCtNesBtODrGjhUyWlwArYGLKEXTf9bHFCSt8b886nrFx1f_tUfevezWHi7a-6o62Hjy6LcxyXTSi_EVV_QVoi0ms9AIktqkXzdyVggNmRroetkCAHi",
     "proofPurpose": "assertionMethod",
+    "type": "JsonWebSignature2020",
     "verificationMethod": {
-      "type": "JsonWebKey2020",
+      "controller": "did:key:zQ3shP2mWsZYWgvgM11nenXRTx9L1yiJKmkf9dfX7NaMKb1pX",
+      "id": "https://org.eclipse.edc/keys/a8a73ff1-f8b4-49fd-b128-120cf95c7bfe",
       "publicKeyJwk": {
-        "kty": "EC",
         "crv": "P-384",
+        "kty": "EC",
         "x": "AqMfyYAh2SMf8bMoLbE6mOCbVyz8hukpBqrVheAFP4Anz2_cfzLEKKROD5EaAxSo",
         "y": "P4KceKXv31JasLqvBPZWA9t1S2cMiHIQQ8ttAl5cFX3xBuzIPlgTRWPOVaNPWNFl"
       },
-      "id": "https://org.eclipse.edc/keys/99159241-bbf7-4bcd-8851-c31f186d348d"
-    },
-    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..fhdTmvoci7jqs-Qvlq74abkn2DWQuLHM_KPVk0tAXAVujjPRhs7BB-5uNakehNhrJm1q6sU_vfUwJ2UxO6SaWTP9twp9cTRWhN1hnY_cV1eMht_BLUv7Ld9cuUIJyqrN"
+      "type": "JsonWebKey2020"
+    }
   },
   "@context": [
     "https://www.w3.org/ns/did/v1",

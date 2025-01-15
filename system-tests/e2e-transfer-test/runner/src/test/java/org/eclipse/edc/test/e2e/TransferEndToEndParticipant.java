@@ -16,8 +16,12 @@ package org.eclipse.edc.test.e2e;
 
 import io.restassured.common.mapper.TypeRef;
 import org.assertj.core.api.ThrowingConsumer;
+import org.eclipse.edc.connector.controlplane.test.system.utils.LazySupplier;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.util.io.Ports;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -34,37 +38,31 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public class TransferEndToEndParticipant extends Participant {
 
-    private final URI controlPlaneDefault = URI.create("http://localhost:" + getFreePort());
-    private final URI controlPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
-    private final URI dataPlaneDefault = URI.create("http://localhost:" + getFreePort());
-    private final URI dataPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
-    private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
-    private final int httpProvisionerPort = getFreePort();
+    private final LazySupplier<URI> controlPlaneControl = new LazySupplier<>(() -> URI.create("http://localhost:" + getFreePort() + "/control"));
+    private final LazySupplier<URI> dataPlaneControl = new LazySupplier<>(() -> URI.create("http://localhost:" + getFreePort() + "/control"));
+    private final LazySupplier<URI> dataPlanePublic = new LazySupplier<>(() -> URI.create("http://localhost:" + getFreePort() + "/public"));
+    private final LazySupplier<Integer> httpProvisionerPort = new LazySupplier<>(Ports::getFreePort);
 
     protected TransferEndToEndParticipant() {
         super();
     }
 
-    public int getHttpProvisionerPort() {
-        return httpProvisionerPort;
-    }
-
-    public Map<String, String> controlPlaneConfiguration() {
-        return new HashMap<>() {
+    public Config controlPlaneConfig() {
+        var settings = new HashMap<String, String>() {
             {
                 put(PARTICIPANT_ID, id);
-                put("web.http.port", String.valueOf(controlPlaneDefault.getPort()));
+                put("web.http.port", String.valueOf(getFreePort()));
                 put("web.http.path", "/api");
                 put("web.http.protocol.port", String.valueOf(protocolEndpoint.getUrl().getPort()));
                 put("web.http.protocol.path", protocolEndpoint.getUrl().getPath());
                 put("web.http.management.port", String.valueOf(managementEndpoint.getUrl().getPort()));
                 put("web.http.management.path", managementEndpoint.getUrl().getPath());
-                put("web.http.control.port", String.valueOf(controlPlaneControl.getPort()));
-                put("web.http.control.path", controlPlaneControl.getPath());
+                put("web.http.control.port", String.valueOf(controlPlaneControl.get().getPort()));
+                put("web.http.control.path", controlPlaneControl.get().getPath());
                 put("edc.dsp.callback.address", protocolEndpoint.getUrl().toString());
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
-                put("edc.transfer.proxy.endpoint", dataPlanePublic.toString());
+                put("edc.transfer.proxy.endpoint", dataPlanePublic.get().toString());
                 put("edc.transfer.send.retry.limit", "1");
                 put("edc.transfer.send.retry.base-delay.ms", "100");
                 put("edc.negotiation.consumer.send.retry.limit", "1");
@@ -77,52 +75,50 @@ public class TransferEndToEndParticipant extends Participant {
                 put("edc.transfer.state-machine.iteration-wait-millis", "50");
 
                 put("provisioner.http.entries.default.provisioner.type", "provider");
-                put("provisioner.http.entries.default.endpoint", "http://localhost:%d/provision".formatted(httpProvisionerPort));
+                put("provisioner.http.entries.default.endpoint", "http://localhost:%d/provision".formatted(httpProvisionerPort.get()));
                 put("provisioner.http.entries.default.data.address.type", "HttpProvision");
             }
         };
+
+        return ConfigFactory.fromMap(settings);
     }
 
-    public Map<String, String> controlPlanePostgresConfiguration() {
-        var baseConfiguration = controlPlaneConfiguration();
-        baseConfiguration.putAll(defaultDatasourceConfiguration(getName()));
-        baseConfiguration.put("edc.sql.schema.autocreate", "true");
-        return baseConfiguration;
-    }
-
-    public Map<String, String> dataPlaneConfiguration() {
-        return new HashMap<>() {
+    public Config dataPlaneConfig() {
+        var settings = new HashMap<String, String>() {
             {
-                put("web.http.port", String.valueOf(dataPlaneDefault.getPort()));
+                put("web.http.port", String.valueOf(getFreePort()));
                 put("web.http.path", "/api");
-                put("web.http.public.port", String.valueOf(dataPlanePublic.getPort()));
+                put("web.http.public.port", String.valueOf(dataPlanePublic.get().getPort()));
                 put("web.http.public.path", "/public");
-                put("web.http.control.port", String.valueOf(dataPlaneControl.getPort()));
-                put("web.http.control.path", dataPlaneControl.getPath());
+                put("web.http.control.port", String.valueOf(dataPlaneControl.get().getPort()));
+                put("web.http.control.path", dataPlaneControl.get().getPath());
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
-                put("edc.dataplane.api.public.baseurl", dataPlanePublic + "/v2/");
-                put("edc.dataplane.token.validation.endpoint", controlPlaneControl + "/token");
+                put("edc.dataplane.api.public.baseurl", dataPlanePublic.get() + "/v2/");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.dataplane.http.sink.partition.size", "1");
                 put("edc.dataplane.state-machine.iteration-wait-millis", "50");
-                put("edc.dpf.selector.url", controlPlaneControl + "/v1/dataplanes");
+                put("edc.dpf.selector.url", controlPlaneControl.get() + "/v1/dataplanes");
             }
         };
+        return ConfigFactory.fromMap(settings);
     }
 
-    public Map<String, String> controlPlaneEmbeddedDataPlaneConfiguration() {
-        var cfg = dataPlaneConfiguration();
-        cfg.putAll(controlPlaneConfiguration());
-        return cfg;
+    public Config controlPlanePostgresConfig() {
+        return controlPlaneConfig().merge(postgresConfig());
     }
 
-    public Map<String, String> dataPlanePostgresConfiguration() {
-        var baseConfiguration = dataPlaneConfiguration();
-        baseConfiguration.putAll(defaultDatasourceConfiguration(getName()));
-        baseConfiguration.put("edc.sql.schema.autocreate", "true");
-        return baseConfiguration;
+    public Config dataPlanePostgresConfig() {
+        return dataPlaneConfig().merge(postgresConfig());
+    }
+
+    public Config controlPlaneEmbeddedDataPlaneConfig() {
+        return controlPlaneConfig().merge(dataPlaneConfig());
+    }
+
+    public int getHttpProvisionerPort() {
+        return httpProvisionerPort.get();
     }
 
     /**
@@ -147,7 +143,6 @@ public class TransferEndToEndParticipant extends Participant {
         var builder = DataAddress.Builder.newInstance();
         dataAddressRaw.forEach(builder::property);
         return builder.build();
-
     }
 
     /**
@@ -177,6 +172,13 @@ public class TransferEndToEndParticipant extends Participant {
         return System.getProperty("user.dir") + separator + "build" + separator + "resources" + separator + "test" + separator + filename;
     }
 
+    private Config postgresConfig() {
+        var settings = new HashMap<String, String>();
+        settings.put("edc.sql.schema.autocreate", "true");
+        settings.putAll(defaultDatasourceConfiguration(getName()));
+        return ConfigFactory.fromMap(settings);
+    }
+
     public static class Builder extends Participant.Builder<TransferEndToEndParticipant, Builder> {
 
         protected Builder() {
@@ -195,4 +197,5 @@ public class TransferEndToEndParticipant extends Participant {
             return participant;
         }
     }
+
 }

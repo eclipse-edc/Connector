@@ -29,8 +29,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v2.ContractDefinitionApiV2.ContractDefinitionInputSchema.CONTRACT_DEFINITION_INPUT_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v2.ContractDefinitionApiV2.ContractDefinitionOutputSchema.CONTRACT_DEFINITION_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3.ContractDefinitionInputSchema.CONTRACT_DEFINITION_INPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3.ContractDefinitionOutputSchema.CONTRACT_DEFINITION_OUTPUT_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ASSETS_SELECTOR;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;

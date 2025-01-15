@@ -20,6 +20,7 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
@@ -63,19 +64,17 @@ public class ClusteredDataPlaneEndToEndTest {
             .id("urn:connector:provider")
             .build();
 
-    private static final BiFunction<String, DataPlaneParticipant, EmbeddedRuntime> RUNTIME_SUPPLIER = (name, dataPlaneParticipant) -> {
-        var config = dataPlaneParticipant.dataPlaneConfiguration();
-        config.put("edc.runtime.id", name);
-        config.put("edc.sql.schema.autocreate", "true");
-        config.put("edc.core.retry.retries.max", "0");
-        config.putAll(POSTGRESQL.getDatasourceConfiguration());
-        return new EmbeddedRuntime(
-                name,
-                config,
-                ":system-tests:e2e-dataplane-tests:runtimes:data-plane",
-                ":dist:bom:dataplane-feature-sql-bom"
-        );
-    };
+    private static final BiFunction<String, DataPlaneParticipant, EmbeddedRuntime> RUNTIME_SUPPLIER =
+            (name, dataPlaneParticipant) -> new EmbeddedRuntime(
+                    name,
+                    ":system-tests:e2e-dataplane-tests:runtimes:data-plane",
+                    ":dist:bom:dataplane-feature-sql-bom")
+                    .configurationProvider(dataPlaneParticipant::dataPlaneConfig)
+                    .configurationProvider(POSTGRESQL::getDatasourceConfig)
+                    .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
+                            "edc.runtime.id", name,
+                            "edc.sql.schema.autocreate", "true"
+                    )));
 
     private static final EmbeddedRuntime FOO_RUNTIME = RUNTIME_SUPPLIER.apply("foo", FOO_DATAPLANE);
     private static final EmbeddedRuntime BAR_RUNTIME = RUNTIME_SUPPLIER.apply("bar", BAR_DATAPLANE);

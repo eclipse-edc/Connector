@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.sql.testfixtures;
 
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.DriverManagerConnectionFactory;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.SqlQueryExecutor;
@@ -133,6 +135,10 @@ public class PostgresqlStoreSetupExtension implements BeforeEachCallback, Before
             return postgres;
         }
         return null;
+    }
+
+    public Config getDatasourceConfig() {
+        return ConfigFactory.fromMap(getDatasourceConfiguration());
     }
 
     public Map<String, String> getDatasourceConfiguration() {

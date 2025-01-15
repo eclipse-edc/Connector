@@ -385,15 +385,21 @@ class TransferPullEndToEndTest {
 
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
+                        .configurationProvider(CONSUMER::controlPlaneConfig)
+        );
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane", PROVIDER.controlPlaneConfiguration()));
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
+                        .configurationProvider(PROVIDER::controlPlaneConfig)
+        );
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane", PROVIDER.dataPlaneConfiguration()));
+                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
+                        .configurationProvider(PROVIDER::dataPlaneConfig)
+        );
 
         @Override
         protected Vault getDataplaneVault() {
@@ -408,13 +414,21 @@ class TransferPullEndToEndTest {
 
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlaneConfiguration()));
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
+                        .configurationProvider(CONSUMER::controlPlaneConfig)
+        );
+
         @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane", PROVIDER.controlPlaneConfiguration()));
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
+                        .configurationProvider(PROVIDER::controlPlaneConfig)
+        );
+
         @RegisterExtension
         static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane", PROVIDER.dataPlaneConfiguration()));
+                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
+                        .configurationProvider(PROVIDER::dataPlaneConfig)
+        );
 
         // TODO: replace with something better. Temporary hack
         @BeforeAll
@@ -439,11 +453,15 @@ class TransferPullEndToEndTest {
 
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("consumer-control-plane", CONSUMER.controlPlaneEmbeddedDataPlaneConfiguration()));
+                Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("consumer-control-plane")
+                        .configurationProvider(CONSUMER::controlPlaneEmbeddedDataPlaneConfig)
+        );
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("provider-control-plane", PROVIDER.controlPlaneEmbeddedDataPlaneConfiguration()));
+                Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("provider-control-plane")
+                        .configurationProvider(PROVIDER::controlPlaneEmbeddedDataPlaneConfig)
+        );
 
         @Override
         protected Vault getDataplaneVault() {
@@ -464,15 +482,21 @@ class TransferPullEndToEndTest {
 
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane", CONSUMER.controlPlanePostgresConfiguration()));
+                Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane")
+                        .configurationProvider(CONSUMER::controlPlanePostgresConfig)
+        );
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_CONTROL_PLANE.create("provider-control-plane", PROVIDER.controlPlanePostgresConfiguration()));
+                Runtimes.POSTGRES_CONTROL_PLANE.create("provider-control-plane")
+                        .configurationProvider(PROVIDER::controlPlanePostgresConfig)
+        );
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane", PROVIDER.dataPlanePostgresConfiguration()));
+                Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane")
+                        .configurationProvider(PROVIDER::dataPlanePostgresConfig)
+        );
 
         @Override
         protected Vault getDataplaneVault() {

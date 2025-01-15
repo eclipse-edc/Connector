@@ -34,8 +34,6 @@ web.http.path=/api
 
 That will expose any resource under `http://<host>:8181/api/*`.
 
-_Please note that under the hood `web.http.*` gets expanded to `web.http.default.*`_
-
 In some situations it is required to expose a part of the public API under another port or path, which can be achieved
 by using port mappings. First, a "named"
 property group needs to be created using the following configuration. The example will create a port mapping with the

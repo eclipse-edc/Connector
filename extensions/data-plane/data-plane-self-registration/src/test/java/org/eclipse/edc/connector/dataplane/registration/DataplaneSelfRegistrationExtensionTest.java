@@ -75,6 +75,7 @@ class DataplaneSelfRegistrationExtensionTest {
         when(pipelineService.supportedSinkTypes()).thenReturn(Set.of("sinkType", "anotherSinkType"));
         when(pipelineService.supportedSourceTypes()).thenReturn(Set.of("sourceType", "anotherSourceType"));
         when(publicEndpointGeneratorService.supportedDestinationTypes()).thenReturn(Set.of("pullDestType", "anotherPullDestType"));
+        when(publicEndpointGeneratorService.supportedResponseTypes()).thenReturn(Set.of("responseType", "anotherResponseType"));
         when(dataPlaneSelectorService.addInstance(any())).thenReturn(ServiceResult.success());
 
         extension.initialize(context);
@@ -86,9 +87,19 @@ class DataplaneSelfRegistrationExtensionTest {
         assertThat(dataPlaneInstance.getId()).isEqualTo("componentId");
         assertThat(dataPlaneInstance.getUrl()).isEqualTo(new URL("http://control/api/url/v1/dataflows"));
         assertThat(dataPlaneInstance.getAllowedSourceTypes()).containsExactlyInAnyOrder("sourceType", "anotherSourceType");
-        assertThat(dataPlaneInstance.getAllowedDestTypes()).containsExactlyInAnyOrder("sinkType", "anotherSinkType");
         assertThat(dataPlaneInstance.getAllowedTransferTypes())
-                .containsExactlyInAnyOrder("pullDestType-PULL", "anotherPullDestType-PULL", "sinkType-PUSH", "anotherSinkType-PUSH");
+                .containsExactlyInAnyOrder("anotherPullDestType-PULL-anotherResponseType",
+                        "anotherSinkType-PUSH-anotherResponseType",
+                        "anotherPullDestType-PULL",
+                        "anotherSinkType-PUSH-responseType",
+                        "anotherSinkType-PUSH",
+                        "pullDestType-PULL",
+                        "anotherPullDestType-PULL-responseType",
+                        "pullDestType-PULL-anotherResponseType",
+                        "sinkType-PUSH-anotherResponseType",
+                        "pullDestType-PULL-responseType",
+                        "sinkType-PUSH-responseType",
+                        "sinkType-PUSH");
 
         verify(healthCheckService).addStartupStatusProvider(any());
         verify(healthCheckService).addLivenessProvider(any());

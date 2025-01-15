@@ -10,13 +10,13 @@
     "MembershipCredential"
   ],
   "issuer": "did:web:localhost:member0123456789",
-  "expirationDate": "2024-12-31T23:00:00Z",
+  "expirationDate": "2099-12-31T23:00:00Z",
   "proof": {
-    "type": "JsonWebSignature2020",
-    "created": "2022-12-31T23:00:00Z",
-    "proofPurpose": "assertionMethod",
     "verificationMethod": "https://org.eclipse.edc/verification-method",
-    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..5JhJYiqLAMoKtOB7687KFY0FaiFiiCfeWrwG_LUCBIzIBU05Hsvt44aZZrj3QOm9qef25g0Obr8199wtNM_Elh9o25j6n4a99sGMCi38xsDQupCUE6FKwOjxopF49Jex"
+    "type": "JsonWebSignature2020",
+    "proofPurpose": "assertionMethod",
+    "created": "2025-01-07T07:55:59.778743Z",
+    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..GFhdBOtls3uFe-G8WArw1Kb0juGndUEBx6KSZ43rdU-QZ0_vPQpqA9uyKrzM8lQZSqAtnlvTeRiGIw6I7Fs0JFef9vH31kIEdXbhBvRJ8tQm5cGtspH106AvJA1P60ok"
   },
   "@context": [
     "https://www.w3.org/ns/did/v1",

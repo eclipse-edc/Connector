@@ -35,8 +35,8 @@ import static org.eclipse.edc.connector.controlplane.api.management.policy.model
 import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_ERRORS;
 import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_IS_VALID;
 import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_TYPE;
-import static org.eclipse.edc.connector.controlplane.api.management.policy.v2.PolicyDefinitionApiV2.PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.policy.v2.PolicyDefinitionApiV2.PolicyDefinitionOutputSchema.POLICY_DEFINITION_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3.PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3.PolicyDefinitionOutputSchema.POLICY_DEFINITION_OUTPUT_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.api.management.policy.v31alpha.PolicyDefinitionApiV31Alpha.PolicyEvaluationPlanRequestSchema.POLICY_EVALUATION_PLAN_REQUEST_INPUT_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.api.management.policy.v31alpha.PolicyDefinitionApiV31Alpha.PolicyEvaluationPlanSchema.POLICY_EVALUATION_PLANE_OUTPUT_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.api.management.policy.v31alpha.PolicyDefinitionApiV31Alpha.PolicyValidationResultSchema.POLICY_VALIDATION_RESULT_OUTPUT_EXAMPLE;

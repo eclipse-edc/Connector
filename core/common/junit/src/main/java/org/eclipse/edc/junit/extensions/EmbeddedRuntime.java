@@ -27,7 +27,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -35,6 +37,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -44,28 +47,53 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class EmbeddedRuntime extends BaseRuntime {
 
     private final String name;
-    private final Map<String, String> properties;
     private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final MultiSourceServiceLocator serviceLocator;
     private final URL[] classPathEntries;
     private Future<?> runtimeThread;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
+    private final List<Supplier<Config>> configurationProviders = new ArrayList<>();
 
+    public EmbeddedRuntime(String name, String... additionalModules) {
+        this(new MultiSourceServiceLocator(), name, ClasspathReader.classpathFor(additionalModules));
+    }
+
+    public EmbeddedRuntime(String name, URL[] classpathEntries) {
+        this(new MultiSourceServiceLocator(), name, classpathEntries);
+    }
+
+    /**
+     * Deprecated, configuration properties should be passed through {@link #configurationProvider(Supplier)} to being evaluated lazily
+     *
+     * @deprecated configuration properties should be passed through {@link #configurationProvider(Supplier)} to being evaluated lazily
+     */
+    @Deprecated(since = "0.11.0")
     public EmbeddedRuntime(String name, Map<String, String> properties, String... additionalModules) {
         this(new MultiSourceServiceLocator(), name, properties, ClasspathReader.classpathFor(additionalModules));
     }
 
+    /**
+     * Deprecated, configuration properties should be passed through {@link #configurationProvider(Supplier)} to being evaluated lazily
+     *
+     * @deprecated configuration properties should be passed through {@link #configurationProvider(Supplier)} to being evaluated lazily
+     */
+    @Deprecated(since = "0.11.0")
     public EmbeddedRuntime(String name, Map<String, String> properties, URL[] classpathEntries) {
         this(new MultiSourceServiceLocator(), name, properties, classpathEntries);
     }
 
-    private EmbeddedRuntime(MultiSourceServiceLocator serviceLocator, String name, Map<String, String> properties, URL[] classPathEntries) {
+    private EmbeddedRuntime(MultiSourceServiceLocator serviceLocator, String name, URL[] classPathEntries) {
         super(serviceLocator);
         this.serviceLocator = serviceLocator;
         this.name = name;
-        this.properties = properties;
         this.classPathEntries = classPathEntries;
+    }
+
+    @Deprecated(since = "0.11.0")
+    private EmbeddedRuntime(MultiSourceServiceLocator serviceLocator, String name, Map<String, String> properties, URL[] classPathEntries) {
+        this(serviceLocator, name, classPathEntries);
+        this.configurationProviders.add(() -> ConfigFactory.fromMap(properties));
     }
 
     @Override
@@ -74,7 +102,8 @@ public class EmbeddedRuntime extends BaseRuntime {
 
         monitor.info("Starting runtime %s".formatted(name));
 
-        serviceLocator.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(properties));
+        configurationProviders.forEach(provider -> serviceLocator
+                .registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) provider::get));
 
         var runtimeThrowable = new AtomicReference<Throwable>();
         var latch = new CountDownLatch(1);
@@ -154,5 +183,16 @@ public class EmbeddedRuntime extends BaseRuntime {
 
     public boolean isRunning() {
         return isRunning.get();
+    }
+
+    /**
+     * Adds a configuration provider, that will be invoked during connector startup.
+     *
+     * @param configurationProvider the configuration provider.
+     * @return self.
+     */
+    public EmbeddedRuntime configurationProvider(Supplier<Config> configurationProvider) {
+        configurationProviders.add(configurationProvider);
+        return this;
     }
 }

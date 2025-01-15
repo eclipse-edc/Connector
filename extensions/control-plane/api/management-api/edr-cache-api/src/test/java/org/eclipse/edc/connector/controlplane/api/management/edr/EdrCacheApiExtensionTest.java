@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.edr;
 
 import org.eclipse.edc.connector.controlplane.api.management.edr.transform.JsonObjectFromEndpointDataReferenceEntryTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.edr.v1.EdrCacheApiV1Controller;
 import org.eclipse.edc.connector.controlplane.api.management.edr.v3.EdrCacheApiV3Controller;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -53,7 +52,6 @@ class EdrCacheApiExtensionTest {
     void initialize_shouldRegisterControllers(EdrCacheApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(EdrCacheApiV1Controller.class));
         verify(webService).registerResource(any(), isA(EdrCacheApiV3Controller.class));
     }
 
