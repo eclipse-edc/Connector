@@ -27,10 +27,24 @@ class DataServiceRegistryImplTest {
     void shouldReturnRegisteredDataService() {
         var dataService = DataService.Builder.newInstance().build();
 
-        registry.register(dataService);
-        var dataServices = registry.getDataServices();
+        var protocol = "protocol";
+
+        registry.register(protocol, dataService);
+        var dataServices = registry.getDataServices(protocol);
 
         assertThat(dataServices).containsExactly(dataService);
+    }
+
+    @Test
+    void shouldReturnEmptyDataServices() {
+        var dataService = DataService.Builder.newInstance().build();
+
+        var protocol = "protocol";
+
+        registry.register(protocol, dataService);
+        var dataServices = registry.getDataServices("unknownProtocol");
+
+        assertThat(dataServices).isEmpty();
     }
 
 }

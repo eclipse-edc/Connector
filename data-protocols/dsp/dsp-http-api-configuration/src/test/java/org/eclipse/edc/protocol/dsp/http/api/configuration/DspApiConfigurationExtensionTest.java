@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.http.api.configuration;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -36,7 +36,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
@@ -46,11 +45,14 @@ import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.DEFAULT_PROTOCOL_PATH;
 import static org.eclipse.edc.protocol.dsp.http.api.configuration.DspApiConfigurationExtension.DEFAULT_PROTOCOL_PORT;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -64,7 +66,7 @@ class DspApiConfigurationExtensionTest {
     private final TypeManager typeManager = mock();
     private final JsonLd jsonLd = mock();
     private final PortMappingRegistry portMappingRegistry = mock();
-
+    private final ProtocolWebhookRegistry protocolWebhookRegistry = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -73,6 +75,7 @@ class DspApiConfigurationExtensionTest {
         context.registerService(TypeManager.class, typeManager);
         context.registerService(Hostname.class, () -> "hostname");
         context.registerService(JsonLd.class, jsonLd);
+        context.registerService(ProtocolWebhookRegistry.class, protocolWebhookRegistry);
         TypeTransformerRegistry typeTransformerRegistry = mock();
         when(typeTransformerRegistry.forContext(any())).thenReturn(mock());
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
@@ -87,7 +90,10 @@ class DspApiConfigurationExtensionTest {
         extension.initialize(context);
 
         verify(portMappingRegistry).register(new PortMapping(ApiContext.PROTOCOL, DEFAULT_PROTOCOL_PORT, DEFAULT_PROTOCOL_PATH));
-        assertThat(context.getService(ProtocolWebhook.class).url()).isEqualTo("http://hostname:%s%s".formatted(DEFAULT_PROTOCOL_PORT, DEFAULT_PROTOCOL_PATH));
+
+        var url = "http://hostname:%s%s".formatted(DEFAULT_PROTOCOL_PORT, DEFAULT_PROTOCOL_PATH);
+        verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP), argThat(webhook -> webhook.url().equals(url)));
+        verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP_V_2024_1), argThat(webhook -> webhook.url().equals(url)));
     }
 
     @Test
@@ -103,7 +109,10 @@ class DspApiConfigurationExtensionTest {
         extension.initialize(context);
 
         verify(portMappingRegistry).register(new PortMapping(ApiContext.PROTOCOL, 1234, "/path"));
-        assertThat(context.getService(ProtocolWebhook.class).url()).isEqualTo("http://webhook");
+
+        verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP), argThat(webhook -> webhook.url().equals(webhookAddress)));
+        verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP_V_2024_1), argThat(webhook -> webhook.url().equals(webhookAddress)));
+
     }
 
     @Test

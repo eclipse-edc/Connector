@@ -27,10 +27,9 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -62,6 +61,8 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
@@ -76,7 +77,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
  * Configure 'protocol' api context.
  */
 @Extension(value = DspApiConfigurationExtension.NAME)
-@Provides(ProtocolWebhook.class)
 public class DspApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
@@ -104,6 +104,9 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     @Inject
     private PortMappingRegistry portMappingRegistry;
 
+    @Inject
+    private ProtocolWebhookRegistry protocolWebhookRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -115,8 +118,9 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         portMappingRegistry.register(portMapping);
 
         var dspWebhookAddress = ofNullable(callbackAddress).orElseGet(() -> format("http://%s:%s%s", hostname.get(), portMapping.port(), portMapping.path()));
-        context.registerService(ProtocolWebhook.class, () -> dspWebhookAddress);
 
+        protocolWebhookRegistry.registerWebhook(DATASPACE_PROTOCOL_HTTP, () -> dspWebhookAddress);
+        protocolWebhookRegistry.registerWebhook(DATASPACE_PROTOCOL_HTTP_V_2024_1, () -> dspWebhookAddress);
 
         // registers ns for DSP scope
         registerNamespaces(DSP_SCOPE_V_08, DSP_NAMESPACE_V_08);

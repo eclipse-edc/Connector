@@ -90,7 +90,7 @@ public abstract class BaseDspCatalogApiController {
         var request = GetDspRequest.Builder.newInstance(Dataset.class, CatalogError.class)
                 .token(token)
                 .id(id)
-                .serviceCall(service::getDataset)
+                .serviceCall((datasetId, tokenRepresentation) -> service.getDataset(datasetId, tokenRepresentation, protocol))
                 .errorProvider(CatalogError.Builder::newInstance)
                 .protocol(protocol)
                 .build();

@@ -75,16 +75,24 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processOffering(ContractNegotiation negotiation) {
-        var messageBuilder = ContractOfferMessage.Builder.newInstance()
-                .contractOffer(negotiation.getLastContractOffer())
-                .callbackAddress(protocolWebhook.url());
 
-        return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
-                .onSuccessResult(this::transitionToOffered)
-                .onFailure((n, throwable) -> transitionToOffering(n))
-                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send offer to consumer: %s", throwable.getMessage())))
-                .execute("[Provider] send offer");
+        var callbackAddress = protocolWebhookRegistry.resolve(negotiation.getProtocol());
+
+        if (callbackAddress != null) {
+            var messageBuilder = ContractOfferMessage.Builder.newInstance()
+                    .contractOffer(negotiation.getLastContractOffer())
+                    .callbackAddress(callbackAddress.url());
+
+            return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
+                    .onSuccessResult(this::transitionToOffered)
+                    .onFailure((n, throwable) -> transitionToOffering(n))
+                    .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
+                    .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send offer to consumer: %s", throwable.getMessage())))
+                    .execute("[Provider] send offer");
+        } else {
+            transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
+            return true;
+        }
     }
 
     /**

@@ -45,7 +45,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -116,7 +116,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private TransferProcessObservable observable;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
-    private ProtocolWebhook protocolWebhook;
+    private ProtocolWebhookRegistry protocolWebhookRegistry;
     private ProvisionResponsesHandler provisionResponsesHandler;
     private DeprovisionResponsesHandler deprovisionResponsesHandler;
     private TransferProcessPendingGuard pendingGuard = tp -> false;
@@ -286,25 +286,32 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     @WithSpan
     private boolean processRequesting(TransferProcess process) {
         var originalDestination = process.getDataDestination();
+        var callbackAddress = protocolWebhookRegistry.resolve(process.getProtocol());
 
-        var dataDestination = Optional.ofNullable(originalDestination)
-                .map(DataAddress::getKeyName)
-                .map(key -> vault.resolveSecret(key))
-                .map(secret -> DataAddress.Builder.newInstance().properties(originalDestination.getProperties()).property(EDC_DATA_ADDRESS_SECRET, secret).build())
-                .orElse(originalDestination);
+        if (callbackAddress != null) {
+            var dataDestination = Optional.ofNullable(originalDestination)
+                    .map(DataAddress::getKeyName)
+                    .map(key -> vault.resolveSecret(key))
+                    .map(secret -> DataAddress.Builder.newInstance().properties(originalDestination.getProperties()).property(EDC_DATA_ADDRESS_SECRET, secret).build())
+                    .orElse(originalDestination);
 
-        var messageBuilder = TransferRequestMessage.Builder.newInstance()
-                .callbackAddress(protocolWebhook.url())
-                .dataDestination(dataDestination)
-                .transferType(process.getTransferType())
-                .contractId(process.getContractId());
+            var messageBuilder = TransferRequestMessage.Builder.newInstance()
+                    .callbackAddress(callbackAddress.url())
+                    .dataDestination(dataDestination)
+                    .transferType(process.getTransferType())
+                    .contractId(process.getContractId());
 
-        return dispatch(messageBuilder, process, policyArchive.findPolicyForContract(process.getContractId()), TransferProcessAck.class)
-                .onSuccessResult(this::transitionToRequested)
-                .onRetryExhausted(this::transitionToTerminated)
-                .onFailure((t, throwable) -> transitionToRequesting(t))
-                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .execute("send transfer request to " + process.getCounterPartyAddress());
+            return dispatch(messageBuilder, process, policyArchive.findPolicyForContract(process.getContractId()), TransferProcessAck.class)
+                    .onSuccessResult(this::transitionToRequested)
+                    .onRetryExhausted(this::transitionToTerminated)
+                    .onFailure((t, throwable) -> transitionToRequesting(t))
+                    .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
+                    .execute("send transfer request to " + process.getCounterPartyAddress());
+
+        } else {
+            transitionToTerminated(process, "No callback address found for protocol: " + process.getProtocol());
+            return true;
+        }
     }
 
     /**
@@ -744,8 +751,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return this;
         }
 
-        public Builder protocolWebhook(ProtocolWebhook protocolWebhook) {
-            manager.protocolWebhook = protocolWebhook;
+        public Builder protocolWebhookRegistry(ProtocolWebhookRegistry protocolWebhookRegistry) {
+            manager.protocolWebhookRegistry = protocolWebhookRegistry;
             return this;
         }
 

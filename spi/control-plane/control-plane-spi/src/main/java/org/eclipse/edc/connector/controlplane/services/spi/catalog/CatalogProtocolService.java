@@ -45,5 +45,5 @@ public interface CatalogProtocolService {
      * @return succeeded result with the {@link Dataset}, failed result otherwise.
      */
     @NotNull
-    ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation);
+    ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation, String protocol);
 }

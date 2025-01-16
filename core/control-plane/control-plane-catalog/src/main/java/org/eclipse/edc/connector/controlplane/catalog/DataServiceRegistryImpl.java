@@ -19,19 +19,21 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DataServiceRegistryImpl implements DataServiceRegistry {
 
-    private final List<DataService> dataServices = new ArrayList<>();
+    private final Map<String, List<DataService>> dataServices = new ConcurrentHashMap<>();
 
     @Override
-    public void register(DataService dataService) {
-        dataServices.add(dataService);
+    public void register(String protocol, DataService dataService) {
+        dataServices.computeIfAbsent(protocol, k -> new ArrayList<>()).add(dataService);
     }
 
     @Override
-    public List<DataService> getDataServices() {
-        return dataServices;
+    public List<DataService> getDataServices(String protocol) {
+        return dataServices.computeIfAbsent(protocol, k -> new ArrayList<>());
     }
 
 }

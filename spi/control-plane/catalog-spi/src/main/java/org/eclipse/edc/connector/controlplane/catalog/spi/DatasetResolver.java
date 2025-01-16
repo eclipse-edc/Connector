@@ -33,7 +33,7 @@ public interface DatasetResolver {
      * @return a stream of datasets.
      */
     @NotNull
-    Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec);
+    Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec, String protocol);
 
     /**
      * Resolves a {@link Dataset} given its id
@@ -42,5 +42,5 @@ public interface DatasetResolver {
      * @param id               the dataset id.
      * @return the {@link Dataset} if found, null otherwise.
      */
-    Dataset getById(ParticipantAgent participantAgent, String id);
+    Dataset getById(ParticipantAgent participantAgent, String id, String protocol);
 }

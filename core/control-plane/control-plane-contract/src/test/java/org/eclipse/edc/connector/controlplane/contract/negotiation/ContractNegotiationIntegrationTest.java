@@ -48,6 +48,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
@@ -118,12 +119,12 @@ class ContractNegotiationIntegrationTest {
     private final RemoteMessageDispatcherRegistry consumerDispatcherRegistry = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
     private final ProtocolWebhook protocolWebhook = () -> "http://dummy";
+    private final ProtocolWebhookRegistry protocolWebhookRegistry = mock();
+    private final AtomicReference<String> providerNegotiationId = new AtomicReference<>(null);
+    private final NoopTransactionContext transactionContext = new NoopTransactionContext();
     protected ParticipantAgent participantAgent = new ParticipantAgent(Collections.emptyMap(), Collections.emptyMap());
     protected TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
     private String consumerNegotiationId;
-    private final AtomicReference<String> providerNegotiationId = new AtomicReference<>(null);
-    private final NoopTransactionContext transactionContext = new NoopTransactionContext();
-
     private ProviderContractNegotiationManagerImpl providerManager;
     private ConsumerContractNegotiationManagerImpl consumerManager;
     private ContractNegotiationProtocolService consumerService;
@@ -132,6 +133,7 @@ class ContractNegotiationIntegrationTest {
     @BeforeEach
     void init() {
         var monitor = new ConsoleMonitor();
+        when(protocolWebhookRegistry.resolve(any())).thenReturn(protocolWebhook);
 
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .participantId(PROVIDER_ID)
@@ -141,7 +143,7 @@ class ContractNegotiationIntegrationTest {
                 .observable(mock())
                 .store(providerStore)
                 .policyStore(mock())
-                .protocolWebhook(protocolWebhook)
+                .protocolWebhookRegistry(protocolWebhookRegistry)
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -151,7 +153,7 @@ class ContractNegotiationIntegrationTest {
                 .observable(mock())
                 .store(consumerStore)
                 .policyStore(mock())
-                .protocolWebhook(protocolWebhook)
+                .protocolWebhookRegistry(protocolWebhookRegistry)
                 .build();
 
         when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));

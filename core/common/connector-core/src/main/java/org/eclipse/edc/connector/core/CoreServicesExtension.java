@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.core.command.CommandHandlerRegistryImpl;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.core.event.EventRouterImpl;
 import org.eclipse.edc.connector.core.message.RemoteMessageDispatcherRegistryImpl;
+import org.eclipse.edc.connector.core.protocol.ProtocolWebhookRegistryImpl;
 import org.eclipse.edc.connector.core.validator.DataAddressValidatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
 import org.eclipse.edc.http.client.ControlApiHttpClientImpl;
@@ -42,6 +43,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -61,11 +63,8 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Setting(description = "The name of the claim key used to determine the participant identity", defaultValue = DEFAULT_IDENTITY_CLAIM_KEY)
     public static final String EDC_AGENT_IDENTITY_KEY = "edc.agent.identity.key";
-
-    private static final String DEFAULT_EDC_HOSTNAME = "localhost";
-
     public static final String EDC_HOSTNAME = "edc.hostname";
-
+    private static final String DEFAULT_EDC_HOSTNAME = "localhost";
     @Setting(description = "Connector hostname, which e.g. is used in referer urls", defaultValue = DEFAULT_EDC_HOSTNAME, key = EDC_HOSTNAME, warnOnMissingConfig = true)
     public static String hostname;
 
@@ -172,6 +171,11 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public ControlApiHttpClient controlApiHttpClient() {
         return new ControlApiHttpClientImpl(edcHttpClient, controlClientAuthenticationProvider);
+    }
+    
+    @Provider
+    public ProtocolWebhookRegistry protocolWebhookRegistry() {
+        return new ProtocolWebhookRegistryImpl();
     }
 
 }

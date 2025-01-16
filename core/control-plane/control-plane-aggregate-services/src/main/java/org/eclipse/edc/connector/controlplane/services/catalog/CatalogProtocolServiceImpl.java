@@ -55,8 +55,8 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new, message)
                 .map(agent -> {
-                    try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
-                        var dataServices = dataServiceRegistry.getDataServices();
+                    try (var datasets = datasetResolver.query(agent, message.getQuerySpec(), message.getProtocol())) {
+                        var dataServices = dataServiceRegistry.getDataServices(message.getProtocol());
 
                         return Catalog.Builder.newInstance()
                                 .dataServices(dataServices)
@@ -69,9 +69,9 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     }
 
     @Override
-    public @NotNull ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation) {
+    public @NotNull ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation, String protocol) {
         return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new)
-                .map(agent -> datasetResolver.getById(agent, datasetId))
+                .map(agent -> datasetResolver.getById(agent, datasetId, protocol))
                 .compose(dataset -> {
                     if (dataset == null) {
                         return ServiceResult.notFound(format("Dataset %s does not exist", datasetId));

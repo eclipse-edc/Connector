@@ -36,7 +36,7 @@ public class DefaultDistributionResolver implements DistributionResolver {
     }
 
     @Override
-    public List<Distribution> getDistributions(Asset asset) {
+    public List<Distribution> getDistributions(String protocol, Asset asset) {
         if (asset.isCatalog()) {
             return List.of(Distribution.Builder.newInstance()
                     .format(asset.getDataAddress().getType())
@@ -45,12 +45,12 @@ public class DefaultDistributionResolver implements DistributionResolver {
                             .build())
                     .build());
         }
-        return dataFlowManager.transferTypesFor(asset).stream().map(this::createDistribution).toList();
+        return dataFlowManager.transferTypesFor(asset).stream().map((format) -> createDistribution(protocol, format)).toList();
     }
 
-    private Distribution createDistribution(String format) {
+    private Distribution createDistribution(String protocol, String format) {
         var builder = Distribution.Builder.newInstance().format(format);
-        dataServiceRegistry.getDataServices().forEach(builder::dataService);
+        dataServiceRegistry.getDataServices(protocol).forEach(builder::dataService);
         return builder.build();
     }
 }
