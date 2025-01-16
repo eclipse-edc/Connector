@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
@@ -31,6 +32,7 @@ public class VerifiablePresentation {
     private String id;
     private List<String> types = new ArrayList<>();
     private String holder; //must be a URI
+    protected DataModelVersion dataModelVersion = DataModelVersion.V_1_1;
 
     private VerifiablePresentation() {
     }
@@ -49,6 +51,10 @@ public class VerifiablePresentation {
 
     public String getHolder() {
         return holder;
+    }
+
+    public DataModelVersion getDataModelVersion() {
+        return dataModelVersion;
     }
 
     public static final class Builder {
@@ -89,6 +95,11 @@ public class VerifiablePresentation {
 
         public Builder holder(String holder) {
             this.instance.holder = holder;
+            return this;
+        }
+
+        public Builder dataModelVersion(DataModelVersion dataModelVersion) {
+            this.instance.dataModelVersion = dataModelVersion;
             return this;
         }
 

@@ -9,12 +9,14 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
@@ -46,11 +48,12 @@ public class VerifiableCredential {
 
     protected List<String> type = new ArrayList<>();
     protected Issuer issuer; // can be URI or an object containing an ID
-    protected Instant issuanceDate; // v2 of the spec renames this to "validFrom"
-    protected Instant expirationDate; // v2 of the spec renames this to "validUntil"
+    protected Instant issuanceDate; // // VCDM 2.0 calls this "validFrom"
+    protected Instant expirationDate; // VCDM 2.0 calls this "validUntil"
     protected List<CredentialStatus> credentialStatus = new ArrayList<>();
     protected String description;
     protected String name;
+    protected DataModelVersion dataModelVersion = DataModelVersion.V_1_1;
 
     protected VerifiableCredential() {
     }
@@ -82,6 +85,18 @@ public class VerifiableCredential {
         return expirationDate;
     }
 
+    // for VCDM 2.0
+    @JsonIgnore
+    public Instant getValidFrom() {
+        return issuanceDate;
+    }
+
+    // for VCDM 2.0
+    @JsonIgnore
+    public Instant getValidUntil() {
+        return expirationDate;
+    }
+
     public List<CredentialStatus> getCredentialStatus() {
         return credentialStatus;
     }
@@ -92,6 +107,10 @@ public class VerifiableCredential {
 
     public String getName() {
         return name;
+    }
+
+    public DataModelVersion getDataModelVersion() {
+        return dataModelVersion;
     }
 
     public static class Builder<T extends VerifiableCredential, B extends Builder<T, B>> {
@@ -169,6 +188,11 @@ public class VerifiableCredential {
             return self();
         }
 
+        public B dataModelVersion(DataModelVersion dataModelVersion) {
+            this.instance.dataModelVersion = dataModelVersion;
+            return self();
+        }
+
         public T build() {
             if (instance.type.isEmpty()) {
                 throw new IllegalArgumentException("VerifiableCredentials MUST have at least one 'type' value.");
@@ -177,7 +201,7 @@ public class VerifiableCredential {
                 throw new IllegalArgumentException("VerifiableCredential must have a non-null, non-empty 'credentialSubject' property.");
             }
             Objects.requireNonNull(instance.issuer, "VerifiableCredential must have an 'issuer' property.");
-            Objects.requireNonNull(instance.issuanceDate, "Credential must contain `issuanceDate` property.");
+            Objects.requireNonNull(instance.issuanceDate, "Credential must contain `issuanceDate`/`validFrom` property.");
 
             return instance;
         }

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
@@ -73,7 +74,7 @@ class VerifiableCredentialValidationServiceImplTest {
                         .issuanceDate(Instant.now().plus(10, ChronoUnit.DAYS))
                         .build()))
                 .build();
-        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
         var presentations = List.of(vpContainer);
         var result = service.validate(presentations);
@@ -94,7 +95,7 @@ class VerifiableCredentialValidationServiceImplTest {
                                 .build()))
                         .build()))
                 .build();
-        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
         var result = service.validate(List.of(vpContainer));
         assertThat(result).isFailed().messages()
@@ -111,7 +112,7 @@ class VerifiableCredentialValidationServiceImplTest {
                         .build()))
                 .build();
 
-        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
         var result = service.validate(List.of(vpContainer));
         assertThat(result).isFailed().messages()
@@ -131,7 +132,7 @@ class VerifiableCredentialValidationServiceImplTest {
                                 .build()))
                         .build()))
                 .build();
-        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
         var result = service.validate(List.of(vpContainer));
         assertThat(result).isSucceeded();
@@ -155,7 +156,7 @@ class VerifiableCredentialValidationServiceImplTest {
                                         .build()))
                                 .build()))
                 .build();
-        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
         var result = service.validate(List.of(vpContainer));
         assertThat(result).isSucceeded();
@@ -179,7 +180,7 @@ class VerifiableCredentialValidationServiceImplTest {
                                         .build()))
                                 .build()))
                 .build();
-        var vpContainer1 = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation1);
+        var vpContainer1 = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation1);
 
         var presentation2 = createPresentationBuilder()
                 .type("VerifiablePresentation")
@@ -197,7 +198,7 @@ class VerifiableCredentialValidationServiceImplTest {
                                         .build()))
                                 .build()))
                 .build();
-        var vpContainer2 = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation2);
+        var vpContainer2 = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation2);
 
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
 
@@ -218,7 +219,7 @@ class VerifiableCredentialValidationServiceImplTest {
                         .credentialStatus(new CredentialStatus("test-cred-status", "StatusList2021", Map.of()))
                         .build()))
                 .build();
-        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
         when(verifierMock.verifyPresentation(any())).thenReturn(success());
         when(revocationServiceRegistry.checkValidity(any())).thenReturn(Result.failure("invalid"));
 

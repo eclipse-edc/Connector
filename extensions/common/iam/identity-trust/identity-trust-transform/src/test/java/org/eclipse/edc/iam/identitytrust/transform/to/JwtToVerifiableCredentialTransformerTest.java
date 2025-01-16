@@ -9,11 +9,13 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
+import org.eclipse.edc.iam.identitytrust.transform.TestData;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.DisplayName;
@@ -55,5 +57,15 @@ class JwtToVerifiableCredentialTransformerTest {
         assertThat(vc.getIssuanceDate()).isBefore(vc.getExpirationDate());
 
         verifyNoInteractions(context);
+    }
+
+    @Test
+    void transform_vcdm20_success() {
+        var vc = transformer.transform(TestData.EXAMPLE_JWT_VC_2_0, context);
+
+        assertThat(vc).isNotNull();
+        assertThat(vc.getType()).containsExactlyInAnyOrder("VerifiableCredential", "ExampleDegreeCredential", "ExamplePersonCredential");
+        assertThat(vc.getIssuer().id()).isEqualTo("https://university.example/issuers/14");
+        assertThat(vc.getValidFrom().toString()).isEqualTo("2010-01-01T19:23:24Z");
     }
 }

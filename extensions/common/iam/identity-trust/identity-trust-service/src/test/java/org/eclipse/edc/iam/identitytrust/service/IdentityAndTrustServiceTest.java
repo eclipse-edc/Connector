@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
@@ -140,8 +141,8 @@ class IdentityAndTrustServiceTest {
             when(mockedSts.createToken(any(), any())).thenReturn(success(createJwt()));
             assertThat(service.obtainClientCredentials(tp)).isSucceeded();
             verify(mockedSts).createToken(argThat(m -> m.get("iss").equals(EXPECTED_OWN_DID) &&
-                    m.get("sub").equals(EXPECTED_OWN_DID) &&
-                    m.get("aud").equals(tp.getStringClaim(AUDIENCE))), eq(scope));
+                                                       m.get("sub").equals(EXPECTED_OWN_DID) &&
+                                                       m.get("aud").equals(tp.getStringClaim(AUDIENCE))), eq(scope));
         }
     }
 
@@ -216,7 +217,7 @@ class IdentityAndTrustServiceTest {
                                     .build()))
                             .build()))
                     .build();
-            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
@@ -238,7 +239,7 @@ class IdentityAndTrustServiceTest {
                                     .build()))
                             .build()))
                     .build();
-            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
@@ -269,7 +270,7 @@ class IdentityAndTrustServiceTest {
                                             .build()))
                                     .build()))
                     .build();
-            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
@@ -301,7 +302,7 @@ class IdentityAndTrustServiceTest {
                                             .build()))
                                     .build()))
                     .build();
-            var vpContainer1 = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation1);
+            var vpContainer1 = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation1);
 
             var presentation2 = createPresentationBuilder()
                     .holder(CONSUMER_DID)
@@ -319,7 +320,7 @@ class IdentityAndTrustServiceTest {
                                             .build()))
                                     .build()))
                     .build();
-            var vpContainer2 = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation2);
+            var vpContainer2 = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation2);
 
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer1, vpContainer2)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());

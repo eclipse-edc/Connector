@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - updates for VCDM 2.0
  *
  */
 
@@ -17,6 +18,7 @@ package org.eclipse.edc.iam.identitytrust.transform.to;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.iam.identitytrust.transform.TestData;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
@@ -43,6 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -138,5 +141,29 @@ class JwtToVerifiablePresentationTransformerTest {
     void transform_inputIsNotValidJwt() {
         assertThat(transformer.transform("foobar", context)).isNull();
         verify(context).reportProblem("Could not parse VerifiablePresentation from JWT.");
+    }
+
+    @DisplayName("VP is an EnvelopedVerifiablePresentation")
+    @Test
+    void transform_envelopedPresentation() {
+        var vp = transformer.transform(TestData.EXAMPLE_ENVELOPED_PRESENTATION, context);
+        assertThat(vp).isNotNull();
+        assertThat(vp.getTypes()).containsExactlyInAnyOrder("VerifiablePresentation");
+        assertThat(vp.getCredentials()).hasSize(2)
+                .allSatisfy(vc -> {
+                    assertThat(vc.getCredentialSubject()).isNotEmpty();
+                    assertThat(vc.getType()).containsExactlyInAnyOrder("ExampleDegreeCredential", "ExamplePersonCredential", "VerifiableCredential");
+                });
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @DisplayName("VP is EnvelopedVerifiablePresentation, VC is not enveloped")
+    @Test
+    void transform_envelopedPresentation_vcNotEnveloped() {
+        var vp = transformer.transform(TestData.EXAMPLE_ENVELOPED_PRESENTATION_VC_NOT_ENVELOPED, context);
+        assertThat(vp).isNotNull();
+        assertThat(vp.getTypes()).containsExactlyInAnyOrder("VerifiablePresentation");
+        assertThat(vp.getCredentials()).isEmpty();
+        verify(context, atLeastOnce()).reportProblem(eq("Credential object is not a valid EnvelopedVerifiableCredential"));
     }
 }
