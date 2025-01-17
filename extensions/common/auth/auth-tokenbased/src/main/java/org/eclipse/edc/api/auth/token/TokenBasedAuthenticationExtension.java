@@ -19,10 +19,10 @@ package org.eclipse.edc.api.auth.token;
 import org.eclipse.edc.api.auth.spi.ApiAuthenticationProvider;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry;
-import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -30,7 +30,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.eclipse.edc.web.spi.configuration.WebServiceConfigurer.WEB_HTTP_PREFIX;
 
@@ -42,25 +41,27 @@ import static org.eclipse.edc.web.spi.configuration.WebServiceConfigurer.WEB_HTT
 public class TokenBasedAuthenticationExtension implements ServiceExtension {
 
     public static final String NAME = "Static token API Authentication";
-    public static final String AUTH_KEY = "auth";
-
-    public static final String CONFIG_ALIAS = WEB_HTTP_PREFIX + ".<context>." + AUTH_KEY + ".";
-    @Setting(context = CONFIG_ALIAS, value = "The api key to use for the <context>")
-    public static final String AUTH_API_KEY = "key";
-    @Setting(context = CONFIG_ALIAS, value = "The vault api key alias to use for the <context>")
-    public static final String AUTH_API_KEY_ALIAS = "key.alias";
-    public static final String TOKENBASED_TYPE = "tokenbased";
-    @Setting
-    @Deprecated(since = "0.7.1")
+    private static final String AUTH_KEY = "auth";
+    private static final String CONFIG_ALIAS = WEB_HTTP_PREFIX + ".<context>." + AUTH_KEY + ".";
+    private static final String TOKENBASED_TYPE = "tokenbased";
+    @Deprecated(since = "0.12.0", forRemoval = true)
     private static final String AUTH_SETTING_APIKEY = "edc.api.auth.key";
-    @Setting
-    @Deprecated(since = "0.7.1")
+    @Deprecated(since = "0.12.0", forRemoval = true)
     private static final String AUTH_SETTING_APIKEY_ALIAS = "edc.api.auth.key.alias";
+
+    @Setting(context = CONFIG_ALIAS, description = "The api key to use for the <context>")
+    public static final String AUTH_API_KEY = "key";
+    @Setting(context = CONFIG_ALIAS, description = "The vault api key alias to use for the <context>")
+    public static final String AUTH_API_KEY_ALIAS = "key.alias";
+    @Setting(description = "DEPRECATED: auth key", key = AUTH_SETTING_APIKEY, required = false)
+    @Deprecated(since = "0.12.0", forRemoval = true)
+    private String deprecatedApiKey;
+    @Setting(description = "DEPRECATED: auth key alias", key = AUTH_SETTING_APIKEY_ALIAS, required = false)
+    @Deprecated(since = "0.12.0", forRemoval = true)
+    private String deprecatedApiKeyAlias;
+
     @Inject
     private Vault vault;
-    @Inject
-    private ApiAuthenticationRegistry authenticationRegistry;
-
     @Inject
     private ApiAuthenticationProviderRegistry providerRegistry;
 
@@ -71,13 +72,12 @@ public class TokenBasedAuthenticationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var apiKey = Optional.ofNullable(context.getSetting(AUTH_SETTING_APIKEY_ALIAS, null))
-                .map(alias -> vault.resolveSecret(alias))
-                .orElseGet(() -> context.getSetting(AUTH_SETTING_APIKEY, UUID.randomUUID().toString()));
-
-        // only register as fallback, if no other has been registered
-        if (!authenticationRegistry.hasService("management-api")) {
-            authenticationRegistry.register("management-api", new TokenBasedAuthenticationService(apiKey));
+        if (deprecatedApiKey != null || deprecatedApiKeyAlias != null) {
+            var message = "Settings %s and %s have been removed".formatted(AUTH_SETTING_APIKEY, AUTH_SETTING_APIKEY_ALIAS) +
+                    ", to configure token based authentication for management api please configure it properly through the " +
+                    "`web.http.management.auth.%s` or `web.http.management.auth.%s` settings".formatted(AUTH_API_KEY, AUTH_API_KEY_ALIAS);
+            context.getMonitor().severe(message);
+            throw new EdcException(message);
         }
 
         providerRegistry.register(TOKENBASED_TYPE, this::tokenBasedProvider);
