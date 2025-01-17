@@ -26,7 +26,7 @@ To implement a multitude of different authentication methods, an interface for t
 The sole common point between the authentication methods is the ability to provide a `client_token` that can be used to authenticate with HashiCorp Vault.
 
 ```java
-public interface HashicorpVaultAuth {
+public interface HashicorpVaultAuthTokenProvider {
     
     // The stored token is returned.
     String vaultToken();
@@ -34,13 +34,13 @@ public interface HashicorpVaultAuth {
 }
 ```
 
-`HashicorpVaultAuth` implementations will be used by the `HashicorpVaultClient` to receive the `client_token` for the request authentication.
+`HashicorpVaultAuthTokenProvider` implementations will be used by the `HashicorpVaultClient` to receive the `client_token` for the request authentication.
 More on that in the sections [Hashicorp Vault Auth Provision](#Hashicorp-Vault-Auth-Provision) and [HashiCorp Vault Client](#HashiCorp-Vault-Client)
 
 ### Haschicorp Vault Auth Extensions
 
 For every authentication method, an implementation of the [Hashicorp Vault Auth interface](#hashicorp-vault-auth-interface) is needed.
-Each `HashicorpVaultAuth` implementation represents a different authentication method and is packaged inside its own service extension.
+Each `HashicorpVaultAuthTokenProvider` implementation represents a different authentication method and is packaged inside its own service extension.
 In this way, it can easily be added/removed from the runtime and maintained in one place.
 Due to the possible differences in the needed configuration of different authentication methods, each Service Extension will need its own configuration values specific to the authentication method.
 The exception will be the token authentication, which is already packaged inside the `HashicorpVaultExtension` and used as the default authentication method.
@@ -51,26 +51,26 @@ The `HashicorpVaultTokenAuth` implementation will serve as default authenticatio
 
 ```java
 @Provider(isDefault = true)
-public HashicorpVaultAuth hashicorpVaultAuth() {
+public HashicorpVaultAuthTokenProvider hashicorpVaultAuthTokenProvider() {
     return new HashicorpVaultTokenAuth();
 }
 ```
 
 `isDefault = true` signifies, that `HashicorpVaultTokenAuth` will be used unless another extension overwrites it by providing its own implementation without the parameter.
 
-The provided implementation of `HashicorpVaultAuth` is then injected into the `HashicorpVaultExtension` to be used in the `HashicorpVaultClient` later on.
+The provided implementation of `HashicorpVaultAuthTokenProvider` is then injected into the `HashicorpVaultExtension` to be used in the `HashicorpVaultClient` later on.
 
 ```java
 @Inject
-private HashicorpVaultAuth hashicorpVaultAuth;
+private HashicorpVaultAuthTokenProvider hashicorpVaultAuthTokenProvider;
 ```
 
 ### HashiCorp Vault Client
 
 Since the `HashicorpVaultClient` contains a lot of authentication logic, it will also go through a refactoring.
 The goal of the refactoring, is the removal of the token authentication logic from `HashicorpVaultClient` and to make the authentication logic interchangeable.
-An implementation of `HashicorpVaultAuth` is passed to `HashicorpVaultClient` during creation by `HashicorpVaultExtension`.
-`HashicorpVaultClient` will use the `HashicorpVaultAuth` implementation to fetch the `client_token`.
+An implementation of `HashicorpVaultAuthTokenProvider` is passed to `HashicorpVaultClient` during creation by `HashicorpVaultExtension`.
+`HashicorpVaultClient` will use the `HashicorpVaultAuthTokenProvider` implementation to fetch the `client_token`.
 `client_token` will then be used to generate the Headers for the HTTP requests and to authenticate with HashiCorp Vault.
 
 Old `getHeaders()`:
@@ -88,9 +88,9 @@ New `getHeaders()`:
 
 ```java
 @NotNull
-private Headers getHeaders() {
+private Headers getHeaders(String token) {
     var headersBuilder = new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
-    headersBuilder.add(VAULT_TOKEN_HEADER, vaultAuth.vaultToken());
+    headersBuilder.add(VAULT_TOKEN_HEADER, token);
     return headersBuilder.build();
 }
 ```
