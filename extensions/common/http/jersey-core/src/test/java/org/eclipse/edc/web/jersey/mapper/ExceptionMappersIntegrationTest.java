@@ -21,7 +21,8 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.junit.annotations.ApiTest;
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -42,14 +43,14 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 @ApiTest
-@ExtendWith(EdcExtension.class)
+@ExtendWith(RuntimePerMethodExtension.class)
 public class ExceptionMappersIntegrationTest {
 
     private final int port = getFreePort();
     private final Runnable runnable = mock(Runnable.class);
 
     @BeforeEach
-    void setUp(EdcExtension extension) {
+    void setUp(RuntimeExtension extension) {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(port),
                 "web.http.path", "/api"

@@ -22,10 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Represents the result of one single health check, like a heartbeat to a database or to a messaging service.
@@ -35,31 +32,6 @@ public class HealthCheckResult extends AbstractResult<Boolean, Failure, HealthCh
 
     private HealthCheckResult(boolean successful, Failure failure) {
         super(successful, failure);
-    }
-
-    /*
-     * @deprecated Use the Builder instead
-     */
-    @Deprecated(since = "0.7.0")
-    public static HealthCheckResult success() {
-        return new HealthCheckResult(true, null);
-    }
-
-    /*
-     * @deprecated Use the Builder instead
-     */
-    @Deprecated(since = "0.7.0")
-    public static HealthCheckResult failed(String... errors) {
-        var errorList = Stream.of(errors).filter(Objects::nonNull).collect(Collectors.toList());
-        return new HealthCheckResult(false, new Failure(errorList));
-    }
-
-    /*
-     * @deprecated Use the Builder instead
-     */
-    @Deprecated(since = "0.7.0")
-    public static HealthCheckResult failed(List<String> errors) {
-        return new HealthCheckResult(false, new Failure(errors));
     }
 
     @JsonProperty("isHealthy")

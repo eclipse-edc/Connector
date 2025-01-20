@@ -16,7 +16,8 @@
 package org.eclipse.edc.iam.oauth2.daps;
 
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -35,7 +36,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.findBuildRoot;
 
-@ExtendWith(EdcExtension.class)
+@ExtendWith(RuntimePerMethodExtension.class)
 @ComponentTest
 class DapsIntegrationTest {
 
@@ -73,7 +74,7 @@ class DapsIntegrationTest {
     }
 
     @BeforeEach
-    protected void before(EdcExtension extension) {
+    protected void before(RuntimeExtension extension) {
         System.setProperty("edc.keystore", "src/test/resources/keystore.p12");
         System.setProperty("edc.keystore.password", CLIENT_KEYSTORE_PASSWORD);
 

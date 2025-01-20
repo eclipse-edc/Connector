@@ -14,7 +14,8 @@
 
 package org.eclipse.edc.connector.core;
 
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.system.Hostname;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,11 +26,11 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.core.CoreServicesExtension.EDC_HOSTNAME;
 
-@ExtendWith(EdcExtension.class)
+@ExtendWith(RuntimePerMethodExtension.class)
 class CoreServicesExtensionIntegrationTest {
 
     @BeforeEach
-    void setUp(EdcExtension extension) {
+    void setUp(RuntimeExtension extension) {
         extension.setConfiguration(Map.of(EDC_HOSTNAME, "hostname"));
     }
 

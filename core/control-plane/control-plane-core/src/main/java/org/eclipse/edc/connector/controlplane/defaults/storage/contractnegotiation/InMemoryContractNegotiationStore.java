@@ -52,11 +52,6 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
     }
 
     @Override
-    public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
-        return super.findAll().filter(p -> correlationId.equals(p.getCorrelationId())).findFirst().orElse(null);
-    }
-
-    @Override
     public @Nullable ContractAgreement findContractAgreement(String contractId) {
         return super.findAll()
                 .map(ContractNegotiation::getContractAgreement)

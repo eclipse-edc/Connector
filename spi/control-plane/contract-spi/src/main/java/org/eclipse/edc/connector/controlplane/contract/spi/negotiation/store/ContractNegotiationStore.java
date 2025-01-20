@@ -33,15 +33,6 @@ import java.util.stream.Stream;
 public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation> {
 
     /**
-     * Returns the contract negotiation for the correlation id provided by the consumer or null.
-     *
-     * @deprecated will be removed in the next versions.
-     */
-    @Deprecated(since = "0.8.0")
-    @Nullable
-    ContractNegotiation findForCorrelationId(String correlationId);
-
-    /**
      * Returns the contract agreement for the contract id or null.
      */
     @Nullable

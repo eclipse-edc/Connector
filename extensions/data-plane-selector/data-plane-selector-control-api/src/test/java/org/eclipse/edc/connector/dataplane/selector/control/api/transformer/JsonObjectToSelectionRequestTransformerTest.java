@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.control.api.model.SelectionRequest.DEST_ADDRESS;
 import static org.eclipse.edc.connector.dataplane.selector.control.api.model.SelectionRequest.SOURCE_ADDRESS;
 import static org.eclipse.edc.connector.dataplane.selector.control.api.model.SelectionRequest.STRATEGY;
 import static org.eclipse.edc.connector.dataplane.selector.control.api.model.SelectionRequest.TRANSFER_TYPE;
@@ -47,11 +46,6 @@ class JsonObjectToSelectionRequestTransformerTest {
                         .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, "test-type")
                         .add(DataAddress.EDC_DATA_ADDRESS_KEY_NAME, "test-key")
                 )
-                .add(DEST_ADDRESS, createObjectBuilder()
-                        .add(TYPE, DataAddress.EDC_DATA_ADDRESS_TYPE)
-                        .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, "test-type")
-                        .add(DataAddress.EDC_DATA_ADDRESS_KEY_NAME, "test-key")
-                )
                 .add(TRANSFER_TYPE, "transfer-type")
                 .add(STRATEGY, "strategy")
                 .build();
@@ -60,7 +54,6 @@ class JsonObjectToSelectionRequestTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStrategy()).isEqualTo("strategy");
-        assertThat(result.getDestination()).isNotNull();
         assertThat(result.getSource()).isNotNull();
         assertThat(result.getTransferType()).isEqualTo("transfer-type");
     }

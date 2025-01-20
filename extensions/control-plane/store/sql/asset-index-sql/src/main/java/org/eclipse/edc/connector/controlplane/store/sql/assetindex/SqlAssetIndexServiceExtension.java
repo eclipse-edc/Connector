@@ -35,9 +35,6 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 @Extension(value = "SQL asset index")
 public class SqlAssetIndexServiceExtension implements ServiceExtension {
 
-    @Deprecated(since = "0.8.1")
-    public static final String DATASOURCE_SETTING_NAME = "edc.datasource.asset.name";
-
     @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.asset.datasource")
     private String dataSourceName;
 

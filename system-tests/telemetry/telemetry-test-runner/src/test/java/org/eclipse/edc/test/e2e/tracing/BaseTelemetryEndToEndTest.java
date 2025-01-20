@@ -14,11 +14,17 @@
 
 package org.eclipse.edc.test.e2e.tracing;
 
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
+import static java.util.Map.entry;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public abstract class BaseTelemetryEndToEndTest {
@@ -27,21 +33,20 @@ public abstract class BaseTelemetryEndToEndTest {
     protected static final int PROTOCOL_PORT = getFreePort();
     protected static final int DEFAULT_PORT = getFreePort();
 
+    private static final Supplier<Config> CONFIGURATION_PROVIDER = () -> ConfigFactory.fromMap(Map.ofEntries(
+            entry("web.http.path", "/"),
+            entry("web.http.port", String.valueOf(DEFAULT_PORT)),
+            entry("web.http.control.port", String.valueOf(getFreePort())),
+            entry("web.http.protocol.path", "/protocol"),
+            entry("web.http.protocol.port", String.valueOf(PROTOCOL_PORT)),
+            entry("edc.dsp.callback.address", "http://localhost:" + PROTOCOL_PORT + "/protocol"),
+            entry("web.http.management.path", "/management"),
+            entry("web.http.management.port", String.valueOf(MANAGEMENT_PORT))
+    ));
+
     @RegisterExtension
-    static EdcRuntimeExtension controlPlane = new EdcRuntimeExtension(
-            ":system-tests:telemetry:telemetry-test-runtime",
+    static RuntimeExtension controlPlane = new RuntimePerClassExtension(new EmbeddedRuntime(
             "control-plane",
-            new HashMap<>() {
-                {
-                    put("web.http.path", "/");
-                    put("web.http.port", String.valueOf(DEFAULT_PORT));
-                    put("web.http.control.port", String.valueOf(getFreePort()));
-                    put("web.http.protocol.path", "/protocol");
-                    put("web.http.protocol.port", String.valueOf(PROTOCOL_PORT));
-                    put("edc.dsp.callback.address", "http://localhost:" + PROTOCOL_PORT + "/protocol");
-                    put("web.http.management.path", "/management");
-                    put("web.http.management.port", String.valueOf(MANAGEMENT_PORT));
-                }
-            }
-    );
+            ":system-tests:telemetry:telemetry-test-runtime"
+    ).configurationProvider(CONFIGURATION_PROVIDER));
 }

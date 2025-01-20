@@ -25,12 +25,9 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class SelectionRequest {
     public static final String SELECTION_REQUEST_TYPE = EDC_NAMESPACE + "SelectionRequest";
     public static final String SOURCE_ADDRESS = EDC_NAMESPACE + "source";
-    public static final String DEST_ADDRESS = EDC_NAMESPACE + "destination";
     public static final String TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String STRATEGY = EDC_NAMESPACE + "strategy";
     private DataAddress source;
-    @Deprecated(since = "0.8.1")
-    private DataAddress destination;
     private String strategy = "random";
     private String transferType;
 
@@ -39,11 +36,6 @@ public class SelectionRequest {
 
     public DataAddress getSource() {
         return source;
-    }
-
-    @Deprecated(since = "0.8.1")
-    public DataAddress getDestination() {
-        return destination;
     }
 
     public String getStrategy() {
@@ -67,11 +59,6 @@ public class SelectionRequest {
 
         public Builder source(DataAddress source) {
             this.instance.source = source;
-            return this;
-        }
-
-        public Builder destination(DataAddress destination) {
-            this.instance.destination = destination;
             return this;
         }
 

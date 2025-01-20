@@ -138,17 +138,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
-        return transactionContext.execute(() -> {
-            // utilize the generic query api
-            var query = correlationIdQuerySpec(correlationId);
-            try (var stream = queryNegotiations(query)) {
-                return single(stream.collect(toList()));
-            }
-        });
-    }
-
-    @Override
     public @Nullable ContractAgreement findContractAgreement(String contractId) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
@@ -209,10 +198,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 throw new EdcPersistenceException(e);
             }
         });
-    }
-
-    private QuerySpec correlationIdQuerySpec(String correlationId) {
-        return QuerySpec.Builder.newInstance().filter(List.of(new Criterion("correlationId", "=", correlationId))).build();
     }
 
     private Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec, Connection connection) {
@@ -316,15 +301,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
 
     }
 
-    @Nullable
-    private <T> T single(List<T> list) {
-        if (list.size() > 1) {
-            throw new IllegalStateException(getMultiplicityError(1, list.size()));
-        }
-
-        return list.isEmpty() ? null : list.get(0);
-    }
-
     private ContractAgreement mapContractAgreement(ResultSet resultSet) throws SQLException {
         return ContractAgreement.Builder.newInstance()
                 .id(resultSet.getString(statements.getContractAgreementIdColumn()))
@@ -334,10 +310,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
                 .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), Policy.class))
                 .build();
-    }
-
-    private String getMultiplicityError(int expectedSize, int actualSize) {
-        return format("Expected to find %d items, but found %d", expectedSize, actualSize);
     }
 
     private ResultSetMapper<ContractNegotiation> contractNegotiationMapper() {

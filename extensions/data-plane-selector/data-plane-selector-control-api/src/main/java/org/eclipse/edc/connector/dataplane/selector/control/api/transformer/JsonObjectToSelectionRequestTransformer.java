@@ -35,8 +35,6 @@ public class JsonObjectToSelectionRequestTransformer extends AbstractJsonLdTrans
 
         visitProperties(jsonObject, (key, jsonValue) -> {
             switch (key) {
-                case SelectionRequest.DEST_ADDRESS ->
-                        builder.destination(transformObject(jsonValue, DataAddress.class, context));
                 case SelectionRequest.SOURCE_ADDRESS ->
                         builder.source(transformObject(jsonValue, DataAddress.class, context));
                 case SelectionRequest.STRATEGY -> builder.strategy(transformString(jsonValue, context));

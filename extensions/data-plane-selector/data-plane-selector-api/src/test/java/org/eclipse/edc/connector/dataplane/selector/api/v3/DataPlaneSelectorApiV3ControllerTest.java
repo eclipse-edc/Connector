@@ -18,7 +18,8 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonArray;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.annotations.ApiTest;
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,13 +34,13 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 @ApiTest
-@ExtendWith(EdcExtension.class)
+@ExtendWith(RuntimePerMethodExtension.class)
 public class DataPlaneSelectorApiV3ControllerTest {
 
     private final int port = 8181;
 
     @BeforeEach
-    void setup(EdcExtension extension) {
+    void setup(RuntimeExtension extension) {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.management.port", String.valueOf(port),
