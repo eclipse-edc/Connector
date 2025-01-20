@@ -230,7 +230,6 @@ maven/mavencentral/org.apache.velocity/velocity-engine-core/2.3, Apache-2.0, app
 maven/mavencentral/org.apache.velocity/velocity-engine-scripting/2.3, Apache-2.0 AND BSD-3-Clause, approved, #15744
 maven/mavencentral/org.apache.xbean/xbean-reflect/3.7, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, #17641
-maven/mavencentral/org.assertj/assertj-core/3.27.2, Apache-2.0, approved, #17980
 maven/mavencentral/org.assertj/assertj-core/3.27.3, Apache-2.0, approved, #17980
 maven/mavencentral/org.awaitility/awaitility/4.2.2, Apache-2.0, approved, #14178
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.72, MIT, approved, #3789
