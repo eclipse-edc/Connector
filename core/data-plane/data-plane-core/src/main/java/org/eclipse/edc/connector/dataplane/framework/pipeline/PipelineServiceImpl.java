@@ -107,7 +107,8 @@ public class PipelineServiceImpl implements PipelineService {
 
         var source = sourceFactory.createSource(request);
         sources.put(request.getProcessId(), source);
-        monitor.debug(() -> format("Transferring from %s to %s.", request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
+        monitor.debug(() -> format("DataFlow %s Transferring from %s to %s.",
+                request.getProcessId(), request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
         return sink.transfer(source)
                 .thenApply(result -> {
                     terminate(request.getProcessId());
@@ -177,12 +178,14 @@ public class PipelineServiceImpl implements PipelineService {
 
     @NotNull
     private CompletableFuture<StreamResult<Object>> noSourceFactory(DataFlowStartMessage request) {
-        return completedFuture(StreamResult.error("Unknown data source type: " + request.getSourceDataAddress().getType()));
+        return completedFuture(StreamResult.error("DataFlow %s Unknown data source type: %s.".formatted(
+                request.getProcessId(), request.getSourceDataAddress().getType())));
     }
 
     @NotNull
     private CompletableFuture<StreamResult<Object>> noSinkFactory(DataFlowStartMessage request) {
-        return completedFuture(StreamResult.error("Unknown data sink type: " + request.getDestinationDataAddress().getType()));
+        return completedFuture(StreamResult.error("DataFlow %s Unknown data sink type: %s.".formatted(
+                request.getProcessId(), request.getDestinationDataAddress().getType())));
     }
 
 
