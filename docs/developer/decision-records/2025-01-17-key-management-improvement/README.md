@@ -64,10 +64,10 @@ To accomodate `Vault` implementations, that do not support either remote signing
 public interface Vault {
   default VaultCapabilities getVaultCapabilities() {
     return VaultCapabilities.Builder.newInstance()
-            .supportsSigning(true)
-            .supportsVerifying(true)
-            .supportsAutomaticRotation(true)
-            .supportsManualRotation(true)
+            .supportsSigning(false)
+            .supportsVerifying(false)
+            .supportsAutomaticRotation(false)
+            .supportsManualRotation(false)
             .build();
   }
 // ...
