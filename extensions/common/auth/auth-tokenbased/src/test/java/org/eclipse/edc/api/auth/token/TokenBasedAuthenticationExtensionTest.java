@@ -26,12 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.eclipse.edc.api.auth.token.TokenBasedAuthenticationExtension.AUTH_API_KEY;
 import static org.eclipse.edc.api.auth.token.TokenBasedAuthenticationExtension.AUTH_API_KEY_ALIAS;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -39,8 +34,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 public class TokenBasedAuthenticationExtensionTest {
 
-    private static final String AUTH_SETTING_APIKEY = "edc.api.auth.key";
-    private static final String AUTH_SETTING_APIKEY_ALIAS = "edc.api.auth.key.alias";
     private static final String VAULT_KEY = "foo";
 
     private final Vault vault = mock();
@@ -55,40 +48,6 @@ public class TokenBasedAuthenticationExtensionTest {
     }
 
     @Test
-    public void testPrimaryMethod_loadKeyFromVault(ServiceExtensionContext context, TokenBasedAuthenticationExtension extension) {
-        when(context.getSetting(eq(AUTH_SETTING_APIKEY_ALIAS), isNull())).thenReturn(VAULT_KEY);
-        when(context.getSetting(eq(AUTH_SETTING_APIKEY), anyString())).thenReturn("bar");
-
-        extension.initialize(context);
-
-        verify(context, never())
-                .getSetting(eq(AUTH_SETTING_APIKEY), anyString());
-
-        verify(context)
-                .getSetting(AUTH_SETTING_APIKEY_ALIAS, null);
-
-        verify(vault).resolveSecret(VAULT_KEY);
-        verify(apiAuthenticationRegistry).register(eq("management-api"), isA(TokenBasedAuthenticationService.class));
-    }
-
-    @Test
-    public void testSecondaryMethod_loadKeyFromConfig(ServiceExtensionContext context, TokenBasedAuthenticationExtension extension) {
-        when(context.getSetting(eq(AUTH_SETTING_APIKEY_ALIAS), isNull())).thenReturn(null);
-        when(context.getSetting(eq(AUTH_SETTING_APIKEY), anyString())).thenReturn("bar");
-
-        extension.initialize(context);
-
-        verify(context)
-                .getSetting(eq(AUTH_SETTING_APIKEY), anyString());
-
-        verify(context)
-                .getSetting(AUTH_SETTING_APIKEY_ALIAS, null);
-
-        verify(vault, never()).resolveSecret(anyString());
-        verify(apiAuthenticationRegistry).register(eq("management-api"), isA(TokenBasedAuthenticationService.class));
-    }
-
-    @Test
     public void tokenBasedProvider(TokenBasedAuthenticationExtension extension) {
         var config = mock(Config.class);
         when(config.getString(AUTH_API_KEY)).thenReturn("key");
@@ -97,7 +56,6 @@ public class TokenBasedAuthenticationExtensionTest {
                 .isSucceeded().isInstanceOf(TokenBasedAuthenticationService.class);
 
         verifyNoMoreInteractions(vault);
-
     }
 
     @Test

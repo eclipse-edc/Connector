@@ -187,8 +187,7 @@ public class BomSmokeTests {
                                 "web.http.sts.port", String.valueOf(getFreePort()),
                                 "web.http.sts.path", "/api/sts",
                                 "web.http.accounts.port", String.valueOf(getFreePort()),
-                                "web.http.accounts.path", "/api/sts/accounts",
-                                "edc.api.accounts.key", "password"),
+                                "web.http.accounts.path", "/api/sts/accounts"),
                         ":dist:bom:sts-feature-bom"
                 ));
     }
