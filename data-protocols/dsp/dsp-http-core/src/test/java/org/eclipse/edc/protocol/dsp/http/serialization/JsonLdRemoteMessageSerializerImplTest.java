@@ -24,6 +24,7 @@ import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegi
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,8 +48,9 @@ class JsonLdRemoteMessageSerializerImplTest {
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry = mock();
     private final DspProtocolParser protocolParser = mock();
 
-    private final ObjectMapper mapper = mock(ObjectMapper.class);
-    private final RemoteMessage message = mock(RemoteMessage.class);
+    private final TypeManager typeManager = mock();
+    private final ObjectMapper mapper = mock();
+    private final RemoteMessage message = mock();
     private JsonLdRemoteMessageSerializerImpl serializer;
 
     @BeforeEach
@@ -56,8 +58,9 @@ class JsonLdRemoteMessageSerializerImplTest {
         var jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
         jsonLdService.registerNamespace("schema", "http://schema/"); //needed for compaction
         when(registry.forContext(DSP_TRANSFORMER_CONTEXT_V_08)).thenReturn(registry);
-        serializer = new JsonLdRemoteMessageSerializerImpl(dspTransformerRegistry, mapper, jsonLdService, protocolParser, "scope");
+        serializer = new JsonLdRemoteMessageSerializerImpl(dspTransformerRegistry, typeManager, "test", jsonLdService, protocolParser, "scope");
         when(message.getProtocol()).thenReturn(DATASPACE_PROTOCOL_HTTP);
+        when(typeManager.getMapper("test")).thenReturn(mapper);
     }
 
     @Test

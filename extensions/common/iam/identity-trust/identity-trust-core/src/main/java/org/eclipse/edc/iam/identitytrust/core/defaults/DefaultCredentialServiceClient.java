@@ -15,8 +15,6 @@
 
 package org.eclipse.edc.iam.identitytrust.core.defaults;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
@@ -37,6 +35,7 @@ import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.io.IOException;
@@ -51,15 +50,17 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     public static final String PRESENTATION_ENDPOINT = "/presentations/query";
     private final EdcHttpClient httpClient;
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper objectMapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonLd jsonLd;
     private final Monitor monitor;
 
-    public DefaultCredentialServiceClient(EdcHttpClient httpClient, JsonBuilderFactory jsonFactory, ObjectMapper jsonLdMapper, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, Monitor monitor) {
+    public DefaultCredentialServiceClient(EdcHttpClient httpClient, JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, Monitor monitor) {
         this.httpClient = httpClient;
         this.jsonFactory = jsonFactory;
-        this.objectMapper = jsonLdMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
         this.transformerRegistry = transformerRegistry;
         this.jsonLd = jsonLd;
         this.monitor = monitor;
@@ -72,7 +73,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
         var url = credentialServiceBaseUrl + PRESENTATION_ENDPOINT;
 
         try {
-            var requestJson = objectMapper.writeValueAsString(query);
+            var requestJson = typeManager.getMapper(typeContext).writeValueAsString(query);
             var request = new Request.Builder()
                     .post(RequestBody.create(requestJson, MediaType.parse("application/json")))
                     .url(url)
@@ -87,7 +88,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
             }
 
             if (response.isSuccessful() && response.body() != null) {
-                var presentationResponse = objectMapper.readValue(body, JsonObject.class);
+                var presentationResponse = typeManager.getMapper(typeContext).readValue(body, JsonObject.class);
                 return parseResponse(presentationResponse);
             }
             return failure("Presentation Query failed: HTTP %s, message: %s".formatted(response.code(), body));
@@ -130,7 +131,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     }
 
     private Result<VerifiablePresentationContainer> parseLdpVp(Object vpObj) {
-        var jsonObj = objectMapper.convertValue(vpObj, JsonObject.class);
+        var jsonObj = typeManager.getMapper(typeContext).convertValue(vpObj, JsonObject.class);
         var rawStr = jsonObj.toString();
 
         return jsonLd.expand(jsonObj)

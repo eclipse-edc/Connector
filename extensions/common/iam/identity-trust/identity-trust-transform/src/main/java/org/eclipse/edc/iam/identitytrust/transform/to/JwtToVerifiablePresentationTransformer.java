@@ -16,7 +16,6 @@
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.json.JsonObject;
@@ -25,6 +24,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,13 +42,15 @@ public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransform
     private static final String DATA_URL_VC_JWT = "data:application/vc+jwt,";
 
     private final Monitor monitor;
-    private final ObjectMapper objectMapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final JsonLd jsonLd;
 
-    public JwtToVerifiablePresentationTransformer(Monitor monitor, ObjectMapper objectMapper, JsonLd jsonLd) {
+    public JwtToVerifiablePresentationTransformer(Monitor monitor, TypeManager typeManager, String typeContext, JsonLd jsonLd) {
         super(VerifiablePresentation.class);
         this.monitor = monitor;
-        this.objectMapper = objectMapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
         this.jsonLd = jsonLd;
     }
 
@@ -67,7 +69,7 @@ public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransform
                 builder.id(claimsSet.getJWTID());
 
                 if (vpObject instanceof String) {
-                    vpObject = objectMapper.readValue(vpObject.toString(), Map.class);
+                    vpObject = typeManager.getMapper(typeContext).readValue(vpObject.toString(), Map.class);
                 }
 
                 if (vpObject instanceof Map<?, ?> vp) {
@@ -150,7 +152,7 @@ public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransform
             return context.transform(credential.toString(), VerifiableCredential.class);
         }
         // VC is LDP
-        var input = objectMapper.convertValue(credential, JsonObject.class);
+        var input = typeManager.getMapper(typeContext).convertValue(credential, JsonObject.class);
         var expansion = jsonLd.expand(input);
         if (expansion.succeeded()) {
             return context.transform(expansion.getContent(), VerifiableCredential.class);

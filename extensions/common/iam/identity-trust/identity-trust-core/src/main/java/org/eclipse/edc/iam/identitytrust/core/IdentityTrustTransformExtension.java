@@ -69,8 +69,8 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
                 .onSuccess(uri -> jsonLdService.registerCachedDocument(DCP_CONTEXT_URL, uri))
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
-        typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager.getMapper(JSON_LD)));
-        typeTransformerRegistry.register(new JsonObjectToPresentationResponseMessageTransformer(typeManager.getMapper(JSON_LD)));
+        typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager, JSON_LD));
+        typeTransformerRegistry.register(new JsonObjectToPresentationResponseMessageTransformer(typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectFromPresentationQueryTransformer());
         typeTransformerRegistry.register(new JsonObjectFromPresentationResponseMessageTransformer());
         typeTransformerRegistry.register(new JsonObjectToVerifiablePresentationTransformer());
@@ -78,7 +78,7 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
         typeTransformerRegistry.register(new JsonObjectToIssuerTransformer());
         typeTransformerRegistry.register(new JsonObjectToCredentialSubjectTransformer());
         typeTransformerRegistry.register(new JsonObjectToCredentialStatusTransformer());
-        typeTransformerRegistry.register(new JwtToVerifiablePresentationTransformer(context.getMonitor(), typeManager.getMapper(JSON_LD), jsonLdService));
+        typeTransformerRegistry.register(new JwtToVerifiablePresentationTransformer(context.getMonitor(), typeManager, JSON_LD, jsonLdService));
         typeTransformerRegistry.register(new JwtToVerifiableCredentialTransformer(context.getMonitor()));
     }
 

@@ -78,20 +78,15 @@ import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.
 public class IdentityAndTrustExtension implements ServiceExtension {
 
     public static final long DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS = 15 * 60 * 1000L;
-    @Setting(description = "Validity period of cached StatusList2021 credential entries in milliseconds.", defaultValue = DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS + "", key = "edc.iam.credential.revocation.cache.validity")
-    private long revocationCacheValidity;
-
-    @Setting(description = "DID of this connector", key = "edc.iam.issuer.id")
-    private String issuerId;
-
-    @Setting(description = "The period of the JTI entry reaper thread in seconds", defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "", key = "edc.sql.store.jti.cleanup.period")
-    private long reaperCleanupPeriod;
-
     public static final String DCP_SELF_ISSUED_TOKEN_CONTEXT = "dcp-si";
     public static final String JSON_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
     public static final long DEFAULT_CLEANUP_PERIOD_SECONDS = 60;
-
-
+    @Setting(description = "Validity period of cached StatusList2021 credential entries in milliseconds.", defaultValue = DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS + "", key = "edc.iam.credential.revocation.cache.validity")
+    private long revocationCacheValidity;
+    @Setting(description = "DID of this connector", key = "edc.iam.issuer.id")
+    private String issuerId;
+    @Setting(description = "The period of the JTI entry reaper thread in seconds", defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "", key = "edc.sql.store.jti.cleanup.period")
+    private long reaperCleanupPeriod;
     @Inject
     private SecureTokenService secureTokenService;
 
@@ -159,9 +154,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         // add all rules for validating VerifiableCredential JWTs
         rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new HasSubjectRule());
 
-        // TODO move in a separated extension?
-        signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD)));
-
 
         try {
             jsonLd.registerCachedDocument(STATUSLIST_2021_URL, getClass().getClassLoader().getResource("statuslist2021.json").toURI());
@@ -187,6 +179,12 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         jtiEntryReaperThread.cancel(true);
     }
 
+    @Override
+    public void prepare() {
+        // TODO move in a separated extension?
+        signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD)));
+    }
+
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
         var credentialServiceUrlResolver = new DidCredentialServiceUrlResolver(didResolverRegistry);
@@ -204,7 +202,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     public CredentialServiceClient getCredentialServiceClient(ServiceExtensionContext context) {
         if (credentialServiceClient == null) {
             credentialServiceClient = new DefaultCredentialServiceClient(httpClient, Json.createBuilderFactory(Map.of()),
-                    typeManager.getMapper(JSON_LD), typeTransformerRegistry, jsonLd, context.getMonitor());
+                    typeManager, JSON_LD, typeTransformerRegistry, jsonLd, context.getMonitor());
         }
         return credentialServiceClient;
     }
@@ -212,13 +210,13 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Provider
     public PresentationVerifier createPresentationVerifier(ServiceExtensionContext context) {
         if (presentationVerifier == null) {
-            var mapper = typeManager.getMapper(JSON_LD);
 
-            var jwtVerifier = new JwtPresentationVerifier(mapper, tokenValidationService, rulesRegistry, didPublicKeyResolver);
+            var jwtVerifier = new JwtPresentationVerifier(typeManager, JSON_LD, tokenValidationService, rulesRegistry, didPublicKeyResolver);
             var ldpVerifier = LdpVerifier.Builder.newInstance()
                     .signatureSuites(signatureSuiteRegistry)
                     .jsonLd(jsonLd)
-                    .objectMapper(mapper)
+                    .typeManager(typeManager)
+                    .typeContext(JSON_LD)
                     .methodResolver(new DidMethodResolver(didResolverRegistry))
                     .build();
 

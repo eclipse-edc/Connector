@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +60,9 @@ class JsonObjectFromCatalogTransformerTest {
     private final TransformerContext context = mock();
     private final ParticipantIdMapper participantIdMapper = mock();
 
-    private final JsonObjectFromCatalogTransformer transformer = new JsonObjectFromCatalogTransformer(jsonFactory, mapper, participantIdMapper);
+    private final TypeManager typeManager = mock();
+
+    private final JsonObjectFromCatalogTransformer transformer = new JsonObjectFromCatalogTransformer(jsonFactory, typeManager, "test", participantIdMapper);
 
     private JsonObject datasetJson;
     private JsonObject catalogJson;
@@ -68,6 +71,8 @@ class JsonObjectFromCatalogTransformerTest {
     @BeforeEach
     void setUp() {
 
+        when(typeManager.getMapper("test")).thenReturn(mapper);
+        
         datasetJson = getJsonObject("dataset");
         catalogJson = getJsonObject("Catalog");
         dataServiceJson = getJsonObject("dataService");

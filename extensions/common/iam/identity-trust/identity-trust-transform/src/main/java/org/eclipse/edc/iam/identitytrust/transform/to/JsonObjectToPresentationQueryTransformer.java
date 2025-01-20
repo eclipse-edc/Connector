@@ -15,7 +15,6 @@
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -23,6 +22,7 @@ import org.eclipse.edc.iam.identitytrust.spi.model.PresentationQueryMessage;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.PresentationDefinition;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,11 +34,13 @@ import java.util.List;
  */
 public class JsonObjectToPresentationQueryTransformer extends AbstractJsonLdTransformer<JsonObject, PresentationQueryMessage> {
 
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public JsonObjectToPresentationQueryTransformer(ObjectMapper mapper) {
+    public JsonObjectToPresentationQueryTransformer(TypeManager typeManager, String typeContext) {
         super(JsonObject.class, PresentationQueryMessage.class);
-        this.mapper = mapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -66,7 +68,7 @@ public class JsonObjectToPresentationQueryTransformer extends AbstractJsonLdTran
         }
         var rawJson = jo.get(JsonLdKeywords.VALUE);
         try {
-            return mapper.readValue(rawJson.toString(), PresentationDefinition.class);
+            return typeManager.getMapper(typeContext).readValue(rawJson.toString(), PresentationDefinition.class);
         } catch (JsonProcessingException e) {
             context.reportProblem("Error reading JSON literal: %s".formatted(e.getMessage()));
             return null;

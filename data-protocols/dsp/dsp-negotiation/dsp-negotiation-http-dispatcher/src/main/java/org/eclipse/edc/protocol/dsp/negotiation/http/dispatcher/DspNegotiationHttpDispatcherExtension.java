@@ -68,7 +68,7 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var contractNegotiationAckDeserializer = new JsonLdResponseBodyDeserializer<>(
-                ContractNegotiationAck.class, typeManager.getMapper(JSON_LD), jsonLd, dspTransformerRegistry);
+                ContractNegotiationAck.class, typeManager, JSON_LD, jsonLd, dspTransformerRegistry);
 
         messageDispatcher.registerMessage(
                 ContractAgreementMessage.class,

@@ -53,12 +53,12 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
 
         // V4
-        managementApiTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager.getMapper(JSON_LD)));
+        managementApiTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager, JSON_LD));
         webservice.registerResource(ApiContext.MANAGEMENT, new DataplaneSelectorApiV4Controller(selectionService, managementApiTransformerRegistry));
 
         // V3
         var managementApiTransformerRegistryV3 = managementApiTransformerRegistry.forContext("v3");
-        managementApiTransformerRegistryV3.register(new JsonObjectFromDataPlaneInstanceV3Transformer(createBuilderFactory(Map.of()), typeManager.getMapper(JSON_LD)));
+        managementApiTransformerRegistryV3.register(new JsonObjectFromDataPlaneInstanceV3Transformer(createBuilderFactory(Map.of()), typeManager, JSON_LD));
         webservice.registerResource(ApiContext.MANAGEMENT, new DataplaneSelectorApiV3Controller(selectionService, managementApiTransformerRegistryV3));
 
     }

@@ -19,8 +19,11 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -34,7 +37,6 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.Co
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,8 +50,13 @@ class JsonObjectFromContractDefinitionTransformerTest {
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
+    private final TypeManager typeManager = mock();
+    private final JsonObjectFromContractDefinitionTransformer transformer = new JsonObjectFromContractDefinitionTransformer(jsonFactory, typeManager, "test");
 
-    private final JsonObjectFromContractDefinitionTransformer transformer = new JsonObjectFromContractDefinitionTransformer(jsonFactory, createObjectMapper());
+    @BeforeEach
+    void setUp() {
+        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+    }
 
     @Test
     void transform() {

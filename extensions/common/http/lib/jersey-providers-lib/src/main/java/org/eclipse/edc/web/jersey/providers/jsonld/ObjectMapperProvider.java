@@ -16,6 +16,7 @@ package org.eclipse.edc.web.jersey.providers.jsonld;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.ext.ContextResolver;
+import org.eclipse.edc.spi.types.TypeManager;
 
 /**
  * Provides an ObjectMapper to be used for parsing incoming requests. A custom ObjectMapper that supports the
@@ -23,14 +24,16 @@ import jakarta.ws.rs.ext.ContextResolver;
  */
 public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
 
-    private final ObjectMapper objectMapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public ObjectMapperProvider(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public ObjectMapperProvider(TypeManager typeManager, String typeContext) {
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
     public ObjectMapper getContext(Class<?> type) {
-        return objectMapper;
+        return typeManager.getMapper(typeContext);
     }
 }

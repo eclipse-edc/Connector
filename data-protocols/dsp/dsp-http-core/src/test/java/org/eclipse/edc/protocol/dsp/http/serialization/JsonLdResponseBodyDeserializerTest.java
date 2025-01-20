@@ -22,6 +22,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,16 +49,18 @@ import static org.mockito.Mockito.when;
 class JsonLdResponseBodyDeserializerTest {
 
     private final ObjectMapper objectMapper = mock();
+    private final TypeManager typeManager = mock();
     private final JsonLd jsonLd = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry = mock();
     private final JsonLdResponseBodyDeserializer<Object> bodyExtractor =
-            new JsonLdResponseBodyDeserializer<>(Object.class, objectMapper, jsonLd, dspTransformerRegistry);
+            new JsonLdResponseBodyDeserializer<>(Object.class, typeManager, "test", jsonLd, dspTransformerRegistry);
 
 
     @BeforeEach
     void beforeEach() {
         when(dspTransformerRegistry.forProtocol(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.success(transformerRegistry));
+        when(typeManager.getMapper("test")).thenReturn(objectMapper);
     }
 
     @Test

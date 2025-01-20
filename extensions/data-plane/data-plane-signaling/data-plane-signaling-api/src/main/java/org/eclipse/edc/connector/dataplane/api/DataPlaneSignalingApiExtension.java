@@ -59,7 +59,6 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var factory = Json.createBuilderFactory(Map.of());
-        var jsonLdMapper = typeManager.getMapper(JSON_LD);
 
         var signalingApiTypeTransformerRegistry = transformerRegistry.forContext("signaling-api");
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowStartMessageTransformer());
@@ -67,7 +66,7 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
-        signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(factory, jsonLdMapper));
+        signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(factory, typeManager, JSON_LD));
 
         var controller = new DataPlaneSignalingApiController(signalingApiTypeTransformerRegistry,
                 dataPlaneManager, context.getMonitor().withPrefix("SignalingAPI"));

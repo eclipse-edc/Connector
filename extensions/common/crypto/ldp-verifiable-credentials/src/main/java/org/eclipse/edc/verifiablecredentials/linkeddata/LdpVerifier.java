@@ -34,7 +34,6 @@ import com.apicatalog.vc.proof.EmbeddedProof;
 import com.apicatalog.vc.proof.Proof;
 import com.apicatalog.vc.suite.SignatureSuite;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonStructure;
 import org.eclipse.edc.iam.identitytrust.spi.verification.CredentialVerifier;
@@ -42,6 +41,7 @@ import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry
 import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.util.uri.UriUtils;
 
 import java.io.IOException;
@@ -53,13 +53,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
 public class LdpVerifier implements CredentialVerifier {
 
     private JsonLd jsonLd;
-    private ObjectMapper jsonLdMapper;
+    private TypeManager typeManager;
+    private String typeContext = JSON_LD;
     private SignatureSuiteRegistry suiteRegistry;
     private Map<String, Object> params;
     private Collection<MethodResolver> methodResolvers = new ArrayList<>(List.of(new HttpMethodResolver()));
@@ -71,7 +73,7 @@ public class LdpVerifier implements CredentialVerifier {
 
     @Override
     public boolean canHandle(String rawInput) {
-        try (var parser = jsonLdMapper.createParser(rawInput)) {
+        try (var parser = typeManager.getMapper(typeContext).createParser(rawInput)) {
             parser.nextToken();
             return true;
         } catch (IOException e) {
@@ -90,7 +92,7 @@ public class LdpVerifier implements CredentialVerifier {
     public Result<Void> verify(String rawInput, VerifierContext verifierContext) {
         JsonObject jo;
         try {
-            jo = jsonLdMapper.readValue(rawInput, JsonObject.class);
+            jo = typeManager.getMapper(typeContext).readValue(rawInput, JsonObject.class);
         } catch (JsonProcessingException e) {
             return failure("Failed to parse JSON: %s".formatted(e.toString()));
         }
@@ -333,8 +335,13 @@ public class LdpVerifier implements CredentialVerifier {
             return this;
         }
 
-        public Builder objectMapper(ObjectMapper mapper) {
-            this.verifier.jsonLdMapper = mapper;
+        public Builder typeManager(TypeManager typeManager) {
+            this.verifier.typeManager = typeManager;
+            return this;
+        }
+
+        public Builder typeContext(String typeContext) {
+            this.verifier.typeContext = typeContext;
             return this;
         }
 
@@ -360,7 +367,8 @@ public class LdpVerifier implements CredentialVerifier {
 
         public LdpVerifier build() {
             Objects.requireNonNull(this.verifier.jsonLd, "Must have a JsonLD service!");
-            Objects.requireNonNull(this.verifier.jsonLdMapper, "Must have an ObjectMapper!");
+            Objects.requireNonNull(this.verifier.typeManager, "Must have a TypeManager!");
+            Objects.requireNonNull(this.verifier.typeContext, "Must have a type context!");
             Objects.requireNonNull(this.verifier.suiteRegistry, "Must have a Signature registry!");
             return this.verifier;
         }

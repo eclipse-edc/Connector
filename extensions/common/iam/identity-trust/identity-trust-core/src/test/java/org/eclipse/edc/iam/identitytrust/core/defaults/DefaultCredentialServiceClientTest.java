@@ -17,7 +17,6 @@ package org.eclipse.edc.iam.identitytrust.core.defaults;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -38,6 +37,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentatio
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,7 +55,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,9 +70,21 @@ class DefaultCredentialServiceClientTest {
     public static final String PRESENTATION_QUERY = "/presentations/query";
     private static final String CS_URL = "http://test.com/cs";
     private final EdcHttpClient httpClientMock = mock();
-    private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper().enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+    private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
+    private final TypeManager typeManager = mock();
     private DefaultCredentialServiceClient client;
     private TypeTransformerRegistry transformerRegistry;
+
+    private static VerifiableCredential.Builder createCredential() {
+        return VerifiableCredential.Builder.newInstance()
+                .issuer(new Issuer("test-issuer", Map.of()))
+                .type("VerifiableCredential")
+                .issuanceDate(Instant.now())
+                .credentialSubject(CredentialSubject.Builder.newInstance()
+                        .id("test-subject")
+                        .claim("foo", "bar")
+                        .build());
+    }
 
     @BeforeEach
     void setup() {
@@ -85,7 +96,9 @@ class DefaultCredentialServiceClientTest {
         var jsonLdMock = mock(JsonLd.class);
         when(jsonLdMock.expand(any())).thenAnswer(a -> success(a.getArgument(0)));
         client = new DefaultCredentialServiceClient(httpClientMock, Json.createBuilderFactory(Map.of()),
-                createObjectMapper(), transformerRegistry, jsonLdMock, mock());
+                typeManager, "test", transformerRegistry, jsonLdMock, mock());
+
+        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
     }
 
     @Test
@@ -100,6 +113,51 @@ class DefaultCredentialServiceClientTest {
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.VC1_0_LD);
         verify(httpClientMock).execute(argThat((r) -> containsScope(r, scopes)));
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean containsScope(Request request, List<String> scopes) {
+
+        try (var buffer = new Buffer()) {
+            Objects.requireNonNull(request.body()).writeTo(buffer);
+            var body = mapper.readValue(buffer.inputStream(), new TypeReference<Map<String, Object>>() {
+
+            });
+            var requestScopes = (Collection<String>) body.get("scope");
+
+            return requestScopes.containsAll(scopes);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private VerifiablePresentation.Builder createPresentation() {
+        return VerifiablePresentation.Builder.newInstance()
+                .type("VerifiablePresentation")
+                .credential(createCredential().build());
+    }
+
+    private Result<PresentationResponseMessage> presentationResponse(InvocationOnMock args) {
+        try {
+            var response = mapper.readValue(args.getArgument(0, JsonObject.class).toString(), PresentationResponseMessage.class);
+            return Result.success(response);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Response response(int code, String body) {
+        return new Response.Builder()
+                .request(mock())
+                .protocol(Protocol.HTTP_2)
+                .code(code) // status code
+                .message("")
+                .body(ResponseBody.create(
+                        body,
+                        MediaType.get("application/json; charset=utf-8")
+                ))
+                .build();
     }
 
     @Nested
@@ -255,62 +313,6 @@ class DefaultCredentialServiceClientTest {
             assertThat(containers).hasSize(1);
             assertThat(containers.get(0).presentation().getCredentials()).isEmpty();
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private boolean containsScope(Request request, List<String> scopes) {
-
-        try (var buffer = new Buffer()) {
-            Objects.requireNonNull(request.body()).writeTo(buffer);
-            var body = mapper.readValue(buffer.inputStream(), new TypeReference<Map<String, Object>>() {
-
-            });
-            var requestScopes = (Collection<String>) body.get("scope");
-
-            return requestScopes.containsAll(scopes);
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private VerifiablePresentation.Builder createPresentation() {
-        return VerifiablePresentation.Builder.newInstance()
-                .type("VerifiablePresentation")
-                .credential(createCredential().build());
-    }
-
-    private static VerifiableCredential.Builder createCredential() {
-        return VerifiableCredential.Builder.newInstance()
-                .issuer(new Issuer("test-issuer", Map.of()))
-                .type("VerifiableCredential")
-                .issuanceDate(Instant.now())
-                .credentialSubject(CredentialSubject.Builder.newInstance()
-                        .id("test-subject")
-                        .claim("foo", "bar")
-                        .build());
-    }
-
-    private Result<PresentationResponseMessage> presentationResponse(InvocationOnMock args) {
-        try {
-            var response = mapper.readValue(args.getArgument(0, JsonObject.class).toString(), PresentationResponseMessage.class);
-            return Result.success(response);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Response response(int code, String body) {
-        return new Response.Builder()
-                .request(mock())
-                .protocol(Protocol.HTTP_2)
-                .code(code) // status code
-                .message("")
-                .body(ResponseBody.create(
-                        body,
-                        MediaType.get("application/json; charset=utf-8")
-                ))
-                .build();
     }
 
 

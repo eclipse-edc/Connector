@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -30,6 +29,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.Nullable;
@@ -51,17 +51,19 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
     private static final String SELECT_PATH = "/select";
     private final ControlApiHttpClient httpClient;
     private final String url;
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final String selectionStrategy;
     private final JsonLd jsonLd;
 
-    public RemoteDataPlaneSelectorService(ControlApiHttpClient controlClient, String url, ObjectMapper mapper,
+    public RemoteDataPlaneSelectorService(ControlApiHttpClient controlClient, String url, TypeManager typeManager, String typeContext,
                                           TypeTransformerRegistry typeTransformerRegistry, String selectionStrategy,
                                           JsonLd jsonLd) {
         this.httpClient = controlClient;
         this.url = url;
-        this.mapper = mapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
         this.typeTransformerRegistry = typeTransformerRegistry;
         this.selectionStrategy = selectionStrategy;
         this.jsonLd = jsonLd;
@@ -145,7 +147,7 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
     private ServiceResult<JsonObject> toJsonObject(String it) {
         try {
-            return ServiceResult.success(mapper.readValue(it, JsonObject.class));
+            return ServiceResult.success(typeManager.getMapper(typeContext).readValue(it, JsonObject.class));
         } catch (JsonProcessingException e) {
             return ServiceResult.unexpected("Cannot deserialize response body as JsonObject");
         }
@@ -153,7 +155,7 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
     private ServiceResult<JsonArray> toJsonArray(String it) {
         try {
-            return ServiceResult.success(mapper.readValue(it, JsonArray.class));
+            return ServiceResult.success(typeManager.getMapper(typeContext).readValue(it, JsonArray.class));
         } catch (JsonProcessingException e) {
             return ServiceResult.unexpected("Cannot deserialize response body as JsonObject");
         }

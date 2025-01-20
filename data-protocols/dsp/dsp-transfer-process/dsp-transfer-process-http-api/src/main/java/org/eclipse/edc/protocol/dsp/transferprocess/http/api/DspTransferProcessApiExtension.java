@@ -71,15 +71,14 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var jsonLdMapper = typeManager.getMapper(JSON_LD);
 
         registerValidators(DSP_NAMESPACE_V_08);
         registerValidators(DSP_NAMESPACE_V_2024_1);
 
         webService.registerResource(ApiContext.PROTOCOL, new DspTransferProcessApiController(transferProcessProtocolService, dspRequestHandler));
         webService.registerResource(ApiContext.PROTOCOL, new DspTransferProcessApiController20241(transferProcessProtocolService, dspRequestHandler));
-        webService.registerDynamicResource(ApiContext.PROTOCOL, DspTransferProcessApiController.class, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE_V_08));
-        webService.registerDynamicResource(ApiContext.PROTOCOL, DspTransferProcessApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE_V_2024_1));
+        webService.registerDynamicResource(ApiContext.PROTOCOL, DspTransferProcessApiController.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_08));
+        webService.registerDynamicResource(ApiContext.PROTOCOL, DspTransferProcessApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_2024_1));
 
         versionRegistry.register(V_2024_1);
         versionRegistry.register(V_08);

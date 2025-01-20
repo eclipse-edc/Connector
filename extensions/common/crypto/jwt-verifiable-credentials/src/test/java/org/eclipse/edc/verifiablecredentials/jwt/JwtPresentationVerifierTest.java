@@ -30,6 +30,7 @@ import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
@@ -68,7 +69,8 @@ class JwtPresentationVerifierTest {
     private final TokenValidationService tokenValidationService = new TokenValidationServiceImpl();
     private final TokenValidationRulesRegistry ruleRegistry = new TokenValidationRulesRegistryImpl();
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
-    private final JwtPresentationVerifier verifier = new JwtPresentationVerifier(mapper, tokenValidationService, ruleRegistry, publicKeyResolverMock);
+    private final TypeManager typeManager = mock();
+    private final JwtPresentationVerifier verifier = new JwtPresentationVerifier(typeManager, "test", tokenValidationService, ruleRegistry, publicKeyResolverMock);
     private ECKey vpSigningKey;
     private ECKey vcSigningKey;
 
@@ -93,6 +95,8 @@ class JwtPresentationVerifierTest {
 
         // those rules would normally get registered in an extension
         ruleRegistry.addRule(JWT_VP_TOKEN_CONTEXT, new HasSubjectRule());
+
+        when(typeManager.getMapper("test")).thenReturn(mapper);
     }
 
     @Test

@@ -44,7 +44,7 @@ class JerseyJsonLdInterceptorTest extends RestControllerTestBase {
 
     private static final String SCOPE = "scope";
     private final JsonLd jsonLd = mock();
-    private final JerseyJsonLdInterceptor interceptor = new JerseyJsonLdInterceptor(jsonLd, objectMapper, SCOPE);
+    private final JerseyJsonLdInterceptor interceptor = new JerseyJsonLdInterceptor(jsonLd, typeManager, "test", SCOPE);
 
     @Test
     void expansion_shouldSucceed_whenInputIsJsonObject() {

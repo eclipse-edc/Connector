@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.transform.transformer.edc.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,12 +40,14 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 public class JsonObjectFromDataPlaneInstanceV3Transformer extends AbstractJsonLdTransformer<DataPlaneInstance, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public JsonObjectFromDataPlaneInstanceV3Transformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromDataPlaneInstanceV3Transformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
         super(DataPlaneInstance.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -59,7 +61,7 @@ public class JsonObjectFromDataPlaneInstanceV3Transformer extends AbstractJsonLd
 
         if (dataPlaneInstance.getProperties() != null && !dataPlaneInstance.getProperties().isEmpty()) {
             var propBuilder = jsonFactory.createObjectBuilder();
-            transformProperties(dataPlaneInstance.getProperties(), propBuilder, mapper, context);
+            transformProperties(dataPlaneInstance.getProperties(), propBuilder, typeManager.getMapper(typeContext), context);
             builder.add(PROPERTIES, propBuilder);
         }
 

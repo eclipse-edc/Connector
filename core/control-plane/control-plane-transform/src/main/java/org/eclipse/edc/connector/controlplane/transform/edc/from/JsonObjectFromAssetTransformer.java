@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.controlplane.transform.edc.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,13 +28,15 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<Asset, JsonObject> {
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final JsonBuilderFactory jsonFactory;
 
-    public JsonObjectFromAssetTransformer(JsonBuilderFactory jsonFactory, ObjectMapper jsonLdMapper) {
+    public JsonObjectFromAssetTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
         super(Asset.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = jsonLdMapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -44,12 +46,12 @@ public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<As
                 .add(TYPE, Asset.EDC_ASSET_TYPE);
 
         var propBuilder = jsonFactory.createObjectBuilder();
-        transformProperties(asset.getProperties(), propBuilder, mapper, context);
+        transformProperties(asset.getProperties(), propBuilder, typeManager.getMapper(typeContext), context);
         builder.add(Asset.EDC_ASSET_PROPERTIES, propBuilder);
 
         if (asset.getPrivateProperties() != null && !asset.getPrivateProperties().isEmpty()) {
             var privatePropBuilder = jsonFactory.createObjectBuilder();
-            transformProperties(asset.getPrivateProperties(), privatePropBuilder, mapper, context);
+            transformProperties(asset.getPrivateProperties(), privatePropBuilder, typeManager.getMapper(typeContext), context);
             builder.add(Asset.EDC_ASSET_PRIVATE_PROPERTIES, privatePropBuilder);
         }
 

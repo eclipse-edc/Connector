@@ -22,6 +22,7 @@ import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
@@ -33,9 +34,11 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.api.v3.DataPlaneInstanceSchemaV3.DATAPLANE_INSTANCE_EXAMPLE;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DataPlaneApiSelectorV3Test {
 
+    private final TypeManager typeManager = mock();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
@@ -44,7 +47,8 @@ public class DataPlaneApiSelectorV3Test {
     void setUp() {
         transformer.register(new JsonObjectToDataPlaneInstanceTransformer());
         transformer.register(new JsonObjectToDataAddressTransformer());
-        transformer.register(new JsonValueToGenericTypeTransformer(objectMapper));
+        transformer.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
+        when(typeManager.getMapper("test")).thenReturn(objectMapper);
     }
 
     @Test

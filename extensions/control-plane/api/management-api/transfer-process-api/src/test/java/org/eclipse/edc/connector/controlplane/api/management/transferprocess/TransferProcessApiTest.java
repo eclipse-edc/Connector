@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
@@ -64,9 +65,11 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class TransferProcessApiTest {
 
+    private final TypeManager typeManager = mock();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new JsonLdExtension().createJsonLdService(testServiceExtensionContext());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
@@ -78,7 +81,8 @@ class TransferProcessApiTest {
         transformer.register(new JsonObjectToDataAddressTransformer());
         transformer.register(new JsonObjectToTerminateTransferTransformer());
         transformer.register(new JsonObjectToSuspendTransferTransformer());
-        transformer.register(new JsonValueToGenericTypeTransformer(objectMapper));
+        transformer.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
+        when(typeManager.getMapper("test")).thenReturn(objectMapper);
     }
 
     @Test

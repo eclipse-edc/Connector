@@ -16,8 +16,6 @@ package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -25,6 +23,7 @@ import org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.credentialservice.PresentationSubmission;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,11 +35,13 @@ import java.util.List;
  */
 public class JsonObjectToPresentationResponseMessageTransformer extends AbstractJsonLdTransformer<JsonObject, PresentationResponseMessage> {
 
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public JsonObjectToPresentationResponseMessageTransformer(ObjectMapper mapper) {
+    public JsonObjectToPresentationResponseMessageTransformer(TypeManager typeManager, String typeContext) {
         super(JsonObject.class, PresentationResponseMessage.class);
-        this.mapper = mapper.copy().enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -62,7 +63,7 @@ public class JsonObjectToPresentationResponseMessageTransformer extends Abstract
     private PresentationSubmission readPresentationSubmission(JsonValue v, TransformerContext context) {
         var rawJson = getRawJsonValue(v);
         try {
-            return mapper.readValue(rawJson.toString(), PresentationSubmission.class);
+            return typeManager.getMapper(typeContext).readValue(rawJson.toString(), PresentationSubmission.class);
         } catch (JsonProcessingException e) {
             context.reportProblem("Error reading JSON literal: %s".formatted(e.getMessage()));
             return null;
@@ -73,7 +74,7 @@ public class JsonObjectToPresentationResponseMessageTransformer extends Abstract
     private List<Object> readPresentation(JsonValue v, TransformerContext context) {
         var rawJson = getRawJsonValue(v);
         try {
-            return mapper.readValue(rawJson.toString(), new TypeReference<>() {
+            return typeManager.getMapper(typeContext).readValue(rawJson.toString(), new TypeReference<>() {
             });
         } catch (JsonProcessingException e) {
             context.reportProblem("Error reading JSON literal: %s".formatted(e.getMessage()));

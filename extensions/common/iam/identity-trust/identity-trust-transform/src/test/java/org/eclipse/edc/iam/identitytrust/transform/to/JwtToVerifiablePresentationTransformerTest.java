@@ -27,6 +27,7 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,16 +55,19 @@ import static org.mockito.Mockito.when;
 class JwtToVerifiablePresentationTransformerTest {
 
     private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
+    private final TypeManager typeManager = mock();
     private final TransformerContext context = mock();
     private final Monitor monitor = mock();
     private final JwtToVerifiableCredentialTransformer credentialTransformer = new JwtToVerifiableCredentialTransformer(monitor);
     private final JsonLd jsonLd = mock();
-    private final JwtToVerifiablePresentationTransformer transformer = new JwtToVerifiablePresentationTransformer(monitor, MAPPER, jsonLd);
+    private final JwtToVerifiablePresentationTransformer transformer = new JwtToVerifiablePresentationTransformer(monitor, typeManager, "test", jsonLd);
 
     @BeforeEach
     void setup() {
         when(context.transform(isA(String.class), eq(VerifiableCredential.class)))
                 .thenAnswer(a -> credentialTransformer.transform(a.getArgument(0), context));
+
+        when(typeManager.getMapper("test")).thenReturn(MAPPER);
     }
 
     @Test

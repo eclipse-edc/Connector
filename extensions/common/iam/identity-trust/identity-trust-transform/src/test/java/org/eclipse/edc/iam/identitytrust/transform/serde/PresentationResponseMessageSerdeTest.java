@@ -23,6 +23,7 @@ import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -34,17 +35,18 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_CONTEXT_URL;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PresentationResponseMessageSerdeTest {
 
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());
 
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
-
+    private final TypeManager typeManager = mock();
     private final TypeTransformerRegistry trr = new TypeTransformerRegistryImpl();
     private final TransformerContext context = new TransformerContextImpl(trr);
     private final JsonObjectFromPresentationResponseMessageTransformer fromTransformer = new JsonObjectFromPresentationResponseMessageTransformer();
-    private final JsonObjectToPresentationResponseMessageTransformer toTransformer = new JsonObjectToPresentationResponseMessageTransformer(mapper);
+    private final JsonObjectToPresentationResponseMessageTransformer toTransformer = new JsonObjectToPresentationResponseMessageTransformer(typeManager, "test");
 
     @BeforeEach
     void setUp() {
@@ -53,7 +55,8 @@ public class PresentationResponseMessageSerdeTest {
         jsonLd.registerContext(DCP_CONTEXT_URL);
         // delegate to the generic transformer
 
-        trr.register(new JsonValueToGenericTypeTransformer(mapper));
+        trr.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
+        when(typeManager.getMapper("test")).thenReturn(mapper);
     }
 
 

@@ -15,13 +15,13 @@
 package org.eclipse.edc.verifiablecredentials.jwt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.identitytrust.spi.verification.CredentialVerifier;
 import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
@@ -68,7 +68,8 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     public static final String VERIFIABLE_CREDENTIAL_JSON_KEY = "verifiableCredential";
     public static final String VP_CLAIM = "vp";
     public static final String VC_CLAIM = "vc";
-    private final ObjectMapper objectMapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final TokenValidationService tokenValidationService;
     private final TokenValidationRulesRegistry tokenValidationRulesRegistry;
     private final PublicKeyResolver publicKeyResolver;
@@ -76,8 +77,9 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     /**
      * Verifies the JWT presentation by checking the cryptographic integrity.
      */
-    public JwtPresentationVerifier(ObjectMapper objectMapper, TokenValidationService tokenValidationService, TokenValidationRulesRegistry tokenValidationRulesRegistry, PublicKeyResolver publicKeyResolver) {
-        this.objectMapper = objectMapper;
+    public JwtPresentationVerifier(TypeManager typeManager, String typeContext, TokenValidationService tokenValidationService, TokenValidationRulesRegistry tokenValidationRulesRegistry, PublicKeyResolver publicKeyResolver) {
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
         this.tokenValidationService = tokenValidationService;
         this.tokenValidationRulesRegistry = tokenValidationRulesRegistry;
         this.publicKeyResolver = publicKeyResolver;
@@ -177,7 +179,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
         if (credentialsObject instanceof Collection<?>) {
             return ((Collection) credentialsObject).stream().map(obj -> {
                 try {
-                    return (obj instanceof String) ? obj.toString() : objectMapper.writeValueAsString(obj);
+                    return (obj instanceof String) ? obj.toString() : typeManager.getMapper(typeContext).writeValueAsString(obj);
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }

@@ -15,11 +15,11 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.contractdefinition.transform;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,13 +33,15 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 public class JsonObjectFromContractDefinitionTransformer extends AbstractJsonLdTransformer<ContractDefinition, JsonObject> {
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final JsonBuilderFactory jsonFactory;
 
-    public JsonObjectFromContractDefinitionTransformer(JsonBuilderFactory jsonFactory, ObjectMapper jsonLdMapper) {
+    public JsonObjectFromContractDefinitionTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
         super(ContractDefinition.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = jsonLdMapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -57,7 +59,7 @@ public class JsonObjectFromContractDefinitionTransformer extends AbstractJsonLdT
 
         if (!contractDefinition.getPrivateProperties().isEmpty()) {
             var privatePropBuilder = jsonFactory.createObjectBuilder();
-            transformProperties(contractDefinition.getPrivateProperties(), privatePropBuilder, mapper, context);
+            transformProperties(contractDefinition.getPrivateProperties(), privatePropBuilder, typeManager.getMapper(typeContext), context);
             builder.add(ContractDefinition.CONTRACT_DEFINITION_PRIVATE_PROPERTIES, privatePropBuilder);
         }
 

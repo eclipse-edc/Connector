@@ -69,8 +69,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var jsonFactory = Json.createBuilderFactory(Map.of());
-        var mapper = typeManager.getMapper(JSON_LD);
-        transformerRegistry.register(new JsonObjectFromContractDefinitionTransformer(jsonFactory, mapper));
+        transformerRegistry.register(new JsonObjectFromContractDefinitionTransformer(jsonFactory, typeManager, JSON_LD));
         transformerRegistry.register(new JsonObjectToContractDefinitionTransformer());
 
         validatorRegistry.register(CONTRACT_DEFINITION_TYPE, ContractDefinitionValidator.instance(criterionOperatorRegistry));

@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.api.management.secret.validation.SecretsValidat
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -39,8 +40,10 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class SecretsApiTest {
+    private final TypeManager typeManager = mock();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
@@ -48,7 +51,8 @@ class SecretsApiTest {
     @BeforeEach
     void setUp() {
         transformer.register(new JsonObjectToSecretTransformer());
-        transformer.register(new JsonValueToGenericTypeTransformer(objectMapper));
+        transformer.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
+        when(typeManager.getMapper("test")).thenReturn(objectMapper);
     }
 
     @Test

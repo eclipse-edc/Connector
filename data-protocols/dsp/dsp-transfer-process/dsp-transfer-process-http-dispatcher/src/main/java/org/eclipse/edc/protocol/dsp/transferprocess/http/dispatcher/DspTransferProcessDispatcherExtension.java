@@ -80,7 +80,7 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
         messageDispatcher.registerMessage(
                 TransferRequestMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, dspProtocolParser, m -> BASE_PATH + TRANSFER_INITIAL_REQUEST),
-                new JsonLdResponseBodyDeserializer<>(TransferProcessAck.class, typeManager.getMapper(JSON_LD), jsonLd, dspTransformerRegistry)
+                new JsonLdResponseBodyDeserializer<>(TransferProcessAck.class, typeManager, JSON_LD, jsonLd, dspTransformerRegistry)
         );
         messageDispatcher.registerMessage(
                 TransferCompletionMessage.class,
