@@ -22,11 +22,12 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.SignatureService;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewTask;
 
@@ -59,13 +60,18 @@ public class HashicorpVaultExtension implements ServiceExtension {
         return new HashicorpVault(monitor, config, httpClient, MAPPER);
     }
 
+    @Provider
+    public SignatureService signatureService() {
+        return new HashicorpVaultSignatureService(monitor, config, httpClient, MAPPER);
+    }
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor().withPrefix(NAME);
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 NAME,
                 executorInstrumentation,
-                new HashicorpVaultClient(httpClient, MAPPER, monitor, config),
+                new HashicorpVaultHealthService(httpClient, MAPPER, monitor, config),
                 config.renewBuffer(),
                 monitor);
     }

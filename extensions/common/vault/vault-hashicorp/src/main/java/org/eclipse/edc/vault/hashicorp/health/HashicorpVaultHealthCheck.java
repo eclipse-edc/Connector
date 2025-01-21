@@ -20,7 +20,7 @@ import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.LivenessProvider;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
 import org.eclipse.edc.spi.system.health.StartupStatusProvider;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 
 /**
  * Implements the healthcheck of the Hashicorp Vault.
@@ -31,10 +31,10 @@ import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
  * </ol>
  */
 public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessProvider, StartupStatusProvider {
-    private final HashicorpVaultClient client;
+    private final HashicorpVaultHealthService client;
     private final Monitor monitor;
 
-    public HashicorpVaultHealthCheck(HashicorpVaultClient client, Monitor monitor) {
+    public HashicorpVaultHealthCheck(HashicorpVaultHealthService client, Monitor monitor) {
         this.client = client;
         this.monitor = monitor;
     }

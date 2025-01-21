@@ -36,7 +36,7 @@ class HashicorpVaultTokenRenewTaskTest {
     private static final long VAULT_TOKEN_TTL = 5L;
     private static final long RENEW_BUFFER = 5L;
     private final Monitor monitor = mock();
-    private final HashicorpVaultClient client = mock();
+    private final HashicorpVaultHealthService client = mock();
     private final HashicorpVaultTokenRenewTask tokenRenewTask = new HashicorpVaultTokenRenewTask(
             "Hashicorp Vault",
             ExecutorInstrumentation.noop(),

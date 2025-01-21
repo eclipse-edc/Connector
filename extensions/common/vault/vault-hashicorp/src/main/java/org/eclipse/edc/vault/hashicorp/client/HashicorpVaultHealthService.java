@@ -39,7 +39,7 @@ import java.util.Map;
  * This is a client implementation for interacting with Hashicorp Vault.
  * In particular, this performs token renewal and periodic health checks.
  */
-public class HashicorpVaultClient {
+public class HashicorpVaultHealthService {
     private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
     private static final String VAULT_REQUEST_HEADER = "X-Vault-Request";
     private static final MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
@@ -62,10 +62,10 @@ public class HashicorpVaultClient {
     private final HttpUrl healthCheckUrl;
     private final Monitor monitor;
 
-    public HashicorpVaultClient(@NotNull EdcHttpClient httpClient,
-                                @NotNull ObjectMapper objectMapper,
-                                @NotNull Monitor monitor,
-                                @NotNull HashicorpVaultSettings settings) {
+    public HashicorpVaultHealthService(@NotNull EdcHttpClient httpClient,
+                                       @NotNull ObjectMapper objectMapper,
+                                       @NotNull Monitor monitor,
+                                       @NotNull HashicorpVaultSettings settings) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.monitor = monitor;

@@ -20,7 +20,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Settings for the {@link HashicorpVaultClient}.
+ * Settings for the {@link HashicorpVaultHealthService}.
  */
 @Settings
 public class HashicorpVaultSettings {

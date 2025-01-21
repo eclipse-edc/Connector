@@ -53,7 +53,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class HashicorpVaultClientTest {
+class HashicorpVaultHealthServiceTest {
 
     private static final String VAULT_URL = "https://mock.url";
     private static final String SECRET_FOLDER = "/foo";
@@ -94,13 +94,13 @@ class HashicorpVaultClientTest {
 
     private final EdcHttpClient httpClient = mock();
     private final Monitor monitor = mock();
-    private final HashicorpVaultClient vaultClient = new HashicorpVaultClient(
+    private final HashicorpVaultHealthService vaultClient = new HashicorpVaultHealthService(
             httpClient,
             OBJECT_MAPPER,
             monitor,
             HASHICORP_VAULT_CLIENT_CONFIG_VALUES);
 
-    private final HashicorpVaultClient vaultClientWithFolder = new HashicorpVaultClient(
+    private final HashicorpVaultHealthService vaultClientWithFolder = new HashicorpVaultHealthService(
             httpClient,
             OBJECT_MAPPER,
             monitor,
