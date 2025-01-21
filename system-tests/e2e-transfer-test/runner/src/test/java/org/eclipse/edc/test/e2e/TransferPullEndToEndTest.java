@@ -122,7 +122,7 @@ class TransferPullEndToEndTest {
             var events = new ConcurrentHashMap<String, TransferProcessStarted>();
             callbacksEndpoint.when(request).respond(req -> this.cacheEdr(req, events));
 
-            StartedTransferContext startedTransferContext = startTransferProcess(assetId, callbacks);
+            var startedTransferContext = startTransferProcess(assetId, callbacks);
             assertDataIsAccessible(startedTransferContext.consumerTransferProcessId, events);
 
             providerDataSource.verify(request("/source").withMethod("GET"));
@@ -133,8 +133,8 @@ class TransferPullEndToEndTest {
         void httpPull_dataTransfer_withEdrCache() {
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("10s"), httpSourceDataAddress());
-            StartedTransferContext startedTransferContext = startTransferProcess(assetId);
-            EdrMessageContext edrMessageContext = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
+            var startedTransferContext = startTransferProcess(assetId);
+            var edrMessageContext = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
             assertDataIsNotAccessible(startedTransferContext.consumerTransferProcessId, edrMessageContext);
             providerDataSource.verify(request("/source").withMethod("GET"));
         }
@@ -143,8 +143,8 @@ class TransferPullEndToEndTest {
         void suspendAndResumeByConsumer_httpPull_dataTransfer_withEdrCache() {
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());
-            StartedTransferContext startedTransferContext = startTransferProcess(assetId);
-            EdrMessageContext edrMessageContext = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
+            var startedTransferContext = startTransferProcess(assetId);
+            var edrMessageContext = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             CONSUMER.suspendTransfer(startedTransferContext.consumerTransferProcessId, "suspension");
             CONSUMER.awaitTransferToBeInState(startedTransferContext.consumerTransferProcessId, SUSPENDED);
@@ -163,8 +163,8 @@ class TransferPullEndToEndTest {
         void suspendAndResumeByProvider_httpPull_dataTransfer_withEdrCache() {
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());
-            StartedTransferContext startedTransferContext = startTransferProcess(assetId);
-            EdrMessageContext edrMessageContext = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
+            var startedTransferContext = startTransferProcess(assetId);
+            var edrMessageContext = assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             PROVIDER.suspendTransfer(startedTransferContext.providerTransferProcessId, "suspension");
             PROVIDER.awaitTransferToBeInState(startedTransferContext.providerTransferProcessId, SUSPENDED);
@@ -192,7 +192,7 @@ class TransferPullEndToEndTest {
                     "proxyQueryParams", "true"
             ));
 
-            StartedTransferContext startedTransferContext = startTransferProcess(assetId);
+            var startedTransferContext = startTransferProcess(assetId);
             assertDataIsAccessible(startedTransferContext.consumerTransferProcessId);
 
             provisionServer.verify(request("/provision"));
