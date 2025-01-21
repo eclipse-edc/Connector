@@ -23,7 +23,6 @@ import okhttp3.RequestBody;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,10 +95,7 @@ class HashicorpVaultSignatureServiceIntegrationTest {
     void setUp() throws IOException {
 
         vaultKey = UUID.randomUUID().toString();
-
-        var vaultClient = new HashicorpVaultClient(httpClient,
-                new ObjectMapper(), monitor, settings);
-        service = new HashicorpVaultSignatureService(vaultClient, monitor);
+        service = new HashicorpVaultSignatureService(monitor, settings, httpClient, new ObjectMapper());
 
 
         // create a new testing key

@@ -35,6 +35,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 @Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
     public static final String NAME = "Hashicorp Vault";
+    public static final ObjectMapper MAPPER = new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Inject
     private EdcHttpClient httpClient;
@@ -45,7 +46,6 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Configuration
     private HashicorpVaultSettings config;
 
-    private HashicorpVaultClient client;
     private HashicorpVaultTokenRenewTask tokenRenewalTask;
     private Monitor monitor;
 
@@ -55,20 +55,8 @@ public class HashicorpVaultExtension implements ServiceExtension {
     }
 
     @Provider
-    public HashicorpVaultClient hashicorpVaultClient() {
-        if (client == null) {
-            // the default type manager cannot be used as the Vault is a primordial service loaded at boot
-            var mapper = new ObjectMapper();
-            mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-            client = new HashicorpVaultClient(httpClient, mapper, monitor, config);
-        }
-        return client;
-    }
-
-    @Provider
     public Vault hashicorpVault() {
-        return new HashicorpVault(hashicorpVaultClient(), monitor);
+        return new HashicorpVault(monitor, config, httpClient, MAPPER);
     }
 
     @Override
@@ -77,7 +65,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 NAME,
                 executorInstrumentation,
-                hashicorpVaultClient(),
+                new HashicorpVaultClient(httpClient, MAPPER, monitor, config),
                 config.renewBuffer(),
                 monitor);
     }

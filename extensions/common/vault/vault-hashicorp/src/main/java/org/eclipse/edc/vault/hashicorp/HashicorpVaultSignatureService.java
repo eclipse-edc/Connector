@@ -14,24 +14,39 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.SignatureService;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 
+import java.io.IOException;
+import java.util.Base64;
 import java.util.Map;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Signature service using Hashicorp Vault with the Transit secrets engine
  */
 public class HashicorpVaultSignatureService implements SignatureService {
 
-    private final HashicorpVaultClient vaultClient;
     private final Monitor monitor;
+    private final HashicorpVaultSettings settings;
+    private final EdcHttpClient httpClient;
+    private final ObjectMapper objectMapper;
 
-    public HashicorpVaultSignatureService(HashicorpVaultClient vaultClient, Monitor monitor) {
-        this.vaultClient = vaultClient;
+
+    public HashicorpVaultSignatureService(Monitor monitor, HashicorpVaultSettings settings, EdcHttpClient httpClient, ObjectMapper objectMapper) {
         this.monitor = monitor;
+        this.settings = settings;
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -48,9 +63,48 @@ public class HashicorpVaultSignatureService implements SignatureService {
      */
     @Override
     public Result<byte[]> sign(String key, byte[] payload, String signatureAlgorithm) {
-        return vaultClient.sign(key, payload)
-                .onFailure(f -> monitor.warning("Error signing payload: %s".formatted(f.getFailureDetail())))
-                .map(String::getBytes);
+
+        var url = settings.url() + settings.secretsEnginePath() + "/sign/" + key;
+
+        // omit key version from request body -> we'll always sign with the latest one
+        var body = Map.of("input", Base64.getEncoder().encodeToString(payload));
+
+        var request = new Request.Builder()
+                .url(url)
+                .header(VaultConstants.VAULT_TOKEN_HEADER, settings.token())
+                .post(jsonBody(body))
+                .build();
+
+        try (var response = httpClient.execute(request)) {
+            if (response.isSuccessful()) {
+                if (response.body() != null) {
+                    var r = objectMapper.readValue(response.body().string(), VaultConstants.MAP_TYPE_REFERENCE);
+
+                    return ofNullable(r.get("data"))
+                            .map(o -> (Map<?, ?>) o)
+                            .map(dataObj -> dataObj.get("signature"))
+                            .map(Object::toString)
+                            .map(String::getBytes)
+                            .map(Result::success)
+                            .orElseGet(() -> Result.failure("JSON response did not contain signature"));
+                }
+                return Result.failure("Received empty body from Vault");
+            }
+            return Result.failure("Failed to sign payload with status %d, %s".formatted(response.code(), response.message()));
+        } catch (IOException e) {
+            monitor.warning("Error signing content: %s".formatted(e.getMessage()));
+            return Result.failure("Error signing content: %s".formatted(e.getMessage()));
+        }
+    }
+
+    private RequestBody jsonBody(Object body) {
+        String jsonRepresentation;
+        try {
+            jsonRepresentation = objectMapper.writeValueAsString(body);
+        } catch (JsonProcessingException e) {
+            throw new EdcException(e);
+        }
+        return RequestBody.create(jsonRepresentation, VaultConstants.MEDIA_TYPE_APPLICATION_JSON);
     }
 
     /**
@@ -66,8 +120,38 @@ public class HashicorpVaultSignatureService implements SignatureService {
      */
     @Override
     public Result<Void> verify(String key, byte[] signingInput, byte[] signature, String signatureAlgorithm) {
-        return vaultClient.verify(key, signingInput, new String(signature))
-                .onFailure(f -> monitor.warning("Error verifying signature: %s".formatted(f.getFailureDetail())));
+        //why using resolve: addPathSegments would prepend another "/", and addPathSegment would url-encode the path
+        var url = settings.url() + settings.secretsEnginePath() + "/verify/" + key;
+
+        // omit key version from request body -> we'll always sign with the latest one
+        var body = Map.of("input", Base64.getEncoder().encodeToString(signingInput),
+                "signature", new String(signature));
+
+        var request = new Request.Builder()
+                .url(url)
+                .header(VaultConstants.VAULT_TOKEN_HEADER, settings.token())
+                .post(jsonBody(body))
+                .build();
+
+        try (var response = httpClient.execute(request)) {
+            if (response.isSuccessful()) {
+                if (response.body() != null) {
+                    var r = objectMapper.readValue(response.body().string(), VaultConstants.MAP_TYPE_REFERENCE);
+
+                    return ofNullable(r.get("data"))
+                            .map(o -> (Map<?, ?>) o)
+                            .map(dataObj -> dataObj.get("valid"))
+                            .map(o -> Boolean.parseBoolean(o.toString()))
+                            .map(b -> b ? Result.success() : Result.<Void>failure("Signature validation failed"))
+                            .orElseGet(() -> Result.failure("JSON response did not contain valid verification data"));
+                }
+                return Result.failure("Received empty body from Vault");
+            }
+            return Result.failure("Failed to verify signature with status %d, %s".formatted(response.code(), response.message()));
+        } catch (IOException e) {
+            monitor.warning("Error signing content: %s".formatted(e.getMessage()));
+            return Result.failure("Error signing content: %s".formatted(e.getMessage()));
+        }
     }
 
     /**
@@ -79,8 +163,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
      */
     @Override
     public Result<Void> rotate(String keyId, Map<String, Object> ignored) {
-        return vaultClient.rotate(keyId)
-                .onFailure(f -> monitor.warning("Error rotating key: %s".formatted(f.getFailureDetail())))
-                .map(version -> null);
+        throw new UnsupportedOperationException();
     }
+
 }
