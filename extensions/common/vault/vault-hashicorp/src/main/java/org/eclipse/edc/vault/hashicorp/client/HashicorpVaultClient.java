@@ -37,10 +37,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * This is a client implementation for interacting with Hashicorp Vault.
@@ -251,6 +254,100 @@ public class HashicorpVaultClient {
         } catch (IOException e) {
             return Result.failure("Failed to destroy secret with reason: %s".formatted(e.getMessage()));
         }
+    }
+
+    /**
+     * Invokes the Transit secrets engine to create a cryptographic signature of the given data
+     *
+     * @param keyName the name of the key used to sign the content
+     * @param data    the raw signing input in bytes. Note that this implementation will base64-encode the payload again.
+     * @return the signature in the form {@code "vault:<key-version>:<base64-string>"}. When verifying, the <em>entire</em> String is needed.
+     */
+    public Result<String> sign(String keyName, byte[] data) {
+
+        //why using resolve: addPathSegments would prepend another "/", and addPathSegment would url-encode the path
+        var url = baseUrl(settings).resolve(settings.secretsEnginePath())
+                .newBuilder()
+                .addPathSegments("sign")
+                .addPathSegments(keyName).build();
+
+        // omit key version from request body -> we'll always sign with the latest one
+        var body = Map.of("input", Base64.getEncoder().encodeToString(data));
+
+        var request = httpPost(url, body);
+
+        try (var response = httpClient.execute(request)) {
+            if (response.isSuccessful()) {
+                if (response.body() != null) {
+                    var r = objectMapper.readValue(response.body().string(), MAP_TYPE_REFERENCE);
+
+                    return ofNullable(r.get("data"))
+                            .map(o -> (Map<?, ?>) o)
+                            .map(dataObj -> dataObj.get("signature"))
+                            .map(Object::toString)
+                            .map(Result::success)
+                            .orElseGet(() -> Result.failure("JSON response did not contain signature"));
+                }
+                return Result.failure("Received empty body from Vault");
+            }
+            return Result.failure("Failed to sign payload with status %d, %s".formatted(response.code(), response.message()));
+        } catch (IOException e) {
+            monitor.warning("Error signing content: %s".formatted(e.getMessage()));
+            return Result.failure("Error signing content: %s".formatted(e.getMessage()));
+        }
+
+    }
+
+    /**
+     * Verifies the signature, that was created over the given input using the specified key.
+     *
+     * @param keyName      the name of the key that was originally used to create the signature
+     * @param signingInput the raw input in bytes, over which the signature was originally created. Note, that this implementation will base64-encode the payload again.
+     * @param signature    the signature in the form {@code "vault:<key-version>:<base64-string>"}
+     * @return A result indicating success, or failure
+     */
+    public Result<Void> verify(String keyName, byte[] signingInput, String signature) {
+        //why using resolve: addPathSegments would prepend another "/", and addPathSegment would url-encode the path
+        var url = baseUrl(settings).resolve(settings.secretsEnginePath())
+                .newBuilder()
+                .addPathSegments("verify")
+                .addPathSegments(keyName).build();
+
+        // omit key version from request body -> we'll always sign with the latest one
+        var body = Map.of("input", Base64.getEncoder().encodeToString(signingInput),
+                "signature", signature);
+
+        var request = httpPost(url, body);
+
+        try (var response = httpClient.execute(request)) {
+            if (response.isSuccessful()) {
+                if (response.body() != null) {
+                    var r = objectMapper.readValue(response.body().string(), MAP_TYPE_REFERENCE);
+
+                    return ofNullable(r.get("data"))
+                            .map(o -> (Map<?, ?>) o)
+                            .map(dataObj -> dataObj.get("valid"))
+                            .map(o -> Boolean.parseBoolean(o.toString()))
+                            .map(b -> b ? Result.success() : Result.<Void>failure("Signature validation failed"))
+                            .orElseGet(() -> Result.failure("JSON response did not contain valid verification data"));
+                }
+                return Result.failure("Received empty body from Vault");
+            }
+            return Result.failure("Failed to verify signature with status %d, %s".formatted(response.code(), response.message()));
+        } catch (IOException e) {
+            monitor.warning("Error signing content: %s".formatted(e.getMessage()));
+            return Result.failure("Error signing content: %s".formatted(e.getMessage()));
+        }
+    }
+
+    /**
+     * Rotates the key in the Transit engine. Specifically, it creates a new version of the key
+     *
+     * @param keyName The name of the key
+     * @return A result containing the new (current) key version
+     */
+    public Result<String> rotate(String keyName) {
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @NotNull
