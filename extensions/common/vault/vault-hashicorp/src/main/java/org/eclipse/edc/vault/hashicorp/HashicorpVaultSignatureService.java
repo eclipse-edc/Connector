@@ -28,6 +28,7 @@ import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Objects;
 
 import static java.util.Optional.ofNullable;
 
@@ -63,7 +64,8 @@ public class HashicorpVaultSignatureService implements SignatureService {
      */
     @Override
     public Result<byte[]> sign(String key, byte[] payload, String signatureAlgorithm) {
-
+        Objects.requireNonNull(key, "key cannot be null");
+        Objects.requireNonNull(payload, "payload cannot be null");
         var url = settings.url() + settings.secretsEnginePath() + "/sign/" + key;
 
         // omit key version from request body -> we'll always sign with the latest one
@@ -120,6 +122,10 @@ public class HashicorpVaultSignatureService implements SignatureService {
      */
     @Override
     public Result<Void> verify(String key, byte[] signingInput, byte[] signature, String signatureAlgorithm) {
+        Objects.requireNonNull(key, "key cannot be null");
+        Objects.requireNonNull(signingInput, "signingInput cannot be null");
+        Objects.requireNonNull(signature, "signature cannot be null");
+
         //why using resolve: addPathSegments would prepend another "/", and addPathSegment would url-encode the path
         var url = settings.url() + settings.secretsEnginePath() + "/verify/" + key;
 
@@ -163,6 +169,9 @@ public class HashicorpVaultSignatureService implements SignatureService {
      */
     @Override
     public Result<Void> rotate(String key, Map<String, Object> ignored) {
+
+        Objects.requireNonNull(key, "key cannot be null");
+        
         var url = settings.url() + settings.secretsEnginePath() + "/keys/" + key + "/rotate";
 
         var request = new Request.Builder()
