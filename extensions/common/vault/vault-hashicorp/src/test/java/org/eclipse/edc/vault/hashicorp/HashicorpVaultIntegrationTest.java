@@ -45,7 +45,7 @@ import static org.mockito.Mockito.mock;
 @ComponentTest
 @Testcontainers
 class HashicorpVaultIntegrationTest {
-    static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
+    static final String DOCKER_IMAGE_NAME = "hashicorp/vault:1.18.3";
     static final String VAULT_ENTRY_KEY = "testing";
     static final String VAULT_ENTRY_VALUE = UUID.randomUUID().toString();
     static final String VAULT_DATA_ENTRY_NAME = "content";

@@ -157,13 +157,32 @@ public class HashicorpVaultSignatureService implements SignatureService {
     /**
      * Rotates the key in Hashicorp Transit engine.
      *
-     * @param keyId   The unique identifier for the key that should be rotated
+     * @param key     The unique identifier for the key that should be rotated
      * @param ignored Hashicorp's Transit secrets engine does not take any additional parameters
      * @return A result indicating the success of the operation
      */
     @Override
-    public Result<Void> rotate(String keyId, Map<String, Object> ignored) {
-        throw new UnsupportedOperationException();
+    public Result<Void> rotate(String key, Map<String, Object> ignored) {
+        var url = settings.url() + settings.secretsEnginePath() + "/keys/" + key + "/rotate";
+
+        var request = new Request.Builder()
+                .url(url)
+                .header(VaultConstants.VAULT_TOKEN_HEADER, settings.token())
+                .post(RequestBody.create(new byte[0], null))
+                .build();
+
+        try (var response = httpClient.execute(request)) {
+            if (response.isSuccessful()) {
+                if (response.body() != null) {
+                    return Result.success();
+                }
+            }
+            return Result.failure("Failed to rotate key, status %d, %s".formatted(response.code(), response.message()));
+        } catch (IOException e) {
+            var msg = "Error rotating key: %s".formatted(e.getMessage());
+            monitor.warning(msg);
+            return Result.failure(msg);
+        }
     }
 
 }

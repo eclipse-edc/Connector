@@ -33,6 +33,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.vault.VaultContainer;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,8 +44,8 @@ import static org.mockito.Mockito.mock;
 @ComponentTest
 @Testcontainers
 class HashicorpVaultSignatureServiceIntegrationTest {
-    static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
-    static final String TOKEN = UUID.randomUUID().toString();
+    static final String DOCKER_IMAGE_NAME = "hashicorp/vault:1.18.3";
+    static final String TOKEN = "root";
     @Container
     private static final VaultContainer<?> VAULTCONTAINER = new VaultContainer<>(DOCKER_IMAGE_NAME)
             .withVaultToken(TOKEN);
@@ -157,5 +158,11 @@ class HashicorpVaultSignatureServiceIntegrationTest {
 
     @Test
     void rotate() {
+        assertThat(service.rotate(vaultKey, Map.of())).isSucceeded();
+    }
+
+    @Test
+    void rotate_whenNotExist() {
+        assertThat(service.rotate("not-exist", Map.of())).isFailed();
     }
 }

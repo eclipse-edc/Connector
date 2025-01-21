@@ -150,7 +150,7 @@ class HashicorpVaultClientIntegrationTest {
     @Nested
     class Latest extends Tests {
         @Container
-        static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("hashicorp/vault:1.17.3")
+        static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("hashicorp/vault:1.18.3")
                 .withVaultToken(UUID.randomUUID().toString());
 
         public static HashicorpVaultSettings getSettings() throws IOException, InterruptedException {
