@@ -36,19 +36,19 @@ VerifiablePresentations that contain many large VerifiableCredentials!_
   }
   ```
 - the default implementation performs signing and verifying exactly as implemented currently, pulling keys out of the
-  vault and performing locally.
-- for each vault technology, there would be an implementation
-- implement custom `JWSSigner` and `JWSVerifier` (from Nimbus) named `RemoteJwsSigner` and `RemoteJwsVerifier`
-  respectively, that delegate signing and verifying to the `SigningService`.
+  vault and performing the signing locally.
+- For each vault technology, there would be a `SigningService` implementation
+- Custom implementations of `JWSSigner` and `JWSVerifier` (from Nimbus) named `RemoteJwsSigner` and `RemoteJwsVerifier`
+  respectively, will delegate signing and verifying to the `SigningService`.
   These objects are provided by an extension.
-- configuration values: `edc.signing.remote.enable` to enable/disable remote signing
+- A configuration value `edc.signing.remote.enable` will be added to enable/disable remote signing
 
 ### Implementation Key Rotation
 
-- add `rotate(String keyId, Map<String, Object> keyProperties)` method to the `SigningService` to specify the algorithm
+- Add `rotate(String keyId, Map<String, Object> keyProperties)` method to the `SigningService` to specify the algorithm
   and cryptographic properties as well as the TTL (time-to-live)
 - IdentityHub: `KeyPairServiceImpl` calls `SigningService#rotate()` when rotating keys
-- configuration values:
+- Configuration values:
     - `edc.signing.keys.rotation.enable`: enable/disable automatic rotation
     - `edc.signing.keys.rotation.algorithm`: the cryptographic algorithm
     - `edc.signing.keys.rotation.ttl`: time-to-live (in days) for keys, until they get rotated automatically
