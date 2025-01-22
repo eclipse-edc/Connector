@@ -26,7 +26,7 @@ To implement a multitude of different authentication methods, an interface for t
 The sole common point between the authentication methods is the ability to provide a `client_token` that can be used to authenticate with HashiCorp Vault.
 
 ```java
-public interface HashicorpVaultAuthTokenProvider {
+public interface HashicorpVaultAuthClientTokenProvider {
     
     // The stored token is returned.
     String vaultToken();
@@ -34,43 +34,43 @@ public interface HashicorpVaultAuthTokenProvider {
 }
 ```
 
-`HashicorpVaultAuthTokenProvider` implementations will be used by the `HashicorpVaultClient` to receive the `client_token` for the request authentication.
+`HashicorpVaultAuthClientTokenProvider` implementations will be used by the `HashicorpVaultClient` to receive the `client_token` for the request authentication.
 More on that in the sections [Hashicorp Vault Auth Provision](#Hashicorp-Vault-Auth-Provision) and [HashiCorp Vault Client](#HashiCorp-Vault-Client)
 
 ### Haschicorp Vault Auth Extensions
 
 For every authentication method, an implementation of the [Hashicorp Vault Auth interface](#hashicorp-vault-auth-interface) is needed.
-Each `HashicorpVaultAuthTokenProvider` implementation represents a different authentication method and is packaged inside its own service extension.
+Each `HashicorpVaultAuthClientTokenProvider` implementation represents a different authentication method and is packaged inside its own service extension.
 In this way, it can easily be added/removed from the runtime and maintained in one place.
 Due to the possible differences in the needed configuration of different authentication methods, each Service Extension will need its own configuration values specific to the authentication method.
 The exception will be the token authentication, which is already packaged inside the `HashicorpVaultExtension` and used as the default authentication method.
 
 ### Hashicorp Vault Auth Provision
 
-The `HashicorpVaultTokenAuth` implementation will serve as default authentication mechanism and will be provided by the `HashicorpVaultExtension`.
+The `HashicorpVaultAuthTokenImpl` implementation will serve as default authentication mechanism and will be provided by the `HashicorpVaultExtension`.
 
 ```java
 @Provider(isDefault = true)
-public HashicorpVaultAuthTokenProvider hashicorpVaultAuthTokenProvider() {
-    return new HashicorpVaultTokenAuth();
+public HashicorpVaultAuthClientTokenProvider HashicorpVaultAuthClientTokenProvider() {
+    return new HashicorpVaultAuthTokenImpl();
 }
 ```
 
-`isDefault = true` signifies, that `HashicorpVaultTokenAuth` will be used unless another extension overwrites it by providing its own implementation without the parameter.
+`isDefault = true` signifies, that `HashicorpVaultAuthTokenImpl` will be used unless another extension overwrites it by providing its own implementation without the parameter.
 
-The provided implementation of `HashicorpVaultAuthTokenProvider` is then injected into the `HashicorpVaultExtension` to be used in the `HashicorpVaultClient` later on.
+The provided implementation of `HashicorpVaultAuthClientTokenProvider` is then injected into the `HashicorpVaultExtension` to be used in the `HashicorpVaultClient` later on.
 
 ```java
 @Inject
-private HashicorpVaultAuthTokenProvider hashicorpVaultAuthTokenProvider;
+private HashicorpVaultAuthClientTokenProvider hashicorpVaultAuthClientTokenProvider;
 ```
 
 ### HashiCorp Vault Client
 
 Since the `HashicorpVaultClient` contains a lot of authentication logic, it will also go through a refactoring.
 The goal of the refactoring, is the removal of the token authentication logic from `HashicorpVaultClient` and to make the authentication logic interchangeable.
-An implementation of `HashicorpVaultAuthTokenProvider` is passed to `HashicorpVaultClient` during creation by `HashicorpVaultExtension`.
-`HashicorpVaultClient` will use the `HashicorpVaultAuthTokenProvider` implementation to fetch the `client_token`.
+An implementation of `HashicorpVaultAuthClientTokenProvider` is passed to `HashicorpVaultClient` during creation by `HashicorpVaultExtension`.
+`HashicorpVaultClient` will use the `HashicorpVaultAuthClientTokenProvider` implementation to fetch the `client_token`.
 `client_token` will then be used to generate the Headers for the HTTP requests and to authenticate with HashiCorp Vault.
 
 Old `getHeaders()`:
