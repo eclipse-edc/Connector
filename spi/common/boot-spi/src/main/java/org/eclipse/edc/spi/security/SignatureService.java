@@ -40,14 +40,14 @@ public interface SignatureService {
 
     /**
      * Verifies the given input data with the given signature. Instead of transmitting the key out of the Vault
-     * and performing the verification locally, the input and signature are transmitted to the Vault and verified remotely
+     * and performing the verification locally, the input and signature are transmitted to the remote service and verified
      * with the specified key, and the result is transmitted back.
      *
-     * @param key                The key that is used for signing. This key must exist in the Vault.
+     * @param key                The key that is used for verifying the signature. This key must exist in the Vault.
      * @param signingInput       The content from which the signature was created.
      * @param signature          The signature
      * @param signatureAlgorithm A string identifying the signature algorithm
-     * @return A Result containing the signature bytes, or an error.
+     * @return A Result indicating whether the signature is valid or not.
      * @throws UnsupportedOperationException if this operation is not supported by this {@link SignatureService}.
      * @throws IllegalArgumentException      if {@code signatureAlgorithm} is not recognized by this signing service
      */
@@ -56,7 +56,7 @@ public interface SignatureService {
 
     /**
      * Manually rotates the key. This means provisioning a new version of the key with new key material.
-     * The behaviour of this method is quite loosely defined, as it is up to the implementation to define the following:
+     * The behaviour of this method is quite loosely defined, as the following aspects are highly implementation-specific:
      * <ul>
      *     <li>whether the old key gets disabled automatically</li>
      *     <li>rotation period, i.e. the time until the old key gets disabled</li>

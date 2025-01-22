@@ -99,19 +99,9 @@ public class HashicorpVaultSignatureService implements SignatureService {
         }
     }
 
-    private RequestBody jsonBody(Object body) {
-        String jsonRepresentation;
-        try {
-            jsonRepresentation = objectMapper.writeValueAsString(body);
-        } catch (JsonProcessingException e) {
-            throw new EdcException(e);
-        }
-        return RequestBody.create(jsonRepresentation, VaultConstants.MEDIA_TYPE_APPLICATION_JSON);
-    }
-
     /**
      * Verifies the given input data with the given signature. Instead of transmitting the key out of the Vault
-     * and performing the verification locally, the input and signature are transmitted to the Vault and verified remotely
+     * and performing the verification locally, the input and signature are transmitted to the remote service and verified
      * with the specified key, and the result is transmitted back.
      *
      * @param key                The key that is used for signing. This key must exist in the Vault.
@@ -126,7 +116,6 @@ public class HashicorpVaultSignatureService implements SignatureService {
         Objects.requireNonNull(signingInput, "signingInput cannot be null");
         Objects.requireNonNull(signature, "signature cannot be null");
 
-        //why using resolve: addPathSegments would prepend another "/", and addPathSegment would url-encode the path
         var url = settings.url() + settings.secretsEnginePath() + "/verify/" + key;
 
         // omit key version from request body -> we'll always sign with the latest one
@@ -192,6 +181,16 @@ public class HashicorpVaultSignatureService implements SignatureService {
             monitor.warning(msg);
             return Result.failure(msg);
         }
+    }
+
+    private RequestBody jsonBody(Object body) {
+        String jsonRepresentation;
+        try {
+            jsonRepresentation = objectMapper.writeValueAsString(body);
+        } catch (JsonProcessingException e) {
+            throw new EdcException(e);
+        }
+        return RequestBody.create(jsonRepresentation, VaultConstants.MEDIA_TYPE_APPLICATION_JSON);
     }
 
 }
