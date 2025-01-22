@@ -4,7 +4,7 @@
 
 We will extend the capabilities of our private key management in the following aspects:
 
-- key rotation: key pairs should get rotated automatically by the `Vault`
+- key rotation: key pairs should get rotated automatically by the `SigningService`
 - remote signing: it should be possible to cryptographically sign payloads "remotely", i.e. outside of EDC
 
 ## Rationale
