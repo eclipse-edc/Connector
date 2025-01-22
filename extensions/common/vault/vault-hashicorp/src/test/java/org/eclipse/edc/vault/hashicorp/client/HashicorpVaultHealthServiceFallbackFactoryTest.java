@@ -20,9 +20,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.mockStatic;
 
-class HashicorpVaultClientFallbackFactoryTest {
+class HashicorpVaultHealthServiceFallbackFactoryTest {
 
-    private static final int[] NON_RETRYABLE_STATUS_CODES = { 200, 204, 400, 403, 404, 405 };
+    private static final int[] NON_RETRYABLE_STATUS_CODES = {200, 204, 400, 403, 404, 405};
 
     @Test
     void create_shouldInitializeWithCorrectStatusCodes() {

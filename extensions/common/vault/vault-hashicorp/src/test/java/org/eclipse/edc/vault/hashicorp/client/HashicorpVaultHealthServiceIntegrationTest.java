@@ -37,7 +37,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 
-class HashicorpVaultClientIntegrationTest {
+class HashicorpVaultHealthServiceIntegrationTest {
 
     @ComponentTest
     @Testcontainers
@@ -51,7 +51,7 @@ class HashicorpVaultClientIntegrationTest {
         protected static final long CREATION_TTL = 6L;
         protected static final long TTL = 5L;
         protected static final long RENEW_BUFFER = 4L;
-        protected HashicorpVaultClient client;
+        protected HashicorpVaultHealthService client;
         protected final ObjectMapper mapper = new ObjectMapper();
         protected final ConsoleMonitor monitor = new ConsoleMonitor();
 
@@ -136,7 +136,7 @@ class HashicorpVaultClientIntegrationTest {
 
         @BeforeEach
         void beforeEach() throws IOException, InterruptedException {
-            client = new HashicorpVaultClient(
+            client = new HashicorpVaultHealthService(
                     testHttpClient(),
                     mapper,
                     monitor,
@@ -150,7 +150,7 @@ class HashicorpVaultClientIntegrationTest {
     @Nested
     class Latest extends Tests {
         @Container
-        static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("hashicorp/vault:1.17.3")
+        static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("hashicorp/vault:1.18.3")
                 .withVaultToken(UUID.randomUUID().toString());
 
         public static HashicorpVaultSettings getSettings() throws IOException, InterruptedException {
@@ -182,7 +182,7 @@ class HashicorpVaultClientIntegrationTest {
 
         @BeforeEach
         void beforeEach() throws IOException, InterruptedException {
-            client = new HashicorpVaultClient(
+            client = new HashicorpVaultHealthService(
                     testHttpClient(),
                     mapper,
                     monitor,

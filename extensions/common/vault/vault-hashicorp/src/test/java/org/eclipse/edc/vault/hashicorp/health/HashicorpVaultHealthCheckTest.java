@@ -17,7 +17,7 @@ package org.eclipse.edc.vault.hashicorp.health;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ class HashicorpVaultHealthCheckTest {
 
     private static final Result<Boolean> TOKEN_LOOK_UP_RESULT_200 = Result.success(Boolean.TRUE);
 
-    private final HashicorpVaultClient client = mock();
+    private final HashicorpVaultHealthService client = mock();
     private final Monitor monitor = mock();
     private final HashicorpVaultHealthCheck healthCheck = new HashicorpVaultHealthCheck(client, monitor);
 

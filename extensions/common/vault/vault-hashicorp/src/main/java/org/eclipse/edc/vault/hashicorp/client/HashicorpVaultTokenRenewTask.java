@@ -38,7 +38,7 @@ public class HashicorpVaultTokenRenewTask {
 
     private final ExecutorInstrumentation executorInstrumentation;
 
-    private final HashicorpVaultClient client;
+    private final HashicorpVaultHealthService client;
 
     private final Monitor monitor;
     private final long renewBuffer;
@@ -58,7 +58,7 @@ public class HashicorpVaultTokenRenewTask {
      */
     public HashicorpVaultTokenRenewTask(@NotNull String name,
                                         @NotNull ExecutorInstrumentation executorInstrumentation,
-                                        @NotNull HashicorpVaultClient client,
+                                        @NotNull HashicorpVaultHealthService client,
                                         long renewBuffer,
                                         @NotNull Monitor monitor) {
         this.name = name;

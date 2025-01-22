@@ -17,7 +17,6 @@ package org.eclipse.edc.vault.hashicorp.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -27,10 +26,6 @@ import okio.Buffer;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.http.spi.FallbackFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.vault.hashicorp.model.CreateEntryResponsePayload;
-import org.eclipse.edc.vault.hashicorp.model.EntryMetadata;
-import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayload;
-import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayloadGetVaultEntryData;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -42,7 +37,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,7 +45,6 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
@@ -60,7 +53,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class HashicorpVaultClientTest {
+class HashicorpVaultHealthServiceTest {
 
     private static final String VAULT_URL = "https://mock.url";
     private static final String SECRET_FOLDER = "/foo";
@@ -101,13 +94,13 @@ class HashicorpVaultClientTest {
 
     private final EdcHttpClient httpClient = mock();
     private final Monitor monitor = mock();
-    private final HashicorpVaultClient vaultClient = new HashicorpVaultClient(
+    private final HashicorpVaultHealthService vaultClient = new HashicorpVaultHealthService(
             httpClient,
             OBJECT_MAPPER,
             monitor,
             HASHICORP_VAULT_CLIENT_CONFIG_VALUES);
 
-    private final HashicorpVaultClient vaultClientWithFolder = new HashicorpVaultClient(
+    private final HashicorpVaultHealthService vaultClientWithFolder = new HashicorpVaultHealthService(
             httpClient,
             OBJECT_MAPPER,
             monitor,
@@ -382,104 +375,6 @@ class HashicorpVaultClientTest {
                         arguments(Map.of(AUTH_KEY, Map.of(LEASE_DURATION_KEY, "not a long")))
                 );
             }
-        }
-    }
-
-    @Nested
-    class Secret {
-        @Test
-        void getSecret_whenApiReturns200_shouldSucceed() throws IOException {
-            var ow = new ObjectMapper().writer();
-            var data = GetEntryResponsePayloadGetVaultEntryData.Builder.newInstance().data(new HashMap<>(0)).build();
-            var body = GetEntryResponsePayload.Builder.newInstance().data(data).build();
-            var bodyString = ow.writeValueAsString(body);
-            var response = new Response.Builder()
-                    .code(200)
-                    .message("any")
-                    .body(ResponseBody.create(bodyString, MediaType.get("application/json")))
-                    .protocol(Protocol.HTTP_1_1)
-                    .request(new Request.Builder().url("http://any").build())
-                    .build();
-
-            when(httpClient.execute(any(Request.class))).thenReturn(response);
-
-            var result = vaultClient.getSecretValue(KEY);
-
-            assertNotNull(result);
-            verify(httpClient).execute(argThat(request -> request.method().equalsIgnoreCase("GET") &&
-                    request.url().encodedPath().contains(CUSTOM_SECRET_PATH + "/data") &&
-                    request.url().encodedPathSegments().contains(KEY)));
-        }
-
-        @Test
-        void getSecret_with_folder_whenApiReturns200_shouldSucceed() throws IOException {
-            var ow = new ObjectMapper().writer();
-            var data = GetEntryResponsePayloadGetVaultEntryData.Builder.newInstance().data(new HashMap<>(0)).build();
-            var body = GetEntryResponsePayload.Builder.newInstance().data(data).build();
-            var bodyString = ow.writeValueAsString(body);
-            var response = new Response.Builder()
-                    .code(200)
-                    .message("any")
-                    .body(ResponseBody.create(bodyString, MediaType.get("application/json")))
-                    .protocol(Protocol.HTTP_1_1)
-                    .request(new Request.Builder().url("http://any").build())
-                    .build();
-
-            when(httpClient.execute(any(Request.class))).thenReturn(response);
-
-            var result = vaultClientWithFolder.getSecretValue(KEY);
-
-            assertNotNull(result);
-            verify(httpClient).execute(argThat(request -> request.method().equalsIgnoreCase("GET") &&
-                    request.url().encodedPath().contains(CUSTOM_SECRET_PATH + "/data" + SECRET_FOLDER) &&
-                    request.url().encodedPathSegments().contains(KEY)));
-        }
-
-        @Test
-        void setSecret_whenApiReturns200_shouldSucceed() throws IOException {
-            var ow = new ObjectMapper().writer();
-            var data = EntryMetadata.Builder.newInstance().build();
-            var body = CreateEntryResponsePayload.Builder.newInstance().data(data).build();
-            var bodyString = ow.writeValueAsString(body);
-            var response = new Response.Builder()
-                    .code(200)
-                    .message("any")
-                    .body(ResponseBody.create(bodyString, MediaType.get("application/json")))
-                    .protocol(Protocol.HTTP_1_1)
-                    .request(new Request.Builder().url("http://any").build())
-                    .build();
-            var call = mock(Call.class);
-            var secretValue = UUID.randomUUID().toString();
-
-            when(httpClient.execute(any(Request.class))).thenReturn(response);
-            when(call.execute()).thenReturn(response);
-
-            var result = vaultClient.setSecret(KEY, secretValue);
-
-            assertNotNull(result);
-            verify(httpClient).execute(argThat(request -> request.method().equalsIgnoreCase("POST") &&
-                    request.url().encodedPath().contains(CUSTOM_SECRET_PATH + "/data") &&
-                    request.url().encodedPathSegments().contains(KEY)));
-        }
-
-        @Test
-        void destroySecret_whenApiReturns200_shouldSucceed() throws IOException {
-            var response = new Response.Builder()
-                    .code(200)
-                    .message("any")
-                    .body(ResponseBody.create("", MediaType.get("application/json")))
-                    .protocol(Protocol.HTTP_1_1)
-                    .request(new Request.Builder().url("http://any").build())
-                    .build();
-            when(httpClient.execute(any(Request.class))).thenReturn(response);
-
-            var result = vaultClient.destroySecret(KEY);
-
-            assertThat(result).isNotNull();
-            assertThat(result.succeeded()).isTrue();
-            verify(httpClient).execute(argThat(request -> request.method().equalsIgnoreCase("DELETE") &&
-                            request.url().encodedPath().contains(CUSTOM_SECRET_PATH + "/metadata")
-                    /*request.url().encodedPathSegments().contains(KEY)*/));
         }
     }
 

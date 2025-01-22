@@ -20,12 +20,13 @@ import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Settings for the {@link HashicorpVaultClient}.
+ * Settings for the {@link HashicorpVaultHealthService}.
  */
 @Settings
 public class HashicorpVaultSettings {
     public static final String VAULT_API_HEALTH_PATH_DEFAULT = "/v1/sys/health";
     public static final String VAULT_API_SECRET_PATH_DEFAULT = "/v1/secret";
+    public static final String VAULT_API_TRANSIT_PATH_DEFAULT = "/v1/transit";
     public static final boolean VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT = false;
     public static final long VAULT_TOKEN_RENEW_BUFFER_DEFAULT = 30;
     public static final long VAULT_TOKEN_TTL_DEFAULT = 300;
@@ -68,6 +69,10 @@ public class HashicorpVaultSettings {
 
     public String healthCheckPath() {
         return healthCheckPath;
+    }
+
+    public String secretsEnginePath() {
+        return VAULT_API_TRANSIT_PATH_DEFAULT;
     }
 
     public boolean healthStandbyOk() {

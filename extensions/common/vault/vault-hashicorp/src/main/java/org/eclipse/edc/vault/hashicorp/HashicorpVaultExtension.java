@@ -22,19 +22,22 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.SignatureService;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewTask;
+import org.jetbrains.annotations.NotNull;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 @Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
     public static final String NAME = "Hashicorp Vault";
+    public static final ObjectMapper MAPPER = new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Inject
     private EdcHttpClient httpClient;
@@ -45,9 +48,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Configuration
     private HashicorpVaultSettings config;
 
-    private HashicorpVaultClient client;
     private HashicorpVaultTokenRenewTask tokenRenewalTask;
     private Monitor monitor;
+    private HashicorpVaultHealthService healthService;
 
     @Override
     public String name() {
@@ -55,20 +58,13 @@ public class HashicorpVaultExtension implements ServiceExtension {
     }
 
     @Provider
-    public HashicorpVaultClient hashicorpVaultClient() {
-        if (client == null) {
-            // the default type manager cannot be used as the Vault is a primordial service loaded at boot
-            var mapper = new ObjectMapper();
-            mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-            client = new HashicorpVaultClient(httpClient, mapper, monitor, config);
-        }
-        return client;
+    public Vault hashicorpVault() {
+        return new HashicorpVault(monitor, config, httpClient, MAPPER);
     }
 
     @Provider
-    public Vault hashicorpVault() {
-        return new HashicorpVault(hashicorpVaultClient(), monitor);
+    public SignatureService signatureService() {
+        return new HashicorpVaultSignatureService(monitor, config, httpClient, MAPPER);
     }
 
     @Override
@@ -77,9 +73,17 @@ public class HashicorpVaultExtension implements ServiceExtension {
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 NAME,
                 executorInstrumentation,
-                hashicorpVaultClient(),
+                createHealthService(),
                 config.renewBuffer(),
                 monitor);
+    }
+
+    @Provider
+    public @NotNull HashicorpVaultHealthService createHealthService() {
+        if (healthService == null) {
+            healthService = new HashicorpVaultHealthService(httpClient, MAPPER, monitor, config);
+        }
+        return healthService;
     }
 
     @Override

@@ -22,7 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultClient;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 
 
@@ -36,7 +36,7 @@ public class HashicorpVaultHealthExtension implements ServiceExtension {
     private HealthCheckService healthCheckService;
 
     @Inject
-    private HashicorpVaultClient client;
+    private HashicorpVaultHealthService client;
 
     @Configuration
     private HashicorpVaultSettings settings;
