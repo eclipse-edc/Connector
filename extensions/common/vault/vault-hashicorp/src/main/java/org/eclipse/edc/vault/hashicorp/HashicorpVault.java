@@ -79,13 +79,13 @@ public class HashicorpVault implements Vault {
                     var payload = objectMapper.readValue(responseBody.string(), JsonNode.class);
                     return payload.path("data").path("data").get(VAULT_DATA_ENTRY_NAME).asText();
                 }
-                monitor.warning("Secret response body is empty");
+                monitor.debug("Secret response body is empty");
 
             } else {
                 if (response.code() == 404) {
-                    monitor.warning("Secret not found");
+                    monitor.debug("Secret not found");
                 } else {
-                    monitor.warning("Failed to get secret with status %d".formatted(response.code()));
+                    monitor.debug("Failed to get secret with status %d".formatted(response.code()));
                 }
             }
         } catch (IOException e) {
@@ -137,7 +137,7 @@ public class HashicorpVault implements Vault {
         key = URLEncoder.encode(key, StandardCharsets.UTF_8);
 
         // restore '/' characters to allow subdirectories
-        key = key.replace("%2F", "/");
+        var sanitizedKey = key.replace("%2F", "/");
 
         var vaultApiPath = settings.secretPath();
         var folderPath = settings.getFolderPath();
@@ -152,7 +152,7 @@ public class HashicorpVault implements Vault {
         }
 
         return builder
-                .addPathSegments(key)
+                .addPathSegments(sanitizedKey)
                 .build();
     }
 

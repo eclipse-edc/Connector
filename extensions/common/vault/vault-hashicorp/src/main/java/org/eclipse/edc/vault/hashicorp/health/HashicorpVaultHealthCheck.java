@@ -31,19 +31,19 @@ import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
  * </ol>
  */
 public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessProvider, StartupStatusProvider {
-    private final HashicorpVaultHealthService client;
+    private final HashicorpVaultHealthService healthService;
     private final Monitor monitor;
 
-    public HashicorpVaultHealthCheck(HashicorpVaultHealthService client, Monitor monitor) {
-        this.client = client;
+    public HashicorpVaultHealthCheck(HashicorpVaultHealthService healthService, Monitor monitor) {
+        this.healthService = healthService;
         this.monitor = monitor;
     }
 
     @Override
     public HealthCheckResult get() {
-        return client
+        return healthService
                 .doHealthCheck()
-                .merge(client.isTokenRenewable())
+                .merge(healthService.isTokenRenewable())
                 .flatMap(result -> {
                     var statusBuilder = HealthCheckResult.Builder.newInstance().component("HashicorpVault");
                     if (result.succeeded()) {

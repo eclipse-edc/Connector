@@ -30,6 +30,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewTask;
+import org.jetbrains.annotations.NotNull;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
@@ -49,6 +50,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     private HashicorpVaultTokenRenewTask tokenRenewalTask;
     private Monitor monitor;
+    private HashicorpVaultHealthService healthService;
 
     @Override
     public String name() {
@@ -71,9 +73,17 @@ public class HashicorpVaultExtension implements ServiceExtension {
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 NAME,
                 executorInstrumentation,
-                new HashicorpVaultHealthService(httpClient, MAPPER, monitor, config),
+                createHealthService(),
                 config.renewBuffer(),
                 monitor);
+    }
+
+    @Provider
+    public @NotNull HashicorpVaultHealthService createHealthService() {
+        if (healthService == null) {
+            healthService = new HashicorpVaultHealthService(httpClient, MAPPER, monitor, config);
+        }
+        return healthService;
     }
 
     @Override

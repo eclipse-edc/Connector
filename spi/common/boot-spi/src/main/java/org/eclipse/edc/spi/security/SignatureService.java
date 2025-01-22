@@ -26,8 +26,8 @@ import java.util.Map;
 public interface SignatureService {
     /**
      * Signs the given payload with the key identified by the key parameter. Instead of transmitting the key out of the Vault
-     * and signing the payload locally, the payload is transmitted to the remote service, signed there with the specified key,
-     * and the signature is then transmitted back.
+     * and signing the payload locally, some implementations may choose to transmit the payload to the remote service,
+     * signed there with the specified key, and the signature is then transmitted back.
      *
      * @param key                The key that is used for signing. This key must be available and accessible by this {@link SignatureService}
      * @param payload            A non-empty, non-null byte array to be signed.
@@ -40,8 +40,8 @@ public interface SignatureService {
 
     /**
      * Verifies the given input data with the given signature. Instead of transmitting the key out of the Vault
-     * and performing the verification locally, the input and signature are transmitted to the remote service and verified
-     * with the specified key, and the result is transmitted back.
+     * and performing the verification locally, some implementations may choose to transmit the input and signature
+     * to the remote service and verified  with the specified key, and the result is transmitted back.
      *
      * @param key                The key that is used for verifying the signature. This key must exist in the Vault.
      * @param signingInput       The content from which the signature was created.
