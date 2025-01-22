@@ -68,4 +68,6 @@
 - [2024-10-24 bidirectional-data-transfers](./2024-10-24-bidirectional-data-transfers)
 - [2024-11-06 configuration-injection](./2024-11-06-configuration-injection)
 - [2024-11-19 transformer-version-scheme](./2024-11-19-transformer-version-scheme)
+- [2025-01-17 key management improvements](./2025-01-17-key-management-improvement)
+
 - [2025-01-21 Multiple Protocol Webhooks](./2025-01-21-multipe-protocol-webhooks)
