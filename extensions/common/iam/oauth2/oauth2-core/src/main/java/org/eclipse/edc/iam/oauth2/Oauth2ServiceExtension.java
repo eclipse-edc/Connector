@@ -122,8 +122,8 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
         // add oauth2-specific validation rules
         tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new AudienceValidationRule(config.getEndpointAudience()));
-        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, config.getNotBeforeValidationLeeway()));
-        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, config.getIssuedAtLeeway()));
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, config.getNotBeforeValidationLeeway(), false));
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, config.getIssuedAtLeeway(), false));
     }
 
     private Oauth2ServiceConfiguration withDefaults(Oauth2ServiceConfiguration config, ServiceExtensionContext context) {

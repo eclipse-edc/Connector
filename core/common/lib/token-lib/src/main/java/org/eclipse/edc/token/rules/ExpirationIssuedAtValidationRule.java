@@ -34,16 +34,6 @@ public class ExpirationIssuedAtValidationRule implements TokenValidationRule {
     private final int issuedAtLeeway;
     private final boolean allowNull;
 
-    /**
-     * Instantiates the rule
-     *
-     * @deprecated Please use {@link ExpirationIssuedAtValidationRule#ExpirationIssuedAtValidationRule(Clock, int, boolean)} instead
-     */
-    @Deprecated(since = "0.7.0")
-    public ExpirationIssuedAtValidationRule(Clock clock, int issuedAtLeeway) {
-        this(clock, issuedAtLeeway, false);
-    }
-
     public ExpirationIssuedAtValidationRule(Clock clock, int issuedAtLeeway, boolean allowNull) {
         this.clock = clock;
         this.issuedAtLeeway = issuedAtLeeway;

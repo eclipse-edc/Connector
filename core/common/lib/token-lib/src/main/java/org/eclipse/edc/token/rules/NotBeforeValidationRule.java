@@ -33,16 +33,6 @@ public class NotBeforeValidationRule implements TokenValidationRule {
     private final int notBeforeLeeway;
     private final boolean allowNull;
 
-    /**
-     * Instantiates the rule
-     *
-     * @deprecated Please use {@link NotBeforeValidationRule#NotBeforeValidationRule(Clock, int, boolean)} instead.
-     */
-    @Deprecated(since = "0.7.0")
-    public NotBeforeValidationRule(Clock clock, int notBeforeLeeway) {
-        this(clock, notBeforeLeeway, false);
-    }
-
     public NotBeforeValidationRule(Clock clock, int notBeforeLeeway, boolean allowNull) {
         this.clock = clock;
         this.notBeforeLeeway = notBeforeLeeway;

@@ -33,7 +33,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -74,7 +75,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-@ExtendWith(EdcExtension.class)
+@ExtendWith(RuntimePerMethodExtension.class)
 public class HttpProvisionerExtensionEndToEndTest {
     private static final String ASSET_ID = "assetId";
     private static final String CONTRACT_ID = UUID.randomUUID().toString();
@@ -85,7 +86,7 @@ public class HttpProvisionerExtensionEndToEndTest {
     private final IdentityService identityService = mock();
 
     @BeforeEach
-    void setup(EdcExtension extension) {
+    void setup(RuntimeExtension extension) {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",

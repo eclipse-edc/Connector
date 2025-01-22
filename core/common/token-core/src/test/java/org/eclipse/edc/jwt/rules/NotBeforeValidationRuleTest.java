@@ -34,7 +34,7 @@ class NotBeforeValidationRuleTest {
     private final int notBeforeLeeway = 20;
     private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     private final Clock clock = Clock.fixed(now, UTC);
-    private final TokenValidationRule rule = new NotBeforeValidationRule(clock, notBeforeLeeway);
+    private final TokenValidationRule rule = new NotBeforeValidationRule(clock, notBeforeLeeway, false);
 
     @Test
     void validNotBefore() {

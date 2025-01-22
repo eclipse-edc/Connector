@@ -51,7 +51,7 @@ public class BitstringStatusListCredential extends VerifiableCredential {
      * @see <a href="https://www.w3.org/TR/vc-bitstring-status-list/#bitstringstatuslistcredential">W3C BitStringStatusListCredential</a>
      * @deprecated the "ttl" field is in conflict with the {@link BitstringStatusListCredential#validUntil()} field and may get removed in the future.
      */
-    @Deprecated
+    @Deprecated(since = "0.9.0")
     public Duration ttl() {
         var ttl = ofNullable(credentialSubject.get(0).getClaim(BITSTRING_STATUS_LIST_PREFIX, BITSTRING_TTL_LITERAL))
                 .map(String::valueOf)

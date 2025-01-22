@@ -38,7 +38,7 @@ import static org.mockito.Mockito.spy;
  * extension attaches a dependency injection container to the test lifecycle. Parameter injection of runtime services is
  * supported.
  * <p>
- * If additional lifecycle services are needed (detection, loading and booting of extensions), use {@link EdcExtension}
+ * If additional lifecycle services are needed (detection, loading and booting of extensions), use {@link RuntimeExtension}
  * instead.
  * The {@link ServiceExtensionContext} instance is wrapped by a Mockito Spy.
  */

@@ -17,7 +17,8 @@ package org.eclipse.edc.web.jersey.validation.integrationtest;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.junit.annotations.ApiTest;
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.web.spi.validation.InterceptorFunction;
@@ -45,7 +46,7 @@ import static org.mockito.Mockito.when;
  * Please note that the focus of this test is on demonstration rather than full coverage
  */
 @ApiTest
-@ExtendWith({ EdcExtension.class })
+@ExtendWith(RuntimePerMethodExtension.class)
 class ValidationIntegrationTest {
 
     private final InterceptorFunction methodFunctionMock = mock(InterceptorFunction.class);
@@ -54,7 +55,7 @@ class ValidationIntegrationTest {
     private int port;
 
     @BeforeEach
-    void setup(EdcExtension extension) {
+    void setup(RuntimeExtension extension) {
         port = getFreePort();
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(port),

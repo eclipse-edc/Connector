@@ -122,21 +122,6 @@ public abstract class ContractNegotiationStoreTestBase {
         }
     }
 
-    @Deprecated(since = "0.8.0")
-    @Nested
-    class FindForCorrelationId {
-        @Test
-        @DisplayName("Find entity by its correlation ID")
-        void findForCorrelationId() {
-            var negotiation = createNegotiation("test-cn1");
-            getContractNegotiationStore().save(negotiation);
-
-            assertThat(getContractNegotiationStore().findForCorrelationId(negotiation.getCorrelationId()))
-                    .usingRecursiveComparison()
-                    .isEqualTo(negotiation);
-        }
-    }
-
     @Nested
     class FindContractAgreement {
         @Test

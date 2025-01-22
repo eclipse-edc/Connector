@@ -14,7 +14,8 @@
 
 package org.eclipse.edc.event.cloud.http;
 
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -32,14 +33,14 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 
-@ExtendWith(EdcExtension.class)
+@ExtendWith(RuntimePerMethodExtension.class)
 public class CloudEventsHttpExtensionTest {
 
     private final int port = getFreePort();
     private final ClientAndServer server = startClientAndServer(port);
 
     @BeforeEach
-    void setUp(EdcExtension extension) {
+    void setUp(RuntimeExtension extension) {
         extension.setConfiguration(Map.of(
                 CloudEventsHttpExtension.EDC_EVENTS_CLOUDEVENTS_ENDPOINT, "http://localhost:" + port
         ));

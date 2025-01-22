@@ -34,7 +34,7 @@ class ExpirationIssuedAtValidationRuleTest {
 
     private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     private final Clock clock = Clock.fixed(now, UTC);
-    private final TokenValidationRule rule = new ExpirationIssuedAtValidationRule(clock, 0);
+    private final TokenValidationRule rule = new ExpirationIssuedAtValidationRule(clock, 0, false);
 
     @Test
     void validationOk() {
@@ -110,7 +110,7 @@ class ExpirationIssuedAtValidationRuleTest {
 
     @Test
     void validationKoBecauseIssuedAtInFutureOutsideLeeway() {
-        var rule = new ExpirationIssuedAtValidationRule(clock, 5);
+        var rule = new ExpirationIssuedAtValidationRule(clock, 5, false);
 
         var token = ClaimToken.Builder.newInstance()
                 .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
@@ -125,7 +125,7 @@ class ExpirationIssuedAtValidationRuleTest {
 
     @Test
     void validationOkBecauseIssuedAtInFutureButWithinLeeway() {
-        var rule = new ExpirationIssuedAtValidationRule(clock, 20);
+        var rule = new ExpirationIssuedAtValidationRule(clock, 20, false);
 
         var token = ClaimToken.Builder.newInstance()
                 .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
@@ -152,7 +152,7 @@ class ExpirationIssuedAtValidationRuleTest {
         var now = issuedAt.minus(250, ChronoUnit.MILLIS);
 
         var clock = Clock.fixed(now, UTC);
-        var rule = new ExpirationIssuedAtValidationRule(clock, 0);
+        var rule = new ExpirationIssuedAtValidationRule(clock, 0, false);
 
         var token = ClaimToken.Builder.newInstance()
                 .claim(EXPIRATION_TIME, Date.from(expiresAt))
@@ -180,7 +180,7 @@ class ExpirationIssuedAtValidationRuleTest {
         var now = issuedAt.minus(250, ChronoUnit.MILLIS);
 
         var clock = Clock.fixed(now, UTC);
-        var rule = new ExpirationIssuedAtValidationRule(clock, 2);
+        var rule = new ExpirationIssuedAtValidationRule(clock, 2, false);
 
         var token = ClaimToken.Builder.newInstance()
                 .claim(EXPIRATION_TIME, Date.from(expiresAt))

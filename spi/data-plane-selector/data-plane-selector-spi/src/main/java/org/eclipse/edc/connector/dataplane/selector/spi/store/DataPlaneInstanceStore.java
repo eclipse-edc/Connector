@@ -26,39 +26,6 @@ import java.util.stream.Stream;
  */
 public interface DataPlaneInstanceStore extends StateEntityStore<DataPlaneInstance> {
 
-    String DATA_PLANE_INSTANCE_EXISTS = "Data Plane Instance with ID %s already exists";
-    String DATA_PLANE_INSTANCE_NOT_FOUND = "Data Plane Instance with ID %s not found";
-
-    /**
-     * Stores the {@link DataPlaneInstance} if a data plane instance with the same ID doesn't exist.
-     *
-     * @param instance The {@link DataPlaneInstance} to store.
-     *
-     * @return {@link StoreResult#success()} if the data plane instance was stored, {@link StoreResult#alreadyExists(String)} if a data
-     *         plane instance with the same ID already exists
-     * @deprecated please use {@link #save(Object)}
-     */
-    @Deprecated(since = "0.7.0")
-    default StoreResult<Void> create(DataPlaneInstance instance) {
-        save(instance);
-        return StoreResult.success();
-    }
-
-    /**
-     * Updates the {@link DataPlaneInstance} if a data plane instance with the same ID already exists.
-     *
-     * @param instance The {@link DataPlaneInstance} to update.
-     *
-     * @return {@link StoreResult#success()} if the data plane instance was updated, {@link StoreResult#notFound(String)} if a data
-     *         plane instance with the same ID was not found
-     * @deprecated please use {@link #save(Object)}
-     */
-    @Deprecated(since = "0.7.0")
-    default StoreResult<Void> update(DataPlaneInstance instance) {
-        save(instance);
-        return StoreResult.success();
-    }
-
     /**
      * Delete a data plane instance by its id.
      *

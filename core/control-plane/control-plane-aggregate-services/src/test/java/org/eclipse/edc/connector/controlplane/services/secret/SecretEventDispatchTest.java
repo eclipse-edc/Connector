@@ -20,7 +20,8 @@ import org.eclipse.edc.connector.secret.spi.event.SecretCreated;
 import org.eclipse.edc.connector.secret.spi.event.SecretDeleted;
 import org.eclipse.edc.connector.secret.spi.event.SecretEvent;
 import org.eclipse.edc.connector.spi.service.SecretService;
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -39,13 +40,13 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-@ExtendWith(EdcExtension.class)
+@ExtendWith(RuntimePerMethodExtension.class)
 public class SecretEventDispatchTest {
 
     private final EventSubscriber eventSubscriber = mock();
 
     @BeforeEach
-    void setUp(EdcExtension extension) {
+    void setUp(RuntimeExtension extension) {
         extension.registerServiceMock(ProtocolWebhook.class, mock());
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, mock());

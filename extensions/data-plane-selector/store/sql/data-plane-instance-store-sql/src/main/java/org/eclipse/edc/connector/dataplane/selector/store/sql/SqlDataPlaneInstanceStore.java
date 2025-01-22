@@ -63,44 +63,6 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     }
 
     @Override
-    public StoreResult<Void> create(DataPlaneInstance instance) {
-
-        return transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-
-                if (findByIdInternal(connection, instance.getId()) == null) {
-                    insert(connection, instance);
-                    return StoreResult.success();
-                } else {
-                    return StoreResult.alreadyExists(format(DATA_PLANE_INSTANCE_EXISTS, instance.getId()));
-                }
-
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
-            }
-        });
-    }
-
-    @Override
-    public StoreResult<Void> update(DataPlaneInstance instance) {
-
-        return transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-
-                if (findByIdInternal(connection, instance.getId()) == null) {
-                    return StoreResult.notFound(format(DATA_PLANE_INSTANCE_NOT_FOUND, instance.getId()));
-                } else {
-                    update(connection, instance);
-                    return StoreResult.success();
-                }
-
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
-            }
-        });
-    }
-
-    @Override
     public StoreResult<DataPlaneInstance> deleteById(String instanceId) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
