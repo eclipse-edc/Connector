@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.control.configuration;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -47,8 +46,6 @@ import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -99,13 +96,6 @@ public class ControlApiConfigurationExtensionTest {
         var extension = objectFactory.constructInstance(ControlApiConfigurationExtension.class);
 
         assertThatThrownBy(() -> extension.initialize(context)).isInstanceOf(EdcException.class);
-    }
-
-    @Test
-    void shouldRegisterAuthenticationFilter(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
-        extension.initialize(context);
-
-        verify(webService).registerResource(any(), isA(AuthenticationRequestFilter.class));
     }
 
     @Test
