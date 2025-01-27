@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.api.control.configuration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
@@ -105,8 +104,6 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_SCOPE);
         jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_SCOPE);
 
-        var authenticationRequestFilter = new AuthenticationRequestFilter(authenticationRegistry, "control-api");
-        webService.registerResource(ApiContext.CONTROL, authenticationRequestFilter);
         webService.registerResource(ApiContext.CONTROL, new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(ApiContext.CONTROL, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, CONTROL_SCOPE));
 
@@ -129,7 +126,7 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
 
     private ControlApiUrl controlApiUrl(ServiceExtensionContext context, PortMapping config) {
         var callbackAddress = ofNullable(controlEndpoint).orElseGet(() -> format("http://%s:%s%s", hostname.get(), config.port(), config.path()));
-        
+
         try {
             var url = URI.create(callbackAddress);
             return () -> url;

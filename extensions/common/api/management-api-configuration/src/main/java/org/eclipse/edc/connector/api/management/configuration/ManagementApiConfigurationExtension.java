@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.management.configuration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import jakarta.json.Json;
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.connector.api.management.configuration.transform.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
@@ -112,6 +111,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     @Inject
     private ApiVersionService apiVersionService;
 
+
     @Override
     public String name() {
         return NAME;
@@ -124,8 +124,6 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
         context.registerService(ManagementApiUrl.class, managementApiUrl(context, portMapping));
 
-        var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, "management-api");
-        webService.registerResource(ApiContext.MANAGEMENT, authenticationFilter);
 
         if (managementApiContextEnabled) {
             jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT, MANAGEMENT_SCOPE);

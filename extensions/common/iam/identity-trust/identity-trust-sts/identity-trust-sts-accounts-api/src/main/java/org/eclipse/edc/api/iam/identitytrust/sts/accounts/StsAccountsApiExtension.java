@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.api.iam.identitytrust.sts.accounts;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.api.iam.identitytrust.sts.accounts.controller.StsAccountsApiController;
 import org.eclipse.edc.iam.identitytrust.sts.spi.service.StsAccountService;
@@ -60,9 +59,6 @@ public class StsAccountsApiExtension implements ServiceExtension {
             throw new EdcException(message);
         }
 
-        var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, STS_ACCOUNTS_API_CONTEXT);
-
         webService.registerResource(ApiContext.STS_ACCOUNTS, new StsAccountsApiController(clientService));
-        webService.registerResource(ApiContext.STS_ACCOUNTS, authenticationFilter);
     }
 }

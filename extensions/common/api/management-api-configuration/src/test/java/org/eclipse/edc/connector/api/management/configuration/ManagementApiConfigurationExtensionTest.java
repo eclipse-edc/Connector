@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.configuration;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.json.JacksonTypeManager;
@@ -86,7 +85,6 @@ class ManagementApiConfigurationExtensionTest {
         extension.initialize(context);
 
         verify(portMappingRegistry).register(new PortMapping(ApiContext.MANAGEMENT, DEFAULT_MANAGEMENT_PORT, DEFAULT_MANAGEMENT_PATH));
-        verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(AuthenticationRequestFilter.class));
         verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(JerseyJsonLdInterceptor.class));
         verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(ObjectMapperProvider.class));
 

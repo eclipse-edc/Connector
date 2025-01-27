@@ -22,6 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -48,6 +49,7 @@ public class ApiAuthenticationConfigurationExtension implements ServiceExtension
     public static final String TYPE_KEY = "type";
 
     @Setting(context = CONFIG_ALIAS, value = "The api context where to apply the authentication. Default to the web <context>")
+    @Deprecated(since = "0.12.0", forRemoval = true)
     public static final String CONTEXT_KEY = "context";
 
     private Map<String, Config> authConfiguration = new HashMap<>();
@@ -61,6 +63,8 @@ public class ApiAuthenticationConfigurationExtension implements ServiceExtension
     @Inject
     private WebService webService;
 
+    @Inject
+    private Monitor monitor;
 
     @Override
     public String name() {
@@ -78,15 +82,18 @@ public class ApiAuthenticationConfigurationExtension implements ServiceExtension
     @Override
     public void prepare() {
         for (var entry : authConfiguration.entrySet()) {
-            var webContext = entry.getKey();
-            var apiContext = Optional.ofNullable(entry.getValue().getString(CONTEXT_KEY, null)).orElse(webContext);
+            if (entry.getValue().getString(CONTEXT_KEY, null) != null) {
+                var message = "Setting web.http.%s.auth.%s has been removed. The authentication will be applied to the web context %s".formatted(entry.getKey(), CONTEXT_KEY, entry.getKey());
+                monitor.warning(message);
+            }
             var serviceResult = configureService(entry.getValue());
             if (serviceResult.failed()) {
                 throw new EdcException("Failed to configure authentication for context %s: %s".formatted(entry.getKey(), serviceResult.getFailureDetail()));
             }
-            authenticationRegistry.register(apiContext, serviceResult.getContent());
-            var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, apiContext);
+            authenticationRegistry.register(entry.getKey(), serviceResult.getContent());
+            var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, entry.getKey());
             webService.registerResource(entry.getKey(), authenticationFilter);
+            monitor.debug("Configured %s authentication for context %s".formatted(entry.getValue().getString(TYPE_KEY), entry.getKey()));
         }
     }
 

@@ -27,13 +27,14 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.web.spi.configuration.WebServiceConfigurer.WEB_HTTP_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -48,16 +49,15 @@ class ApiAuthenticationConfigurationExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        when(monitor.withPrefix(anyString())).thenReturn(monitor);
-        when(context.getMonitor()).thenReturn(monitor);
         context.registerService(ApiAuthenticationRegistry.class, authenticationRegistry);
         context.registerService(ApiAuthenticationProviderRegistry.class, providerRegistry);
+        context.registerService(Monitor.class, monitor);
     }
 
     @Test
     void prepare(ApiAuthenticationConfigurationExtension extension, ServiceExtensionContext context) {
         var authType = "testAuth";
-        var config = ConfigFactory.fromMap(Map.of("test.auth.type", authType, "test.auth.custom", "custom"));
+        var config = ConfigFactory.fromMap(Map.of("test.auth.type", authType, "test.auth.custom", "custom", "test.auth.context", "test-ctx"));
         var provider = mock(ApiAuthenticationProvider.class);
         var authentication = mock(AuthenticationService.class);
         when(context.getConfig(WEB_HTTP_PREFIX)).thenReturn(config);
@@ -70,6 +70,11 @@ class ApiAuthenticationConfigurationExtensionTest {
         verify(providerRegistry).resolve(authType);
         verify(provider).provide(any());
         verify(authenticationRegistry).register("test", authentication);
+
+        var captor = ArgumentCaptor.forClass(String.class);
+        verify(monitor).warning(captor.capture());
+
+        assertThat(captor.getValue()).contains("Setting web.http.test.auth.context has been removed");
 
     }
 

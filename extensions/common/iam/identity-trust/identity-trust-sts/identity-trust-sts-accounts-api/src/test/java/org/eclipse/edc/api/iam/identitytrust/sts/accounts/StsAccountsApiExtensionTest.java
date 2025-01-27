@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.api.iam.identitytrust.sts.accounts;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.iam.identitytrust.sts.accounts.controller.StsAccountsApiController;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.security.Vault;
@@ -52,7 +51,6 @@ class StsAccountsApiExtensionTest {
         extension.initialize(context);
 
         verify(webService).registerResource(eq(STS_ACCOUNTS), isA(StsAccountsApiController.class));
-        verify(webService).registerResource(eq(STS_ACCOUNTS), isA(AuthenticationRequestFilter.class));
     }
 
 }
