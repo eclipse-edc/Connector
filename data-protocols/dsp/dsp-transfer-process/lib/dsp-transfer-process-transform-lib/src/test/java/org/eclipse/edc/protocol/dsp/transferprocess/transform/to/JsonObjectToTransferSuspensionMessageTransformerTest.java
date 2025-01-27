@@ -18,8 +18,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferSuspensionMessageTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -48,8 +50,14 @@ class JsonObjectToTransferSuspensionMessageTransformerTest {
 
     private final TransformerContext context = mock();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
+    private final TypeManager typeManager = mock();
     private final JsonObjectToTransferSuspensionMessageTransformer transformer =
-            new JsonObjectToTransferSuspensionMessageTransformer(objectMapper);
+            new JsonObjectToTransferSuspensionMessageTransformer(typeManager, "test");
+
+    @BeforeEach
+    void setUp() {
+        when(typeManager.getMapper("test")).thenReturn(objectMapper);
+    }
 
     @Test
     void shouldTransform() {

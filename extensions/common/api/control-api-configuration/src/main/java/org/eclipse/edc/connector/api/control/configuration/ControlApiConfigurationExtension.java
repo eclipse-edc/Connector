@@ -96,7 +96,6 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var portMapping = new PortMapping(ApiContext.CONTROL, apiConfiguration.port(), apiConfiguration.path());
         portMappingRegistry.register(portMapping);
-        var jsonLdMapper = typeManager.getMapper(JSON_LD);
         context.registerService(ControlApiUrl.class, controlApiUrl(context, portMapping));
 
         jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, CONTROL_SCOPE);
@@ -104,8 +103,8 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_SCOPE);
         jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_SCOPE);
 
-        webService.registerResource(ApiContext.CONTROL, new ObjectMapperProvider(jsonLdMapper));
-        webService.registerResource(ApiContext.CONTROL, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, CONTROL_SCOPE));
+        webService.registerResource(ApiContext.CONTROL, new ObjectMapperProvider(typeManager, JSON_LD));
+        webService.registerResource(ApiContext.CONTROL, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, CONTROL_SCOPE));
 
         registerVersionInfo(getClass().getClassLoader());
     }

@@ -53,16 +53,15 @@ public class DataPlaneSignalingClientTransformExtension implements ServiceExtens
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var mapper = typeManager.getMapper(JSON_LD);
         var factory = Json.createBuilderFactory(Map.of());
 
         var signalingApiTransformerRegistry = transformerRegistry.forContext("signaling-api");
-        signalingApiTransformerRegistry.register(new JsonObjectFromDataFlowStartMessageTransformer(factory, mapper));
+        signalingApiTransformerRegistry.register(new JsonObjectFromDataFlowStartMessageTransformer(factory, typeManager, JSON_LD));
         signalingApiTransformerRegistry.register(new JsonObjectFromDataFlowSuspendMessageTransformer(factory));
         signalingApiTransformerRegistry.register(new JsonObjectFromDataFlowTerminateMessageTransformer(factory));
         signalingApiTransformerRegistry.register(new JsonObjectToDataFlowResponseMessageTransformer());
         signalingApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer());
-        signalingApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(factory, mapper));
+        signalingApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(factory, typeManager, JSON_LD));
     }
 }
 

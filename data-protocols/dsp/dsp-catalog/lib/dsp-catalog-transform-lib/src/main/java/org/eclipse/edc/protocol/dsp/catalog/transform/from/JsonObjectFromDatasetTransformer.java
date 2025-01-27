@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
@@ -22,6 +21,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,12 +38,14 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIB
 public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<Dataset, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public JsonObjectFromDatasetTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromDatasetTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
         super(Dataset.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -61,7 +63,7 @@ public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<
                 .build();
         objectBuilder.add(DCAT_DISTRIBUTION_ATTRIBUTE, distributions);
 
-        transformProperties(dataset.getProperties(), objectBuilder, mapper, context);
+        transformProperties(dataset.getProperties(), objectBuilder, typeManager.getMapper(typeContext), context);
 
         return objectBuilder.build();
     }

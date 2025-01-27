@@ -19,7 +19,9 @@ import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -31,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,7 +47,9 @@ class JsonObjectToDataAddressTransformerTest {
     private static final String CUSTOM_PAYLOAD_NAME = "max";
     private static final String TEST_TYPE = "test-type";
     private static final String TEST_KEY_NAME = "test-key-name";
-    private final JsonValueToGenericTypeTransformer objectTransformer = new JsonValueToGenericTypeTransformer(createObjectMapper());
+    private final TypeManager typeManager = mock();
+
+    private final JsonValueToGenericTypeTransformer objectTransformer = new JsonValueToGenericTypeTransformer(typeManager, "test");
     private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private JsonObjectToDataAddressTransformer transformer;
     private TransformerContext transformerContext;
@@ -58,6 +61,7 @@ class JsonObjectToDataAddressTransformerTest {
         when(transformerContext.transform(isA(JsonObject.class), eq(Object.class)))
                 .thenAnswer(i -> objectTransformer.transform(i.getArgument(0), transformerContext));
         when(transformerContext.problem()).thenReturn(new ProblemBuilder(transformerContext));
+        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
     }
 
     @Test

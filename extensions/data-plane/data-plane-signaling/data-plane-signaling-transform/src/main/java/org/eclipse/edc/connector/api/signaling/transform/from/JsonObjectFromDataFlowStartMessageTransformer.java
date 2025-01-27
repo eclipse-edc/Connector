@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.api.signaling.transform.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -42,18 +42,20 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC
  */
 public class JsonObjectFromDataFlowStartMessageTransformer extends AbstractJsonLdTransformer<DataFlowStartMessage, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public JsonObjectFromDataFlowStartMessageTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromDataFlowStartMessageTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
         super(DataFlowStartMessage.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull DataFlowStartMessage message, @NotNull TransformerContext context) {
         var propertiesBuilder = jsonFactory.createObjectBuilder();
-        transformProperties(message.getProperties(), propertiesBuilder, mapper, context);
+        transformProperties(message.getProperties(), propertiesBuilder, typeManager.getMapper(typeContext), context);
         var builder = jsonFactory.createObjectBuilder()
                 .add(TYPE, EDC_DATA_FLOW_START_MESSAGE_TYPE)
                 .add(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION, message.getTransferType().destinationType())

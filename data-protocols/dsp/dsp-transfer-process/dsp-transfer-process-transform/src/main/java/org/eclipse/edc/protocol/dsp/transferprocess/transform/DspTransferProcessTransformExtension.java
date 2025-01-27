@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transform;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferCompletionMessageTransformer;
@@ -72,16 +71,15 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var objectMapper = typeManager.getMapper(JSON_LD);
 
         registerV08transformers();
         registerV2024transformers();
-        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08, objectMapper);
-        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1, objectMapper);
+        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08);
+        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1);
     }
 
 
-    private void registerTransformers(String version, JsonLdNamespace namespace, ObjectMapper objectMapper) {
+    private void registerTransformers(String version, JsonLdNamespace namespace) {
         var builderFactory = Json.createBuilderFactory(Map.of());
 
         var dspRegistry = registry.forContext(version);
@@ -93,7 +91,7 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
         dspRegistry.register(new JsonObjectToTransferStartMessageTransformer(namespace));
         dspRegistry.register(new JsonObjectToTransferTerminationMessageTransformer(namespace));
         dspRegistry.register(new JsonObjectToTransferProcessAckTransformer(namespace));
-        dspRegistry.register(new JsonObjectToTransferSuspensionMessageTransformer(objectMapper, namespace));
+        dspRegistry.register(new JsonObjectToTransferSuspensionMessageTransformer(typeManager, JSON_LD, namespace));
     }
 
     private void registerV08transformers() {

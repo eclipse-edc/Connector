@@ -17,6 +17,8 @@ package org.eclipse.edc.transform.transformer.edc.from;
 import jakarta.json.Json;
 import jakarta.json.JsonString;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,17 +35,19 @@ import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlan
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class JsonObjectFromDataPlaneInstanceTransformerTest {
 
     private final TransformerContext context = mock();
+    private final TypeManager typeManager = mock();
     private JsonObjectFromDataPlaneInstanceTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromDataPlaneInstanceTransformer(Json.createBuilderFactory(Map.of()), createObjectMapper());
+        transformer = new JsonObjectFromDataPlaneInstanceTransformer(Json.createBuilderFactory(Map.of()), typeManager, "test");
+        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
     }
 
     @Test

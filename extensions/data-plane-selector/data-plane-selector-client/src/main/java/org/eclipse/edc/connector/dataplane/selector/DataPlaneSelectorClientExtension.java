@@ -66,17 +66,16 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var builderFactory = Json.createBuilderFactory(emptyMap());
-        var objectMapper = typeManager.getMapper(JSON_LD);
-        typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(builderFactory, objectMapper));
+        typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(builderFactory, typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory));
         typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
-        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(objectMapper));
+        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
     }
 
     @Provider
     public DataPlaneSelectorService dataPlaneSelectorService(ServiceExtensionContext context) {
-        return new RemoteDataPlaneSelectorService(httpClient, selectorApiUrl, typeManager.getMapper(JSON_LD), typeTransformerRegistry,
+        return new RemoteDataPlaneSelectorService(httpClient, selectorApiUrl, typeManager, JSON_LD, typeTransformerRegistry,
                 selectionStrategy, jsonLd);
     }
 }

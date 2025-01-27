@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.transformer.TestInput;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,15 +42,17 @@ import static org.mockito.Mockito.when;
 
 class JsonValueToGenericPropertyTransformerTest {
 
-    private ObjectMapper mapper = mock(ObjectMapper.class);
-    private TransformerContext context = mock(TransformerContext.class);
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-
+    private final TypeManager typeManager = mock();
+    private final ObjectMapper mapper = mock();
+    private final TransformerContext context = mock();
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private JsonValueToGenericTypeTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonValueToGenericTypeTransformer(mapper);
+        transformer = new JsonValueToGenericTypeTransformer(typeManager, "test");
+        when(typeManager.getMapper("test")).thenReturn(mapper);
+
     }
 
     @Test

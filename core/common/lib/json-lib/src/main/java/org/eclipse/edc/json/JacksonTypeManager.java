@@ -48,7 +48,7 @@ public class JacksonTypeManager implements TypeManager {
         defaultMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false); // serialize dates in ISO 8601 format
         defaultMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        registerContext("default", defaultMapper);
+        registerContext(DEFAULT_TYPE_CONTEXT, defaultMapper);
     }
 
     @Override

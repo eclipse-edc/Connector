@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.transform.v2024.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
@@ -22,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,17 +46,19 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V
  */
 public class JsonObjectFromCatalogV2024Transformer extends AbstractNamespaceAwareJsonLdTransformer<Catalog, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final ParticipantIdMapper participantIdMapper;
 
-    public JsonObjectFromCatalogV2024Transformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper, ParticipantIdMapper participantIdMapper) {
-        this(jsonFactory, mapper, participantIdMapper, DSP_NAMESPACE_V_2024_1);
+    public JsonObjectFromCatalogV2024Transformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, ParticipantIdMapper participantIdMapper) {
+        this(jsonFactory, typeManager, typeContext, participantIdMapper, DSP_NAMESPACE_V_2024_1);
     }
 
-    public JsonObjectFromCatalogV2024Transformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper, ParticipantIdMapper participantIdMapper, JsonLdNamespace namespace) {
+    public JsonObjectFromCatalogV2024Transformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, ParticipantIdMapper participantIdMapper, JsonLdNamespace namespace) {
         super(Catalog.class, JsonObject.class, namespace);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
         this.participantIdMapper = participantIdMapper;
     }
 
@@ -92,9 +94,9 @@ public class JsonObjectFromCatalogV2024Transformer extends AbstractNamespaceAwar
 
         ofNullable(catalog.getParticipantId()).ifPresent(pid -> objectBuilder.add(forNamespace(DSPACE_PROPERTY_PARTICIPANT_ID_TERM), createId(jsonFactory, participantIdMapper.toIri(pid))));
 
-        transformProperties(catalog.getProperties(), objectBuilder, mapper, context);
+        transformProperties(catalog.getProperties(), objectBuilder, typeManager.getMapper(typeContext), context);
 
         return objectBuilder.build();
     }
-    
+
 }

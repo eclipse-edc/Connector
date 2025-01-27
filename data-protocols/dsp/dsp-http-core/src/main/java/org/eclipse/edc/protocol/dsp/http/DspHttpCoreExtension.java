@@ -150,7 +150,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
-        return new JsonLdRemoteMessageSerializerImpl(dspTransformerRegistry(), typeManager.getMapper(JSON_LD), jsonLdService, dspProtocolParser(), DSP_SCOPE);
+        return new JsonLdRemoteMessageSerializerImpl(dspTransformerRegistry(), typeManager, JSON_LD, jsonLdService, dspProtocolParser(), DSP_SCOPE);
     }
 
     @Provider

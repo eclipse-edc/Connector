@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
@@ -29,6 +28,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
@@ -49,20 +49,22 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 public class DataPlaneSignalingClient implements DataPlaneClient {
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
     private final ControlApiHttpClient httpClient;
+    private final String typeContext;
     private final DataPlaneInstance dataPlane;
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonLd jsonLd;
 
     private final String jsonLdScope;
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
 
     public DataPlaneSignalingClient(ControlApiHttpClient httpClient, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, String jsonLdScope,
-                                    ObjectMapper mapper, DataPlaneInstance dataPlane) {
+                                    TypeManager typeManager, String typeContext, DataPlaneInstance dataPlane) {
         this.httpClient = httpClient;
         this.transformerRegistry = transformerRegistry;
         this.jsonLd = jsonLd;
         this.jsonLdScope = jsonLdScope;
-        this.mapper = mapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
         this.dataPlane = dataPlane;
     }
 
@@ -131,7 +133,7 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
 
     private StatusResult<DataFlowResponseMessage> deserializeStartMessage(String responseBody) {
         try {
-            var jsonObject = mapper.readValue(responseBody, JsonObject.class);
+            var jsonObject = typeManager.getMapper(typeContext).readValue(responseBody, JsonObject.class);
             var result = jsonLd.expand(jsonObject)
                     .compose(expanded -> transformerRegistry.transform(expanded, DataFlowResponseMessage.class));
             if (result.succeeded()) {
@@ -151,7 +153,7 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
 
     private Result<String> serializeMessage(Object message) {
         try {
-            return Result.success(mapper.writeValueAsString(message));
+            return Result.success(typeManager.getMapper(typeContext).writeValueAsString(message));
         } catch (JsonProcessingException e) {
             return Result.failure(e.getMessage());
         }

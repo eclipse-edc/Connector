@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.transform.transformer.dspace.v2024.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.stream.JsonCollectors;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -41,16 +41,18 @@ public class JsonObjectFromDataAddressDspace2024Transformer extends AbstractName
 
     private static final Set<String> EXCLUDED_PROPERTIES = Set.of(EDC_DATA_ADDRESS_TYPE_PROPERTY);
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public JsonObjectFromDataAddressDspace2024Transformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
-        this(jsonFactory, mapper, new JsonLdNamespace(DSPACE_SCHEMA_2024_1));
+    public JsonObjectFromDataAddressDspace2024Transformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
+        this(jsonFactory, typeManager, typeContext, new JsonLdNamespace(DSPACE_SCHEMA_2024_1));
     }
 
-    public JsonObjectFromDataAddressDspace2024Transformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper, JsonLdNamespace namespace) {
+    public JsonObjectFromDataAddressDspace2024Transformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, JsonLdNamespace namespace) {
         super(DataAddress.class, JsonObject.class, namespace);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -75,7 +77,7 @@ public class JsonObjectFromDataAddressDspace2024Transformer extends AbstractName
         if (value instanceof String stringVal) {
             builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), stringVal);
         } else {
-            builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), mapper.convertValue(value, JsonObject.class));
+            builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), typeManager.getMapper(typeContext).convertValue(value, JsonObject.class));
         }
 
         return builder.build();

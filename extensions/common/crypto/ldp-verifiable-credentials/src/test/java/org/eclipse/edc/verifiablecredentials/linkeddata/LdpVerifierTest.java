@@ -31,6 +31,7 @@ import org.eclipse.edc.security.signature.jws2020.JsonWebKeyPair;
 import org.eclipse.edc.security.signature.jws2020.Jws2020ProofDraft;
 import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.security.signature.jws2020.TestDocumentLoader;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,7 @@ class LdpVerifierTest {
     private final MethodResolver mockDidResolver = mock();
 
     private final SignatureSuiteRegistry suiteRegistry = mock();
+    private final TypeManager typeManager = mock();
     private VerifierContext context = null;
     private LdpVerifier ldpVerifier;
     private TitaniumJsonLd jsonLd;
@@ -82,13 +84,15 @@ class LdpVerifierTest {
             ldpVerifier = LdpVerifier.Builder.newInstance()
                     .signatureSuites(suiteRegistry)
                     .jsonLd(jsonLd)
-                    .objectMapper(mapper)
+                    .typeManager(typeManager)
+                    .typeContext("test")
                     .methodResolvers(List.of(mockDidResolver))
                     .loader(testDocLoader)
                     .build();
             context = VerifierContext.Builder.newInstance().verifier(ldpVerifier).build();
 
             when(suiteRegistry.getAllSuites()).thenReturn(List.of(jwsSignatureSuite));
+            when(typeManager.getMapper("test")).thenReturn(mapper);
         }
 
         private Jws2020ProofDraft generateEmbeddedProof(VerificationMethod verificationMethod) {

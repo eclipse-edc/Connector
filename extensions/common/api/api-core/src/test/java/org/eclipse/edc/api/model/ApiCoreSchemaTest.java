@@ -25,6 +25,7 @@ import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -46,10 +47,12 @@ import static org.eclipse.edc.api.model.ApiCoreSchema.QuerySpecSchema.QUERY_SPEC
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ApiCoreSchemaTest {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
+    private final TypeManager typeManager = mock();
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
@@ -58,8 +61,9 @@ class ApiCoreSchemaTest {
     void setUp() {
         transformer.register(new JsonObjectToQuerySpecTransformer());
         transformer.register(new JsonObjectToCriterionTransformer());
-        transformer.register(new JsonValueToGenericTypeTransformer(objectMapper));
+        transformer.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         transformer.register(new JsonObjectToDataAddressTransformer());
+        when(typeManager.getMapper("test")).thenReturn(objectMapper);
     }
 
     @Test

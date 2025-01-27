@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.http.serialization;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -22,6 +21,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response.DspHttpResponse
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Failure;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -35,13 +35,15 @@ import static java.lang.String.join;
  */
 public class JsonLdResponseBodyDeserializer<T> implements DspHttpResponseBodyExtractor<T> {
     private final Class<T> type;
-    private final ObjectMapper objectMapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final JsonLd jsonLd;
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry;
 
-    public JsonLdResponseBodyDeserializer(Class<T> type, ObjectMapper objectMapper, JsonLd jsonLd, DspProtocolTypeTransformerRegistry dspTransformerRegistry) {
+    public JsonLdResponseBodyDeserializer(Class<T> type, TypeManager typeManager, String typeContext, JsonLd jsonLd, DspProtocolTypeTransformerRegistry dspTransformerRegistry) {
         this.type = type;
-        this.objectMapper = objectMapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
         this.jsonLd = jsonLd;
         this.dspTransformerRegistry = dspTransformerRegistry;
     }
@@ -49,7 +51,7 @@ public class JsonLdResponseBodyDeserializer<T> implements DspHttpResponseBodyExt
     @Override
     public T extractBody(ResponseBody responseBody, String protocol) {
         try {
-            var jsonObject = objectMapper.readValue(responseBody.byteStream(), JsonObject.class);
+            var jsonObject = typeManager.getMapper(typeContext).readValue(responseBody.byteStream(), JsonObject.class);
             var transformerRegistryResult = dspTransformerRegistry.forProtocol(protocol);
             if (transformerRegistryResult.failed()) {
                 throw new EdcException(format("Failed to extract body: %s", join(", ", transformerRegistryResult.getFailureMessages())));

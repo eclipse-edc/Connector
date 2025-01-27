@@ -15,13 +15,13 @@
 package org.eclipse.edc.transform.transformer.edc.to;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,11 +33,13 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
  * Converts from a generic property as a {@link JsonObject} in JSON-LD expanded form to a Java Object.
  */
 public class JsonValueToGenericTypeTransformer extends AbstractJsonLdTransformer<JsonValue, Object> {
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public JsonValueToGenericTypeTransformer(ObjectMapper mapper) {
+    public JsonValueToGenericTypeTransformer(TypeManager typeManager, String typeContext) {
         super(JsonValue.class, Object.class);
-        this.mapper = mapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -65,7 +67,7 @@ public class JsonValueToGenericTypeTransformer extends AbstractJsonLdTransformer
 
     private Object toJavaType(JsonObject object, TransformerContext context) {
         try {
-            return mapper.readValue(object.toString(), Object.class);
+            return typeManager.getMapper(typeContext).readValue(object.toString(), Object.class);
         } catch (JsonProcessingException e) {
             context.reportProblem(format("Failed to read value: %s", e.getMessage()));
             return null;

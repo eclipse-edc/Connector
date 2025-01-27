@@ -22,6 +22,8 @@ import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.transform.Payload;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +43,6 @@ import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROP
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.mockito.ArgumentMatchers.eq;
@@ -58,11 +59,13 @@ class JsonObjectFromAssetTransformerTest {
     private static final String TEST_VERSION = "0.6.9";
     private static final String TEST_ASSET_NAME = "test-asset";
     private final TransformerContext context = mock(TransformerContext.class);
+    private final TypeManager typeManager = mock();
     private JsonObjectFromAssetTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromAssetTransformer(Json.createBuilderFactory(Map.of()), createObjectMapper());
+        transformer = new JsonObjectFromAssetTransformer(Json.createBuilderFactory(Map.of()), typeManager, "test");
+        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
     }
 
     @Test

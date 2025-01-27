@@ -24,6 +24,9 @@ import org.jetbrains.annotations.NotNull;
  * Manages system types and is used to deserialize polymorphic types.
  */
 public interface TypeManager {
+
+    String DEFAULT_TYPE_CONTEXT = "default";
+
     /**
      * Returns the object mapper for the default serialization context.
      */

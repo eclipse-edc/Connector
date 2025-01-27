@@ -74,11 +74,10 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
         jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_CLIENT_SCOPE);
         jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_CLIENT_SCOPE);
 
-        var mapper = typeManager.getMapper(JSON_LD);
         context.getMonitor().debug(() -> "Using remote Data Plane client.");
         Objects.requireNonNull(httpClient, "To use remote Data Plane client, a ControlApiHttpClient instance must be registered");
         var signalingApiTypeTransformerRegistry = transformerRegistry.forContext("signaling-api");
-        return instance -> new DataPlaneSignalingClient(httpClient, signalingApiTypeTransformerRegistry, jsonLd, CONTROL_CLIENT_SCOPE, mapper,
+        return instance -> new DataPlaneSignalingClient(httpClient, signalingApiTypeTransformerRegistry, jsonLd, CONTROL_CLIENT_SCOPE, typeManager, JSON_LD,
                 instance);
     }
 }

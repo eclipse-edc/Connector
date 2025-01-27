@@ -17,13 +17,15 @@ package org.eclipse.edc.transform.transformer.edc.to;
 import jakarta.json.Json;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
@@ -36,9 +38,15 @@ import static org.mockito.Mockito.when;
 
 
 class JsonObjectToCriterionTransformerTest {
+    private final TypeManager typeManager = mock();
 
     private final JsonObjectToCriterionTransformer transformer = new JsonObjectToCriterionTransformer();
-    private final JsonValueToGenericTypeTransformer genericTypeTransformer = new JsonValueToGenericTypeTransformer(createObjectMapper());
+    private final JsonValueToGenericTypeTransformer genericTypeTransformer = new JsonValueToGenericTypeTransformer(typeManager, "test");
+    
+    @BeforeEach
+    void setup() {
+        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+    }
 
     @Test
     void transform() {

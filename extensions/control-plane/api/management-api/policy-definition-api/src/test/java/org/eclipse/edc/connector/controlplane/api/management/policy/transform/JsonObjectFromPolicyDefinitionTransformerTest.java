@@ -15,11 +15,13 @@
 package org.eclipse.edc.connector.controlplane.api.management.policy.transform;
 
 import jakarta.json.Json;
-import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -31,7 +33,6 @@ import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -40,12 +41,14 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromPolicyDefinitionTransformerTest {
 
-    private final JsonObjectFromPolicyDefinitionTransformer transformer = new JsonObjectFromPolicyDefinitionTransformer(Json.createBuilderFactory(emptyMap()), createObjectMapper());
+    private final TypeManager typeManager = mock();
+    private final JsonObjectFromPolicyDefinitionTransformer transformer = new JsonObjectFromPolicyDefinitionTransformer(Json.createBuilderFactory(emptyMap()), typeManager, "test");
     private final TransformerContext context = mock(TransformerContext.class);
 
-
-    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-
+    @BeforeEach
+    void setup() {
+        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+    }
 
     @Test
     void types() {

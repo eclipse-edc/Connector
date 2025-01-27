@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,9 +52,10 @@ class JsonObjectFromDatasetTransformerTest {
     private static final String DATASET_PROPERTY = "catalog:prop:key";
     private static final String OFFER_ID = "offerId";
 
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private ObjectMapper mapper = mock(ObjectMapper.class);
-    private TransformerContext context = mock(TransformerContext.class);
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final ObjectMapper mapper = mock();
+    private final TransformerContext context = mock();
+    private final TypeManager typeManager = mock();
 
     private JsonObjectFromDatasetTransformer transformer;
 
@@ -62,7 +64,8 @@ class JsonObjectFromDatasetTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromDatasetTransformer(jsonFactory, mapper);
+        transformer = new JsonObjectFromDatasetTransformer(jsonFactory, typeManager, "test");
+        when(typeManager.getMapper("test")).thenReturn(mapper);
 
         policyJson = getJsonObject("policy");
         distributionJson = getJsonObject("distribution");

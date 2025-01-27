@@ -70,13 +70,12 @@ public class DataplaneSelectorControlApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         validatorRegistry.register(DATAPLANE_INSTANCE_TYPE, DataPlaneInstanceValidator.instance());
-        var objectMapper = typeManager.getMapper(JSON_LD);
 
         typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
         typeTransformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
-        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(objectMapper));
-        typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), objectMapper));
+        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
+        typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager, JSON_LD));
 
         var controller = new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, dataPlaneSelectorService, clock);
         webService.registerResource(ApiContext.CONTROL, controller);

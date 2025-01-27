@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toSet;
+import static org.eclipse.edc.spi.types.TypeManager.DEFAULT_TYPE_CONTEXT;
 import static org.glassfish.jersey.server.ServerProperties.WADL_FEATURE_DISABLE;
 
 public class JerseyRestService implements WebService {
@@ -101,7 +102,7 @@ public class JerseyRestService implements WebService {
         // In order to use instances with Jersey, the controller types must be registered along with an {@link AbstractBinder} that maps those types to the instances.
         resourceConfig.registerClasses(controllers.stream().map(Object::getClass).collect(toSet()));
         resourceConfig.registerInstances(new Binder(controllers));
-        resourceConfig.registerInstances(new ObjectMapperProvider(typeManager.getMapper()));
+        resourceConfig.registerInstances(new ObjectMapperProvider(typeManager, DEFAULT_TYPE_CONTEXT));
         resourceConfig.registerInstances(new EdcApiExceptionMapper());
         resourceConfig.registerInstances(new UnexpectedExceptionMapper(monitor));
         resourceConfig.registerInstances(new DynamicResourceFeature(dynamicResourcesForContext));

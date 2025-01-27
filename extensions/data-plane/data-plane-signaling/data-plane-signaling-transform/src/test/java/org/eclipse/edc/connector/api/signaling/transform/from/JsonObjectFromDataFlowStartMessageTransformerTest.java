@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.api.signaling.transform.from;
 
 import jakarta.json.Json;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
@@ -28,7 +30,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.DC_DATA_FLOW_START_MESSAGE_PROCESS_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_DATASET_ID;
@@ -47,13 +48,15 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromDataFlowStartMessageTransformerTest {
 
+    private final TypeManager typeManager = mock();
     private final TransformerContext context = mock();
     private JsonObjectFromDataFlowStartMessageTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromDataFlowStartMessageTransformer(Json.createBuilderFactory(Map.of()), createObjectMapper());
+        transformer = new JsonObjectFromDataFlowStartMessageTransformer(Json.createBuilderFactory(Map.of()), typeManager, "test");
         when(context.transform(isA(DataAddress.class), any())).thenReturn(Json.createObjectBuilder().build());
+        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
     }
 
     @Test

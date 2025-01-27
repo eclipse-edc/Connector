@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.web.jersey.providers.jsonld;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.BadRequestException;
@@ -26,6 +25,7 @@ import jakarta.ws.rs.ext.ReaderInterceptorContext;
 import jakarta.ws.rs.ext.WriterInterceptor;
 import jakarta.ws.rs.ext.WriterInterceptorContext;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -35,13 +35,14 @@ import static jakarta.json.stream.JsonCollectors.toJsonArray;
 @Provider
 public class JerseyJsonLdInterceptor implements ReaderInterceptor, WriterInterceptor {
     private final JsonLd jsonLd;
-    private final ObjectMapper objectMapper;
-
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final String scope;
 
-    public JerseyJsonLdInterceptor(JsonLd jsonLd, ObjectMapper objectMapper, String scope) {
+    public JerseyJsonLdInterceptor(JsonLd jsonLd, TypeManager typeManager, String typeContext, String scope) {
         this.jsonLd = jsonLd;
-        this.objectMapper = objectMapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
         this.scope = scope;
     }
 
@@ -50,12 +51,12 @@ public class JerseyJsonLdInterceptor implements ReaderInterceptor, WriterInterce
         if (context.getType().equals(JsonObject.class)) {
             var bytes = context.getInputStream().readAllBytes();
             if (bytes.length > 0) {
-                var jsonObject = objectMapper.readValue(bytes, JsonObject.class);
+                var jsonObject = typeManager.getMapper(typeContext).readValue(bytes, JsonObject.class);
 
                 var expanded = jsonLd.expand(jsonObject)
                         .orElseThrow(f -> new BadRequestException("Failed to expand JsonObject: " + f.getFailureDetail()));
 
-                var expandedBytes = objectMapper.writeValueAsBytes(expanded);
+                var expandedBytes = typeManager.getMapper(typeContext).writeValueAsBytes(expanded);
                 context.setInputStream(new ByteArrayInputStream(expandedBytes));
             }
         }

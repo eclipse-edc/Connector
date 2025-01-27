@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -23,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,15 +40,17 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 
 public class JsonObjectToTransferSuspensionMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, TransferSuspensionMessage> {
 
-    private final ObjectMapper objectMapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public JsonObjectToTransferSuspensionMessageTransformer(ObjectMapper objectMapper) {
-        this(objectMapper, DSP_NAMESPACE_V_08);
+    public JsonObjectToTransferSuspensionMessageTransformer(TypeManager typeManager, String typeContext) {
+        this(typeManager, typeContext, DSP_NAMESPACE_V_08);
     }
 
-    public JsonObjectToTransferSuspensionMessageTransformer(ObjectMapper objectMapper, JsonLdNamespace namespace) {
+    public JsonObjectToTransferSuspensionMessageTransformer(TypeManager typeManager, String typeContext, JsonLdNamespace namespace) {
         super(JsonObject.class, TransferSuspensionMessage.class, namespace);
-        this.objectMapper = objectMapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
 
@@ -99,7 +101,7 @@ public class JsonObjectToTransferSuspensionMessageTransformer extends AbstractNa
 
     private Object deserialize(JsonValue it) {
         try {
-            return objectMapper.readValue(it.toString(), Map.class);
+            return typeManager.getMapper(typeContext).readValue(it.toString(), Map.class);
         } catch (JsonProcessingException e) {
             throw new EdcException("Error deserializing 'reason' field.");
         }

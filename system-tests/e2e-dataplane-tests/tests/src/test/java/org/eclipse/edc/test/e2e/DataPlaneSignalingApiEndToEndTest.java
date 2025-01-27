@@ -28,6 +28,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.spi.result.Failure;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -55,22 +56,26 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @EndToEndTest
 public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
     private static final String DATAPLANE_PUBLIC_ENDPOINT_URL = DATAPLANE.getDataPlanePublicEndpoint().getUrl().toString();
     private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl();
+    private final TypeManager typeManager = mock();
     private ObjectMapper mapper;
 
     @BeforeEach
     void setup() {
         var builderFactory = Json.createBuilderFactory(Map.of());
         mapper = JacksonJsonLd.createObjectMapper();
-        registry.register(new JsonObjectFromDataFlowStartMessageTransformer(builderFactory, mapper));
-        registry.register(new JsonObjectFromDataAddressDspaceTransformer(builderFactory, mapper));
+        registry.register(new JsonObjectFromDataFlowStartMessageTransformer(builderFactory, typeManager, "test"));
+        registry.register(new JsonObjectFromDataAddressDspaceTransformer(builderFactory, typeManager, "test"));
         registry.register(new JsonObjectToDataAddressDspaceTransformer());
         registry.register(new JsonObjectToDataFlowResponseMessageTransformer());
+        when(typeManager.getMapper("test")).thenReturn(mapper);
     }
 
     @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR (PULL)")

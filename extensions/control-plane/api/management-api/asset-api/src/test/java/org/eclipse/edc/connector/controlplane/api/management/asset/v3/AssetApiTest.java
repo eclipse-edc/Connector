@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToAsset
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
@@ -40,8 +41,10 @@ import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AssetApiTest {
+    private final TypeManager typeManager = mock();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
@@ -49,8 +52,9 @@ class AssetApiTest {
     @BeforeEach
     void setUp() {
         transformer.register(new JsonObjectToAssetTransformer());
-        transformer.register(new JsonValueToGenericTypeTransformer(objectMapper));
+        transformer.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         transformer.register(new JsonObjectToDataAddressTransformer());
+        when(typeManager.getMapper("test")).thenReturn(objectMapper);
     }
 
     @Test

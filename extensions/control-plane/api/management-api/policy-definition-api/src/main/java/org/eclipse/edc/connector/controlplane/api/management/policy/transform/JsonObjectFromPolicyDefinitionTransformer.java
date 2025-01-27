@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.policy.transform;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,13 +30,15 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CREATED_AT;
 
 public class JsonObjectFromPolicyDefinitionTransformer extends AbstractJsonLdTransformer<PolicyDefinition, JsonObject> {
 
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final JsonBuilderFactory jsonFactory;
 
-    public JsonObjectFromPolicyDefinitionTransformer(JsonBuilderFactory jsonFactory, ObjectMapper jsonLdMapper) {
+    public JsonObjectFromPolicyDefinitionTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
         super(PolicyDefinition.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = jsonLdMapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -51,7 +53,7 @@ public class JsonObjectFromPolicyDefinitionTransformer extends AbstractJsonLdTra
         objectBuilder.add(EDC_POLICY_DEFINITION_POLICY, policy);
         if (!input.getPrivateProperties().isEmpty()) {
             var privatePropBuilder = jsonFactory.createObjectBuilder();
-            transformProperties(input.getPrivateProperties(), privatePropBuilder, mapper, context);
+            transformProperties(input.getPrivateProperties(), privatePropBuilder, typeManager.getMapper(typeContext), context);
             objectBuilder.add(PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES, privatePropBuilder);
         }
 

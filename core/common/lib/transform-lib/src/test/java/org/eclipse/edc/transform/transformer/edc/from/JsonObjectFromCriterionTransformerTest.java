@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,11 +38,13 @@ class JsonObjectFromCriterionTransformerTest {
 
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final TransformerContext context = mock(TransformerContext.class);
+    private final TypeManager typeManager = mock();
     private JsonObjectFromCriterionTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromCriterionTransformer(Json.createBuilderFactory(Map.of()), mapper);
+        transformer = new JsonObjectFromCriterionTransformer(Json.createBuilderFactory(Map.of()), typeManager, "test");
+        when(typeManager.getMapper("test")).thenReturn(mapper);
     }
 
     @Test

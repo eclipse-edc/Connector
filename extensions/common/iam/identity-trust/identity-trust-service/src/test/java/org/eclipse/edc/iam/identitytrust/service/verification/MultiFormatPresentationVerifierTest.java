@@ -35,6 +35,7 @@ import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.security.signature.jws2020.TestDocumentLoader;
 import org.eclipse.edc.security.signature.jws2020.TestFunctions;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtCreationUtils;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
@@ -84,6 +85,7 @@ class MultiFormatPresentationVerifierTest {
     private static ECKey vpSigningKey;
     private static ECKey vcSigningKey;
     private static TitaniumJsonLd jsonLd;
+    private final TypeManager typeManager = mock();
     private final PublicKeyResolver publicKeyResolverMock = mock();
     private final TestDocumentLoader testDocLoader = new TestDocumentLoader("https://org.eclipse.edc/", "", SchemeRouter.defaultInstance());
     private final TokenValidationService tokenValidationService = mock();
@@ -116,11 +118,13 @@ class MultiFormatPresentationVerifierTest {
         var ldpVerifier = LdpVerifier.Builder.newInstance()
                 .signatureSuites(SIGNATURE_SUITE_REGISTRY)
                 .jsonLd(jsonLd)
-                .objectMapper(MAPPER)
+                .typeManager(typeManager)
+                .typeContext("test")
                 .build();
 
-        var jwtPresentationVerifier = new JwtPresentationVerifier(MAPPER, tokenValidationService, mock(), publicKeyResolverMock);
+        var jwtPresentationVerifier = new JwtPresentationVerifier(typeManager, "test", tokenValidationService, mock(), publicKeyResolverMock);
         multiFormatVerifier = new MultiFormatPresentationVerifier(MY_OWN_DID, jwtPresentationVerifier, ldpVerifier);
+        when(typeManager.getMapper("test")).thenReturn(MAPPER);
     }
 
     private ProofDraft generateEmbeddedProofOptions(ECKey vcKey, String proofPurpose) {

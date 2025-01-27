@@ -21,6 +21,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -39,9 +40,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class JsonObjectToVerifiableCredentialTransformerTest {
     public static final ObjectMapper OBJECT_MAPPER = JacksonJsonLd.createObjectMapper();
+    private final TypeManager typeManager = mock();
     private final JsonLd jsonLdService = new TitaniumJsonLd(mock());
     private TransformerContext context;
     private JsonObjectToVerifiableCredentialTransformer transformer;
@@ -52,12 +55,13 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         var registry = new TypeTransformerRegistryImpl();
         registry.register(new JsonObjectToCredentialSubjectTransformer());
         registry.register(new JsonObjectToCredentialStatusTransformer());
-        registry.register(new JsonValueToGenericTypeTransformer(OBJECT_MAPPER));
+        registry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         registry.register(new JsonObjectToIssuerTransformer());
         registry.register(transformer);
 
         context = spy(new TransformerContextImpl(registry));
         jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v2", Thread.currentThread().getContextClassLoader().getResource("document/credentials.v2.jsonld").toURI());
+        when(typeManager.getMapper("test")).thenReturn(OBJECT_MAPPER);
     }
 
     @Test

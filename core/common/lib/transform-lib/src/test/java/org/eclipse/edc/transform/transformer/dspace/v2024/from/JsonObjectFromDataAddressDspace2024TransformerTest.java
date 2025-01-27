@@ -17,8 +17,10 @@ package org.eclipse.edc.transform.transformer.dspace.v2024.from;
 import jakarta.json.Json;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -32,15 +34,23 @@ import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSeri
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY_TERM;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class JsonObjectFromDataAddressDspace2024TransformerTest {
 
+    private final TypeManager typeManager = mock();
+
     private final JsonObjectFromDataAddressDspace2024Transformer transformer = new JsonObjectFromDataAddressDspace2024Transformer(
-            Json.createBuilderFactory(Map.of()), JacksonJsonLd.createObjectMapper());
+            Json.createBuilderFactory(Map.of()), typeManager, "test");
     private final TransformerContext context = mock();
 
 
     private final JsonLdNamespace namespace = new JsonLdNamespace(DSPACE_SCHEMA_2024_1);
+
+    @BeforeEach
+    void setup() {
+        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+    }
 
     @Test
     void transform() {

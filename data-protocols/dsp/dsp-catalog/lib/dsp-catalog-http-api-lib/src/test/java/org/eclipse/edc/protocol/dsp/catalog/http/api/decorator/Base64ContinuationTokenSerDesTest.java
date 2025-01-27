@@ -22,6 +22,7 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
@@ -43,9 +44,11 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_OFFSET;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_FIELD;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_ORDER;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class Base64ContinuationTokenSerDesTest {
 
+    private final TypeManager typeManager = mock();
     private final TypeTransformerRegistryImpl typeTransformerRegistry = new TypeTransformerRegistryImpl();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final Base64continuationTokenSerDes serDes = new Base64continuationTokenSerDes(typeTransformerRegistry, new TitaniumJsonLd(mock()));
@@ -54,10 +57,11 @@ class Base64ContinuationTokenSerDesTest {
     void setup() {
         var builderFactory = Json.createBuilderFactory(emptyMap());
         typeTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(builderFactory));
-        typeTransformerRegistry.register(new JsonObjectFromCriterionTransformer(builderFactory, objectMapper));
-        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(objectMapper));
+        typeTransformerRegistry.register(new JsonObjectFromCriterionTransformer(builderFactory, typeManager, "test"));
+        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         typeTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
         typeTransformerRegistry.register(new JsonObjectToCriterionTransformer());
+        when(typeManager.getMapper("test")).thenReturn(objectMapper);
     }
 
     @Test

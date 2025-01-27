@@ -19,6 +19,8 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.transform.TestInput;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -46,10 +48,11 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class JsonObjectToAssetTransformerTest {
 
@@ -61,16 +64,18 @@ class JsonObjectToAssetTransformerTest {
     private static final int CUSTOM_PAYLOAD_AGE = 34;
     private static final String CUSTOM_PAYLOAD_NAME = "max";
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TypeManager typeManager = mock();
     private TypeTransformerRegistry typeTransformerRegistry;
 
     @BeforeEach
     void setUp() {
-        var objectMapper = createObjectMapper();
         var transformer = new JsonObjectToAssetTransformer();
         typeTransformerRegistry = new TypeTransformerRegistryImpl();
-        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(objectMapper));
+        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         typeTransformerRegistry.register(transformer);
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
+        
+        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
     }
 
     @Test

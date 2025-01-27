@@ -83,15 +83,14 @@ public class DspNegotiationApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var jsonLdMapper = typeManager.getMapper(JSON_LD);
 
         registerValidators(DSP_NAMESPACE_V_08);
         registerValidators(DSP_NAMESPACE_V_2024_1);
 
         webService.registerResource(ApiContext.PROTOCOL, new DspNegotiationApiController(protocolService, dspRequestHandler));
         webService.registerResource(ApiContext.PROTOCOL, new DspNegotiationApiController20241(protocolService, dspRequestHandler));
-        webService.registerDynamicResource(ApiContext.PROTOCOL, DspNegotiationApiController.class, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE_V_08));
-        webService.registerDynamicResource(ApiContext.PROTOCOL, DspNegotiationApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE_V_2024_1));
+        webService.registerDynamicResource(ApiContext.PROTOCOL, DspNegotiationApiController.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_08));
+        webService.registerDynamicResource(ApiContext.PROTOCOL, DspNegotiationApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_2024_1));
 
         versionRegistry.register(V_2024_1);
         versionRegistry.register(V_08);

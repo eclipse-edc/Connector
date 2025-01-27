@@ -15,13 +15,13 @@
 package org.eclipse.edc.protocol.dsp.http.serialization;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -34,16 +34,18 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_CONTEXT_SEP
  */
 public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSerializer {
 
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
     private final JsonLd jsonLdService;
     private final String scopePrefix;
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry;
     private final DspProtocolParser protocolParser;
 
     public JsonLdRemoteMessageSerializerImpl(DspProtocolTypeTransformerRegistry dspTransformerRegistry,
-                                             ObjectMapper mapper, JsonLd jsonLdService, DspProtocolParser protocolParser, String scopePrefix) {
+                                             TypeManager typeManager, String typeContext, JsonLd jsonLdService, DspProtocolParser protocolParser, String scopePrefix) {
         this.dspTransformerRegistry = dspTransformerRegistry;
-        this.mapper = mapper;
+        this.typeManager = typeManager;
+        this.typeContext = typeContext;
         this.jsonLdService = jsonLdService;
         this.scopePrefix = scopePrefix;
         this.protocolParser = protocolParser;
@@ -73,7 +75,7 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
                 var compacted = protocolParser.parse(message.getProtocol())
                         .compose(protocol -> jsonLdService.compact(transformResult.getContent(), scopePrefix + DSP_CONTEXT_SEPARATOR + protocol.version()));
                 if (compacted.succeeded()) {
-                    return mapper.writeValueAsString(compacted.getContent());
+                    return typeManager.getMapper(typeContext).writeValueAsString(compacted.getContent());
                 }
                 throw new EdcException("Failed to compact JSON-LD: " + compacted.getFailureDetail());
             }
