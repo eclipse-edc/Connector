@@ -69,5 +69,5 @@
 - [2024-11-06 configuration-injection](./2024-11-06-configuration-injection)
 - [2024-11-19 transformer-version-scheme](./2024-11-19-transformer-version-scheme)
 - [2025-01-17 key management improvements](./2025-01-17-key-management-improvement)
-
 - [2025-01-21 Multiple Protocol Webhooks](./2025-01-21-multipe-protocol-webhooks)
+- [2025-01-28 Async Protocol Message Process](./2025-01-28-async-protocol-message-processing)
