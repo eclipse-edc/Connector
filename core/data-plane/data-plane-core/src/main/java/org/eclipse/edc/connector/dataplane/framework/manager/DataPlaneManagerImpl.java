@@ -252,7 +252,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         }
 
         dataFlow.transitionToStarted(runtimeId);
-        monitor.info("UPDATE dataflow %s. RuntimeId %s, UpdatedAt %s".formatted(dataFlow.getId(), dataFlow.getRuntimeId(), dataFlow.getUpdatedAt()));
         update(dataFlow);
 
         return entityRetryProcessFactory.doAsyncProcess(dataFlow, () -> transferService.transfer(request))

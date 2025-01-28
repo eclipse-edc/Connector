@@ -51,7 +51,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
 public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
 
-    // constants used for JSON-LD transformation
     public static final String CONTRACT_NEGOTIATION_TYPE = EDC_NAMESPACE + "ContractNegotiation";
     public static final String CONTRACT_NEGOTIATION_AGREEMENT_ID = EDC_NAMESPACE + "contractAgreementId";
     public static final String CONTRACT_NEGOTIATION_COUNTERPARTY_ID = EDC_NAMESPACE + "counterPartyId";

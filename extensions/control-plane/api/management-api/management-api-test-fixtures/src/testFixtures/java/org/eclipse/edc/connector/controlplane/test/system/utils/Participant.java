@@ -518,7 +518,9 @@ public class Participant {
     }
 
     public void awaitTransferToBeInState(String transferProcessId, TransferProcessStates state) {
-        await().atMost(timeout).until(() -> getTransferProcessState(transferProcessId), it -> Objects.equals(it, state.name()));
+        await().atMost(timeout).untilAsserted(() ->
+                assertThat(getTransferProcessState(transferProcessId)).isEqualTo(state.name())
+        );
     }
 
     protected String getContractNegotiationField(String negotiationId, String fieldName) {

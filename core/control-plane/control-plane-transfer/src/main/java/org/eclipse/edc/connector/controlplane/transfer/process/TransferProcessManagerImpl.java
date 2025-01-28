@@ -64,8 +64,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
@@ -81,6 +83,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
@@ -177,6 +180,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processConsumerTransfersInState(RESUMING, this::processConsumerResuming))
                 .processor(processTransfersInState(COMPLETING, this::processCompleting))
                 .processor(processTransfersInState(TERMINATING, this::processTerminating))
+                .processor(processTransfersInState(TERMINATING_REQUESTED, this::processTerminating))
                 .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning));
     }
 
@@ -417,7 +421,13 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         return entityRetryProcessFactory.doSyncProcess(process, () -> terminateDataFlow(process))
                 .onSuccess((p, dataFlowResponse) -> sendTransferTerminationMessage(p))
-                .onFailure((t, failure) -> transitionToTerminating(t, failure.getFailureDetail()))
+                .onFailure((t, failure) -> {
+                    if (t.terminationWasRequestedByCounterParty()) {
+                        transitionToTerminatingRequested(t, failure.getFailureDetail());
+                    } else {
+                        transitionToTerminating(t, failure.getFailureDetail());
+                    }
+                })
                 .onFatalError((p, failure) -> transitionToTerminated(p, failure.getFailureDetail()))
                 .onRetryExhausted((p, failure) -> transitionToTerminated(p, failure.getFailureDetail()))
                 .execute("Terminate data flow");
@@ -492,7 +502,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         var builder = TransferTerminationMessage.Builder.newInstance()
                 .reason(process.getErrorDetail());
 
-        return dispatch(builder, process, policyArchive.findPolicyForContract(process.getContractId()), Object.class)
+        var dispatch = process.terminationWasRequestedByCounterParty()
+                ? entityRetryProcessFactory.doAsyncStatusResultProcess(process, doNothing())
+                : dispatch(builder, process, policyArchive.findPolicyForContract(process.getContractId()), Object.class);
+
+        return dispatch
                 .onSuccess((t, content) -> {
                     transitionToTerminated(t);
                     if (t.getType() == PROVIDER) {
@@ -503,6 +517,10 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted(this::transitionToTerminated)
                 .execute("send transfer termination to " + process.getCounterPartyAddress());
+    }
+
+    private @NotNull Supplier<CompletableFuture<StatusResult<Object>>> doNothing() {
+        return () -> CompletableFuture.completedFuture(StatusResult.success(null));
     }
 
     private <T, M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> AsyncStatusResultRetryProcess<TransferProcess, T, ?> dispatch(B messageBuilder, TransferProcess process, Policy policy, Class<T> responseType) {
@@ -639,6 +657,12 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private void transitionToTerminating(TransferProcess process, String message, Throwable... errors) {
         monitor.warning(message, errors);
         process.transitionTerminating(message);
+        update(process);
+    }
+
+    private void transitionToTerminatingRequested(TransferProcess process, String message, Throwable... errors) {
+        monitor.warning(message, errors);
+        process.transitionTerminatingRequested(message);
         update(process);
     }
 

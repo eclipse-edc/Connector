@@ -233,11 +233,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @NotNull
     private ServiceResult<TransferProcess> terminatedAction(TransferTerminationMessage message, TransferProcess transferProcess) {
         if (transferProcess.canBeTerminated()) {
-            observable.invokeForEach(l -> l.preTerminated(transferProcess));
-            transferProcess.transitionTerminated();
+            transferProcess.transitionTerminatingRequested();
             transferProcess.protocolMessageReceived(message.getId());
             update(transferProcess);
-            observable.invokeForEach(l -> l.terminated(transferProcess));
             return ServiceResult.success(transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be terminated"));

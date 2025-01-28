@@ -65,6 +65,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
@@ -122,6 +123,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     public static final String TRANSFER_PROCESS_ERROR_DETAIL = EDC_NAMESPACE + "errorDetail";
     public static final String TRANSFER_PROCESS_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_PROCESS_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
+
     private Type type = CONSUMER;
     private String protocol;
     private String correlationId;
@@ -136,7 +138,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
     private ProtocolMessages protocolMessages = new ProtocolMessages();
-
     private String transferType;
     private String dataPlaneId;
 
@@ -335,7 +336,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public boolean canBeTerminated() {
         return currentStateIsOneOf(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED,
-                STARTING, STARTED, COMPLETING, SUSPENDING, SUSPENDED, RESUMING, TERMINATING);
+                STARTING, STARTED, COMPLETING, SUSPENDING, SUSPENDED, RESUMING, TERMINATING, TERMINATING_REQUESTED);
     }
 
     public void transitionTerminating(@Nullable String errorDetail) {
@@ -343,8 +344,17 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transitionTerminating();
     }
 
+    public void transitionTerminatingRequested(@Nullable String errorDetail) {
+        this.errorDetail = errorDetail;
+        transitionTerminatingRequested();
+    }
+
     public void transitionTerminating() {
         transition(TERMINATING, state -> canBeTerminated());
+    }
+
+    public void transitionTerminatingRequested() {
+        transition(TERMINATING_REQUESTED, state -> canBeTerminated());
     }
 
     public void transitionTerminated(String message) {
@@ -478,6 +488,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     @Override
     public String stateAsString() {
         return TransferProcessStates.from(state).name();
+    }
+
+    public boolean terminationWasRequestedByCounterParty() {
+        return getState() == TERMINATING_REQUESTED.code();
     }
 
     public Builder toBuilder() {
