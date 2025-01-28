@@ -155,7 +155,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
                 .add(JsonLdKeywords.CONTEXT, jsonFactory.createArrayBuilder()
                         .add(VcConstants.PRESENTATION_EXCHANGE_URL)
                         .add(DcpConstants.DCP_CONTEXT_URL))
-                .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TYPE)
+                .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TERM)
                 .add("scope", scopeArray.build())
                 .build();
     }

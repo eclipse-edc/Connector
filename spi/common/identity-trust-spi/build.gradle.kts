@@ -21,6 +21,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:token-spi"))
+    api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:participant-spi"))
     api(project(":spi:common:policy:request-policy-context-spi"))
     api(project(":spi:common:policy-engine-spi"))

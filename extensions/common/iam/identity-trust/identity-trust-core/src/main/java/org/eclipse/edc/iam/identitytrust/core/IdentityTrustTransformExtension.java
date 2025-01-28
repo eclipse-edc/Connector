@@ -28,6 +28,7 @@ import org.eclipse.edc.iam.identitytrust.transform.to.JwtToVerifiablePresentatio
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -35,12 +36,13 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_CONTEXT_URL;
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_V_1_0_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = IdentityTrustTransformExtension.NAME, categories = { "iam", "transform", "jsonld" })
@@ -55,23 +57,24 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private Monitor monitor;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        getResourceUri("document" + File.separator + "credentials.v2.jsonld")
-                .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v2", uri))
-                .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
-        getResourceUri("document" + File.separator + "credentials.v1.jsonld")
-                .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v1", uri))
-                .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
+        var contexts = Map.of("credentials.v2.jsonld", "https://www.w3.org/2018/credentials/v2",
+                "credentials.v1.jsonld", "https://www.w3.org/2018/credentials/v1",
+                "dcp.v08.jsonld", DCP_CONTEXT_URL,
+                "dcp.v1.0.jsonld", DSPACE_DCP_V_1_0_CONTEXT);
 
-        getResourceUri("document" + File.separator + "dcp.v08.jsonld")
-                .onSuccess(uri -> jsonLdService.registerCachedDocument(DCP_CONTEXT_URL, uri))
-                .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
+        contexts.forEach((key, value) -> getResourceUri("document/" + key)
+                .onSuccess(uri -> jsonLdService.registerCachedDocument(value, uri))
+                .onFailure(failure -> monitor.warning("Failed to register cached json-ld document: " + failure.getFailureDetail())));
 
         typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectToPresentationResponseMessageTransformer(typeManager, JSON_LD));
-        typeTransformerRegistry.register(new JsonObjectFromPresentationQueryTransformer());
+        typeTransformerRegistry.register(new JsonObjectFromPresentationQueryTransformer(typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectFromPresentationResponseMessageTransformer());
         typeTransformerRegistry.register(new JsonObjectToVerifiablePresentationTransformer());
         typeTransformerRegistry.register(new JsonObjectToVerifiableCredentialTransformer());
@@ -95,4 +98,5 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
             return Result.failure(format("Cannot read resource %s: %s", name, e.getMessage()));
         }
     }
+
 }

@@ -21,7 +21,8 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.iam.identitytrust.spi.model.PresentationQueryMessage;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.PresentationDefinition;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -29,16 +30,24 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_0_8;
+import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_DEFINITION_TERM;
+import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_SCOPE_TERM;
+
 /**
  * Transforms a JsonObject into a PresentationQuery object.
  */
-public class JsonObjectToPresentationQueryTransformer extends AbstractJsonLdTransformer<JsonObject, PresentationQueryMessage> {
+public class JsonObjectToPresentationQueryTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, PresentationQueryMessage> {
 
     private final TypeManager typeManager;
     private final String typeContext;
 
     public JsonObjectToPresentationQueryTransformer(TypeManager typeManager, String typeContext) {
-        super(JsonObject.class, PresentationQueryMessage.class);
+        this(typeManager, typeContext, DSPACE_DCP_NAMESPACE_V_0_8);
+    }
+
+    public JsonObjectToPresentationQueryTransformer(TypeManager typeManager, String typeContext, JsonLdNamespace namespace) {
+        super(JsonObject.class, PresentationQueryMessage.class, namespace);
         this.typeManager = typeManager;
         this.typeContext = typeContext;
     }
@@ -46,15 +55,16 @@ public class JsonObjectToPresentationQueryTransformer extends AbstractJsonLdTran
     @Override
     public @Nullable PresentationQueryMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var bldr = PresentationQueryMessage.Builder.newinstance();
-        visitProperties(jsonObject, (k, v) -> {
-            switch (k) {
-                case PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_DEFINITION_PROPERTY ->
-                        bldr.presentationDefinition(readPresentationDefinition(v, context));
-                case PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_SCOPE_PROPERTY ->
-                        transformArrayOrObject(v, Object.class, o -> bldr.scopes(List.of(o.toString().split(" "))), context);
-                default -> context.reportProblem("Unknown property '%s'".formatted(k));
-            }
-        });
+
+        var definition = jsonObject.get(forNamespace(PRESENTATION_QUERY_MESSAGE_DEFINITION_TERM));
+        if (definition != null) {
+            bldr.presentationDefinition(readPresentationDefinition(definition, context));
+        }
+
+        var scopes = jsonObject.get(forNamespace(PRESENTATION_QUERY_MESSAGE_SCOPE_TERM));
+        if (scopes != null) {
+            transformArrayOrObject(scopes, Object.class, o -> bldr.scopes(List.of(o.toString().split(" "))), context);
+        }
 
         return bldr.build();
     }

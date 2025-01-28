@@ -22,7 +22,8 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.credentialservice.PresentationSubmission;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -30,32 +31,41 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_0_8;
+import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage.Builder;
+import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_TERM;
+import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_TERM;
+
 /**
  * Transforms a {@link JsonObject} into a {@link PresentationResponseMessage} object.
  */
-public class JsonObjectToPresentationResponseMessageTransformer extends AbstractJsonLdTransformer<JsonObject, PresentationResponseMessage> {
+public class JsonObjectToPresentationResponseMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, PresentationResponseMessage> {
 
     private final TypeManager typeManager;
     private final String typeContext;
 
     public JsonObjectToPresentationResponseMessageTransformer(TypeManager typeManager, String typeContext) {
-        super(JsonObject.class, PresentationResponseMessage.class);
+        this(typeManager, typeContext, DSPACE_DCP_NAMESPACE_V_0_8);
+    }
+
+    public JsonObjectToPresentationResponseMessageTransformer(TypeManager typeManager, String typeContext, JsonLdNamespace namespace) {
+        super(JsonObject.class, PresentationResponseMessage.class, namespace);
         this.typeManager = typeManager;
         this.typeContext = typeContext;
     }
 
     @Override
     public @Nullable PresentationResponseMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var builder = PresentationResponseMessage.Builder.newinstance();
-        visitProperties(jsonObject, (k, v) -> {
-            switch (k) {
-                case PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_PROPERTY ->
-                        builder.presentationSubmission(readPresentationSubmission(v, context));
-                case PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY ->
-                        builder.presentation(readPresentation(v, context));
-                default -> context.reportProblem("Unknown property '%s'".formatted(k));
-            }
-        });
+        var builder = Builder.newinstance();
+        var submission = jsonObject.get(forNamespace(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_TERM));
+        if (submission != null) {
+            builder.presentationSubmission(readPresentationSubmission(submission, context));
+        }
+
+        var presentation = jsonObject.get(forNamespace(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_TERM));
+        if (presentation != null) {
+            builder.presentation(readPresentation(presentation, context));
+        }
 
         return builder.build();
     }
