@@ -17,13 +17,12 @@ Relevant examples are:
 ## Approach
 
 The refactor will affect only the `vault-hashicorp` module.
-
 To allow an extensible authentication for HashiCorp Vault, the implementation will follow the provider pattern with a default implementation.
 
 ### Hashicorp Vault Auth Interface
 
-To implement a multitude of different authentication methods, an interface for the Hashicorp Vault authentication is needed.
-The sole common point between the authentication methods is the ability to provide a `client_token` that can be used to authenticate with HashiCorp Vault.
+To support multiple authentication methods, an interface is defined for the HashiCorp Vault authentication.
+The common point among all methods is the ability to provide a `client_token` used for authentication.
 
 ```java
 public interface HashicorpVaultAuthClientTokenProvider {
@@ -36,8 +35,7 @@ public interface HashicorpVaultAuthClientTokenProvider {
 
 ### Hashicorp Vault Token Auth Method Implementation
 
-For every authentication method, an implementation of `HashicorpVaultAuthClientTokenProvider` is needed.
-`HashicorpVaultTokenAuthMethodImpl` implements the [Token auth method](https://developer.hashicorp.com/vault/docs/auth/token) and serves as default authentication mechanism provided by the `HashicorpVaultExtension`.
+The default implementation of `HashicorpVaultAuthClientTokenProvider` provided by the `HashicorpVaultExtension` will use the [Token auth method](https://developer.hashicorp.com/vault/docs/auth/token).
 
 ```java
 @Provider(isDefault = true)
@@ -49,9 +47,12 @@ public HashicorpVaultAuthClientTokenProvider hashicorpVaultAuthClientTokenProvid
 `HashicorpVaultTokenAuthMethodImpl` is then used by services in the `vault-hashicorp` module for authentication with the HashiCorp Vault instance. 
 These services are:
 
-* secure key-value store `HashicorpVault`
-* signing service `HashicorpVaultSignatureService`
-* health check service `HashicorpVaultHealthService`
+* Secure key-value store `HashicorpVault`
+* Signing service `HashicorpVaultSignatureService`
+* Health check service `HashicorpVaultHealthService`
+
+`HashicorpVault` and `HashicorpVaultSignatureService` will only need small changes for authentication. 
+They will use the `client_token` from the `HashicorpVaultTokenAuthMethodImpl` instead of directly fetching the token from the settings.
 
 ### HashiCorp Vault Health Service
 
@@ -68,12 +69,10 @@ private Headers getHeaders(String token) {
 }
 ```
 
-An important change that was made, is the point at which the headers are generated.
 Previously, the headers were generated only once since the token was not liable to change.
 With the addition of numerous potential authentication mechanisms, it can no longer be guaranteed, that the token never changes during refresh.
 An example for this would be the kubernetes authentication method, where short term tokens can be produced depending on the settings.
 As such, `headers` are no longer saved as a variable inside the `HashicorpVaultClient` and `getHeaders()` is called instead to always fetch the newest token.
-
 
 ### HashiCorp Vault Health Extension
 
