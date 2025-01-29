@@ -25,14 +25,19 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+import java.time.Clock;
 
-@Provides({ DidResolverRegistry.class, DidPublicKeyResolver.class })
+
+@Provides({DidResolverRegistry.class, DidPublicKeyResolver.class})
 @Extension(value = IdentityDidCoreExtension.NAME)
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Identity Did Core";
     @Inject
     private KeyParserRegistry keyParserRegistry;
+
+    @Inject
+    private Clock clock;
 
     @Override
     public String name() {
@@ -41,7 +46,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var didResolverRegistry = new DidResolverRegistryImpl();
+        var didResolverRegistry = new DidResolverRegistryImpl(clock);
         context.registerService(DidResolverRegistry.class, didResolverRegistry);
 
         var publicKeyResolver = new DidPublicKeyResolverImpl(keyParserRegistry, didResolverRegistry);

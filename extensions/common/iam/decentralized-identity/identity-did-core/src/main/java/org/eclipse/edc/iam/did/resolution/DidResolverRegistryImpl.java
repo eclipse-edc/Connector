@@ -19,9 +19,11 @@ import org.eclipse.edc.iam.did.spi.resolution.DidResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.collection.ConcurrentLruCache;
+import org.eclipse.edc.util.collection.TimestampedValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -34,11 +36,14 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
     private static final String DID = "did";
     private static final int DID_PREFIX = 0;
     private static final int DID_METHOD_NAME = 1;
-    private final ConcurrentLruCache<String, DidDocument> didCache;
+    private final ConcurrentLruCache<String, TimestampedValue<DidDocument>> didCache;
     private final Map<String, DidResolver> resolvers = new HashMap<>();
+    private final long cleanupPeriod = 1000 * 60 * 5; // clean up cache every 5 minutes
+    private final Clock clock;
 
-    public DidResolverRegistryImpl() {
-        didCache = new ConcurrentLruCache<>(50);
+
+    public DidResolverRegistryImpl(Clock clock) {
+        this(50, clock);
     }
 
     /**
@@ -46,8 +51,13 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
      *
      * @param cacheSize the maximum number of entries that the cache can hold. Pass 0 to effectively deactivate the cache.
      */
-    public DidResolverRegistryImpl(int cacheSize) {
+    public DidResolverRegistryImpl(int cacheSize, Clock clock) {
         didCache = new ConcurrentLruCache<>(cacheSize);
+        this.clock = clock;
+    }
+
+    private void evictExpiredCachedDocuments() {
+        didCache.entrySet().removeIf(entry -> entry.getValue().isExpired(clock));
     }
 
     @Override
@@ -88,15 +98,24 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
 
     @NotNull
     private Result<DidDocument> resolveCachedDocument(String didKey, DidResolver resolver) {
-        var didDocument = didCache.get(didKey);
-        if (didDocument == null) {
+        var cacheEntry = didCache.get(didKey);
+        DidDocument didDocument = null;
+
+        if (cacheEntry != null) {
+            if (cacheEntry.isExpired(clock)) { // lazy evict expired values
+                didCache.remove(didKey);
+            } else {
+                didDocument = cacheEntry.value();
+            }
+        }
+        if (didDocument == null) { //resolve the did document again, put in cache
 
             var resolveResult = resolver.resolve(didKey);
             if (resolveResult.failed()) {
                 return resolveResult;
             }
             didDocument = resolveResult.getContent();
-            didCache.put(didKey, didDocument);
+            didCache.put(didKey, new TimestampedValue<>(didDocument));
         }
 
         return Result.success(didDocument);

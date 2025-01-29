@@ -25,10 +25,10 @@ import java.time.temporal.ChronoUnit;
  * @param lastUpdatedAt  The {@link Instant} when the value was last updated.
  * @param validityMillis The time in milliseconds how long the entry is valid. Defaults to {@link TimestampedValue#DEFAULT_VALIDITY_MILLIS} (= 5 minutes)
  */
-record TimestampedValue<V>(V value, Instant lastUpdatedAt, long validityMillis) {
+public record TimestampedValue<V>(V value, Instant lastUpdatedAt, long validityMillis) {
     public static final long DEFAULT_VALIDITY_MILLIS = 5 * 60 * 1000L; // 5 minutes
 
-    TimestampedValue(V value) {
+    public TimestampedValue(V value) {
         this(value, Instant.now(), DEFAULT_VALIDITY_MILLIS);
     }
 

@@ -21,9 +21,22 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Verifies {@link DidResolverRegistryImpl}.
@@ -32,9 +45,10 @@ class DidResolverRegistryImplTest {
     public static final String FOO_METHOD = "foo";
     private DidResolverRegistryImpl registry;
 
+
     @BeforeEach
     void setUp() {
-        registry = new DidResolverRegistryImpl();
+        registry = new DidResolverRegistryImpl(Clock.systemUTC());
     }
 
     @Test
@@ -67,6 +81,37 @@ class DidResolverRegistryImplTest {
         assertThat(registry.isSupported("did:unsupported:whatever")).isFalse();
     }
 
+    @Test
+    void resolve_whenCached() {
+        var resolver = mock(DidResolver.class);
+        when(resolver.getMethod()).thenReturn(FOO_METHOD);
+        when(resolver.resolve(any())).thenReturn(Result.success(DidDocument.Builder.newInstance().build()));
+        registry.register(resolver);
+
+        var result = registry.resolve("did:foo:id");
+
+        assertThat(result).isSucceeded();
+
+        assertThat(registry.resolve("did:foo:id")).isSucceeded(); //doc is cached
+
+        verify(resolver, times(1)).resolve(anyString());
+
+    }
+
+    @Test
+    void resolve_whenCacheExpired() {
+        registry = new DidResolverRegistryImpl(Clock.fixed(Instant.now().plus(1, ChronoUnit.DAYS), ZoneId.systemDefault()));
+        var resolver = mock(DidResolver.class);
+        when(resolver.getMethod()).thenReturn(FOO_METHOD);
+        when(resolver.resolve(any())).thenReturn(Result.success(DidDocument.Builder.newInstance().build()));
+        registry.register(resolver);
+
+        assertThat(registry.resolve("did:foo:id")).isSucceeded();
+        assertThat(registry.resolve("did:foo:id")).isSucceeded(); //cache entry is expired
+
+        verify(resolver, times(2)).resolve(anyString());
+    }
+
     /**
      * Mock resolver class.
      */
@@ -80,7 +125,7 @@ class DidResolverRegistryImplTest {
         @Override
         @NotNull
         public Result<DidDocument> resolve(String didKey) {
-            return Result.success(DidDocument.Builder.newInstance().build());
+            return Result.success(DidDocument.Builder.newInstance().id(UUID.randomUUID().toString()).build());
         }
     }
 
