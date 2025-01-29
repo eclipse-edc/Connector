@@ -22,17 +22,25 @@ import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+import java.time.Clock;
 
-@Provides({ DidResolverRegistry.class, DidPublicKeyResolver.class })
+
+@Provides({DidResolverRegistry.class, DidPublicKeyResolver.class})
 @Extension(value = IdentityDidCoreExtension.NAME)
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Identity Did Core";
+    @Setting(description = "Expiry time for caching DID Documents in milliseconds", key = "edc.did.resolver.cache.expiry", defaultValue = 1000 * 60 * 5 + "")
+    private long didCacheExpiryMillis;
     @Inject
     private KeyParserRegistry keyParserRegistry;
+
+    @Inject
+    private Clock clock;
 
     @Override
     public String name() {
@@ -41,7 +49,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var didResolverRegistry = new DidResolverRegistryImpl();
+        var didResolverRegistry = new DidResolverRegistryImpl(clock, didCacheExpiryMillis);
         context.registerService(DidResolverRegistry.class, didResolverRegistry);
 
         var publicKeyResolver = new DidPublicKeyResolverImpl(keyParserRegistry, didResolverRegistry);
