@@ -17,10 +17,8 @@ package org.eclipse.edc.iam.identitytrust.transform.to;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.iam.identitytrust.transform.TestContextProvider;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -28,39 +26,37 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_CONTEXT_URL;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToPresentationQueryMessageTransformerTest {
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
     private final TypeManager typeManager = mock();
-    private final JsonObjectToPresentationQueryTransformer transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test");
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry trr = new TypeTransformerRegistryImpl();
     private final TransformerContext context = new TransformerContextImpl(trr);
 
 
     @BeforeEach
     void setUp() {
-        jsonLd.registerCachedDocument("https://identity.foundation/presentation-exchange/submission/v1", TestUtils.getFileFromResourceName("presentation_ex.json").toURI());
-        jsonLd.registerCachedDocument(DCP_CONTEXT_URL, TestUtils.getFileFromResourceName("document/dcp.v08.jsonld").toURI());
-        // delegate to the generic transformer
-
         trr.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         when(typeManager.getMapper("test")).thenReturn(mapper);
     }
 
-    @Test
-    void transform_withScopes() throws JsonProcessingException {
+    @ParameterizedTest
+    @ArgumentsSource(TestContextProvider.class)
+    void transform_withScopes(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+
+        var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
+
         var obj = """
                 {
                   "@context": [
                     "https://identity.foundation/presentation-exchange/submission/v1",
-                    "https://w3id.org/tractusx-trust/v0.8"
+                    "%s"
                   ],
                   "@type": "PresentationQueryMessage",
                   "scope": [
@@ -68,9 +64,9 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
                     "org.eclipse.edc.vc.type:AnotherCredential:all"
                   ]
                 }
-                """;
+                """.formatted(ctx.context());
         var json = mapper.readValue(obj, JsonObject.class);
-        var jo = jsonLd.expand(json);
+        var jo = ctx.jsonLd().expand(json);
         assertThat(jo.succeeded()).withFailMessage(jo::getFailureDetail).isTrue();
 
         var query = transformer.transform(jo.getContent(), context);
@@ -83,20 +79,23 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
     }
 
 
-    @Test
-    void transform_withEmptyScopes() throws JsonProcessingException {
+    @ParameterizedTest
+    @ArgumentsSource(TestContextProvider.class)
+    void transform_withEmptyScopes(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+        var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
+
         var obj = """
                 {
                   "@context": [
                     "https://identity.foundation/presentation-exchange/submission/v1",
-                    "https://w3id.org/tractusx-trust/v0.8"
+                     "%s"
                   ],
                   "@type": "PresentationQueryMessage",
                   "scope": []
                 }
-                """;
+                """.formatted(ctx.context());
         var json = mapper.readValue(obj, JsonObject.class);
-        var jo = jsonLd.expand(json);
+        var jo = ctx.jsonLd().expand(json);
         assertThat(jo.succeeded()).withFailMessage(jo::getFailureDetail).isTrue();
 
         var query = transformer.transform(jo.getContent(), context);
@@ -105,19 +104,22 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
         assertThat(query.getPresentationDefinition()).isNull();
     }
 
-    @Test
-    void transform_withNullScopes() throws JsonProcessingException {
+    @ParameterizedTest
+    @ArgumentsSource(TestContextProvider.class)
+    void transform_withNullScopes(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+        var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
+
         var obj = """
                 {
                   "@context": [
                     "https://identity.foundation/presentation-exchange/submission/v1",
-                    "https://w3id.org/tractusx-trust/v0.8"
+                     "%s"
                   ],
                   "@type": "PresentationQueryMessage"
                 }
-                """;
+                """.formatted(ctx.context());
         var json = mapper.readValue(obj, JsonObject.class);
-        var jo = jsonLd.expand(json);
+        var jo = ctx.jsonLd().expand(json);
         assertThat(jo.succeeded()).withFailMessage(jo::getFailureDetail).isTrue();
 
         var query = transformer.transform(jo.getContent(), context);
@@ -127,22 +129,25 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
     }
 
 
-    @Test
-    void transform_withScopes_separatedByWhitespace() throws JsonProcessingException {
+    @ParameterizedTest
+    @ArgumentsSource(TestContextProvider.class)
+    void transform_withScopes_separatedByWhitespace(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+        var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
+
         var obj = """
                 {
                   "@context": [
                     "https://identity.foundation/presentation-exchange/submission/v1",
-                    "https://w3id.org/tractusx-trust/v0.8"
+                     "%s"
                   ],
                   "@type": "PresentationQueryMessage",
                   "scope": [
                     "org.eclipse.edc.vc.type:TestCredential:read org.eclipse.edc.vc.type:AnotherCredential:all"
                   ]
                 }
-                """;
+                """.formatted(ctx.context());
         var json = mapper.readValue(obj, JsonObject.class);
-        var jo = jsonLd.expand(json);
+        var jo = ctx.jsonLd().expand(json);
         assertThat(jo.succeeded()).withFailMessage(jo::getFailureDetail).isTrue();
 
         var query = transformer.transform(jo.getContent(), context);
@@ -154,13 +159,15 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
         assertThat(query.getPresentationDefinition()).isNull();
     }
 
-    @Test
-    void transform_withPresentationDefinition() throws JsonProcessingException {
+    @ParameterizedTest
+    @ArgumentsSource(TestContextProvider.class)
+    void transform_withPresentationDefinition(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+        var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
         var json = """
                 {
                   "@context": [
                     "https://identity.foundation/presentation-exchange/submission/v1",
-                    "https://w3id.org/tractusx-trust/v0.8"
+                     "%s"
                   ],
                   "@type": "PresentationQueryMessage",
                    "presentationDefinition": {
@@ -187,10 +194,10 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
                        ]
                      }
                 }
-                """;
+                """.formatted(ctx.context());
         var jobj = mapper.readValue(json, JsonObject.class);
 
-        var expansion = jsonLd.expand(jobj);
+        var expansion = ctx.jsonLd().expand(jobj);
         assertThat(expansion.succeeded()).withFailMessage(expansion::getFailureDetail).isTrue();
 
         var query = transformer.transform(expansion.getContent(), context);
@@ -202,13 +209,15 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
 
     }
 
-    @Test
-    void transform_withScopesAndPresDef() throws JsonProcessingException {
+    @ParameterizedTest
+    @ArgumentsSource(TestContextProvider.class)
+    void transform_withScopesAndPresDef(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+        var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
         var json = """
                 {
                   "@context": [
                     "https://identity.foundation/presentation-exchange/submission/v1",
-                    "https://w3id.org/tractusx-trust/v0.8"
+                     "%s"
                   ],
                   "@type": "PresentationQueryMessage",
                   "scope": ["test-scope1"],
@@ -236,10 +245,10 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
                        ]
                      }
                 }
-                """;
+                """.formatted(ctx.context());
         var jobj = mapper.readValue(json, JsonObject.class);
 
-        var expansion = jsonLd.expand(jobj);
+        var expansion = ctx.jsonLd().expand(jobj);
         assertThat(expansion.succeeded()).withFailMessage(expansion::getFailureDetail).isTrue();
 
         var query = transformer.transform(expansion.getContent(), context);

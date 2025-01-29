@@ -29,10 +29,15 @@ import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_PREFIX;
  * @see <a href="https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/verifiable.presentation.protocol.md#411-query-for-presentations">DCP Specification</a>
  */
 public class PresentationQueryMessage {
+    @Deprecated(since = "0.12.0", forRemoval = true)
     public static final String PRESENTATION_QUERY_MESSAGE_SCOPE_PROPERTY = DCP_PREFIX + "scope";
+    public static final String PRESENTATION_QUERY_MESSAGE_SCOPE_TERM = "scope";
+    @Deprecated(since = "0.12.0", forRemoval = true)
     public static final String PRESENTATION_QUERY_MESSAGE_DEFINITION_PROPERTY = DCP_PREFIX + "presentationDefinition";
-    public static final String PRESENTATION_QUERY_MESSAGE_TYPE = "PresentationQueryMessage";
-    public static final String PRESENTATION_QUERY_MESSAGE_TYPE_PROPERTY = DCP_PREFIX + PRESENTATION_QUERY_MESSAGE_TYPE;
+    public static final String PRESENTATION_QUERY_MESSAGE_DEFINITION_TERM = "presentationDefinition";
+    public static final String PRESENTATION_QUERY_MESSAGE_TERM = "PresentationQueryMessage";
+    @Deprecated(since = "0.12.0", forRemoval = true)
+    public static final String PRESENTATION_QUERY_MESSAGE_TYPE_PROPERTY = DCP_PREFIX + PRESENTATION_QUERY_MESSAGE_TERM;
 
     private final List<String> scopes = new ArrayList<>();
     private PresentationDefinition presentationDefinition;

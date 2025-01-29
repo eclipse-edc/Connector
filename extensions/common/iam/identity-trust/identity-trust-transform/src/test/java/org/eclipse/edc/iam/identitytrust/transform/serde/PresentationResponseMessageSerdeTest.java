@@ -17,56 +17,48 @@ package org.eclipse.edc.iam.identitytrust.transform.serde;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.iam.identitytrust.transform.TestContextProvider;
 import org.eclipse.edc.iam.identitytrust.transform.from.JsonObjectFromPresentationResponseMessageTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToPresentationResponseMessageTransformer;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_CONTEXT_URL;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PresentationResponseMessageSerdeTest {
 
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock());
 
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
     private final TypeManager typeManager = mock();
     private final TypeTransformerRegistry trr = new TypeTransformerRegistryImpl();
     private final TransformerContext context = new TransformerContextImpl(trr);
-    private final JsonObjectFromPresentationResponseMessageTransformer fromTransformer = new JsonObjectFromPresentationResponseMessageTransformer();
-    private final JsonObjectToPresentationResponseMessageTransformer toTransformer = new JsonObjectToPresentationResponseMessageTransformer(typeManager, "test");
+
 
     @BeforeEach
     void setUp() {
-        jsonLd.registerCachedDocument("https://identity.foundation/presentation-exchange/submission/v1", TestUtils.getFileFromResourceName("presentation_ex.json").toURI());
-        jsonLd.registerCachedDocument(DCP_CONTEXT_URL, TestUtils.getFileFromResourceName("document/dcp.v08.jsonld").toURI());
-        jsonLd.registerContext(DCP_CONTEXT_URL);
-        // delegate to the generic transformer
-
-        trr.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         when(typeManager.getMapper("test")).thenReturn(mapper);
     }
 
 
-    @Test
-    void serde() throws JsonProcessingException {
+    @ParameterizedTest
+    @ArgumentsSource(TestContextProvider.class)
+    void serde(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+        var fromTransformer = new JsonObjectFromPresentationResponseMessageTransformer(ctx.namespace());
+        var toTransformer = new JsonObjectToPresentationResponseMessageTransformer(typeManager, "test", ctx.namespace());
 
         var obj = """
                 {
                          "@context": [
-                             "https://w3id.org/tractusx-trust/v0.8"
+                             "%s"
                          ],
                          "@type": "PresentationResponseMessage",
                          "presentation": [
@@ -81,17 +73,18 @@ public class PresentationResponseMessageSerdeTest {
                              "jwtPresentation"
                          ]
                      }
-                """;
+                """
+                .formatted(ctx.context());
 
         var json = mapper.readValue(obj, JsonObject.class);
-        var jo = jsonLd.expand(json);
+        var jo = ctx.jsonLd().expand(json);
 
         var query = toTransformer.transform(jo.getContent(), context);
         assertThat(query).isNotNull();
 
         var expandedJson = fromTransformer.transform(query, context);
 
-        var compacted = jsonLd.compact(expandedJson).getContent();
+        var compacted = ctx.jsonLd().compact(expandedJson).getContent();
 
         assertThat(json.getJsonArray("@context")).isEqualTo(compacted.getJsonArray("@context"));
         assertThat(json.getJsonArray("presentation")).isEqualTo(compacted.getJsonArray("presentation"));

@@ -31,9 +31,15 @@ import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_PREFIX;
  */
 public class PresentationResponseMessage {
 
+    @Deprecated(since = "0.12.0", forRemoval = true)
     public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY = DCP_PREFIX + "presentation";
+    public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_TERM = "presentation";
+    @Deprecated(since = "0.12.0", forRemoval = true)
     public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_PROPERTY = DCP_PREFIX + "presentationSubmission";
+    public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_TERM = "presentationSubmission";
+    @Deprecated(since = "0.12.0", forRemoval = true)
     public static final String PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY = DCP_PREFIX + "PresentationResponseMessage";
+    public static final String PRESENTATION_RESPONSE_MESSAGE_TYPE_TERM = "PresentationResponseMessage";
 
     private List<Object> presentation = new ArrayList<>();
 

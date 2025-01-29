@@ -18,30 +18,36 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY;
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_0_8;
+import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_TERM;
+import static org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 
 /**
  * Transforms a {@link PresentationResponseMessage} into a {@link JsonObject} object.
  */
-public class JsonObjectFromPresentationResponseMessageTransformer extends AbstractJsonLdTransformer<PresentationResponseMessage, JsonObject> {
+public class JsonObjectFromPresentationResponseMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<PresentationResponseMessage, JsonObject> {
     public JsonObjectFromPresentationResponseMessageTransformer() {
-        super(PresentationResponseMessage.class, JsonObject.class);
+        this(DSPACE_DCP_NAMESPACE_V_0_8);
+    }
+
+    public JsonObjectFromPresentationResponseMessageTransformer(JsonLdNamespace namespace) {
+        super(PresentationResponseMessage.class, JsonObject.class, namespace);
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull PresentationResponseMessage responseMessage, @NotNull TransformerContext context) {
         // Presentation Submission not supported yet
         return Json.createObjectBuilder()
-                .add(TYPE, PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY)
-                .add(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY, createJson(responseMessage))
+                .add(TYPE, forNamespace(PRESENTATION_RESPONSE_MESSAGE_TYPE_TERM))
+                .add(forNamespace(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_TERM), createJson(responseMessage))
                 .build();
     }
 

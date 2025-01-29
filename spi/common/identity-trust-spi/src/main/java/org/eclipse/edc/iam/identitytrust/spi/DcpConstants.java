@@ -14,9 +14,17 @@
 
 package org.eclipse.edc.iam.identitytrust.spi;
 
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+
 public interface DcpConstants {
 
-
+    @Deprecated(since = "0.12.0")
     String DCP_CONTEXT_URL = "https://w3id.org/tractusx-trust/v0.8";
+    @Deprecated(since = "0.12.0")
     String DCP_PREFIX = DCP_CONTEXT_URL + "/";
+    @Deprecated(since = "0.12.0")
+    JsonLdNamespace DSPACE_DCP_NAMESPACE_V_0_8 = new JsonLdNamespace(DCP_PREFIX);
+
+    String DSPACE_DCP_V_1_0_CONTEXT = "https://w3id.org/dspace-dcp/v1.0/dcp.jsonld";
+    JsonLdNamespace DSPACE_DCP_NAMESPACE_V_1_0 = new JsonLdNamespace("https://w3id.org/dspace-dcp/v1.0/");
 }

@@ -1,0 +1,137 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@protected": true,
+    "dcp": "https://w3id.org/dspace-dcp/v1.0/",
+    "cred": "https://www.w3.org/2018/credentials/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "id": "@id",
+    "type": "@type",
+    "CredentialContainer": {
+      "@id": "dcp:CredentialContainer",
+      "@context": {
+        "payload": {
+          "@id": "dcp:payload",
+          "@type": "xsd:string"
+        }
+      }
+    },
+    "CredentialMessage": {
+      "@id": "dcp:CredentialMessage",
+      "@context": {
+        "credentials": {
+          "@id": "dcp:credentials",
+          "@container": "@set"
+        },
+        "requestId": {
+          "@id": "dcp:requestId",
+          "@type": "@id"
+        }
+      }
+    },
+    "CredentialObject": {
+      "@id": "dcp:CredentialObject",
+      "@context": {
+        "credentialType": {
+          "@id": "dcp:credentialType",
+          "@container": "@set"
+        },
+        "offerReason": {
+          "@id": "dcp:offerReason",
+          "@type": "xsd:string"
+        },
+        "bindingMethods": {
+          "@id": "dcp:bindingMethods",
+          "@type": "xsd:string",
+          "@container": "@set"
+        },
+        "profiles": {
+          "@id": "dcp:profiles",
+          "@type": "xsd:string",
+          "@container": "@set"
+        },
+        "issuancePolicy": {
+          "@id": "dcp:issuancePolicy",
+          "@type": "@json"
+        }
+      }
+    },
+    "CredentialOfferMessage": {
+      "@id": "dcp:CredentialOfferMessage",
+      "@context": {
+        "credentialIssuer": "cred:issuer",
+        "credentials": {
+          "@id": "dcp:credentials",
+          "@container": "@set"
+        }
+      }
+    },
+    "CredentialRequestMessage": {
+      "@id": "dcp:CredentialRequestMessage",
+      "@context": {
+        "format": "dcp:format",
+        "credentialType": {
+          "@id": "dcp:credentialType",
+          "@type": "@vocab",
+          "@container": "@set"
+        }
+      }
+    },
+    "CredentialService": "dcp:CredentialService",
+    "CredentialStatus": {
+      "@id": "dcp:CredentialStatus",
+      "@context": {
+        "requestId": {
+          "@id": "dcp:requestId",
+          "@type": "@id"
+        },
+        "status": {
+          "@id": "dcp:status",
+          "@type": "@vocab"
+        },
+        "RECEIVED": "dcp:RECEIVED",
+        "REJECTED": "dcp:REJECTED",
+        "ISSUED": "dcp:ISSUED"
+      }
+    },
+    "IssuerMetadata": {
+      "@id": "dcp:IssuerMetadata",
+      "@context": {
+        "credentialIssuer": "cred:issuer",
+        "credentialsSupported": {
+          "@id": "dcp:credentialsSupported",
+          "@container": "@set"
+        }
+      }
+    },
+    "IssuerService": "dcp:IssuerService",
+    "PresentationQueryMessage": {
+      "@id": "dcp:PresentationQueryMessage",
+      "@context": {
+        "presentationDefinition": {
+          "@id": "dcp:presentationDefinition",
+          "@type": "@json"
+        },
+        "scope": {
+          "@id": "dcp:scope",
+          "@type": "xsd:string",
+          "@container": "@set"
+        }
+      }
+    },
+    "PresentationResponseMessage": {
+      "@id": "dcp:PresentationResponseMessage",
+      "@context": {
+        "presentation": {
+          "@id": "dcp:presentation",
+          "@container": "@set",
+          "@type": "@json"
+        },
+        "presentationSubmission": {
+          "@id": "dcp:presentationSubmission",
+          "@type": "@json"
+        }
+      }
+    }
+  }
+}
