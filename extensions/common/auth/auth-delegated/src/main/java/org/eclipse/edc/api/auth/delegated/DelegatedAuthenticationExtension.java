@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Dawex Systems - Add audience validation
  *
  */
 
@@ -27,6 +28,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
@@ -67,6 +69,9 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
     @Deprecated(since = "0.12.0", forRemoval = true)
     @Setting(description = "URL where the third-party IdP's public key(s) can be resolved", key = KEY_URL_PROPERTY, required = false)
     private String keyUrl;
+    public static final String AUDIENCE_KEY = "dac.audience";
+    @Setting(context = CONFIG_ALIAS, description = "Expected audience in the token received by the api management", key = WEB_HTTP_PREFIX + ".management." + AUTH_KEY + "." + AUDIENCE_KEY, required = false)
+    private String audience;
 
     @Inject
     private ApiAuthenticationProviderRegistry providerRegistry;
@@ -92,10 +97,16 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
             var message = "Settings %s and %s have been removed".formatted(KEY_URL_PROPERTY, DEPRECATED_AUTH_CACHE_VALIDITY) +
                     ", to configure delegated authentication for management api please configure it properly through the " +
                     "`web.http.management.auth.%s` and `web.http.management.auth.%s` settings".formatted(AUTH_KEY_URL, AUTH_CACHE_VALIDITY_MS);
-            context.getMonitor().severe(message);
+            monitor.severe(message);
             throw new EdcException(message);
         }
 
+        if (audience == null) {
+            monitor.warning("No audience configured for delegated authentication, defaulting to the participantId");
+            audience = context.getParticipantId();
+        }
+
+        tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new AudienceValidationRule(audience));
         tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new NotBeforeValidationRule(clock, validationTolerance, true));
         tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new ExpirationIssuedAtValidationRule(clock, validationTolerance, true));
 
