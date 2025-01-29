@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Cofinity-X - added tests
  *
  */
 
@@ -43,12 +44,13 @@ import static org.mockito.Mockito.when;
  */
 class DidResolverRegistryImplTest {
     public static final String FOO_METHOD = "foo";
+    public static final int CACHE_VALIDITY = 1000 * 60 * 5;
     private DidResolverRegistryImpl registry;
 
 
     @BeforeEach
     void setUp() {
-        registry = new DidResolverRegistryImpl(Clock.systemUTC());
+        registry = new DidResolverRegistryImpl(Clock.systemUTC(), CACHE_VALIDITY);
     }
 
     @Test
@@ -100,7 +102,7 @@ class DidResolverRegistryImplTest {
 
     @Test
     void resolve_whenCacheExpired() {
-        registry = new DidResolverRegistryImpl(Clock.fixed(Instant.now().plus(1, ChronoUnit.DAYS), ZoneId.systemDefault()));
+        registry = new DidResolverRegistryImpl(Clock.fixed(Instant.now().plus(1, ChronoUnit.DAYS), ZoneId.systemDefault()), CACHE_VALIDITY);
         var resolver = mock(DidResolver.class);
         when(resolver.getMethod()).thenReturn(FOO_METHOD);
         when(resolver.resolve(any())).thenReturn(Result.success(DidDocument.Builder.newInstance().build()));

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - change access modifier
  *
  */
 
@@ -30,6 +31,10 @@ public record TimestampedValue<V>(V value, Instant lastUpdatedAt, long validityM
 
     public TimestampedValue(V value) {
         this(value, Instant.now(), DEFAULT_VALIDITY_MILLIS);
+    }
+
+    public TimestampedValue(V value, long validityMillis) {
+        this(value, Instant.now(), validityMillis);
     }
 
     public boolean isExpired(Clock clock) {

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Cofinity-X - expire DidDocuments after some time
  *
  */
 
@@ -38,27 +39,27 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
     private static final int DID_METHOD_NAME = 1;
     private final ConcurrentLruCache<String, TimestampedValue<DidDocument>> didCache;
     private final Map<String, DidResolver> resolvers = new HashMap<>();
-    private final long cleanupPeriod = 1000 * 60 * 5; // clean up cache every 5 minutes
+    private final long cacheValidity; // clean up cache every 5 minutes
     private final Clock clock;
 
 
-    public DidResolverRegistryImpl(Clock clock) {
-        this(50, clock);
+    public DidResolverRegistryImpl(Clock clock, long cacheValidityMillis) {
+        this(50, cacheValidityMillis, clock);
     }
 
     /**
      * Constructs a DidResolverRegistryImpl object with the specified cache size.
      *
-     * @param cacheSize the maximum number of entries that the cache can hold. Pass 0 to effectively deactivate the cache.
+     * @param cacheSize     the maximum number of entries that the cache can hold. Pass 0 to effectively deactivate the cache.
+     * @param cacheValidity expiry time for cached DID Documents in milliseconds
+     * @param clock         the {@link Clock}
      */
-    public DidResolverRegistryImpl(int cacheSize, Clock clock) {
+    public DidResolverRegistryImpl(int cacheSize, long cacheValidity, Clock clock) {
         didCache = new ConcurrentLruCache<>(cacheSize);
+        this.cacheValidity = cacheValidity;
         this.clock = clock;
     }
 
-    private void evictExpiredCachedDocuments() {
-        didCache.entrySet().removeIf(entry -> entry.getValue().isExpired(clock));
-    }
 
     @Override
     public void register(DidResolver resolver) {
@@ -115,7 +116,7 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
                 return resolveResult;
             }
             didDocument = resolveResult.getContent();
-            didCache.put(didKey, new TimestampedValue<>(didDocument));
+            didCache.put(didKey, new TimestampedValue<>(didDocument, cacheValidity));
         }
 
         return Result.success(didDocument);
