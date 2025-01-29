@@ -34,6 +34,7 @@ import java.net.URISyntaxException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_VC_JSONLD;
 import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_VC_JSONLD_ISSUER_IS_URL;
+import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_VC_JSONLD_WITH_SCHEMA;
 import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_VC_SUB_IS_ARRAY_JSONLD;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -57,6 +58,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         registry.register(new JsonObjectToCredentialStatusTransformer());
         registry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         registry.register(new JsonObjectToIssuerTransformer());
+        registry.register(new JsonObjectToCredentialSchemaTransformer());
         registry.register(transformer);
 
         context = spy(new TransformerContextImpl(registry));
@@ -111,6 +113,16 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         assertThat(vc.getName()).isNotNull();
         assertThat(vc.getCredentialStatus()).isNotNull();
         assertThat(vc.getIssuer()).isNotNull().extracting(Issuer::id).isEqualTo("https://university.example/issuers/565049");
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void transform_withCredentialSchema() throws JsonProcessingException {
+        var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_JSONLD_WITH_SCHEMA, JsonObject.class);
+        var vc = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
+
+        assertThat(vc).isNotNull();
+        assertThat(vc.getCredentialSchema()).isNotNull().hasSize(2);
         verify(context, never()).reportProblem(anyString());
     }
 }
