@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
         protected static final long CREATION_TTL = 6L;
         protected static final long TTL = 5L;
         protected static final long RENEW_BUFFER = 4L;
-        protected HashicorpVaultHealthService client;
+        protected HashicorpVaultHealthService healthService;
         protected final ObjectMapper mapper = new ObjectMapper();
         protected final ConsoleMonitor monitor = new ConsoleMonitor();
 
@@ -62,7 +63,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
 
         @Test
         void lookUpToken_whenTokenNotExpired_shouldSucceed() {
-            var tokenLookUpResult = client.isTokenRenewable();
+            var tokenLookUpResult = healthService.isTokenRenewable();
 
             assertThat(tokenLookUpResult).isSucceeded().isEqualTo(true);
         }
@@ -73,7 +74,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
                     .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                     .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
-                        var tokenLookUpResult = client.isTokenRenewable();
+                        var tokenLookUpResult = healthService.isTokenRenewable();
                         assertThat(tokenLookUpResult).isFailed();
                         assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
                     });
@@ -81,7 +82,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
 
         @Test
         void renewToken_whenTokenNotExpired_shouldSucceed() {
-            var tokenRenewResult = client.renewToken();
+            var tokenRenewResult = healthService.renewToken();
 
             assertThat(tokenRenewResult).isSucceeded().satisfies(ttl -> assertThat(ttl).isEqualTo(TTL));
         }
@@ -92,7 +93,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
                     .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                     .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
-                        var tokenRenewResult = client.renewToken();
+                        var tokenRenewResult = healthService.renewToken();
                         assertThat(tokenRenewResult).isFailed();
                         assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: 403");
                     });
@@ -136,11 +137,13 @@ class HashicorpVaultHealthServiceIntegrationTest {
 
         @BeforeEach
         void beforeEach() throws IOException, InterruptedException {
-            client = new HashicorpVaultHealthService(
+            HashicorpVaultSettings settings = getSettings();
+            healthService = new HashicorpVaultHealthService(
                     testHttpClient(),
                     mapper,
                     monitor,
-                    getSettings()
+                    settings,
+                    new HashicorpVaultTokenProviderImpl(settings.token())
             );
         }
     }
@@ -182,11 +185,13 @@ class HashicorpVaultHealthServiceIntegrationTest {
 
         @BeforeEach
         void beforeEach() throws IOException, InterruptedException {
-            client = new HashicorpVaultHealthService(
+            HashicorpVaultSettings settings = getSettings();
+            healthService = new HashicorpVaultHealthService(
                     testHttpClient(),
                     mapper,
                     monitor,
-                    getSettings()
+                    settings,
+                    new HashicorpVaultTokenProviderImpl(settings.token())
             );
         }
     }

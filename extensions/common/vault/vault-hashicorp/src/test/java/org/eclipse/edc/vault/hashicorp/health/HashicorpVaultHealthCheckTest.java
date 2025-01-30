@@ -66,48 +66,4 @@ class HashicorpVaultHealthCheckTest {
         }
     }
 
-    @Nested
-    class HealthCheck200 {
-
-        @BeforeEach
-        void beforeEach() {
-            when(client.doHealthCheck()).thenReturn(Result.success());
-        }
-
-        @Test
-        void get_whenTokenValid_shouldSucceed() {
-            when(client.isTokenRenewable()).thenReturn(TOKEN_LOOK_UP_RESULT_200);
-
-            var result = healthCheck.get();
-
-            assertThat(result).isSucceeded();
-        }
-
-        @Test
-        void get_whenTokenNotValid_shouldFail() {
-            var tokenLookUpErr = "Token look up failed with status 403";
-            when(client.isTokenRenewable()).thenReturn(Result.failure(tokenLookUpErr));
-
-            var result = healthCheck.get();
-
-            assertThat(result).isFailed();
-            assertThat(result.getFailure()).messages().hasSize(1);
-            verify(monitor).debug("Vault health check failed with reason(s): %s".formatted(tokenLookUpErr));
-        }
-    }
-
-    @Test
-    void get_whenHealthCheckFailedAndTokenNotValid_shouldFail() {
-        var healthCheckErr = "Vault is not available. Reason: Vault is in standby, additional information: hello";
-        var tokenLookUpErr = "Token look up failed with status 403";
-
-        when(client.doHealthCheck()).thenReturn(Result.failure(healthCheckErr));
-        when(client.isTokenRenewable()).thenReturn(Result.failure(tokenLookUpErr));
-
-        var result = healthCheck.get();
-
-        assertThat(result).isFailed();
-        assertThat(result.getFailure()).messages().hasSize(2);
-        verify(monitor).debug("Vault health check failed with reason(s): %s, %s".formatted(healthCheckErr, tokenLookUpErr));
-    }
 }

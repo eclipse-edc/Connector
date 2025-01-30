@@ -43,7 +43,6 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
     public HealthCheckResult get() {
         return healthService
                 .doHealthCheck()
-                .merge(healthService.isTokenRenewable())
                 .flatMap(result -> {
                     var statusBuilder = HealthCheckResult.Builder.newInstance().component("HashicorpVault");
                     if (result.succeeded()) {

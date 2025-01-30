@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.SignatureService;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProvider;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 
 import java.io.IOException;
@@ -41,13 +42,15 @@ public class HashicorpVaultSignatureService implements SignatureService {
     private final HashicorpVaultSettings settings;
     private final EdcHttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final HashicorpVaultTokenProvider tokenProvider;
 
 
-    public HashicorpVaultSignatureService(Monitor monitor, HashicorpVaultSettings settings, EdcHttpClient httpClient, ObjectMapper objectMapper) {
+    public HashicorpVaultSignatureService(Monitor monitor, HashicorpVaultSettings settings, EdcHttpClient httpClient, ObjectMapper objectMapper, HashicorpVaultTokenProvider tokenProvider) {
         this.monitor = monitor;
         this.settings = settings;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
+        this.tokenProvider = tokenProvider;
     }
 
     /**
@@ -73,7 +76,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
 
         var request = new Request.Builder()
                 .url(url)
-                .header(VaultConstants.VAULT_TOKEN_HEADER, settings.token())
+                .header(VaultConstants.VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .post(jsonBody(body))
                 .build();
 
@@ -124,7 +127,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
 
         var request = new Request.Builder()
                 .url(url)
-                .header(VaultConstants.VAULT_TOKEN_HEADER, settings.token())
+                .header(VaultConstants.VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .post(jsonBody(body))
                 .build();
 
@@ -165,7 +168,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
 
         var request = new Request.Builder()
                 .url(url)
-                .header(VaultConstants.VAULT_TOKEN_HEADER, settings.token())
+                .header(VaultConstants.VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .post(RequestBody.create(new byte[0], null))
                 .build();
 

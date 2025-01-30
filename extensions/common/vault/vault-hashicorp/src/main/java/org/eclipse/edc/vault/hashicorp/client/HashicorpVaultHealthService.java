@@ -28,6 +28,7 @@ import org.eclipse.edc.http.spi.FallbackFactory;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProvider;
 import org.eclipse.edc.vault.hashicorp.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,21 +57,23 @@ public class HashicorpVaultHealthService {
     private static final String INCREMENT_KEY = "increment";
 
     private final EdcHttpClient httpClient;
-    private final Headers headers;
     private final ObjectMapper objectMapper;
     private final HashicorpVaultSettings settings;
     private final HttpUrl healthCheckUrl;
     private final Monitor monitor;
+    private final HashicorpVaultTokenProvider tokenProvider;
 
     public HashicorpVaultHealthService(@NotNull EdcHttpClient httpClient,
                                        @NotNull ObjectMapper objectMapper,
                                        @NotNull Monitor monitor,
-                                       @NotNull HashicorpVaultSettings settings) {
+                                       @NotNull HashicorpVaultSettings settings,
+                                       @NotNull HashicorpVaultTokenProvider tokenProvider
+                                       ) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.monitor = monitor;
         this.settings = settings;
-        this.headers = getHeaders();
+        this.tokenProvider = tokenProvider;
         this.healthCheckUrl = getHealthCheckUrl();
     }
 
@@ -196,7 +199,7 @@ public class HashicorpVaultHealthService {
     private Request httpGet(HttpUrl requestUri) {
         return new Request.Builder()
                 .url(requestUri)
-                .headers(headers)
+                .headers(getHeaders(tokenProvider.vaultToken()))
                 .get()
                 .build();
     }
@@ -205,14 +208,14 @@ public class HashicorpVaultHealthService {
     private Request httpPost(HttpUrl requestUri, Object requestBody) {
         return new Request.Builder()
                 .url(requestUri)
-                .headers(headers)
+                .headers(getHeaders(tokenProvider.vaultToken()))
                 .post(createRequestBody(requestBody))
                 .build();
     }
 
-    private Headers getHeaders() {
+    private Headers getHeaders(String token) {
         var headersBuilder = new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
-        headersBuilder.add(VAULT_TOKEN_HEADER, settings.token());
+        headersBuilder.add(VAULT_TOKEN_HEADER, token);
         return headersBuilder.build();
     }
 

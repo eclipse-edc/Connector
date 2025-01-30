@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProvider;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import org.eclipse.edc.vault.hashicorp.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -51,12 +52,18 @@ public class HashicorpVault implements Vault {
     private final HashicorpVaultSettings settings;
     private final EdcHttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final HashicorpVaultTokenProvider tokenProvider;
 
-    public HashicorpVault(@NotNull Monitor monitor, HashicorpVaultSettings settings, EdcHttpClient httpClient, ObjectMapper objectMapper) {
+    public HashicorpVault(@NotNull Monitor monitor,
+                          HashicorpVaultSettings settings,
+                          EdcHttpClient httpClient,
+                          ObjectMapper objectMapper,
+                          HashicorpVaultTokenProvider tokenProvider) {
         this.monitor = monitor;
         this.settings = settings;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
+        this.tokenProvider = tokenProvider;
     }
 
     @Override
@@ -65,7 +72,7 @@ public class HashicorpVault implements Vault {
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, settings.token())
+                .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .get()
                 .build();
 
@@ -102,7 +109,7 @@ public class HashicorpVault implements Vault {
         var requestPayload = Map.of("data", Map.of(VAULT_DATA_ENTRY_NAME, value));
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, settings.token())
+                .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .post(jsonBody(requestPayload))
                 .build();
 
@@ -122,7 +129,7 @@ public class HashicorpVault implements Vault {
         var requestUri = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, settings.token())
+                .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .delete()
                 .build();
 

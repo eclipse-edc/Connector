@@ -27,6 +27,8 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProvider;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewTask;
@@ -45,6 +47,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
+    @Inject
+    private HashicorpVaultTokenProvider tokenProvider;
+
     @Configuration
     private HashicorpVaultSettings config;
 
@@ -59,12 +64,17 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @Provider
     public Vault hashicorpVault() {
-        return new HashicorpVault(monitor, config, httpClient, MAPPER);
+        return new HashicorpVault(monitor, config, httpClient, MAPPER, tokenProvider);
     }
 
     @Provider
     public SignatureService signatureService() {
-        return new HashicorpVaultSignatureService(monitor, config, httpClient, MAPPER);
+        return new HashicorpVaultSignatureService(monitor, config, httpClient, MAPPER, tokenProvider);
+    }
+
+    @Provider(isDefault = true)
+    public HashicorpVaultTokenProvider hashicorpVaultTokenProvider() {
+        return new HashicorpVaultTokenProviderImpl(config.token());
     }
 
     @Override
@@ -81,7 +91,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Provider
     public @NotNull HashicorpVaultHealthService createHealthService() {
         if (healthService == null) {
-            healthService = new HashicorpVaultHealthService(httpClient, MAPPER, monitor, config);
+            healthService = new HashicorpVaultHealthService(httpClient, MAPPER, monitor, config, tokenProvider);
         }
         return healthService;
     }
