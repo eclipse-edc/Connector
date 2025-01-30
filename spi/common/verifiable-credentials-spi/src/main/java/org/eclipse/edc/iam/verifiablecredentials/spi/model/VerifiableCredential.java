@@ -39,6 +39,7 @@ public class VerifiableCredential {
     public static final String VERIFIABLE_CREDENTIAL_VALIDUNTIL_PROPERTY = VC_PREFIX + "validUntil";
     public static final String VERIFIABLE_CREDENTIAL_STATUS_PROPERTY = VC_PREFIX + "credentialStatus";
     public static final String VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY = VC_PREFIX + "credentialSubject";
+    public static final String VERIFIABLE_CREDENTIAL_SCHEMA_PROPERTY = VC_PREFIX + "credentialSchema";
     public static final String VERIFIABLE_CREDENTIAL_NAME_PROPERTY = SCHEMA_ORG_NAMESPACE + "name";
     public static final String VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY = SCHEMA_ORG_NAMESPACE + "description";
     public static final String VERIFIABLE_CREDENTIAL_PROOF_PROPERTY = "https://w3id.org/security#proof";
@@ -54,8 +55,13 @@ public class VerifiableCredential {
     protected String description;
     protected String name;
     protected DataModelVersion dataModelVersion = DataModelVersion.V_1_1;
+    protected List<CredentialSchema> credentialSchema = new ArrayList<>();
 
     protected VerifiableCredential() {
+    }
+
+    public List<CredentialSchema> getCredentialSchema() {
+        return credentialSchema;
     }
 
     public List<CredentialSubject> getCredentialSubject() {
@@ -74,13 +80,13 @@ public class VerifiableCredential {
         return issuer;
     }
 
-    @JsonAlias({ "issued", "validFrom" }) // some credentials like StatusList2021 don't adhere to the spec
+    @JsonAlias({"issued", "validFrom"}) // some credentials like StatusList2021 don't adhere to the spec
     @NotNull
     public Instant getIssuanceDate() {
         return issuanceDate;
     }
 
-    @JsonAlias({ "validUntil" })
+    @JsonAlias({"validUntil"})
     public Instant getExpirationDate() {
         return expirationDate;
     }
@@ -190,6 +196,16 @@ public class VerifiableCredential {
 
         public B dataModelVersion(DataModelVersion dataModelVersion) {
             this.instance.dataModelVersion = dataModelVersion;
+            return self();
+        }
+
+        public B credentialSchemas(List<CredentialSchema> credentialSchemas) {
+            this.instance.credentialSchema = credentialSchemas;
+            return self();
+        }
+
+        public B credentialSchema(CredentialSchema credentialSchema) {
+            this.instance.credentialSchema.add(credentialSchema);
             return self();
         }
 

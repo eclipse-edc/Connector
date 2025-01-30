@@ -42,6 +42,12 @@ class JwtToVerifiableCredentialTransformerTest {
         assertThat(vc.getCredentialSubject()).doesNotContainNull().isNotEmpty();
         assertThat(vc.getCredentialSubject().stream().findFirst().orElseThrow().getId()).isNotNull();
         assertThat(vc.getIssuanceDate()).isNotNull();
+        assertThat(vc.getCredentialSchema()).isNotNull()
+                .hasSize(2)
+                .anyMatch(schema -> schema.type().equals("JsonSchema") &&
+                        schema.id().equals("https://example.org/examples/degree.json"))
+                .anyMatch(schema -> schema.type().equals("JsonSchema") &&
+                        schema.id().equals("https://example.org/examples/alumni.json"));
 
         verifyNoInteractions(context);
     }

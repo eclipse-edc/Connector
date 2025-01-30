@@ -52,6 +52,47 @@ public interface TestData {
             }
             """;
 
+    String EXAMPLE_VC_JSONLD_WITH_SCHEMA = """
+            {
+              "@context": [
+                "https://www.w3.org/2018/credentials/v2"
+              ],
+              "id": "http://university.example/credentials/3732",
+              "type": ["VerifiableCredential", "ExampleDegreeCredential"],
+              "issuer": {
+                "id": "https://university.example/issuers/565049",
+                "name": "Example University",
+                "description": "A public university focusing on teaching examples."
+              },
+              "validFrom": "2015-05-10T12:30:00Z",
+              "validUntil":"2023-05-12T23:00:00Z",
+              "name": "Example University Degree",
+              "description": "2015 Bachelor of Science and Arts Degree",
+              "credentialSubject": {
+                "id": "did:example:ebfeb1f712ebc6f1c276e12ec21",
+                "degree": {
+                  "degreetype": "ExampleBachelorDegree",
+                  "subtype": "Bachelor of Science and Arts"
+                }
+              },
+              "credentialStatus": {
+                  "id": "https://university.example/credentials/status/3#94567",
+                  "type": "StatusList2021Entry",
+                  "statusPurpose": "revocation",
+                  "statusListIndex": "94567",
+                  "statusListCredential": "https://university.example/credentials/status/3"
+              },
+              "credentialSchema": [{
+                  "id": "https://example.org/examples/degree.json",
+                  "type": "JsonSchema"
+                },
+                {
+                  "id": "https://example.org/examples/alumni.json",
+                  "type": "JsonSchema"
+              }]
+            }
+            """;
+
     String EXAMPLE_VC_SUB_IS_ARRAY_JSONLD = """
             {
               "@context": [
@@ -283,20 +324,18 @@ public interface TestData {
             """;
 
     String EXAMPLE_JWT_VC = """
-            eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3
-            d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L
-            2NyZWRlbnRpYWxzL2V4YW1wbGVzL3YxIl0sImlkIjoiaHR0cDovL2V4YW1wbGUuZWR1L2NyZWRl
-            bnRpYWxzLzM3MzIiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiVW5pdmVyc2l0eUR
-            lZ3JlZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiaHR0cHM6Ly9leGFtcGxlLmVkdS9pc3N1ZXJzLz
-            E0IiwiaXNzdWFuY2VEYXRlIjoiMjAxMC0wMS0wMVQxOToyMzoyNFoiLCJjcmVkZW50aWFsU3Via
-            mVjdCI6eyJpZCI6ImRpZDpleGFtcGxlOmViZmViMWY3MTJlYmM2ZjFjMjc2ZTEyZWMyMSIsImRl
-            Z3JlZSI6eyJ0eXBlIjoiQmFjaGVsb3JEZWdyZWUiLCJuYW1lIjoiQmFjaGVsb3Igb2YgU2NpZW5
-            jZSBhbmQgQXJ0cyJ9fSwiY3JlZGVudGlhbFN0YXR1cyI6eyJpZCI6Imh0dHBzOi8vZXhhbXBsZS
-            5lZHUvc3RhdHVzLzI0IiwidHlwZSI6IkNyZWRlbnRpYWxTdGF0dXNMaXN0MjAxNyJ9fSwiaXNzI
-            joiaHR0cHM6Ly9leGFtcGxlLmVkdS9pc3N1ZXJzLzE0IiwibmJmIjoxMjYyMzczODA0LCJqdGki
-            OiJodHRwOi8vZXhhbXBsZS5lZHUvY3JlZGVudGlhbHMvMzczMiIsInN1YiI6ImRpZDpleGFtcGx
-            lOmViZmViMWY3MTJlYmM2ZjFjMjc2ZTEyZWMyMSJ9.YQKQUu_zreDs69AZ8YqpMGHLl9V_tWH4N
-            S9P9l67J1wWHf0QCyt5hyuA8ckM4seV-1TRbeiHwdJ3VRkDMcwFcg
+            eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWF
+            scy92MSIsImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL2V4YW1wbGVzL3YxIl0sImlkIjoiaHR0cDovL2V4YW1wbGUuZWR
+            1L2NyZWRlbnRpYWxzLzM3MzIiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiVW5pdmVyc2l0eURlZ3JlZUNyZWRlbnRpYWwiXSw
+            iaXNzdWVyIjoiaHR0cHM6Ly9leGFtcGxlLmVkdS9pc3N1ZXJzLzE0IiwiaXNzdWFuY2VEYXRlIjoiMjAxMC0wMS0wMVQxOToyMzoyNFoiLCJ
+            jcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDpleGFtcGxlOmViZmViMWY3MTJlYmM2ZjFjMjc2ZTEyZWMyMSIsImRlZ3JlZSI6eyJ0eXB
+            lIjoiQmFjaGVsb3JEZWdyZWUiLCJuYW1lIjoiQmFjaGVsb3Igb2YgU2NpZW5jZSBhbmQgQXJ0cyJ9fSwiY3JlZGVudGlhbFN0YXR1cyI6eyJ
+            pZCI6Imh0dHBzOi8vZXhhbXBsZS5lZHUvc3RhdHVzLzI0IiwidHlwZSI6IkNyZWRlbnRpYWxTdGF0dXNMaXN0MjAxNyJ9LCJjcmVkZW50aWF
+            sU2NoZW1hIjpbeyJpZCI6Imh0dHBzOi8vZXhhbXBsZS5vcmcvZXhhbXBsZXMvZGVncmVlLmpzb24iLCJ0eXBlIjoiSnNvblNjaGVtYSJ9LHs
+            iaWQiOiJodHRwczovL2V4YW1wbGUub3JnL2V4YW1wbGVzL2FsdW1uaS5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifV19LCJpc3MiOiJodHR
+            wczovL2V4YW1wbGUuZWR1L2lzc3VlcnMvMTQiLCJuYmYiOjEyNjIzNzM4MDQsImp0aSI6Imh0dHA6Ly9leGFtcGxlLmVkdS9jcmVkZW50aWF
+            scy8zNzMyIiwic3ViIjoiZGlkOmV4YW1wbGU6ZWJmZWIxZjcxMmViYzZmMWMyNzZlMTJlYzIxIn0.IjVESDTm094UZor3AWJY-wC7a9DBWF_
+            fzm4q9M-H6F7F8YVe3YF_gmzKNblR3l8VeaASD4R0YwR1rawVA2mfNQ
             """;
 
     String EXAMPLE_JWT_VC_NO_DATES = """

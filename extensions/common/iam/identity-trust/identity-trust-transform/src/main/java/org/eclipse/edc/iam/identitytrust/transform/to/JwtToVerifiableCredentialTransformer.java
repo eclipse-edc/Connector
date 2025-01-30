@@ -16,6 +16,7 @@
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSchema;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.DataModelVersion;
@@ -40,6 +41,7 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
     private static final String ID_PROPERTY = "id";
     private static final String VC_CLAIM = "vc";
     private static final String CREDENTIAL_SUBJECT_PROPERTY = "credentialSubject";
+    private static final String CREDENTIAL_SCHEMA_PROPERTY = "credentialSchema";
     private static final String CREDENTIAL_STATUS_PROPERTY = "credentialStatus";
     private static final String EXPIRATION_DATE_PROPERTY = "expirationDate";
     private static final String ISSUANCE_DATE_PROPERTY = "issuanceDate";
@@ -54,6 +56,7 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
         this.monitor = monitor;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public @Nullable VerifiableCredential transform(@NotNull String serializedJwt, @NotNull TransformerContext context) {
         try {
@@ -85,6 +88,9 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
 
                 // credential status
                 listOrReturn(vc.get(CREDENTIAL_STATUS_PROPERTY), o -> extractStatus((Map<String, Object>) o)).forEach(builder::credentialStatus);
+
+                //credential schema
+                listOrReturn(vc.get(CREDENTIAL_SCHEMA_PROPERTY), o -> extractSchema((Map<String, Object>) o)).forEach(builder::credentialSchema);
 
                 // expiration date
                 extractDate(vc.get(EXPIRATION_DATE_PROPERTY), claims.getExpirationTime()).or(() -> extractDate(vc.get(VALID_UNTIL_PROPERTY), claims.getExpirationTime())).ifPresent(builder::expirationDate);
@@ -120,6 +126,16 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
         var type = status.remove(TYPE_PROPERTY).toString();
 
         return new CredentialStatus(id, type, status);
+    }
+
+    private CredentialSchema extractSchema(Map<String, Object> schema) {
+        if (schema == null || schema.isEmpty()) {
+            return null;
+        }
+        var id = schema.remove(ID_PROPERTY).toString();
+        var type = schema.remove(TYPE_PROPERTY).toString();
+
+        return new CredentialSchema(id, type);
     }
 
     private CredentialSubject extractSubject(Map<String, ?> subject, String fallback) {

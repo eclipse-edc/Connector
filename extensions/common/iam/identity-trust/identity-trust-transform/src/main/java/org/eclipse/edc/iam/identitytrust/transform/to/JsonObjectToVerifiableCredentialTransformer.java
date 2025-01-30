@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSchema;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
@@ -36,6 +37,7 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCred
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_ISSUER_PROPERTY;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_NAME_PROPERTY;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_PROOF_PROPERTY;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_SCHEMA_PROPERTY;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_STATUS_PROPERTY;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_VALIDFROM_PROPERTY;
@@ -79,6 +81,8 @@ public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdT
             case VERIFIABLE_CREDENTIAL_PROOF_PROPERTY -> {
                 //noop
             }
+            case VERIFIABLE_CREDENTIAL_SCHEMA_PROPERTY ->
+                    vcBuilder.credentialSchemas(transformArray(jsonValue, CredentialSchema.class, context));
             default ->
                     context.reportProblem("Unknown property: %s type: %s".formatted(key, jsonValue.getValueType().name()));
         }
