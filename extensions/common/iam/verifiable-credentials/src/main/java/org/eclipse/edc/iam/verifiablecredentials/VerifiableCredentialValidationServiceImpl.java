@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.iam.verifiablecredentials;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidIssuer;
 import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidSubjectIds;
+import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidSubjectSchema;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsInValidityPeriod;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsNotRevoked;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
@@ -40,12 +42,14 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
     private final TrustedIssuerRegistry trustedIssuerRegistry;
     private final RevocationServiceRegistry revocationServiceRegistry;
     private final Clock clock;
+    private final ObjectMapper mapper;
 
-    public VerifiableCredentialValidationServiceImpl(PresentationVerifier presentationVerifier, TrustedIssuerRegistry trustedIssuerRegistry, RevocationServiceRegistry revocationServiceRegistry, Clock clock) {
+    public VerifiableCredentialValidationServiceImpl(PresentationVerifier presentationVerifier, TrustedIssuerRegistry trustedIssuerRegistry, RevocationServiceRegistry revocationServiceRegistry, Clock clock, ObjectMapper mapper) {
         this.presentationVerifier = presentationVerifier;
         this.trustedIssuerRegistry = trustedIssuerRegistry;
         this.revocationServiceRegistry = revocationServiceRegistry;
         this.clock = clock;
+        this.mapper = mapper;
     }
 
     @Override
@@ -67,7 +71,8 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
                 new IsInValidityPeriod(clock),
                 new HasValidSubjectIds(presentationHolder),
                 new IsNotRevoked(revocationServiceRegistry),
-                new HasValidIssuer(trustedIssuerRegistry)));
+                new HasValidIssuer(trustedIssuerRegistry),
+                new HasValidSubjectSchema(mapper)));
 
         filters.addAll(additionalRules);
         var results = credentials
