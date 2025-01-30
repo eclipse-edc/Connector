@@ -10,22 +10,22 @@ The current implementation of the authentication in the HashiCorp Vault extensio
 The full list of possible authentication methods can be found in the [HashiCorp Vault Documentation](https://developer.hashicorp.com/vault/docs/auth)
 Relevant examples are:
 
-* [Token auth](https://developer.hashicorp.com/vault/docs/auth/token)
-* [Kubernetes auth](https://developer.hashicorp.com/vault/docs/auth/kubernetes)
-* [AppRole auth](https://developer.hashicorp.com/vault/docs/auth/approle)
+* [Token auth method](https://developer.hashicorp.com/vault/docs/auth/token)
+* [Kubernetes auth method](https://developer.hashicorp.com/vault/docs/auth/kubernetes)
+* [AppRole auth method](https://developer.hashicorp.com/vault/docs/auth/approle)
 
 ## Approach
 
 The refactor will affect only the `vault-hashicorp` module.
 To allow an extensible authentication for HashiCorp Vault, the implementation will follow the provider pattern with a default implementation.
 
-### Hashicorp Vault Auth Interface
+### Hashicorp Vault Token Provider Interface
 
 To support multiple authentication methods, an interface is defined for the HashiCorp Vault authentication.
 The common point among all methods is the ability to provide a `client_token` used for authentication.
 
 ```java
-public interface HashicorpVaultAuthClientTokenProvider {
+public interface HashicorpVaultTokenProvider {
     
     // The stored token is returned.
     String vaultToken();
@@ -33,32 +33,35 @@ public interface HashicorpVaultAuthClientTokenProvider {
 }
 ```
 
-### Hashicorp Vault Token Auth Method Implementation
+### Hashicorp Vault Token Provider Implementation
 
-The default implementation of `HashicorpVaultAuthClientTokenProvider` provided by the `HashicorpVaultExtension` will use the [Token auth method](https://developer.hashicorp.com/vault/docs/auth/token).
+The implementation of `HashicorpVaultTokenProvider` will use the already implemented [Token auth method](https://developer.hashicorp.com/vault/docs/auth/token).
+`HashicorpVaultTokenProviderImpl` receives the `client_token` in its constructor and stores it for retrieval later on.
+
+### Hashicorp Vault Token Provider Usage
+
+The `HashicorpVaultTokenProviderImpl` is provided by the `HashicorpVaultExtension` as the default implementation of `HashicorpVaultTokenProvider`.
 
 ```java
 @Provider(isDefault = true)
-public HashicorpVaultAuthClientTokenProvider hashicorpVaultAuthClientTokenProvider() {
-    return new HashicorpVaultTokenAuthMethodImpl();
+public HashicorpVaultTokenProvider hashicorpVaultTokenProvider() {
+    return new HashicorpVaultTokenProviderImpl();
 }
 ```
 
-`HashicorpVaultTokenAuthMethodImpl` is then used by services in the `vault-hashicorp` module for authentication with the HashiCorp Vault instance. 
+The `HashicorpVaultTokenProviderImpl` will then be used by services in the `vault-hashicorp` module for fetching the `client_token`. 
 These services are:
 
 * Secure key-value store `HashicorpVault`
 * Signing service `HashicorpVaultSignatureService`
 * Health check service `HashicorpVaultHealthService`
 
-`HashicorpVault` and `HashicorpVaultSignatureService` will only need small changes for authentication. 
-They will use the `client_token` from the `HashicorpVaultTokenAuthMethodImpl` instead of directly fetching the token from the settings.
+`HashicorpVault` and `HashicorpVaultSignatureService` will only undergo small changes.
+They will use the `client_token` from the `HashicorpVaultTokenProviderImpl` instead of directly fetching the `client_token` from the `HashicorpVaultSettings`.
 
 ### HashiCorp Vault Health Service
 
-An implementation of `HashicorpVaultAuthClientTokenProvider` is passed to `HashicorpVaultHealthService` during creation by `HashicorpVaultExtension`.
-`HashicorpVaultHealthService` will use the `HashicorpVaultAuthClientTokenProvider` implementation to fetch the `client_token`.
-`client_token` will then be used to generate the Headers for the HTTP requests and to authenticate with HashiCorp Vault.
+The `client_token` from `HashicorpVaultTokenProvider` will be used to generate the Headers for the HTTP requests.
 
 ```java
 @NotNull
@@ -72,7 +75,7 @@ private Headers getHeaders(String token) {
 Previously, the headers were generated only once since the token was not liable to change.
 With the addition of numerous potential authentication mechanisms, it can no longer be guaranteed, that the token never changes during refresh.
 An example for this would be the kubernetes authentication method, where short term tokens can be produced depending on the settings.
-As such, `headers` are no longer saved as a variable inside the `HashicorpVaultClient` and `getHeaders()` is called instead to always fetch the newest token.
+As such, `headers` are no longer saved as a variable inside the `HashicorpVaultHealthService` and `getHeaders()` is called instead to always fetch the newest token.
 
 ### HashiCorp Vault Health Extension
 
