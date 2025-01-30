@@ -51,11 +51,12 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
@@ -84,6 +85,8 @@ import static org.mockito.Mockito.when;
 public class TransferProcessEventDispatchTest {
 
     public static final Duration TIMEOUT = Duration.ofSeconds(30);
+    private static final ProtocolWebhookRegistry PROTOCOL_WEBHOOK_REGISTRY = mock(ProtocolWebhookRegistry.class);
+
     @RegisterExtension
     static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
             .setConfiguration(Map.of(
@@ -93,12 +96,19 @@ public class TransferProcessEventDispatchTest {
             .registerServiceMock(TransferWaitStrategy.class, () -> 1)
             .registerServiceMock(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(newSingleThreadExecutor()))
             .registerServiceMock(IdentityService.class, mock())
-            .registerServiceMock(ProtocolWebhook.class, () -> "http://dummy")
+            .registerServiceMock(ProtocolWebhookRegistry.class, PROTOCOL_WEBHOOK_REGISTRY)
             .registerServiceMock(PolicyArchive.class, mock())
             .registerServiceMock(ContractNegotiationStore.class, mock())
             .registerServiceMock(ParticipantAgentService.class, mock())
             .registerServiceMock(DataPlaneClientFactory.class, mock());
+
     private final EventSubscriber eventSubscriber = mock();
+
+    @BeforeEach
+    void setup() {
+        // setup
+        when(PROTOCOL_WEBHOOK_REGISTRY.resolve(any())).thenReturn(() -> "http://dummy");
+    }
 
     @Test
     void shouldDispatchEventsOnTransferProcessStateChanges(TransferProcessService service,

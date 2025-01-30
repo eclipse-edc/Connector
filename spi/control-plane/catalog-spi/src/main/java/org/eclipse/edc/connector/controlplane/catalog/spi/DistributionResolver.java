@@ -28,5 +28,5 @@ public interface DistributionResolver {
      *
      * @return a list of Distributions, always not null
      */
-    List<Distribution> getDistributions(Asset asset);
+    List<Distribution> getDistributions(String protocol, Asset asset);
 }

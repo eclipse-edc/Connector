@@ -25,7 +25,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
@@ -47,7 +47,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
     protected RemoteMessageDispatcherRegistry dispatcherRegistry;
     protected ContractNegotiationObservable observable;
     protected PolicyDefinitionStore policyStore;
-    protected ProtocolWebhook protocolWebhook;
+    protected ProtocolWebhookRegistry protocolWebhookRegistry;
     protected ContractNegotiationPendingGuard pendingGuard = it -> false;
 
     abstract ContractNegotiation.Type type();
@@ -59,12 +59,6 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
                 .guard(pendingGuard, this::setPending)
                 .onNotProcessed(this::breakLease)
                 .build();
-    }
-
-    private boolean setPending(ContractNegotiation contractNegotiation) {
-        contractNegotiation.setPending(true);
-        update(contractNegotiation);
-        return true;
     }
 
     /**
@@ -89,7 +83,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
     }
 
     protected <T> AsyncStatusResultRetryProcess<ContractNegotiation, T, ?> dispatch(ProcessRemoteMessage.Builder<?, ?> messageBuilder,
-                                                                                     ContractNegotiation negotiation, Class<T> responseType) {
+                                                                                    ContractNegotiation negotiation, Class<T> responseType) {
         messageBuilder.counterPartyAddress(negotiation.getCounterPartyAddress())
                 .counterPartyId(negotiation.getCounterPartyId())
                 .protocol(negotiation.getProtocol())
@@ -208,6 +202,12 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
         observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
+    private boolean setPending(ContractNegotiation contractNegotiation) {
+        contractNegotiation.setPending(true);
+        update(contractNegotiation);
+        return true;
+    }
+
     public static class Builder<T extends AbstractContractNegotiationManager>
             extends AbstractStateEntityManager.Builder<ContractNegotiation, ContractNegotiationStore, T, Builder<T>> {
 
@@ -218,6 +218,17 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
         @Override
         public Builder<T> self() {
             return this;
+        }
+
+        @Override
+        public T build() {
+            super.build();
+            Objects.requireNonNull(manager.participantId, "participantId");
+            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
+            Objects.requireNonNull(manager.observable, "observable");
+
+            Objects.requireNonNull(manager.policyStore, "policyStore");
+            return manager;
         }
 
         public Builder<T> participantId(String id) {
@@ -240,25 +251,14 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
             return this;
         }
 
-        public Builder<T> protocolWebhook(ProtocolWebhook protocolWebhook) {
-            manager.protocolWebhook = protocolWebhook;
+        public Builder<T> protocolWebhookRegistry(ProtocolWebhookRegistry protocolWebhookRegistry) {
+            manager.protocolWebhookRegistry = protocolWebhookRegistry;
             return this;
         }
 
         public Builder<T> pendingGuard(ContractNegotiationPendingGuard pendingGuard) {
             manager.pendingGuard = pendingGuard;
             return this;
-        }
-
-        @Override
-        public T build() {
-            super.build();
-            Objects.requireNonNull(manager.participantId, "participantId");
-            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
-            Objects.requireNonNull(manager.observable, "observable");
-
-            Objects.requireNonNull(manager.policyStore, "policyStore");
-            return manager;
         }
     }
 

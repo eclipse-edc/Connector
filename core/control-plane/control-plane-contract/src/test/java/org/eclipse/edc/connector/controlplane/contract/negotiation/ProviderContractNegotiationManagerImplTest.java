@@ -33,7 +33,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -95,7 +95,7 @@ class ProviderContractNegotiationManagerImplTest {
     private final PolicyDefinitionStore policyStore = mock();
     private final ContractNegotiationListener listener = mock();
     private final ContractNegotiationPendingGuard pendingGuard = mock();
-    private final ProtocolWebhook protocolWebhook = mock();
+    private final ProtocolWebhookRegistry protocolWebhookRegistry = mock();
     private ProviderContractNegotiationManagerImpl manager;
 
     @BeforeEach
@@ -111,7 +111,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .policyStore(policyStore)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .pendingGuard(pendingGuard)
-                .protocolWebhook(protocolWebhook)
+                .protocolWebhookRegistry(protocolWebhookRegistry)
                 .build();
     }
 
@@ -122,7 +122,7 @@ class ProviderContractNegotiationManagerImplTest {
         var ack = ContractNegotiationAck.Builder.newInstance().consumerPid("consumerPid").build();
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(protocolWebhook.url()).thenReturn("http://callback.address");
+        when(protocolWebhookRegistry.resolve(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
 
         manager.start();
 
@@ -137,6 +137,28 @@ class ProviderContractNegotiationManagerImplTest {
             var message = messageCaptor.getValue();
             assertThat(message.getCallbackAddress()).isEqualTo("http://callback.address");
             verify(listener).offered(any());
+        });
+    }
+
+    @Test
+    void offering_shouldTransitionToTerminated_whenProtocolNotResolved() {
+        var negotiation = contractNegotiationBuilder().state(OFFERING.code()).contractOffer(contractOffer()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(OFFERING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        var ack = ContractNegotiationAck.Builder.newInstance().consumerPid("consumerPid").build();
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
+        when(protocolWebhookRegistry.resolve(negotiation.getProtocol())).thenReturn(null);
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            var captor = ArgumentCaptor.forClass(ContractNegotiation.class);
+            verify(store).save(captor.capture());
+            var storedNegotiation = captor.getValue();
+            assertThat(storedNegotiation.getState()).isEqualTo(TERMINATED.code());
+            assertThat(storedNegotiation.getErrorDetail()).isNotNull();
+            verifyNoInteractions(dispatcherRegistry);
+            verify(listener).terminated(any());
         });
     }
 
@@ -265,7 +287,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(starting.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(protocolWebhook.url()).thenReturn("http://callback.address");
+        when(protocolWebhookRegistry.resolve(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
 
         manager.start();
 

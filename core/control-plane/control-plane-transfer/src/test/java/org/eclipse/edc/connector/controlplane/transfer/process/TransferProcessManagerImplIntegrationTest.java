@@ -41,6 +41,7 @@ import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -98,10 +99,12 @@ class TransferProcessManagerImplIntegrationTest {
     private final TransferProcessStore store = new InMemoryTransferProcessStore(clock, CriterionOperatorRegistryImpl.ofDefaults());
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
     private final DataFlowManager dataFlowManager = mock();
+    private final ProtocolWebhookRegistry protocolWebhookRegistry = mock();
     private TransferProcessManagerImpl manager;
 
     @BeforeEach
     void setup() {
+        when(protocolWebhookRegistry.resolve(any())).thenReturn(() -> "any");
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
         when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class))).thenReturn(Result.success(resourceManifest));
 
@@ -122,7 +125,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .observable(mock())
                 .store(store)
                 .policyArchive(policyArchive)
-                .protocolWebhook(() -> "any")
+                .protocolWebhookRegistry(protocolWebhookRegistry)
                 .addressResolver(mock())
                 .provisionResponsesHandler(new ProvisionResponsesHandler(mock(), mock(), mock(), mock()))
                 .deprovisionResponsesHandler(mock())

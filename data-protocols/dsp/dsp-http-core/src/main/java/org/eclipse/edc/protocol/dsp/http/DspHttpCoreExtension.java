@@ -169,6 +169,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
         return dspProtocolParser;
     }
 
+
     private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
         dispatcher.registerPolicyScope(ContractAgreementMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);
         dispatcher.registerPolicyScope(ContractNegotiationEventMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);

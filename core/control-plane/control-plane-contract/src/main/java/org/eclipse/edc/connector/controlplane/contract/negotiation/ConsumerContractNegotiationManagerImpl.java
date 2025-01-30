@@ -49,17 +49,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private ConsumerContractNegotiationManagerImpl() {
     }
 
-    @Override
-    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
-        return builder
-                .processor(processNegotiationsInState(INITIAL, this::processInitial))
-                .processor(processNegotiationsInState(REQUESTING, this::processRequesting))
-                .processor(processNegotiationsInState(ACCEPTING, this::processAccepting))
-                .processor(processNegotiationsInState(AGREED, this::processAgreed))
-                .processor(processNegotiationsInState(VERIFYING, this::processVerifying))
-                .processor(processNegotiationsInState(TERMINATING, this::processTerminating));
-    }
-
     /**
      * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and persisted, which moves it to
      * state REQUESTING.
@@ -92,6 +81,17 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return CONSUMER;
     }
 
+    @Override
+    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
+        return builder
+                .processor(processNegotiationsInState(INITIAL, this::processInitial))
+                .processor(processNegotiationsInState(REQUESTING, this::processRequesting))
+                .processor(processNegotiationsInState(ACCEPTING, this::processAccepting))
+                .processor(processNegotiationsInState(AGREED, this::processAgreed))
+                .processor(processNegotiationsInState(VERIFYING, this::processVerifying))
+                .processor(processNegotiationsInState(TERMINATING, this::processTerminating));
+    }
+
     /**
      * Processes {@link ContractNegotiation} in state INITIAL. Transition ContractNegotiation to REQUESTING.
      *
@@ -112,17 +112,26 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processRequesting(ContractNegotiation negotiation) {
-        var messageBuilder = ContractRequestMessage.Builder.newInstance()
-                .contractOffer(negotiation.getLastContractOffer())
-                .callbackAddress(protocolWebhook.url())
-                .type(ContractRequestMessage.Type.INITIAL);
 
-        return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
-                .onSuccessResult(this::transitionToRequested)
-                .onFailure((n, throwable) -> transitionToRequesting(n))
-                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send request to provider: %s", throwable.getMessage())))
-                .execute("[Consumer] send request");
+        var callbackAddress = protocolWebhookRegistry.resolve(negotiation.getProtocol());
+
+        if (callbackAddress != null) {
+            var messageBuilder = ContractRequestMessage.Builder.newInstance()
+                    .contractOffer(negotiation.getLastContractOffer())
+                    .callbackAddress(callbackAddress.url())
+                    .type(ContractRequestMessage.Type.INITIAL);
+
+            return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
+                    .onSuccessResult(this::transitionToRequested)
+                    .onFailure((n, throwable) -> transitionToRequesting(n))
+                    .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
+                    .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send request to provider: %s", throwable.getMessage())))
+                    .execute("[Consumer] send request");
+        } else {
+            transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
+            return true;
+        }
+
     }
 
     /**

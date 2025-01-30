@@ -44,7 +44,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -130,7 +130,7 @@ public class TransferCoreExtension implements ServiceExtension {
     private TypeTransformerRegistry typeTransformerRegistry;
 
     @Inject
-    private ProtocolWebhook protocolWebhook;
+    private ProtocolWebhookRegistry protocolWebhookRegistry;
 
     @Inject
     private TransferProcessPendingGuard pendingGuard;
@@ -183,7 +183,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .batchSize(stateMachineBatchSize)
                 .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
-                .protocolWebhook(protocolWebhook)
+                .protocolWebhookRegistry(protocolWebhookRegistry)
                 .provisionResponsesHandler(provisionResponsesHandler)
                 .deprovisionResponsesHandler(deprovisionResponsesHandler)
                 .pendingGuard(pendingGuard)

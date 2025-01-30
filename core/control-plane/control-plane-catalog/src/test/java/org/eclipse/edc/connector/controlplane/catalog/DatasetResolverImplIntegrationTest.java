@@ -102,7 +102,7 @@ class DatasetResolverImplIntegrationTest {
         var to = 50;
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
 
-        var datasets = resolver.query(createAgent(), querySpec);
+        var datasets = resolver.query(createAgent(), querySpec, "protocol");
 
         assertThat(datasets).hasSize(to - from);
     }
@@ -126,7 +126,7 @@ class DatasetResolverImplIntegrationTest {
         when(contractDefinitionResolver.resolveFor(isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(contractDefinition1, contractDefinition2)));
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
 
-        var datasets = resolver.query(createAgent(), querySpec);
+        var datasets = resolver.query(createAgent(), querySpec, "protocol");
 
         assertThat(datasets).hasSize(min(requestedRange, maximumRange));
     }
@@ -149,7 +149,7 @@ class DatasetResolverImplIntegrationTest {
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
 
         // 4 definitions, 10 assets each = 40 offers total -> offset 20 ==> result = 20
-        var dataset = resolver.query(createAgent(), querySpec);
+        var dataset = resolver.query(createAgent(), querySpec, "protocol");
 
         assertThat(dataset).hasSize(4);
     }
@@ -163,7 +163,7 @@ class DatasetResolverImplIntegrationTest {
         var to = 50;
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
         // 2 definitions, 10 assets each = 20 offers total -> offset of 25 is outside
-        var datasets = resolver.query(createAgent(), querySpec);
+        var datasets = resolver.query(createAgent(), querySpec, "protocol");
 
         assertThat(datasets).isEmpty();
     }

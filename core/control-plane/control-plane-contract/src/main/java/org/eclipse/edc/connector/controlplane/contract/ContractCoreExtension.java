@@ -46,7 +46,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -136,7 +136,7 @@ public class ContractCoreExtension implements ServiceExtension {
     private RuleBindingRegistry ruleBindingRegistry;
 
     @Inject
-    private ProtocolWebhook protocolWebhook;
+    private ProtocolWebhookRegistry protocolWebhookRegistry;
 
     @Inject
     private ContractNegotiationObservable observable;
@@ -209,7 +209,7 @@ public class ContractCoreExtension implements ServiceExtension {
                 .policyStore(policyStore)
                 .batchSize(consumerStateMachineBatchSize)
                 .entityRetryProcessConfiguration(consumerEntityRetryProcessConfiguration())
-                .protocolWebhook(protocolWebhook)
+                .protocolWebhookRegistry(protocolWebhookRegistry)
                 .pendingGuard(pendingGuard)
                 .build();
 
@@ -226,7 +226,7 @@ public class ContractCoreExtension implements ServiceExtension {
                 .policyStore(policyStore)
                 .batchSize(providerStateMachineBatchSize)
                 .entityRetryProcessConfiguration(providerEntityRetryProcessConfiguration())
-                .protocolWebhook(protocolWebhook)
+                .protocolWebhookRegistry(protocolWebhookRegistry)
                 .pendingGuard(pendingGuard)
                 .build();
 

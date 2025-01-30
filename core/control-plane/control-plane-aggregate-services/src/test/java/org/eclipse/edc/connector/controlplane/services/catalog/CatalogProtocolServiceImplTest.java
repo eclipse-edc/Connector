@@ -87,8 +87,8 @@ class CatalogProtocolServiceImplTest {
             var dataService = DataService.Builder.newInstance().build();
 
             when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-            when(dataServiceRegistry.getDataServices()).thenReturn(List.of(dataService));
-            when(datasetResolver.query(any(), any())).thenReturn(Stream.of(createDataset()));
+            when(dataServiceRegistry.getDataServices(any())).thenReturn(List.of(dataService));
+            when(datasetResolver.query(any(), any(), any())).thenReturn(Stream.of(createDataset()));
 
             var result = service.getCatalog(message, tokenRepresentation);
 
@@ -97,7 +97,7 @@ class CatalogProtocolServiceImplTest {
                 assertThat(catalog.getDatasets()).hasSize(1);
                 assertThat(catalog.getParticipantId()).isEqualTo("participantId");
             });
-            verify(datasetResolver).query(eq(participantAgent), eq(querySpec));
+            verify(datasetResolver).query(eq(participantAgent), eq(querySpec), eq("protocol"));
             verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
         }
 
@@ -125,12 +125,12 @@ class CatalogProtocolServiceImplTest {
             var dataset = createDataset();
 
             when(protocolTokenValidator.verify(eq(tokenRepresentation), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(datasetResolver.getById(any(), any())).thenReturn(dataset);
+            when(datasetResolver.getById(any(), any(), any())).thenReturn(dataset);
 
-            var result = service.getDataset("datasetId", tokenRepresentation);
+            var result = service.getDataset("datasetId", tokenRepresentation, "protocol");
 
             assertThat(result).isSucceeded().isEqualTo(dataset);
-            verify(datasetResolver).getById(participantAgent, "datasetId");
+            verify(datasetResolver).getById(participantAgent, "datasetId", "protocol");
             verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
         }
 
@@ -140,9 +140,9 @@ class CatalogProtocolServiceImplTest {
             var tokenRepresentation = createTokenRepresentation();
 
             when(protocolTokenValidator.verify(eq(tokenRepresentation), any())).thenReturn(ServiceResult.success(participantAgent));
-            when(datasetResolver.getById(any(), any())).thenReturn(null);
+            when(datasetResolver.getById(any(), any(), any())).thenReturn(null);
 
-            var result = service.getDataset("datasetId", tokenRepresentation);
+            var result = service.getDataset("datasetId", tokenRepresentation, "protocol");
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         }
@@ -153,7 +153,7 @@ class CatalogProtocolServiceImplTest {
 
             when(protocolTokenValidator.verify(eq(tokenRepresentation), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
-            var result = service.getDataset("datasetId", tokenRepresentation);
+            var result = service.getDataset("datasetId", tokenRepresentation, "protocol");
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
         }

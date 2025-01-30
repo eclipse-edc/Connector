@@ -63,32 +63,32 @@ public class DatasetResolverImpl implements DatasetResolver {
 
     @Override
     @NotNull
-    public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec) {
+    public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec, String protocol) {
         var resolved = contractDefinitionResolver.resolveFor(agent);
         var contractDefinitions = resolved.contractDefinitions();
         if (contractDefinitions.isEmpty()) {
             return Stream.empty();
         }
-        
+
         var assetsQuery = QuerySpec.Builder.newInstance().offset(0).limit(MAX_VALUE).filter(querySpec.getFilterExpression()).build();
         return assetIndex.queryAssets(assetsQuery)
-                .map(asset -> toDataset(contractDefinitions, asset, resolved.policies()))
+                .map(asset -> toDataset(contractDefinitions, asset, resolved.policies(), protocol))
                 .filter(Dataset::hasOffers)
                 .skip(querySpec.getOffset())
                 .limit(querySpec.getLimit());
     }
 
     @Override
-    public Dataset getById(ParticipantAgent agent, String id) {
+    public Dataset getById(ParticipantAgent agent, String id, String protocol) {
         var resolved = contractDefinitionResolver.resolveFor(agent);
         var contractDefinitions = resolved.contractDefinitions();
         if (contractDefinitions.isEmpty()) {
             return null;
         }
-        
+
         return Optional.of(id)
                 .map(assetIndex::findById)
-                .map(asset -> toDataset(contractDefinitions, asset, resolved.policies()))
+                .map(asset -> toDataset(contractDefinitions, asset, resolved.policies(), protocol))
                 .filter(Dataset::hasOffers)
                 .orElse(null);
     }
@@ -106,9 +106,9 @@ public class DatasetResolverImpl implements DatasetResolver {
                         .build());
     }
 
-    private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset, Map<String, Policy> policies) {
+    private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset, Map<String, Policy> policies, String protocol) {
 
-        var distributions = distributionResolver.getDistributions(asset);
+        var distributions = distributionResolver.getDistributions(protocol, asset);
         var datasetBuilder = buildDataset(asset)
                 .id(asset.getId())
                 .distributions(distributions)
