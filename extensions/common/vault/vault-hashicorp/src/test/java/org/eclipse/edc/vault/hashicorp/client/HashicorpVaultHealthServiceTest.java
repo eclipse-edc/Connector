@@ -26,6 +26,8 @@ import okio.Buffer;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.http.spi.FallbackFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProvider;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -94,17 +96,20 @@ class HashicorpVaultHealthServiceTest {
 
     private final EdcHttpClient httpClient = mock();
     private final Monitor monitor = mock();
+    private final HashicorpVaultTokenProvider tokenProvider = new HashicorpVaultTokenProviderImpl(VAULT_TOKEN);
     private final HashicorpVaultHealthService vaultClient = new HashicorpVaultHealthService(
             httpClient,
             OBJECT_MAPPER,
             monitor,
-            HASHICORP_VAULT_CLIENT_CONFIG_VALUES);
+            HASHICORP_VAULT_CLIENT_CONFIG_VALUES,
+            tokenProvider);
 
     private final HashicorpVaultHealthService vaultClientWithFolder = new HashicorpVaultHealthService(
             httpClient,
             OBJECT_MAPPER,
             monitor,
-            HASHICORP_VAULT_CLIENT_CONFIG_VALUES_WITH_FOLDER);
+            HASHICORP_VAULT_CLIENT_CONFIG_VALUES_WITH_FOLDER,
+            tokenProvider);
 
     @Nested
     class HealthCheck {
