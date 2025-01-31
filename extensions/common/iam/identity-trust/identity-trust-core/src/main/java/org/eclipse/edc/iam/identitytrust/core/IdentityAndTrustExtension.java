@@ -28,6 +28,7 @@ import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToPresentationResponseMessageTransformer;
 import org.eclipse.edc.iam.verifiablecredentials.VerifiableCredentialValidationServiceImpl;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring.BitstringStatusListRevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021.StatusList2021RevocationService;
@@ -37,6 +38,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -70,6 +72,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DCP_CONTEXT_URL;
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_0_8;
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_1_0;
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_V_1_0_CONTEXT;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.JWT_VC_TOKEN_CONTEXT;
@@ -79,6 +85,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     public static final long DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS = 15 * 60 * 1000L;
     public static final String DCP_SELF_ISSUED_TOKEN_CONTEXT = "dcp-si";
+    public static final String DCP_CLIENT_CONTEXT = "dcp-client";
     public static final String JSON_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
     public static final long DEFAULT_CLEANUP_PERIOD_SECONDS = 60;
     @Setting(description = "Validity period of cached StatusList2021 credential entries in milliseconds.", defaultValue = DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS + "", key = "edc.iam.credential.revocation.cache.validity")
@@ -87,6 +94,10 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private String issuerId;
     @Setting(description = "The period of the JTI entry reaper thread in seconds", defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "", key = "edc.sql.store.jti.cleanup.period")
     private long reaperCleanupPeriod;
+
+    @Setting(description = "If set enable the dcp v0.8 namespace will be used", key = "edc.dcp.v08.enabled", required = false, defaultValue = "false")
+    private boolean enableDcpV08;
+
     @Inject
     private SecureTokenService secureTokenService;
 
@@ -201,8 +212,13 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Provider
     public CredentialServiceClient getCredentialServiceClient(ServiceExtensionContext context) {
         if (credentialServiceClient == null) {
+
+            var clientTypeTransformerRegistry = typeTransformerRegistry.forContext(DCP_CLIENT_CONTEXT);
+            clientTypeTransformerRegistry.register(new JsonObjectToPresentationResponseMessageTransformer(typeManager, JSON_LD, dcpNamespace()));
+
+
             credentialServiceClient = new DefaultCredentialServiceClient(httpClient, Json.createBuilderFactory(Map.of()),
-                    typeManager, JSON_LD, typeTransformerRegistry, jsonLd, context.getMonitor());
+                    typeManager, JSON_LD, clientTypeTransformerRegistry, jsonLd, context.getMonitor(), dcpContext());
         }
         return credentialServiceClient;
     }
@@ -225,6 +241,13 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         return presentationVerifier;
     }
 
+    private JsonLdNamespace dcpNamespace() {
+        return enableDcpV08 ? DSPACE_DCP_NAMESPACE_V_0_8 : DSPACE_DCP_NAMESPACE_V_1_0;
+    }
+
+    private String dcpContext() {
+        return enableDcpV08 ? DCP_CONTEXT_URL : DSPACE_DCP_V_1_0_CONTEXT;
+    }
 
     @NotNull
     private TokenValidationAction tokenValidationAction() {

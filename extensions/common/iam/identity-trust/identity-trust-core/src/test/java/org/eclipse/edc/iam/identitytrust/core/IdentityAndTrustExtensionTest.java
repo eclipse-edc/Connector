@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +34,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension.DCP_CLIENT_CONTEXT;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -44,6 +46,7 @@ class IdentityAndTrustExtensionTest {
     private static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
     private static final String CLEANUP_PERIOD = "edc.sql.store.jti.cleanup.period";
     private final JtiValidationStore storeMock = mock();
+    private final TypeTransformerRegistry transformerRegistry = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -51,12 +54,14 @@ class IdentityAndTrustExtensionTest {
         context.registerService(TypeManager.class, new JacksonTypeManager());
         context.registerService(JtiValidationStore.class, storeMock);
         context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
+        context.registerService(TypeTransformerRegistry.class, transformerRegistry);
 
         var config = ConfigFactory.fromMap(Map.of(
                 CONNECTOR_DID_PROPERTY, "did:web:test",
                 CLEANUP_PERIOD, "1"
         ));
         when(context.getConfig()).thenReturn(config);
+        when(transformerRegistry.forContext(DCP_CLIENT_CONTEXT)).thenReturn(transformerRegistry);
     }
 
     @Test
