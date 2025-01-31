@@ -33,6 +33,7 @@ import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -152,17 +153,9 @@ class TransferPullEndToEndTest {
 
             CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
 
-            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
+            var edrEntry = assertConsumerCanAccessData(transferProcessId);
 
-            // Do the transfer
-            var msg = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
-
-            // checks that the EDR is gone once the contract expires
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(transferProcessId)));
-
-            // checks that transfer fails
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data"))));
+            assertConsumerCanNotAccessData(transferProcessId, edrEntry);
 
             providerDataSource.verify(request("/source").withMethod("GET"));
         }
@@ -178,27 +171,17 @@ class TransferPullEndToEndTest {
 
             CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
 
-            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
-
-            var msg = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
+            var edrEntry = assertConsumerCanAccessData(transferProcessId);
 
             CONSUMER.suspendTransfer(transferProcessId, "supension");
 
             CONSUMER.awaitTransferToBeInState(transferProcessId, SUSPENDED);
-
-            // checks that the EDR is gone once the transfer has been suspended
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(transferProcessId)));
-            // checks that transfer fails
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data"))));
+            assertConsumerCanNotAccessData(transferProcessId, edrEntry);
 
             CONSUMER.resumeTransfer(transferProcessId);
 
-            // check that transfer is available again
             CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
-            var secondEdr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
-            var secondMessage = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(secondEdr, Map.of("message", secondMessage), body -> assertThat(body).isEqualTo("data")));
+            assertConsumerCanAccessData(transferProcessId);
 
             providerDataSource.verify(request("/source").withMethod("GET"));
         }
@@ -214,10 +197,7 @@ class TransferPullEndToEndTest {
 
             CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
 
-            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
-
-            var msg = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
+            var edrEntry = assertConsumerCanAccessData(consumerTransferProcessId);
 
             var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
                     .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
@@ -226,19 +206,13 @@ class TransferPullEndToEndTest {
             PROVIDER.suspendTransfer(providerTransferProcessId, "supension");
 
             PROVIDER.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
-
-            // checks that the EDR is gone once the transfer has been suspended
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(consumerTransferProcessId)));
-            // checks that transfer fails
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data"))));
+            assertConsumerCanNotAccessData(consumerTransferProcessId, edrEntry);
 
             PROVIDER.resumeTransfer(providerTransferProcessId);
 
             // check that transfer is available again
             PROVIDER.awaitTransferToBeInState(providerTransferProcessId, STARTED);
-            var secondEdr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
-            var secondMessage = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(secondEdr, Map.of("message", secondMessage), body -> assertThat(body).isEqualTo("data")));
+            assertConsumerCanAccessData(consumerTransferProcessId);
 
             providerDataSource.verify(request("/source").withMethod("GET"));
         }
@@ -262,10 +236,7 @@ class TransferPullEndToEndTest {
 
             CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
 
-            await().atMost(timeout).untilAsserted(() -> {
-                var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
-                CONSUMER.pullData(edr, Map.of("message", "some information"), body -> assertThat(body).isEqualTo("data"));
-            });
+            assertConsumerCanAccessData(consumerTransferProcessId);
 
             provisionServer.verify(request("/provision"));
             provisionServer.clear(request("provision"));
@@ -312,6 +283,73 @@ class TransferPullEndToEndTest {
             CONSUMER.awaitTransferToBeInState(transferProcessId, TERMINATED);
         }
 
+        @Test
+        void shouldTerminateTransfer_whenProviderTerminatesIt() {
+            var assetId = UUID.randomUUID().toString();
+            createResourcesOnProvider(assetId, httpSourceDataAddress());
+
+            var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withTransferType("HttpData-PULL")
+                    .execute();
+
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+
+            var edrEntry = assertConsumerCanAccessData(consumerTransferProcessId);
+
+            var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
+                    .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
+                    .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+
+            PROVIDER.terminateTransfer(providerTransferProcessId);
+
+            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
+
+            assertConsumerCanNotAccessData(consumerTransferProcessId, edrEntry);
+        }
+
+        @Test
+        void shouldTerminateTransfer_whenConsumerTerminatesIt() {
+            var assetId = UUID.randomUUID().toString();
+            createResourcesOnProvider(assetId, httpSourceDataAddress());
+
+            var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withTransferType("HttpData-PULL")
+                    .execute();
+
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+
+            var edrEntry = assertConsumerCanAccessData(consumerTransferProcessId);
+
+            var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
+                    .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
+                    .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+
+            CONSUMER.terminateTransfer(consumerTransferProcessId);
+
+            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
+
+            assertConsumerCanNotAccessData(consumerTransferProcessId, edrEntry);
+        }
+
+        private EdrMessage assertConsumerCanAccessData(String consumerTransferProcessId) {
+            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
+            var msg = UUID.randomUUID().toString();
+            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
+
+            return new EdrMessage(edr, msg);
+        }
+
+        private void assertConsumerCanNotAccessData(String consumerTransferProcessId, EdrMessage edrMessage) {
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(consumerTransferProcessId)));
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(
+                    () -> CONSUMER.pullData(edrMessage.address(), Map.of("message", edrMessage.message()),
+                            body -> assertThat(body).isEqualTo("data"))
+                    )
+            );
+        }
+
         public JsonObject createCallback(String url, boolean transactional, Set<String> events) {
             return Json.createObjectBuilder()
                     .add(TYPE, EDC_NAMESPACE + "CallbackAddress")
@@ -339,6 +377,8 @@ class TransferPullEndToEndTest {
                 throw new RuntimeException(e);
             }
         }
+
+        private record EdrMessage(DataAddress address, String message) { }
 
         /**
          * Mocked http provisioner

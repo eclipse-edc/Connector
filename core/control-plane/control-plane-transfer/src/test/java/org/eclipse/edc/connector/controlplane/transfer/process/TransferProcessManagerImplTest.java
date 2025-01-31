@@ -98,6 +98,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
@@ -339,108 +340,170 @@ class TransferProcessManagerImplTest {
         });
     }
 
-    @Test
-    void terminating_provider_shouldTransitionToDeprovisioning_whenMessageSentCorrectly() {
-        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).correlationId("correlationId").build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
-        when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
-        when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
+    @Nested
+    class TerminatingProvider {
+        @Test
+        void shouldTransitionToDeprovisioning_whenMessageSentCorrectly() {
+            var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).correlationId("correlationId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
+            when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            verify(dataFlowManager).terminate(process);
-            var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
-            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
-            var message = captor.getValue();
-            assertThat(message.getProviderPid()).isEqualTo(process.getId());
-            assertThat(message.getConsumerPid()).isEqualTo("correlationId");
-            assertThat(message.getProcessId()).isEqualTo("correlationId");
-            verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == DEPROVISIONING.code()));
-            verify(listener).terminated(process);
-        });
+            await().untilAsserted(() -> {
+                verify(dataFlowManager).terminate(process);
+                var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
+                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                var message = captor.getValue();
+                assertThat(message.getProviderPid()).isEqualTo(process.getId());
+                assertThat(message.getConsumerPid()).isEqualTo("correlationId");
+                assertThat(message.getProcessId()).isEqualTo("correlationId");
+                verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == DEPROVISIONING.code()));
+                verify(listener).terminated(process);
+            });
+        }
+
+        @Test
+        void shouldUpdateStateCountForRetry_whenFailureAndRetriesNotExhausted() {
+            var process = createTransferProcess(TERMINATING).toBuilder().type(PROVIDER).build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATING.code()));
+            });
+        }
+
+        @Test
+        void shouldTransitionToTerminatedIfFatalFailure() {
+            var process = createTransferProcess(TERMINATING).toBuilder().type(PROVIDER).build();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
+            });
+        }
+
+        @Test
+        void shouldTransitToTerminated_whenFailureAndRetriesExhausted() {
+            var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).stateCount(RETRY_EXHAUSTED).build();
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == TERMINATED.code()));
+            });
+        }
     }
 
-    @Test
-    void terminating_consumer_shouldTransitionToTerminated_whenMessageSentCorrectly() {
-        var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER).correlationId("correlationId").build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
-        when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+    @Nested
+    class TerminatingConsumer {
+        @Test
+        void shouldTransitionToTerminated_whenMessageSentCorrectly() {
+            var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER).correlationId("correlationId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
+            when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
-            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
-            var message = captor.getValue();
-            assertThat(message.getProviderPid()).isEqualTo("correlationId");
-            assertThat(message.getConsumerPid()).isEqualTo(process.getId());
-            assertThat(message.getProcessId()).isEqualTo("correlationId");
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
-            verify(listener).terminated(process);
-        });
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
+                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                var message = captor.getValue();
+                assertThat(message.getProviderPid()).isEqualTo("correlationId");
+                assertThat(message.getConsumerPid()).isEqualTo(process.getId());
+                assertThat(message.getProcessId()).isEqualTo("correlationId");
+                verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
+                verify(listener).terminated(process);
+            });
+        }
+
+        @Test
+        void shouldNotTerminateDataTransfer() {
+            var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER).correlationId("correlationId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
+            when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verifyNoInteractions(dataFlowManager);
+                var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
+                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                var message = captor.getValue();
+                assertThat(message.getProcessId()).isEqualTo("correlationId");
+                verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATED.code()));
+                verify(listener).terminated(process);
+            });
+        }
     }
 
-    @Test
-    void terminating_shouldNotTerminateDataTransfer_whenIsConsumer() {
-        var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER).correlationId("correlationId").build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
-        when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+    @Nested
+    class TerminatingRequestedProvider {
+        @Test
+        void shouldNotSendTheMessage_whenConsumerRequestedTermination() {
+            var process = createTransferProcessBuilder(TERMINATING_REQUESTED).type(PROVIDER).correlationId("correlationId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING_REQUESTED.code()).build());
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            verifyNoInteractions(dataFlowManager);
-            var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
-            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
-            var message = captor.getValue();
-            assertThat(message.getProcessId()).isEqualTo("correlationId");
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATED.code()));
-            verify(listener).terminated(process);
-        });
+            await().untilAsserted(() -> {
+                verify(dataFlowManager).terminate(process);
+                verifyNoInteractions(dispatcherRegistry);
+                verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == DEPROVISIONING.code()));
+                verify(listener).terminated(process);
+            });
+        }
+
+        @Test
+        void shouldTransitionToTerminatingRequested_whenDataFlowTerminationFails() {
+            var process = createTransferProcessBuilder(TERMINATING_REQUESTED).type(PROVIDER).correlationId("correlationId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING_REQUESTED.code()).build());
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(dataFlowManager).terminate(process);
+                verifyNoInteractions(dispatcherRegistry);
+                verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == TERMINATING_REQUESTED.code()));
+            });
+        }
+
     }
 
-    @Test
-    void terminating_onFailureAndRetriesNotExhausted_updatesStateCountForRetry() {
-        var process = createTransferProcess(TERMINATING).toBuilder().type(PROVIDER).build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+    @Nested
+    class TerminatingRequestedConsumer {
+        @Test
+        void shouldNotSendTheMessage_whenProviderRequestedTermination() {
+            var process = createTransferProcessBuilder(TERMINATING_REQUESTED).type(CONSUMER).correlationId("correlationId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING_REQUESTED.code()).build());
 
-        manager.start();
+            manager.start();
 
-        await().untilAsserted(() -> {
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATING.code()));
-        });
-    }
+            await().untilAsserted(() -> {
+                verifyNoInteractions(dispatcherRegistry);
+                verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
+                verify(listener).terminated(process);
+            });
+        }
 
-    @Test
-    void terminating_shouldTransitionToTerminatedIfFatalFailure() {
-        var process = createTransferProcess(TERMINATING).toBuilder().type(PROVIDER).build();
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
-        });
-    }
-
-    @Test
-    void terminating_onFailureAndRetriesExhausted_transitToTerminated() {
-        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).stateCount(RETRY_EXHAUSTED).build();
-        when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == TERMINATED.code()));
-        });
     }
 
     @Test
