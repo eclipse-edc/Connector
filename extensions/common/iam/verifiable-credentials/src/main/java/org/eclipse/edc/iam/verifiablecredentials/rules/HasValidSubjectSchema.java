@@ -55,9 +55,9 @@ public class HasValidSubjectSchema implements CredentialValidationRule {
                     .toList();
             return validationMessages.isEmpty()
                     ? Result.success()
-                    : Result.failure("Error validating CredentialSubject against schema: " + validationMessages); //ValidationMessage overwrites toString()
+                    : Result.<Void>failure("Error validating CredentialSubject against schema: " + validationMessages); //ValidationMessage overwrites toString()
 
-        }).reduce(Result::merge).orElseGet(Result::success).map(i -> null);
+        }).reduce(Result::merge).orElseGet(Result::success);
     }
 
 }
