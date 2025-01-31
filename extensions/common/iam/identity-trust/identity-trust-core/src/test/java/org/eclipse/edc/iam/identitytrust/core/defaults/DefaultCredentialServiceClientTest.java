@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_V_1_0_CONTEXT;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
@@ -96,7 +97,7 @@ class DefaultCredentialServiceClientTest {
         var jsonLdMock = mock(JsonLd.class);
         when(jsonLdMock.expand(any())).thenAnswer(a -> success(a.getArgument(0)));
         client = new DefaultCredentialServiceClient(httpClientMock, Json.createBuilderFactory(Map.of()),
-                typeManager, "test", transformerRegistry, jsonLdMock, mock());
+                typeManager, "test", transformerRegistry, jsonLdMock, mock(), DSPACE_DCP_V_1_0_CONTEXT);
 
         when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
     }
