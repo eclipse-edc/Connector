@@ -22,8 +22,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_JWT_VC;
 import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_JWT_VC_NO_DATES;
+import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_JWT_VC_NO_NBF;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -53,7 +55,7 @@ class JwtToVerifiableCredentialTransformerTest {
     }
 
     @Test
-    @DisplayName("VC claims do not contain dates, but JWT 'iat' and 'exp' are used as fallbacks")
+    @DisplayName("VC claims do not contain dates, but JWT 'nbf' and 'exp' are used as fallbacks")
     void transform_credentialHasNoDates() {
         var vc = transformer.transform(EXAMPLE_JWT_VC_NO_DATES, context);
 
@@ -63,6 +65,13 @@ class JwtToVerifiableCredentialTransformerTest {
         assertThat(vc.getIssuanceDate()).isBefore(vc.getExpirationDate());
 
         verifyNoInteractions(context);
+    }
+
+    @Test
+    void transform_jwtHasNoNbf_expectError() {
+        assertThatThrownBy(() -> transformer.transform(EXAMPLE_JWT_VC_NO_NBF, context))
+                .hasMessageContaining("Credential must contain `issuanceDate`/`validFrom` property.");
+
     }
 
     @Test

@@ -96,7 +96,7 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
                 extractDate(vc.get(EXPIRATION_DATE_PROPERTY), claims.getExpirationTime()).or(() -> extractDate(vc.get(VALID_UNTIL_PROPERTY), claims.getExpirationTime())).ifPresent(builder::expirationDate);
 
                 // issuance date
-                extractDate(vc.get(ISSUANCE_DATE_PROPERTY), claims.getIssueTime()).or(() -> extractDate(vc.get(VALID_FROM_PROPERTY), claims.getIssueTime())).ifPresent(builder::issuanceDate);
+                extractDate(vc.get(ISSUANCE_DATE_PROPERTY), claims.getNotBeforeTime()).or(() -> extractDate(vc.get(VALID_FROM_PROPERTY), claims.getNotBeforeTime())).ifPresent(builder::issuanceDate);
 
                 // take issuer from JWT claim of from VC object
                 var issuer = ofNullable(claims.getIssuer()).or(() -> ofNullable(vc.get("issuer")).map(Object::toString)).orElse(null);
