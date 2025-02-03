@@ -110,5 +110,5 @@ jersey-core = ["jersey.server", "jersey.common", "jersey.jackson", "jersey.multi
 jupiter = ["junit-jupiter-api", "junit-jupiter-params"]
 
 [plugins]
-shadow = { id = "com.gradleup.shadow", version = "8.3.5" }
+shadow = { id = "com.gradleup.shadow", version = "8.3.6" }
 swagger = { id = "io.swagger.core.v3.swagger-gradle-plugin", version.ref = "swagger" }
