@@ -2,7 +2,7 @@
 format.version = "1.1"
 
 [versions]
-apacheCommonsPool2 = "2.12.0"
+apacheCommonsPool2 = "2.12.1"
 apicatalog = "0.14.0"
 assertj = "3.27.3"
 atomikos = "6.0.0"
