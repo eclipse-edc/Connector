@@ -16,6 +16,7 @@ package org.eclipse.edc.statemachine.retry;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;
 
 import java.time.Clock;
 import java.util.function.Consumer;
@@ -24,7 +25,10 @@ import java.util.function.Consumer;
  * Represent a process on a {@link StatefulEntity} that is retried after a certain delay if it fails.
  * This works only used on a state machine, where states are persisted.
  * The process is a unit of logic that can be executed on the entity.
+ *
+ * @deprecated use {@link RetryProcessor}.
  */
+@Deprecated(since = "0.12.0")
 public abstract class RetryProcess<E extends StatefulEntity<E>, SELF extends RetryProcess<E, SELF>> {
 
     private final E entity;
@@ -64,7 +68,7 @@ public abstract class RetryProcess<E extends StatefulEntity<E>, SELF extends Ret
                 }
                 return false;
             } else {
-                monitor.debug(String.format("Entity %s %s retry #%d of %d.", entity.getId(), entity.getClass().getSimpleName(), entity.getStateCount() - 1, configuration.getRetryLimit()));
+                monitor.debug(String.format("Entity %s %s retry #%d of %d.", entity.getId(), entity.getClass().getSimpleName(), entity.getStateCount() - 1, configuration.retryLimit()));
             }
         }
 
@@ -86,12 +90,12 @@ public abstract class RetryProcess<E extends StatefulEntity<E>, SELF extends Ret
      * @return {@code true} if the entity should not be sent anymore.
      */
     protected boolean retriesExhausted(E entity) {
-        return entity.getStateCount() > configuration.getRetryLimit();
+        return entity.getStateCount() > configuration.retryLimit();
     }
 
     private long delayMillis(E entity) {
         // Get a new instance of WaitStrategy.
-        var delayStrategy = configuration.getDelayStrategySupplier().get();
+        var delayStrategy = configuration.delayStrategySupplier().get();
 
         // Set the WaitStrategy to have observed <retryCount> previous failures.
         // This is relevant for stateful strategies such as exponential wait.

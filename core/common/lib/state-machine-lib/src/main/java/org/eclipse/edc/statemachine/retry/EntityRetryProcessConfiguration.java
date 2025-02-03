@@ -22,21 +22,6 @@ import java.util.function.Supplier;
 /**
  * Configure a {@link RetryProcess}
  */
-public class EntityRetryProcessConfiguration {
+public record EntityRetryProcessConfiguration(int retryLimit, Supplier<WaitStrategy> delayStrategySupplier) {
 
-    private final int retryLimit;
-    private final Supplier<WaitStrategy> delayStrategySupplier;
-
-    public EntityRetryProcessConfiguration(int retryLimit, Supplier<WaitStrategy> delayStrategySupplier) {
-        this.retryLimit = retryLimit;
-        this.delayStrategySupplier = delayStrategySupplier;
-    }
-
-    public int getRetryLimit() {
-        return retryLimit;
-    }
-
-    public Supplier<WaitStrategy> getDelayStrategySupplier() {
-        return delayStrategySupplier;
-    }
 }
