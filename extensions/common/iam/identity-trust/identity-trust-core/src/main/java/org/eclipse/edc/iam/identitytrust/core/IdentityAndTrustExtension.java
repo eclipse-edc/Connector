@@ -191,7 +191,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         var validationAction = tokenValidationAction();
 
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context),
-                trustedIssuerRegistry, revocationServiceRegistry, clock);
+                trustedIssuerRegistry, revocationServiceRegistry, clock, typeManager.getMapper());
 
         return new IdentityAndTrustService(secureTokenService, issuerId,
                 getCredentialServiceClient(context), validationAction, credentialServiceUrlResolver, claimTokenFunction,
