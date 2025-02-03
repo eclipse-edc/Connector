@@ -22,7 +22,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
-import org.eclipse.edc.iam.identitytrust.spi.DcpConstants;
 import org.eclipse.edc.iam.identitytrust.spi.model.PresentationQueryMessage;
 import org.eclipse.edc.iam.identitytrust.spi.model.PresentationResponseMessage;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants;
@@ -55,8 +54,9 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonLd jsonLd;
     private final Monitor monitor;
+    private final String dcpContextUrl;
 
-    public DefaultCredentialServiceClient(EdcHttpClient httpClient, JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, Monitor monitor) {
+    public DefaultCredentialServiceClient(EdcHttpClient httpClient, JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, Monitor monitor, String dcpContextUrl) {
         this.httpClient = httpClient;
         this.jsonFactory = jsonFactory;
         this.typeManager = typeManager;
@@ -64,6 +64,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
         this.transformerRegistry = transformerRegistry;
         this.jsonLd = jsonLd;
         this.monitor = monitor;
+        this.dcpContextUrl = dcpContextUrl;
     }
 
     @Override
@@ -154,7 +155,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
         return jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, jsonFactory.createArrayBuilder()
                         .add(VcConstants.PRESENTATION_EXCHANGE_URL)
-                        .add(DcpConstants.DCP_CONTEXT_URL))
+                        .add(dcpContextUrl))
                 .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TERM)
                 .add("scope", scopeArray.build())
                 .build();
