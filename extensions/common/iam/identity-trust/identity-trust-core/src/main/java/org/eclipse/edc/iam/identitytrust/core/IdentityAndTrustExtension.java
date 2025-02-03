@@ -95,7 +95,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Setting(description = "The period of the JTI entry reaper thread in seconds", defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "", key = "edc.sql.store.jti.cleanup.period")
     private long reaperCleanupPeriod;
 
-    @Setting(description = "If set enable the dcp v0.8 namespace will be used", key = "edc.dcp.v08.enabled", required = false, defaultValue = "false")
+    @Setting(description = "If set enable the dcp v0.8 namespace will be used", key = "edc.dcp.v08.forced", required = false, defaultValue = "false")
     private boolean enableDcpV08;
 
     @Inject
