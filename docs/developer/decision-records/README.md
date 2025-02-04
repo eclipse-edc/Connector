@@ -72,3 +72,4 @@
 - [2025-01-21 Multiple Protocol Webhooks](./2025-01-21-multipe-protocol-webhooks)
 - [2025-01-28 Async Protocol Message Process](./2025-01-28-async-protocol-message-processing)
 - [2025-02-06 Object mutability and copying](./2025-02-06-object_mutability_and_copying)
+- [2025-02-07 Deprecation of HTTP Proxy in the Data Plane](./2025-02-07-http-proxy-data-plane-deprecation)
