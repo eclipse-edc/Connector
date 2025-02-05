@@ -14,11 +14,15 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+
 import java.util.Map;
 
 import static java.util.Optional.ofNullable;
 
-public record CredentialStatus(String id, String type, Map<String, Object> additionalProperties) {
+public record CredentialStatus(String id, String type,
+                               @JsonAnySetter @JsonAnyGetter Map<String, Object> additionalProperties) {
     public static final String CREDENTIAL_STATUS_ID_PROPERTY = "@id";
     public static final String CREDENTIAL_STATUS_TYPE_PROPERTY = "@type";
 
