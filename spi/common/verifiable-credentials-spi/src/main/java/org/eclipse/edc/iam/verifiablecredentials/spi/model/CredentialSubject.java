@@ -62,15 +62,19 @@ public class CredentialSubject {
         return id;
     }
 
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     public static final class Builder {
         private final CredentialSubject instance;
 
-        private Builder() {
-            instance = new CredentialSubject();
+        private Builder(CredentialSubject instance) {
+            this.instance = instance;
         }
 
         public static Builder newInstance() {
-            return new Builder();
+            return new Builder(new CredentialSubject());
         }
 
         public Builder claims(Map<String, Object> claims) {

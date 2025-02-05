@@ -119,6 +119,10 @@ public class VerifiableCredential {
         return dataModelVersion;
     }
 
+    public <T extends VerifiableCredential, B extends Builder<T, B>> Builder<T, B> toBuilder() {
+        return new Builder(this);
+    }
+
     public static class Builder<T extends VerifiableCredential, B extends Builder<T, B>> {
         protected final T instance;
 
