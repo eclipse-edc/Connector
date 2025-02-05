@@ -71,4 +71,5 @@
 - [2025-01-17 key management improvements](./2025-01-17-key-management-improvement)
 - [2025-01-21 Multiple Protocol Webhooks](./2025-01-21-multipe-protocol-webhooks)
 - [2025-01-28 Async Protocol Message Process](./2025-01-28-async-protocol-message-processing)
+- [2025-02-05 State Machine Retry Processor refactor](./2025-02-05-state-machine-retry-processor-refactor)
 - [2025-02-06 Object mutability and copying](./2025-02-06-object_mutability_and_copying)
