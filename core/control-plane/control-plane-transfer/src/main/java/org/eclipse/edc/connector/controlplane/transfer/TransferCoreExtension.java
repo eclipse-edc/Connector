@@ -20,15 +20,12 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.AddProvisionedResourceCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.DeprovisionCompleteCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.edr.DataAddressToEndpointDataReferenceTransformer;
-import org.eclipse.edc.connector.controlplane.transfer.edr.EndpointDataReferenceReceiverRegistryImpl;
 import org.eclipse.edc.connector.controlplane.transfer.listener.TransferProcessEventListener;
 import org.eclipse.edc.connector.controlplane.transfer.process.TransferProcessManagerImpl;
 import org.eclipse.edc.connector.controlplane.transfer.provision.DeprovisionResponsesHandler;
 import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionResponsesHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
-import org.eclipse.edc.connector.controlplane.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
-import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
@@ -66,7 +63,7 @@ import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_SE
 /**
  * Provides core data transfer services to the system.
  */
-@Provides({ TransferProcessManager.class, EndpointDataReferenceReceiverRegistry.class })
+@Provides(TransferProcessManager.class)
 @Extension(value = TransferCoreExtension.NAME)
 public class TransferCoreExtension implements ServiceExtension {
 
@@ -154,11 +151,6 @@ public class TransferCoreExtension implements ServiceExtension {
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(stateMachineIterationWaitMillis);
 
         typeTransformerRegistry.register(new DataAddressToEndpointDataReferenceTransformer());
-
-        var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl(typeTransformerRegistry);
-        context.registerService(EndpointDataReferenceReceiverRegistry.class, endpointDataReferenceReceiverRegistry);
-
-        eventRouter.register(TransferProcessStarted.class, endpointDataReferenceReceiverRegistry);
 
         observable.registerListener(new TransferProcessEventListener(eventRouter, clock));
 

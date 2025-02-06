@@ -54,7 +54,6 @@
         - [Policy Definition](control-plane/api/management-api/policy-definition-api/)
         - [Transfer Process](control-plane/api/management-api/transfer-process-api/)
     - [Data Plane Transfer](control-plane/data-plane-transfer/)
-    - [HTTP Receiver](control-plane/transfer-pull-http-receiver/)
     - Provision
         - [Blob](control-plane/provision/provision-blob/)
         - [HTTP](control-plane/provision/provision-http/)
