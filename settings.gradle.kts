@@ -190,8 +190,6 @@ include(":extensions:control-plane:api:management-api:transfer-process-api")
 include(":extensions:control-plane:api:management-api:edr-cache-api")
 include(":extensions:control-plane:api:management-api:protocol-version-api")
 include(":extensions:control-plane:transfer:transfer-data-plane-signaling")
-include(":extensions:control-plane:transfer:transfer-pull-http-receiver")
-include(":extensions:control-plane:transfer:transfer-pull-http-dynamic-receiver")
 include(":extensions:control-plane:provision:provision-http")
 
 include(":extensions:control-plane:store:sql:asset-index-sql")
