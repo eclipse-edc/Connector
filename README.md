@@ -26,7 +26,7 @@ This is a fork of the [Eclipse EDC Connector](https://github.com/eclipse-edc/Con
 - The `default` branch serves as a default branch for this fork, only containing an entry point with the main README and CI.
 - The `main` branch tracks the **Eclipse EDC** `main` branch. It is not used as the main branch in this fork.
 - The `sovity/x.y.z` branches will contain forked **Eclipse EDC** releases with commits on top.
-    - e.g. the currently maintained 0.2.1 fork, [sovity/0.2.1](https://github.com/sovity/core-edc/blob/sovity/0.2.1/CHANGELOG.md)
+    - e.g. [sovity/0.2.1](https://github.com/sovity/core-edc/blob/sovity/0.2.1/CHANGELOG.md)
 
 Each branch has its own Changelog, as patches are always applied on top of releases and the entire history of the Eclipse EDC Connector is not maintained.
 
