@@ -7,7 +7,7 @@ We will deprecate and eventually remove the data-plane proxy feature from the co
 
 ## Rationale
 
-The current proxy functionality, implemented in the data-plane-api module, allows forwarding the request body, path,
+The current proxy functionality, implemented in the `data-plane-api` module, allows forwarding the request body, path,
 query parameters, and HTTP method from the consumer to the provider’s data source endpoint. However, it lacks key proxy
 capabilities such as response body forwarding, request throttling, load balancing, and caching—features essential to a
 fully-fledged proxy.
