@@ -22,6 +22,10 @@ import java.util.function.BiFunction;
 
 /**
  * Process implementation that handles a process that returns {@link StatusResult}
+ *
+ * @param <E> entity type.
+ * @param <I> process input type.
+ * @param <O> process output type.
  */
 public class ResultRetryProcess<E extends StatefulEntity<E>, I, O> implements Process<E, I, O> {
 

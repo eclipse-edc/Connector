@@ -24,6 +24,10 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 
 /**
  * Process implementation that handles a process that returns {@link CompletableFuture}
+ *
+ * @param <E> entity type.
+ * @param <I> process input type.
+ * @param <O> process output type.
  */
 public class FutureRetryProcess<E extends StatefulEntity<E>, I, O> implements Process<E, I, O> {
 

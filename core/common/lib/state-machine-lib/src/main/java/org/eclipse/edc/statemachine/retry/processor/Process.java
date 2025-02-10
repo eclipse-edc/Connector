@@ -22,11 +22,15 @@ import java.util.function.BiFunction;
 
 /**
  * Represent a single unit of processing on an entity
+ *
+ * @param <E> entity type.
+ * @param <I> process input type.
+ * @param <O> process output type.
  */
 public interface Process<E extends StatefulEntity<E>, I, O> {
 
     /**
-     * Process that returns a {@link StatusResult}
+     * Instantiates a process that returns a {@link StatusResult}
      *
      * @param name the process name, will be used for logging.
      * @param function that executes the process.
@@ -37,7 +41,7 @@ public interface Process<E extends StatefulEntity<E>, I, O> {
     }
 
     /**
-     * Process that returns a {@link CompletableFuture}
+     * Instantiates a process that returns a {@link CompletableFuture}
      *
      * @param name the process name, will be used for logging.
      * @param function that executes the process.
@@ -48,7 +52,7 @@ public interface Process<E extends StatefulEntity<E>, I, O> {
     }
 
     /**
-     * Process that returns a {@link CompletableFuture} that encloses a {@link StatusResult}
+     * Instantiates a process that returns a {@link CompletableFuture} that encloses a {@link StatusResult}
      *
      * @param name the process name, will be used for logging.
      * @param function that executes the process.
@@ -59,7 +63,7 @@ public interface Process<E extends StatefulEntity<E>, I, O> {
     }
 
     /**
-     * Function that wraps the ecloses content type into a {@link CompletableFuture}
+     * Function that wraps the enclosed content type into a {@link CompletableFuture}
      *
      * @param context the process context.
      * @return a future containing the response type.

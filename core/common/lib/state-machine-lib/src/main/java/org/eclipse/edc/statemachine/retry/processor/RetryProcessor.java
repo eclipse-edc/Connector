@@ -35,6 +35,10 @@ import java.util.function.Function;
  * </ul>
  *
  * The component has been designed with a process chain component on which multiple processes can be chained.
+ *
+ * @param <E> entity type.
+ * @param <C> content type that is returned by the {@link #processChain} and that will be available in the {@link #onSuccess} handler.
+ *
  */
 public class RetryProcessor<E extends StatefulEntity<E>, C> {
 
