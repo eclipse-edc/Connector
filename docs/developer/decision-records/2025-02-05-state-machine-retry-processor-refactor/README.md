@@ -79,7 +79,7 @@ until the deprecation expires and the old one can be deleted.
 - `RetryProcessor` the component that will permit to set a chain of `Process`es that can be executed. Based on the result
   of the operation and the retry conditions it will call one of the handlers:
     - `onSuccess`: is called when all the processors execute successfully
-    - `onFailure`: is called when there's a failure but the operation is meant to be retries, depending on how many retries
+    - `onFailure`: is called when there's a failure but the operation is meant to be retried, depending on how many retries
       the entity already went through and what is the configured `retryLimit`
     - `onFinalFailure`: is called when retries are expired or an unrecoverable error happens
       the processor returns true` if the at least one process gets executed or `false` if not (such case happens when a retry
