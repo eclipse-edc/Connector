@@ -82,7 +82,7 @@ until the deprecation expires and the old one can be deleted.
     - `onFailure`: is called when there's a failure but the operation is meant to be retried, depending on how many retries
       the entity already went through and what is the configured `retryLimit`
     - `onFinalFailure`: is called when retries are expired or an unrecoverable error happens
-      the processor returns true` if the at least one process gets executed or `false` if not (such case happens when a retry
+      the processor returns `true` if the at least one process gets executed or `false` if not (such case happens when a retry
       strategy is waiting to be satisfied and processing will happen again on the next state machine iteration)
 
 Please note that all the `Process`es need to be idempotent, this will permit intermediate failures to be retried.
