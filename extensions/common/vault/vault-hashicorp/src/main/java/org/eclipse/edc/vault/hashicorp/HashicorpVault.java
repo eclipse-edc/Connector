@@ -10,6 +10,7 @@
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
  *       Materna Information & Communications SE - Refactoring
+ *       Cofinity-X - implement extensible authentication
  *
  */
 

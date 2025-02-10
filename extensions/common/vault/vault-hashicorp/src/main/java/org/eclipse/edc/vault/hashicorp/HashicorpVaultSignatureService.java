@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025 Confinity-X
+ *  Copyright (c) 2025 Cofinity-X
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Cofinity-X - initial API and implementation
+ *       Cofinity-X - implement extensible authentication
  *
  */
 
