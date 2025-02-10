@@ -85,7 +85,7 @@ until the deprecation expires and the old one can be deleted.
       the processor returns true` if the at least one process gets executed or `false` if not (such case happens when a retry
       strategy is waiting to be satisfied and processing will happen again on the next state machine iteration)
 
-Please note that all the `Process`es need to be idempotent, this will permit intermediate failures to be
+Please note that all the `Process`es need to be idempotent, this will permit intermediate failures to be retried.
 
 ### Design
 
@@ -94,6 +94,8 @@ It is a simple `record` that wraps an entity instance and a content that will be
 ```java
 public record ProcessContext<E extends StatefulEntity<E>, C>(E entity, C content) { }
 ```
+
+An example of its usage is available in the [next section](#process).
 
 #### Process
 It's a component that given a `ProcessContext` in input, it returns a `CompletableFuture<ProcessContext>`, it takes care
