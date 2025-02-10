@@ -19,6 +19,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;
 
 import java.time.Clock;
 import java.util.concurrent.CompletableFuture;
@@ -27,7 +28,10 @@ import java.util.function.Supplier;
 
 /**
  * Provides retry capabilities to an asynchronous process that returns a {@link CompletableFuture} with a {@link StatusResult} content
+ *
+ * @deprecated use {@link RetryProcessor}.
  */
+@Deprecated(since = "0.12.0")
 public class AsyncStatusResultRetryProcess<E extends StatefulEntity<E>, C, SELF extends AsyncStatusResultRetryProcess<E, C, SELF>>
         extends CompletableFutureRetryProcess<E, StatusResult<C>, SELF> {
     private final Monitor monitor;

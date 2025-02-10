@@ -18,6 +18,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;
 
 import java.time.Clock;
 import java.util.function.BiConsumer;
@@ -28,7 +29,10 @@ import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 
 /**
  * Provides retry capabilities to a synchronous process that returns a {@link StatusResult} object
+ *
+ * @deprecated use {@link RetryProcessor}.
  */
+@Deprecated(since = "0.12.0")
 public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends RetryProcess<E, StatusResultRetryProcess<E, C>> {
     private final Supplier<StatusResult<C>> process;
     private final Monitor monitor;
