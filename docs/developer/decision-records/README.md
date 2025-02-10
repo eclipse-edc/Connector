@@ -74,3 +74,4 @@
 - [2025-02-05 State Machine Retry Processor refactor](./2025-02-05-state-machine-retry-processor-refactor)
 - [2025-02-06 Object mutability and copying](./2025-02-06-object_mutability_and_copying)
 - [2025-02-06 HashiCorp Vault Authentication Refactor](./2025-02-06-hashicorp-vault-authentication-refactor)
+- [2025-02-07 Deprecation of HTTP Proxy in the Data Plane](./2025-02-07-http-proxy-data-plane-deprecation)
