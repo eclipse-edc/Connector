@@ -22,14 +22,17 @@ The common denominator among all authentication methods is the ability to provid
 authentication against the vault. Therefore, obtaining this token will be moved to an interface. 
 
 ```java
+@ExtensionPoint
 public interface HashicorpVaultTokenProvider {
     String vaultToken();
 }
 ```
 
-The [token auth method](https://developer.hashicorp.com/vault/docs/auth/token) is already supported by the current implementation.
-The respective code will be moved to a class implementing `HashicorpVaultTokenProvider`, and this
-class will be the default implementation provided through the `HashicorpVaultExtension`.
+This interface will be the extension point for downstream projects to introduce different authentication methods by
+providing a respective implementation of this interface to the runtime context.
+The [token auth method](https://developer.hashicorp.com/vault/docs/auth/token) is already supported by the current implementation and will remain the default
+implementation provided through the `HashicorpVaultExtension`.
+The respective code will therefore be moved to a class implementing `HashicorpVaultTokenProvider`.
 
 ### Services accessing the vault
 
@@ -61,8 +64,8 @@ private Headers getHeaders(String token) {
 ```
 
 The `HashicorpVaultHealthService` also provides methods for checking whether a token can be renewed as well as for
-renewing the token. As these features are not available for all authentication methods, this functionality will be
-moved to the `HashicorpVaultTokenRenewTask`.
+renewing the token. As these features are not available for all authentication methods, this functionality should be
+moved to a different class. This part of the refactoring is already planned anyway for better separation of concerns.
 
 ### HashicorpVaultHealthCheck
 
