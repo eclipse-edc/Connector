@@ -5,7 +5,7 @@ maven/mavencentral/com.apicatalog/iron-ed25519-cryptosuite-2020/0.14.0, Apache-2
 maven/mavencentral/com.apicatalog/iron-verifiable-credentials/0.14.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.0.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.4.0, Apache-2.0, approved, #15200
-maven/mavencentral/com.apicatalog/titanium-json-ld/1.5.0, , restricted, clearlydefined
+maven/mavencentral/com.apicatalog/titanium-json-ld/1.5.0, Apache-2.0, approved, #19372
 maven/mavencentral/com.atomikos/atomikos-util/6.0.0, Apache-2.0, approved, #9326
 maven/mavencentral/com.atomikos/transactions-api/6.0.0, Apache-2.0, approved, #10351
 maven/mavencentral/com.atomikos/transactions-jdbc/6.0.0, Apache-2.0, approved, #9273
