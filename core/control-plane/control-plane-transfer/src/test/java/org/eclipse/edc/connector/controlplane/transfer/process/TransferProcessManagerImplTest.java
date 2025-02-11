@@ -96,6 +96,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
@@ -584,111 +585,6 @@ class TransferProcessManagerImplTest {
         });
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(DispatchFailureArguments.class)
-    void dispatchFailure(TransferProcessStates starting, TransferProcessStates ending, CompletableFuture<StatusResult<Object>> result, UnaryOperator<TransferProcess.Builder> builderEnricher) {
-        var transferProcess = builderEnricher.apply(createTransferProcessBuilder(starting).state(starting.code())).build();
-        when(transferProcessStore.nextNotLeased(anyInt(), or(stateIs(starting.code()), or(consumerStateIs(starting.code()), providerStateIs(starting.code())))))
-                .thenReturn(List.of(transferProcess)).thenReturn(emptyList());
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
-        when(transferProcessStore.findById(transferProcess.getId())).thenReturn(transferProcess);
-        when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
-        when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            var captor = ArgumentCaptor.forClass(TransferProcess.class);
-            verify(transferProcessStore).save(captor.capture());
-            assertThat(captor.getAllValues()).hasSize(1).first().satisfies(n -> {
-                assertThat(n.getState()).isEqualTo(ending.code());
-            });
-            verify(dispatcherRegistry, only()).dispatch(any(), any());
-        });
-    }
-
-    private Criterion[] consumerStateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name()) });
-    }
-
-    private Criterion[] providerStateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name()) });
-    }
-
-    private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending() });
-    }
-
-    private DataFlowResponse createDataFlowResponse() {
-        return DataFlowResponse.Builder.newInstance()
-                .dataAddress(DataAddress.Builder.newInstance()
-                        .type("type")
-                        .build())
-                .build();
-    }
-
-    private TransferProcess createTransferProcess(TransferProcessStates inState) {
-        return createTransferProcessBuilder(inState).build();
-    }
-
-    private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates state) {
-        var processId = UUID.randomUUID().toString();
-
-        return TransferProcess.Builder.newInstance()
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
-                .type(CONSUMER)
-                .id("test-process-" + processId)
-                .state(state.code())
-                .correlationId(UUID.randomUUID().toString())
-                .counterPartyAddress("http://an/address")
-                .contractId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
-                .dataDestination(DataAddress.Builder.newInstance().type(DESTINATION_TYPE).build())
-                .protocol("protocol");
-    }
-
-    private ProvisionedDataDestinationResource provisionedDataDestinationResource() {
-        return new TestProvisionedDataDestinationResource("test-resource", PROVISIONED_RESOURCE_ID);
-    }
-
-    private static class DispatchFailureArguments implements ArgumentsProvider {
-
-        private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
-        private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            CompletableFuture<StatusResult<Object>> genericError = failedFuture(new EdcException("error"));
-            var fatalError = completedFuture(StatusResult.failure(FATAL_ERROR));
-            return Stream.of(
-                    // retries not exhausted
-                    new DispatchFailure(REQUESTING, REQUESTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(STARTING, STARTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(COMPLETING, COMPLETING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(SUSPENDING, SUSPENDING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
-                    new DispatchFailure(TERMINATING, TERMINATING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    // retries exhausted
-                    new DispatchFailure(REQUESTING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(STARTING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(COMPLETING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(SUSPENDING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(CONSUMER)),
-                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(TERMINATING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    // fatal error, in this case retry should never be done
-                    new DispatchFailure(REQUESTING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(STARTING, TERMINATING, fatalError, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(SUSPENDING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
-                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(TERMINATING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED))
-            );
-        }
-    }
-
     @Nested
     class InitiateConsumerRequest {
         @Test
@@ -1060,5 +956,171 @@ class TransferProcessManagerImplTest {
         }
 
     }
+
+    @Nested
+    class SuspendingRequestedProvider {
+
+        @Test
+        void shouldSuspendDataFlowAndTransitionToSuspendedAndNotSendMessage_whenMessageWasSentByCounterPart() {
+            var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(PROVIDER).correlationId("counterPartyId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING_REQUESTED.code()).build());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(dataFlowManager).suspend(process);
+                verifyNoInteractions(dispatcherRegistry);
+                verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == SUSPENDED.code()));
+                verify(listener).suspended(process);
+            });
+        }
+
+        @Test
+        void shouldTransitionToSuspendingRequested_whenDataFlowSuspensionFails() {
+            var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(PROVIDER).correlationId("counterPartyId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING_REQUESTED.code()).build());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(dataFlowManager).suspend(process);
+                verifyNoInteractions(dispatcherRegistry);
+                verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == SUSPENDING_REQUESTED.code()));
+            });
+        }
+
+    }
+
+    @Nested
+    class SuspendingRequestedConsumer {
+
+        @Test
+        void shouldSuspendDataFlowAndTransitionToSuspendedAndNotSendMessage_whenMessageWasSentByCounterPart() {
+            var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(PROVIDER).correlationId("counterPartyId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING_REQUESTED.code()).build());
+            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(dataFlowManager).suspend(process);
+                verifyNoInteractions(dispatcherRegistry);
+                verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == SUSPENDED.code()));
+                verify(listener).suspended(process);
+            });
+        }
+
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(DispatchFailureArguments.class)
+    void dispatchFailure(TransferProcessStates starting, TransferProcessStates ending, CompletableFuture<StatusResult<Object>> result, UnaryOperator<TransferProcess.Builder> builderEnricher) {
+        var transferProcess = builderEnricher.apply(createTransferProcessBuilder(starting).state(starting.code())).build();
+        when(transferProcessStore.nextNotLeased(anyInt(), or(stateIs(starting.code()), or(consumerStateIs(starting.code()), providerStateIs(starting.code())))))
+                .thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
+        when(transferProcessStore.findById(transferProcess.getId())).thenReturn(transferProcess);
+        when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+        when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
+            verify(transferProcessStore).save(captor.capture());
+            assertThat(captor.getAllValues()).hasSize(1).first().satisfies(n -> {
+                assertThat(n.getState()).isEqualTo(ending.code());
+            });
+            verify(dispatcherRegistry, only()).dispatch(any(), any());
+        });
+    }
+
+    private Criterion[] consumerStateIs(int state) {
+        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name()) });
+    }
+
+    private Criterion[] providerStateIs(int state) {
+        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name()) });
+    }
+
+    private Criterion[] stateIs(int state) {
+        return aryEq(new Criterion[]{ hasState(state), isNotPending() });
+    }
+
+    private DataFlowResponse createDataFlowResponse() {
+        return DataFlowResponse.Builder.newInstance()
+                .dataAddress(DataAddress.Builder.newInstance()
+                        .type("type")
+                        .build())
+                .build();
+    }
+
+    private TransferProcess createTransferProcess(TransferProcessStates inState) {
+        return createTransferProcessBuilder(inState).build();
+    }
+
+    private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates state) {
+        var processId = UUID.randomUUID().toString();
+
+        return TransferProcess.Builder.newInstance()
+                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
+                .type(CONSUMER)
+                .id("test-process-" + processId)
+                .state(state.code())
+                .correlationId(UUID.randomUUID().toString())
+                .counterPartyAddress("http://an/address")
+                .contractId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .dataDestination(DataAddress.Builder.newInstance().type(DESTINATION_TYPE).build())
+                .protocol("protocol");
+    }
+
+    private ProvisionedDataDestinationResource provisionedDataDestinationResource() {
+        return new TestProvisionedDataDestinationResource("test-resource", PROVISIONED_RESOURCE_ID);
+    }
+
+    private static class DispatchFailureArguments implements ArgumentsProvider {
+
+        private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
+        private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            CompletableFuture<StatusResult<Object>> genericError = failedFuture(new EdcException("error"));
+            var fatalError = completedFuture(StatusResult.failure(FATAL_ERROR));
+            return Stream.of(
+                    // retries not exhausted
+                    new DispatchFailure(REQUESTING, REQUESTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(STARTING, STARTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(COMPLETING, COMPLETING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(SUSPENDING, SUSPENDING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
+                    new DispatchFailure(TERMINATING, TERMINATING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    // retries exhausted
+                    new DispatchFailure(REQUESTING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(STARTING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(COMPLETING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(SUSPENDING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(CONSUMER)),
+                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(TERMINATING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    // fatal error, in this case retry should never be done
+                    new DispatchFailure(REQUESTING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(STARTING, TERMINATING, fatalError, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(COMPLETING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(SUSPENDING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
+                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(TERMINATING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED))
+            );
+        }
+    }
+
 
 }
