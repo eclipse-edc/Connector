@@ -16,6 +16,7 @@ package org.eclipse.edc.statemachine.retry;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;
 
 import java.time.Clock;
 import java.util.Optional;
@@ -28,7 +29,10 @@ import static java.lang.String.format;
 
 /**
  * Provides retry capabilities to an asynchronous process that returns a {@link CompletableFuture} object
+ *
+ * @deprecated use {@link RetryProcessor}.
  */
+@Deprecated(since = "0.12.0")
 public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C, SELF extends CompletableFutureRetryProcess<E, C, SELF>>
         extends RetryProcess<E, CompletableFutureRetryProcess<E, C, SELF>> {
     private final Supplier<CompletableFuture<C>> process;
