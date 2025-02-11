@@ -25,8 +25,9 @@ This is a fork of the [Eclipse EDC Connector](https://github.com/eclipse-edc/Con
 
 - The `default` branch serves as a default branch for this fork, only containing an entry point with the main README and CI.
 - The `main` branch tracks the **Eclipse EDC** `main` branch. It is not used as the main branch in this fork.
-- The `sovity/x.y.z` branches will contain forked **Eclipse EDC** releases with commits on top.
-    - e.g. [sovity/0.2.1](https://github.com/sovity/core-edc/blob/sovity/0.2.1/CHANGELOG.md)
+- The `sovity/x.y.z` branches will contain forked **Eclipse EDC** releases with sovity commits on top.
+    - [sovity/0.2.1](https://github.com/sovity/core-edc/blob/sovity/0.2.1/CHANGELOG.md)
+    - [sovity/0.7.2](https://github.com/sovity/core-edc/blob/sovity/0.7.2/CHANGELOG.md)
 
 Each branch has its own Changelog, as patches are always applied on top of releases and the entire history of the Eclipse EDC Connector is not maintained.
 
@@ -34,13 +35,34 @@ Each branch has its own Changelog, as patches are always applied on top of relea
 
 ## Usage
 
-The artifacts for this repository are not available via the GitHub Maven Repository but via our own Maven Registry on Azure. This is because the many artifacts created in this repository caused the GitHub Maven Repository to be a bottleneck for the CI. We also needed better mirroring of transitive dependencies, as transitive dependencies of the Eclipse EDC Connector have disappeared before.
+### Support a new version
 
-The Maven Registry on Azure is public and can be added to any Maven or Gradle Project using this URL:
+Adding a new version can be done by following the [new supported version procedure](https://github.com/sovity/core-edc/issues/new?template=new-supported-version.md).
 
-https://pkgs.dev.azure.com/sovity/41799556-91c8-4df6-8ddb-4471d6f15953/_packaging/core-edc/maven/v1
+### Patching a supported version
 
-The artifacts are released under the same group id as the original EDC: `org.eclipse.edc` and the same artifact names. Only the version differs and usually matches the pattern `x.y.z.w` with `x.y.z` matching the Eclipse EDC version it was based on.
+Works like a regular repository but the main branches are `sovity/` and must be selected explicitly.
+
+Adding a new patch on a supported version can be done by following the [new patch procedure](https://github.com/sovity/core-edc/issues/new?template=new-patch.md).
+
+### Releasing a supported version
+
+Releasing a supported version can be done by following the [releasing procedure](https://github.com/sovity/core-edc/issues/new?template=release.md).
+
+### Deliveries
+
+The artifacts for this repository are *not* available via the GitHub Maven Repository **but via our own Maven Registry on Azure**. This is because the many artifacts created in this repository caused the GitHub Maven Repository to be a bottleneck for the CI. We also needed better mirroring of transitive dependencies, as transitive dependencies of the Eclipse EDC Connector have disappeared before.
+
+The artifacts are released under the same group id as the original EDC: `org.eclipse.edc` and the same artifact names. Only the version differs and usually matches the pattern `a.b.c.d` with `a.b.c` matching the Eclipse EDC version it was based on.
+
+#### Production
+
+The sovity Maven Registry on Azure is public and can be added to any Maven or Gradle Project [using this URL](https://pkgs.dev.azure.com/sovity/41799556-91c8-4df6-8ddb-4471d6f15953/_packaging/core-edc/maven/v1).
+
+#### Test
+
+The artifacts on the `sovity/*` branches, before releasing, are published in the [test feed](https://dev.azure.com/sovity/Test/_artifacts/feed/test.
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
