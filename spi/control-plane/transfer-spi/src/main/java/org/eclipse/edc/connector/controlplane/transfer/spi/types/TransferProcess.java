@@ -63,6 +63,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
@@ -336,7 +337,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public boolean canBeTerminated() {
         return currentStateIsOneOf(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED,
-                STARTING, STARTED, COMPLETING, SUSPENDING, SUSPENDED, RESUMING, TERMINATING, TERMINATING_REQUESTED);
+                STARTING, STARTED, COMPLETING, SUSPENDING, SUSPENDING_REQUESTED, SUSPENDED, RESUMING, TERMINATING,
+                TERMINATING_REQUESTED);
     }
 
     public void transitionTerminating(@Nullable String errorDetail) {
@@ -367,12 +369,21 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public boolean canBeSuspended() {
-        return currentStateIsOneOf(STARTED, SUSPENDING);
+        return currentStateIsOneOf(STARTED, SUSPENDING, SUSPENDING_REQUESTED);
     }
 
     public void transitionSuspending(String reason) {
         this.errorDetail = reason;
         transition(SUSPENDING, state -> canBeSuspended());
+    }
+
+    public void transitionSuspendingRequested(@Nullable String errorDetail) {
+        this.errorDetail = errorDetail;
+        transitionSuspendingRequested();
+    }
+
+    public void transitionSuspendingRequested() {
+        transition(SUSPENDING_REQUESTED, state -> canBeSuspended());
     }
 
     public void transitionSuspended(String reason) {
@@ -488,6 +499,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     @Override
     public String stateAsString() {
         return TransferProcessStates.from(state).name();
+    }
+
+    public boolean suspensionWasRequestedByCounterParty() {
+        return getState() == SUSPENDING_REQUESTED.code();
     }
 
     public boolean terminationWasRequestedByCounterParty() {

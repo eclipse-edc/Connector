@@ -46,6 +46,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
@@ -169,6 +170,7 @@ class JsonObjectFromTransferProcessV2024TransformerTest {
                     arguments(STARTING, toIri(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM)),
                     arguments(STARTED, toIri(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM)),
                     arguments(SUSPENDING, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
+                    arguments(SUSPENDING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
                     arguments(SUSPENDED, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
                     arguments(RESUMING, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
                     arguments(RESUMED, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),

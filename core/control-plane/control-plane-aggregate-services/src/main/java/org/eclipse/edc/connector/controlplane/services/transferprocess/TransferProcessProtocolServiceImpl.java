@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
@@ -67,14 +66,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private final Clock clock;
     private final Monitor monitor;
     private final Telemetry telemetry;
-    private final DataFlowManager dataFlowManager;
 
     public TransferProcessProtocolServiceImpl(TransferProcessStore transferProcessStore,
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
                                               ProtocolTokenValidator protocolTokenValidator,
                                               DataAddressValidatorRegistry dataAddressValidator, TransferProcessObservable observable,
-                                              Clock clock, Monitor monitor, Telemetry telemetry, DataFlowManager dataFlowManager) {
+                                              Clock clock, Monitor monitor, Telemetry telemetry) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
@@ -85,7 +83,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         this.clock = clock;
         this.monitor = monitor;
         this.telemetry = telemetry;
-        this.dataFlowManager = dataFlowManager;
     }
 
     @Override
@@ -212,18 +209,11 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @NotNull
     private ServiceResult<TransferProcess> suspendedAction(TransferSuspensionMessage message, TransferProcess transferProcess) {
-        if (transferProcess.getType() == PROVIDER) {
-            var suspension = dataFlowManager.suspend(transferProcess);
-            if (suspension.failed()) {
-                return ServiceResult.conflict("Cannot suspend transfer process %s: %s".formatted(transferProcess.getId(), suspension.getFailureDetail()));
-            }
-        }
-        if (transferProcess.canBeTerminated()) {
+        if (transferProcess.canBeSuspended()) {
             var reason = message.getReason().stream().map(Object::toString).collect(joining(", "));
-            transferProcess.transitionSuspended(reason);
+            transferProcess.transitionSuspendingRequested(reason);
             transferProcess.protocolMessageReceived(message.getId());
             update(transferProcess);
-            observable.invokeForEach(l -> l.suspended(transferProcess));
             return ServiceResult.success(transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be suspended"));
