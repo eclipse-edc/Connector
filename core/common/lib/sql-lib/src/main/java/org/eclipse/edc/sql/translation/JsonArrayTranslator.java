@@ -29,7 +29,7 @@ import static org.eclipse.edc.sql.translation.FieldTranslator.toValuePlaceholder
  * <p>
  * This is necessary, because with a conventional {@link JsonFieldTranslator} we would get {@code (jsonArray -> 'jsonArray')::jsonb ?? ?},
  * because it always assumes one indirection from columnName to object name.
- * <p>
+ * </p>
  * The {@link JsonArrayTranslator} explicitly ignores this indirection.
  */
 public class JsonArrayTranslator implements FieldTranslator {
