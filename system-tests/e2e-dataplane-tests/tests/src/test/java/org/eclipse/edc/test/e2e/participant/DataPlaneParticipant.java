@@ -15,6 +15,7 @@
 package org.eclipse.edc.test.e2e.participant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.controlplane.test.system.utils.LazySupplier;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -26,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static io.restassured.RestAssured.given;
 import static java.io.File.separator;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
@@ -38,12 +40,16 @@ public class DataPlaneParticipant extends Participant {
         super();
     }
 
-    public Endpoint getDataPlaneControlEndpoint() {
-        return new Endpoint(dataPlaneControl.get());
+    public RequestSpecification baseControlRequest() {
+        return given().baseUri(dataPlaneControl.get().toString());
     }
 
-    public Endpoint getDataPlanePublicEndpoint() {
-        return new Endpoint(dataPlanePublic.get());
+    public RequestSpecification basePublicRequest() {
+        return given().baseUri(dataPlanePublic.get().toString());
+    }
+
+    public String publicEndpointUrl() {
+        return dataPlanePublic.get().toString();
     }
 
     public Config dataPlaneConfig() {

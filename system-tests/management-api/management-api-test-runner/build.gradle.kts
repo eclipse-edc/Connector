@@ -27,7 +27,6 @@ dependencies {
     testImplementation(project(":core:common:edr-store-core"))
 
     //useful for generic DTOs etc.
-    testImplementation(project(":extensions:common:api:api-core"))
     testImplementation(project(":spi:control-plane:policy-spi"))
     testImplementation(project(":spi:control-plane:transfer-spi"))
 

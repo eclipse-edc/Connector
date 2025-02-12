@@ -29,6 +29,7 @@ dependencies {
     testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:control-plane:api:control-plane-api"))
+    testImplementation(project(":extensions:common:api:api-core"))
     testImplementation(project(":extensions:common:api:control-api-configuration"))
     testImplementation(project(":extensions:common:auth:auth-tokenbased"))
     testImplementation(project(":extensions:common:http"))

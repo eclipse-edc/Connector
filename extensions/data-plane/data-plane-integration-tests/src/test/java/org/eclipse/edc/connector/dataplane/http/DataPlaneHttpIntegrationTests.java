@@ -31,6 +31,7 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -101,23 +102,24 @@ public class DataPlaneHttpIntegrationTests {
     private static final DataPlaneAuthorizationService DATA_PLANE_AUTHORIZATION_SERVICE = mock();
     private static final EmbeddedRuntime RUNTIME = new EmbeddedRuntime(
             "data-plane-server",
-            Map.of(
+            ":core:data-plane:data-plane-core",
+            ":extensions:common:api:control-api-configuration",
+            ":extensions:common:http",
+            ":extensions:common:json-ld",
+            ":extensions:common:api:api-core",
+            ":extensions:common:configuration:configuration-filesystem",
+            ":extensions:control-plane:api:control-plane-api-client",
+            ":extensions:data-plane:data-plane-http",
+            ":extensions:data-plane:data-plane-public-api-v2",
+            ":extensions:data-plane:data-plane-signaling:data-plane-signaling-api")
+            .registerServiceMock(DataPlaneAuthorizationService.class, DATA_PLANE_AUTHORIZATION_SERVICE)
+            .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "web.http.public.port", valueOf(PUBLIC_API_PORT),
                     "web.http.public.path", PUBLIC_PATH,
                     "web.http.control.port", valueOf(CONTROL_API_PORT),
                     "web.http.control.path", CONTROL_PATH,
                     "edc.core.retry.retries.max", "0"
-            ),
-            ":core:data-plane:data-plane-core",
-            ":extensions:common:api:control-api-configuration",
-            ":extensions:common:http",
-            ":extensions:common:json-ld",
-            ":extensions:common:configuration:configuration-filesystem",
-            ":extensions:control-plane:api:control-plane-api-client",
-            ":extensions:data-plane:data-plane-http",
-            ":extensions:data-plane:data-plane-public-api-v2",
-            ":extensions:data-plane:data-plane-signaling:data-plane-signaling-api"
-    ).registerServiceMock(DataPlaneAuthorizationService.class, DATA_PLANE_AUTHORIZATION_SERVICE);
+            )));
     private static ClientAndServer httpSourceMockServer;
     private static ClientAndServer httpSinkMockServer;
     private final Duration timeout = Duration.ofSeconds(30);

@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:common:json-ld-spi"))
 
+    implementation(project(":core:common:lib:api-lib"))
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:validator-lib"))

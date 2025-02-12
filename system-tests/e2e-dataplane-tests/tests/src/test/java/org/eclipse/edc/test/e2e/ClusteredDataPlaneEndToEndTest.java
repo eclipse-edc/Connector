@@ -54,6 +54,10 @@ public class ClusteredDataPlaneEndToEndTest {
     @Order(0)
     private static final PostgresqlStoreSetupExtension POSTGRESQL = new PostgresqlStoreSetupExtension();
 
+    @RegisterExtension
+    @Order(1)
+    protected static DummyControlPlane dummyControlPlane = new DummyControlPlane();
+
     private static final DataPlaneParticipant FOO_DATAPLANE = DataPlaneParticipant.Builder.newInstance()
             .name("provider")
             .id("urn:connector:provider")
@@ -71,6 +75,7 @@ public class ClusteredDataPlaneEndToEndTest {
                     ":dist:bom:dataplane-feature-sql-bom")
                     .configurationProvider(dataPlaneParticipant::dataPlaneConfig)
                     .configurationProvider(POSTGRESQL::getDatasourceConfig)
+                    .configurationProvider(dummyControlPlane.dataPlaneConfigurationSupplier())
                     .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                             "edc.runtime.id", name,
                             "edc.sql.schema.autocreate", "true"

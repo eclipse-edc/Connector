@@ -22,9 +22,9 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
+    implementation(project(":core:common:lib:api-lib"))
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":core:common:lib:validator-lib"))
-    implementation(project(":extensions:common:api:api-core"))
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
