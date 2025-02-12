@@ -16,6 +16,8 @@ package org.eclipse.edc.vault.hashicorp.auth;
 
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Implements the token auth method of the HashiCorp vault. Returns the configured token.
  */
@@ -24,6 +26,7 @@ public class HashicorpVaultTokenProviderImpl implements HashicorpVaultTokenProvi
     private final String token;
 
     public HashicorpVaultTokenProviderImpl(String token) {
+        requireNonNull(token, "Vault token must not be null");
         this.token = token;
     }
 
