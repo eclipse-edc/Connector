@@ -15,6 +15,9 @@
 package org.eclipse.edc.statemachine.retry.processor;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.result.StoreFailure;
+import org.eclipse.edc.spi.result.StoreResult;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
@@ -33,7 +36,7 @@ public class FutureRetryProcess<E extends StatefulEntity<E>, I, O> implements Pr
 
     private final String name;
     private final BiFunction<E, I, CompletableFuture<O>> function;
-    private Function<String, E> entityReload;
+    private Function<String, StoreResult<E>> entityReload;
 
     public FutureRetryProcess(String name, BiFunction<E, I, CompletableFuture<O>> function) {
         this.name = name;
@@ -45,7 +48,10 @@ public class FutureRetryProcess<E extends StatefulEntity<E>, I, O> implements Pr
         try {
             return function.apply(context.entity(), context.content())
                     .handle((content, throwable) -> {
-                        var reloadedEntity = reloadEntity(context.entity());
+                        var reloadedEntity = entityReload == null
+                                ? context.entity()
+                                : entityReload.apply(context.entity().getId()).orElseThrow(failedEntityReload(context));
+
                         if (throwable == null) {
                             return new ProcessContext<>(reloadedEntity, content);
                         } else {
@@ -53,17 +59,17 @@ public class FutureRetryProcess<E extends StatefulEntity<E>, I, O> implements Pr
                         }
                     });
         } catch (Throwable throwable) {
-            return failedFuture(new UnrecoverableEntityStateException(reloadEntity(context.entity()), name, throwable.getMessage()));
+            return failedFuture(new UnrecoverableEntityStateException(context.entity(), name, throwable.getMessage()));
         }
     }
 
-    public FutureRetryProcess<E, I, O> entityReload(Function<String, E> entityReload) {
+    public FutureRetryProcess<E, I, O> entityReload(Function<String, StoreResult<E>> entityReload) {
         this.entityReload = entityReload;
         return this;
     }
 
-    private E reloadEntity(E entity) {
-        return entityReload == null ? entity : entityReload.apply(entity.getId());
+    private @NotNull Function<StoreFailure, UnrecoverableEntityStateException> failedEntityReload(ProcessContext<E, I> context) {
+        return failure -> new UnrecoverableEntityStateException(context.entity(), name, "Cannot reload entity: " + failure.getFailureDetail());
     }
 
 }

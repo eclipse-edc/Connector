@@ -24,8 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 /**
- * Permits to instance {@link RetryProcess} implementations, that will permit a certain process acting on a {@link StatefulEntity}
- * to be tried again in case of failure. Please look at {@link RetryProcess} for further details.
+ * Permit to instantiate a {@link RetryProcessor}. Please look at {@link RetryProcessor} for further details.
  */
 public class EntityRetryProcessFactory {
     private final Monitor monitor;

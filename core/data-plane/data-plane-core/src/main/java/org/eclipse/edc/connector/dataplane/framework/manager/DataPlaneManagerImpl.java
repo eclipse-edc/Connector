@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.StatefulEntity;
@@ -34,6 +35,7 @@ import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
+import org.eclipse.edc.statemachine.retry.processor.Process;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -254,8 +256,9 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         dataFlow.transitionToStarted(runtimeId);
         update(dataFlow);
 
-        return entityRetryProcessFactory.doAsyncProcess(dataFlow, () -> transferService.transfer(request))
-                .entityRetrieve(id -> store.findByIdAndLease(id).orElse(f -> null))
+        return entityRetryProcessFactory.retryProcessor(dataFlow)
+                .doProcess(Process.<DataFlow, Object, StreamResult<Object>>future("Start data flow", (d, v) -> transferService.transfer(request))
+                        .entityReload(store::findByIdAndLease))
                 .onSuccess((f, r) -> {
                     if (f.getState() != STARTED.code()) {
                         return;
@@ -266,17 +269,18 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                     } else {
                         f.transitToFailed(r.getFailureDetail());
                     }
+
                     update(f);
                 })
                 .onFailure((f, t) -> {
                     f.transitToReceived();
                     update(f);
                 })
-                .onRetryExhausted((f, t) -> {
+                .onFinalFailure((f, t) -> {
                     f.transitToFailed(t.getMessage());
                     update(f);
                 })
-                .execute("start data flow");
+                .execute();
     }
 
     private boolean processCompleted(DataFlow dataFlow) {

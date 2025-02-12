@@ -121,12 +121,11 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                     .callbackAddress(callbackAddress.url())
                     .type(ContractRequestMessage.Type.INITIAL);
 
-            return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
-                    .onSuccessResult(this::transitionToRequested)
+            return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class, "[Consumer] send request")
+                    .onSuccess(this::transitionToRequested)
                     .onFailure((n, throwable) -> transitionToRequesting(n))
-                    .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                    .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send request to provider: %s", throwable.getMessage())))
-                    .execute("[Consumer] send request");
+                    .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send request to provider: %s", throwable.getMessage())))
+                    .execute();
         } else {
             transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
             return true;
@@ -144,12 +143,11 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private boolean processAccepting(ContractNegotiation negotiation) {
         var messageBuilder = ContractNegotiationEventMessage.Builder.newInstance().type(ACCEPTED);
         messageBuilder.policy(negotiation.getLastContractOffer().getPolicy());
-        return dispatch(messageBuilder, negotiation, Object.class)
+        return dispatch(messageBuilder, negotiation, Object.class, "[consumer] send acceptance")
                 .onSuccess((n, result) -> transitionToAccepted(n))
                 .onFailure((n, throwable) -> transitionToAccepting(n))
-                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send acceptance to provider: %s", throwable.getMessage())))
-                .execute("[consumer] send acceptance");
+                .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send acceptance to provider: %s", throwable.getMessage())))
+                .execute();
     }
 
     /**
@@ -175,12 +173,11 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var messageBuilder = ContractAgreementVerificationMessage.Builder.newInstance()
                 .policy(negotiation.getContractAgreement().getPolicy());
 
-        return dispatch(messageBuilder, negotiation, Object.class)
+        return dispatch(messageBuilder, negotiation, Object.class, "[consumer] send verification")
                 .onSuccess((n, result) -> transitionToVerified(n))
                 .onFailure((n, throwable) -> transitionToVerifying(n))
-                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send verification to provider: %s", throwable.getMessage())))
-                .execute("[consumer] send verification");
+                .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send verification to provider: %s", throwable.getMessage())))
+                .execute();
     }
 
     /**

@@ -353,9 +353,9 @@ class ProviderContractNegotiationManagerImplTest {
                     new DispatchFailure(FINALIZING, TERMINATING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).contractAgreement(createContractAgreement())),
                     new DispatchFailure(TERMINATING, TERMINATED, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_EXHAUSTED).errorDetail("an error").contractOffer(contractOffer())),
                     // fatal error, in this case retry should never be done
-                    new DispatchFailure(OFFERING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer())),
-                    new DispatchFailure(AGREEING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer())),
-                    new DispatchFailure(FINALIZING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).contractAgreement(createContractAgreement())),
+                    new DispatchFailure(OFFERING, TERMINATING, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer())),
+                    new DispatchFailure(AGREEING, TERMINATING, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer())),
+                    new DispatchFailure(FINALIZING, TERMINATING, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).contractAgreement(createContractAgreement())),
                     new DispatchFailure(TERMINATING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED).errorDetail("an error").contractOffer(contractOffer()))
             );
         }
