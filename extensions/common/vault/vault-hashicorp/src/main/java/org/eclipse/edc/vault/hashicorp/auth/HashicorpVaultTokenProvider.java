@@ -14,9 +14,13 @@
 
 package org.eclipse.edc.vault.hashicorp.auth;
 
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+
 /**
  * Provides a token for authentication against the HashiCorp vault.
  */
+@FunctionalInterface
+@ExtensionPoint
 public interface HashicorpVaultTokenProvider {
     
     /**
