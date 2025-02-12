@@ -35,8 +35,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.eclipse.edc.spi.result.Result.failure;
-
 public class VerifiableCredentialValidationServiceImpl implements VerifiableCredentialValidationService {
     private final PresentationVerifier presentationVerifier;
     private final TrustedIssuerRegistry trustedIssuerRegistry;
@@ -75,11 +73,11 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
                 new HasValidSubjectSchema(mapper)));
 
         filters.addAll(additionalRules);
-        var results = credentials
+        return credentials
                 .stream()
                 .map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c))
-                .reduce(Result::merge);
-        return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
+                .reduce(Result::merge)
+                .orElse(Result.success());
     }
 
 }
