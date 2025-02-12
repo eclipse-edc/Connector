@@ -23,7 +23,6 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,12 +71,6 @@ class HashicorpVaultExtensionTest {
     void hashicorpVault_ensureType(ServiceExtensionContext context) {
         extension.initialize(context);
         assertThat(extension.hashicorpVault()).isInstanceOf(HashicorpVault.class);
-    }
-    
-    @Test
-    void tokenProvider_ensureType(ServiceExtensionContext context) {
-        extension.initialize(context);
-        assertThat(extension.tokenProvider()).isInstanceOf(HashicorpVaultTokenProviderImpl.class);
     }
 
     @Test

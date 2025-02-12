@@ -28,7 +28,6 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewService;
@@ -72,11 +71,6 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Provider
     public SignatureService signatureService() {
         return new HashicorpVaultSignatureService(monitor, config, httpClient, MAPPER, tokenProvider);
-    }
-
-    @Provider(isDefault = true)
-    public HashicorpVaultTokenProvider tokenProvider() {
-        return new HashicorpVaultTokenProviderImpl(config.token());
     }
 
     @Override
