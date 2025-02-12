@@ -25,7 +25,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 class JsonArrayTranslatorTest {
 
-    private final JsonArrayTranslator translator = new JsonArrayTranslator();
+    private final JsonArrayTranslator translator = new JsonArrayTranslator("array");
 
     @Test
     void getLeftOperand() {

@@ -34,13 +34,19 @@ import static org.eclipse.edc.sql.translation.FieldTranslator.toValuePlaceholder
  */
 public class JsonArrayTranslator implements FieldTranslator {
 
+    protected final String columnName;
+
+    public JsonArrayTranslator(String columnName) {
+        this.columnName = columnName;
+    }
+
     @Override
     public String getLeftOperand(List<PathItem> path, Class<?> rightOperandType) {
         if (Collection.class.isAssignableFrom(rightOperandType)) {
             throw new IllegalArgumentException("JsonArrayTranslator only supports scalar right-operands, found '%s' ".formatted(rightOperandType));
         }
         if (path.size() == 1) {
-            return path.get(0).toString();
+            return columnName;
         }
         throw new IllegalArgumentException("Invalid path for JsonArrayTranslator: must have one element, but found '%s'".formatted(path.size()));
     }
