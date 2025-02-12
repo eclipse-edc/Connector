@@ -32,6 +32,7 @@ import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProvider;
 import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewTask;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,17 +75,19 @@ public class HashicorpVaultExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
-    public HashicorpVaultTokenProvider hashicorpVaultTokenProvider() {
+    public HashicorpVaultTokenProvider tokenProvider() {
         return new HashicorpVaultTokenProviderImpl(config.token());
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor().withPrefix(NAME);
+        
+        var tokenRenewService = new HashicorpVaultTokenRenewService(httpClient, MAPPER, config, tokenProvider, monitor);
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 NAME,
                 executorInstrumentation,
-                createHealthService(),
+                tokenRenewService,
                 config.renewBuffer(),
                 monitor);
     }
@@ -92,7 +95,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Provider
     public @NotNull HashicorpVaultHealthService createHealthService() {
         if (healthService == null) {
-            healthService = new HashicorpVaultHealthService(httpClient, MAPPER, monitor, config, tokenProvider);
+            healthService = new HashicorpVaultHealthService(httpClient, config, tokenProvider);
         }
         return healthService;
     }

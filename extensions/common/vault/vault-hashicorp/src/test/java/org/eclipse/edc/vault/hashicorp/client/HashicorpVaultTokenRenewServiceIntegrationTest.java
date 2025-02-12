@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
+ *       Cofinity-X - implement extensible authentication
  *
  */
 
@@ -16,6 +17,7 @@ package org.eclipse.edc.vault.hashicorp.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
@@ -32,13 +34,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 
-class HashicorpVaultHealthServiceIntegrationTest {
+class HashicorpVaultTokenRenewServiceIntegrationTest {
 
     @ComponentTest
     @Testcontainers
@@ -52,18 +53,18 @@ class HashicorpVaultHealthServiceIntegrationTest {
         protected static final long CREATION_TTL = 6L;
         protected static final long TTL = 5L;
         protected static final long RENEW_BUFFER = 4L;
-        protected HashicorpVaultHealthService healthService;
+        protected HashicorpVaultTokenRenewService tokenRenewService;
         protected final ObjectMapper mapper = new ObjectMapper();
         protected final ConsoleMonitor monitor = new ConsoleMonitor();
 
         @BeforeEach
         void beforeEach() throws IOException, InterruptedException {
-            assertThat(CREATION_TTL).isGreaterThan(TTL);
+            Assertions.assertThat(CREATION_TTL).isGreaterThan(TTL);
         }
 
         @Test
         void lookUpToken_whenTokenNotExpired_shouldSucceed() {
-            var tokenLookUpResult = healthService.isTokenRenewable();
+            var tokenLookUpResult = tokenRenewService.isTokenRenewable();
 
             assertThat(tokenLookUpResult).isSucceeded().isEqualTo(true);
         }
@@ -74,17 +75,17 @@ class HashicorpVaultHealthServiceIntegrationTest {
                     .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                     .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
-                        var tokenLookUpResult = healthService.isTokenRenewable();
+                        var tokenLookUpResult = tokenRenewService.isTokenRenewable();
                         assertThat(tokenLookUpResult).isFailed();
-                        assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
+                        Assertions.assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
                     });
         }
 
         @Test
         void renewToken_whenTokenNotExpired_shouldSucceed() {
-            var tokenRenewResult = healthService.renewToken();
+            var tokenRenewResult = tokenRenewService.renewToken();
 
-            assertThat(tokenRenewResult).isSucceeded().satisfies(ttl -> assertThat(ttl).isEqualTo(TTL));
+            assertThat(tokenRenewResult).isSucceeded().satisfies(ttl -> Assertions.assertThat(ttl).isEqualTo(TTL));
         }
 
         @Test
@@ -93,9 +94,9 @@ class HashicorpVaultHealthServiceIntegrationTest {
                     .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                     .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
-                        var tokenRenewResult = healthService.renewToken();
+                        var tokenRenewResult = tokenRenewService.renewToken();
                         assertThat(tokenRenewResult).isFailed();
-                        assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: 403");
+                        Assertions.assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: 403");
                     });
         }
     }
@@ -138,12 +139,12 @@ class HashicorpVaultHealthServiceIntegrationTest {
         @BeforeEach
         void beforeEach() throws IOException, InterruptedException {
             HashicorpVaultSettings settings = getSettings();
-            healthService = new HashicorpVaultHealthService(
+            tokenRenewService = new HashicorpVaultTokenRenewService(
                     testHttpClient(),
                     mapper,
-                    monitor,
                     settings,
-                    new HashicorpVaultTokenProviderImpl(settings.token())
+                    new HashicorpVaultTokenProviderImpl(settings.token()),
+                    monitor
             );
         }
     }
@@ -186,12 +187,12 @@ class HashicorpVaultHealthServiceIntegrationTest {
         @BeforeEach
         void beforeEach() throws IOException, InterruptedException {
             HashicorpVaultSettings settings = getSettings();
-            healthService = new HashicorpVaultHealthService(
+            tokenRenewService = new HashicorpVaultTokenRenewService(
                     testHttpClient(),
                     mapper,
-                    monitor,
                     settings,
-                    new HashicorpVaultTokenProviderImpl(settings.token())
+                    new HashicorpVaultTokenProviderImpl(settings.token()),
+                    monitor
             );
         }
     }

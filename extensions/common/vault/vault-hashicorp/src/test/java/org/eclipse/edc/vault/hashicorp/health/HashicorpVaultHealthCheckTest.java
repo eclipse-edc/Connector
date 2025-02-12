@@ -10,6 +10,7 @@
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
  *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
+ *       Cofinity-X - implement extensible authentication
  *
  */
 
@@ -18,7 +19,6 @@ package org.eclipse.edc.vault.hashicorp.health;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -30,19 +30,12 @@ import static org.mockito.Mockito.when;
 
 class HashicorpVaultHealthCheckTest {
 
-    private static final Result<Boolean> TOKEN_LOOK_UP_RESULT_200 = Result.success(Boolean.TRUE);
-
     private final HashicorpVaultHealthService client = mock();
     private final Monitor monitor = mock();
     private final HashicorpVaultHealthCheck healthCheck = new HashicorpVaultHealthCheck(client, monitor);
 
     @Nested
     class TokenValid {
-
-        @BeforeEach
-        void beforeEach() {
-            when(client.isTokenRenewable()).thenReturn(TOKEN_LOOK_UP_RESULT_200);
-        }
 
         @Test
         void get_whenHealthCheckSucceeded_shouldSucceed() {

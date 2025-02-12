@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
+ *       Cofinity-X - implement extensible authentication
  *
  */
 
@@ -38,7 +39,7 @@ public class HashicorpVaultTokenRenewTask {
 
     private final ExecutorInstrumentation executorInstrumentation;
 
-    private final HashicorpVaultHealthService client;
+    private final HashicorpVaultTokenRenewService client;
 
     private final Monitor monitor;
     private final long renewBuffer;
@@ -58,7 +59,7 @@ public class HashicorpVaultTokenRenewTask {
      */
     public HashicorpVaultTokenRenewTask(@NotNull String name,
                                         @NotNull ExecutorInstrumentation executorInstrumentation,
-                                        @NotNull HashicorpVaultHealthService client,
+                                        @NotNull HashicorpVaultTokenRenewService client,
                                         long renewBuffer,
                                         @NotNull Monitor monitor) {
         this.name = name;
