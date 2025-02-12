@@ -16,11 +16,12 @@
 package org.eclipse.edc.statemachine.retry;
 
 import org.eclipse.edc.spi.retry.WaitStrategy;
+import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;
 
 import java.util.function.Supplier;
 
 /**
- * Configure a {@link RetryProcess}
+ * Configure a {@link RetryProcessor}
  */
 public record EntityRetryProcessConfiguration(int retryLimit, Supplier<WaitStrategy> delayStrategySupplier) {
 

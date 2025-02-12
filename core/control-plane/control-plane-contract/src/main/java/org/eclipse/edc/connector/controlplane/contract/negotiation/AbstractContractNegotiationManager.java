@@ -31,7 +31,8 @@ import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
-import org.eclipse.edc.statemachine.retry.AsyncStatusResultRetryProcess;
+import org.eclipse.edc.statemachine.retry.processor.Process;
+import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -74,16 +75,15 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
                 .rejectionReason(negotiation.getErrorDetail())
                 .policy(negotiation.getLastContractOffer().getPolicy());
 
-        return dispatch(messageBuilder, negotiation, Object.class)
+        return dispatch(messageBuilder, negotiation, Object.class, "[%s] send termination".formatted(type().name()))
                 .onSuccess((n, result) -> transitionToTerminated(n))
                 .onFailure((n, throwable) -> transitionToTerminating(n))
-                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminated(n, format("Failed to send termination to counter party: %s", throwable.getMessage())))
-                .execute("[%s] send termination".formatted(type().name()));
+                .onFinalFailure((n, throwable) -> transitionToTerminated(n, format("Failed to send termination to counter party: %s", throwable.getMessage())))
+                .execute();
     }
 
-    protected <T> AsyncStatusResultRetryProcess<ContractNegotiation, T, ?> dispatch(ProcessRemoteMessage.Builder<?, ?> messageBuilder,
-                                                                                    ContractNegotiation negotiation, Class<T> responseType) {
+    protected <T> RetryProcessor<ContractNegotiation, T> dispatch(ProcessRemoteMessage.Builder<?, ?> messageBuilder,
+                                                                  ContractNegotiation negotiation, Class<T> responseType, String name) {
         messageBuilder.counterPartyAddress(negotiation.getCounterPartyAddress())
                 .counterPartyId(negotiation.getCounterPartyId())
                 .protocol(negotiation.getProtocol())
@@ -103,7 +103,8 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
 
         negotiation.lastSentProtocolMessage(message.getId());
 
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(responseType, message));
+        return entityRetryProcessFactory.retryProcessor(negotiation)
+                .doProcess(Process.futureResult(name, (n, v) -> dispatcherRegistry.dispatch(responseType, message)));
     }
 
     protected void transitionToInitial(ContractNegotiation negotiation) {

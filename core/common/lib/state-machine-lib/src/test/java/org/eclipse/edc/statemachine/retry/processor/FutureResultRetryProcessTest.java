@@ -16,6 +16,7 @@ package org.eclipse.edc.statemachine.retry.processor;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.statemachine.retry.TestEntity;
 import org.junit.jupiter.api.Test;
 
@@ -86,8 +87,8 @@ class FutureResultRetryProcessTest {
         var entityId = UUID.randomUUID().toString();
         var entity = TestEntity.Builder.newInstance().id(entityId).build();
         var reloadedEntity = TestEntity.Builder.newInstance().id(entityId).build();
-        Function<String, TestEntity> entityReload = mock();
-        when(entityReload.apply(any())).thenReturn(reloadedEntity);
+        Function<String, StoreResult<TestEntity>> entityReload = mock();
+        when(entityReload.apply(any())).thenReturn(StoreResult.success(reloadedEntity));
         var retryProcess = new FutureResultRetryProcess<TestEntity, Object, String>("process", (e, i) -> completedFuture(StatusResult.success("content")))
                 .entityReload(entityReload);
 

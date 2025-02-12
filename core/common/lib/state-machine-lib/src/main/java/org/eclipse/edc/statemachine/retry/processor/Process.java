@@ -47,7 +47,7 @@ public interface Process<E extends StatefulEntity<E>, I, O> {
      * @param function that executes the process.
      * @return the process instance.
      */
-    static <E extends StatefulEntity<E>, I, O> Process<E, I, O> future(String name, BiFunction<E, I, CompletableFuture<O>> function) {
+    static <E extends StatefulEntity<E>, I, O> FutureRetryProcess<E, I, O> future(String name, BiFunction<E, I, CompletableFuture<O>> function) {
         return new FutureRetryProcess<>(name, function);
     }
 
