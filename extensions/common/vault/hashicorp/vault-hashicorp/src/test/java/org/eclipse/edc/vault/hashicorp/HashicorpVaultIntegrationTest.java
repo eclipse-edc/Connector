@@ -71,7 +71,7 @@ class HashicorpVaultIntegrationTest {
                 .secretPath(VAULT_API_SECRET_PATH_DEFAULT)
                 .build();
         var httpClient = new EdcHttpClientImpl(new OkHttpClient.Builder().build(), RetryPolicy.ofDefaults(), monitor);
-        HashicorpVaultTokenProvider tokenProvider = new HashicorpVaultTokenProviderImpl(TOKEN);
+        var tokenProvider = new HashicorpVaultTokenProviderImpl(TOKEN);
         vault = new HashicorpVault(monitor, settings, httpClient, objectMapper, tokenProvider);
     }
 

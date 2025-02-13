@@ -175,6 +175,22 @@ public class HashicorpVaultTokenRenewService {
                 .build();
     }
     
+    private Headers getHeaders(String token) {
+        var headersBuilder = new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
+        headersBuilder.add(VAULT_TOKEN_HEADER, token);
+        return headersBuilder.build();
+    }
+    
+    private RequestBody createRequestBody(Object requestPayload) {
+        String jsonRepresentation;
+        try {
+            jsonRepresentation = objectMapper.writeValueAsString(requestPayload);
+        } catch (JsonProcessingException e) {
+            throw new EdcException(e);
+        }
+        return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);
+    }
+    
     private Map<String, String> getTokenRenewRequestPayload() {
         return Map.of(INCREMENT_KEY, INCREMENT_SECONDS_FORMAT.formatted(settings.ttl()));
     }
@@ -212,21 +228,4 @@ public class HashicorpVaultTokenRenewService {
         }
         return value;
     }
-    
-    private Headers getHeaders(String token) {
-        var headersBuilder = new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
-        headersBuilder.add(VAULT_TOKEN_HEADER, token);
-        return headersBuilder.build();
-    }
-    
-    private RequestBody createRequestBody(Object requestPayload) {
-        String jsonRepresentation;
-        try {
-            jsonRepresentation = objectMapper.writeValueAsString(requestPayload);
-        } catch (JsonProcessingException e) {
-            throw new EdcException(e);
-        }
-        return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);
-    }
-    
 }

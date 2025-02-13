@@ -138,7 +138,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
 
         @BeforeEach
         void beforeEach() throws IOException, InterruptedException {
-            HashicorpVaultSettings settings = getSettings();
+            var settings = getSettings();
             tokenRenewService = new HashicorpVaultTokenRenewService(
                     testHttpClient(),
                     mapper,
@@ -186,7 +186,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
 
         @BeforeEach
         void beforeEach() throws IOException, InterruptedException {
-            HashicorpVaultSettings settings = getSettings();
+            var settings = getSettings();
             tokenRenewService = new HashicorpVaultTokenRenewService(
                     testHttpClient(),
                     mapper,
