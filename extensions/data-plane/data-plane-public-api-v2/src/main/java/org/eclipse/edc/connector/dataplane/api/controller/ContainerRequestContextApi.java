@@ -20,7 +20,10 @@ import java.util.Map;
 
 /**
  * Wrapper around {@link ContainerRequestContext} enabling mocking.
+ *
+ * @deprecated .
  */
+@Deprecated(since = "0.12.0")
 public interface ContainerRequestContextApi {
 
     /**

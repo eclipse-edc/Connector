@@ -23,7 +23,6 @@ dependencies {
     implementation(project(":spi:control-plane:asset-spi"))
     implementation(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":spi:control-plane:secrets-spi"))
-    implementation(project(":spi:control-plane:transfer-data-plane-spi"))
     implementation(project(":core:common:lib:util-lib"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)

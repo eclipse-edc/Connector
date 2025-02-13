@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.ContainerRequestContext;
 
+@Deprecated(since = "0.12.0")
 @OpenAPIDefinition
 @Tag(name = "Data Plane public API",
         description = "The public API of the Data Plane is a data proxy enabling a data consumer to actively query" +

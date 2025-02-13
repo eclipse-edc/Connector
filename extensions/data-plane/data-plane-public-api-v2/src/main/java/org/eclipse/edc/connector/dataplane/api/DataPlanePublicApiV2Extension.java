@@ -38,19 +38,24 @@ import java.util.concurrent.Executors;
 /**
  * This extension provides generic endpoints which are open to public participants of the Dataspace to execute
  * requests on the actual data source.
+ *
+ * @deprecated the data-plane http proxy implementation will need to be provided from adopters.
  */
 @Extension(value = DataPlanePublicApiV2Extension.NAME)
+@Deprecated(since = "0.12.0")
 public class DataPlanePublicApiV2Extension implements ServiceExtension {
     public static final String NAME = "Data Plane Public API";
 
     private static final int DEFAULT_PUBLIC_PORT = 8185;
     private static final String DEFAULT_PUBLIC_PATH = "/api/public";
 
+    @Deprecated(since = "0.12.0")
     @Setting(description = "Base url of the public API endpoint without the trailing slash. This should point to the public endpoint configured.",
             required = false,
             key = "edc.dataplane.api.public.baseurl", warnOnMissingConfig = true)
     private String publicBaseUrl;
 
+    @Deprecated(since = "0.12.0")
     @Setting(description = "Optional base url of the response channel endpoint without the trailing slash. A common practice is to use <PUBLIC_ENDPOINT>/responseChannel", key = "edc.dataplane.api.public.response.baseurl", required = false)
     private String publicApiResponseUrl;
 
@@ -80,6 +85,9 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        context.getMonitor().warning("The `data-plane-public-api-v2` has been deprecated, please provide an" +
+                "alternative implementation for Http Proxy if needed");
+
         var portMapping = new PortMapping(ApiContext.PUBLIC, apiConfiguration.port(), apiConfiguration.path());
         portMappingRegistry.register(portMapping);
         var executorService = executorInstrumentation.instrument(
@@ -102,10 +110,13 @@ public class DataPlanePublicApiV2Extension implements ServiceExtension {
         webService.registerResource(ApiContext.PUBLIC, publicApiController);
     }
 
+    @Deprecated(since = "0.12.0")
     @Settings
     record PublicApiConfiguration(
+            @Deprecated(since = "0.12.0")
             @Setting(key = "web.http." + ApiContext.PUBLIC + ".port", description = "Port for " + ApiContext.PUBLIC + " api context", defaultValue = DEFAULT_PUBLIC_PORT + "")
             int port,
+            @Deprecated(since = "0.12.0")
             @Setting(key = "web.http." + ApiContext.PUBLIC + ".path", description = "Path for " + ApiContext.PUBLIC + " api context", defaultValue = DEFAULT_PUBLIC_PATH)
             String path
     ) {

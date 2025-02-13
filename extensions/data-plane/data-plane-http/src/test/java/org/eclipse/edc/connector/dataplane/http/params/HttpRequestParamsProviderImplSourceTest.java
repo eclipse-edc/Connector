@@ -17,9 +17,8 @@ package org.eclipse.edc.connector.dataplane.http.params;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
+import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -32,6 +31,7 @@ import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSche
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
 import static org.mockito.Mockito.mock;
 
 class HttpRequestParamsProviderImplSourceTest {
@@ -78,10 +78,10 @@ class HttpRequestParamsProviderImplSourceTest {
                 .nonChunkedTransfer(true)
                 .build();
         var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
-                .flowType(FlowType.PULL)
+                .flowType(PULL)
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(source)
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("HttpProxy").build())
+                .transferType(new TransferType("HttpData", PULL))
                 .properties(Map.of(
                         METHOD, "proxy-method",
                         PATH, "proxy-path",
@@ -124,7 +124,7 @@ class HttpRequestParamsProviderImplSourceTest {
     }
 
     @Test
-    void shouldThrowException_whenProxyMethodIsMissingAndDestinationIsHttpProxy() {
+    void shouldThrowException_whenProxyMethodIsMissingAndTransferTypeIsPull() {
         var source = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://source")
                 .proxyMethod("true")
@@ -134,17 +134,17 @@ class HttpRequestParamsProviderImplSourceTest {
                 .nonChunkedTransfer(true)
                 .build();
         var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
-                .flowType(FlowType.PULL)
+                .flowType(PULL)
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(source)
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("HttpProxy").build())
+                .transferType(new TransferType("HttpData", PULL))
                 .build();
 
         assertThatExceptionOfType(EdcException.class).isThrownBy(() -> provider.provideSourceParams(dataFlowRequest));
     }
 
     @Test
-    void shouldUseSourceMethod_whenProxyMethodIsMissingAndDestinationIsNotHttpProxy() {
+    void shouldUseSourceMethod_whenProxyMethodIsMissingAndTransferTypeIsNotPull() {
         var source = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://source")
                 .proxyMethod("true")
