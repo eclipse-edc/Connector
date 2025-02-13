@@ -21,7 +21,6 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:transfer-spi"))
 
-    api(project(":spi:control-plane:transfer-data-plane-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
     api(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))

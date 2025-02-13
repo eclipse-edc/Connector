@@ -87,11 +87,12 @@ class JsonObjectToDataPlaneInstanceTransformerTest {
                 .add(ID, UUID.randomUUID().toString())
                 .add(EDC_NAMESPACE + "url", "http://localhost/control/transfer")
                 .add(EDC_NAMESPACE + "allowedSourceTypes", createArrayBuilder(List.of("HttpData", "HttpProvision", "Kafka")))
-                .add(EDC_NAMESPACE + "allowedDestTypes", createArrayBuilder(List.of("HttpData", "HttpProvision", "HttpProxy", "Kafka")))
+                .add(EDC_NAMESPACE + "allowedDestTypes", createArrayBuilder(List.of("HttpData", "HttpProvision", "Kafka")))
                 .add(EDC_NAMESPACE + "properties", createObjectBuilder().add("publicApiUrl", "http://localhost/public"))
                 .build();
 
         var dpi = transformer.transform(expand(jsonObject), context);
+
         assertThat(dpi).isNotNull();
         assertThat(dpi.getProperties()).containsEntry(EDC_NAMESPACE + "publicApiUrl", "http://localhost/public");
     }

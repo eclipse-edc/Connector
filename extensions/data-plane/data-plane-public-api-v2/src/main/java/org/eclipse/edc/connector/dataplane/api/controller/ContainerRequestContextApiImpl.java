@@ -28,7 +28,10 @@ import java.util.stream.Collectors;
 
 /**
  * This class provides a set of API wrapping a {@link ContainerRequestContext}.
+ *
+ * @deprecated .
  */
+@Deprecated(since = "0.12.0")
 public class ContainerRequestContextApiImpl implements ContainerRequestContextApi {
 
     private static final String QUERY_PARAM_SEPARATOR = "&";

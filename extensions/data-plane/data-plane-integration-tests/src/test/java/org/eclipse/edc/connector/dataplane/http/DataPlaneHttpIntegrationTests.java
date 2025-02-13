@@ -144,6 +144,7 @@ public class DataPlaneHttpIntegrationTests {
     }
 
     @Nested
+    @Deprecated(since = "0.12.0")
     class Pull {
 
         private static final String HTTP_API_PATH = "sample";
