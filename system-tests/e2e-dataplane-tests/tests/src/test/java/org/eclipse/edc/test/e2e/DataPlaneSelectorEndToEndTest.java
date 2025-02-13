@@ -26,6 +26,7 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -47,41 +48,37 @@ public class DataPlaneSelectorEndToEndTest {
     @RegisterExtension
     private final RuntimeExtension controlPlane = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "control-plane",
-            Map.of(
+            ":dist:bom:controlplane-base-bom",
+            ":extensions:common:iam:iam-mock")
+            .registerServiceMock(ProtocolWebhook.class, mock())
+            .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "web.http.port", String.valueOf(getFreePort()),
                     "web.http.control.port", String.valueOf(getFreePort()),
                     "web.http.control.path", "/control",
                     "edc.dataplane.client.selector.strategy", SELECT_FIRST,
                     "edc.data.plane.selector.state-machine.check.period", "1",
                     "edc.core.retry.retries.max", "0"
-            ),
-            ":core:common:connector-core",
-            ":core:common:token-core",
-            ":core:control-plane:control-plane-core",
-            ":core:data-plane-selector:data-plane-selector-core",
-            ":extensions:control-plane:transfer:transfer-data-plane-signaling",
-            ":extensions:common:iam:iam-mock",
-            ":extensions:common:http",
-            ":extensions:common:api:control-api-configuration"
-    )).registerServiceMock(ProtocolWebhook.class, mock());
+            )))
+    );
 
     private final int dataPlaneControlPort = getFreePort();
 
     @RegisterExtension
     private final RuntimeExtension dataPlane = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "data-plane",
-            Map.of(
-                    "web.http.port", String.valueOf(getFreePort()),
-                    "web.http.control.port", String.valueOf(dataPlaneControlPort),
-                    "web.http.control.path", "/control"
-            ),
             ":core:data-plane:data-plane-core",
             ":extensions:data-plane:data-plane-http",
+            ":extensions:common:api:api-core",
             ":extensions:common:api:control-api-configuration",
             ":extensions:control-plane:api:control-plane-api-client",
             ":extensions:data-plane:data-plane-signaling:data-plane-signaling-api",
-            ":extensions:common:http"
-    ));
+            ":extensions:common:http")
+            .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
+                    "web.http.port", String.valueOf(getFreePort()),
+                    "web.http.control.port", String.valueOf(dataPlaneControlPort),
+                    "web.http.control.path", "/control"
+            )))
+    );
 
     @Test
     void shouldNotSelectUnavailableDataPlanes() {

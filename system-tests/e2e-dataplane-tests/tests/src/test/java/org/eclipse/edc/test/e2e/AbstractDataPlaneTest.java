@@ -20,6 +20,7 @@ import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.test.e2e.participant.DataPlaneParticipant;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 public abstract class AbstractDataPlaneTest {
@@ -30,11 +31,15 @@ public abstract class AbstractDataPlaneTest {
             .build();
 
     @RegisterExtension
-    protected static RuntimeExtension runtime =
-            new RuntimePerClassExtension(new EmbeddedRuntime(
-                    "data-plane",
-                    ":system-tests:e2e-dataplane-tests:runtimes:data-plane"
-            ).configurationProvider(DATAPLANE::dataPlaneConfig));
+    @Order(0)
+    protected static DummyControlPlane dummyControlPlane = new DummyControlPlane();
+
+    @RegisterExtension
+    protected static RuntimeExtension runtime = new RuntimePerClassExtension(
+            new EmbeddedRuntime("data-plane", ":system-tests:e2e-dataplane-tests:runtimes:data-plane")
+                    .configurationProvider(DATAPLANE::dataPlaneConfig)
+                    .configurationProvider(dummyControlPlane.dataPlaneConfigurationSupplier())
+            );
 
     protected void seedVault() {
         var vault = runtime.getService(Vault.class);

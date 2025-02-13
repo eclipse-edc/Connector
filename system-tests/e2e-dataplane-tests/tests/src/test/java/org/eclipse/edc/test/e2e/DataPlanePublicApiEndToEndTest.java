@@ -85,8 +85,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
     @Test
     void httpPull_missingToken_expect401() {
         seedVault();
-        DATAPLANE.getDataPlanePublicEndpoint()
-                .baseRequest()
+        DATAPLANE.basePublicRequest()
                 .contentType(ContentType.JSON)
                 /*.header(HttpHeaders.AUTHORIZATION, token) missing */
                 .body("""
@@ -106,8 +105,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
     void httpPull_invalidToken_expect403() {
         seedVault();
         var token = "some-invalid-token";
-        DATAPLANE.getDataPlanePublicEndpoint()
-                .baseRequest()
+        DATAPLANE.basePublicRequest()
                 .contentType(ContentType.JSON)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .body("""
@@ -134,8 +132,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
                    "quizz": "quzz"
                 }
                 """;
-        var body = DATAPLANE.getDataPlanePublicEndpoint()
-                .baseRequest()
+        var body = DATAPLANE.basePublicRequest()
                 .contentType(ContentType.JSON)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .body(jsonBody)
@@ -158,8 +155,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
     void request_noBody_expect200(String method) {
         seedVault();
         var token = createEdr();
-        var body = DATAPLANE.getDataPlanePublicEndpoint()
-                .baseRequest()
+        var body = DATAPLANE.basePublicRequest()
                 .contentType(ContentType.JSON)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .request(method, "/v2/bar/baz")
@@ -176,8 +172,7 @@ public class DataPlanePublicApiEndToEndTest extends AbstractDataPlaneTest {
     void request_getMultipleIdenticalQuery() {
         seedVault();
         var token = createEdr();
-        var body = DATAPLANE.getDataPlanePublicEndpoint()
-                .baseRequest()
+        var body = DATAPLANE.basePublicRequest()
                 .contentType(ContentType.JSON)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .request("GET", "/v2/bar/baz?foo=bar&foo=fizz&foo=buzz")

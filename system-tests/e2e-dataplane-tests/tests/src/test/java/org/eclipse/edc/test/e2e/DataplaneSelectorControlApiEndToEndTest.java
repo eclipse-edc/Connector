@@ -22,6 +22,7 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -49,25 +50,28 @@ public class DataplaneSelectorControlApiEndToEndTest {
     @Order(1)
     private final RuntimeExtension dataPlaneSelector = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "data-plane-selector",
-            Map.of(
+            ":core:common:connector-core",
+            ":core:data-plane-selector:data-plane-selector-core",
+            ":extensions:common:http",
+            ":extensions:common:api:api-core",
+            ":extensions:common:api:control-api-configuration",
+            ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client",
+            ":extensions:data-plane-selector:data-plane-selector-control-api")
+            .registerServiceMock(ProtocolWebhook.class, mock())
+            .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "web.http.control.port", String.valueOf(controlPort),
                     "web.http.control.path", "/control",
                     "edc.transfer.proxy.token.verifier.publickey.alias", "public-key",
                     "edc.transfer.proxy.token.signer.privatekey.alias", "private-key"
-            ),
-            ":core:common:connector-core",
-            ":core:data-plane-selector:data-plane-selector-core",
-            ":extensions:common:http",
-            ":extensions:common:api:control-api-configuration",
-            ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client",
-            ":extensions:data-plane-selector:data-plane-selector-control-api"
-    )).registerServiceMock(ProtocolWebhook.class, mock());
+            )))
+    );
 
     @RegisterExtension
     @Order(2)
     private final RuntimeExtension dataPlane = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "data-plane",
-            Map.of(
+            ":dist:bom:dataplane-base-bom")
+            .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "edc.runtime.id", DATA_PLANE_ID,
                     "web.http.port", String.valueOf(getFreePort()),
                     "web.http.path", "/api",
@@ -76,11 +80,8 @@ public class DataplaneSelectorControlApiEndToEndTest {
                     "edc.dpf.selector.url", String.format("http://localhost:%d/control/v1/dataplanes", controlPort),
                     "edc.transfer.proxy.token.verifier.publickey.alias", "public-key",
                     "edc.transfer.proxy.token.signer.privatekey.alias", "private-key"
-            ),
-            ":system-tests:e2e-dataplane-tests:runtimes:data-plane",
-            ":extensions:data-plane:data-plane-self-registration",
-            ":extensions:data-plane-selector:data-plane-selector-client"
-    ));
+            )))
+    );
 
     @Test
     void shouldReturnSelfRegisteredDataplane() {

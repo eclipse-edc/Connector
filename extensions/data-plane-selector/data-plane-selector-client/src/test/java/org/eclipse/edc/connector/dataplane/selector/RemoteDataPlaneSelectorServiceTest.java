@@ -22,6 +22,7 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
@@ -51,32 +52,33 @@ class RemoteDataPlaneSelectorServiceTest {
     private final JsonObjectValidatorRegistry validator = mock();
 
     @RegisterExtension
-    public final RuntimeExtension client = new RuntimePerMethodExtension(new EmbeddedRuntime(
-            "client",
-            Map.of(
+    public final RuntimeExtension client = new RuntimePerMethodExtension(new EmbeddedRuntime("client",
+            ":core:common:connector-core",
+            ":extensions:common:http")
+            .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "web.http.port", String.valueOf(getFreePort()),
                     "edc.dpf.selector.url", "http://localhost:%d/control/v1/dataplanes".formatted(port),
                     "edc.core.retry.retries.max", "0"
-            ),
-            ":core:common:connector-core",
-            ":extensions:common:http"
-    ));
+            )))
+    );
 
     @RegisterExtension
     public final RuntimeExtension server = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "server",
-            Map.of(
+            ":extensions:data-plane-selector:data-plane-selector-control-api",
+            ":extensions:common:api:control-api-configuration",
+            ":extensions:common:api:api-core",
+            ":core:common:connector-core",
+            ":extensions:common:http")
+            .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "web.http.port", String.valueOf(getFreePort()),
                     "edc.dpf.selector.url", "http://not-used-but-mandatory",
                     "web.http.control.port", port + "",
                     "web.http.control.path", "/control"
-            ),
-            ":extensions:data-plane-selector:data-plane-selector-control-api",
-            ":extensions:common:api:control-api-configuration",
-            ":core:common:connector-core",
-            ":extensions:common:http"))
+            )))
             .registerServiceMock(DataPlaneSelectorService.class, serverService)
-            .registerServiceMock(JsonObjectValidatorRegistry.class, validator);
+            .registerServiceMock(JsonObjectValidatorRegistry.class, validator)
+    );
 
     @Test
     void addInstance() {

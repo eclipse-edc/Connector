@@ -25,9 +25,9 @@ dependencies {
     api(project(":spi:common:transaction-spi"))
     api(project(":spi:common:policy-model"))
 
+    implementation(project(":core:common:lib:api-lib"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:validator-lib"))
-    implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:common:api:lib:management-api-lib"))
 
     implementation(libs.jakarta.rsApi)

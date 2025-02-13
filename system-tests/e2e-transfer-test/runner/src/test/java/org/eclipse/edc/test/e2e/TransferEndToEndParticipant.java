@@ -53,6 +53,7 @@ public class TransferEndToEndParticipant extends Participant {
                 put(PARTICIPANT_ID, id);
                 put("web.http.port", String.valueOf(getFreePort()));
                 put("web.http.path", "/api");
+                put("web.http.version.port", String.valueOf(getFreePort()));
                 put("web.http.protocol.port", String.valueOf(controlPlaneProtocol.get().getPort()));
                 put("web.http.protocol.path", controlPlaneProtocol.get().getPath());
                 put("web.http.management.port", String.valueOf(controlPlaneManagement.get().getPort()));

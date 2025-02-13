@@ -28,7 +28,6 @@ dependencies {
     testImplementation(project(":core:common:connector-core"))
 
     //useful for generic DTOs etc.
-    testImplementation(project(":extensions:common:api:api-core"))
     testImplementation(project(":spi:control-plane:policy-spi"))
     testImplementation(project(":spi:control-plane:transfer-spi"))
 

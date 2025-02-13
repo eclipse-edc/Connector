@@ -47,6 +47,7 @@ include(":core:common:junit")
 include(":core:common:token-core")
 include(":core:common:edr-store-core")
 
+include(":core:common:lib:api-lib")
 include(":core:common:lib:boot-lib")
 include(":core:common:lib:crypto-common-lib")
 include(":core:common:lib:http-lib")

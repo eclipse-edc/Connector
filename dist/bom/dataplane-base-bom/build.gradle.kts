@@ -26,10 +26,12 @@ dependencies {
     api(project(":core:common:token-core"))
     api(project(":core:data-plane:data-plane-core"))
 
-
     // extension dependencies
+    api(project(":extensions:common:api:api-core"))
+    api(project(":extensions:common:api:api-observability"))
     api(project(":extensions:common:api:control-api-configuration"))
     api(project(":extensions:common:configuration:configuration-filesystem"))
+    api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
     api(project(":extensions:control-plane:api:control-plane-api-client"))
     api(project(":extensions:data-plane:data-plane-self-registration"))
@@ -39,6 +41,5 @@ dependencies {
     api(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api"))
     api(project(":extensions:data-plane:data-plane-iam"))
     api(project(":extensions:data-plane-selector:data-plane-selector-client"))
-    api(project(":extensions:common:api:api-observability"))
-    api(project(":extensions:common:http"))
+
 }

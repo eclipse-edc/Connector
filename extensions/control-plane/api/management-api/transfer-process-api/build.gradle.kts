@@ -21,9 +21,9 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
 
+    implementation(project(":core:common:lib:api-lib"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:validator-lib"))
-    implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:common:api:lib:management-api-lib"))
 
     implementation(libs.jakarta.rsApi)

@@ -26,8 +26,8 @@ dependencies {
     api(project(":core:common:connector-core"))
     api(project(":core:common:token-core"))
 
-
     // extension dependencies
+    api(project(":extensions:common:api:api-core"))
     api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
     api(project(":extensions:common:api:api-observability"))

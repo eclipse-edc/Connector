@@ -18,15 +18,15 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:auth-spi"))
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:contract-spi"))
 
-    implementation(project(":extensions:common:api:lib:management-api-lib"))
-    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
-    implementation(project(":extensions:common:api:api-core"))
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":core:control-plane:control-plane-transform"))
+    implementation(project(":extensions:common:api:lib:management-api-lib"))
+    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:json-ld-lib"))
