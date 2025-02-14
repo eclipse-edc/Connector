@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
 @Extension("Identity And Trust Extension to register default services")
@@ -123,9 +122,6 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public ClaimTokenCreatorFunction defaultClaimTokenFunction() {
         return credentials -> {
-            if (credentials.isEmpty()) {
-                return failure("No VerifiableCredentials were found on VP");
-            }
             var b = ClaimToken.Builder.newInstance()
                     .claims(Map.of(CLAIMTOKEN_VC_KEY, credentials));
             return success(b.build());

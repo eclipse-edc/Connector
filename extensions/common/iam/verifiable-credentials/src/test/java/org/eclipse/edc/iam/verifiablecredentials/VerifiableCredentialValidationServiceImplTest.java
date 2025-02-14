@@ -124,6 +124,19 @@ class VerifiableCredentialValidationServiceImplTest {
     }
 
     @Test
+    void verify_singlePresentation_noCredential() {
+        var presentation = createPresentationBuilder()
+                .holder(CONSUMER_DID)
+                .type("VerifiablePresentation")
+                .credentials(List.of())
+                .build();
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
+        when(verifier.verifyPresentation(any())).thenReturn(success());
+        var result = validationService.validate(List.of(vpContainer));
+        assertThat(result).isSucceeded();
+    }
+
+    @Test
     void verify_singlePresentation_singleCredential() {
         var presentation = createPresentationBuilder()
                 .holder(CONSUMER_DID)

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.service;
 
+import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceUrlResolver;
@@ -31,6 +32,7 @@ import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -104,7 +106,6 @@ public class IdentityAndTrustService implements IdentityService {
                 .build();
 
         var scopeValidationResult = validateScope(scope);
-
         if (scopeValidationResult.failed()) {
             return failure(scopeValidationResult.getFailureMessages());
         }
@@ -124,7 +125,6 @@ public class IdentityAndTrustService implements IdentityService {
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
         var claimTokenResult = tokenValidationAction.apply(tokenRepresentation);
-
         if (claimTokenResult.failed()) {
             return claimTokenResult.mapEmpty();
         }
@@ -133,6 +133,15 @@ public class IdentityAndTrustService implements IdentityService {
         var claimToken = claimTokenResult.getContent();
         var accessToken = claimToken.getStringClaim(PRESENTATION_TOKEN_CLAIM);
         var issuer = claimToken.getStringClaim(ISSUER);
+        var scopeResult = extractScope(accessToken);
+        if (scopeResult.failed()) {
+            return scopeResult.mapEmpty();
+        }
+
+        if (StringUtils.isNullOrEmpty(scopeResult.getContent())) {
+            // if scope is empty, then there is no need to request a VP
+            return Result.success(ClaimToken.Builder.newInstance().build());
+        }
 
         var siTokenClaims = Map.of(PRESENTATION_TOKEN_CLAIM, accessToken,
                 ISSUED_AT, Instant.now().toString(),
@@ -186,13 +195,23 @@ public class IdentityAndTrustService implements IdentityService {
         return List.of();
     }
 
-
     private Result<Void> validateScope(String scope) {
-        if (StringUtils.isNullOrBlank(scope)) {
-            return failure("Scope string invalid: input string was null or empty");
+        if (scope == null) {
+            return failure("Scope string invalid: null");
         }
+
         return scope.matches(SCOPE_STRING_REGEX) ?
                 success() :
                 failure("Scope string invalid: '%s' does not match regex %s".formatted(scope, SCOPE_STRING_REGEX));
+    }
+
+    private Result<String> extractScope(String accessToken) {
+        try {
+            var jwt = SignedJWT.parse(accessToken);
+            var scope = jwt.getJWTClaimsSet().getClaimAsString(SCOPE);
+            return Result.success(scope);
+        } catch (ParseException e) {
+            return Result.failure(e.getMessage());
+        }
     }
 }

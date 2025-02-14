@@ -37,7 +37,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -59,6 +58,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -101,25 +101,10 @@ class IdentityAndTrustServiceTest {
     @Nested
     class ObtainClientCredentials {
         @ParameterizedTest(name = "{0}")
-        @ValueSource(strings = { "org.eclipse.edc:TestCredential:modify", "org.eclipse.edc:TestCredential:", "org.eclipse.edc:TestCredential: ", "org.eclipse.edc:TestCredential:write*", ":TestCredential:read",
-                "org.eclipse.edc:fooCredential:+" })
-        void obtainClientCredentials_invalidScopeString(String scope) {
-            var tp = TokenParameters.Builder.newInstance()
-                    .claims(SCOPE, scope)
-                    .claims(AUDIENCE, "test-audience")
-                    .build();
-            assertThat(service.obtainClientCredentials(tp))
-                    .isNotNull()
-                    .isFailed()
-                    .detail().contains("Scope string invalid");
-        }
-
-        @ParameterizedTest(name = "Scope: {0}")
-        @ValueSource(strings = { "org.eclipse.edc:TestCredential:modify", "org.eclipse.edc:TestCredential:", "org.eclipse.edc:TestCredential: ", "org.eclipse.edc:TestCredential:write*", ":TestCredential:read",
-                "org.eclipse.edc:fooCredential:+" })
+        @ValueSource(strings = {"org.eclipse.edc:TestCredential:modify", "org.eclipse.edc:TestCredential:", "org.eclipse.edc:TestCredential: ", "org.eclipse.edc:TestCredential:write*", ":TestCredential:read",
+                "org.eclipse.edc:fooCredential:+"})
         @NullSource
-        @EmptySource
-        void obtainClientCredentials_validScopeString(String scope) {
+        void obtainClientCredentials_invalidScopeString(String scope) {
             var tp = TokenParameters.Builder.newInstance()
                     .claims(SCOPE, scope)
                     .claims(AUDIENCE, "test-audience")
@@ -141,8 +126,8 @@ class IdentityAndTrustServiceTest {
             when(mockedSts.createToken(any(), any())).thenReturn(success(createJwt()));
             assertThat(service.obtainClientCredentials(tp)).isSucceeded();
             verify(mockedSts).createToken(argThat(m -> m.get("iss").equals(EXPECTED_OWN_DID) &&
-                                                       m.get("sub").equals(EXPECTED_OWN_DID) &&
-                                                       m.get("aud").equals(tp.getStringClaim(AUDIENCE))), eq(scope));
+                    m.get("sub").equals(EXPECTED_OWN_DID) &&
+                    m.get("aud").equals(tp.getStringClaim(AUDIENCE))), eq(scope));
         }
     }
 
@@ -282,6 +267,17 @@ class IdentityAndTrustServiceTest {
                         Assertions.assertThat(credentials.get(0).getCredentialSubject().get(0).getClaims()).containsEntry("some-claim", "some-val");
                         Assertions.assertThat(credentials.get(1).getCredentialSubject().get(0).getClaims()).containsEntry("some-other-claim", "some-other-val");
                     });
+        }
+
+        @Test
+        void verify_tokenWithEmptyScope() {
+            var jwt = createJwt(new JWTClaimsSet.Builder().build());
+            reset(actionMock);
+            when(actionMock.apply(any())).thenReturn(success(ClaimToken.Builder.newInstance()
+                    .claim("iss", CONSUMER_DID)
+                    .claim(PRESENTATION_TOKEN_CLAIM, jwt.getToken()).build()));
+            var result = service.verifyJwtToken(TokenRepresentation.Builder.newInstance().token("test").build(), verificationContext());
+            assertThat(result).isSucceeded().satisfies(ct -> Assertions.assertThat(ct.getClaims()).isEmpty());
         }
 
         @Test
