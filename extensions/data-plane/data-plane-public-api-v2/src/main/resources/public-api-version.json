@@ -3,6 +3,6 @@
     "version": "2.0.1",
     "urlPath": "/v2",
     "lastUpdated": "2024-07-10T08:56:00Z",
-    "maturity": "deprecated"
+    "maturity": "stable"
   }
 ]
