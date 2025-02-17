@@ -33,9 +33,7 @@ public interface QueryResolver<T> {
      * @param spec   query specification.
      * @return stream result from queries.
      */
-    default Stream<T> query(Stream<T> stream, QuerySpec spec) {
-        return query(stream, spec, Predicate::and, x -> true);
-    }
+    Stream<T> query(Stream<T> stream, QuerySpec spec);
 
     /**
      * Method to query a stream by provided specification, using the provided accumulator
@@ -44,6 +42,10 @@ public interface QueryResolver<T> {
      * @param spec        query specification.
      * @param accumulator binary accumulation operator, e.g. Predicate::and, Predicate::or, etc.
      * @return stream result from queries.
+     * @deprecated use {@link #query(Stream, QuerySpec)}, the accumulator should be passed as collaborator.
      */
-    Stream<T> query(Stream<T> stream, QuerySpec spec, BinaryOperator<Predicate<Object>> accumulator, Predicate<Object> fallback);
+    @Deprecated(since = "0.12.0")
+    default Stream<T> query(Stream<T> stream, QuerySpec spec, BinaryOperator<Predicate<Object>> accumulator, Predicate<Object> fallback) {
+        return query(stream, spec);
+    }
 }

@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.selector.store;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -34,7 +35,7 @@ public class InMemoryDataPlaneInstanceStore extends InMemoryStatefulEntityStore<
     }
 
     public InMemoryDataPlaneInstanceStore(String owner, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(DataPlaneInstance.class, owner, clock, criterionOperatorRegistry);
+        super(DataPlaneInstance.class, owner, clock, criterionOperatorRegistry, state -> DataPlaneInstanceStates.valueOf(state).code());
     }
 
     @Override

@@ -19,6 +19,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -33,6 +34,8 @@ import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -46,8 +49,8 @@ import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -183,46 +186,45 @@ public class TransferProcessApiEndToEndTest {
                     .statusCode(204);
         }
 
-        @Test
-        void request_byState(ManagementEndToEndTestContext context, TransferProcessStore store) throws JsonProcessingException {
-
-            var state = DEPROVISIONED;
+        @ParameterizedTest
+        @ValueSource(strings = { "600", "STARTED" })
+        void request_byState(String state, ManagementEndToEndTestContext context, TransferProcessStore store) {
+            var actualState = STARTED;
             var tp = createTransferProcessBuilder("test-tp")
-                    .state(state.code())
+                    .state(actualState.code())
                     .build();
             store.save(tp);
 
+            JsonValue stateValue;
+            try {
+                stateValue = Json.createValue(Integer.valueOf(state));
+            } catch (NumberFormatException e) {
+                stateValue = Json.createValue(state);
+            }
 
-            var content = """
-                    {
-                        "@context": {
-                            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
-                        },
-                        "@type": "QuerySpec",
-                        "filterExpression": [
-                            {
-                                "operandLeft": "state",
-                                "operandRight": %d,
-                                "operator": "="
-                            }
-                        ],
-                        "limit": 100,
-                        "offset": 0
-                    }
-                    """.formatted(state.code());
-            var query = JacksonJsonLd.createObjectMapper()
-                    .readValue(content, JsonObject.class);
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                    .add(TYPE, "QuerySpec")
+                    .add("filterExpression", createObjectBuilder()
+                            .add("operandLeft", "state")
+                            .add("operator", "=")
+                            .add("operandRight", stateValue)
+                    )
+                    .add("limit", 100)
+                    .add("offset", 0)
+                    .build();
 
             var result = context.baseRequest()
                     .contentType(JSON)
-                    .body(query)
+                    .body(requestBody)
                     .post("/v3/transferprocesses/request")
                     .then()
                     .statusCode(200)
                     .extract().body().as(JsonArray.class);
 
-            assertThat(result).isNotEmpty();
-            assertThat(result).anySatisfy(it -> assertThat(it.asJsonObject().getString("state")).isEqualTo(state.toString()));
+            assertThat(result)
+                    .isNotEmpty()
+                    .anySatisfy(it -> assertThat(it.asJsonObject().getString("state")).isEqualTo(actualState.name()));
         }
 
         @Test

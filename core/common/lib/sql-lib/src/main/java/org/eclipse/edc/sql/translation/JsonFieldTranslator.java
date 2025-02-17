@@ -22,7 +22,6 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.stream.IntStream.range;
-import static org.eclipse.edc.sql.translation.FieldTranslator.toParameters;
 import static org.eclipse.edc.sql.translation.FieldTranslator.toValuePlaceholder;
 
 public class JsonFieldTranslator implements FieldTranslator {

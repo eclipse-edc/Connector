@@ -23,9 +23,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 
 public class DataPlaneSelectorApiEndToEndTest {
 
@@ -45,34 +44,44 @@ public class DataPlaneSelectorApiEndToEndTest {
 
         @Test
         void getAllDataPlaneInstancesV4(ManagementEndToEndTestContext context, DataPlaneInstanceStore store) {
-            var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
+            var instance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any").build();
             store.save(instance);
 
-            context.baseRequest()
+            var responseBody = context.baseRequest()
                     .get("/v4alpha/dataplanes")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
                     .contentType(ContentType.JSON)
-                    .body("[0].url", equalTo(instance.getUrl().toString()))
-                    .body("[0].allowedDestTypes", nullValue())
-                    .body("[0].turnCount", nullValue());
+                    .body("size()", greaterThan(0))
+                    .extract().body().jsonPath();
+
+            var map = responseBody.getMap("find { it.id = '%s' }".formatted(instance.getId()));
+            assertThat(map).isNotNull().satisfies(actual -> {
+                assertThat(actual).containsEntry("url", instance.getUrl().toString());
+                assertThat(actual).doesNotContainKeys("allowedDestTypes", "turnCount");
+            });
         }
 
         @Test
         void getAllDataPlaneInstancesV3(ManagementEndToEndTestContext context, DataPlaneInstanceStore store) {
-            var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
+            var instance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any").build();
             store.save(instance);
 
-            context.baseRequest()
+            var responseBody = context.baseRequest()
                     .get("/v3/dataplanes")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
                     .contentType(ContentType.JSON)
-                    .body("[0].url", equalTo(instance.getUrl().toString()))
-                    .body("[0].allowedDestTypes", notNullValue())
-                    .body("[0].turnCount", notNullValue());
+                    .body("size()", greaterThan(0))
+                    .extract().body().jsonPath();
+
+            var map = responseBody.getMap("find { it.id = '%s' }".formatted(instance.getId()));
+            assertThat(map).isNotNull().satisfies(actual -> {
+                assertThat(actual).containsEntry("url", instance.getUrl().toString());
+                assertThat(actual).containsKeys("allowedDestTypes", "turnCount");
+            });
         }
     }
 }

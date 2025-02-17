@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.store;
 
+import org.eclipse.edc.spi.entity.StateResolver;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.persistence.Lease;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
@@ -55,8 +56,8 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     private final Map<String, Lease> leases = new HashMap<>();
     protected final CriterionOperatorRegistry criterionOperatorRegistry;
 
-    public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        queryResolver = new ReflectionBasedQueryResolver<>(clazz, criterionOperatorRegistry);
+    public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, StateResolver stateResolver) {
+        this.queryResolver = new ReflectionBasedQueryResolver<>(clazz, new StatefulEntityCriteriaToPredicate<>(criterionOperatorRegistry, stateResolver));
         this.lockId = lockId;
         this.clock = clock;
         this.criterionOperatorRegistry = criterionOperatorRegistry;
