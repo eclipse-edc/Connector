@@ -22,9 +22,12 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
 import java.util.Set;
@@ -154,7 +157,14 @@ public class ContractAgreementApiEndToEndTest {
 
     @Nested
     @PostgresqlIntegrationTest
-    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
     class Postgres extends Tests {
+
+        @RegisterExtension
+        @Order(0)
+        static PostgresqlEndToEndExtension postgres = new PostgresqlEndToEndExtension();
+
+        @RegisterExtension
+        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.Postgres(postgres);
+
     }
 }

@@ -21,7 +21,9 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -401,17 +403,24 @@ public class PolicyDefinitionApiEndToEndTest {
 
     @Nested
     @PostgresqlIntegrationTest
-    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
     class Postgres extends Tests {
+
+        @RegisterExtension
+        @Order(0)
+        static PostgresqlEndToEndExtension postgres = new PostgresqlEndToEndExtension();
+
+        @RegisterExtension
+        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.Postgres(postgres);
+
     }
 
-
+    @EndToEndTest
     @Nested
     class ValidationTests {
 
         @RegisterExtension
-        static ManagementEndToEndExtension.InMemory runtime = ManagementEndToEndExtension.InMemory.withConfig(() ->
-                ConfigFactory.fromMap(Map.of("edc.policy.validation.enabled", "true")));
+        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.InMemory()
+                .withConfig(() -> ConfigFactory.fromMap(Map.of("edc.policy.validation.enabled", "true")));
 
         @Test
         void shouldNotStorePolicyDefinition_whenValidationFails(ManagementEndToEndTestContext context) {

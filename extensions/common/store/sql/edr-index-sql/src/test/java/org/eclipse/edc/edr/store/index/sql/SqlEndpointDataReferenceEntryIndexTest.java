@@ -28,8 +28,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
-
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class SqlEndpointDataReferenceEntryIndexTest extends EndpointDataReferenceEntryIndexTestBase {
@@ -39,7 +37,7 @@ public class SqlEndpointDataReferenceEntryIndexTest extends EndpointDataReferenc
     private SqlEndpointDataReferenceEntryIndex entryIndex;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
 
         entryIndex = new SqlEndpointDataReferenceEntryIndex(extension.getDataSourceRegistry(), extension.getDatasourceName(),
                 extension.getTransactionContext(), new ObjectMapper(), statements, queryExecutor);

@@ -33,7 +33,6 @@ import static io.restassured.http.ContentType.JSON;
 import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.boot.BootServicesExtension.PARTICIPANT_ID;
-import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.defaultDatasourceConfiguration;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public class TransferEndToEndParticipant extends Participant {
@@ -106,14 +105,6 @@ public class TransferEndToEndParticipant extends Participant {
         return ConfigFactory.fromMap(settings);
     }
 
-    public Config controlPlanePostgresConfig() {
-        return controlPlaneConfig().merge(postgresConfig());
-    }
-
-    public Config dataPlanePostgresConfig() {
-        return dataPlaneConfig().merge(postgresConfig());
-    }
-
     public Config controlPlaneEmbeddedDataPlaneConfig() {
         return controlPlaneConfig().merge(dataPlaneConfig());
     }
@@ -171,13 +162,6 @@ public class TransferEndToEndParticipant extends Participant {
     @NotNull
     private String resourceAbsolutePath(String filename) {
         return System.getProperty("user.dir") + separator + "build" + separator + "resources" + separator + "test" + separator + filename;
-    }
-
-    private Config postgresConfig() {
-        var settings = new HashMap<String, String>();
-        settings.put("edc.sql.schema.autocreate", "true");
-        settings.putAll(defaultDatasourceConfiguration(getName()));
-        return ConfigFactory.fromMap(settings);
     }
 
     public static class Builder extends Participant.Builder<TransferEndToEndParticipant, Builder> {

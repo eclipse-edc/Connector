@@ -43,18 +43,12 @@ public enum Runtimes {
 
     POSTGRES_CONTROL_PLANE(
             ":system-tests:e2e-transfer-test:control-plane",
-            ":extensions:common:store:sql:edr-index-sql",
-            ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
-            ":extensions:common:transaction:transaction-local",
-            ":extensions:control-plane:store:sql:control-plane-sql",
-            ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"
+            ":dist:bom:controlplane-feature-sql-bom"
     ),
 
     POSTGRES_DATA_PLANE(
             ":system-tests:e2e-transfer-test:data-plane",
-            ":extensions:data-plane:store:sql:data-plane-store-sql",
-            ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
-            ":extensions:common:transaction:transaction-local",
+            ":dist:bom:dataplane-feature-sql-bom",
             ":extensions:data-plane-selector:data-plane-selector-client"
     );
 

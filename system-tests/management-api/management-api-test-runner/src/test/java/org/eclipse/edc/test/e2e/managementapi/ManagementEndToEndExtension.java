@@ -18,16 +18,15 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 
-import java.util.Map;
+import java.util.HashMap;
 import java.util.function.Supplier;
 
-import static java.util.Map.entry;
-import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public abstract class ManagementEndToEndExtension extends RuntimePerClassExtension {
@@ -57,75 +56,60 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
         return super.resolveParameter(parameterContext, extensionContext);
     }
 
+    public ManagementEndToEndExtension withConfig(Supplier<Config> configSupplier) {
+        context.runtime().configurationProvider(configSupplier);
+        return this;
+    }
+
     static class InMemory extends ManagementEndToEndExtension {
 
         protected InMemory() {
-            super(context(ConfigFactory::empty));
+            super(new ManagementEndToEndTestContext(runtime()));
         }
 
-        protected InMemory(Supplier<Config> configProvider) {
-            super(context(configProvider));
+        private static @NotNull EmbeddedRuntime runtime() {
+            return new EmbeddedRuntime("control-plane", ":system-tests:management-api:management-api-test-runtime")
+                    .configurationProvider(ManagementEndToEndExtension::runtimeConfig);
         }
-
-        public static InMemory withConfig(Supplier<Config> configProvider) {
-            return new InMemory(configProvider);
-        }
-
-        private static ManagementEndToEndTestContext context(Supplier<Config> config) {
-            var managementPort = getFreePort();
-            var protocolPort = getFreePort();
-
-            var runtime = new EmbeddedRuntime("control-plane",
-                    ":system-tests:management-api:management-api-test-runtime")
-                    .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
-                            "web.http.protocol.path", "/protocol",
-                            "web.http.protocol.port", String.valueOf(protocolPort),
-                            "edc.dsp.callback.address", "http://localhost:" + protocolPort + "/protocol",
-                            "web.http.management.path", "/management",
-                            "web.http.management.port", String.valueOf(managementPort)
-                    )))
-                    .configurationProvider(config);
-
-            return new ManagementEndToEndTestContext(runtime, managementPort, protocolPort);
-        }
-
     }
 
     static class Postgres extends ManagementEndToEndExtension {
 
-        protected Postgres() {
-            super(context());
+        protected Postgres(PostgresqlEndToEndExtension postgres) {
+            super(new ManagementEndToEndTestContext(runtime().configurationProvider(postgres::config)));
         }
 
-        private static ManagementEndToEndTestContext context() {
-            var managementPort = getFreePort();
-            var protocolPort = getFreePort();
-
-            var runtime = new EmbeddedRuntime("control-plane",
+        private static EmbeddedRuntime runtime() {
+            return new EmbeddedRuntime("control-plane",
                     ":system-tests:management-api:management-api-test-runtime",
-                    ":dist:bom:controlplane-feature-sql-bom")
-                    .configurationProvider(() -> ConfigFactory.fromMap(Map.ofEntries(
-                            entry("web.http.path", "/"),
-                            entry("web.http.port", String.valueOf(getFreePort())),
-                            entry("web.http.protocol.path", "/protocol"),
-                            entry("web.http.protocol.port", String.valueOf(protocolPort)),
-                            entry("web.http.control.port", String.valueOf(getFreePort())),
-                            entry("edc.dsp.callback.address", "http://localhost:" + protocolPort + "/protocol"),
-                            entry("web.http.management.path", "/management"),
-                            entry("web.http.management.port", String.valueOf(managementPort)),
-                            entry("edc.datasource.default.url", PostgresqlEndToEndInstance.JDBC_URL_PREFIX + "runtime"),
-                            entry("edc.datasource.default.user", PostgresqlEndToEndInstance.USER),
-                            entry("edc.datasource.default.password", PostgresqlEndToEndInstance.PASSWORD),
-                            entry("edc.sql.schema.autocreate", "true")
-                    )));
-
-            return new ManagementEndToEndTestContext(runtime, managementPort, protocolPort);
+                    ":extensions:control-plane:store:sql:control-plane-sql",
+                    ":extensions:policy-monitor:store:sql:policy-monitor-store-sql",
+                    ":extensions:common:store:sql:edr-index-sql",
+                    ":extensions:data-plane:store:sql:data-plane-store-sql",
+                    ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
+                    ":extensions:common:transaction:transaction-local")
+                    .configurationProvider(ManagementEndToEndExtension::runtimeConfig);
         }
 
-        @Override
-        public void beforeAll(ExtensionContext extensionContext) {
-            createDatabase("runtime");
-            super.beforeAll(extensionContext);
-        }
+    }
+
+    static Config runtimeConfig() {
+        var managementPort = getFreePort();
+        var protocolPort = getFreePort();
+
+        var settings = new HashMap<String, String>() {
+            {
+                put("web.http.path", "/");
+                put("web.http.port", String.valueOf(getFreePort()));
+                put("web.http.protocol.path", "/protocol");
+                put("web.http.protocol.port", String.valueOf(protocolPort));
+                put("web.http.control.port", String.valueOf(getFreePort()));
+                put("edc.dsp.callback.address", "http://localhost:" + protocolPort + "/protocol");
+                put("web.http.management.path", "/management");
+                put("web.http.management.port", String.valueOf(managementPort));
+            }
+        };
+
+        return ConfigFactory.fromMap(settings);
     }
 }

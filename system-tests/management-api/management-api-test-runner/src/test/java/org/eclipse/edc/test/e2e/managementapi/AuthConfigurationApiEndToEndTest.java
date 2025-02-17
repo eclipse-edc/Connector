@@ -94,7 +94,7 @@ public class AuthConfigurationApiEndToEndTest {
                     ":extensions:common:auth:auth-tokenbased"
             );
 
-            return new ManagementEndToEndTestContext(runtime, managementPort, protocolPort);
+            return new ManagementEndToEndTestContext(runtime);
         }
 
     }

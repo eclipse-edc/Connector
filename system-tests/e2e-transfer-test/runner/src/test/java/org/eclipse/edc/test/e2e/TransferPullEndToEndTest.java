@@ -34,6 +34,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -71,7 +72,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
@@ -451,7 +451,6 @@ class TransferPullEndToEndTest {
     @EndToEndTest
     class InMemoryV2024Rev1 extends Tests {
 
-
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
                 Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
@@ -513,29 +512,36 @@ class TransferPullEndToEndTest {
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
 
-        @Order(0) // must be the first extension to be evaluated since it creates the database
+        @Order(0)
+        @RegisterExtension
+        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension();
+
+        @Order(1)
         @RegisterExtension
         static final BeforeAllCallback CREATE_DATABASES = context -> {
-            createDatabase(CONSUMER.getName());
-            createDatabase(PROVIDER.getName());
+            POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
+            POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
         };
 
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
                 Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlanePostgresConfig)
+                        .configurationProvider(CONSUMER::controlPlaneConfig)
+                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
         );
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
                 Runtimes.POSTGRES_CONTROL_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlanePostgresConfig)
+                        .configurationProvider(PROVIDER::controlPlaneConfig)
+                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
         );
 
         @RegisterExtension
         static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
                 Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane")
-                        .configurationProvider(PROVIDER::dataPlanePostgresConfig)
+                        .configurationProvider(PROVIDER::dataPlaneConfig)
+                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
         );
 
         @Override

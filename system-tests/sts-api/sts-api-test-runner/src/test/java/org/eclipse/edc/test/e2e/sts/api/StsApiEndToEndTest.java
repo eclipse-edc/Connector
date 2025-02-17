@@ -20,15 +20,16 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
-import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +44,6 @@ import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.spi.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
-import static org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndInstance.createDatabase;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -57,7 +57,7 @@ public class StsApiEndToEndTest {
     abstract static class Tests extends StsEndToEndTestBase {
 
         @Test
-        void requestToken() throws ParseException {
+        void requestToken() {
             var audience = "audience";
             var clientSecret = "client_secret";
             var expiresIn = 300;
@@ -85,7 +85,7 @@ public class StsApiEndToEndTest {
                     .doesNotContainKey(CLIENT_ID)
                     .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
         }
-        
+
         @Test
         void requestToken_withBearerScope() throws ParseException {
             var clientSecret = "client_secret";
@@ -200,18 +200,11 @@ public class StsApiEndToEndTest {
     class InMemory extends Tests {
 
         @RegisterExtension
-        static RuntimePerClassExtension sts = new RuntimePerClassExtension(new EmbeddedRuntime(
-                "sts",
-                new HashMap<>() {
-                    {
-                        put("web.http.path", "/");
-                        put("web.http.port", String.valueOf(getFreePort()));
-                        put("web.http.sts.path", "/sts");
-                        put("web.http.sts.port", String.valueOf(PORT));
-                    }
-                },
-                ":system-tests:sts-api:sts-api-test-runtime"
-        ));
+        static RuntimePerClassExtension sts = new RuntimePerClassExtension(
+                new EmbeddedRuntime("sts",
+                        ":system-tests:sts-api:sts-api-test-runtime")
+                        .configurationProvider(StsApiEndToEndTest::runtimeConfig)
+        );
 
         @Override
         protected RuntimePerClassExtension getRuntime() {
@@ -224,37 +217,34 @@ public class StsApiEndToEndTest {
     class Postgres extends Tests {
 
         @RegisterExtension
+        @Order(0)
+        static PostgresqlEndToEndExtension postgresqlExtension = new PostgresqlEndToEndExtension();
+
+        @RegisterExtension
         static RuntimePerClassExtension sts = new RuntimePerClassExtension(new EmbeddedRuntime(
                 "sts",
-                new HashMap<>() {
-                    {
-                        put("web.http.path", "/");
-                        put("web.http.port", String.valueOf(getFreePort()));
-                        put("web.http.sts.path", "/sts");
-                        put("web.http.sts.port", String.valueOf(PORT));
-                        put("edc.datasource.default.url", PostgresqlEndToEndInstance.JDBC_URL_PREFIX + "runtime");
-                        put("edc.datasource.default.user", PostgresqlEndToEndInstance.USER);
-                        put("edc.datasource.default.password", PostgresqlEndToEndInstance.PASSWORD);
-                        put("edc.sql.schema.autocreate", "true");
-                    }
-                },
                 ":system-tests:sts-api:sts-api-test-runtime",
                 ":extensions:common:sql:sql-core",
                 ":extensions:common:store:sql:sts-client-store-sql",
                 ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
-                ":extensions:common:transaction:transaction-local"
-        )) {
-            @Override
-            public void beforeAll(ExtensionContext extensionContext) {
-                createDatabase("runtime");
-                super.beforeAll(extensionContext);
-            }
-        };
+                ":extensions:common:transaction:transaction-local")
+                .configurationProvider(StsApiEndToEndTest::runtimeConfig)
+                .configurationProvider(postgresqlExtension::config)
+        );
 
         @Override
         protected RuntimePerClassExtension getRuntime() {
             return sts;
         }
+    }
+
+    private static Config runtimeConfig() {
+        return ConfigFactory.fromMap(Map.of(
+                "web.http.path", "/",
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.sts.path", "/sts",
+                "web.http.sts.port", String.valueOf(PORT)
+        ));
     }
 
 }

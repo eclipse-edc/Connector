@@ -22,9 +22,12 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.UUID;
 
@@ -412,8 +415,15 @@ public class AssetApiEndToEndTest {
 
     @Nested
     @PostgresqlIntegrationTest
-    @ExtendWith(ManagementEndToEndExtension.Postgres.class)
     class Postgres extends Tests {
+
+        @RegisterExtension
+        @Order(0)
+        static PostgresqlEndToEndExtension postgres = new PostgresqlEndToEndExtension();
+
+        @RegisterExtension
+        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.Postgres(postgres);
+
     }
 
 }

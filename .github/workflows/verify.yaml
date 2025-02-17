@@ -47,15 +47,6 @@ jobs:
 
   Postgresql-Integration-Tests:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:14.2
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_PASSWORD: password
-
     steps:
       - uses: actions/checkout@v4
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
