@@ -17,7 +17,6 @@ package org.eclipse.edc.vault.hashicorp.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
@@ -34,6 +33,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
@@ -59,7 +59,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
 
         @BeforeEach
         void beforeEach() throws IOException, InterruptedException {
-            Assertions.assertThat(CREATION_TTL).isGreaterThan(TTL);
+            assertThat(CREATION_TTL).isGreaterThan(TTL);
         }
 
         @Test
@@ -77,7 +77,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     .untilAsserted(() -> {
                         var tokenLookUpResult = tokenRenewService.isTokenRenewable();
                         assertThat(tokenLookUpResult).isFailed();
-                        Assertions.assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
+                        assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
                     });
         }
 
@@ -85,7 +85,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
         void renewToken_whenTokenNotExpired_shouldSucceed() {
             var tokenRenewResult = tokenRenewService.renewToken();
 
-            assertThat(tokenRenewResult).isSucceeded().satisfies(ttl -> Assertions.assertThat(ttl).isEqualTo(TTL));
+            assertThat(tokenRenewResult).isSucceeded().satisfies(ttl -> assertThat(ttl).isEqualTo(TTL));
         }
 
         @Test
@@ -96,7 +96,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     .untilAsserted(() -> {
                         var tokenRenewResult = tokenRenewService.renewToken();
                         assertThat(tokenRenewResult).isFailed();
-                        Assertions.assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: 403");
+                        assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: 403");
                     });
         }
     }
@@ -109,7 +109,8 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
         static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("vault:1.9.6")
                 .withVaultToken(UUID.randomUUID().toString());
 
-        public static HashicorpVaultSettings getSettings() throws IOException, InterruptedException {
+        @BeforeEach
+        void beforeEach() throws IOException, InterruptedException {
             var execResult = VAULT_CONTAINER.execInContainer(
                     "vault",
                     "token",
@@ -117,7 +118,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     "-policy=root",
                     "-ttl=%d".formatted(CREATION_TTL),
                     "-format=json");
-
+            
             var jsonParser = Json.createParser(new StringReader(execResult.getStdout()));
             jsonParser.next();
             var auth = jsonParser.getObjectStream().filter(e -> e.getKey().equals(AUTH_KEY))
@@ -126,24 +127,19 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     .orElseThrow()
                     .asJsonObject();
             var clientToken = auth.getString(CLIENT_TOKEN_KEY);
-
-            return HashicorpVaultSettings.Builder.newInstance()
+            
+            var settings = HashicorpVaultSettings.Builder.newInstance()
                     .url(HTTP_URL_FORMAT.formatted(VAULT_CONTAINER.getHost(), VAULT_CONTAINER.getFirstMappedPort()))
                     .healthCheckPath(HEALTH_CHECK_PATH)
-                    .token(clientToken)
                     .ttl(TTL)
                     .renewBuffer(RENEW_BUFFER)
                     .build();
-        }
-
-        @BeforeEach
-        void beforeEach() throws IOException, InterruptedException {
-            var settings = getSettings();
+            
             tokenRenewService = new HashicorpVaultTokenRenewService(
                     testHttpClient(),
                     mapper,
                     settings,
-                    new HashicorpVaultTokenProviderImpl(settings.token()),
+                    new HashicorpVaultTokenProviderImpl(clientToken),
                     monitor
             );
         }
@@ -157,7 +153,8 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
         static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("hashicorp/vault:1.18.3")
                 .withVaultToken(UUID.randomUUID().toString());
 
-        public static HashicorpVaultSettings getSettings() throws IOException, InterruptedException {
+        @BeforeEach
+        void beforeEach() throws IOException, InterruptedException {
             var execResult = VAULT_CONTAINER.execInContainer(
                     "vault",
                     "token",
@@ -165,7 +162,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     "-policy=root",
                     "-ttl=%d".formatted(CREATION_TTL),
                     "-format=json");
-
+            
             var jsonParser = Json.createParser(new StringReader(execResult.getStdout()));
             jsonParser.next();
             var auth = jsonParser.getObjectStream().filter(e -> e.getKey().equals(AUTH_KEY))
@@ -174,24 +171,19 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     .orElseThrow()
                     .asJsonObject();
             var clientToken = auth.getString(CLIENT_TOKEN_KEY);
-
-            return HashicorpVaultSettings.Builder.newInstance()
+            
+            var settings = HashicorpVaultSettings.Builder.newInstance()
                     .url(HTTP_URL_FORMAT.formatted(VAULT_CONTAINER.getHost(), VAULT_CONTAINER.getFirstMappedPort()))
                     .healthCheckPath(HEALTH_CHECK_PATH)
-                    .token(clientToken)
                     .ttl(TTL)
                     .renewBuffer(RENEW_BUFFER)
                     .build();
-        }
-
-        @BeforeEach
-        void beforeEach() throws IOException, InterruptedException {
-            var settings = getSettings();
+            
             tokenRenewService = new HashicorpVaultTokenRenewService(
                     testHttpClient(),
                     mapper,
                     settings,
-                    new HashicorpVaultTokenProviderImpl(settings.token()),
+                    new HashicorpVaultTokenProviderImpl(clientToken),
                     monitor
             );
         }

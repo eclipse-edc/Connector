@@ -161,7 +161,7 @@ public class HashicorpVaultTokenRenewService {
     private Request httpGet(HttpUrl requestUri) {
         return new Request.Builder()
                 .url(requestUri)
-                .headers(getHeaders(tokenProvider.vaultToken()))
+                .headers(getHeaders())
                 .get()
                 .build();
     }
@@ -170,14 +170,14 @@ public class HashicorpVaultTokenRenewService {
     private Request httpPost(HttpUrl requestUri, Object requestBody) {
         return new Request.Builder()
                 .url(requestUri)
-                .headers(getHeaders(tokenProvider.vaultToken()))
+                .headers(getHeaders())
                 .post(createRequestBody(requestBody))
                 .build();
     }
     
-    private Headers getHeaders(String token) {
+    private Headers getHeaders() {
         var headersBuilder = new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
-        headersBuilder.add(VAULT_TOKEN_HEADER, token);
+        headersBuilder.add(VAULT_TOKEN_HEADER, tokenProvider.vaultToken());
         return headersBuilder.build();
     }
     

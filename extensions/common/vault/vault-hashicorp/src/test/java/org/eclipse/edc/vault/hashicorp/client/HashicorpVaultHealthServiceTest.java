@@ -54,7 +54,6 @@ class HashicorpVaultHealthServiceTest {
             .url(VAULT_URL)
             .healthCheckPath(HEALTH_PATH)
             .healthStandbyOk(false)
-            .token(VAULT_TOKEN)
             .ttl(VAULT_TOKEN_TTL)
             .renewBuffer(RENEW_BUFFER)
             .secretPath(CUSTOM_SECRET_PATH)

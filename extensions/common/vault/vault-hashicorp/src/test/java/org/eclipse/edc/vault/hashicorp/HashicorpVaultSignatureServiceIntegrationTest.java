@@ -76,7 +76,6 @@ class HashicorpVaultSignatureServiceIntegrationTest {
                 .url("http://localhost:%s".formatted(getPort()))
                 .healthCheckPath(VAULT_API_HEALTH_PATH_DEFAULT)
                 .ttl(24 * 60)
-                .token(TOKEN)
                 .build();
         httpClient = new EdcHttpClientImpl(new OkHttpClient.Builder().build(), RetryPolicy.ofDefaults(), monitor);
         tokenProvider = new HashicorpVaultTokenProviderImpl(TOKEN);

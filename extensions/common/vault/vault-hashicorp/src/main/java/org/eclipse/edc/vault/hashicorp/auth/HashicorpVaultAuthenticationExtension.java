@@ -14,11 +14,10 @@
 
 package org.eclipse.edc.vault.hashicorp.auth;
 
-import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 
 @Extension(value = HashicorpVaultAuthenticationExtension.NAME)
@@ -26,11 +25,11 @@ public class HashicorpVaultAuthenticationExtension implements ServiceExtension {
     
     public static final String NAME = "Hashicorp Vault Authentication";
     
-    @Configuration
-    private HashicorpVaultSettings config;
+    @Setting(description = "The token used to access the Hashicorp Vault", key = "edc.vault.hashicorp.token")
+    private String token;
     
     @Provider(isDefault = true)
     public HashicorpVaultTokenProvider tokenProvider() {
-        return new HashicorpVaultTokenProviderImpl(config.token());
+        return new HashicorpVaultTokenProviderImpl(token);
     }
 }

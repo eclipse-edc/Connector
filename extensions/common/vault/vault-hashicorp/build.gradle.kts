@@ -20,7 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:http-spi"))
-    api(project(":extensions:common:vault:hashicorp:vault-hashicorp-spi"))
+    api(project(":spi:common:vault-hashicorp-spi"))
 
     implementation(project(":core:common:lib:util-lib"))
 

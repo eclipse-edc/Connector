@@ -64,7 +64,6 @@ class HashicorpVaultIntegrationTest {
     void setUp() {
         var settings = HashicorpVaultSettings.Builder.newInstance()
                 .url("http://localhost:%d".formatted(getPort()))
-                .token(TOKEN)
                 .ttl(100)
                 .healthCheckPath(VAULT_API_HEALTH_PATH_DEFAULT)
                 .secretPath(VAULT_API_SECRET_PATH_DEFAULT)
