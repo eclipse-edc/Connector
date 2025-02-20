@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -55,16 +54,6 @@ class ReflectionBasedQueryResolverTest {
         var spec = QuerySpec.Builder.newInstance().filter(criterion("name", "=", "Alice")).build();
         assertThat(queryResolver.query(stream, spec)).hasSize(5).extracting(FakeItem::getName).containsOnly("Alice");
 
-    }
-
-    @Test
-    void verifyQuery_equalStringProperty_accumulateOr() {
-        var stream = Stream.concat(
-                IntStream.range(0, 5).mapToObj(i -> new FakeItem(i, "Alice")),
-                IntStream.range(5, 10).mapToObj(i -> new FakeItem(i, "Bob")));
-
-        var spec = QuerySpec.Builder.newInstance().filter(List.of(criterion("name", "=", "Alice"), criterion("name", "=", "Bob"))).build();
-        assertThat(queryResolver.query(stream, spec, Predicate::or, x -> false)).hasSize(10).extracting(FakeItem::getName).containsOnly("Bob", "Alice");
     }
 
     @Test

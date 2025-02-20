@@ -19,7 +19,6 @@ import org.eclipse.edc.util.reflection.PathItem;
 
 import java.util.List;
 
-import static org.eclipse.edc.sql.translation.FieldTranslator.toParameters;
 import static org.eclipse.edc.sql.translation.FieldTranslator.toValuePlaceholder;
 
 public class PlainColumnFieldTranslator implements FieldTranslator {

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector.store.sql.schema;
 
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
 import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 
@@ -24,7 +25,7 @@ import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 public class DataPlaneInstanceMapping extends StatefulEntityMapping {
 
     public DataPlaneInstanceMapping(DataPlaneInstanceStatements statements) {
-        super(statements);
+        super(statements, state -> DataPlaneInstanceStates.valueOf(state).code());
         var data = new JsonFieldTranslator(statements.getDataColumn());
         add("state", data);
         add("stateCount", data);

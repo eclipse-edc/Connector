@@ -20,7 +20,6 @@ import org.eclipse.edc.util.reflection.PathItem;
 import java.util.Collection;
 import java.util.List;
 
-import static org.eclipse.edc.sql.translation.FieldTranslator.toParameters;
 import static org.eclipse.edc.sql.translation.FieldTranslator.toValuePlaceholder;
 
 /**

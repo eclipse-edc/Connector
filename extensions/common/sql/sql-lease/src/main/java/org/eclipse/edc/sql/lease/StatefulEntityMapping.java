@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.sql.lease;
 
+import org.eclipse.edc.spi.entity.StateResolver;
+import org.eclipse.edc.sql.translation.EntityStateFieldTranslator;
 import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
@@ -23,9 +25,9 @@ import org.eclipse.edc.sql.translation.TranslationMapping;
  */
 public class StatefulEntityMapping extends TranslationMapping {
 
-    protected StatefulEntityMapping(StatefulEntityStatements statements) {
+    protected StatefulEntityMapping(StatefulEntityStatements statements, StateResolver stateResolver) {
         add("id", statements.getIdColumn());
-        add("state", statements.getStateColumn());
+        add("state", new EntityStateFieldTranslator(statements.getStateColumn(), stateResolver));
         add("stateCount", statements.getStateCountColumn());
         add("stateTimestamp", statements.getStateTimestampColumn());
         add("createdAt", statements.getCreatedAtColumn());

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.store;
 
+import org.eclipse.edc.spi.query.CriteriaToPredicate;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -22,8 +23,6 @@ import org.eclipse.edc.util.reflection.ReflectionUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
-import java.util.function.BinaryOperator;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -36,7 +35,7 @@ import static java.lang.String.format;
 public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
 
     private final Class<T> typeParameterClass;
-    private final CriterionOperatorRegistry criterionOperatorRegistry;
+    private final CriteriaToPredicate<T> criteriaToPredicate;
 
     /**
      * Constructor for ReflectionBasedQueryResolver
@@ -45,10 +44,13 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
      * @param criterionOperatorRegistry converts from a criterion to a predicate
      */
     public ReflectionBasedQueryResolver(Class<T> typeParameterClass, CriterionOperatorRegistry criterionOperatorRegistry) {
-        this.typeParameterClass = typeParameterClass;
-        this.criterionOperatorRegistry = criterionOperatorRegistry;
+        this(typeParameterClass, new AndOperatorCriteriaToPredicate<>(criterionOperatorRegistry));
     }
 
+    public ReflectionBasedQueryResolver(Class<T> typeParameterClass, CriteriaToPredicate<T> criteriaToPredicate) {
+        this.typeParameterClass = typeParameterClass;
+        this.criteriaToPredicate = criteriaToPredicate;
+    }
 
     /**
      * Method to query a stream by provided specification.
@@ -58,16 +60,13 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
      *
      * @param stream      stream to be queried.
      * @param spec        query specification.
-     * @param accumulator accumulation operation, e.g. Predicate::and, Predicate::or, etc.
      * @return stream result from queries.
      */
     @Override
-    public Stream<T> query(Stream<T> stream, QuerySpec spec, BinaryOperator<Predicate<Object>> accumulator, Predicate<Object> fallback) {
-        var andPredicate = spec.getFilterExpression().stream()
-                .map(criterionOperatorRegistry::toPredicate)
-                .reduce(fallback, accumulator);
+    public Stream<T> query(Stream<T> stream, QuerySpec spec) {
+        var predicate = criteriaToPredicate.convert(spec.getFilterExpression());
 
-        var filteredStream = stream.filter(andPredicate);
+        var filteredStream = stream.filter(predicate);
 
         // sort
         var sortField = spec.getSortField();

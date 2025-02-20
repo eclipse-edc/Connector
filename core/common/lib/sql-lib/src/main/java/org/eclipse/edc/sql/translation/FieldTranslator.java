@@ -50,14 +50,7 @@ public interface FieldTranslator {
      */
     WhereClause toWhereClause(List<PathItem> path, Criterion criterion, SqlOperator operator);
 
-    static String toValuePlaceholder(Criterion criterion) {
-        if (criterion.getOperandRight() instanceof Collection<?> collection) {
-            return format("(%s)", String.join(",", nCopies(collection.size(), PREPARED_STATEMENT_PLACEHOLDER)));
-        }
-        return PREPARED_STATEMENT_PLACEHOLDER;
-    }
-
-    static Collection<Object> toParameters(Criterion criterion) {
+    default Collection<Object> toParameters(Criterion criterion) {
         var operandRight = criterion.getOperandRight();
         if (operandRight == null) {
             return emptyList();
@@ -66,6 +59,13 @@ public interface FieldTranslator {
         } else {
             return List.of(operandRight);
         }
+    }
+
+    static String toValuePlaceholder(Criterion criterion) {
+        if (criterion.getOperandRight() instanceof Collection<?> collection) {
+            return format("(%s)", String.join(",", nCopies(collection.size(), PREPARED_STATEMENT_PLACEHOLDER)));
+        }
+        return PREPARED_STATEMENT_PLACEHOLDER;
     }
 
 }

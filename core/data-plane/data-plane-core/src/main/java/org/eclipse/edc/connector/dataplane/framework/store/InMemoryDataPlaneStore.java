@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework.store;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
+import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.store.InMemoryStatefulEntityStore;
@@ -32,6 +33,6 @@ public class InMemoryDataPlaneStore extends InMemoryStatefulEntityStore<DataFlow
     }
 
     public InMemoryDataPlaneStore(String connectorName, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(DataFlow.class, connectorName, clock, criterionOperatorRegistry);
+        super(DataFlow.class, connectorName, clock, criterionOperatorRegistry, state -> DataFlowStates.valueOf(state).code());
     }
 }

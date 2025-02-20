@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
 
@@ -33,7 +34,7 @@ class ContractNegotiationMapping extends StatefulEntityMapping {
     private static final String FIELD_PENDING = "pending";
 
     ContractNegotiationMapping(ContractNegotiationStatements statements) {
-        super(statements);
+        super(statements, state -> ContractNegotiationStates.valueOf(state).code());
         add(FIELD_CORRELATION_ID, statements.getCorrelationIdColumn());
         add(FIELD_COUNTER_PARTY_ID, statements.getCounterPartyIdColumn());
         add(FIELD_COUNTERPARTY_ADDRESS, statements.getCounterPartyAddressColumn());

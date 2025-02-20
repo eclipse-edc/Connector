@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.s
 
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
 import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 
@@ -46,7 +47,7 @@ public class TransferProcessMapping extends StatefulEntityMapping {
     private static final String FIELD_DATA_DESTINATION = "dataDestination";
 
     public TransferProcessMapping(TransferProcessStoreStatements statements) {
-        super(statements);
+        super(statements, state -> TransferProcessStates.valueOf(state).code());
         add(FIELD_TYPE, statements.getTypeColumn());
         add(FIELD_CREATED_TIMESTAMP, statements.getCreatedAtColumn());
         add(FIELD_CORRELATION_ID, statements.getCorrelationIdColumn());

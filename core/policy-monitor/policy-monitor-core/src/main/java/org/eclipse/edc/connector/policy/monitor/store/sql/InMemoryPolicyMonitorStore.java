@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.policy.monitor.store.sql;
 
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.store.InMemoryStatefulEntityStore;
@@ -32,6 +33,6 @@ public class InMemoryPolicyMonitorStore extends InMemoryStatefulEntityStore<Poli
     }
 
     public InMemoryPolicyMonitorStore(String owner, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(PolicyMonitorEntry.class, owner, clock, criterionOperatorRegistry);
+        super(PolicyMonitorEntry.class, owner, clock, criterionOperatorRegistry, state -> PolicyMonitorEntryStates.valueOf(state).code());
     }
 }

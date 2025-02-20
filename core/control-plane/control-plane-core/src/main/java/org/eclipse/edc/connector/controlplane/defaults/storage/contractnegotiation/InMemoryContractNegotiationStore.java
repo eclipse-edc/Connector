@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.controlplane.defaults.storage.contractnegotiat
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -38,7 +39,6 @@ import static java.lang.String.format;
  */
 public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStore<ContractNegotiation> implements ContractNegotiationStore {
 
-    private final QueryResolver<ContractNegotiation> negotiationQueryResolver;
     private final QueryResolver<ContractAgreement> agreementQueryResolver;
 
     public InMemoryContractNegotiationStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
@@ -46,9 +46,8 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
     }
 
     public InMemoryContractNegotiationStore(String leaseHolder, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(ContractNegotiation.class, leaseHolder, clock, criterionOperatorRegistry);
+        super(ContractNegotiation.class, leaseHolder, clock, criterionOperatorRegistry, state -> ContractNegotiationStates.valueOf(state).code());
         agreementQueryResolver = new ReflectionBasedQueryResolver<>(ContractAgreement.class, criterionOperatorRegistry);
-        negotiationQueryResolver = new ReflectionBasedQueryResolver<>(ContractNegotiation.class, criterionOperatorRegistry);
     }
 
     @Override
@@ -72,7 +71,7 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
 
     @Override
     public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
-        return negotiationQueryResolver.query(super.findAll(), querySpec);
+        return super.findAll(querySpec);
     }
 
     @Override

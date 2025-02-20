@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.policy.monitor.store.sql.schema;
 
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
 
 /**
@@ -23,7 +24,7 @@ import org.eclipse.edc.sql.lease.StatefulEntityMapping;
 public class PolicyMonitorMapping extends StatefulEntityMapping {
 
     public PolicyMonitorMapping(PolicyMonitorStatements statements) {
-        super(statements);
+        super(statements, state -> PolicyMonitorEntryStates.valueOf(state).code());
         add("contractId", statements.getContractIdColumn());
     }
 

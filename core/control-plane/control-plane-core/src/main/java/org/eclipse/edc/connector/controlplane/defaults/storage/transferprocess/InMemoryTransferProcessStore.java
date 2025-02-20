@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.defaults.storage.transferprocess;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.store.InMemoryStatefulEntityStore;
@@ -23,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
@@ -37,7 +37,7 @@ public class InMemoryTransferProcessStore extends InMemoryStatefulEntityStore<Tr
     }
 
     public InMemoryTransferProcessStore(String leaserId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(TransferProcess.class, leaserId, clock, criterionOperatorRegistry);
+        super(TransferProcess.class, leaserId, clock, criterionOperatorRegistry, state -> TransferProcessStates.valueOf(state).code());
     }
 
     @Override
@@ -45,16 +45,6 @@ public class InMemoryTransferProcessStore extends InMemoryStatefulEntityStore<Tr
         var querySpec = QuerySpec.Builder.newInstance().filter(criterion("correlationId", "=", correlationId)).build();
 
         return super.findAll(querySpec).findFirst().orElse(null);
-    }
-
-    @Override
-    public void delete(String id) {
-        super.delete(id);
-    }
-
-    @Override
-    public Stream<TransferProcess> findAll(QuerySpec querySpec) {
-        return super.findAll(querySpec);
     }
 
 }
