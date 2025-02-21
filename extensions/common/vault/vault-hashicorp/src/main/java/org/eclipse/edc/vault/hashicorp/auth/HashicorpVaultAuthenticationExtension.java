@@ -20,16 +20,19 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 
+import static java.util.Objects.requireNonNull;
+
 @Extension(value = HashicorpVaultAuthenticationExtension.NAME)
 public class HashicorpVaultAuthenticationExtension implements ServiceExtension {
     
     public static final String NAME = "Hashicorp Vault Authentication";
     
-    @Setting(description = "The token used to access the Hashicorp Vault", key = "edc.vault.hashicorp.token")
+    @Setting(description = "The token used to access the Hashicorp Vault. Only required, if default token authentication is used.", key = "edc.vault.hashicorp.token", required = false)
     private String token;
     
     @Provider(isDefault = true)
     public HashicorpVaultTokenProvider tokenProvider() {
+        requireNonNull(token, "Using default TokenProvider: Vault token is required.");
         return new HashicorpVaultTokenProviderImpl(token);
     }
 }
