@@ -203,7 +203,7 @@ public class HashicorpVaultTokenRenewService {
             return Result.success(isRenewable);
         } catch (IllegalArgumentException e) {
             var errMsgFormat = "Failed to parse renewable flag from token look up response %s with reason: %s";
-            monitor.warning(errMsgFormat.formatted(map, e.getStackTrace()));
+            monitor.warning(errMsgFormat.formatted(map, e.getMessage()), e);
             return Result.failure(errMsgFormat.formatted(map, e.getMessage()));
         }
     }
@@ -216,7 +216,7 @@ public class HashicorpVaultTokenRenewService {
             return Result.success(ttl);
         } catch (IllegalArgumentException e) {
             var errMsgFormat = "Failed to parse ttl from token renewal response %s with reason: %s";
-            monitor.warning(errMsgFormat.formatted(map, e.getStackTrace()));
+            monitor.warning(errMsgFormat.formatted(map, e.getMessage()), e);
             return Result.failure(errMsgFormat.formatted(map, e.getMessage()));
         }
     }
