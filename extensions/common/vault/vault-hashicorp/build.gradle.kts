@@ -9,8 +9,10 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
+ *       Cofinity-X - implement extensible authentication
  *
  */
+
 plugins {
     `java-library`
 }
@@ -18,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:http-spi"))
+    api(project(":spi:common:vault-hashicorp-spi"))
 
     implementation(project(":core:common:lib:util-lib"))
 
@@ -28,7 +31,4 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.vault)
     implementation(libs.bouncyCastle.bcpkixJdk18on)
-
 }
-
-

@@ -260,6 +260,7 @@ include(":spi:common:verifiable-credentials-spi")
 include(":spi:common:identity-trust-spi")
 include(":spi:common:identity-trust-sts-spi")
 include(":spi:common:edr-store-spi")
+include(":spi:common:vault-hashicorp-spi")
 
 
 include(":spi:control-plane:asset-spi")

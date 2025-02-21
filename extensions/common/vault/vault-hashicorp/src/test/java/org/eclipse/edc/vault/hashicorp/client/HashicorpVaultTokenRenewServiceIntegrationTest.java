@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
+ *       Cofinity-X - implement extensible authentication
  *
  */
 
@@ -18,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -37,7 +39,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 
-class HashicorpVaultHealthServiceIntegrationTest {
+class HashicorpVaultTokenRenewServiceIntegrationTest {
 
     @ComponentTest
     @Testcontainers
@@ -51,7 +53,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
         protected static final long CREATION_TTL = 6L;
         protected static final long TTL = 5L;
         protected static final long RENEW_BUFFER = 4L;
-        protected HashicorpVaultHealthService client;
+        protected HashicorpVaultTokenRenewService tokenRenewService;
         protected final ObjectMapper mapper = new ObjectMapper();
         protected final ConsoleMonitor monitor = new ConsoleMonitor();
 
@@ -62,7 +64,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
 
         @Test
         void lookUpToken_whenTokenNotExpired_shouldSucceed() {
-            var tokenLookUpResult = client.isTokenRenewable();
+            var tokenLookUpResult = tokenRenewService.isTokenRenewable();
 
             assertThat(tokenLookUpResult).isSucceeded().isEqualTo(true);
         }
@@ -73,7 +75,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
                     .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                     .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
-                        var tokenLookUpResult = client.isTokenRenewable();
+                        var tokenLookUpResult = tokenRenewService.isTokenRenewable();
                         assertThat(tokenLookUpResult).isFailed();
                         assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
                     });
@@ -81,7 +83,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
 
         @Test
         void renewToken_whenTokenNotExpired_shouldSucceed() {
-            var tokenRenewResult = client.renewToken();
+            var tokenRenewResult = tokenRenewService.renewToken();
 
             assertThat(tokenRenewResult).isSucceeded().satisfies(ttl -> assertThat(ttl).isEqualTo(TTL));
         }
@@ -92,7 +94,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
                     .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                     .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
-                        var tokenRenewResult = client.renewToken();
+                        var tokenRenewResult = tokenRenewService.renewToken();
                         assertThat(tokenRenewResult).isFailed();
                         assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: 403");
                     });
@@ -107,7 +109,8 @@ class HashicorpVaultHealthServiceIntegrationTest {
         static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("vault:1.9.6")
                 .withVaultToken(UUID.randomUUID().toString());
 
-        public static HashicorpVaultSettings getSettings() throws IOException, InterruptedException {
+        @BeforeEach
+        void beforeEach() throws IOException, InterruptedException {
             var execResult = VAULT_CONTAINER.execInContainer(
                     "vault",
                     "token",
@@ -115,7 +118,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
                     "-policy=root",
                     "-ttl=%d".formatted(CREATION_TTL),
                     "-format=json");
-
+            
             var jsonParser = Json.createParser(new StringReader(execResult.getStdout()));
             jsonParser.next();
             var auth = jsonParser.getObjectStream().filter(e -> e.getKey().equals(AUTH_KEY))
@@ -124,23 +127,20 @@ class HashicorpVaultHealthServiceIntegrationTest {
                     .orElseThrow()
                     .asJsonObject();
             var clientToken = auth.getString(CLIENT_TOKEN_KEY);
-
-            return HashicorpVaultSettings.Builder.newInstance()
+            
+            var settings = HashicorpVaultSettings.Builder.newInstance()
                     .url(HTTP_URL_FORMAT.formatted(VAULT_CONTAINER.getHost(), VAULT_CONTAINER.getFirstMappedPort()))
                     .healthCheckPath(HEALTH_CHECK_PATH)
-                    .token(clientToken)
                     .ttl(TTL)
                     .renewBuffer(RENEW_BUFFER)
                     .build();
-        }
-
-        @BeforeEach
-        void beforeEach() throws IOException, InterruptedException {
-            client = new HashicorpVaultHealthService(
+            
+            tokenRenewService = new HashicorpVaultTokenRenewService(
                     testHttpClient(),
                     mapper,
-                    monitor,
-                    getSettings()
+                    settings,
+                    new HashicorpVaultTokenProviderImpl(clientToken),
+                    monitor
             );
         }
     }
@@ -153,7 +153,8 @@ class HashicorpVaultHealthServiceIntegrationTest {
         static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("hashicorp/vault:1.18.3")
                 .withVaultToken(UUID.randomUUID().toString());
 
-        public static HashicorpVaultSettings getSettings() throws IOException, InterruptedException {
+        @BeforeEach
+        void beforeEach() throws IOException, InterruptedException {
             var execResult = VAULT_CONTAINER.execInContainer(
                     "vault",
                     "token",
@@ -161,7 +162,7 @@ class HashicorpVaultHealthServiceIntegrationTest {
                     "-policy=root",
                     "-ttl=%d".formatted(CREATION_TTL),
                     "-format=json");
-
+            
             var jsonParser = Json.createParser(new StringReader(execResult.getStdout()));
             jsonParser.next();
             var auth = jsonParser.getObjectStream().filter(e -> e.getKey().equals(AUTH_KEY))
@@ -170,23 +171,20 @@ class HashicorpVaultHealthServiceIntegrationTest {
                     .orElseThrow()
                     .asJsonObject();
             var clientToken = auth.getString(CLIENT_TOKEN_KEY);
-
-            return HashicorpVaultSettings.Builder.newInstance()
+            
+            var settings = HashicorpVaultSettings.Builder.newInstance()
                     .url(HTTP_URL_FORMAT.formatted(VAULT_CONTAINER.getHost(), VAULT_CONTAINER.getFirstMappedPort()))
                     .healthCheckPath(HEALTH_CHECK_PATH)
-                    .token(clientToken)
                     .ttl(TTL)
                     .renewBuffer(RENEW_BUFFER)
                     .build();
-        }
-
-        @BeforeEach
-        void beforeEach() throws IOException, InterruptedException {
-            client = new HashicorpVaultHealthService(
+            
+            tokenRenewService = new HashicorpVaultTokenRenewService(
                     testHttpClient(),
                     mapper,
-                    monitor,
-                    getSettings()
+                    settings,
+                    new HashicorpVaultTokenProviderImpl(clientToken),
+                    monitor
             );
         }
     }

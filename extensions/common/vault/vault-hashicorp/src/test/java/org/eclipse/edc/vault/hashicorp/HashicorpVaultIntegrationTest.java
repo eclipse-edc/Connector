@@ -21,6 +21,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -63,13 +64,13 @@ class HashicorpVaultIntegrationTest {
     void setUp() {
         var settings = HashicorpVaultSettings.Builder.newInstance()
                 .url("http://localhost:%d".formatted(getPort()))
-                .token(TOKEN)
                 .ttl(100)
                 .healthCheckPath(VAULT_API_HEALTH_PATH_DEFAULT)
                 .secretPath(VAULT_API_SECRET_PATH_DEFAULT)
                 .build();
         var httpClient = new EdcHttpClientImpl(new OkHttpClient.Builder().build(), RetryPolicy.ofDefaults(), monitor);
-        vault = new HashicorpVault(monitor, settings, httpClient, objectMapper);
+        var tokenProvider = new HashicorpVaultTokenProviderImpl(TOKEN);
+        vault = new HashicorpVault(monitor, settings, httpClient, objectMapper, tokenProvider);
     }
 
     @Test

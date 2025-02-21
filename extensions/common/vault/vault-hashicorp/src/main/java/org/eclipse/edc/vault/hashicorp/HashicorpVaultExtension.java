@@ -10,6 +10,7 @@
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
  *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
+ *       Cofinity-X - implement extensible authentication
  *
  */
 
@@ -29,7 +30,9 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewTask;
+import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 import org.jetbrains.annotations.NotNull;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
@@ -45,6 +48,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
+    @Inject
+    private HashicorpVaultTokenProvider tokenProvider;
+
     @Configuration
     private HashicorpVaultSettings config;
 
@@ -59,21 +65,23 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @Provider
     public Vault hashicorpVault() {
-        return new HashicorpVault(monitor, config, httpClient, MAPPER);
+        return new HashicorpVault(monitor, config, httpClient, MAPPER, tokenProvider);
     }
 
     @Provider
     public SignatureService signatureService() {
-        return new HashicorpVaultSignatureService(monitor, config, httpClient, MAPPER);
+        return new HashicorpVaultSignatureService(monitor, config, httpClient, MAPPER, tokenProvider);
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor().withPrefix(NAME);
+        
+        var tokenRenewService = new HashicorpVaultTokenRenewService(httpClient, MAPPER, config, tokenProvider, monitor);
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 NAME,
                 executorInstrumentation,
-                createHealthService(),
+                tokenRenewService,
                 config.renewBuffer(),
                 monitor);
     }
@@ -81,7 +89,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Provider
     public @NotNull HashicorpVaultHealthService createHealthService() {
         if (healthService == null) {
-            healthService = new HashicorpVaultHealthService(httpClient, MAPPER, monitor, config);
+            healthService = new HashicorpVaultHealthService(httpClient, config, tokenProvider);
         }
         return healthService;
     }

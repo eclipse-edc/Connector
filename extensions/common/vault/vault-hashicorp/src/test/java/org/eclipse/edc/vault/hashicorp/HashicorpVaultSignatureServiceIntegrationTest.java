@@ -23,7 +23,9 @@ import okhttp3.RequestBody;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
+import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +54,7 @@ class HashicorpVaultSignatureServiceIntegrationTest {
     private static Monitor monitor;
     private static HashicorpVaultSettings settings;
     private static EdcHttpClientImpl httpClient;
+    private static HashicorpVaultTokenProvider tokenProvider;
     private final byte[] testPayload = "test signing input // *    ".getBytes();
     private String vaultKey;
     private HashicorpVaultSignatureService service;
@@ -73,9 +76,9 @@ class HashicorpVaultSignatureServiceIntegrationTest {
                 .url("http://localhost:%s".formatted(getPort()))
                 .healthCheckPath(VAULT_API_HEALTH_PATH_DEFAULT)
                 .ttl(24 * 60)
-                .token(TOKEN)
                 .build();
         httpClient = new EdcHttpClientImpl(new OkHttpClient.Builder().build(), RetryPolicy.ofDefaults(), monitor);
+        tokenProvider = new HashicorpVaultTokenProviderImpl(TOKEN);
 
 
         // activate transit secrets engine
@@ -96,7 +99,7 @@ class HashicorpVaultSignatureServiceIntegrationTest {
     void setUp() throws IOException {
 
         vaultKey = UUID.randomUUID().toString();
-        service = new HashicorpVaultSignatureService(monitor, settings, httpClient, new ObjectMapper());
+        service = new HashicorpVaultSignatureService(monitor, settings, httpClient, new ObjectMapper(), tokenProvider);
 
 
         // create a new testing key

@@ -9,6 +9,8 @@
 #
 #  Contributors:
 #       Mercedes-Benz Tech Innovation GmbH - Initial ServiceExtension file
+#       Cofinity-X - implement extensible authentication
 #
 org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension
 org.eclipse.edc.vault.hashicorp.health.HashicorpVaultHealthExtension
+org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultAuthenticationExtension

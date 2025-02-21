@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025 Confinity-X
+ *  Copyright (c) 2025 Cofinity-X
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Cofinity-X - initial API and implementation
+ *       Cofinity-X - implement extensible authentication
  *
  */
 
@@ -24,6 +25,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.SignatureService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
+import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -41,13 +43,15 @@ public class HashicorpVaultSignatureService implements SignatureService {
     private final HashicorpVaultSettings settings;
     private final EdcHttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final HashicorpVaultTokenProvider tokenProvider;
 
 
-    public HashicorpVaultSignatureService(Monitor monitor, HashicorpVaultSettings settings, EdcHttpClient httpClient, ObjectMapper objectMapper) {
+    public HashicorpVaultSignatureService(Monitor monitor, HashicorpVaultSettings settings, EdcHttpClient httpClient, ObjectMapper objectMapper, HashicorpVaultTokenProvider tokenProvider) {
         this.monitor = monitor;
         this.settings = settings;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
+        this.tokenProvider = tokenProvider;
     }
 
     /**
@@ -73,7 +77,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
 
         var request = new Request.Builder()
                 .url(url)
-                .header(VaultConstants.VAULT_TOKEN_HEADER, settings.token())
+                .header(VaultConstants.VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .post(jsonBody(body))
                 .build();
 
@@ -124,7 +128,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
 
         var request = new Request.Builder()
                 .url(url)
-                .header(VaultConstants.VAULT_TOKEN_HEADER, settings.token())
+                .header(VaultConstants.VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .post(jsonBody(body))
                 .build();
 
@@ -165,7 +169,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
 
         var request = new Request.Builder()
                 .url(url)
-                .header(VaultConstants.VAULT_TOKEN_HEADER, settings.token())
+                .header(VaultConstants.VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .post(RequestBody.create(new byte[0], null))
                 .build();
 

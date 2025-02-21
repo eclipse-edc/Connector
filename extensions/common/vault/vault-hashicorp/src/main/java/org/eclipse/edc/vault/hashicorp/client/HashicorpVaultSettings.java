@@ -41,8 +41,6 @@ public class HashicorpVaultSettings {
     private String healthCheckPath;
     @Setting(description = "Specifies if being a standby should still return the active status code instead of the standby status code", defaultValue = VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT + "", key = "edc.vault.hashicorp.health.check.standby.ok")
     private boolean healthStandbyOk;
-    @Setting(description = "The token used to access the Hashicorp Vault", key = "edc.vault.hashicorp.token")
-    private String token;
     @Setting(description = "Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes",
             defaultValue = VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT + "", key = "edc.vault.hashicorp.token.scheduled-renew-enabled")
     private boolean scheduledTokenRenewEnabled;
@@ -77,10 +75,6 @@ public class HashicorpVaultSettings {
 
     public boolean healthStandbyOk() {
         return healthStandbyOk;
-    }
-
-    public String token() {
-        return token;
     }
 
     public boolean scheduledTokenRenewEnabled() {
@@ -135,11 +129,6 @@ public class HashicorpVaultSettings {
             return this;
         }
 
-        public Builder token(String token) {
-            values.token = token;
-            return this;
-        }
-
         public Builder scheduledTokenRenewEnabled(boolean scheduledTokenRenewEnabled) {
             values.scheduledTokenRenewEnabled = scheduledTokenRenewEnabled;
             return this;
@@ -168,7 +157,6 @@ public class HashicorpVaultSettings {
         public HashicorpVaultSettings build() {
             requireNonNull(values.url, "Vault url must be valid");
             requireNonNull(values.healthCheckPath, "Vault health check path must not be null");
-            requireNonNull(values.token, "Vault token must not be null");
 
             if (values.ttl < 5) {
                 throw new IllegalArgumentException("Vault token ttl minimum value is 5");

@@ -35,14 +35,12 @@ class HashicorpVaultSettingsTest {
     void createSettings_withDefaultValues_shouldSucceed() {
         var settings = assertDoesNotThrow(() -> createSettings(
                 URL,
-                TOKEN,
                 HEALTH_CHECK_PATH, VAULT_TOKEN_TTL_DEFAULT,
                 VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
         assertThat(settings.url()).isEqualTo(URL);
         assertThat(settings.healthCheckEnabled()).isEqualTo(true);
         assertThat(settings.healthCheckPath()).isEqualTo(HEALTH_CHECK_PATH);
         assertThat(settings.healthStandbyOk()).isEqualTo(true);
-        assertThat(settings.token()).isEqualTo(TOKEN);
         assertThat(settings.ttl()).isEqualTo(VAULT_TOKEN_TTL_DEFAULT);
         assertThat(settings.renewBuffer()).isEqualTo(VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
         assertThat(settings.secretPath()).isEqualTo(SECRET_PATH);
@@ -53,7 +51,6 @@ class HashicorpVaultSettingsTest {
     void createSettings_withVaultUrlNull_shouldThrowException() {
         var throwable = assertThrows(Exception.class, () -> createSettings(
                 null,
-                TOKEN,
                 HEALTH_CHECK_PATH, VAULT_TOKEN_TTL_DEFAULT,
                 VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
         assertThat(throwable.getMessage()).isEqualTo("Vault url must not be null");
@@ -63,7 +60,6 @@ class HashicorpVaultSettingsTest {
     void createSettings_withHealthCheckPathNull_shouldThrowException() {
         var throwable = assertThrows(Exception.class, () -> createSettings(
                 URL,
-                TOKEN,
                 null,
                 VAULT_TOKEN_TTL_DEFAULT,
                 VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
@@ -71,21 +67,9 @@ class HashicorpVaultSettingsTest {
     }
 
     @Test
-    void createSettings_withVaultTokenNull_shouldThrowException() {
-        var throwable = assertThrows(Exception.class, () -> createSettings(
-                URL,
-                null,
-                HEALTH_CHECK_PATH,
-                VAULT_TOKEN_TTL_DEFAULT,
-                VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
-        assertThat(throwable.getMessage()).isEqualTo("Vault token must not be null");
-    }
-
-    @Test
     void createSettings_withVaultTokenTtlLessThan5_shouldThrowException() {
         var throwable = assertThrows(Exception.class, () -> createSettings(
                 URL,
-                TOKEN,
                 HEALTH_CHECK_PATH,
                 4,
                 VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
@@ -97,7 +81,6 @@ class HashicorpVaultSettingsTest {
     void createSettings_withVaultTokenRenewBufferEqualOrGreaterThanTtl_shouldThrowException(long value) {
         var throwable = assertThrows(Exception.class, () -> createSettings(
                 URL,
-                TOKEN,
                 HEALTH_CHECK_PATH,
                 VAULT_TOKEN_TTL_DEFAULT,
                 value));
@@ -105,7 +88,6 @@ class HashicorpVaultSettingsTest {
     }
 
     private HashicorpVaultSettings createSettings(String url,
-                                                  String token,
                                                   String healthCheckPath,
                                                   long ttl,
                                                   long renewBuffer) {
@@ -114,7 +96,6 @@ class HashicorpVaultSettingsTest {
                 .healthCheckEnabled(true)
                 .healthCheckPath(healthCheckPath)
                 .healthStandbyOk(true)
-                .token(token)
                 .ttl(ttl)
                 .renewBuffer(renewBuffer)
                 .secretPath(SECRET_PATH)

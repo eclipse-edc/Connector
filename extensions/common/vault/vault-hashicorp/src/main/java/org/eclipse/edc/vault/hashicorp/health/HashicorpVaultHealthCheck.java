@@ -10,6 +10,7 @@
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
  *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
+ *       Cofinity-X - implement extensible authentication
  *
  */
 
@@ -23,12 +24,8 @@ import org.eclipse.edc.spi.system.health.StartupStatusProvider;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 
 /**
- * Implements the healthcheck of the Hashicorp Vault.
- * The healthcheck is a combination of:
- * <ol>
- *   <li>The actual Vault healthcheck which is performed by calling the healthcheck api of the Vault</li>
- *   <li>Token validation by calling the token lookup api of the Vault</li>
- * </ol>
+ * Implements the healthcheck of the Hashicorp Vault. The health check is performed by calling
+ * the healthcheck API of the vault.
  */
 public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessProvider, StartupStatusProvider {
     private final HashicorpVaultHealthService healthService;
@@ -43,7 +40,6 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
     public HealthCheckResult get() {
         return healthService
                 .doHealthCheck()
-                .merge(healthService.isTokenRenewable())
                 .flatMap(result -> {
                     var statusBuilder = HealthCheckResult.Builder.newInstance().component("HashicorpVault");
                     if (result.succeeded()) {
