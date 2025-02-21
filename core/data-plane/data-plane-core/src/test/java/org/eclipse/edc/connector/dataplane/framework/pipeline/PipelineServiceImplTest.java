@@ -38,6 +38,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.GENERAL_ERROR;
@@ -52,6 +53,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class PipelineServiceImplTest {
+
+    private static final String PROCESS_ID = "1";
 
     private final Monitor monitor = mock();
 
@@ -108,6 +111,51 @@ class PipelineServiceImplTest {
             verify(sourceFactory).createSource(flowRequest);
             verifyNoInteractions(sinkFactory);
             verify(source).close();
+        }
+
+        @Test
+        void transfer_withUnknownSource_shouldFail() {
+            var flowRequest = dataFlow("wrong-source", "custom-destination").toRequest();
+            var expectedErrorMessage = format("Unknown data source type wrong-source for flow id: %s.", PROCESS_ID);
+
+            when(sourceFactory.supportedType()).thenReturn("source");
+            when(sourceFactory.createSource(any())).thenReturn(source);
+
+            var customSink = new DataSink() {
+                @Override
+                public CompletableFuture<StreamResult<Object>> transfer(DataSource source) {
+                    return CompletableFuture.completedFuture(StreamResult.success("test-response"));
+                }
+            };
+
+            var future = service.transfer(flowRequest, customSink);
+            assertThat(future).succeedsWithin(Duration.ofSeconds(5))
+                    .satisfies(res -> assertThat(res).isFailed())
+                    .satisfies(res -> assertThat(res.getFailure().getMessages()).hasSize(1))
+                    .satisfies(res -> assertThat(res.getFailure().getMessages().get(0)).isEqualTo(expectedErrorMessage));
+
+            verify(sourceFactory).supportedType();
+            verifyNoInteractions(sinkFactory);
+            verifyNoInteractions(source);
+        }
+
+        @Test
+        void transfer_withUnknownSink_shouldFail() {
+            var flowRequest = dataFlow("source", "custom-destination").toRequest();
+            var expectedErrorMessage = format("Unknown data sink type custom-destination for flow id: %s.", PROCESS_ID);
+
+            when(sourceFactory.supportedType()).thenReturn("source");
+            when(sourceFactory.createSource(any())).thenReturn(source);
+
+            var future = service.transfer(flowRequest);
+            assertThat(future).succeedsWithin(Duration.ofSeconds(5))
+                    .satisfies(res -> assertThat(res).isFailed())
+                    .satisfies(res -> assertThat(res.getFailure().getMessages()).hasSize(1))
+                    .satisfies(res -> assertThat(res.getFailure().getMessages().get(0)).isEqualTo(expectedErrorMessage));
+
+            verify(sinkFactory).supportedType();
+            verifyNoInteractions(sourceFactory);
+            verifyNoInteractions(source);
         }
     }
 
@@ -216,7 +264,7 @@ class PipelineServiceImplTest {
 
     private DataFlow dataFlow(String sourceType, String destinationType) {
         return DataFlow.Builder.newInstance()
-                .id("1")
+                .id(PROCESS_ID)
                 .source(DataAddress.Builder.newInstance().type(sourceType).build())
                 .destination(DataAddress.Builder.newInstance().type(destinationType).build())
                 .build();
