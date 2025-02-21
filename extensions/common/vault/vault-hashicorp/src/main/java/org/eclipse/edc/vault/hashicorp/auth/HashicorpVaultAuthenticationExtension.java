@@ -32,7 +32,7 @@ public class HashicorpVaultAuthenticationExtension implements ServiceExtension {
     
     @Provider(isDefault = true)
     public HashicorpVaultTokenProvider tokenProvider() {
-        requireNonNull(token, "Using default TokenProvider: Vault token is required.");
+        requireNonNull(token, "Using default TokenProvider: Configuration of vault token is required (setting: 'edc.vault.hashicorp.token').");
         return new HashicorpVaultTokenProviderImpl(token);
     }
 }
