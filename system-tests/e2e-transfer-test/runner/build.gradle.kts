@@ -40,6 +40,7 @@ dependencies {
     testImplementation(libs.kafkaClients)
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.kafka)
+    testImplementation(libs.testcontainers.postgres)
 
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:data-plane"))

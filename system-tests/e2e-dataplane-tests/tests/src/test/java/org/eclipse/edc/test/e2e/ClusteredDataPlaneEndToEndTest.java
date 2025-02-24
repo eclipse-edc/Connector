@@ -25,7 +25,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
-import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.participant.DataPlaneParticipant;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Order;
@@ -52,7 +52,7 @@ public class ClusteredDataPlaneEndToEndTest {
 
     @RegisterExtension
     @Order(0)
-    private static final PostgresqlStoreSetupExtension POSTGRESQL = new PostgresqlStoreSetupExtension();
+    private static final PostgresqlEndToEndExtension POSTGRESQL = new PostgresqlEndToEndExtension();
 
     @RegisterExtension
     @Order(1)
@@ -74,7 +74,7 @@ public class ClusteredDataPlaneEndToEndTest {
                     ":system-tests:e2e-dataplane-tests:runtimes:data-plane",
                     ":dist:bom:dataplane-feature-sql-bom")
                     .configurationProvider(dataPlaneParticipant::dataPlaneConfig)
-                    .configurationProvider(POSTGRESQL::getDatasourceConfig)
+                    .configurationProvider(POSTGRESQL::config)
                     .configurationProvider(dummyControlPlane.dataPlaneConfigurationSupplier())
                     .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                             "edc.runtime.id", name,

@@ -480,7 +480,7 @@ public class SerdeEndToEndTest {
                     ":system-tests:management-api:management-api-test-runtime"
             );
 
-            return new ManagementEndToEndTestContext(runtime, managementPort, protocolPort);
+            return new ManagementEndToEndTestContext(runtime);
         }
 
     }

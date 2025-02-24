@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.system.configuration.Config;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,17 +33,20 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
-public record ManagementEndToEndTestContext(EmbeddedRuntime runtime, int managementPort, int protocolPort) {
+public record ManagementEndToEndTestContext(EmbeddedRuntime runtime) {
 
     public RequestSpecification baseRequest() {
+        var managementPort = getConfig().getString("web.http.management.port");
+        var managementPath = getConfig().getString("web.http.management.path");
         return given()
-                .port(managementPort)
-                .baseUri("http://localhost:%s/management".formatted(managementPort))
+                .baseUri("http://localhost:" + managementPort + managementPath)
                 .when();
     }
 
     public String providerProtocolUrl() {
-        return "http://localhost:" + protocolPort + "/protocol";
+        var protocolPort = getConfig().getString("web.http.protocol.port");
+        var protocolPath = getConfig().getString("web.http.protocol.path");
+        return "http://localhost:" + protocolPort + protocolPath;
     }
 
     public JsonObject query(Criterion... criteria) {
@@ -67,6 +71,10 @@ public record ManagementEndToEndTestContext(EmbeddedRuntime runtime, int managem
                 .add(TYPE, "QuerySpec")
                 .add("filterExpression", criteriaJson)
                 .build();
+    }
+
+    private Config getConfig() {
+        return runtime.getContext().getConfig();
     }
 
 }
