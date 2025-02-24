@@ -149,7 +149,6 @@ include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-remote-client")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api")
-include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-accounts-api")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:lib:identity-trust-sts-remote-lib")
 include(":extensions:common:iam:identity-trust:identity-trust-issuers-configuration")
@@ -311,7 +310,6 @@ include(":dist:bom:controlplane-feature-sql-bom")
 
 include(":dist:bom:dataplane-base-bom")
 include(":dist:bom:dataplane-feature-sql-bom")
-include(":dist:bom:sts-feature-bom")
 
 
 include(":version-catalog")
