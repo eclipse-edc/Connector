@@ -230,7 +230,6 @@ include(":extensions:tck-extension")
 
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:dpf-selector")
-include(":launchers:sts-server")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:auth-spi")
