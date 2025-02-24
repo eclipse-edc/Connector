@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.eclipse.edc.spi.result.Result.failure;
+import static org.eclipse.edc.spi.result.Result.success;
 
 public class VerifiableCredentialValidationServiceImpl implements VerifiableCredentialValidationService {
     private final PresentationVerifier presentationVerifier;
@@ -60,7 +61,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
             var presentationIssuer = verifiablePresentation.presentation().getHolder();
             return presentationVerifier.verifyPresentation(verifiablePresentation)
                     .compose(u -> validateVerifiableCredentials(credentials, presentationIssuer, additionalRules));
-        }).reduce(Result.success(), Result::merge);
+        }).reduce(success(), Result::merge);
     }
 
     @NotNull
@@ -75,11 +76,16 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
                 new HasValidSubjectSchema(mapper)));
 
         filters.addAll(additionalRules);
-        var results = credentials
+
+        if (credentials.isEmpty()) {
+            return success();
+        }
+
+        return credentials
                 .stream()
-                .map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c))
-                .reduce(Result::merge);
-        return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
+                .map(c -> filters.stream().reduce(t -> success(), CredentialValidationRule::and).apply(c))
+                .reduce(Result::merge)
+                .orElseGet(() -> failure("Could not determine the status of the VC validation"));
     }
 
 }
