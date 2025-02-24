@@ -148,8 +148,6 @@ include(":extensions:common:iam:identity-trust:identity-trust-sts")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-embedded")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-remote-client")
-include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api")
-include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:lib:identity-trust-sts-remote-lib")
 include(":extensions:common:iam:identity-trust:identity-trust-issuers-configuration")
 

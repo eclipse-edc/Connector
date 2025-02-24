@@ -28,7 +28,6 @@ dependencies {
     implementation(project(":extensions:control-plane:api:management-api:secrets-api"))
     implementation(project(":extensions:common:api:version-api"))
     implementation(project(":extensions:common:api:api-observability"))
-    implementation(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
     implementation(project(":extensions:common:api:control-api-configuration"))
 }
