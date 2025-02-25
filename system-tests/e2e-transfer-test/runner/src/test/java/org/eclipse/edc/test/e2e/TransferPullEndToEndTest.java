@@ -33,6 +33,7 @@ import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +44,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockserver.integration.ClientAndServer;
 import org.mockserver.mock.action.ExpectationResponseCallback;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
@@ -84,27 +84,6 @@ class TransferPullEndToEndTest {
     abstract static class Tests extends TransferEndToEndTestBase {
 
         private static final ObjectMapper MAPPER = new ObjectMapper();
-        private static ClientAndServer providerDataSource;
-
-        @BeforeAll
-        static void beforeAll() {
-            providerDataSource = startClientAndServer(getFreePort());
-            providerDataSource.when(request()).respond(HttpResponse.response().withBody("data"));
-        }
-
-        @AfterAll
-        static void afterAll() {
-            stopQuietly(providerDataSource);
-        }
-
-        private static @NotNull Map<String, Object> httpSourceDataAddress() {
-            return Map.of(
-                    EDC_NAMESPACE + "name", "transfer-test",
-                    EDC_NAMESPACE + "baseUrl", "http://localhost:" + providerDataSource.getPort() + "/source",
-                    EDC_NAMESPACE + "type", "HttpData",
-                    EDC_NAMESPACE + "proxyQueryParams", "true"
-            );
-        }
 
         @Test
         void httpPull_dataTransfer_withCallbacks() {
@@ -137,7 +116,6 @@ class TransferPullEndToEndTest {
             var msg = UUID.randomUUID().toString();
             await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(event.getDataAddress(), Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
 
-            providerDataSource.verify(request("/source").withMethod("GET"));
             stopQuietly(callbacksEndpoint);
         }
 
@@ -156,8 +134,6 @@ class TransferPullEndToEndTest {
             var edrEntry = assertConsumerCanAccessData(transferProcessId);
 
             assertConsumerCanNotAccessData(transferProcessId, edrEntry);
-
-            providerDataSource.verify(request("/source").withMethod("GET"));
         }
 
         @Test
@@ -182,8 +158,6 @@ class TransferPullEndToEndTest {
 
             CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
             assertConsumerCanAccessData(transferProcessId);
-
-            providerDataSource.verify(request("/source").withMethod("GET"));
         }
 
         @Test
@@ -213,8 +187,6 @@ class TransferPullEndToEndTest {
             // check that transfer is available again
             PROVIDER.awaitTransferToBeInState(providerTransferProcessId, STARTED);
             assertConsumerCanAccessData(consumerTransferProcessId);
-
-            providerDataSource.verify(request("/source").withMethod("GET"));
         }
 
         @Test
@@ -417,6 +389,14 @@ class TransferPullEndToEndTest {
                 return response();
             }
         }
+
+        private static @NotNull Map<String, Object> httpSourceDataAddress() {
+            return Map.of(
+                    EDC_NAMESPACE + "name", "transfer-test",
+                    EDC_NAMESPACE + "baseUrl", "http://any/source",
+                    EDC_NAMESPACE + "type", "HttpData"
+            );
+        }
     }
 
     @Nested
@@ -439,12 +419,14 @@ class TransferPullEndToEndTest {
         static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
                 Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
                         .configurationProvider(PROVIDER::dataPlaneConfig)
+                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
         );
 
         @Override
         protected Vault getDataplaneVault() {
             return PROVIDER_DATA_PLANE.getService(Vault.class);
         }
+
     }
 
     @Nested
@@ -467,6 +449,7 @@ class TransferPullEndToEndTest {
         static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
                 Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
                         .configurationProvider(PROVIDER::dataPlaneConfig)
+                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
         );
 
         // TODO: replace with something better. Temporary hack
@@ -490,6 +473,7 @@ class TransferPullEndToEndTest {
     @EndToEndTest
     class EmbeddedDataPlane extends Tests {
 
+
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
                 Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("consumer-control-plane")
@@ -500,6 +484,7 @@ class TransferPullEndToEndTest {
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
                 Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("provider-control-plane")
                         .configurationProvider(PROVIDER::controlPlaneEmbeddedDataPlaneConfig)
+                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
         );
 
         @Override
@@ -542,6 +527,7 @@ class TransferPullEndToEndTest {
                 Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane")
                         .configurationProvider(PROVIDER::dataPlaneConfig)
                         .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
+                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
         );
 
         @Override

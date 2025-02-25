@@ -23,6 +23,8 @@ import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromData
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowResponseMessageTransformer;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
+import org.eclipse.edc.connector.dataplane.spi.Endpoint;
+import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -62,7 +64,7 @@ import static org.mockito.Mockito.when;
 @EndToEndTest
 public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
-    private static final String DATAPLANE_PUBLIC_ENDPOINT_URL = DATAPLANE.publicEndpointUrl();
+    private static final String DATAPLANE_PUBLIC_ENDPOINT_URL = "http://public/endpoint";
     private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl();
     private final TypeManager typeManager = mock();
     private ObjectMapper mapper;
@@ -76,6 +78,10 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         registry.register(new JsonObjectToDataAddressDspaceTransformer());
         registry.register(new JsonObjectToDataFlowResponseMessageTransformer());
         when(typeManager.getMapper("test")).thenReturn(mapper);
+        runtime.getService(PublicEndpointGeneratorService.class)
+                .addGeneratorFunction("HttpData", address -> Endpoint.url(DATAPLANE_PUBLIC_ENDPOINT_URL));
+        runtime.getService(PublicEndpointGeneratorService.class)
+                .addGeneratorFunction("HttpData", () -> Endpoint.url(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel"));
     }
 
     @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR (PULL)")
