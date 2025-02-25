@@ -20,10 +20,8 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.core.scope.DcpScopeExtractorRegistry;
-import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -38,14 +36,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.STS_PRIVATE_KEY_ALIAS;
-import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.STS_PUBLIC_KEY_ID;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -69,42 +61,6 @@ class DcpDefaultServicesExtensionTest {
         when(context.getConfig()).thenReturn(config);
         when(privateKeyResolver.resolvePrivateKey(any())).thenReturn(Result.success(privateKey()));
         context.registerService(PrivateKeyResolver.class, privateKeyResolver);
-    }
-
-    @Test
-    void verify_defaultService(ServiceExtensionContext context, DcpDefaultServicesExtension ext) {
-
-        Monitor mockedMonitor = mock();
-        context.registerService(Monitor.class, mockedMonitor);
-
-        var sts = ext.createDefaultTokenService(context);
-
-        assertThat(sts).isInstanceOf(EmbeddedSecureTokenService.class);
-        verify(mockedMonitor).info(anyString());
-
-    }
-
-    @Test
-    void verify_defaultServiceWithWarning(ServiceExtensionContext context, DcpDefaultServicesExtension ext) {
-        Monitor mockedMonitor = mock();
-        context.registerService(Monitor.class, mockedMonitor);
-        when(context.getSetting(eq("edc.oauth.token.url"), any())).thenReturn("https://some.url");
-
-        ext.createDefaultTokenService(context);
-
-        verify(mockedMonitor).info(anyString());
-        verify(mockedMonitor).warning(anyString());
-    }
-
-    @Test
-    void verify_defaultServiceWithMissingConfig(ServiceExtensionContext context) {
-        var ext = new DcpDefaultServicesExtension();
-        
-        assertThatThrownBy(() -> ext.createDefaultTokenService(context))
-                .isInstanceOf(EdcException.class)
-                .hasMessageContaining(STS_PUBLIC_KEY_ID)
-                .hasMessageContaining(STS_PRIVATE_KEY_ALIAS);
-
     }
 
     @Test

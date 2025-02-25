@@ -145,12 +145,7 @@ include(":extensions:common:iam:identity-trust:identity-trust-transform")
 include(":extensions:common:iam:identity-trust:identity-trust-service")
 include(":extensions:common:iam:identity-trust:identity-trust-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts")
-include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-embedded")
-include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-remote-client")
-include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api")
-include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-accounts-api")
-include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:lib:identity-trust-sts-remote-lib")
 include(":extensions:common:iam:identity-trust:identity-trust-issuers-configuration")
 
@@ -231,7 +226,6 @@ include(":extensions:tck-extension")
 
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:dpf-selector")
-include(":launchers:sts-server")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:auth-spi")
@@ -311,7 +305,6 @@ include(":dist:bom:controlplane-feature-sql-bom")
 
 include(":dist:bom:dataplane-base-bom")
 include(":dist:bom:dataplane-feature-sql-bom")
-include(":dist:bom:sts-feature-bom")
 
 
 include(":version-catalog")
