@@ -20,10 +20,8 @@ import org.eclipse.edc.iam.identitytrust.core.defaults.InMemorySignatureSuiteReg
 import org.eclipse.edc.iam.identitytrust.core.scope.DcpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension;
-import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
-import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
@@ -31,18 +29,13 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.token.JwtGenerationService;
 
 import java.time.Clock;
-import java.util.ArrayList;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static org.eclipse.edc.spi.result.Result.success;
@@ -70,27 +63,27 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     @Inject
     private JtiValidationStore jtiValidationStore;
 
-    @Provider(isDefault = true)
-    public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
-        context.getMonitor().info("Using the Embedded STS client, as no other implementation was provided.");
-
-        var errors = new ArrayList<String>();
-
-        checkProperty(STS_PRIVATE_KEY_ALIAS, privateKeyAlias, errors::add);
-        checkProperty(STS_PUBLIC_KEY_ID, publicKeyId, errors::add);
-
-        if (!errors.isEmpty()) {
-            var msg = String.join(", ", errors);
-            throw new EdcException("The following errors were found in the configuration of the Embedded STS: [%s]".formatted(msg));
-        }
-
-        if (context.getSetting(OAUTH_TOKENURL_PROPERTY, null) != null) {
-            context.getMonitor().warning("The property '%s' was configured, but no remote SecureTokenService was found on the classpath. ".formatted(OAUTH_TOKENURL_PROPERTY) +
-                    "This could be an indication of a configuration problem.");
-        }
-
-        return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(stsTokenExpirationMin), jtiValidationStore);
-    }
+//    @Provider(isDefault = true)
+//    public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
+//        context.getMonitor().info("Using the Embedded STS client, as no other implementation was provided.");
+//
+//        var errors = new ArrayList<String>();
+//
+//        checkProperty(STS_PRIVATE_KEY_ALIAS, privateKeyAlias, errors::add);
+//        checkProperty(STS_PUBLIC_KEY_ID, publicKeyId, errors::add);
+//
+//        if (!errors.isEmpty()) {
+//            var msg = String.join(", ", errors);
+//            throw new EdcException("The following errors were found in the configuration of the Embedded STS: [%s]".formatted(msg));
+//        }
+//
+//        if (context.getSetting(OAUTH_TOKENURL_PROPERTY, null) != null) {
+//            context.getMonitor().warning("The property '%s' was configured, but no remote SecureTokenService was found on the classpath. ".formatted(OAUTH_TOKENURL_PROPERTY) +
+//                    "This could be an indication of a configuration problem.");
+//        }
+//
+//        return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(stsTokenExpirationMin), jtiValidationStore);
+//    }
 
     @Provider(isDefault = true)
     public TrustedIssuerRegistry createInMemoryIssuerRegistry() {
