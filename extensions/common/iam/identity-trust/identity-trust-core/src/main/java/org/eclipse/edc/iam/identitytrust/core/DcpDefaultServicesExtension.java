@@ -63,28 +63,6 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     @Inject
     private JtiValidationStore jtiValidationStore;
 
-//    @Provider(isDefault = true)
-//    public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
-//        context.getMonitor().info("Using the Embedded STS client, as no other implementation was provided.");
-//
-//        var errors = new ArrayList<String>();
-//
-//        checkProperty(STS_PRIVATE_KEY_ALIAS, privateKeyAlias, errors::add);
-//        checkProperty(STS_PUBLIC_KEY_ID, publicKeyId, errors::add);
-//
-//        if (!errors.isEmpty()) {
-//            var msg = String.join(", ", errors);
-//            throw new EdcException("The following errors were found in the configuration of the Embedded STS: [%s]".formatted(msg));
-//        }
-//
-//        if (context.getSetting(OAUTH_TOKENURL_PROPERTY, null) != null) {
-//            context.getMonitor().warning("The property '%s' was configured, but no remote SecureTokenService was found on the classpath. ".formatted(OAUTH_TOKENURL_PROPERTY) +
-//                    "This could be an indication of a configuration problem.");
-//        }
-//
-//        return new EmbeddedSecureTokenService(new JwtGenerationService(externalSigner), () -> privateKeyAlias, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(stsTokenExpirationMin), jtiValidationStore);
-//    }
-
     @Provider(isDefault = true)
     public TrustedIssuerRegistry createInMemoryIssuerRegistry() {
         return new DefaultTrustedIssuerRegistry();

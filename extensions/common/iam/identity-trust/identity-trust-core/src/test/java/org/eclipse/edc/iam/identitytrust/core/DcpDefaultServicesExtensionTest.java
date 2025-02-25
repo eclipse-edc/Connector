@@ -63,42 +63,6 @@ class DcpDefaultServicesExtensionTest {
         context.registerService(PrivateKeyResolver.class, privateKeyResolver);
     }
 
-//    @Test
-//    void verify_defaultService(ServiceExtensionContext context, DcpDefaultServicesExtension ext) {
-//
-//        Monitor mockedMonitor = mock();
-//        context.registerService(Monitor.class, mockedMonitor);
-//
-//        var sts = ext.createDefaultTokenService(context);
-//
-//        assertThat(sts).isInstanceOf(EmbeddedSecureTokenService.class);
-//        verify(mockedMonitor).info(anyString());
-//
-//    }
-
-//    @Test
-//    void verify_defaultServiceWithWarning(ServiceExtensionContext context, DcpDefaultServicesExtension ext) {
-//        Monitor mockedMonitor = mock();
-//        context.registerService(Monitor.class, mockedMonitor);
-//        when(context.getSetting(eq("edc.oauth.token.url"), any())).thenReturn("https://some.url");
-//
-//        ext.createDefaultTokenService(context);
-//
-//        verify(mockedMonitor).info(anyString());
-//        verify(mockedMonitor).warning(anyString());
-//    }
-
-//    @Test
-//    void verify_defaultServiceWithMissingConfig(ServiceExtensionContext context) {
-//        var ext = new DcpDefaultServicesExtension();
-//
-//        assertThatThrownBy(() -> ext.createDefaultTokenService(context))
-//                .isInstanceOf(EdcException.class)
-//                .hasMessageContaining(STS_PUBLIC_KEY_ID)
-//                .hasMessageContaining(STS_PRIVATE_KEY_ALIAS);
-//
-//    }
-
     @Test
     void verify_defaultIssuerRegistry(ServiceExtensionContext context, ObjectFactory factory) {
         Monitor mockedMonitor = mock();

@@ -172,23 +172,4 @@ public class BomSmokeTests {
         }
     }
 
-    @Nested
-    @EndToEndTest
-    class StsFeature extends SmokeTest {
-
-        @RegisterExtension
-        protected RuntimeExtension runtime =
-                new RuntimePerMethodExtension(new EmbeddedRuntime("sts-feature-bom",
-                        Map.of(
-                                "web.http.port", DEFAULT_PORT,
-                                "web.http.path", DEFAULT_PATH,
-                                "web.http.version.port", String.valueOf(getFreePort()),
-                                "web.http.version.path", "/api/version",
-                                "web.http.sts.port", String.valueOf(getFreePort()),
-                                "web.http.sts.path", "/api/sts",
-                                "web.http.accounts.port", String.valueOf(getFreePort()),
-                                "web.http.accounts.path", "/api/sts/accounts"),
-                        ":dist:bom:sts-feature-bom"
-                ));
-    }
 }
