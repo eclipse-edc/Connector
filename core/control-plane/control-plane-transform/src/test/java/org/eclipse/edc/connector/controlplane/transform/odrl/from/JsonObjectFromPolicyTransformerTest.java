@@ -19,6 +19,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import java.util.List;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AndConstraint;
@@ -66,6 +67,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROFILE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REMEDY_ATTRIBUTE;
@@ -422,5 +424,20 @@ class JsonObjectFromPolicyTransformerTest {
                     arguments(CONTRACT, ODRL_POLICY_TYPE_AGREEMENT)
             );
         }
+    }
+    
+    @Test
+    void shouldTransformPolicyWithProfile() {
+        //given
+        var transformer = new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper, true);
+        List<String> profiles = List.of("profileA", "profileB");
+        var policy = Policy.Builder.newInstance()
+                .profiles(profiles)
+                .build();
+        //when
+        var result = transformer.transform(policy, context);
+        //then
+        assertThat(result.getJsonArray(ODRL_PROFILE_ATTRIBUTE)).isEqualTo(Json.createArrayBuilder(profiles).build());
+        verify(context, never()).reportProblem(anyString());
     }
 }
