@@ -37,7 +37,6 @@ dependencies {
     api(project(":extensions:data-plane:data-plane-self-registration"))
     api(project(":extensions:data-plane:data-plane-http"))
     api(project(":extensions:data-plane:data-plane-http-oauth2"))
-    api(project(":extensions:data-plane:data-plane-public-api-v2"))
     api(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api"))
     api(project(":extensions:data-plane:data-plane-iam"))
     api(project(":extensions:data-plane-selector:data-plane-selector-client"))

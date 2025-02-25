@@ -44,14 +44,6 @@ public class DataPlaneParticipant extends Participant {
         return given().baseUri(dataPlaneControl.get().toString());
     }
 
-    public RequestSpecification basePublicRequest() {
-        return given().baseUri(dataPlanePublic.get().toString());
-    }
-
-    public String publicEndpointUrl() {
-        return dataPlanePublic.get().toString();
-    }
-
     public Config dataPlaneConfig() {
         return ConfigFactory.fromMap(dataPlaneConfiguration());
     }
@@ -62,8 +54,6 @@ public class DataPlaneParticipant extends Participant {
                 put("edc.component.id", UUID.randomUUID().toString());
                 put("web.http.port", String.valueOf(getFreePort()));
                 put("web.http.path", "/api");
-                put("web.http.public.port", String.valueOf(dataPlanePublic.get().getPort()));
-                put("web.http.public.path", "/public");
                 put("web.http.control.port", String.valueOf(dataPlaneControl.get().getPort()));
                 put("web.http.control.path", dataPlaneControl.get().getPath());
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
