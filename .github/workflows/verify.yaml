@@ -28,6 +28,8 @@ jobs:
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Run Checkstyle
         run: ./gradlew checkstyleMain checkstyleTest checkstyleTestFixtures
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_API_TOKEN }}
 
   Javadoc:
     runs-on: ubuntu-latest
@@ -36,6 +38,8 @@ jobs:
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Run Javadoc
         run: ./gradlew javadoc
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_API_TOKEN }}
 
   Unit-Tests:
     runs-on: ubuntu-latest
@@ -44,6 +48,8 @@ jobs:
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Run unit tests
         run: ./gradlew test
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_API_TOKEN }}
 
   Postgresql-Integration-Tests:
     runs-on: ubuntu-latest
@@ -52,6 +58,8 @@ jobs:
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Postgresql Tests
         run: ./gradlew test -DincludeTags="PostgresqlIntegrationTest"
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_API_TOKEN }}
 
   End-To-End-Tests:
     runs-on: ubuntu-latest
@@ -60,6 +68,8 @@ jobs:
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: End to End Integration Tests
         run: ./gradlew test -DincludeTags="EndToEndTest"
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_API_TOKEN }}
 
   Component-Tests:
     runs-on: ubuntu-latest
@@ -68,6 +78,8 @@ jobs:
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Component Tests
         run: ./gradlew test -DincludeTags="ComponentTest"
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_API_TOKEN }}
 
   API-Tests:
     runs-on: ubuntu-latest
@@ -76,6 +88,8 @@ jobs:
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Component Tests
         run: ./gradlew test -DincludeTags="ApiTest"
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_API_TOKEN }}
 
   Verify-OpenApi:
     if: github.event_name == 'pull_request'

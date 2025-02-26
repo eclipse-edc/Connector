@@ -18,3 +18,5 @@ jobs:
       - name: DSP Compatibility
         run: |
           ./gradlew -p system-tests/dsp-compatibility-tests test -DincludeTags="NightlyTest" -PverboseTest=true
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_API_TOKEN }}
