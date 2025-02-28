@@ -20,10 +20,7 @@ dependencies {
     implementation(project(":dist:bom:controlplane-base-bom"))
 
     implementation(project(":extensions:common:iam:iam-mock"))
-    implementation(project(":extensions:control-plane:api:control-plane-api"))
     implementation(project(":extensions:control-plane:provision:provision-http"))
-
-    implementation(project(":core:policy-monitor:policy-monitor-core"))
 }
 
 edcBuild {
