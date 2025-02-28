@@ -27,6 +27,7 @@ dependencies {
     api(project(":core:common:token-core"))
     api(project(":core:control-plane:control-plane-core"))
     api(project(":core:data-plane-selector:data-plane-selector-core"))
+    api(project(":core:policy-monitor:policy-monitor-core"))
     api(project(":data-protocols:dsp"))
 
     // extension dependencies
@@ -38,7 +39,9 @@ dependencies {
     api(project(":extensions:common:api:api-observability"))
     api(project(":extensions:common:api:control-api-configuration"))
     api(project(":extensions:common:api:version-api"))
+
     api(project(":extensions:common:http"))
+    api(project(":extensions:control-plane:api:control-plane-api"))
     api(project(":extensions:control-plane:api:management-api"))
     api(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
     api(project(":extensions:data-plane-selector:data-plane-selector-api"))

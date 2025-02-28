@@ -27,6 +27,7 @@ dependencies {
     api(project(":extensions:common:store:sql:edr-index-sql"))
     api(project(":extensions:common:store:sql:jti-validation-store-sql"))
     api(project(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql"))
+    api(project(":extensions:policy-monitor:store:sql:policy-monitor-store-sql"))
 
     // other SQL dependencies - not strictly necessary, but could come in handy for BOM users
     api(project(":extensions:common:sql:sql-core"))
