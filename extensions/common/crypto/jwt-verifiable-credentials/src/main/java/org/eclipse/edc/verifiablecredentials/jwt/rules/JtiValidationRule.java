@@ -15,6 +15,7 @@
 package org.eclipse.edc.verifiablecredentials.jwt.rules;
 
 import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationEntry;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -43,13 +44,20 @@ public class JtiValidationRule implements TokenValidationRule {
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
         var jti = toVerify.getStringClaim(JwtRegisteredClaimNames.JWT_ID);
         if (jti != null) {
-            var entry = jtiValidationStore.findById(jti);
+            var entry = jtiValidationStore.findById(jti); // check if existed before
+            var res = jtiValidationStore.storeEntry(new JtiValidationEntry(jti));
+            if (res.failed()) {
+                return Result.failure(res.getFailureDetail());
+            }
+
             if (entry == null) {
-                return Result.failure("The JWT id '%s' was not found".formatted(jti));
+                return Result.success();
             }
             if (entry.isExpired()) {
-                monitor.warning("JTI Validation entry with id " + jti + " is expired");
+                monitor.warning("JTI Validation entry with id '%s' is expired".formatted(jti));
+                return Result.success();
             }
+            return Result.failure("The JWT id '%s' was already used.".formatted(jti));
         }
         return Result.success();
     }
