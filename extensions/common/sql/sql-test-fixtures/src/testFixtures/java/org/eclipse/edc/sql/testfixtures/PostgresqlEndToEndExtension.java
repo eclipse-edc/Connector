@@ -42,7 +42,11 @@ public class PostgresqlEndToEndExtension implements BeforeAllCallback, AfterAllC
     }
 
     public PostgresqlEndToEndExtension(String dockerImageName) {
-        postgres = new PostgreSQLContainer<>(dockerImageName);
+        this(new PostgreSQLContainer<>(dockerImageName));
+    }
+
+    public PostgresqlEndToEndExtension(PostgreSQLContainer<?> postgres) {
+        this.postgres = postgres;
     }
 
     @Override
