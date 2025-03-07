@@ -19,6 +19,7 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultCredentialServiceClient;
+import org.eclipse.edc.iam.identitytrust.core.validation.SelfIssueIdTokenValidationAction;
 import org.eclipse.edc.iam.identitytrust.service.DidCredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.service.IdentityAndTrustService;
 import org.eclipse.edc.iam.identitytrust.service.verification.MultiFormatPresentationVerifier;
@@ -251,11 +252,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @NotNull
     private TokenValidationAction tokenValidationAction() {
-        return (tokenRepresentation) -> {
-            var rules = rulesRegistry.getRules(DCP_SELF_ISSUED_TOKEN_CONTEXT);
-            return tokenValidationService.validate(tokenRepresentation, didPublicKeyResolver, rules);
-        };
+        return new SelfIssueIdTokenValidationAction(tokenValidationService, rulesRegistry, didPublicKeyResolver);
     }
-
 
 }
