@@ -23,8 +23,6 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
 
     testFixturesApi(project(":core:common:junit"))
-    testFixturesImplementation(libs.bundles.jupiter)
-    testFixturesImplementation(libs.assertj)
     testFixturesImplementation(libs.awaitility)
 }
 

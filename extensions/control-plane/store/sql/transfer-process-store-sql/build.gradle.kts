@@ -28,7 +28,6 @@ dependencies {
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
     testImplementation(libs.postgres)
     testImplementation(testFixtures(project(":spi:control-plane:transfer-spi")))

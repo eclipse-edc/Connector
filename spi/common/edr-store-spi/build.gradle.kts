@@ -20,12 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
 
-    // needed by the abstract test spec located in testFixtures
-    testFixturesImplementation(libs.bundles.jupiter)
-    testFixturesImplementation(libs.mockito.core)
-    testFixturesImplementation(libs.assertj)
     testFixturesImplementation(project(":core:common:junit"))
-    testFixturesRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 

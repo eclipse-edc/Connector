@@ -20,7 +20,6 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:boot-lib"))
     testImplementation(libs.restAssured)
-    testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)

@@ -35,9 +35,7 @@ dependencies {
     testImplementation(project(":extensions:common:json-ld"))
 
     testImplementation(libs.restAssured)
-    testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
-    testImplementation(libs.junit.jupiter.api)
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(libs.testcontainers.junit)
