@@ -485,6 +485,7 @@ class TransferPullEndToEndTest {
         static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
                 Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
                         .configurationProvider(PROVIDER::dataPlaneConfig)
+                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
         );
 
         private static final Function<Supplier<Config>, Supplier<Config>> CONFIG_SUPPLIER = supplier -> () -> {
