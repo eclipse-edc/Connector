@@ -25,10 +25,6 @@ dependencies {
     testFixturesApi(project(":core:common:lib:util-lib"))
     testFixturesApi(project(":core:common:lib:json-ld-lib"))
 
-    testFixturesApi(libs.junit.jupiter.api)
-
-    testFixturesImplementation(libs.assertj)
     testFixturesImplementation(libs.restAssured)
     testFixturesImplementation(libs.awaitility)
-    testFixturesImplementation(libs.mockito.core)
 }

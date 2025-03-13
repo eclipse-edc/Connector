@@ -28,7 +28,6 @@ dependencies {
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(libs.postgres)
-    testImplementation(libs.assertj)
 
     testFixturesImplementation(project(":core:common:lib:sql-lib")) // TODO: these fixtures could finish in sql-testfixtures module
 }

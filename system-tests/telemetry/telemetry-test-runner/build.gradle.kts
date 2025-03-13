@@ -24,9 +24,7 @@ dependencies {
     testImplementation(project(":core:common:connector-core"))
 
     testImplementation(libs.restAssured)
-    testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
-    testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
     testImplementation(libs.opentelemetry.proto)

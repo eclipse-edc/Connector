@@ -27,11 +27,6 @@ dependencies {
 
     testImplementation(project(":tests:junit-base"))
     testImplementation(project(":core:common:lib:json-lib"))
-
-    testFixturesImplementation(libs.bundles.jupiter)
-    testFixturesImplementation(libs.mockito.core)
-    testFixturesImplementation(libs.assertj)
-    testFixturesRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 

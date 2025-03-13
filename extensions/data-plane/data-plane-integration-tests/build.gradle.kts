@@ -17,9 +17,7 @@ plugins {
 }
 
 dependencies {
-    testImplementation(libs.bundles.jupiter)
     testImplementation(libs.restAssured)
-    testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)

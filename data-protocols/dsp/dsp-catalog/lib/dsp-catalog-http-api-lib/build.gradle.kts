@@ -30,6 +30,4 @@ dependencies {
     testFixturesApi(project(":core:common:junit"))
     testFixturesImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testFixturesImplementation(libs.restAssured)
-    testFixturesImplementation(libs.assertj)
-    testFixturesImplementation(libs.mockito.core)
 }

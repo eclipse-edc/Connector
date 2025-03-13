@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.junit.testfixtures;
 
-import org.opentest4j.AssertionFailedError;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -37,12 +35,12 @@ public class TestUtils {
     public static URI getResource(String name) {
         var resource = Thread.currentThread().getContextClassLoader().getResource(name);
         if (resource == null) {
-            throw new AssertionFailedError("Cannot find resource " + name);
+            throw new AssertionError("Cannot find resource " + name);
         }
         try {
             return resource.toURI();
         } catch (URISyntaxException e) {
-            throw new AssertionFailedError("Cannot find resource " + name, e);
+            throw new AssertionError("Cannot find resource " + name, e);
         }
     }
 

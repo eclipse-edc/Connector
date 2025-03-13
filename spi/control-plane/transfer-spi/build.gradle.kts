@@ -28,8 +28,6 @@ dependencies {
     testImplementation(project(":core:common:lib:json-lib"))
 
     testFixturesImplementation(project(":core:common:junit"))
-    testFixturesImplementation(libs.bundles.jupiter)
-    testFixturesImplementation(libs.assertj)
     testFixturesImplementation(libs.awaitility)
 }
 
