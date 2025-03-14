@@ -489,7 +489,7 @@ class TransferPullEndToEndTest {
         );
 
         private static final Function<Supplier<Config>, Supplier<Config>> CONFIG_SUPPLIER = supplier -> () -> {
-            var settings = Map.of("edc.dsp.wellKnownPath.enabled", "true");
+            var settings = Map.of("edc.dsp.wellKnown.path.enabled", "true");
             return ConfigFactory.fromMap(settings).merge(supplier.get());
         };
 

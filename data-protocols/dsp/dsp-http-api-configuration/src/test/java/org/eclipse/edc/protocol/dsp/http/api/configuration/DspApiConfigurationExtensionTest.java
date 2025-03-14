@@ -104,7 +104,7 @@ class DspApiConfigurationExtensionTest {
                 "web.http.protocol.port", String.valueOf(1234),
                 "web.http.protocol.path", "/path",
                 "edc.dsp.callback.address", webhookAddress,
-                "edc.dsp.wellKnownPath.enabled", "true"))
+                "edc.dsp.wellKnown.path.enabled", "true"))
         );
         var extension = factory.constructInstance(DspApiConfigurationExtension.class);
 
@@ -126,7 +126,7 @@ class DspApiConfigurationExtensionTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { DSP_SCOPE_V_08, DSP_SCOPE_V_2024_1 })
+    @ValueSource(strings = {DSP_SCOPE_V_08, DSP_SCOPE_V_2024_1})
     void initialize_shouldRegisterNamespaces(String scope, DspApiConfigurationExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
