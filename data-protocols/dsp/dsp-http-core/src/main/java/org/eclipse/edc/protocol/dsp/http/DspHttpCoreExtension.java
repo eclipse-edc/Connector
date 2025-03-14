@@ -86,7 +86,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     private static final boolean DEFAULT_WELL_KNOWN_PATH = false;
 
-    @Setting(description = "If set enable the well known path resolution scheme will be used", key = "edc.dsp.wellKnown.path.enabled", required = false, defaultValue = DEFAULT_WELL_KNOWN_PATH + "")
+    @Setting(description = "If set enable the well known path resolution scheme will be used", key = "edc.dsp.well-known-path.enabled", required = false, defaultValue = DEFAULT_WELL_KNOWN_PATH + "")
     private boolean wellKnownPathEnabled;
 
     @Inject
