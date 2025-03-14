@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
@@ -43,11 +44,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -71,7 +74,10 @@ public class DataPlaneSignalingFlowControllerTest {
         @Test
         void shouldReturnTrue_whenFlowTypeIsValid() {
             when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("Valid", FlowType.PUSH)));
-            var transferProcess = transferProcess("Custom", "Valid-PUSH");
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .transferType("Valid-PUSH")
+                    .dataDestination(DataAddress.Builder.newInstance().type("Custom").build())
+                    .build();
 
             var result = flowController.canHandle(transferProcess);
 
@@ -81,11 +87,83 @@ public class DataPlaneSignalingFlowControllerTest {
         @Test
         void shouldReturnFalse_whenFlowTypeIsNotValid() {
             when(transferTypeParser.parse(any())).thenReturn(Result.failure("cannot parse"));
-            var transferProcess = transferProcess("Custom", "Invalid-ANY");
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .transferType("Invalid-ANY")
+                    .dataDestination(DataAddress.Builder.newInstance().type("Custom").build())
+                    .build();
 
             var result = flowController.canHandle(transferProcess);
 
             assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
+    class Provision {
+
+        @Test
+        void shouldCallPrepareOnDataPlane() {
+            var dataPlaneInstance = createDataPlaneInstance();
+            var transferProcess = transferProcessBuilder().build();
+            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("any", FlowType.PUSH)));
+            when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(emptyMap()));
+            when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            var newDestinationAddress = DataAddress.Builder.newInstance().type("any").build();
+            var flowResponseMessage = DataFlowResponseMessage.Builder.newInstance().dataAddress(newDestinationAddress).build();
+            when(dataPlaneClient.provision(any())).thenReturn(StatusResult.success(flowResponseMessage));
+
+            var result = flowController.provision(transferProcess, policyBuilder().build());
+
+            assertThat(result).isSucceeded().satisfies(dataFlowResponse -> {
+                assertThat(dataFlowResponse.getDataPlaneId()).isEqualTo(dataPlaneInstance.getId());
+                assertThat(dataFlowResponse.getDataAddress()).isSameAs(newDestinationAddress);
+            });
+            verify(dataPlaneClient).provision(isA(DataFlowProvisionMessage.class));
+        }
+
+        @Test
+        void shouldReturnFailure_whenNoDataPlaneIsFound() {
+            var transferProcess = transferProcessBuilder().build();
+            when(selectorService.select(any(), any())).thenReturn(ServiceResult.notFound("no data plane can provision this"));
+
+            var result = flowController.provision(transferProcess, policyBuilder().build());
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(dataPlaneClientFactory);
+        }
+
+        @Test
+        void shouldReturnSuccess_whenDataPlaneSelectionFailsWithUnexpectedError() {
+            var transferProcess = transferProcessBuilder().build();
+            when(selectorService.select(any(), any())).thenReturn(ServiceResult.unexpected("unexpected error"));
+
+            var result = flowController.provision(transferProcess, policyBuilder().build());
+
+            assertThat(result).isFailed();
+        }
+
+        @Test
+        void shouldReturnFailure_whenTransferTypeIsNotValid() {
+            var transferProcess = transferProcessBuilder().build();
+            when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(createDataPlaneInstance()));
+            when(transferTypeParser.parse(any())).thenReturn(Result.failure("transferType error"));
+
+            var result = flowController.provision(transferProcess, policyBuilder().build());
+
+            assertThat(result).isFailed().detail().isEqualTo("transferType error");
+        }
+
+        @Test
+        void shouldReturnFailure_whenPropertiesProviderFails() {
+            var transferProcess = transferProcessBuilder().build();
+            when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(createDataPlaneInstance()));
+            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("any", FlowType.PUSH)));
+            when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "propertiesProvider error"));
+
+            var result = flowController.provision(transferProcess, policyBuilder().build());
+
+            assertThat(result).isFailed().detail().isEqualTo("propertiesProvider error");
         }
     }
 
@@ -367,13 +445,6 @@ public class DataPlaneSignalingFlowControllerTest {
         return DataAddress.Builder.newInstance().type("test-type").build();
     }
 
-    private TransferProcess transferProcess(String destinationType, String transferType) {
-        return TransferProcess.Builder.newInstance()
-                .transferType(transferType)
-                .dataDestination(DataAddress.Builder.newInstance().type(destinationType).build())
-                .build();
-    }
-
     private TransferProcess.Builder transferProcessBuilder() {
         return TransferProcess.Builder.newInstance()
                 .correlationId(UUID.randomUUID().toString())
@@ -381,7 +452,12 @@ public class DataPlaneSignalingFlowControllerTest {
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .counterPartyAddress("test.connector.address")
+                .transferType("transferType")
                 .dataDestination(DataAddress.Builder.newInstance().type("test").build());
+    }
+
+    private Policy.Builder policyBuilder() {
+        return Policy.Builder.newInstance();
     }
 
 }

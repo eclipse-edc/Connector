@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
 
@@ -51,23 +52,32 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
     }
 
     @Override
-    public ServiceResult<DataPlaneInstance> select(DataAddress source, String transferType, @Nullable String selectionStrategy) {
+    public ServiceResult<DataPlaneInstance> select(@Nullable String selectionStrategy, Predicate<DataPlaneInstance> filter) {
         var sanitizedSelectionStrategy = Optional.ofNullable(selectionStrategy).orElse(DEFAULT_STRATEGY);
         var strategy = selectionStrategyRegistry.find(sanitizedSelectionStrategy);
         if (strategy == null) {
             return ServiceResult.badRequest("Strategy " + sanitizedSelectionStrategy + " was not found");
         }
-
         return transactionContext.execute(() -> {
             try (var stream = store.getAll()) {
-                var dataPlanes = stream.filter(it -> it.getState() == AVAILABLE.code()).filter(dataPlane -> dataPlane.canHandle(source, transferType)).toList();
-                var dataPlane = strategy.apply(dataPlanes);
-                if (dataPlane == null) {
-                    return ServiceResult.notFound("DataPlane not found");
+                var dataPlanes = stream
+                        .filter(it -> it.getState() == AVAILABLE.code())
+                        .filter(filter)
+                        .toList();
+
+                if (dataPlanes.isEmpty()) {
+                    return ServiceResult.notFound("No dataplane found");
                 }
+
+                var dataPlane = strategy.apply(dataPlanes);
                 return ServiceResult.success(dataPlane);
             }
         });
+    }
+
+    @Override
+    public ServiceResult<DataPlaneInstance> select(DataAddress source, String transferType, @Nullable String selectionStrategy) {
+        return select(selectionStrategy, dataPlane -> dataPlane.canHandle(source, transferType));
     }
 
     @Override

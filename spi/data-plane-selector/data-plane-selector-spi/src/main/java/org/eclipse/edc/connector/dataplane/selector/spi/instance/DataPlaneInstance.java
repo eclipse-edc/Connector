@@ -61,6 +61,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
     private Map<String, Object> properties = new HashMap<>();
     private Set<String> allowedTransferTypes = new HashSet<>();
     private Set<String> allowedSourceTypes = new HashSet<>();
+    private final Set<String> destinationProvisionTypes = new HashSet<>();
     @Deprecated(since = "management-api:v3")
     private Set<String> allowedDestTypes = new HashSet<>();
     @Deprecated(since = "management-api:v3")
@@ -80,7 +81,8 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
                 .allowedDestTypes(allowedDestTypes)
                 .allowedSourceTypes(allowedSourceTypes)
                 .allowedTransferType(allowedTransferTypes)
-                .properties(properties);
+                .properties(properties)
+                .destinationProvisionTypes(destinationProvisionTypes);
 
         return copy(builder);
     }
@@ -133,6 +135,14 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
     public Set<String> getAllowedTransferTypes() {
         return Collections.unmodifiableSet(allowedTransferTypes);
+    }
+
+    public Set<String> getDestinationProvisionTypes() {
+        return destinationProvisionTypes;
+    }
+
+    public boolean canProvisionDestination(DataAddress destination) {
+        return destinationProvisionTypes.contains(destination.getType());
     }
 
     public void transitionToRegistered() {
@@ -231,6 +241,11 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
         public Builder properties(Map<String, Object> properties) {
             entity.properties = properties;
+            return this;
+        }
+
+        public Builder destinationProvisionTypes(Set<String> types) {
+            entity.destinationProvisionTypes.addAll(types);
             return this;
         }
 

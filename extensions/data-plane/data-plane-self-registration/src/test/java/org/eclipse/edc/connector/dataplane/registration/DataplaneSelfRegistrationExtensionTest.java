@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -55,6 +56,7 @@ class DataplaneSelfRegistrationExtensionTest {
     private final PipelineService pipelineService = mock();
     private final PublicEndpointGeneratorService publicEndpointGeneratorService = mock();
     private final HealthCheckService healthCheckService = mock();
+    private final ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -66,6 +68,7 @@ class DataplaneSelfRegistrationExtensionTest {
         when(monitor.withPrefix(anyString())).thenReturn(monitor);
         context.registerService(Monitor.class, monitor);
         context.registerService(HealthCheckService.class, healthCheckService);
+        context.registerService(ResourceDefinitionGeneratorManager.class, resourceDefinitionGeneratorManager);
     }
 
     @Test
@@ -76,6 +79,7 @@ class DataplaneSelfRegistrationExtensionTest {
         when(pipelineService.supportedSourceTypes()).thenReturn(Set.of("sourceType", "anotherSourceType"));
         when(publicEndpointGeneratorService.supportedDestinationTypes()).thenReturn(Set.of("pullDestType", "anotherPullDestType"));
         when(publicEndpointGeneratorService.supportedResponseTypes()).thenReturn(Set.of("responseType", "anotherResponseType"));
+        when(resourceDefinitionGeneratorManager.destinationTypes()).thenReturn(Set.of("supportedDestinationProvisionType"));
         when(dataPlaneSelectorService.addInstance(any())).thenReturn(ServiceResult.success());
 
         extension.initialize(context);
@@ -100,6 +104,7 @@ class DataplaneSelfRegistrationExtensionTest {
                         "pullDestType-PULL-responseType",
                         "sinkType-PUSH-responseType",
                         "sinkType-PUSH");
+        assertThat(dataPlaneInstance.getDestinationProvisionTypes()).containsOnly("supportedDestinationProvisionType");
 
         verify(healthCheckService).addStartupStatusProvider(any());
         verify(healthCheckService).addLivenessProvider(any());

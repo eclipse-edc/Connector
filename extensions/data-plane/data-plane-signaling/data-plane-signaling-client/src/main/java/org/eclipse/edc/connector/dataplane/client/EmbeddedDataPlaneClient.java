@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
@@ -34,6 +35,15 @@ public class EmbeddedDataPlaneClient implements DataPlaneClient {
 
     public EmbeddedDataPlaneClient(DataPlaneManager dataPlaneManager) {
         this.dataPlaneManager = Objects.requireNonNull(dataPlaneManager, "Data plane manager");
+    }
+
+    @Override
+    public StatusResult<DataFlowResponseMessage> provision(DataFlowProvisionMessage request) {
+        var provisioning = dataPlaneManager.provision(request);
+        if (provisioning.failed()) {
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, provisioning.getFailureDetail());
+        }
+        return StatusResult.success(provisioning.getContent());
     }
 
     @WithSpan

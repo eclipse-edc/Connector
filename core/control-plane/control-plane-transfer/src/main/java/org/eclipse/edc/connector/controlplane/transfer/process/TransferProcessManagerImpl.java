@@ -204,6 +204,15 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         ResourceManifest manifest;
         if (process.getType() == CONSUMER) {
+            var provisioning = dataFlowManager.provision(process, policy);
+            if (provisioning.succeeded()) {
+                var response = provisioning.getContent();
+                process.setDataPlaneId(response.getDataPlaneId());
+                process.transitionRequesting();
+                update(process);
+                return true;
+            }
+
             var manifestResult = manifestGenerator.generateConsumerResourceManifest(process, policy);
             if (manifestResult.failed()) {
                 transitionToTerminated(process, format("Resource manifest for process %s cannot be modified to fulfil policy. %s", process.getId(), manifestResult.getFailureMessages()));

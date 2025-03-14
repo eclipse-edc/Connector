@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
@@ -70,6 +71,11 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
 
     private static <T> @NotNull StatusResult<T> failedResult(String processId, ServiceFailure failure) {
         return StatusResult.failure(FATAL_ERROR, format("Transfer request for process %s failed: %s", processId, failure.getFailureDetail()));
+    }
+
+    @Override
+    public StatusResult<DataFlowResponseMessage> provision(DataFlowProvisionMessage message) {
+        return StatusResult.failure(FATAL_ERROR, "remote data flow preparation not implemented yet.");
     }
 
     @WithSpan
