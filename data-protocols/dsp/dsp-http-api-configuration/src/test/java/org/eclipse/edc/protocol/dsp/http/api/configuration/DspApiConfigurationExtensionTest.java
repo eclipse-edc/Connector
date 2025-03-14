@@ -104,7 +104,7 @@ class DspApiConfigurationExtensionTest {
                 "web.http.protocol.port", String.valueOf(1234),
                 "web.http.protocol.path", "/path",
                 "edc.dsp.callback.address", webhookAddress,
-                "edc.dsp.wellKnown.path.enabled", "true"))
+                "edc.dsp.well-known-path.enabled", "true"))
         );
         var extension = factory.constructInstance(DspApiConfigurationExtension.class);
 
