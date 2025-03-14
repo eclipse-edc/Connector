@@ -87,7 +87,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     private static final boolean DEFAULT_WELL_KNOWN_PATH = false;
 
-    @Setting(description = "If set enable the well known path resolution scheme will be used", key = "edc.dsp.wellKnownPath.enabled", required = false, defaultValue = DEFAULT_WELL_KNOWN_PATH + "")
+    @Setting(description = "If set enable the well known path resolution scheme will be used", key = "edc.dsp.wellKnown.path.enabled", required = false, defaultValue = DEFAULT_WELL_KNOWN_PATH + "")
     private boolean wellKnownPathEnabled;
 
     @Setting(description = "Configures endpoint for reaching the Protocol API in the form \"<hostname:protocol.port/protocol.path>\"", key = "edc.dsp.callback.address", required = false)
