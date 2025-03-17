@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * for serving a particular {@link DataFlowStartMessage}.
  *
  * @deprecated use transfer service prioritization, see
- * {@link org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry#registerTransferService(int, TransferService)}.
+ *      {@link org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry#registerTransferService(int, TransferService)}.
  */
 @Deprecated(since = "0.12.0", forRemoval = true)
 public interface TransferServiceSelectionStrategy {
