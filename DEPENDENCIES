@@ -3,9 +3,12 @@ maven/mavencentral/com.apicatalog/copper-multibase/0.5.0, Apache-2.0, approved, 
 maven/mavencentral/com.apicatalog/copper-multicodec/0.1.1, Apache-2.0, approved, #14500
 maven/mavencentral/com.apicatalog/iron-ed25519-cryptosuite-2020/0.14.0, Apache-2.0, approved, #14503
 maven/mavencentral/com.apicatalog/iron-verifiable-credentials/0.14.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/com.apicatalog/titanium-jcs/1.0.0, , restricted, clearlydefined
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.0.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.4.0, Apache-2.0, approved, #15200
-maven/mavencentral/com.apicatalog/titanium-json-ld/1.5.0, Apache-2.0, approved, #19372
+maven/mavencentral/com.apicatalog/titanium-json-ld/1.6.0, , restricted, clearlydefined
+maven/mavencentral/com.apicatalog/titanium-rdf-api/1.0.0, , restricted, clearlydefined
+maven/mavencentral/com.apicatalog/titanium-rdf-n-quads/1.0.0, , restricted, clearlydefined
 maven/mavencentral/com.atomikos/atomikos-util/6.0.0, Apache-2.0, approved, #9326
 maven/mavencentral/com.atomikos/transactions-api/6.0.0, Apache-2.0, approved, #10351
 maven/mavencentral/com.atomikos/transactions-jdbc/6.0.0, Apache-2.0, approved, #9273
@@ -351,13 +354,13 @@ maven/mavencentral/org.slf4j/slf4j-api/1.7.36, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/2.0.16, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.6, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
-maven/mavencentral/org.testcontainers/database-commons/1.20.5, Apache-2.0, approved, #16630
-maven/mavencentral/org.testcontainers/jdbc/1.20.5, Apache-2.0, approved, #16621
-maven/mavencentral/org.testcontainers/junit-jupiter/1.20.5, MIT, approved, #16552
-maven/mavencentral/org.testcontainers/kafka/1.20.5, MIT, approved, #16687
-maven/mavencentral/org.testcontainers/postgresql/1.20.5, MIT, approved, #16627
-maven/mavencentral/org.testcontainers/testcontainers/1.20.5, MIT, approved, #15747
-maven/mavencentral/org.testcontainers/vault/1.20.5, MIT, approved, #16686
+maven/mavencentral/org.testcontainers/database-commons/1.20.6, Apache-2.0, approved, #16630
+maven/mavencentral/org.testcontainers/jdbc/1.20.6, Apache-2.0, approved, #16621
+maven/mavencentral/org.testcontainers/junit-jupiter/1.20.6, MIT, approved, #16552
+maven/mavencentral/org.testcontainers/kafka/1.20.6, MIT, approved, #16687
+maven/mavencentral/org.testcontainers/postgresql/1.20.6, MIT, approved, #16627
+maven/mavencentral/org.testcontainers/testcontainers/1.20.6, MIT, approved, #15747
+maven/mavencentral/org.testcontainers/vault/1.20.6, MIT, approved, #16686
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.5, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
 maven/mavencentral/org.xmlresolver/xmlresolver/5.2.2, Apache-2.0, approved, #19677
 maven/mavencentral/org.xmlunit/xmlunit-core/2.9.1, Apache-2.0, approved, #6272
