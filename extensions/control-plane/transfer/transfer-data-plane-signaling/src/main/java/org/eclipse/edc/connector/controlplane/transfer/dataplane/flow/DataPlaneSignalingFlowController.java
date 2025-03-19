@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFa
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.jetbrains.annotations.NotNull;
@@ -74,7 +75,13 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
+    public StatusResult<DataFlowResponse> provision(TransferProcess transferProcess, Policy policy) {
+        var selection = selectorClient.select(selectionStrategy, dataPlane ->
+                dataPlane.canProvisionDestination(transferProcess.getDataDestination()));
+        if (selection.failed()) {
+            return StatusResult.failure(FATAL_ERROR, selection.getFailureDetail());
+        }
+
         var transferTypeParse = transferTypeParser.parse(transferProcess.getTransferType());
         if (transferTypeParse.failed()) {
             return StatusResult.failure(FATAL_ERROR, transferTypeParse.getFailureDetail());
@@ -85,9 +92,37 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
             return StatusResult.failure(FATAL_ERROR, propertiesResult.getFailureDetail());
         }
 
-        var selection = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getTransferType(), selectionStrategy);
-        if (!selection.succeeded()) {
-            return StatusResult.failure(FATAL_ERROR, selection.getFailureDetail());
+        var dataFlowRequest = DataFlowProvisionMessage.Builder.newInstance()
+                .processId(transferProcess.getId())
+                .destination(transferProcess.getDataDestination())
+                .participantId(policy.getAssignee())
+                .agreementId(transferProcess.getContractId())
+                .assetId(transferProcess.getAssetId())
+                .transferType(transferTypeParse.getContent())
+                .callbackAddress(callbackUrl != null ? callbackUrl.get() : null)
+                .properties(propertiesResult.getContent())
+                .build();
+
+        var dataPlaneInstance = selection.getContent();
+        return clientFactory.createClient(dataPlaneInstance)
+                .provision(dataFlowRequest)
+                .map(it -> DataFlowResponse.Builder.newInstance()
+                        .dataAddress(it.getDataAddress())
+                        .dataPlaneId(dataPlaneInstance.getId())
+                        .build()
+                );
+    }
+
+    @Override
+    public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
+        var transferTypeParse = transferTypeParser.parse(transferProcess.getTransferType());
+        if (transferTypeParse.failed()) {
+            return StatusResult.failure(FATAL_ERROR, transferTypeParse.getFailureDetail());
+        }
+
+        var propertiesResult = propertiesProvider.propertiesFor(transferProcess, policy);
+        if (propertiesResult.failed()) {
+            return StatusResult.failure(FATAL_ERROR, propertiesResult.getFailureDetail());
         }
 
         var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
@@ -102,6 +137,11 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .callbackAddress(callbackUrl != null ? callbackUrl.get() : null)
                 .properties(propertiesResult.getContent())
                 .build();
+
+        var selection = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getTransferType(), selectionStrategy);
+        if (!selection.succeeded()) {
+            return StatusResult.failure(FATAL_ERROR, selection.getFailureDetail());
+        }
 
         var dataPlaneInstance = selection.getContent();
         return clientFactory.createClient(dataPlaneInstance)

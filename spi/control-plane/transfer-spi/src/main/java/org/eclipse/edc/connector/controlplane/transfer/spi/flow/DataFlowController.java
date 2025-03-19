@@ -37,6 +37,8 @@ public interface DataFlowController {
      */
     boolean canHandle(TransferProcess transferProcess);
 
+    StatusResult<DataFlowResponse> provision(TransferProcess transferProcess, Policy policy);
+
     /**
      * Initiate a data flow.
      *

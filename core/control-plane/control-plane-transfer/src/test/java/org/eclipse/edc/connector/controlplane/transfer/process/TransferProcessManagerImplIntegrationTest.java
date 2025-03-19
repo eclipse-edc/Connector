@@ -78,6 +78,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -136,6 +137,7 @@ class TransferProcessManagerImplIntegrationTest {
     @DisplayName("Verify that no process 'starves' during two consecutive runs, when the batch size > number of processes")
     void verifyProvision_shouldNotStarve() {
         var numProcesses = TRANSFER_MANAGER_BATCH_SIZE * 2;
+        when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
         when(provisionManager.provision(any(), any(Policy.class))).thenAnswer(i -> completedFuture(List.of(
                 ProvisionResponse.Builder.newInstance()
                         .resource(new TestProvisionedDataDestinationResource("any", "1"))

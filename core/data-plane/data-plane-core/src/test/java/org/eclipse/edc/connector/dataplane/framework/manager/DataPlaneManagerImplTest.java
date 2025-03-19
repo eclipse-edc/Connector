@@ -20,6 +20,8 @@ import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.query.Criterion;
@@ -28,6 +30,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
@@ -52,6 +55,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlow.TERMINATION_REASO
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
@@ -86,6 +90,7 @@ class DataPlaneManagerImplTest {
     private final DataFlowStartMessage request = createRequest();
     private final TransferServiceRegistry registry = mock();
     private final DataPlaneAuthorizationService authorizationService = mock();
+    private final ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager = mock();
     private final String runtimeId = UUID.randomUUID().toString();
     private DataPlaneManager manager;
 
@@ -98,6 +103,7 @@ class DataPlaneManagerImplTest {
                 .store(store)
                 .transferProcessClient(transferProcessApiClient)
                 .authorizationService(authorizationService)
+                .resourceDefinitionGeneratorManager(resourceDefinitionGeneratorManager)
                 .monitor(mock())
                 .runtimeId(runtimeId)
                 .build();
@@ -180,6 +186,29 @@ class DataPlaneManagerImplTest {
         assertThat(result).isFailed().detail().contains("failure");
 
         verifyNoInteractions(store);
+    }
+
+    @Nested
+    class Provision {
+        @Test
+        void shouldTransitionToProvisioning_whenResourceDefinitionsAreGenerated() {
+            var newDestination = DataAddress.Builder.newInstance().type("type").build();
+            var request = DataFlowProvisionMessage.Builder.newInstance()
+                    .processId("1")
+                    .destination(newDestination)
+                    .build();
+            var definition = ProvisionResourceDefinition.Builder.newInstance().build();
+            when(resourceDefinitionGeneratorManager.generateConsumerResourceDefinition(any())).thenReturn(List.of(definition));
+
+            var result = manager.provision(request);
+
+            assertThat(result).isSucceeded();
+            var captor = ArgumentCaptor.forClass(DataFlow.class);
+            verify(store).save(captor.capture());
+            var storedDataFlow = captor.getValue();
+            assertThat(storedDataFlow.getState()).isEqualTo(PROVISIONING.code());
+            assertThat(storedDataFlow.getResourceDefinitions()).containsOnly(definition);
+        }
     }
 
     @Test

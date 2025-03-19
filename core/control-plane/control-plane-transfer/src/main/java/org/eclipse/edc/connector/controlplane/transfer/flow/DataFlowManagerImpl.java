@@ -58,6 +58,17 @@ public class DataFlowManagerImpl implements DataFlowManager {
         controllers.add(new PrioritizedDataFlowController(priority, controller));
     }
 
+    @Override
+    public @NotNull StatusResult<DataFlowResponse> provision(TransferProcess transferProcess, Policy policy) {
+        try {
+            return chooseControllerAndApply(transferProcess, controller -> controller.provision(transferProcess, policy));
+        } catch (Exception e) {
+            var message = runtimeException(transferProcess.getId(), e.getMessage());
+            monitor.severe(message, e);
+            return StatusResult.failure(FATAL_ERROR, message);
+        }
+    }
+
     @WithSpan
     @Override
     public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {

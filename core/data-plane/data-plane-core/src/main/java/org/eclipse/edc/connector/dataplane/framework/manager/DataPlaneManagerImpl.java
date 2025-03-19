@@ -22,12 +22,15 @@ import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
@@ -63,6 +66,7 @@ import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
  */
 public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, DataPlaneStore> implements DataPlaneManager {
 
+    private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
     private DataPlaneAuthorizationService authorizationService;
     private TransferServiceRegistry transferServiceRegistry;
     private TransferProcessApiClient transferProcessClient;
@@ -86,6 +90,30 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                     Result.failure(format("Cannot find a transfer Service that can handle %s source and %s destination",
                             dataRequest.getSourceDataAddress().getType(), dataRequest.getDestinationDataAddress().getType()));
         }
+    }
+
+    @Override
+    public Result<DataFlowResponseMessage> provision(DataFlowProvisionMessage message) {
+        var dataFlow = DataFlow.Builder.newInstance()
+                .id(message.getProcessId())
+                .destination(message.getDestination())
+                .callbackAddress(message.getCallbackAddress())
+                .traceContext(telemetry.getCurrentTraceContext())
+                .properties(message.getProperties())
+                .transferType(message.getTransferType())
+                .runtimeId(runtimeId)
+                .build();
+
+        var resources = resourceDefinitionGeneratorManager.generateConsumerResourceDefinition(dataFlow);
+        dataFlow.transitionToProvisioning(resources);
+
+        store.save(dataFlow);
+
+        var newDestination = resources.stream().findFirst()
+                .map(ProvisionResourceDefinition::getDataAddress)
+                .orElse(null);
+
+        return Result.success(DataFlowResponseMessage.Builder.newInstance().dataAddress(newDestination).build());
     }
 
     @Override
@@ -366,6 +394,11 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         public Builder flowLeaseConfiguration(FlowLeaseConfiguration flowLeaseConfiguration) {
             manager.flowLeaseConfiguration = flowLeaseConfiguration;
+            return this;
+        }
+
+        public Builder resourceDefinitionGeneratorManager(ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager) {
+            manager.resourceDefinitionGeneratorManager = resourceDefinitionGeneratorManager;
             return this;
         }
     }

@@ -274,7 +274,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTING state");
         }
-        transition(REQUESTING, PROVISIONED, REQUESTING);
+        transition(REQUESTING, INITIAL, PROVISIONED, REQUESTING);
     }
 
     public void transitionRequested() {
@@ -472,6 +472,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public String getDataPlaneId() {
         return dataPlaneId;
+    }
+
+    public void setDataPlaneId(String dataPlaneId) {
+        this.dataPlaneId = dataPlaneId;
     }
 
     @Override

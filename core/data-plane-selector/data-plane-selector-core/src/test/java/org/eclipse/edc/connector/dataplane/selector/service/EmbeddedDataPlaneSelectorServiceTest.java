@@ -58,14 +58,18 @@ public class EmbeddedDataPlaneSelectorServiceTest {
         @Test
         void select_shouldUseChosenSelector() {
             var instances = range(0, 10)
-                    .mapToObj(i -> createInstanceBuilder("instance" + i).build())
+                    .mapToObj(i -> createInstanceBuilder("instance" + i)
+                            .allowedSourceType("srcTestType")
+                            .allowedTransferType("transferType")
+                            .state(AVAILABLE.code())
+                            .build())
                     .toList();
-            when(store.getAll()).thenReturn(instances.stream());
+            when(store.getAll()).thenAnswer(i -> instances.stream());
             SelectionStrategy selectionStrategy = mock();
             when(selectionStrategy.apply(any())).thenAnswer(it -> instances.get(0));
             when(selectionStrategyRegistry.find(any())).thenReturn(selectionStrategy);
 
-            var result = service.select(createAddress("srcTestType"), "transferType", "strategy");
+            var result = service.select("strategy", dataPlane -> dataPlane.canHandle(createAddress("srcTestType"), "transferType"));
 
             assertThat(result).isSucceeded().extracting(DataPlaneInstance::getId).isEqualTo("instance0");
             verify(selectionStrategyRegistry).find("strategy");
@@ -82,7 +86,7 @@ public class EmbeddedDataPlaneSelectorServiceTest {
             when(selectionStrategy.apply(any())).thenAnswer(it -> availableInstance);
             when(selectionStrategyRegistry.find(any())).thenReturn(selectionStrategy);
 
-            service.select(createAddress("srcTestType"), "transferType", "strategy");
+            service.select("strategy", dataPlane -> dataPlane.canHandle(createAddress("srcTestType"), "transferType"));
 
             verify(selectionStrategy).apply(List.of(availableInstance));
         }
@@ -95,7 +99,7 @@ public class EmbeddedDataPlaneSelectorServiceTest {
             when(store.getAll()).thenReturn(instances.stream());
             when(selectionStrategyRegistry.find(any())).thenReturn(null);
 
-            var result = service.select(createAddress("srcTestType"), "transferType", "strategy");
+            var result = service.select("strategy", dataPlane -> dataPlane.canHandle(createAddress("srcTestType"), "transferType"));
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
         }
@@ -105,7 +109,7 @@ public class EmbeddedDataPlaneSelectorServiceTest {
             when(store.getAll()).thenReturn(Stream.empty());
             when(selectionStrategyRegistry.find(any())).thenReturn(mock());
 
-            var result = service.select(createAddress("srcTestType"), "transferType", "strategy");
+            var result = service.select("strategy", dataPlane -> dataPlane.canHandle(createAddress("srcTestType"), "transferType"));
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         }

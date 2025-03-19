@@ -19,6 +19,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.entity.StateEntityManager;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,14 @@ public interface DataPlaneManager extends StateEntityManager {
      * Determines if the data flow request is valid and can be processed by this runtime.
      */
     Result<Boolean> validate(DataFlowStartMessage dataRequest);
+
+    /**
+     * Provision a data flow on the consumer side.
+     *
+     * @param request the request.
+     * @return success if the provisioning went through, failed otherwise.
+     */
+    Result<DataFlowResponseMessage> provision(DataFlowProvisionMessage request);
 
     /**
      * Starts a transfer for the data flow request. This method is non-blocking with respect to processing the request.

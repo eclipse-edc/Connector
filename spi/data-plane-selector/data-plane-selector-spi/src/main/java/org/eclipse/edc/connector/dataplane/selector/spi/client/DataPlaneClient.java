@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector.spi.client;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
@@ -24,6 +25,14 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
  */
 @ExtensionPoint
 public interface DataPlaneClient {
+
+    /**
+     * Prepare the data flow through provisioning
+     *
+     * @param request the request.
+     * @return success if the data flow preparation has been triggered/executed, failure otherwise
+     */
+    StatusResult<DataFlowResponseMessage> provision(DataFlowProvisionMessage request);
 
     /**
      * Delegates data transfer to the Data Plane.
