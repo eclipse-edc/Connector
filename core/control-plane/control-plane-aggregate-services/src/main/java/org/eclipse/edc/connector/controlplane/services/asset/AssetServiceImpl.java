@@ -18,6 +18,8 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.asset.spi.observe.AssetObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.spi.query.Criterion;
@@ -27,6 +29,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import static java.lang.String.format;
 
@@ -96,8 +99,8 @@ public class AssetServiceImpl implements AssetService {
                     .build();
 
             try (var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query)) {
-                if (negotiationsOnAsset.findAny().isPresent()) {
-                    return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId));
+                if (negotiationsOnAsset.anyMatch(new AssetLockedPredicate())) {
+                    return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement or an ongoing negotiation", assetId));
                 }
             }
 
@@ -131,6 +134,14 @@ public class AssetServiceImpl implements AssetService {
                 return stream.toList();
             }
         });
+    }
+
+    private static final class AssetLockedPredicate implements Predicate<ContractNegotiation> {
+
+        @Override
+        public boolean test(ContractNegotiation contractNegotiation) {
+            return contractNegotiation.getContractAgreement() != null || !ContractNegotiationStates.isFinal(contractNegotiation.getState());
+        }
     }
 
 }
