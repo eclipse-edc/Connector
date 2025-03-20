@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Cofinity-X - prioritized transfer services
  *
  */
 
@@ -23,70 +24,100 @@ import org.mockito.ArgumentCaptor;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class TransferServiceRegistryImplTest {
-    TransferService transferService = mock(TransferService.class);
-    TransferService transferService2 = mock(TransferService.class);
-
-    DataFlowStartMessage request = createRequest().build();
-    TransferServiceSelectionStrategy transferServiceSelectionStrategy = mock(TransferServiceSelectionStrategy.class);
+    private TransferService transferService = mock(TransferService.class);
+    private TransferService transferService2 = mock(TransferService.class);
+    
+    private DataFlowStartMessage request = createRequest().build();
+    private TransferServiceSelectionStrategy transferServiceSelectionStrategy = mock(TransferServiceSelectionStrategy.class);
     @SuppressWarnings("unchecked")
-    ArgumentCaptor<Stream<TransferService>> streamCaptor = ArgumentCaptor.forClass(Stream.class);
-
+    private ArgumentCaptor<Stream<TransferService>> streamCaptor = ArgumentCaptor.forClass(Stream.class);
+    
+    private TransferServiceRegistryImpl registry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
+    
     @Test
-    void resolveTransferService_filters_matches() {
-        when(transferService.canHandle(request)).thenReturn(false);
-        when(transferService2.canHandle(request)).thenReturn(true);
-
-        createRegistryAndResolveForRequest();
-
-        assertThat(streamCaptor.getValue()).containsExactly(transferService2);
+    void resolveTransferService_noServicesRegistered_shouldReturnNull() {
+        var service = registry.resolveTransferService(request);
+        
+        assertThat(service).isNull();
     }
-
+    
     @Test
-    void resolveTransferService_handles_multipleMatches() {
+    void resolveTransferService_noServiceCanHandle_shouldReturnNull() {
+        registry.registerTransferService(transferService);
+        when(transferService.canHandle(request)).thenReturn(false);
+        
+        var service = registry.resolveTransferService(request);
+        
+        assertThat(service).isNull();
+    }
+    
+    @Test
+    void resolveTransferService_withPriorities_shouldReturnHighestPriorityService() {
+        registry.registerTransferService(transferService);
+        registry.registerTransferService(1, transferService2);
         when(transferService.canHandle(request)).thenReturn(true);
         when(transferService2.canHandle(request)).thenReturn(true);
-
-        createRegistryAndResolveForRequest();
-
-        assertThat(streamCaptor.getValue()).containsExactly(transferService, transferService2);
+        
+        var service = registry.resolveTransferService(request);
+        
+        assertThat(service).isEqualTo(transferService2);
     }
-
+    
     @Test
-    void resolveTransferService_handles_noMatch() {
-        var registry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
-
+    void resolveTransferService_withSamePriority_shouldReturnFirstWithHighestPriority() {
+        registry.registerTransferService(1, transferService);
+        registry.registerTransferService(1, transferService2);
+        when(transferService.canHandle(request)).thenReturn(true);
+        when(transferService2.canHandle(request)).thenReturn(true);
+        
+        var service = registry.resolveTransferService(request);
+        
+        assertThat(service).isEqualTo(transferService);
+    }
+    
+    @Test
+    void resolveTransferService_noPriorityAndNoneCanHandle_shouldApplyStrategyWithEmptyStream() {
+        registry.registerTransferService(transferService);
+        registry.registerTransferService(transferService2);
+        when(transferService.canHandle(request)).thenReturn(false);
+        when(transferService2.canHandle(request)).thenReturn(false);
+        
         registry.resolveTransferService(request);
-
+        
         verify(transferServiceSelectionStrategy).chooseTransferService(eq(request), streamCaptor.capture());
         assertThat(streamCaptor.getValue()).isEmpty();
     }
-
+    
     @Test
-    void resolveTransferService_returns_strategyResult() {
-        var registry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
-        when(transferServiceSelectionStrategy.chooseTransferService(eq(request), any()))
-                .thenReturn(transferService);
-
-        var resolved = registry.resolveTransferService(request);
-
-        assertThat(resolved).isSameAs(transferService);
-    }
-
-    private void createRegistryAndResolveForRequest() {
-        var registry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
+    void resolveTransferService_noPriorityAndOneCanHandle_shouldApplyStrategyWithOneService() {
         registry.registerTransferService(transferService);
         registry.registerTransferService(transferService2);
-
+        when(transferService.canHandle(request)).thenReturn(true);
+        when(transferService2.canHandle(request)).thenReturn(false);
+        
         registry.resolveTransferService(request);
-
+        
         verify(transferServiceSelectionStrategy).chooseTransferService(eq(request), streamCaptor.capture());
+        assertThat(streamCaptor.getValue()).containsExactly(transferService);
+    }
+    
+    @Test
+    void resolveTransferService_noPriorityAndAllCanHandle_shouldApplyStrategyWithAllServices() {
+        registry.registerTransferService(transferService);
+        registry.registerTransferService(transferService2);
+        when(transferService.canHandle(request)).thenReturn(true);
+        when(transferService2.canHandle(request)).thenReturn(true);
+        
+        registry.resolveTransferService(request);
+        
+        verify(transferServiceSelectionStrategy).chooseTransferService(eq(request), streamCaptor.capture());
+        assertThat(streamCaptor.getValue()).containsExactly(transferService, transferService2);
     }
 
     private DataFlowStartMessage.Builder createRequest() {
