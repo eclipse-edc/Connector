@@ -6,7 +6,7 @@ The retry mechanism will be applied in the `DataFlowManagerImpl` when processing
 
 ## Rationale
 
-The data plane notifies the control plane of the success or failure of the data transfer. As of right now, if this notification fails, the `DataFlow` transitions to its current state, being picked up again by the state machine manager and retrying the process. As there is no limit to the amount of retries, this process could possibly continue forever.
+After the data transfer, the `DataFlow` transitions to *COMPLETED* or to *FAILED* if the transfer succeeded or failed, respectively. In either case, the data plane notifies the control plane of the transfer outcome using the `TransferProcessApiClient`. If the notification succeeds, the `DataFlow` correctly transitions to *NOTIFIED*. However, if the notification fails, the `DataFlow` transitions to its current state, causing the state machine manager to pick it up again and retry the process. Since there is no limit to the number of retries, this process could potentially continue forever. The following code block shows how the *COMPLETED* and *FAILED* states are processed by `DataPlaneManagerImpl`.
 
 ```java
 private boolean processCompleted(DataFlow dataFlow) {
@@ -34,11 +34,13 @@ private boolean processFailed(DataFlow dataFlow) {
 }
 ```
 
-By adding a `RetryProcessor`, we may define handlers for when the process is successful, when it fails but can be retried, and when it reaches final failure.
+Applying a `RetryProcessor` to both `processCompleted()` and `processFailed()` provides greater control over these processes, as it allows to define specific behavior after a configurable number of failed retry attempts.
 
 ## Approach
 
-Both `TransferProcessApiClient` calls - `transferProcessClient.completed()` and `transferProcessClient.failed()` - will be wrapped in a `Process`, so that a `RetryProcessor` may execute it.
+Both `TransferProcessApiClient` calls - `transferProcessClient.completed()` and `transferProcessClient.failed()` - will be wrapped in a `ResultRetryProcess`, allowing them to be executed by a `RetryProcessor`. Since `ResultRetryProcess` expects its executable function to return a `StatusResult`, but both `TransferProcessApiClient` calls return a `Result`, these methods will be updated accordingly.
+
+In each case, the process outcomes will be handled by event handlers managing success, failures, and final failure. Both `processCompleted()` and `processFailed()` will define these handlers with the following behavior.
 
 - On success, the `DataFlow` will transition to *NOTIFIED*, keeping current successful behavior
 - On failure, the `DataFlow` will transition to it's current state, allowing the process to be retried
