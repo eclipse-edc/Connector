@@ -1,0 +1,95 @@
+{
+  "@context": {
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "Policy": "odrl:Policy",
+    "Rule": "odrl:Rule",
+    "profile": {
+      "@type": "@id",
+      "@id": "odrl:profile"
+    },
+    "prohibit": "odrl:prohibit",
+    "Agreement": "odrl:Agreement",
+    "Assertion": "odrl:Assertion",
+    "Offer": "odrl:Offer",
+    "Set": "odrl:Set",
+    "Asset": "odrl:Asset",
+    "hasPolicy": {
+      "@type": "@id",
+      "@id": "odrl:hasPolicy"
+    },
+    "target": {
+      "@type": "@id",
+      "@id": "odrl:target"
+    },
+    "assignee": {
+      "@type": "@id",
+      "@id": "odrl:assignee"
+    },
+    "assigner": {
+      "@type": "@id",
+      "@id": "odrl:assigner"
+    },
+    "Action": "odrl:Action",
+    "action": {
+      "@type": "@vocab",
+      "@id": "odrl:action"
+    },
+    "Permission": "odrl:Permission",
+    "permission": {
+      "@type": "@id",
+      "@id": "odrl:permission",
+      "@container": "@set"
+    },
+    "Prohibition": "odrl:Prohibition",
+    "prohibition": {
+      "@type": "@id",
+      "@id": "odrl:prohibition",
+      "@container": "@set"
+    },
+    "obligation": {
+      "@type": "@id",
+      "@id": "odrl:obligation",
+      "@container": "@set"
+    },
+    "use": "odrl:use",
+    "Duty": "odrl:Duty",
+    "duty": {
+      "@type": "@id",
+      "@id": "odrl:duty"
+    },
+    "Constraint": "odrl:Constraint",
+    "constraint": {
+      "@type": "@id",
+      "@id": "odrl:constraint",
+      "@container": "@set"
+    },
+    "Operator": "odrl:Operator",
+    "operator": {
+      "@type": "@vocab",
+      "@id": "odrl:operator"
+    },
+    "RightOperand": "odrl:RightOperand",
+    "rightOperand": "odrl:rightOperand",
+    "LeftOperand": "odrl:LeftOperand",
+    "leftOperand": {
+      "@type": "@vocab",
+      "@id": "odrl:leftOperand"
+    },
+    "eq": "odrl:eq",
+    "gt": "odrl:gt",
+    "gteq": "odrl:gteq",
+    "lt": "odrl:lt",
+    "lteq": "odrl:lteq",
+    "neq": "odrl:neq",
+    "isA": "odrl:isA",
+    "hasPart": "odrl:hasPart",
+    "isPartOf": "odrl:isPartOf",
+    "isAllOf": "odrl:isAllOf",
+    "isAnyOf": "odrl:isAnyOf",
+    "isNoneOf": "odrl:isNoneOf",
+    "or": "odrl:or",
+    "xone": "odrl:xone",
+    "and": "odrl:and",
+    "andSequence": "odrl:andSequence"
+  }
+}
