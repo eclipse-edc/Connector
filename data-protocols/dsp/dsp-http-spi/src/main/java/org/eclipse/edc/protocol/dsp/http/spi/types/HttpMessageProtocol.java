@@ -25,5 +25,6 @@ public class HttpMessageProtocol {
     public static final String DATASPACE_PROTOCOL_HTTP = "dataspace-protocol-http";
     public static final String DATASPACE_PROTOCOL_HTTP_SEPARATOR = ":";
     public static final String DATASPACE_PROTOCOL_HTTP_V_2024_1 = DATASPACE_PROTOCOL_HTTP + DATASPACE_PROTOCOL_HTTP_SEPARATOR + DspVersions.V_2024_1_VERSION;
+    public static final String DATASPACE_PROTOCOL_HTTP_V_2025_1 = DATASPACE_PROTOCOL_HTTP + DATASPACE_PROTOCOL_HTTP_SEPARATOR + DspVersions.V_2025_1_VERSION;
 
 }

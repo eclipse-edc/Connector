@@ -26,6 +26,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -513,6 +514,49 @@ class TransferPullEndToEndTest {
 
         @AfterAll
         static void afterAll() {
+            CONSUMER.setProtocol("dataspace-protocol-http");
+            PROVIDER.setProtocol("dataspace-protocol-http");
+        }
+
+        @Override
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
+        }
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemoryV2025Rev1 extends Tests {
+
+        @RegisterExtension
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
+                        .configurationProvider(CONSUMER::controlPlaneConfig));
+
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
+                        .configurationProvider(PROVIDER::controlPlaneConfig));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
+                        .configurationProvider(PROVIDER::dataPlaneConfig)
+                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension()));
+
+        private static JsonLd jsonLd;
+
+        // TODO: replace with something better. Temporary hack
+        @BeforeAll
+        static void beforeAll() {
+            jsonLd = CONSUMER.getJsonLd();
+            CONSUMER.setJsonLd(CONSUMER_CONTROL_PLANE.getService(JsonLd.class));
+            CONSUMER.setProtocol("dataspace-protocol-http:2025/1", "/2025/1");
+            PROVIDER.setProtocol("dataspace-protocol-http:2025/1", "/2025/1");
+        }
+
+        @AfterAll
+        static void afterAll() {
+            CONSUMER.setJsonLd(jsonLd);
             CONSUMER.setProtocol("dataspace-protocol-http");
             PROVIDER.setProtocol("dataspace-protocol-http");
         }
