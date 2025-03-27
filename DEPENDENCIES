@@ -86,7 +86,7 @@ maven/mavencentral/com.google.guava/listenablefuture/9999.0-empty-to-avoid-confl
 maven/mavencentral/com.google.j2objc/j2objc-annotations/1.3, Apache-2.0, approved, CQ21195
 maven/mavencentral/com.google.j2objc/j2objc-annotations/3.0.0, Apache-2.0, approved, #13676
 maven/mavencentral/com.google.protobuf/protobuf-java/3.25.3, BSD-3-Clause, approved, #19751
-maven/mavencentral/com.google.protobuf/protobuf-java/4.30.1, , restricted, clearlydefined
+maven/mavencentral/com.google.protobuf/protobuf-java/4.30.2, , restricted, clearlydefined
 maven/mavencentral/com.googlecode.libphonenumber/libphonenumber/8.11.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.h2database/h2/2.3.232, (MPL-2.0 AND EPL-1.0) AND (MPL-2.0 AND EPL-1.0 AND LGPL-3.0-or-later) AND BSD-3-Clause, approved, #15708
 maven/mavencentral/com.jayway.jsonpath/json-path/2.7.0, Apache-2.0, approved, clearlydefined
@@ -124,9 +124,9 @@ maven/mavencentral/io.cloudevents/cloudevents-core/4.0.1, Apache-2.0, approved, 
 maven/mavencentral/io.cloudevents/cloudevents-http-basic/4.0.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.github.classgraph/classgraph/4.8.154, MIT, approved, CQ22530
 maven/mavencentral/io.github.classgraph/classgraph/4.8.165, MIT, approved, CQ22530
-maven/mavencentral/io.micrometer/micrometer-commons/1.14.4, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #17272
-maven/mavencentral/io.micrometer/micrometer-core/1.14.4, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #17271
-maven/mavencentral/io.micrometer/micrometer-observation/1.14.4, Apache-2.0, approved, #17270
+maven/mavencentral/io.micrometer/micrometer-commons/1.14.5, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #17272
+maven/mavencentral/io.micrometer/micrometer-core/1.14.5, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #17271
+maven/mavencentral/io.micrometer/micrometer-observation/1.14.5, Apache-2.0, approved, #17270
 maven/mavencentral/io.netty/netty-buffer/4.1.86.Final, Apache-2.0, approved, CQ21842
 maven/mavencentral/io.netty/netty-codec-http/4.1.86.Final, Apache-2.0 AND BSD-3-Clause AND MIT, approved, CQ20926
 maven/mavencentral/io.netty/netty-codec-http2/4.1.86.Final, Apache-2.0 AND BSD-3-Clause AND MIT, approved, CQ20926
@@ -319,20 +319,23 @@ maven/mavencentral/org.jetbrains/annotations/17.0.0, Apache-2.0, approved, #1967
 maven/mavencentral/org.jetbrains/annotations/26.0.2, Apache-2.0, approved, #16629
 maven/mavencentral/org.junit-pioneer/junit-pioneer/2.3.0, EPL-2.0, approved, #16678
 maven/mavencentral/org.junit.jupiter/junit-jupiter-api/5.12.0, EPL-2.0, approved, #19509
-maven/mavencentral/org.junit.jupiter/junit-jupiter-engine/5.12.0, EPL-2.0, approved, #19514
-maven/mavencentral/org.junit.jupiter/junit-jupiter-params/5.12.0, EPL-2.0, approved, #19517
+maven/mavencentral/org.junit.jupiter/junit-jupiter-api/5.12.1, EPL-2.0, approved, #19509
+maven/mavencentral/org.junit.jupiter/junit-jupiter-engine/5.12.1, EPL-2.0, approved, #19514
+maven/mavencentral/org.junit.jupiter/junit-jupiter-params/5.12.1, EPL-2.0, approved, #19517
 maven/mavencentral/org.junit.platform/junit-platform-commons/1.12.0, EPL-2.0, approved, #19511
-maven/mavencentral/org.junit.platform/junit-platform-engine/1.12.0, EPL-2.0, approved, #19519
-maven/mavencentral/org.junit.platform/junit-platform-launcher/1.12.0, EPL-2.0, approved, #19510
+maven/mavencentral/org.junit.platform/junit-platform-commons/1.12.1, EPL-2.0, approved, #19511
+maven/mavencentral/org.junit.platform/junit-platform-engine/1.12.1, EPL-2.0, approved, #19519
+maven/mavencentral/org.junit.platform/junit-platform-launcher/1.12.1, EPL-2.0, approved, #19510
 maven/mavencentral/org.junit/junit-bom/5.11.2, EPL-2.0, approved, #16062
 maven/mavencentral/org.junit/junit-bom/5.12.0, EPL-2.0, approved, #19546
+maven/mavencentral/org.junit/junit-bom/5.12.1, EPL-2.0, approved, #19546
 maven/mavencentral/org.jvnet.mimepull/mimepull/1.9.15, CDDL-1.1 OR GPL-2.0-only WITH Classpath-exception-2.0, approved, CQ21484
 maven/mavencentral/org.latencyutils/LatencyUtils/2.0.3, CC0-1.0, approved, #15280
 maven/mavencentral/org.lz4/lz4-java/1.8.0, Apache-2.0, approved, #20005
 maven/mavencentral/org.mock-server/mockserver-client-java/5.15.0, Apache-2.0 AND LGPL-3.0-only, approved, #9324
 maven/mavencentral/org.mock-server/mockserver-core/5.15.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.mock-server/mockserver-netty/5.15.0, Apache-2.0, approved, #9276
-maven/mavencentral/org.mockito/mockito-core/5.15.2, Apache-2.0 AND MIT, approved, #18189
+maven/mavencentral/org.mockito/mockito-core/5.16.1, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #19856
 maven/mavencentral/org.mockito/mockito-core/5.2.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #7401
 maven/mavencentral/org.mockito/mockito-inline/5.2.0, MIT, approved, clearlydefined
 maven/mavencentral/org.mozilla/rhino/1.7.7.2, MPL-2.0 AND BSD-3-Clause AND ISC, approved, CQ16320
