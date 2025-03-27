@@ -19,7 +19,8 @@ plugins {
 dependencies {
     api(project(":spi:common:auth-spi"))
     api(project(":spi:common:http-spi"))
-    api(project(":spi:control-plane:control-plane-api-client-spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
+    api(project(":spi:data-plane:data-plane-spi"))
 
     implementation(libs.failsafe.core)
 

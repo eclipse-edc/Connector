@@ -19,7 +19,6 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
-    api(project(":spi:control-plane:control-plane-api-client-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
 
     implementation(project(":spi:common:token-spi"))
