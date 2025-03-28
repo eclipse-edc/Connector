@@ -71,7 +71,7 @@ maven/mavencentral/com.github.stephenc.jcip/jcip-annotations/1.0-1, Apache-2.0, 
 maven/mavencentral/com.google.code.findbugs/jsr305/2.0.1, BSD-3-Clause AND CC-BY-2.5 AND LGPL-2.1+, approved, CQ13390
 maven/mavencentral/com.google.code.findbugs/jsr305/3.0.2, Apache-2.0 and CC-BY-2.5, approved, #15220
 maven/mavencentral/com.google.code.gson/gson/2.10.1, Apache-2.0, approved, #6159
-maven/mavencentral/com.google.crypto.tink/tink/1.15.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/com.google.crypto.tink/tink/1.17.0, , restricted, clearlydefined
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.11.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.22.0, Apache-2.0, approved, #10661
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.36.0, Apache-2.0, approved, #18702
@@ -85,7 +85,7 @@ maven/mavencentral/com.google.guava/guava/33.4.0-jre, Apache-2.0 AND CC0-1.0 AND
 maven/mavencentral/com.google.guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava, Apache-2.0, approved, CQ22657
 maven/mavencentral/com.google.j2objc/j2objc-annotations/1.3, Apache-2.0, approved, CQ21195
 maven/mavencentral/com.google.j2objc/j2objc-annotations/3.0.0, Apache-2.0, approved, #13676
-maven/mavencentral/com.google.protobuf/protobuf-java/3.25.3, BSD-3-Clause, approved, #19751
+maven/mavencentral/com.google.protobuf/protobuf-java/4.28.2, BSD-3-Clause, approved, #17196
 maven/mavencentral/com.google.protobuf/protobuf-java/4.30.2, , restricted, clearlydefined
 maven/mavencentral/com.googlecode.libphonenumber/libphonenumber/8.11.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.h2database/h2/2.3.232, (MPL-2.0 AND EPL-1.0) AND (MPL-2.0 AND EPL-1.0 AND LGPL-3.0-or-later) AND BSD-3-Clause, approved, #15708
@@ -235,7 +235,7 @@ maven/mavencentral/org.apache.httpcomponents/httpclient/4.5.13, Apache-2.0, appr
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.13, Apache-2.0, approved, CQ23528
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.14, Apache-2.0, approved, CQ23528
 maven/mavencentral/org.apache.httpcomponents/httpmime/4.5.13, Apache-2.0, approved, CQ11718
-maven/mavencentral/org.apache.kafka/kafka-clients/4.0.0, , restricted, clearlydefined
+maven/mavencentral/org.apache.kafka/kafka-clients/4.0.0, Apache-2.0 AND (Apache-2.0 AND MIT) AND (Apache-2.0 AND BSD-3-Clause), approved, #20386
 maven/mavencentral/org.apache.maven.doxia/doxia-core/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-logging-api/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-module-xdoc/1.12.0, Apache-2.0, approved, clearlydefined
