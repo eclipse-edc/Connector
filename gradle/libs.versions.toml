@@ -35,7 +35,7 @@ restAssured = "5.5.1"
 rsApi = "4.0.0"
 swagger = "2.2.28"
 titanium = "1.6.0"
-kafkaClients = "3.9.0"
+kafkaClients = "4.0.0"
 testcontainers = "1.20.6"
 tink = "1.15.0"
 
