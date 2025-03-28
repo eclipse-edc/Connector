@@ -18,14 +18,10 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.UUID;
 
-/**
- * Definition of a resource that needs to be provisioned to support a data flow.
- */
-public class ProvisionResourceDefinition {
+public class ProvisionedResource {
 
     private String id;
     private String flowId;
-    private String type;
     private DataAddress dataAddress;
 
     public DataAddress getDataAddress() {
@@ -36,45 +32,36 @@ public class ProvisionResourceDefinition {
         return id;
     }
 
-    public String getType() {
-        return type;
-    }
-
     public String getFlowId() {
         return flowId;
     }
 
     public static class Builder {
 
-        private ProvisionResourceDefinition definition;
+        private ProvisionedResource resource;
 
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            definition = new ProvisionResourceDefinition();
+            resource = new ProvisionedResource();
         }
 
-        public ProvisionResourceDefinition build() {
-            if (definition.id == null) {
-                definition.id = UUID.randomUUID().toString();
+        public ProvisionedResource build() {
+            if (resource.id == null) {
+                resource.id = UUID.randomUUID().toString();
             }
-            return definition;
+            return resource;
         }
 
         public Builder dataAddress(DataAddress dataAddress) {
-            definition.dataAddress = dataAddress;
-            return this;
-        }
-
-        public Builder type(String type) {
-            definition.type = type;
+            resource.dataAddress = dataAddress;
             return this;
         }
 
         public Builder flowId(String flowId) {
-            definition.flowId = flowId;
+            resource.flowId = flowId;
             return this;
         }
     }

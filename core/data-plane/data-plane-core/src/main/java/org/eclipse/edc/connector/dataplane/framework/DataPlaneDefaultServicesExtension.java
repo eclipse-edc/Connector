@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework;
 
 import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImpl;
+import org.eclipse.edc.connector.dataplane.framework.provision.ProvisionerManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.provision.ResourceDefinitionGeneratorManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryAccessTokenDataStore;
@@ -23,6 +24,7 @@ import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService
 import org.eclipse.edc.connector.dataplane.spi.iam.NoOpDataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
@@ -84,5 +86,10 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
     @Provider
     public ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager() {
         return new ResourceDefinitionGeneratorManagerImpl();
+    }
+
+    @Provider
+    public ProvisionerManager provisionerManager(ServiceExtensionContext context) {
+        return new ProvisionerManagerImpl(context.getMonitor());
     }
 }

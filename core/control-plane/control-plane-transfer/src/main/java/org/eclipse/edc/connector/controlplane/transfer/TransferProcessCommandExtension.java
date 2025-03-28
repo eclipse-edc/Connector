@@ -14,11 +14,13 @@
 
 package org.eclipse.edc.connector.controlplane.transfer;
 
+import org.eclipse.edc.connector.controlplane.transfer.command.handlers.CompleteProvisionCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.CompleteTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.DeprovisionRequestCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.ResumeTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.SuspendTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.TerminateTransferCommandHandler;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
@@ -33,6 +35,9 @@ public class TransferProcessCommandExtension implements ServiceExtension {
     @Inject
     private TransferProcessStore store;
 
+    @Inject
+    private TransferProcessObservable observable;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var registry = context.getService(CommandHandlerRegistry.class);
@@ -42,6 +47,7 @@ public class TransferProcessCommandExtension implements ServiceExtension {
         registry.register(new ResumeTransferCommandHandler(store));
         registry.register(new DeprovisionRequestCommandHandler(store));
         registry.register(new CompleteTransferCommandHandler(store));
+        registry.register(new CompleteProvisionCommandHandler(store, observable));
     }
 
 }

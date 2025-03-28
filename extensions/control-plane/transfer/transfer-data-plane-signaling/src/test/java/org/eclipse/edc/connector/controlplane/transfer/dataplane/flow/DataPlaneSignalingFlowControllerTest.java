@@ -110,7 +110,10 @@ public class DataPlaneSignalingFlowControllerTest {
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
             var newDestinationAddress = DataAddress.Builder.newInstance().type("any").build();
-            var flowResponseMessage = DataFlowResponseMessage.Builder.newInstance().dataAddress(newDestinationAddress).build();
+            var flowResponseMessage = DataFlowResponseMessage.Builder.newInstance()
+                    .dataAddress(newDestinationAddress)
+                    .provisioning(true)
+                    .build();
             when(dataPlaneClient.provision(any())).thenReturn(StatusResult.success(flowResponseMessage));
 
             var result = flowController.provision(transferProcess, policyBuilder().build());
@@ -118,6 +121,7 @@ public class DataPlaneSignalingFlowControllerTest {
             assertThat(result).isSucceeded().satisfies(dataFlowResponse -> {
                 assertThat(dataFlowResponse.getDataPlaneId()).isEqualTo(dataPlaneInstance.getId());
                 assertThat(dataFlowResponse.getDataAddress()).isSameAs(newDestinationAddress);
+                assertThat(dataFlowResponse.isProvisioning()).isTrue();
             });
             verify(dataPlaneClient).provision(isA(DataFlowProvisionMessage.class));
         }

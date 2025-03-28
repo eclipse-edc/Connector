@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.AddProvisionedResourceCommand;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteProvisionCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.DeprovisionRequest;
@@ -153,6 +154,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
                     .map(ServiceResult::success)
                     .orElse(ServiceResult.conflict("Request couldn't be initialised."));
         });
+    }
+
+    @Override
+    public ServiceResult<Void> completeProvision(CompleteProvisionCommand command) {
+        return execute(command);
     }
 
     @Override

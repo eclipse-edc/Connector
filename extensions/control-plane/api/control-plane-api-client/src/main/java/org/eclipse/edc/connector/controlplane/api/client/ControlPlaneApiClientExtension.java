@@ -14,9 +14,11 @@
 
 package org.eclipse.edc.connector.controlplane.api.client;
 
-import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
+import org.eclipse.edc.connector.controlplane.api.client.transferprocess.EmbeddedTransferProcessHttpClient;
 import org.eclipse.edc.connector.controlplane.api.client.transferprocess.TransferProcessHttpClient;
 import org.eclipse.edc.connector.controlplane.api.client.transferprocess.model.TransferProcessFailRequest;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -24,7 +26,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-
 
 /**
  * Extensions that contains clients for Control Plane HTTP APIs
@@ -38,6 +39,8 @@ public class ControlPlaneApiClientExtension implements ServiceExtension {
     private TypeManager typeManager;
     @Inject
     private ControlApiHttpClient httpClient;
+    @Inject(required = false)
+    private TransferProcessService transferProcessService;
 
     @Override
     public String name() {
@@ -46,6 +49,10 @@ public class ControlPlaneApiClientExtension implements ServiceExtension {
 
     @Provider
     public TransferProcessApiClient transferProcessApiClient(ServiceExtensionContext context) {
+        if (transferProcessService != null) {
+            return new EmbeddedTransferProcessHttpClient(transferProcessService);
+        }
+
         typeManager.registerTypes(TransferProcessFailRequest.class);
 
         return new TransferProcessHttpClient(httpClient, typeManager.getMapper(), context.getMonitor());
