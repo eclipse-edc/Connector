@@ -71,7 +71,7 @@ maven/mavencentral/com.github.stephenc.jcip/jcip-annotations/1.0-1, Apache-2.0, 
 maven/mavencentral/com.google.code.findbugs/jsr305/2.0.1, BSD-3-Clause AND CC-BY-2.5 AND LGPL-2.1+, approved, CQ13390
 maven/mavencentral/com.google.code.findbugs/jsr305/3.0.2, Apache-2.0 and CC-BY-2.5, approved, #15220
 maven/mavencentral/com.google.code.gson/gson/2.10.1, Apache-2.0, approved, #6159
-maven/mavencentral/com.google.crypto.tink/tink/1.17.0, , restricted, clearlydefined
+maven/mavencentral/com.google.crypto.tink/tink/1.17.0, Apache-2.0, approved, #20387
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.11.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.22.0, Apache-2.0, approved, #10661
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.36.0, Apache-2.0, approved, #18702
@@ -266,26 +266,26 @@ maven/mavencentral/org.eclipse.edc/autodoc-processor/0.13.0-SNAPSHOT, Apache-2.0
 maven/mavencentral/org.eclipse.edc/runtime-metamodel/0.13.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.jetty.toolchain/jetty-jakarta-servlet-api/5.0.2, EPL-2.0 OR Apache-2.0, approved, rt.jetty
 maven/mavencentral/org.eclipse.jetty.toolchain/jetty-jakarta-websocket-api/2.0.0, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty.websocket/websocket-core-client/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty.websocket/websocket-core-common/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty.websocket/websocket-core-server/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty.websocket/websocket-jakarta-client/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty.websocket/websocket-jakarta-common/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty.websocket/websocket-jakarta-server/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty.websocket/websocket-servlet/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-alpn-client/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-annotations/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-client/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-http/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-io/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-jndi/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-plus/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-security/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-server/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-servlet/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-util/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-webapp/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
-maven/mavencentral/org.eclipse.jetty/jetty-xml/11.0.24, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty.websocket/websocket-core-client/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty.websocket/websocket-core-common/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty.websocket/websocket-core-server/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty.websocket/websocket-jakarta-client/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty.websocket/websocket-jakarta-common/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty.websocket/websocket-jakarta-server/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty.websocket/websocket-servlet/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-alpn-client/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-annotations/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-client/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-http/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-io/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-jndi/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-plus/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-security/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-server/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-servlet/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-util/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-webapp/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
+maven/mavencentral/org.eclipse.jetty/jetty-xml/11.0.25, EPL-2.0 OR Apache-2.0, approved, rt.jetty
 maven/mavencentral/org.eclipse.parsson/parsson/1.1.7, EPL-2.0, approved, ee4j.parsson
 maven/mavencentral/org.glassfish.hk2.external/aopalliance-repackaged/3.0.6, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.glassfish
 maven/mavencentral/org.glassfish.hk2/hk2-api/3.0.6, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.glassfish
@@ -341,10 +341,10 @@ maven/mavencentral/org.mockito/mockito-inline/5.2.0, MIT, approved, clearlydefin
 maven/mavencentral/org.mozilla/rhino/1.7.7.2, MPL-2.0 AND BSD-3-Clause AND ISC, approved, CQ16320
 maven/mavencentral/org.objenesis/objenesis/3.3, Apache-2.0, approved, #19727
 maven/mavencentral/org.opentest4j/opentest4j/1.3.0, Apache-2.0, approved, #9713
-maven/mavencentral/org.ow2.asm/asm-commons/9.7, BSD-3-Clause, approved, #16465
-maven/mavencentral/org.ow2.asm/asm-tree/9.7, BSD-3-Clause, approved, #16466
+maven/mavencentral/org.ow2.asm/asm-commons/9.7.1, BSD-3-Clause, approved, #16465
+maven/mavencentral/org.ow2.asm/asm-tree/9.7.1, BSD-3-Clause, approved, #16466
 maven/mavencentral/org.ow2.asm/asm/9.1, BSD-3-Clause, approved, CQ23029
-maven/mavencentral/org.ow2.asm/asm/9.7, BSD-3-Clause, approved, #16464
+maven/mavencentral/org.ow2.asm/asm/9.7.1, BSD-3-Clause, approved, #16464
 maven/mavencentral/org.postgresql/postgresql/42.7.5, BSD-2-Clause AND Apache-2.0, approved, #11681
 maven/mavencentral/org.reflections/reflections/0.10.2, Apache-2.0 AND WTFPL, approved, clearlydefined
 maven/mavencentral/org.rnorth.duct-tape/duct-tape/1.0.8, MIT, approved, clearlydefined
@@ -354,6 +354,7 @@ maven/mavencentral/org.slf4j/slf4j-api/1.7.30, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/1.7.33, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/1.7.35, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/1.7.36, MIT, approved, CQ13368
+maven/mavencentral/org.slf4j/slf4j-api/2.0.13, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.16, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.6, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
