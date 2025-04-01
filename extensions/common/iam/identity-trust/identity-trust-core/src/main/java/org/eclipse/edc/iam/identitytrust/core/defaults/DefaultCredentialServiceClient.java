@@ -29,6 +29,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.DataModelVersion;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.PresentationDefinition;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -70,9 +71,18 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     @Override
     public Result<List<VerifiablePresentationContainer>> requestPresentation(String credentialServiceBaseUrl, String selfIssuedTokenJwt, List<String> scopes) {
         var query = createPresentationQuery(scopes);
+        return sendRequest(credentialServiceBaseUrl, selfIssuedTokenJwt, query);
 
+    }
+
+    @Override
+    public Result<List<VerifiablePresentationContainer>> requestPresentation(String credentialServiceUrl, String selfIssuedTokenJwt, PresentationDefinition presentationDefinition) {
+        var query = createPresentationQuery(presentationDefinition);
+        return sendRequest(credentialServiceUrl, selfIssuedTokenJwt, query);
+    }
+
+    private Result<List<VerifiablePresentationContainer>> sendRequest(String credentialServiceBaseUrl, String selfIssuedTokenJwt, JsonObject query) {
         var url = credentialServiceBaseUrl + PRESENTATION_ENDPOINT;
-
         try {
             var requestJson = typeManager.getMapper(typeContext).writeValueAsString(query);
             var request = new Request.Builder()
@@ -98,7 +108,6 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
             monitor.warning("Error requesting VP", e);
             return failure("Error requesting VP: %s".formatted(e.getMessage()));
         }
-
     }
 
     private Result<List<VerifiablePresentationContainer>> parseResponse(JsonObject presentationResponseMessage) throws IOException {
@@ -158,6 +167,16 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
                         .add(dcpContextUrl))
                 .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TERM)
                 .add("scope", scopeArray.build())
+                .build();
+    }
+
+    private JsonObject createPresentationQuery(PresentationDefinition presentationDefinition) {
+        var presentationObject = typeManager.getMapper(typeContext).convertValue(presentationDefinition, JsonObject.class);
+        return jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.CONTEXT, jsonFactory.createArrayBuilder()
+                        .add(dcpContextUrl))
+                .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TERM)
+                .add("presentationDefinition", presentationObject)
                 .build();
     }
 }
