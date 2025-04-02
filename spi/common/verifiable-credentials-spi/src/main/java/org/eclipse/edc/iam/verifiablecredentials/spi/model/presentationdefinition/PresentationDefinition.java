@@ -15,23 +15,26 @@
 package org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
  * Represents a <a href="https://identity.foundation/presentation-exchange/spec/v2.0.0/#presentation-definition">DIF Presentation Definition</a>
  */
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PresentationDefinition {
     private String id;
     private String name;
     private String purpose;
     @JsonProperty("input_descriptors")
     private List<InputDescriptor> inputDescriptors;
-    private Format format;
+    private Map<String, Object> format;
 
     private PresentationDefinition() {
     }
@@ -52,7 +55,7 @@ public class PresentationDefinition {
         return inputDescriptors;
     }
 
-    public Format getFormat() {
+    public Object getFormat() {
         return format;
     }
 
@@ -89,7 +92,7 @@ public class PresentationDefinition {
             return this;
         }
 
-        public Builder format(Format format) {
+        public Builder format(Map<String, Object> format) {
             this.presentationDefinition.format = format;
             return this;
         }

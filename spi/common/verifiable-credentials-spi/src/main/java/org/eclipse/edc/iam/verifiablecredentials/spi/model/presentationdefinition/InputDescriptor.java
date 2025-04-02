@@ -14,13 +14,17 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.util.Map;
 import java.util.Objects;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class InputDescriptor {
     private String id;
     private String name;
     private String purpose;
-    private Format format;
+    private Map<String, Object> format;
     private Constraints constraints;
 
     public String getId() {
@@ -35,7 +39,7 @@ public class InputDescriptor {
         return purpose;
     }
 
-    public Format getFormat() {
+    public Object getFormat() {
         return format;
     }
 
@@ -69,7 +73,7 @@ public class InputDescriptor {
             return this;
         }
 
-        public Builder format(Format format) {
+        public Builder format(Map<String, Object> format) {
             this.descriptor.format = format;
             return this;
         }

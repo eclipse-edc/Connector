@@ -14,16 +14,22 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Field {
+    @JsonProperty("path")
     private List<String> paths = new ArrayList<>();
     private String id;
     private String name;
     private String purpose;
-    private FilterExpression expr;
+    private Map<String, Object> filter;
 
     private Field() {
 
@@ -45,8 +51,8 @@ public class Field {
         return paths;
     }
 
-    public FilterExpression getExpr() {
-        return expr;
+    public Map<String, Object> getFilter() {
+        return filter;
     }
 
 
@@ -81,8 +87,8 @@ public class Field {
             return this;
         }
 
-        public Builder expr(FilterExpression expr) {
-            this.field.expr = expr;
+        public Builder filter(Map<String, Object> filter) {
+            this.field.filter = filter;
             return this;
         }
 
