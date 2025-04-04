@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedRe
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteProvisionCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
@@ -117,6 +118,14 @@ public interface TransferProcessService {
      */
     @NotNull
     ServiceResult<TransferProcess> initiateTransfer(TransferRequest request);
+
+    /**
+     * Asynchronously notifies the system that the provisioning phase has been completed.
+     *
+     * @param command the command.
+     * @return the result.
+     */
+    ServiceResult<Void> completeProvision(CompleteProvisionCommand command);
 
     /**
      * Asynchronously informs the system that the {@link DeprovisionedResource} has been provisioned

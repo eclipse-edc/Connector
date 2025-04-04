@@ -19,11 +19,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.controlplane.api.client.transferprocess.model.TransferProcessFailRequest;
+import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,6 +55,11 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
     @Override
     public Result<Void> failed(DataFlowStartMessage dataFlowStartMessage, String reason) {
         return sendRequest(dataFlowStartMessage, "fail", TransferProcessFailRequest.Builder.newInstance().errorMessage(reason).build());
+    }
+
+    @Override
+    public Result<Void> provisioned(String id, DataAddress newAddress) {
+        return Result.failure("to be implemented");
     }
 
     private Result<Void> sendRequest(DataFlowStartMessage dataFlowStartMessage, String action, Object body) {

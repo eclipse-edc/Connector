@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.jetbrains.annotations.NotNull;
@@ -106,11 +107,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
         var dataPlaneInstance = selection.getContent();
         return clientFactory.createClient(dataPlaneInstance)
                 .provision(dataFlowRequest)
-                .map(it -> DataFlowResponse.Builder.newInstance()
-                        .dataAddress(it.getDataAddress())
-                        .dataPlaneId(dataPlaneInstance.getId())
-                        .build()
-                );
+                .map(it -> toResponse(it, dataPlaneInstance));
     }
 
     @Override
@@ -146,11 +143,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
         var dataPlaneInstance = selection.getContent();
         return clientFactory.createClient(dataPlaneInstance)
                 .start(dataFlowRequest)
-                .map(it -> DataFlowResponse.Builder.newInstance()
-                        .dataAddress(it.getDataAddress())
-                        .dataPlaneId(dataPlaneInstance.getId())
-                        .build()
-                );
+                .map(it -> toResponse(it, dataPlaneInstance));
     }
 
     @Override
@@ -195,6 +188,14 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .map(DataPlaneInstance::getAllowedTransferTypes)
                 .flatMap(Collection::stream)
                 .collect(toSet());
+    }
+
+    private DataFlowResponse toResponse(DataFlowResponseMessage it, DataPlaneInstance dataPlaneInstance) {
+        return DataFlowResponse.Builder.newInstance()
+                .dataAddress(it.getDataAddress())
+                .dataPlaneId(dataPlaneInstance.getId())
+                .provisioning(it.isProvisioning())
+                .build();
     }
 
     private StatusResult<DataPlaneClient> getClientForDataplane(String id) {
