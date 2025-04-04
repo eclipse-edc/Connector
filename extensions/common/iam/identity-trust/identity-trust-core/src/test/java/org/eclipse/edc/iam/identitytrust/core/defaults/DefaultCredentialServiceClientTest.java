@@ -34,6 +34,10 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.DataModelVersion;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.Constraints;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.Field;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.InputDescriptor;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.PresentationDefinition;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.result.Result;
@@ -53,6 +57,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_V_1_0_CONTEXT;
@@ -116,6 +121,37 @@ class DefaultCredentialServiceClientTest {
         verify(httpClientMock).execute(argThat((r) -> containsScope(r, scopes)));
     }
 
+    @Test
+    @DisplayName("CS send presentation_definition")
+    void requestPresentation_sendPresentationDefinition() throws IOException {
+
+        when(httpClientMock.execute(any()))
+                .thenReturn(response(200, getResourceFileContentAsString("single_ldp-vp.json")));
+
+        Map<String, Object> format = Map.of("format", Map.of("algo", List.of("ALGO")));
+
+        var field = Field.Builder.newInstance()
+                .paths(List.of("$.type", "$.vc.type"))
+                .filter(Map.of("type", "array", "contains", Map.of("const", "MyType")))
+                .build();
+        
+        var descriptor = InputDescriptor.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .constraints(new Constraints(List.of(field)))
+                .format(format)
+                .build();
+
+        var presentationDefinition = PresentationDefinition.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .format(format)
+                .inputDescriptors(List.of(descriptor))
+                .build();
+        var result = client.requestPresentation(CS_URL, "foo", presentationDefinition);
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.VC1_0_LD);
+        verify(httpClientMock).execute(argThat((r) -> containsPresentationDefinition(r, presentationDefinition)));
+    }
+
     @SuppressWarnings("unchecked")
     private boolean containsScope(Request request, List<String> scopes) {
 
@@ -127,6 +163,22 @@ class DefaultCredentialServiceClientTest {
             var requestScopes = (Collection<String>) body.get("scope");
 
             return requestScopes.containsAll(scopes);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean containsPresentationDefinition(Request request, PresentationDefinition input) {
+
+        try (var buffer = new Buffer()) {
+            Objects.requireNonNull(request.body()).writeTo(buffer);
+            var body = mapper.readValue(buffer.inputStream(), JsonObject.class);
+            var definition = body.get("presentationDefinition");
+            var output = mapper.readValue(definition.toString(), PresentationDefinition.class);
+            assertThat(output).usingRecursiveComparison().isEqualTo(input);
+
+            return true;
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -229,7 +281,7 @@ class DefaultCredentialServiceClientTest {
         }
 
         @ParameterizedTest(name = "CS returns HTTP error code {0}")
-        @ValueSource(ints = { 400, 401, 403, 503, 501 })
+        @ValueSource(ints = {400, 401, 403, 503, 501})
         void requestPresentation_csReturnsError(int httpCode) throws IOException {
             when(httpClientMock.execute(any()))
                     .thenReturn(response(httpCode, "Test failure"));

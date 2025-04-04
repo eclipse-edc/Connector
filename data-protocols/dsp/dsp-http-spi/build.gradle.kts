@@ -28,6 +28,4 @@ dependencies {
 
     testFixturesApi(project(":core:common:junit"))
     testFixturesApi(project(":spi:common:json-ld-spi"))
-    testFixturesImplementation(libs.mockito.core)
-    testFixturesImplementation(libs.assertj)
 }

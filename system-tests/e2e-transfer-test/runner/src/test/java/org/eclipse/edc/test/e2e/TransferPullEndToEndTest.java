@@ -26,6 +26,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -34,6 +35,8 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +60,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static java.time.Duration.ofDays;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -84,6 +89,14 @@ class TransferPullEndToEndTest {
     abstract static class Tests extends TransferEndToEndTestBase {
 
         private static final ObjectMapper MAPPER = new ObjectMapper();
+
+        private static @NotNull Map<String, Object> httpSourceDataAddress() {
+            return Map.of(
+                    EDC_NAMESPACE + "name", "transfer-test",
+                    EDC_NAMESPACE + "baseUrl", "http://any/source",
+                    EDC_NAMESPACE + "type", "HttpData"
+            );
+        }
 
         @Test
         void httpPull_dataTransfer_withCallbacks() {
@@ -173,7 +186,7 @@ class TransferPullEndToEndTest {
 
             var edrEntry = assertConsumerCanAccessData(consumerTransferProcessId);
 
-            var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
+            var providerTransferProcessId = PROVIDER.getTransferProcesses().stream()
                     .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
                     .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
 
@@ -213,7 +226,7 @@ class TransferPullEndToEndTest {
             provisionServer.verify(request("/provision"));
             provisionServer.clear(request("provision"));
 
-            var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
+            var providerTransferProcessId = PROVIDER.getTransferProcesses().stream()
                     .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
                     .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
 
@@ -268,7 +281,7 @@ class TransferPullEndToEndTest {
 
             var edrEntry = assertConsumerCanAccessData(consumerTransferProcessId);
 
-            var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
+            var providerTransferProcessId = PROVIDER.getTransferProcesses().stream()
                     .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
                     .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
 
@@ -293,7 +306,7 @@ class TransferPullEndToEndTest {
 
             var edrEntry = assertConsumerCanAccessData(consumerTransferProcessId);
 
-            var providerTransferProcessId  = PROVIDER.getTransferProcesses().stream()
+            var providerTransferProcessId = PROVIDER.getTransferProcesses().stream()
                     .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
                     .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
 
@@ -303,6 +316,18 @@ class TransferPullEndToEndTest {
             CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
 
             assertConsumerCanNotAccessData(consumerTransferProcessId, edrEntry);
+        }
+
+        public JsonObject createCallback(String url, boolean transactional, Set<String> events) {
+            return Json.createObjectBuilder()
+                    .add(TYPE, EDC_NAMESPACE + "CallbackAddress")
+                    .add(EDC_NAMESPACE + "transactional", transactional)
+                    .add(EDC_NAMESPACE + "uri", url)
+                    .add(EDC_NAMESPACE + "events", events
+                            .stream()
+                            .collect(Json::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
+                            .build())
+                    .build();
         }
 
         private EdrMessage assertConsumerCanAccessData(String consumerTransferProcessId) {
@@ -316,22 +341,10 @@ class TransferPullEndToEndTest {
         private void assertConsumerCanNotAccessData(String consumerTransferProcessId, EdrMessage edrMessage) {
             await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(consumerTransferProcessId)));
             await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(
-                    () -> CONSUMER.pullData(edrMessage.address(), Map.of("message", edrMessage.message()),
-                            body -> assertThat(body).isEqualTo("data"))
+                            () -> CONSUMER.pullData(edrMessage.address(), Map.of("message", edrMessage.message()),
+                                    body -> assertThat(body).isEqualTo("data"))
                     )
             );
-        }
-
-        public JsonObject createCallback(String url, boolean transactional, Set<String> events) {
-            return Json.createObjectBuilder()
-                    .add(TYPE, EDC_NAMESPACE + "CallbackAddress")
-                    .add(EDC_NAMESPACE + "transactional", transactional)
-                    .add(EDC_NAMESPACE + "uri", url)
-                    .add(EDC_NAMESPACE + "events", events
-                            .stream()
-                            .collect(Json::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
-                            .build())
-                    .build();
         }
 
         private HttpResponse cacheEdr(HttpRequest request, Map<String, TransferProcessStarted> events) {
@@ -350,7 +363,8 @@ class TransferPullEndToEndTest {
             }
         }
 
-        private record EdrMessage(DataAddress address, String message) { }
+        private record EdrMessage(DataAddress address, String message) {
+        }
 
         /**
          * Mocked http provisioner
@@ -388,14 +402,6 @@ class TransferPullEndToEndTest {
 
                 return response();
             }
-        }
-
-        private static @NotNull Map<String, Object> httpSourceDataAddress() {
-            return Map.of(
-                    EDC_NAMESPACE + "name", "transfer-test",
-                    EDC_NAMESPACE + "baseUrl", "http://any/source",
-                    EDC_NAMESPACE + "type", "HttpData"
-            );
         }
     }
 
@@ -455,12 +461,104 @@ class TransferPullEndToEndTest {
         // TODO: replace with something better. Temporary hack
         @BeforeAll
         static void beforeAll() {
-            CONSUMER.setProtocol("dataspace-protocol-http:2024/1");
+            CONSUMER.setProtocol("dataspace-protocol-http:2024/1", "/2024/1");
+            PROVIDER.setProtocol("dataspace-protocol-http:2024/1", "/2024/1");
         }
 
         @AfterAll
         static void afterAll() {
             CONSUMER.setProtocol("dataspace-protocol-http");
+            PROVIDER.setProtocol("dataspace-protocol-http");
+        }
+
+        @Override
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
+        }
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemoryV2024Rev1WellKnownPath extends Tests {
+
+
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
+                        .configurationProvider(PROVIDER::dataPlaneConfig)
+                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
+        );
+
+        private static final Function<Supplier<Config>, Supplier<Config>> CONFIG_SUPPLIER = supplier -> () -> {
+            var settings = Map.of("edc.dsp.well-known-path.enabled", "true");
+            return ConfigFactory.fromMap(settings).merge(supplier.get());
+        };
+
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
+                        .configurationProvider(CONFIG_SUPPLIER.apply(PROVIDER::controlPlaneConfig))
+        );
+        @RegisterExtension
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
+                        .configurationProvider(CONFIG_SUPPLIER.apply(CONSUMER::controlPlaneConfig))
+        );
+
+        // TODO: replace with something better. Temporary hack
+        @BeforeAll
+        static void beforeAll() {
+            CONSUMER.setProtocol("dataspace-protocol-http:2024/1");
+            PROVIDER.setProtocol("dataspace-protocol-http:2024/1");
+        }
+
+        @AfterAll
+        static void afterAll() {
+            CONSUMER.setProtocol("dataspace-protocol-http");
+            PROVIDER.setProtocol("dataspace-protocol-http");
+        }
+
+        @Override
+        protected Vault getDataplaneVault() {
+            return PROVIDER_DATA_PLANE.getService(Vault.class);
+        }
+    }
+
+    @Nested
+    @EndToEndTest
+    class InMemoryV2025Rev1 extends Tests {
+
+        @RegisterExtension
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
+                        .configurationProvider(CONSUMER::controlPlaneConfig));
+
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
+                        .configurationProvider(PROVIDER::controlPlaneConfig));
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
+                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
+                        .configurationProvider(PROVIDER::dataPlaneConfig)
+                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension()));
+
+        private static JsonLd jsonLd;
+
+        // TODO: replace with something better. Temporary hack
+        @BeforeAll
+        static void beforeAll() {
+            jsonLd = CONSUMER.getJsonLd();
+            CONSUMER.setJsonLd(CONSUMER_CONTROL_PLANE.getService(JsonLd.class));
+            CONSUMER.setProtocol("dataspace-protocol-http:2025/1", "/2025/1");
+            PROVIDER.setProtocol("dataspace-protocol-http:2025/1", "/2025/1");
+        }
+
+        @AfterAll
+        static void afterAll() {
+            CONSUMER.setJsonLd(jsonLd);
+            CONSUMER.setProtocol("dataspace-protocol-http");
+            PROVIDER.setProtocol("dataspace-protocol-http");
         }
 
         @Override

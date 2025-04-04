@@ -20,6 +20,7 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     // gives access to the Json LD models, etc.
     testImplementation(project(":spi:common:json-ld-spi"))
+    testImplementation(project(":data-protocols:dsp:dsp-spi"))
     testImplementation(project(":spi:control-plane:asset-spi"))
     testImplementation(project(":spi:control-plane:contract-spi"))
     testImplementation(project(":spi:data-plane-selector:data-plane-selector-spi"))
@@ -35,9 +36,7 @@ dependencies {
     testImplementation(project(":extensions:common:json-ld"))
 
     testImplementation(libs.restAssured)
-    testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
-    testImplementation(libs.junit.jupiter.api)
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(libs.testcontainers.junit)

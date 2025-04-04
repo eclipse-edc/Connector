@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -63,6 +64,8 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
     private PublicEndpointGeneratorService publicEndpointGeneratorService;
     @Inject
     private HealthCheckService healthCheckService;
+    @Inject
+    private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
 
     private ServiceExtensionContext context;
 
@@ -88,6 +91,7 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
                 .url(controlApiUrl.get().toString() + "/v1/dataflows")
                 .allowedSourceTypes(pipelineService.supportedSourceTypes())
                 .allowedTransferType(transferTypes.collect(toSet()))
+                .destinationProvisionTypes(resourceDefinitionGeneratorManager.destinationTypes())
                 .build();
 
         var monitor = context.getMonitor().withPrefix("DataPlaneHealthCheck");

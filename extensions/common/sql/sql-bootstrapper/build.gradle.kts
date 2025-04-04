@@ -23,9 +23,8 @@ dependencies {
     api(project(":spi:common:transaction-spi"))
     implementation(project(":spi:common:transaction-datasource-spi"))
     implementation(project(":core:common:lib:sql-lib"))
-//
+
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.assertj)
 }
 
 

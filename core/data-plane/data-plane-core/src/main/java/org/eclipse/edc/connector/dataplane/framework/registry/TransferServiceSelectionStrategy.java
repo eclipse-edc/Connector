@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - Initial implementation
+ *       Cofinity-X - prioritized transfer services
  *
  */
 
@@ -23,7 +24,11 @@ import java.util.stream.Stream;
 /**
  * Functional interface for selecting which of (potentially) multiple {@link TransferService}s to use
  * for serving a particular {@link DataFlowStartMessage}.
+ *
+ * @deprecated use transfer service prioritization, see
+ *      {@link org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry#registerTransferService(int, TransferService)}.
  */
+@Deprecated(since = "0.12.0", forRemoval = true)
 public interface TransferServiceSelectionStrategy {
     /**
      * Selects which of (potentially) multiple {@link TransferService}s to use

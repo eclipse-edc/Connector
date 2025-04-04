@@ -9,7 +9,7 @@ atomikos = "6.0.0"
 awaitility = "4.2.2"
 bouncyCastle-jdk18on = "1.80"
 cloudEvents = "4.0.1"
-edc = "0.12.0-SNAPSHOT"
+edc = "0.13.0-SNAPSHOT"
 failsafe = "3.3.2"
 h2 = "2.3.232"
 httpMockServer = "5.15.0"
@@ -19,11 +19,11 @@ jakarta-transaction = "2.0.1"
 jackson = "2.18.2"
 jersey = "3.1.10"
 jetbrainsAnnotation = "26.0.2"
-jetty = "11.0.24"
+jetty = "11.0.25"
 jetty-jakarta-servlet-api = "5.0.2"
 junit-pioneer = "2.3.0"
-jupiter = "5.11.3"
-micrometer = "1.14.4"
+jupiter = "5.12.1"
+micrometer = "1.14.5"
 mockito = "5.2.0"
 nimbus = "10.0.1"
 okhttp = "4.12.0"
@@ -33,11 +33,11 @@ parsson = "1.1.7"
 postgres = "42.7.5"
 restAssured = "5.5.1"
 rsApi = "4.0.0"
-swagger = "2.2.28"
-titanium = "1.5.0"
-kafkaClients = "3.9.0"
-testcontainers = "1.20.5"
-tink = "1.15.0"
+swagger = "2.2.29"
+titanium = "1.6.0"
+kafkaClients = "4.0.0"
+testcontainers = "1.20.6"
+tink = "1.17.0"
 
 
 [libraries]
@@ -71,8 +71,6 @@ jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "j
 jetty-jakarta-servlet-api = { module = "org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api", version.ref = "jetty-jakarta-servlet-api" }
 jetty-websocket = { module = "org.eclipse.jetty.websocket:websocket-jakarta-server", version.ref = "jetty" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jupiter" }
-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "jupiter" }
-junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jupiter" }
 junit-pioneer = { module = "org.junit-pioneer:junit-pioneer", version.ref = "junit-pioneer" }
 micrometer = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
@@ -106,9 +104,8 @@ jsonschema = { module = "com.networknt:json-schema-validator", version = "1.5.6"
 
 
 [bundles]
-jackson = ["jackson.annotations", "jackson.databind"]
-jersey-core = ["jersey.server", "jersey.common", "jersey.jackson", "jersey.multipart", "jersey.inject", "jersey.servlet", "jersey.servletcore"]
-jupiter = ["junit-jupiter-api", "junit-jupiter-params"]
+jackson = ["jackson-annotations", "jackson-databind"]
+jersey-core = ["jersey-server", "jersey-common", "jersey-jackson", "jersey-multipart", "jersey-inject", "jersey-servlet", "jersey-servletcore"]
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "8.3.6" }

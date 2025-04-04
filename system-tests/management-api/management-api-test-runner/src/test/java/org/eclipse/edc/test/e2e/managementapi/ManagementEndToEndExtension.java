@@ -82,12 +82,7 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
         private static EmbeddedRuntime runtime() {
             return new EmbeddedRuntime("control-plane",
                     ":system-tests:management-api:management-api-test-runtime",
-                    ":extensions:control-plane:store:sql:control-plane-sql",
-                    ":extensions:policy-monitor:store:sql:policy-monitor-store-sql",
-                    ":extensions:common:store:sql:edr-index-sql",
-                    ":extensions:data-plane:store:sql:data-plane-store-sql",
-                    ":extensions:common:sql:sql-pool:sql-pool-apache-commons",
-                    ":extensions:common:transaction:transaction-local")
+                    ":dist:bom:controlplane-feature-sql-bom")
                     .configurationProvider(ManagementEndToEndExtension::runtimeConfig);
         }
 

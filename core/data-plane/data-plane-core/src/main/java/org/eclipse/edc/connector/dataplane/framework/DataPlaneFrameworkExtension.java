@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
@@ -114,6 +115,8 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     private PipelineService pipelineService;
     @Inject
     private DataPlaneAuthorizationService authorizationService;
+    @Inject
+    private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
 
     @Override
     public String name() {
@@ -144,6 +147,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .telemetry(telemetry)
                 .runtimeId(context.getRuntimeId())
                 .flowLeaseConfiguration(flowLeaseConfiguration)
+                .resourceDefinitionGeneratorManager(resourceDefinitionGeneratorManager)
                 .build();
 
         context.registerService(DataPlaneManager.class, dataPlaneManager);
@@ -168,11 +172,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         var executorService = Executors.newFixedThreadPool(numThreads);
         return new DataTransferExecutorServiceContainer(
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
-    }
-
-    @NotNull
-    private EntityRetryProcessConfiguration getEntityRetryProcessConfiguration() {
-        return new EntityRetryProcessConfiguration(sendRetryLimit, () -> new ExponentialWaitStrategy(sendRetryBaseDelay));
     }
 
     @Settings
@@ -201,5 +200,11 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         public long abandonTime() {
             return time * factor;
         }
+
+    }
+
+    @NotNull
+    private EntityRetryProcessConfiguration getEntityRetryProcessConfiguration() {
+        return new EntityRetryProcessConfiguration(sendRetryLimit, () -> new ExponentialWaitStrategy(sendRetryBaseDelay));
     }
 }

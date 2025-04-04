@@ -18,12 +18,16 @@ plugins {
 
 dependencies {
     implementation(project(":dist:bom:controlplane-base-bom"))
-
+    implementation(project(":core:common:edr-store-core"))
+    implementation(project(":core:common:token-core"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":data-protocols:dsp"))
+    implementation(project(":data-protocols:dsp:dsp-2025"))
+    implementation(project(":extensions:common:http"))
+    implementation(project(":extensions:common:api:control-api-configuration"))
+    implementation(project(":extensions:common:api:management-api-configuration"))
     implementation(project(":extensions:common:iam:iam-mock"))
-    implementation(project(":extensions:control-plane:api:control-plane-api"))
     implementation(project(":extensions:control-plane:provision:provision-http"))
-
-    implementation(project(":core:policy-monitor:policy-monitor-core"))
 }
 
 edcBuild {

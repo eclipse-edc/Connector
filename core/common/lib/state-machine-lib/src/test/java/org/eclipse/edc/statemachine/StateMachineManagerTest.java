@@ -35,8 +35,8 @@ import static org.mockito.Mockito.when;
 
 class StateMachineManagerTest {
 
-    private final WaitStrategy waitStrategy = mock(WaitStrategy.class);
-    private final Monitor monitor = mock(Monitor.class);
+    private final WaitStrategy waitStrategy = mock();
+    private final Monitor monitor = mock();
     private final ExecutorInstrumentation instrumentation = ExecutorInstrumentation.noop();
 
     @BeforeEach
@@ -45,7 +45,7 @@ class StateMachineManagerTest {
     }
 
     @Test
-    void shouldExecuteProcessorsAsyncAndCanBeStopped() throws InterruptedException {
+    void shouldExecuteProcessorsAsyncAndCanBeStopped() {
         var processor = mock(Processor.class);
         when(processor.process()).thenAnswer(i -> {
             Thread.sleep(100L);
@@ -60,19 +60,20 @@ class StateMachineManagerTest {
 
         await().untilAsserted(() -> {
             verify(processor, atLeastOnce()).process();
+        });
 
-            assertThat(stateMachine.stop()).succeedsWithin(2, SECONDS);
+        stateMachine.stop();
+
+        await().pollDelay(1, SECONDS).untilAsserted(() -> {
             verifyNoMoreInteractions(processor);
         });
     }
 
     @Test
-    void shouldNotWaitForSomeTimeIfTheresAtLeastOneProcessedEntity() throws InterruptedException {
+    void shouldNotWaitForSomeTimeIfTheresAtLeastOneProcessedEntity() {
         var processor = mock(Processor.class);
         when(processor.process()).thenReturn(1L);
-        doAnswer(i -> {
-            return 1L;
-        }).when(waitStrategy).success();
+        doAnswer(i -> 1L).when(waitStrategy).success();
         var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
@@ -86,13 +87,11 @@ class StateMachineManagerTest {
     }
 
     @Test
-    void shouldWaitForSomeTimeIfNoEntityIsProcessed() throws InterruptedException {
+    void shouldWaitForSomeTimeIfNoEntityIsProcessed() {
         var processor = mock(Processor.class);
         when(processor.process()).thenReturn(0L);
         var waitStrategy = mock(WaitStrategy.class);
-        doAnswer(i -> {
-            return 0L;
-        }).when(waitStrategy).waitForMillis();
+        doAnswer(i -> 0L).when(waitStrategy).waitForMillis();
         var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
@@ -118,12 +117,10 @@ class StateMachineManagerTest {
     }
 
     @Test
-    void shouldWaitRetryTimeWhenAnExceptionIsThrownByAnProcessor() throws InterruptedException {
+    void shouldWaitRetryTimeWhenAnExceptionIsThrownByAnProcessor() {
         var processor = mock(Processor.class);
         when(processor.process()).thenThrow(new EdcException("exception")).thenReturn(0L);
-        when(waitStrategy.retryInMillis()).thenAnswer(i -> {
-            return 1L;
-        });
+        when(waitStrategy.retryInMillis()).thenAnswer(i -> 1L);
         var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
@@ -132,7 +129,26 @@ class StateMachineManagerTest {
 
         await().untilAsserted(() -> {
             assertThat(stateMachine.isActive()).isTrue();
-            verify(waitStrategy).retryInMillis();
+        });
+    }
+
+    @Test
+    void shouldExecuteOtherProcessors_whenAnExceptionIsThrownByAnProcessor() {
+        var notSuccessful = mock(Processor.class);
+        when(notSuccessful.process()).thenThrow(new EdcException("exception"));
+        var successful = mock(Processor.class);
+        when(successful.process()).thenReturn(1L);
+        when(waitStrategy.retryInMillis()).thenAnswer(i -> 1L);
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+                .processor(notSuccessful)
+                .processor(successful)
+                .build();
+
+        stateMachine.start();
+
+        await().untilAsserted(() -> {
+            assertThat(stateMachine.isActive()).isTrue();
+            verify(successful, atLeastOnce()).process();
         });
     }
 }

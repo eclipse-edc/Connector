@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -23,14 +24,17 @@ import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
@@ -49,6 +53,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     private Map<String, String> properties = new HashMap<>();
     private TransferType transferType;
     private String runtimeId;
+    private List<ProvisionResourceDefinition> resourceDefinitions = new ArrayList<>();
 
     @Override
     public DataFlow copy() {
@@ -105,6 +110,11 @@ public class DataFlow extends StatefulEntity<DataFlow> {
                 .build();
     }
 
+    public void transitionToProvisioning(List<ProvisionResourceDefinition> resourceDefinitions) {
+        this.resourceDefinitions.addAll(resourceDefinitions);
+        transitionTo(PROVISIONING.code());
+    }
+
     public void transitToCompleted() {
         transitionTo(COMPLETED.code());
     }
@@ -136,6 +146,10 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
     public void transitToSuspended() {
         transitionTo(SUSPENDED.code());
+    }
+
+    public List<ProvisionResourceDefinition> getResourceDefinitions() {
+        return resourceDefinitions;
     }
 
     @JsonPOJOBuilder(withPrefix = "")

@@ -30,7 +30,6 @@ dependencies {
     testImplementation(project(":core:common:junit"))
 
     testImplementation(project(":spi:common:policy-model"))
-    testImplementation(libs.assertj)
     testImplementation(testFixtures(project(":spi:control-plane:asset-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(libs.postgres)

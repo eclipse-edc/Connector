@@ -20,9 +20,6 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:data-address:data-address-http-data-spi"))
-
-    testFixturesImplementation(libs.bundles.jupiter)
-    testFixturesImplementation(libs.assertj)
 }
 
 

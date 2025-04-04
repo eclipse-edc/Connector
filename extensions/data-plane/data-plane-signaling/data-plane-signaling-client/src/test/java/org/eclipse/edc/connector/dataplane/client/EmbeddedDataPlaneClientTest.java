@@ -19,8 +19,10 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,13 +38,34 @@ class EmbeddedDataPlaneClientTest {
     private final DataPlaneManager dataPlaneManager = mock();
     private final DataPlaneClient client = new EmbeddedDataPlaneClient(dataPlaneManager);
 
-    private static DataFlowStartMessage createDataFlowRequest() {
-        return DataFlowStartMessage.Builder.newInstance()
-                .id("123")
-                .processId("456")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .build();
+    @Nested
+    class Provision {
+        @Test
+        void shouldSucceed_whenFlowPreparedCorrectly() {
+            var response = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("type").build()).build();
+            var request = DataFlowProvisionMessage.Builder.newInstance()
+                    .processId("456")
+                    .destination(DataAddress.Builder.newInstance().type("test").build())
+                    .build();
+            when(dataPlaneManager.provision(any())).thenReturn(Result.success(response));
+
+            var result = client.provision(request);
+
+            assertThat(result).isSucceeded().isEqualTo(response);
+        }
+
+        @Test
+        void shouldFail_whenPreparationFails() {
+            var request = DataFlowProvisionMessage.Builder.newInstance()
+                    .processId("456")
+                    .destination(DataAddress.Builder.newInstance().type("test").build())
+                    .build();
+            when(dataPlaneManager.provision(any())).thenReturn(Result.failure("error"));
+
+            var result = client.provision(request);
+
+            assertThat(result).isFailed();
+        }
     }
 
     @Test
@@ -109,4 +132,14 @@ class EmbeddedDataPlaneClientTest {
         assertThat(result).isSucceeded();
         verify(dataPlaneManager).terminate("dataFlowId");
     }
+
+    private DataFlowStartMessage createDataFlowRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
+                .id("123")
+                .processId("456")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .build();
+    }
+
 }

@@ -115,6 +115,20 @@ include(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-http-
 include(":data-protocols:dsp:dsp-version:dsp-version-http-api")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-dispatcher")
 
+// dsp version 2025/1
+
+include(":data-protocols:dsp:dsp-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-2025")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-2025:dsp-catalog-http-api-2025")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-2025:dsp-catalog-transform-2025")
+include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-2025")
+include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-2025:dsp-transfer-process-http-api-2025")
+include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-2025:dsp-transfer-process-transform-2025")
+include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-2025")
+include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-2025:dsp-negotiation-http-api-2025")
+include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-2025:dsp-negotiation-transform-2025")
+
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
 include(":extensions:common:api:api-observability")
@@ -294,6 +308,7 @@ include(":system-tests:management-api:management-api-test-runtime")
 include(":system-tests:version-api:version-api-test-runtime")
 include(":system-tests:version-api:version-api-test-runner")
 include(":system-tests:protocol-test")
+include(":system-tests:protocol-2025-test")
 include(":system-tests:sts-api:sts-api-test-runner")
 include(":system-tests:sts-api:sts-api-test-runtime")
 include(":system-tests:telemetry:telemetry-test-runner")
@@ -310,7 +325,6 @@ include(":dist:bom:controlplane-feature-sql-bom")
 
 include(":dist:bom:dataplane-base-bom")
 include(":dist:bom:dataplane-feature-sql-bom")
-
 
 include(":version-catalog")
 

@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static okhttp3.internal.Util.EMPTY_REQUEST;
@@ -82,6 +83,11 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
                         .map(Result::getContent)
                         .toList()
                 );
+    }
+
+    @Override
+    public ServiceResult<DataPlaneInstance> select(@Nullable String selectionStrategy, Predicate<DataPlaneInstance> filter) {
+        return ServiceResult.unexpected("RemoteDataPlaneSelectorService.select for consumer not implemented yet");
     }
 
     @Override

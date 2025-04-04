@@ -58,6 +58,7 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -101,8 +102,8 @@ class IdentityAndTrustServiceTest {
     @Nested
     class ObtainClientCredentials {
         @ParameterizedTest(name = "{0}")
-        @ValueSource(strings = { "org.eclipse.edc:TestCredential:modify", "org.eclipse.edc:TestCredential:", "org.eclipse.edc:TestCredential: ", "org.eclipse.edc:TestCredential:write*", ":TestCredential:read",
-                "org.eclipse.edc:fooCredential:+" })
+        @ValueSource(strings = {"org.eclipse.edc:TestCredential:modify", "org.eclipse.edc:TestCredential:", "org.eclipse.edc:TestCredential: ", "org.eclipse.edc:TestCredential:write*", ":TestCredential:read",
+                "org.eclipse.edc:fooCredential:+"})
         void obtainClientCredentials_invalidScopeString(String scope) {
             var tp = TokenParameters.Builder.newInstance()
                     .claims(SCOPE, scope)
@@ -115,8 +116,8 @@ class IdentityAndTrustServiceTest {
         }
 
         @ParameterizedTest(name = "Scope: {0}")
-        @ValueSource(strings = { "org.eclipse.edc:TestCredential:modify", "org.eclipse.edc:TestCredential:", "org.eclipse.edc:TestCredential: ", "org.eclipse.edc:TestCredential:write*", ":TestCredential:read",
-                "org.eclipse.edc:fooCredential:+" })
+        @ValueSource(strings = {"org.eclipse.edc:TestCredential:modify", "org.eclipse.edc:TestCredential:", "org.eclipse.edc:TestCredential: ", "org.eclipse.edc:TestCredential:write*", ":TestCredential:read",
+                "org.eclipse.edc:fooCredential:+"})
         @NullSource
         @EmptySource
         void obtainClientCredentials_validScopeString(String scope) {
@@ -141,8 +142,8 @@ class IdentityAndTrustServiceTest {
             when(mockedSts.createToken(any(), any())).thenReturn(success(createJwt()));
             assertThat(service.obtainClientCredentials(tp)).isSucceeded();
             verify(mockedSts).createToken(argThat(m -> m.get("iss").equals(EXPECTED_OWN_DID) &&
-                                                       m.get("sub").equals(EXPECTED_OWN_DID) &&
-                                                       m.get("aud").equals(tp.getStringClaim(AUDIENCE))), eq(scope));
+                    m.get("sub").equals(EXPECTED_OWN_DID) &&
+                    m.get("aud").equals(tp.getStringClaim(AUDIENCE))), eq(scope));
         }
     }
 
@@ -153,12 +154,12 @@ class IdentityAndTrustServiceTest {
 
         @Test
         void presentationRequestFails() {
-            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(failure("test-failure"));
+            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(failure("test-failure"));
             var token = createJwt();
             var result = service.verifyJwtToken(token, verificationContext());
             assertThat(result).isFailed().detail().isEqualTo("test-failure");
             verifyNoInteractions(credentialValidationServiceMock);
-            verify(mockedClient).requestPresentation(any(), any(), any());
+            verify(mockedClient).requestPresentation(any(), any(), isA(List.class));
 
         }
 
@@ -166,7 +167,7 @@ class IdentityAndTrustServiceTest {
         void credentialValidationServiceFails() {
             when(credentialValidationServiceMock.validate(anyList(), anyCollection()))
                     .thenReturn(Result.failure("test error"));
-            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(createPresentationContainer())));
+            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(createPresentationContainer())));
             var token = createJwt();
             var result = service.verifyJwtToken(token, verificationContext());
             assertThat(result).isFailed().detail().isEqualTo("test error");
@@ -218,7 +219,7 @@ class IdentityAndTrustServiceTest {
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
+            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, verificationContext());
@@ -240,7 +241,7 @@ class IdentityAndTrustServiceTest {
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
+            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, verificationContext());
@@ -271,7 +272,7 @@ class IdentityAndTrustServiceTest {
                                     .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
+            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, verificationContext());
@@ -322,7 +323,7 @@ class IdentityAndTrustServiceTest {
                     .build();
             var vpContainer2 = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation2);
 
-            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer1, vpContainer2)));
+            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer1, vpContainer2)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
 
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);

@@ -635,6 +635,7 @@ class TransferProcessManagerImplTest {
         @Test
         void initial_consumer_shouldTransitionToProvisioning() {
             var transferProcess = createTransferProcess(INITIAL);
+            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
@@ -655,6 +656,7 @@ class TransferProcessManagerImplTest {
         @Test
         void initial_consumer_manifestEvaluationFailed_shouldTransitionToTerminated() {
             var transferProcess = createTransferProcess(INITIAL);
+            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
@@ -674,6 +676,7 @@ class TransferProcessManagerImplTest {
         @Test
         void initial_consumer_shouldTransitionToTerminated_whenNoPolicyFound() {
             var transferProcess = createTransferProcess(INITIAL);
+            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
                     .thenReturn(emptyList());
@@ -685,6 +688,31 @@ class TransferProcessManagerImplTest {
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
                 verifyNoInteractions(provisionManager);
                 verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
+            });
+        }
+
+        @Test
+        void shouldTransitionToRequesting_whenProvisionThroughDataplaneSucceeds() {
+            var dataPlaneId = UUID.randomUUID().toString();
+            var dataFlowResponse = DataFlowResponse.Builder.newInstance()
+                    .dataPlaneId(dataPlaneId)
+                    .build();
+            var transferProcess = createTransferProcess(INITIAL);
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
+                    .thenReturn(List.of(transferProcess))
+                    .thenReturn(emptyList());
+            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                verifyNoInteractions(provisionManager, manifestGenerator);
+                var captor = ArgumentCaptor.forClass(TransferProcess.class);
+                verify(transferProcessStore).save(captor.capture());
+                var storedTransferProcess = captor.getValue();
+                assertThat(storedTransferProcess.getState()).isEqualTo(REQUESTING.code());
+                assertThat(storedTransferProcess.getDataPlaneId()).isEqualTo(dataPlaneId);
             });
         }
     }

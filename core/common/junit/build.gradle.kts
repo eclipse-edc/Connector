@@ -30,10 +30,7 @@ dependencies {
     implementation(project(":spi:common:http-spi"))
     implementation(libs.okhttp)
     implementation(libs.mockito.core)
-    implementation(libs.assertj)
     implementation(libs.junit.jupiter.api)
-
-    runtimeOnly(libs.junit.jupiter.engine)
 
     implementation(libs.testcontainers.junit)
     testImplementation(project(":core:common:connector-core"))

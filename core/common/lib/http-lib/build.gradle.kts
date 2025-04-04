@@ -29,8 +29,6 @@ dependencies {
     testImplementation(project(":core:common:lib:json-lib"))
     testImplementation(project(":core:common:lib:util-lib"))
     testImplementation(libs.mockserver.netty)
-
-    testFixturesImplementation(libs.mockito.core)
 }
 
 

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Cofinity-X - prioritized transfer services
  *
  */
 
@@ -24,13 +25,23 @@ import org.jetbrains.annotations.Nullable;
  */
 @ExtensionPoint
 public interface TransferServiceRegistry {
+    
     /**
      * Adds a {@link TransferService} to the collection of services that can perform data transfers.
+     * The priority is set to 0.
      *
      * @param transferService the service to add.
      */
     void registerTransferService(TransferService transferService);
-
+    
+    /**
+     * Adds a {@link TransferService} with given priority to the collection of services that can
+     * perform data transfers. Higher priorities will be preferred during selection.
+     *
+     * @param priority the priority
+     * @param transferService the service to add.
+     */
+    void registerTransferService(int priority, TransferService transferService);
 
     /**
      * Resolves a {@link TransferService}s to use for serving a particular {@link DataFlowStartMessage}.

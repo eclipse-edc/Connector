@@ -28,9 +28,7 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
 
     testImplementation(libs.restAssured)
-    testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
-    testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
     testImplementation(libs.testcontainers.postgres)

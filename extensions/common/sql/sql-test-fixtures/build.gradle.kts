@@ -25,8 +25,6 @@ dependencies {
     testFixturesImplementation(project(":core:common:lib:sql-lib"))
     testFixturesImplementation(project(":extensions:common:sql:sql-lease"))
 
-    testFixturesImplementation(libs.junit.jupiter.api)
-    testFixturesImplementation(libs.mockito.core)
     testFixturesImplementation(libs.postgres)
     testFixturesImplementation(libs.testcontainers.junit)
     testFixturesImplementation(libs.testcontainers.postgres)

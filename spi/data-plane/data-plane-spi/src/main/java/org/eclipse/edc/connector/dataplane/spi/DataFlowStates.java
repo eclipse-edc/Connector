@@ -21,7 +21,9 @@ import java.util.Arrays;
  */
 public enum DataFlowStates {
 
-    NOT_TRACKED(0),
+    @Deprecated(since = "0.12.0") NOT_TRACKED(0),
+    PROVISIONING(25),
+    PROVISIONED(50),
     RECEIVED(100),
     STARTED(150),
     COMPLETED(200),

@@ -75,3 +75,5 @@
 - [2025-02-06 Object mutability and copying](./2025-02-06-object_mutability_and_copying)
 - [2025-02-06 HashiCorp Vault Authentication Refactor](./2025-02-06-hashicorp-vault-authentication-refactor)
 - [2025-02-07 Deprecation of HTTP Proxy in the Data Plane](./2025-02-07-http-proxy-data-plane-deprecation)
+- [2025-02-27 Move provisioning phase in the Data Plane](./2025-02-27-move-provisioning-phase-data-plane)
+- [2025-03-14 Prioritized Transfer Services](./2025-03-14-prioritized-transfer-services)
