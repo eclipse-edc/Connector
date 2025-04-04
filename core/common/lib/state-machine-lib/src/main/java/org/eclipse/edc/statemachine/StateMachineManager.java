@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -69,21 +69,25 @@ public class StateMachineManager {
     }
 
     /**
-     * Stop the loop gracefully
-     *
-     * @return a future that will complete when the loop is fully stopped. The content of the future will be true if stop happened before the timeout, false elsewhere.
+     * Stop the loop gracefully as suggested in the {@link ExecutorService} documentation
      */
-    public CompletableFuture<Boolean> stop() {
+    public void stop() {
         active.set(false);
+        executor.shutdown();
 
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return executor.awaitTermination(shutdownTimeout, SECONDS);
-            } catch (InterruptedException e) {
-                monitor.severe(format("StateMachineManager [%s] await termination failed", name), e);
-                return false;
+        try {
+            if (!executor.awaitTermination(shutdownTimeout, SECONDS)) {
+                executor.shutdownNow();
+                if (!executor.awaitTermination(shutdownTimeout, SECONDS)) {
+                    monitor.severe("StateMachineManager [%s] await termination timeout");
+                }
             }
-        });
+        } catch (InterruptedException e) {
+            monitor.severe(format("StateMachineManager [%s] await termination failed", name), e);
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
     }
 
     /**
@@ -95,37 +99,40 @@ public class StateMachineManager {
         return active.get();
     }
 
-    private Runnable loop() {
-        return () -> {
-            if (active.get()) {
+    private void logic() {
+        if (active.get()) {
+            try {
                 performLogic();
+            } catch (Throwable e) {
+                active.set(false);
+                monitor.severe(format("StateMachineManager [%s] unrecoverable error", name), e);
             }
-        };
+        }
     }
 
     private void performLogic() {
-        try {
-            var processed = processors.stream()
-                    .mapToLong(Processor::process)
-                    .sum();
+        var processed = processors.stream()
+                .mapToLong(processor -> {
+                    try {
+                        return processor.process();
+                    } catch (Exception e) {
+                        monitor.severe("StateMachineManager [%s] error caught during processor".formatted(name), e);
+                        return 0;
+                    }
+                })
+                .sum();
 
-            waitStrategy.success();
+        waitStrategy.success();
 
-            var delay = processed == 0 ? waitStrategy.waitForMillis() : 0;
+        var delay = processed == 0 ? waitStrategy.waitForMillis() : 0;
 
-            scheduleNextIterationIn(delay);
-        } catch (Error e) {
-            active.set(false);
-            monitor.severe(format("StateMachineManager [%s] unrecoverable error", name), e);
-        } catch (Throwable e) {
-            monitor.severe(format("StateMachineManager [%s] error caught", name), e);
-            scheduleNextIterationIn(waitStrategy.retryInMillis());
-        }
+        scheduleNextIterationIn(delay);
+
     }
 
     @NotNull
     private Future<?> scheduleNextIterationIn(long delayMillis) {
-        return executor.schedule(loop(), delayMillis, MILLISECONDS);
+        return executor.schedule(this::logic, delayMillis, MILLISECONDS);
     }
 
     public static class Builder {
