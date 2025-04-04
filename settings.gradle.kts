@@ -30,6 +30,11 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("com.gradle.develocity") version "3.19.2"
+    id("com.gradle.common-custom-user-data-gradle-plugin") version "2.1"
+}
+
 dependencyResolutionManagement {
     repositories {
         mavenLocal()
@@ -321,5 +326,30 @@ include(":dist:bom:controlplane-feature-sql-bom")
 include(":dist:bom:dataplane-base-bom")
 include(":dist:bom:dataplane-feature-sql-bom")
 
-
 include(":version-catalog")
+
+// Develocity
+val isCI = System.getenv("CI") != null // adjust to your CI provider
+
+develocity {
+    server = "https://develocity-staging.eclipse.org"
+    projectId = "technology.edc"
+    buildScan {
+        uploadInBackground = !isCI
+        publishing.onlyIf { it.isAuthenticated }
+        obfuscation {
+            ipAddresses { addresses -> addresses.map { _ -> "0.0.0.0" } }
+        }
+    }
+}
+
+buildCache {
+    local {
+        isEnabled = true
+    }
+
+    remote(develocity.buildCache) {
+        isEnabled = true
+        isPush = isCI
+    }
+}
