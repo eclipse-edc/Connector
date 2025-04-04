@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.boot.system.TestFunctions.mutableListOf;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,7 +47,7 @@ public class BaseRuntimeTest {
     private final BaseRuntime runtime = new BaseRuntimeFixture(monitor, serviceLocator);
 
     @Test
-    void baseRuntime_shouldBoot() {
+    void shouldBoot() {
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf());
 
         runtime.boot(true);
@@ -55,7 +56,7 @@ public class BaseRuntimeTest {
     }
 
     @Test
-    void baseRuntime_shouldNotBootWithException() {
+    void shouldNotBootWithException() {
         var extension = spy(extensionThatRegisters(Object.class, "any"));
 
         doThrow(new EdcException("Failed to start base extension")).when(extension).start();
@@ -83,6 +84,22 @@ public class BaseRuntimeTest {
         runtime.boot(true);
 
         verify(serviceLocator).loadImplementors(ConfigurationExtension.class, false);
+    }
+
+    @Test
+    void shouldShutdownAllExtensions_whenOneThrowsException() {
+        ServiceExtension successful = mock();
+        ServiceExtension unsuccessful = mock();
+        doThrow(new RuntimeException("shutdown error")).when(unsuccessful).shutdown();
+
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean()))
+                .thenReturn(mutableListOf(successful, unsuccessful));
+
+        runtime.boot(true);
+
+        assertThatNoException().isThrownBy(runtime::shutdown);
+        verify(successful).shutdown();
+        verify(unsuccessful).shutdown();
     }
 
     @NotNull
