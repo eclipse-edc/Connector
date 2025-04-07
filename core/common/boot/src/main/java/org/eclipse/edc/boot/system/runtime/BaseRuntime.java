@@ -120,15 +120,19 @@ public class BaseRuntime {
     }
 
     /**
-     * Hook that is called when a runtime is shutdown (e.g. after a CTRL-C command on a command line). It is highly advisable to
-     * forward this signal to all extensions through their {@link ServiceExtension#shutdown()} callback.
+     * Hook that is called when a runtime gets stopped (e.g. after a CTRL-C on a command line). Takes care to signal
+     * shutdown to all the extensions in reverse order to the boot.
      */
     public void shutdown() {
-        var iter = serviceExtensions.listIterator(serviceExtensions.size());
-        while (iter.hasPrevious()) {
-            var extension = iter.previous();
-            extension.shutdown();
-            monitor.debug("Shutdown " + extension.name());
+        var iterator = serviceExtensions.listIterator(serviceExtensions.size());
+        while (iterator.hasPrevious()) {
+            var extension = iterator.previous();
+            try {
+                monitor.debug("Shutdown " + extension.name());
+                extension.shutdown();
+            } catch (Throwable e) {
+                monitor.severe("Error while shutting down extension %s (%s)".formatted(extension.name(), extension.getClass().getSimpleName()), e);
+            }
         }
         monitor.info("Shutdown complete");
     }
