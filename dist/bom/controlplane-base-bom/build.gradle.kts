@@ -24,6 +24,7 @@ dependencies {
     api(project(":core:common:boot"))
     api(project(":core:common:connector-core"))
     api(project(":core:common:edr-store-core"))
+    api(project(":core:common:runtime-core"))
     api(project(":core:common:token-core"))
     api(project(":core:control-plane:control-plane-core"))
     api(project(":core:data-plane-selector:data-plane-selector-core"))

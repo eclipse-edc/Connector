@@ -15,7 +15,6 @@
 
 plugins {
     `java-library`
-    `maven-publish`
 }
 
 dependencies {
@@ -25,20 +24,15 @@ dependencies {
     api(project(":spi:common:keys-spi"))
     api(project(":spi:common:participant-spi"))
     api(project(":spi:common:policy-engine-spi"))
-    api(project(":spi:common:transaction-spi"))
     api(project(":spi:common:transaction-datasource-spi"))
     api(project(":spi:common:transform-spi"))
     api(project(":spi:common:validator-spi"))
 
     implementation(project(":core:common:lib:http-lib"))
-    implementation(project(":core:common:lib:json-lib"))
     implementation(project(":core:common:lib:keys-lib"))
     implementation(project(":core:common:lib:policy-engine-lib"))
-    implementation(project(":core:common:lib:query-lib"))
     implementation(project(":core:common:lib:state-machine-lib"))
-    implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":core:common:lib:validator-lib"))
 
     implementation(libs.bouncyCastle.bcpkixJdk18on)
     implementation(libs.nimbus.jwt)
@@ -46,7 +40,6 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
-    testImplementation(libs.mockserver.netty)
 }
 
 

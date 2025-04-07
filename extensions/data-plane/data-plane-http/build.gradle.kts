@@ -20,11 +20,11 @@ dependencies {
     api(project(":spi:common:http-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
     api(project(":spi:data-plane:data-plane-http-spi"))
-    implementation(project(":core:common:connector-core"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:data-plane:data-plane-util"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:runtime-core"))
     testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.restAssured)

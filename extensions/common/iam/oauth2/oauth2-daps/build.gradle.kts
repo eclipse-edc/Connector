@@ -21,6 +21,7 @@ dependencies {
     api(project(":spi:common:oauth2-spi"))
 
     testImplementation(project(":core:common:connector-core"))
+    testImplementation(project(":core:common:runtime-core"))
     testImplementation(project(":core:common:token-core"))
     testImplementation(project(":extensions:common:iam:oauth2:oauth2-core"))
     testImplementation(project(":core:common:junit"))

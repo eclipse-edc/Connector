@@ -54,6 +54,7 @@ class RemoteDataPlaneSelectorServiceTest {
     @RegisterExtension
     public final RuntimeExtension client = new RuntimePerMethodExtension(new EmbeddedRuntime("client",
             ":core:common:connector-core",
+            ":core:common:runtime-core",
             ":extensions:common:http")
             .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "web.http.port", String.valueOf(getFreePort()),
@@ -69,6 +70,7 @@ class RemoteDataPlaneSelectorServiceTest {
             ":extensions:common:api:control-api-configuration",
             ":extensions:common:api:api-core",
             ":core:common:connector-core",
+            ":core:common:runtime-core",
             ":extensions:common:http")
             .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "web.http.port", String.valueOf(getFreePort()),

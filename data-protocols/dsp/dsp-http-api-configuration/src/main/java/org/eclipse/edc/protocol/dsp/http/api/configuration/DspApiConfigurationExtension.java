@@ -125,7 +125,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
         var dspWebhookAddress = ofNullable(callbackAddress).orElseGet(() -> format("http://%s:%s%s", hostname.get(), portMapping.port(), portMapping.path()));
 
-
         var v2024Path = dspWebhookAddress + (wellKnownPathEnabled ? "" : V_2024_1_PATH);
 
         protocolWebhookRegistry.registerWebhook(DATASPACE_PROTOCOL_HTTP, () -> dspWebhookAddress);
@@ -137,13 +136,11 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
         webService.registerResource(ApiContext.PROTOCOL, new ObjectMapperProvider(typeManager, JSON_LD));
 
-
         registerV08Transformers();
         registerV2024Transformers();
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08);
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1);
     }
-
 
     @Override
     public void prepare() {
@@ -179,7 +176,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer(dspNamespace));
     }
-
 
     private void registerV08Transformers() {
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());

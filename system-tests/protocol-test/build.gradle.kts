@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     testImplementation(project(":data-protocols:dsp:dsp-http-spi"))
-    testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":spi:common:json-ld-spi"))
     testImplementation(project(":core:common:lib:json-ld-lib"))
