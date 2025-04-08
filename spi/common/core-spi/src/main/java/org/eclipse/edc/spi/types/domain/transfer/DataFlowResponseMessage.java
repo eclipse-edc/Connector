@@ -28,12 +28,17 @@ public class DataFlowResponseMessage {
     public static final String DATA_FLOW_RESPONSE_MESSAGE_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";
 
     private DataAddress dataAddress;
+    private boolean provisioning;
 
     private DataFlowResponseMessage() {
     }
 
     public DataAddress getDataAddress() {
         return dataAddress;
+    }
+
+    public boolean isProvisioning() {
+        return provisioning;
     }
 
     public static class Builder {
@@ -48,13 +53,18 @@ public class DataFlowResponseMessage {
             return new Builder();
         }
 
+        public DataFlowResponseMessage build() {
+            return response;
+        }
+
         public Builder dataAddress(DataAddress dataAddress) {
             response.dataAddress = dataAddress;
             return this;
         }
 
-        public DataFlowResponseMessage build() {
-            return response;
+        public Builder provisioning(boolean provisioningNeeded) {
+            response.provisioning = provisioningNeeded;
+            return this;
         }
     }
 }

@@ -18,12 +18,13 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
- * A Response for {@link DataFlowManager#start} operation
+ * A Response for {@link DataFlowManager#start} and {@link DataFlowManager#provision} operation
  */
 public class DataFlowResponse {
 
     private DataAddress dataAddress;
     private String dataPlaneId;
+    private boolean provisioning;
 
     private DataFlowResponse() {
     }
@@ -34,6 +35,10 @@ public class DataFlowResponse {
 
     public String getDataPlaneId() {
         return dataPlaneId;
+    }
+
+    public boolean isProvisioning() {
+        return provisioning;
     }
 
     public static class Builder {
@@ -55,6 +60,11 @@ public class DataFlowResponse {
 
         public Builder dataPlaneId(String dataPlaneId) {
             response.dataPlaneId = dataPlaneId;
+            return this;
+        }
+
+        public Builder provisioning(boolean provisioning) {
+            response.provisioning = provisioning;
             return this;
         }
 
