@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,11 +12,12 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess;
+package org.eclipse.edc.connector.dataplane.spi.port;
 
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 /**
@@ -42,4 +43,12 @@ public interface TransferProcessApiClient {
      */
     Result<Void> failed(DataFlowStartMessage request, String reason);
 
+    /**
+     * Mark the TransferProcess as provisioned.
+     *
+     * @param id transfer process id.
+     * @param newAddress the new address defined by the provisioning.
+     * @return the result.
+     */
+    Result<Void> provisioned(String id, DataAddress newAddress);
 }

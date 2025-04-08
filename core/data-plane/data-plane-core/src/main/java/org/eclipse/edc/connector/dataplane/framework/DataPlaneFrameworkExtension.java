@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.framework;
 
-import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceRegistryImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
@@ -22,6 +21,8 @@ import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
@@ -117,6 +118,8 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     private DataPlaneAuthorizationService authorizationService;
     @Inject
     private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
+    @Inject
+    private ProvisionerManager provisionerManager;
 
     @Override
     public String name() {
@@ -148,6 +151,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .runtimeId(context.getRuntimeId())
                 .flowLeaseConfiguration(flowLeaseConfiguration)
                 .resourceDefinitionGeneratorManager(resourceDefinitionGeneratorManager)
+                .provisionerManager(provisionerManager)
                 .build();
 
         context.registerService(DataPlaneManager.class, dataPlaneManager);

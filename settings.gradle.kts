@@ -283,7 +283,6 @@ include(":spi:control-plane:control-plane-spi")
 include(":spi:control-plane:policy-spi")
 include(":spi:control-plane:transfer-spi")
 include(":spi:control-plane:secrets-spi")
-include(":spi:control-plane:control-plane-api-client-spi")
 include(":spi:control-plane:protocol-version-spi")
 
 

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.framework.manager;
 
-import org.eclipse.edc.connector.controlplane.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.framework.DataPlaneFrameworkExtension.FlowLeaseConfiguration;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
@@ -22,13 +21,16 @@ import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
@@ -53,6 +55,7 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
@@ -66,12 +69,13 @@ import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
  */
 public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, DataPlaneStore> implements DataPlaneManager {
 
-    private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
     private DataPlaneAuthorizationService authorizationService;
     private TransferServiceRegistry transferServiceRegistry;
     private TransferProcessApiClient transferProcessClient;
     private String runtimeId;
     private FlowLeaseConfiguration flowLeaseConfiguration = new FlowLeaseConfiguration();
+    private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
+    private ProvisionerManager provisionerManager;
 
     private DataPlaneManagerImpl() {
 
@@ -105,15 +109,17 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .build();
 
         var resources = resourceDefinitionGeneratorManager.generateConsumerResourceDefinition(dataFlow);
-        dataFlow.transitionToProvisioning(resources);
+        if (resources.isEmpty()) {
+            dataFlow.transitToNotified();
+        } else {
+            dataFlow.transitionToProvisioning(resources);
+        }
 
         store.save(dataFlow);
 
-        var newDestination = resources.stream().findFirst()
-                .map(ProvisionResourceDefinition::getDataAddress)
-                .orElse(null);
-
-        return Result.success(DataFlowResponseMessage.Builder.newInstance().dataAddress(newDestination).build());
+        return Result.success(DataFlowResponseMessage.Builder.newInstance()
+                .provisioning(!resources.isEmpty())
+                .build());
     }
 
     @Override
@@ -187,6 +193,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         Supplier<Criterion> danglingTransfer = () -> new Criterion("updatedAt", "<", clock.millis() - flowLeaseConfiguration.abandonTime());
 
         return builder
+                .processor(processDataFlowInState(PROVISIONING, this::processProvisioning))
                 .processor(processDataFlowInState(STARTED, this::updateFlowLease, ownedByThisRuntime, flowLeaseNeedsToBeUpdated))
                 .processor(processDataFlowInState(STARTED, this::restartFlow, ownedByAnotherRuntime, danglingTransfer))
                 .processor(processDataFlowInState(RECEIVED, this::processReceived))
@@ -269,6 +276,22 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return success(DataFlowResponseMessage.Builder.newInstance()
                 .dataAddress(null)
                 .build());
+    }
+
+    private boolean processProvisioning(DataFlow dataFlow) {
+
+        provisionerManager.provision(dataFlow.getResourceDefinitions())
+                .thenAccept(results -> {
+                    var newAddress = results.stream().map(AbstractResult::getContent)
+                            .map(ProvisionedResource::getDataAddress)
+                            .filter(Objects::nonNull)
+                            .findFirst().orElse(null);
+                    dataFlow.transitionToProvisioned();
+                    update(dataFlow);
+                    transferProcessClient.provisioned(dataFlow.getId(), newAddress);
+                });
+
+        return true;
     }
 
     private boolean processReceived(DataFlow dataFlow) {
@@ -399,6 +422,11 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         public Builder resourceDefinitionGeneratorManager(ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager) {
             manager.resourceDefinitionGeneratorManager = resourceDefinitionGeneratorManager;
+            return this;
+        }
+
+        public Builder provisionerManager(ProvisionerManager provisionerManager) {
+            manager.provisionerManager = provisionerManager;
             return this;
         }
     }

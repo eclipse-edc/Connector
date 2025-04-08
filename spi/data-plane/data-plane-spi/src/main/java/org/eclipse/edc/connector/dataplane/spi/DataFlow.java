@@ -34,6 +34,7 @@ import java.util.UUID;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
@@ -53,7 +54,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     private Map<String, String> properties = new HashMap<>();
     private TransferType transferType;
     private String runtimeId;
-    private List<ProvisionResourceDefinition> resourceDefinitions = new ArrayList<>();
+    private final List<ProvisionResourceDefinition> resourceDefinitions = new ArrayList<>();
 
     @Override
     public DataFlow copy() {
@@ -63,7 +64,8 @@ public class DataFlow extends StatefulEntity<DataFlow> {
                 .callbackAddress(callbackAddress)
                 .properties(properties)
                 .transferType(getTransferType())
-                .runtimeId(runtimeId);
+                .runtimeId(runtimeId)
+                .resourceDefinitions(resourceDefinitions);
 
         return copy(builder);
     }
@@ -152,6 +154,10 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         return resourceDefinitions;
     }
 
+    public void transitionToProvisioned() {
+        transitionTo(PROVISIONED.code());
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends StatefulEntity.Builder<DataFlow, Builder> {
 
@@ -207,6 +213,11 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
         public Builder runtimeId(String runtimeId) {
             entity.runtimeId = runtimeId;
+            return this;
+        }
+
+        public Builder resourceDefinitions(List<ProvisionResourceDefinition> resourceDefinitions) {
+            entity.resourceDefinitions.addAll(resourceDefinitions);
             return this;
         }
     }
