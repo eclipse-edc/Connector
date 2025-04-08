@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.policy.model.Policy;
@@ -33,7 +32,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
@@ -58,41 +56,12 @@ public class DspTransferApi2025EndToEndTest {
     private static final int PROTOCOL_PORT = Ports.getFreePort();
 
     @RegisterExtension
-    static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime(
-            "runtime",
-            Map.of(
-                    "web.http.protocol.path", "/protocol",
-                    "web.http.protocol.port", String.valueOf(PROTOCOL_PORT)
-            ),
+    static RuntimeExtension runtime = new RuntimePerClassExtension(Dsp2025Runtime.createRuntimeWith(
+            PROTOCOL_PORT,
             ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-api",
             ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform",
-            ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-2025",
-            ":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025",
-            ":data-protocols:dsp:dsp-http-api-configuration",
-            ":data-protocols:dsp:dsp-http-core",
-            ":extensions:common:iam:iam-mock",
-            ":core:control-plane:control-plane-aggregate-services",
-            ":core:control-plane:control-plane-core",
-            ":extensions:common:http"
+            ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-2025"
     ));
-
-    private static ContractNegotiation createNegotiationWithAgreement(String contractId) {
-        return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString()).counterPartyId("any").counterPartyAddress("any").protocol("any").state(ContractNegotiationStates.REQUESTED.code())
-                .correlationId(UUID.randomUUID().toString())
-                .contractOffer(ContractOffer.Builder.newInstance()
-                        .id(UUID.randomUUID().toString()).assetId(UUID.randomUUID().toString())
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
-                .contractAgreement(ContractAgreement.Builder.newInstance()
-                        .id(contractId)
-                        .providerId("any")
-                        .consumerId("any")
-                        .assetId("any")
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
-                .build();
-    }
 
     @ParameterizedTest
     @ArgumentsSource(ProtocolVersionContextProvider.class)
@@ -194,6 +163,24 @@ public class DspTransferApi2025EndToEndTest {
                 .body("reason[0]", equalTo("Unauthorized."))
                 .body("'@context'", equalTo(context));
 
+    }
+
+    private ContractNegotiation createNegotiationWithAgreement(String contractId) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).counterPartyId("any").counterPartyAddress("any").protocol("any").state(ContractNegotiationStates.REQUESTED.code())
+                .correlationId(UUID.randomUUID().toString())
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id(UUID.randomUUID().toString()).assetId(UUID.randomUUID().toString())
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
+                .contractAgreement(ContractAgreement.Builder.newInstance()
+                        .id(contractId)
+                        .providerId("any")
+                        .consumerId("any")
+                        .assetId("any")
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
+                .build();
     }
 
 }

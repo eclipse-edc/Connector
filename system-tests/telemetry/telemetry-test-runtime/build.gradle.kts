@@ -17,20 +17,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":core:common:token-core"))
-    implementation(project(":core:common:edr-store-core"))
-    implementation(project(":core:common:connector-core"))
-    implementation(project(":core:control-plane:control-plane-core"))
-    implementation(project(":data-protocols:dsp"))
-    implementation(project(":extensions:common:api:api-observability"))
-    implementation(project(":extensions:common:http"))
+    implementation(project(":dist:bom:controlplane-base-bom"))
     implementation(project(":extensions:common:iam:iam-mock"))
-    implementation(project(":extensions:common:json-ld"))
-    implementation(project(":extensions:common:api:control-api-configuration"))
-    implementation(project(":extensions:control-plane:api:management-api"))
-    implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
-
-    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
     implementation(project(":extensions:common:metrics:micrometer-core"))
     implementation(project(":extensions:common:http:jersey-micrometer"))

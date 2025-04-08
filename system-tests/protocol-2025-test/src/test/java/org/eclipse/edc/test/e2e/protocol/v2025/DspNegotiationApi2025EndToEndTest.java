@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.policy.model.Policy;
@@ -28,7 +27,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
@@ -56,22 +54,11 @@ public class DspNegotiationApi2025EndToEndTest {
     private static final int PROTOCOL_PORT = Ports.getFreePort();
 
     @RegisterExtension
-    static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime(
-            "runtime",
-            Map.of(
-                    "web.http.protocol.path", "/protocol",
-                    "web.http.protocol.port", String.valueOf(PROTOCOL_PORT)
-            ),
+    static RuntimeExtension runtime = new RuntimePerClassExtension(Dsp2025Runtime.createRuntimeWith(
+            PROTOCOL_PORT,
             ":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-api",
             ":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform",
-            ":data-protocols:dsp:dsp-negotiation:dsp-negotiation-2025",
-            ":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025",
-            ":data-protocols:dsp:dsp-http-api-configuration",
-            ":data-protocols:dsp:dsp-http-core",
-            ":extensions:common:iam:iam-mock",
-            ":core:control-plane:control-plane-aggregate-services",
-            ":core:control-plane:control-plane-core",
-            ":extensions:common:http"
+            ":data-protocols:dsp:dsp-negotiation:dsp-negotiation-2025"
     ));
 
     @ParameterizedTest

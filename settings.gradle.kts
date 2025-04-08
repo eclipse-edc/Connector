@@ -43,9 +43,10 @@ dependencyResolutionManagement {
 // EDC core modules --------------------------------------------------------------------------------
 include(":core:common:boot")
 include(":core:common:connector-core")
-include(":core:common:junit")
-include(":core:common:token-core")
 include(":core:common:edr-store-core")
+include(":core:common:junit")
+include(":core:common:runtime-core")
+include(":core:common:token-core")
 
 include(":core:common:lib:api-lib")
 include(":core:common:lib:boot-lib")

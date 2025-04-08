@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.policy.model.Policy;
@@ -33,7 +32,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
@@ -58,20 +56,10 @@ public class DspCatalogApiEndToEndTest {
     private static final int PROTOCOL_PORT = Ports.getFreePort();
 
     @RegisterExtension
-    static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime(
-            "runtime",
-            Map.of(
-                    "web.http.protocol.path", "/protocol",
-                    "web.http.protocol.port", String.valueOf(PROTOCOL_PORT)
-            ),
+    static RuntimeExtension runtime = new RuntimePerClassExtension(DspRuntime.createRuntimeWith(
+            PROTOCOL_PORT,
             ":data-protocols:dsp:dsp-catalog:dsp-catalog-http-api",
-            ":data-protocols:dsp:dsp-catalog:dsp-catalog-transform",
-            ":data-protocols:dsp:dsp-http-api-configuration",
-            ":data-protocols:dsp:dsp-http-core",
-            ":extensions:common:iam:iam-mock",
-            ":core:control-plane:control-plane-aggregate-services",
-            ":core:control-plane:control-plane-core",
-            ":extensions:common:http"
+            ":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"
     ));
     
     @ParameterizedTest

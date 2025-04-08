@@ -27,6 +27,7 @@ dependencies {
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 
+    testImplementation(project(":core:common:runtime-core"))
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:control-plane:control-plane-catalog"))
     testImplementation(project(":core:control-plane:control-plane-contract"))

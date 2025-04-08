@@ -51,6 +51,7 @@ public class DataplaneSelectorControlApiEndToEndTest {
     private final RuntimeExtension dataPlaneSelector = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "data-plane-selector",
             ":core:common:connector-core",
+            ":core:common:runtime-core",
             ":core:data-plane-selector:data-plane-selector-core",
             ":extensions:common:http",
             ":extensions:common:api:api-core",

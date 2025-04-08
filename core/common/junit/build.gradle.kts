@@ -31,9 +31,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.mockito.core)
     implementation(libs.junit.jupiter.api)
-
     implementation(libs.testcontainers.junit)
-    testImplementation(project(":core:common:connector-core"))
 
     testImplementation(project(":core:common:lib:boot-lib"))
 }

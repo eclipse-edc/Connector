@@ -15,47 +15,47 @@
 package org.eclipse.edc.connector.dataplane.selector.api.v3;
 
 import io.restassured.specification.RequestSpecification;
+import jakarta.json.Json;
 import jakarta.json.JsonArray;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.junit.annotations.ApiTest;
-import org.eclipse.edc.junit.extensions.RuntimeExtension;
-import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
-import java.util.Map;
 
 import static io.restassured.RestAssured.given;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstance;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ApiTest
-@ExtendWith(RuntimePerMethodExtension.class)
-public class DataPlaneSelectorApiV3ControllerTest {
+public class DataPlaneSelectorApiV3ControllerTest extends RestControllerTestBase {
 
-    private final int port = 8181;
-
-    @BeforeEach
-    void setup(RuntimeExtension extension) {
-        extension.setConfiguration(Map.of(
-                "web.http.port", String.valueOf(getFreePort()),
-                "web.http.management.port", String.valueOf(port),
-                "web.http.management.path", "/management"
-        ));
-    }
+    private final DataPlaneSelectorService selectionService = mock();
+    private final TypeTransformerRegistry transformerRegistry = mock();
 
     @Test
-    void getAll(DataPlaneInstanceStore store) {
+    void getAll() {
         var list = List.of(createInstance("test-id1"), createInstance("test-id2"), createInstance("test-id3"));
-        list.forEach(store::save);
+        when(selectionService.getAll()).thenReturn(ServiceResult.success(list));
+        when(transformerRegistry.transform(isA(DataPlaneInstance.class), eq(JsonObject.class)))
+                .thenAnswer(i -> Result.success(jsonInstance(i.getArgument(0, DataPlaneInstance.class).getId())));
 
         var array = baseRequest()
                 .get()
                 .then()
+                .log().ifValidationFails()
                 .statusCode(200)
                 .extract().body().as(JsonArray.class);
 
@@ -66,9 +66,12 @@ public class DataPlaneSelectorApiV3ControllerTest {
 
     @Test
     void getAll_noneExist() {
+        when(selectionService.getAll()).thenReturn(ServiceResult.success(emptyList()));
+
         var array = baseRequest()
                 .get()
                 .then()
+                .log().ifValidationFails()
                 .statusCode(200)
                 .extract().body().as(JsonArray.class);
 
@@ -78,8 +81,16 @@ public class DataPlaneSelectorApiV3ControllerTest {
     protected RequestSpecification baseRequest() {
         return given()
                 .port(port)
-                .baseUri("http://localhost:" + port + "/management/v3/dataplanes")
+                .basePath("/v3/dataplanes")
                 .when();
     }
 
+    private JsonObject jsonInstance(String id) {
+        return Json.createObjectBuilder().add(ID, id).build();
+    }
+
+    @Override
+    protected Object controller() {
+        return new DataplaneSelectorApiV3Controller(selectionService, transformerRegistry);
+    }
 }

@@ -34,7 +34,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
-import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -67,7 +66,6 @@ import java.util.UUID;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -94,7 +92,6 @@ public class TransferProcessEventDispatchTest {
                     "edc.transfer.send.retry.base-delay.ms", "0"
             ))
             .registerServiceMock(TransferWaitStrategy.class, () -> 1)
-            .registerServiceMock(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(newSingleThreadExecutor()))
             .registerServiceMock(IdentityService.class, mock())
             .registerServiceMock(ProtocolWebhookRegistry.class, PROTOCOL_WEBHOOK_REGISTRY)
             .registerServiceMock(PolicyArchive.class, mock())
@@ -106,7 +103,6 @@ public class TransferProcessEventDispatchTest {
 
     @BeforeEach
     void setup() {
-        // setup
         when(PROTOCOL_WEBHOOK_REGISTRY.resolve(any())).thenReturn(() -> "http://dummy");
     }
 
