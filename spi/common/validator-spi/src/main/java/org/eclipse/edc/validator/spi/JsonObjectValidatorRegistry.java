@@ -22,17 +22,19 @@ import jakarta.json.JsonObject;
 public interface JsonObjectValidatorRegistry {
 
     /**
-     * Register a json object validator for a specific JsonLD @type
+     * Register a json object validator for a specific JsonLD @type. Validators are <em>composed</em>, that means adding multiple
+     * validators for the same type will simply execute them in sequence and return the compounded result.
      *
-     * @param type the JsonLD @type string.
+     * @param type      the JsonLD @type string.
      * @param validator the validator to be executed.
      */
     void register(String type, Validator<JsonObject> validator);
 
     /**
-     * Choose the correct validator and executes it on the input object
+     * Choose the correct validators and executes it on the input object. If multiple validators exist for a type, <em>all</em>
+     * of them are executed and their results merged.
      *
-     * @param type the JsonLD @type string.
+     * @param type  the JsonLD @type string.
      * @param input the input object.
      * @return the result of the validation.
      */
