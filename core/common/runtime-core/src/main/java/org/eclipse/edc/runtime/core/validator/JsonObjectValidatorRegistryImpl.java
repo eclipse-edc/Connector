@@ -20,20 +20,24 @@ import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class JsonObjectValidatorRegistryImpl implements JsonObjectValidatorRegistry {
 
-    private final Map<String, Validator<JsonObject>> validators = new HashMap<>();
+    private final Map<String, Set<Validator<JsonObject>>> validators = new HashMap<>();
 
     @Override
     public void register(String type, Validator<JsonObject> validator) {
-        this.validators.put(type, validator);
+        this.validators.computeIfAbsent(type, t -> new HashSet<>()).add(validator);
     }
 
     @Override
     public ValidationResult validate(String type, JsonObject input) {
-        return validators.getOrDefault(type, (i) -> ValidationResult.success())
-                .validate(input);
+        return validators.getOrDefault(type, Set.of((i) -> ValidationResult.success()))
+                .stream()
+                .map(v -> v.validate(input))
+                .reduce(ValidationResult.success(), ValidationResult::merge);
     }
 }
