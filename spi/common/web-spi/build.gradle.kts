@@ -22,7 +22,7 @@ dependencies {
     api(project(":spi:common:validator-spi"))
 
     api(libs.jakarta.rsApi)
-    api(libs.jetty.jakarta.servlet.api)
+    api(libs.jakarta.servlet.api)
 }
 
 

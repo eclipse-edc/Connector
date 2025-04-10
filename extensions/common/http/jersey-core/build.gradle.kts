@@ -23,7 +23,6 @@ dependencies {
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
 
     implementation(libs.bundles.jersey.core)
-    implementation(libs.jetty.jakarta.servlet.api)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:connector-core"))

@@ -21,6 +21,9 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
 
+    implementation(libs.jetty.http)
+    implementation(libs.jetty.server)
+    implementation(libs.jetty.ee10.servlet)
     implementation(libs.jetty.websocket)
 
     testImplementation(libs.restAssured)
