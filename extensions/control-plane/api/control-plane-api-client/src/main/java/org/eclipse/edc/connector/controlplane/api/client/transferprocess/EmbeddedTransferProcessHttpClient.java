@@ -24,9 +24,10 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
+import java.util.function.Function;
+
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 
-import java.util.function.Function;
 
 public class EmbeddedTransferProcessHttpClient implements TransferProcessApiClient {
 

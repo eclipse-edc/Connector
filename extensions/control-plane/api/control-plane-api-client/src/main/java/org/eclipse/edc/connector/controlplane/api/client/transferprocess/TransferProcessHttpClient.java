@@ -29,9 +29,9 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
-import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
-
 import java.net.URI;
+
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 
 /**
  * Implementation of {@link TransferProcessApiClient} which talks to the Control Plane Transfer Process via HTTP APIs
